@@ -1,0 +1,62 @@
+{
+  "EmbeddingModel": {
+    "Id": "182cc3a1-e3a4-43fb-a82c-255f216a53e3",
+    "Name": "Embedding",
+    "Icon": "\uF0B2",
+    "Order": 4,
+    "Models": {
+      "AllMiniLML6V2": {
+        "Id": "2b03b9a0-4cec-4e44-a46a-ab3ba4829b43",
+        "Name": "all-MiniLM-L6-v2",
+        "Description": "This is an embedding model. It maps sentences and paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.",
+        "DocsUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+        "Models": {
+          "AllMiniLML6V2": {
+            "Id": "all-MiniLM-L6-v2",
+            "Name": "all-MiniLM-L6-v2",
+            "Url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+            "Description": "This is an embedding model executed on the CPU or GPU",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
+            "Size": 90636722,
+            "License": "apache-2.0",
+            "FileFilter": [
+              "vocab.txt",
+              "onnx/model.onnx"
+            ]
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/blob/main/README.md"
+      },
+      "AllMiniLML12V2": {
+        "Id": "2b03b9a0-4cec-4e44-a46a-ab3ba4828b43",
+        "Name": "all-MiniLM-L12-v2",
+        "Description": "This is an embedding model. It maps sentences and paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.",
+        "DocsUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2",
+        "Models": {
+          "AllMiniLML12V2": {
+            "Id": "all-MiniLM-L12-v2",
+            "Name": "all-MiniLM-L12-v2",
+            "Url": "https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2",
+            "Description": "This is an embedding model executed on the CPU or GPU",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
+            "Size": 133358075,
+            "License": "apache-2.0",
+            "FileFilter": [
+              "vocab.txt",
+              "onnx/model.onnx"
+            ]
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2/blob/main/README.md"
+      }
+    }
+  }
+}

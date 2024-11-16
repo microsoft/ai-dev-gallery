@@ -1,0 +1,176 @@
+{
+  "ImageModels": {
+    "Id": "6e8fabfc-202e-43cd-9e9a-f1986b66e15a",
+    "Name": "Image",
+    "Icon": "\uE8B9",
+    "Order": 4,
+    "Models": {
+      "FasterRCNN": {
+        "Id": "fasterrcnn",
+        "Name": "Faster RCNN",
+        "Description": "State-of-the-art object detection networks depend on region proposal algorithms to hypothesize object locations.",
+        "DocsUrl": "https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/faster-rcnn",
+        "Models": {
+          "FasterRCNN10": {
+            "Id": "e5f19608-a190-4bf8-9627-2d5b618f9b48",
+            "Name": "Faster RCNN 10",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx",
+            "Description": "FPN",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm":  true,
+            "Size": 167330019,
+            "License": "mit"
+          },
+          "FasterRCNN12": {
+            "Id": "6cb3c36d-0b4a-4b03-8856-acc8b255c66b",
+            "Name": "Faster RCNN 12",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-12.onnx",
+            "Description": "FPN-fp32",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 176713194,
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/faster-rcnn/README.md"
+      },
+      "ResNet": {
+        "Id": "resnet",
+        "Name": "ResNet",
+        "Description": "ResNet models for image classification.",
+        "DocsUrl": "https://github.com/onnx/models/tree/main/validated/vision/classification/resnet",
+        "Models": {
+          "ResNet101V17": {
+            "Id": "46a9eae1-bd82-4628-b6c7-371e31763e87",
+            "Name": "ResNet101 v1 7",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/resnet/model/resnet101-v1-7.onnx",
+            "Description": "ResNet101 v1 7",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 178914043,
+            "License": "apache-2.0"
+          },
+          "ResNet50V17": {
+            "Id": "b7caf372-478f-4177-9559-799df5dfe702",
+            "Name": "ResNet50 v1 7",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/resnet/model/resnet50-v1-7.onnx",
+            "Description": "ResNet50 v1 7",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 102583340,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/classification/resnet/README.md"
+      },
+      "MobileNet": {
+        "Id": "mobilenet",
+        "Name": "MobileNetv2",
+        "Description": "MobileNet models perform image classification - they take images as input and classify the major object in the image into a set of pre-defined classes.",
+        "DocsUrl": "https://github.com/onnx/models/blob/main/validated/vision/classification/mobilenet",
+        "Models": {
+          "MobileNetV210": {
+            "Id": "46a9eae1-bd82-4628-b6c7-372e31763e83",
+            "Name": "MobileNet v2 1.0",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/mobilenet/model/mobilenetv2-10.onnx",
+            "Description": "MobileNet v2 1.0",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm":  true,
+            "Size": 13963115,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/classification/mobilenet/README.md"
+      },
+      "SqueezeNet": {
+        "Id": "squeezenet",
+        "Name": "SqueezeNet11",
+        "Description": "SqueezeNet models perform image classification - they take images as input and classify the major object in the image into a set of pre-defined classes.",
+        "DocsUrl": "https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet",
+        "Models": {
+          "MobileNetV210": {
+            "Id": "46b0eae1-bd82-4628-b6c7-372e31763e83",
+            "Name": "SqueezeNet 1.1",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx",
+            "Description": "SqueezeNet 1.1",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 4956208,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet/README.md"
+      },
+      "HRNetPose": {
+        "Id": "hrnetpose",
+        "Name": "HRNetPose",
+        "Description": "HRNet performs pose estimation in high-resolution representations.",
+        "DocsUrl": "https://huggingface.co/qualcomm/HRNetPose",
+        "Models": {
+          "HRNetPoseQualcomm": {
+            "Id": "b7cae312-478f-1177-9559-709df5dfe703",
+            "Name": "HRNet Pose",
+            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/hrnet_pose/hrnet_pose.onnx",
+            "Description": "HRNet Pose",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
+            "Size": 114232171,
+            "License": "bsd-3-clause"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/HRNetPose/blob/main/README.md"
+      },
+      "ESRGAN": {
+        "Id": "esrgan",
+        "Name": "ESRGAN",
+        "Description": "ESRGAN is a machine learning model that upscales an image with minimal loss in quality.",
+        "DocsUrl": "https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/esrgan",
+        "Models": {
+          "ESRGANQualcomm": {
+            "Id": "b7dfe312-478f-1177-9559-709df5dfe703",
+            "Name": "ESRGAN",
+            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/esrgan/esrgan.onnx",
+            "Description": "ESRGAN",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 67162397,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/esrgan/README.md"
+      },
+      "FFNet": {
+        "Id": "ffnet",
+        "Name": "FFNet",
+        "Description": "A  fuss-free network that segments street scene images with per-pixel classes like road, sidewalk, and pedestrian. Trained on the Cityscapes dataset.",
+        "DocsUrl": "https://huggingface.co/qualcomm/HRNetPose",
+        "Models": {
+          "FFNet78s": {
+            "Id": "b7cae302-478f-1177-9559-709df5dfe703",
+            "Name": "FFNet 78s",
+            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_78s/ffnet_78s.onnx",
+            "Description": "FFNet 78s",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 109974166,
+            "License": "bsd-3-clause"
+          },
+          "FFNet54s": {
+            "Id": "b7cae311-478f-1177-9559-709df5dfe703",
+            "Name": "FFNet 54s",
+            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_54s/ffnet_54s.onnx",
+            "Description": "FFNet 54s",
+            "HardwareAccelerator": [ "CPU", "DML" ],
+            "SupportedOnQualcomm": true,
+            "Size": 72188137,
+            "License": "bsd-3-clause"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/FFNet-78S/blob/main/README.md"
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AIDevGallery.Models"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:utils="using:AIDevGallery.Utils"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <!--  These styles can be referenced to create a consistent SettingsPage layout  -->
+        <!--  Spacing between cards  -->
+        <x:Double x:Key="SettingsCardSpacing">4</x:Double>
+        <!--  Style (inc. the correct spacing) of a section header  -->
+        <Style
+            x:Key="SettingsSectionHeaderTextBlockStyle"
+            BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+            TargetType="TextBlock">
+            <Style.Setters>
+                <Setter Property="Margin" Value="1,30,0,6" />
+            </Style.Setters>
+        </Style>
+    </Page.Resources>
+    <Grid>
+        <ScrollViewer>
+            <Grid Padding="36,24,36,36">
+                <StackPanel
+                    MaxWidth="1000"
+                    HorizontalAlignment="Stretch"
+                    Spacing="{StaticResource SettingsCardSpacing}">
+                    <!--<StackPanel.ChildrenTransitions>
+                        <EntranceThemeTransition FromVerticalOffset="50" />
+                        <RepositionThemeTransition IsStaggeringEnabled="False" />
+                    </StackPanel.ChildrenTransitions>-->
+                    <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Model management" />
+                    <toolkit:SettingsExpander
+                        x:Name="ModelsExpander"
+                        AutomationProperties.AccessibilityView="Raw"
+                        Description="Models are cached on your disk"
+                        Header="Model cache"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xF158;}"
+                        ItemsSource="{x:Bind cachedModels, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <HyperlinkButton
+                                x:Name="FolderPathTxt"
+                                VerticalAlignment="Center"
+                                AutomationProperties.LocalizedControlType="Button"
+                                Click="FolderPathTxt_Click"
+                                FontSize="12" />
+                            <Button
+                                Click="ChangeCacheFolder_Click"
+                                Content="Change"
+                                Visibility="Visible" />
+                        </StackPanel>
+                        <toolkit:SettingsExpander.ItemsHeader>
+                            <toolkit:SettingsCard
+                                x:Name="totalCacheCard"
+                                BorderThickness="0"
+                                CornerRadius="0"
+                                Header="Total cache">
+                                <StackPanel
+                                    Margin="0,0,16,0"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <TextBlock
+                                        x:Name="TotalCacheTxt"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <Button
+                                        AutomationProperties.Name="Clear cache"
+                                        Click="ClearCache_Click"
+                                        Content="Clear"
+                                        ToolTipService.ToolTip="Clear cache" />
+                                </StackPanel>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.ItemsHeader>
+                        <toolkit:SettingsExpander.ItemTemplate>
+                            <DataTemplate x:DataType="models:CachedModel">
+                                <toolkit:SettingsCard Header="{x:Bind Details.Name}">
+                                    <toolkit:SettingsCard.Description>
+                                        <HyperlinkButton Click="ModelFolder_Click" Tag="{x:Bind}">
+                                            <TextBlock Text="{x:Bind Path}" TextWrapping="Wrap" />
+                                        </HyperlinkButton>
+                                    </toolkit:SettingsCard.Description>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind utils:AppUtils.FileSizeToString(ModelSize)}" />
+                                        <Button
+                                            AutomationProperties.Name="Delete"
+                                            Click="DeleteModel_Click"
+                                            Content="{ui:FontIcon Glyph=&#xE74D;,
+                                                                  FontSize=14}"
+                                            Style="{StaticResource SubtleButtonStyle}"
+                                            Tag="{x:Bind}"
+                                            ToolTipService.ToolTip="Delete" />
+                                    </StackPanel>
+                                </toolkit:SettingsCard>
+                            </DataTemplate>
+                        </toolkit:SettingsExpander.ItemTemplate>
+                    </toolkit:SettingsExpander>
+                    <!--<TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
+                    <toolkit:SettingsCard Header="Send optional diagnostic data" HeaderIcon="{ui:FontIcon Glyph=&#xE9D9;}">
+                        <toolkit:SettingsCard.Description>
+                            <TextBlock FontSize="12" >
+                                <Run Text="Help Microsoft improve your Application experience and fix problems more quickly by sending us additional diagnostic data." />
+                            </TextBlock>
+                        </toolkit:SettingsCard.Description>
+                        <ToggleSwitch x:Name="DiagnosticDataToggleSwitch" Toggled="DiagnosticDataToggleSwitch_Toggled" />
+                    </toolkit:SettingsCard>
+                    <TextBlock TextWrapping="Wrap" FontSize="10"> 
+                        <Bold> You're sending required diagnostic data. </Bold>
+                        <Run> As a part of using this app, your app sends Microsoft a limited set of data that is necessary to keep this app secure, up to date, and working as expected. </Run>
+                    </TextBlock>-->
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="About" />
+                    <toolkit:SettingsExpander
+                        AutomationProperties.AccessibilityView="Raw"
+                        Description="© 2024. All rights reserved."
+                        Header="AI Dev Gallery"
+                        HeaderIcon="{ui:BitmapIcon Source=ms-appx:///Assets/AIGallery.ico}"
+                        IsExpanded="True">
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True">
+                            <Run>Version</Run>
+                            <Run x:Name="VersionTextRun" />
+                        </TextBlock>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard HorizontalContentAlignment="Left" ContentAlignment="Left">
+                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical">
+                                    <HyperlinkButton Content="Source Code" NavigateUri="https://github.com/microsoft/AI-Dev-Gallery" />
+                                    <HyperlinkButton Content="Privacy policy" NavigateUri="https://privacy.microsoft.com/privacystatement" />
+                                    <HyperlinkButton Content="Code of Conduct" NavigateUri="https://github.com/microsoft/AI-Dev-Gallery/blob/main/CODE_OF_CONDUCT.md" />
+                                </StackPanel>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+        <ContentDialog
+            x:Name="ProgressDialog"
+            Title="Moving files"
+            CloseButtonCommand="{x:Bind endMoveCommand}"
+            CloseButtonText="Cancel">
+            <StackPanel>
+                <TextBlock Margin="0,10" Text="Please wait..." />
+                <TextBlock Text="Don't close the window." />
+                <ProgressRing
+                    x:Name="MoveProgress"
+                    Width="80"
+                    Height="80"
+                    Margin="0,30,0,0"
+                    HorizontalAlignment="Center"
+                    IsIndeterminate="True" />
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

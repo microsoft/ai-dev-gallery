@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'rel/v**'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-configuration: [ 'Release' ]
+        dotnet-arch: ['x64' ] # TODO: enable when Microsoft.ML.OnnxRuntimeGenAI 0.4.0 ships to NuGet.org, 'arm64' ]
+    name: Build MSIX - win-${{ matrix.dotnet-arch }}
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Install NBGV tool
+      run: dotnet tool install --tool-path . nbgv
+    - name: Set Version
+      run: ./nbgv cloud -c
+    - name: Update Package Manifest Version
+      run: |
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
+        [xml]$manifest = get-content $manifestPath
+        $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
+        $manifest.Save($manifestPath)
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+    - name: Build
+      run: |
+        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true
+    - name: Upload Artifact - MSIX
+      uses: actions/upload-artifact@v4
+      with:
+        name: MSIX-${{ matrix.dotnet-arch }}
+        path: ${{ github.workspace }}/AIDevGallery/AppPackages/*_${{ matrix.dotnet-arch }}_Test/AIDevGallery_*_${{ matrix.dotnet-arch }}.msix
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-configuration: [ 'Release' ]
+        dotnet-arch: ['x64' ] # TODO: enable when Microsoft.ML.OnnxRuntimeGenAI 0.4.0 ships to NuGet.org, 'arm64' ]
+    name: Test - win-${{ matrix.dotnet-arch }}
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Install NBGV tool
+      run: dotnet tool install --tool-path . nbgv
+    - name: Set Version
+      run: ./nbgv cloud -c
+    - name: Update Package Manifest Version
+      run: |
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
+        [xml]$manifest = get-content $manifestPath
+        $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
+        $manifest.Save($manifestPath)
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+    - name: Build
+      run: |
+        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Setup Dev Tools
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: Build Tests
+      run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Run Tests
+      run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\Release\net9.0-windows10.0.22621.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.6.1\build\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+    - name: Publish Test Results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.dotnet-arch }}
+        path: TestResults

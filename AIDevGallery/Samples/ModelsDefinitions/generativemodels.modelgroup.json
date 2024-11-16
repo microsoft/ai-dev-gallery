@@ -1,0 +1,31 @@
+{
+  "GenerativeModels": {
+    "Id": "generative-models",
+    "Name": "Generative",
+    "Icon": "\uEFA9",
+    "Order": 3,
+    "Models": {
+      "StableDiffusion": {
+        "Id": "36a56423-1be1-4577-9437-3e68435cada2",
+        "Name": "Stable Diffusion",
+        "Description": "A model for generating images from text",
+        "DocsUrl": "https://huggingface.co/CompVis/stable-diffusion-v1-4",
+        "Models": {
+          "StableDiffusionv15": {
+            "Id": "d8f85c5a-4c77-42d1-a781-eb5d251f85f8",
+            "Name": "Stable Diffusion v1.4",
+            "Url": "https://huggingface.co/CompVis/stable-diffusion-v1-4/tree/onnx",
+            "Description": "Stable Diffusion v1.4 will generate images from text",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "Size": 5483859392,
+            "License": "creativeml-openrail-m"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/CompVis/stable-diffusion-v1-4/blob/onnx/README.md"
+      }
+    }
+  }
+}

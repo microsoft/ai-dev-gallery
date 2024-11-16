@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AIDevGallery (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AIDevGallery (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "AudioModels": {
+    "Id": "audio-models",
+    "Name": "Audio",
+    "Icon": "\uEFA9",
+    "Order": 6,
+    "Models": {
+      "Whisper": {
+        "Id": "4d74058e-1d03-450a-84db-52f55bbadbde",
+        "Name": "Whisper",
+        "Description": "A model for audio transcription and translation",
+        "ReadmeUrl": "https://huggingface.co/openai/whisper-small/blob/main/README.md",
+        "DocsUrl": "https://huggingface.co/openai/whisper-small",
+        "Models": {
+          "WhisperTinyCPU": {
+            "Id": "0b20f792-b81f-441a-a356-8e9206c48c47",
+            "Name": "Whisper Tiny CPU",
+            "Url": "https://huggingface.co/khmyznikov/whisper-int8-cpu-ort.onnx/blob/main/whisper_tiny_int8_cpu_ort_1.18.0.onnx",
+            "Description": "Whisper Tiny Int8 CPU",
+            "Icon": "OpenAI.png",
+            "HardwareAccelerator": "CPU",
+            "Size": 77356551,
+            "License": "apache-2.0"
+          },
+          "WhisperSmallCPU": {
+            "Id": "9f37a99d-718a-405c-a0a7-fe5bb09b7a09",
+            "Name": "Whisper Small CPU",
+            "Url": "https://huggingface.co/khmyznikov/whisper-int8-cpu-ort.onnx/blob/main/whisper_small_int8_cpu_ort_1.18.0.onnx",
+            "Description": "Whisper Small Int8 CPU",
+            "Icon": "OpenAI.png",
+            "HardwareAccelerator": "CPU",
+            "Size": 443051369,
+            "License": "apache-2.0"
+          },
+          "WhisperMediumCPU": {
+            "Id": "35fe8e42-de03-4cbf-b8ee-7686d0777a06",
+            "Name": "Whisper Medium CPU",
+            "Url": "https://huggingface.co/khmyznikov/whisper-int8-cpu-ort.onnx/blob/main/whisper_medium_int8_cpu_ort_1.18.0.onnx",
+            "Description": "Whisper Medium Int8 CPU",
+            "Icon": "OpenAI.png",
+            "HardwareAccelerator": "CPU",
+            "Size": 1366071277,
+            "License": "apache-2.0"
+          }
+        }
+      }
+    }
+  }
+}
+  

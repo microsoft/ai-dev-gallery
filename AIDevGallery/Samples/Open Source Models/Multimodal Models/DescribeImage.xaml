@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Samples.OpenSourceModels.MultimodalModels.DescribeImage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Samples.OpenSourceModels.MultimodalModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button
+            x:Name="SelectImageButton"
+            HorizontalAlignment="Center"
+            Click="Button_Click"
+            ToolTipService.ToolTip="Select Image"
+            AutomationProperties.Name="Select Image">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ProgressRing
+                    x:Name="Loader"
+                    Width="12"
+                    Height="12"
+                    IsActive="false"
+                    Visibility="Collapsed" />
+                <TextBlock x:Name="ButtonTextBlock" Text="Select image" />
+            </StackPanel>
+        </Button>
+        <Image
+            x:Name="DefaultImage"
+            Grid.Row="1"
+            MaxHeight="300"
+            HorizontalAlignment="Center"
+            Stretch="Uniform" />
+        <ScrollViewer
+            Grid.Row="2"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <TextBlock
+                x:Name="Output"
+                IsTextSelectionEnabled="True"
+                TextWrapping="WrapWholeWords" />
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -1,0 +1,14 @@
+{
+    "links": [
+      {
+        "url": "https://example.com",
+        "title": "Example",
+        "description": "This is an example link"
+      },
+      {
+        "url": "https://anotherexample.com",
+        "title": "Another Example",
+        "description": "This is another example link"
+      }
+    ]
+  }

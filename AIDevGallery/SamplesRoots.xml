@@ -1,0 +1,7 @@
+
+<linker>
+	<assembly fullname="AIDevGallery">
+		<namespace fullname="AIDevGallery.Samples" />
+		<namespace fullname="AIDevGallery.Telemetry" />
+	</assembly>
+</linker>

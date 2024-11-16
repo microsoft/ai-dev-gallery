@@ -1,0 +1,81 @@
+trigger:
+  branches:
+    include:
+      - main
+pr: none
+
+resources:
+  repositories:
+  - repository: 1esPipelines
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+parameters:
+  - name: dotnet_configurations
+    type: object
+    default:
+      - Release
+  - name: platforms
+    type: object
+    default:
+    - dotnet_platform: x64
+      hostArchitecture: amd64
+      pool_name: Azure-Pipelines-1ESPT-ExDShared
+      pool_image: windows-latest
+    - dotnet_platform: arm64
+      hostArchitecture: arm64
+      pool_name: aidevgallery_arm64_pool_v2
+      pool_image: aidevgallery_arm64_1es_img
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: Azure-Pipelines-1ESPT-ExDShared
+        image: windows-latest
+        os: windows
+    stages:
+    - stage: Build
+      jobs:
+      - ${{ each dotnet_config in parameters.dotnet_configurations }}:
+        - ${{ each platform in parameters.platforms }}:
+          - job: Build_${{ dotnet_config }}_${{ platform.dotnet_platform }}
+            pool:
+              name: ${{ platform.pool_name }}
+              image: ${{ platform.pool_image }}
+              os: windows
+              hostArchitecture: ${{ platform.hostArchitecture }}
+            steps:
+              - checkout: self
+              - task: UseDotNet@2
+                displayName: Setup .NET 9
+                condition: ${{ eq(platform.hostArchitecture, 'amd64') }}
+                inputs:
+                  version: 9.0.x
+              - task: PowerShell@2
+                displayName: Setup .NET 9
+                condition: ${{ eq(platform.hostArchitecture, 'arm64') }}
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
+                    ./dotnet-install.ps1 -Version latest -Architecture arm64 -Channel 9.0 -InstallDir $(Agent.ToolsDirectory)/dotnet
+                    echo '##vso[task.prependpath]$(Agent.ToolsDirectory)/dotnet'
+                    echo '##vso[task.setvariable variable=DOTNET_ROOT;isOutput=false;issecret=false;]$(Agent.ToolsDirectory)/dotnet'
+              - script: move /Y $(Build.SourcesDirectory)\.pipelines\release-nuget.config $(Build.SourcesDirectory)\nuget.config
+                displayName: Add release package source
+              - task: NuGetAuthenticate@1
+              - task: DotNetCoreCLI@2
+                inputs:
+                  command: custom
+                  custom: tool
+                  arguments: install --tool-path . nbgv
+                displayName: Install NBGV tool
+              - script: nbgv cloud -c
+                displayName: Set Version
+              - template: ./.pipelines/templates/build.yaml@self
+                parameters:
+                  dotnet_configuration: ${{ dotnet_config }}
+                  dotnet_platform: ${{ platform.dotnet_platform }}

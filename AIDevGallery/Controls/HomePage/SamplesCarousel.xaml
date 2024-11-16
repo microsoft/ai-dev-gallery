@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="AIDevGallery.Controls.SamplesCarousel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    Loaded="UserControl_Loaded"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <animations:ImplicitAnimationSet x:Name="ShowTransitions">
+            <animations:OffsetAnimation
+                EasingMode="EaseOut"
+                From="0,24,0"
+                To="0"
+                Duration="0:0:0.4" />
+            <animations:OpacityAnimation
+                EasingMode="EaseOut"
+                From="0"
+                To="1"
+                Duration="0:0:0.2" />
+        </animations:ImplicitAnimationSet>
+        <animations:ImplicitAnimationSet x:Name="HideTransitions">
+            <animations:OffsetAnimation
+                EasingMode="EaseOut"
+                From="0"
+                To="0,24,0"
+                Duration="0:0:0.2" />
+            <animations:OpacityAnimation
+                EasingMode="EaseOut"
+                From="1"
+                To="0"
+                Duration="0:0:0.1" />
+        </animations:ImplicitAnimationSet>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <SelectorBar
+            x:Name="FilterBar"
+            HorizontalAlignment="Center"
+            Style="{StaticResource TokenViewSelectorBarStyle}">
+            <SelectorBarItem
+                x:Name="RecentItem"
+                Icon="Clock"
+                Tag="Recent"
+                Text="Recent"
+                Visibility="Collapsed" />
+            <SelectorBarItem
+                Icon="{ui:FontIcon Glyph=&#xF2B7;}"
+                Tag="Language"
+                Text="Language" />
+            <SelectorBarItem
+                Icon="{ui:FontIcon Glyph=&#xE91B;}"
+                Tag="Image"
+                Text="Image" />
+            <SelectorBarItem
+                Icon="{ui:FontIcon Glyph=&#xEC4F;}"
+                Tag="Audio"
+                Text="Audio" />
+        </SelectorBar>
+        <toolkit:SwitchPresenter
+            Grid.Row="1"
+            Height="300"
+            Value="{Binding SelectedItem.Tag, ElementName=FilterBar}">
+            <toolkit:Case Value="Recent">
+                <local:TileGallery animations:Implicit.HideAnimations="{StaticResource HideTransitions}" animations:Implicit.ShowAnimations="{StaticResource ShowTransitions}">
+                    <local:TileGallery.Source>
+                        <local:SampleRow
+                            x:Name="RecentItemsRow"
+                            HorizontalAlignment="Center"
+                            ShowCategory="False" />
+                    </local:TileGallery.Source>
+                </local:TileGallery>
+            </toolkit:Case>
+            <toolkit:Case Value="Language">
+                <local:TileGallery animations:Implicit.HideAnimations="{StaticResource HideTransitions}" animations:Implicit.ShowAnimations="{StaticResource ShowTransitions}">
+                    <local:TileGallery.Source>
+                        <local:SampleRow
+                            CategoryDescription="Generate , summarize, translate text and use semantic understanding using local models"
+                            CategoryHeader="Read. Write. Rewrite."
+                            CategoryImageUrl="ms-appx:///Assets/Wallpaper2.png">
+                            <local:SampleRow.SampleCards>
+                                <local:RowSample
+                                    Title="Summarize"
+                                    Description="An AI-powered text summarizer that condenses long documents into concise summaries"
+                                    Icon="{ui:FontIcon Glyph=&#xF168;}"
+                                    Id="summarize-text" />
+                                <local:RowSample
+                                    Title="RAG"
+                                    Description="Combines document retrieval with language models to generate accurate and context-aware responses"
+                                    Icon="{ui:FontIcon Glyph=&#xE773;}"
+                                    Id="retrieval-augmented-generation" />
+                                <local:RowSample
+                                    Title="Semantic Search"
+                                    Description="Understanding the meaning and context of queries rather than relying on keyword matching"
+                                    Icon="{ui:FontIcon Glyph=&#xE721;}"
+                                    Id="semantic-search" />
+                            </local:SampleRow.SampleCards>
+                        </local:SampleRow>
+                    </local:TileGallery.Source>
+                </local:TileGallery>
+            </toolkit:Case>
+            <toolkit:Case Value="Image">
+                <local:TileGallery animations:Implicit.HideAnimations="{StaticResource HideTransitions}" animations:Implicit.ShowAnimations="{StaticResource ShowTransitions}">
+                    <local:TileGallery.Source>
+                        <local:SampleRow
+                            CategoryDescription="These are your recent samples that you have viewed"
+                            CategoryHeader="Image"
+                            CategoryImageUrl="ms-appx:///Assets/Wallpaper3.png">
+                            <local:SampleRow.SampleCards>
+                                <local:RowSample
+                                    Title="Generate image"
+                                    Description="Creates high-quality visuals based on descriptive text prompts"
+                                    Icon="{ui:FontIcon Glyph=&#xE8B9;}"
+                                    Id="generate-image" />
+                                <local:RowSample
+                                    Title="Describe image"
+                                    Description="Generate detailed textual descriptions of images by analyzing visual content."
+                                    Icon="{ui:FontIcon Glyph=&#xE71D;}"
+                                    Id="describe-image" />
+                                <local:RowSample
+                                    Title="Detect objects"
+                                    Description="Detect and identify objects within images, providing precise locations and labels"
+                                    Icon="{ui:FontIcon Glyph=&#xE7C5;}"
+                                    Id="detect-objects" />
+                            </local:SampleRow.SampleCards>
+                        </local:SampleRow>
+                    </local:TileGallery.Source>
+                </local:TileGallery>
+            </toolkit:Case>
+            <toolkit:Case Value="Audio">
+                <local:TileGallery animations:Implicit.HideAnimations="{StaticResource HideTransitions}" animations:Implicit.ShowAnimations="{StaticResource ShowTransitions}">
+                    <local:TileGallery.Source>
+                        <local:SampleRow
+                            CategoryDescription="These are your recent samples that you have viewed"
+                            CategoryHeader="Audio"
+                            CategoryImageUrl="ms-appx:///Assets/Wallpaper2.png">
+                            <local:SampleRow.SampleCards>
+                                <local:RowSample
+                                    Title="Transcribe"
+                                    Description="Convert spoken language into accurate written text."
+                                    Icon="{ui:FontIcon Glyph=&#xEFA9;}"
+                                    Id="transcribe-audio" />
+                                <local:RowSample
+                                    Title="Live transcribe"
+                                    Description="Convert spoken language into text in real-time."
+                                    Icon="{ui:FontIcon Glyph=&#xED1F;}"
+                                    Id="transcribe-live-audio" />
+                                <local:RowSample
+                                    Title="Translate"
+                                    Description="Convert spoken language from one language to another."
+                                    Icon="{ui:FontIcon Glyph=&#xE8C1;}"
+                                    Id="translate-audio" />
+                            </local:SampleRow.SampleCards>
+                        </local:SampleRow>
+                    </local:TileGallery.Source>
+                </local:TileGallery>
+            </toolkit:Case>
+        </toolkit:SwitchPresenter>
+    </Grid>
+</UserControl>

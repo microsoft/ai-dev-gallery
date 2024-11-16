@@ -1,0 +1,59 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Samples.SharedCode">
+    <Style TargetType="local:SmartPasteForm">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:SmartPasteForm">
+                    <Grid RowSpacing="24">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ItemsRepeater
+                            HorizontalAlignment="Left"
+                            IsTabStop="False"
+                            ItemsSource="{Binding Fields, RelativeSource={RelativeSource TemplatedParent}}"
+                            TabFocusNavigation="Local">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout
+                                    MaximumRowsOrColumns="2"
+                                    MinColumnSpacing="16"
+                                    MinRowSpacing="12" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBox
+                                        Width="264"
+                                        Header="{Binding Label}"
+                                        Text="{Binding Value, Mode=TwoWay}" />
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                        <StackPanel
+                            Grid.Row="1"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Name="SmartPasteButton"
+                                AutomationProperties.Name="Paste unstructured address string"
+                                Click="SmartPasteButton_Click"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <FontIcon FontSize="16" Glyph="&#xE77F;" />
+                                    <TextBlock Text="Paste" />
+                                </StackPanel>
+                            </Button>
+                            <ProgressRing
+                                x:Name="PasteProgressRing"
+                                Width="24"
+                                Height="24"
+                                IsActive="False" />
+                        </StackPanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

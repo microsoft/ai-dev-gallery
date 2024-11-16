@@ -1,0 +1,4 @@
+﻿// DeviceUtils.cs
+DXGI.*
+IDXGIFactory2
+DXGI_ERROR_NOT_FOUND

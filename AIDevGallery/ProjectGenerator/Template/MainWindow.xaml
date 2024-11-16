@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="$safeprojectname$.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:$safeprojectname$"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="$projectname$"
+    mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid>
+        <Frame x:Name="RootFrame" Padding="16" />
+        <Grid
+            x:Name="ProgressRingGrid"
+            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Visibility="Visible">
+            <ProgressRing
+                Width="50"
+                Height="50"
+                IsActive="True" />
+        </Grid>
+    </Grid>
+</Window>

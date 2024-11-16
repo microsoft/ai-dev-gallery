@@ -1,0 +1,154 @@
+{
+  "LanguageModels": {
+    "Id": "615e2f1c-ea95-4c34-9d22-b1e8574fe476",
+    "Name": "Language",
+    "Icon": "\uE8BD",
+    "Order": 1,
+    "Models": {
+      "Phi3_5Mini": {
+        "Id": "phi3_5mini",
+        "Name": "Phi 3.5 Mini",
+        "Description": "Phi-3 Mini is a 3.8B parameter, lightweight, state-of-the-art open model built upon datasets used for Phi-3 - synthetic data and filtered publicly available websites - with a focus on very high-quality, reasoning dense data.",
+        "DocsUrl": "https://huggingface.co/microsoft/Phi-3.5-mini-instruct",
+        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3.5-mini-instruct-onnx/blob/main/README.md",
+        "Models": {
+          "Phi3_5MiniCPUACC4": {
+            "Id": "438d93c3-675e-4585-bc97-a9fa327e965d",
+            "Name": "Phi 3.5 Mini CPU ACC4",
+            "Url": "https://huggingface.co/microsoft/Phi-3.5-mini-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-awq-block-128-acc-level-4",
+            "Description": "Phi 3.5 Mini CPU Accuracy Level 4",
+            "HardwareAccelerator": "CPU",
+            "Size": 2782186064,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "3.8B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          }
+        }
+      },
+      "Phi3Mini": {
+        "Id": "phi3mini",
+        "Name": "Phi 3 Mini",
+        "Description": "Phi-3 Mini is a 3.8B parameter, lightweight, state-of-the-art open language model",
+        "DocsUrl": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx",
+        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx/blob/main/README.md",
+        "Models": {
+          "Phi3MiniDirectML": {
+            "Id": "202d6eaa-7a65-4d40-b2c3-53f1ef12a4eb",
+            "Name": "Phi 3 Mini DirectML",
+            "Url": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx/tree/main/directml/directml-int4-awq-block-128",
+            "Description": "Phi 3 Mini DirectML will run on your GPU",
+            "HardwareAccelerator": "DML",
+            "Size": 2135763374,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "3.8B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          },
+          "Phi3MiniCPU": {
+            "Id": "69252aa6-0137-4bc0-b2d3-ef8d72f5380e",
+            "Name": "Phi 3 Mini CPU",
+            "Url": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-rtn-block-32",
+            "Description": "Phi 3 Mini CPU Accuracy Level 1 - recommended for accuracy",
+            "HardwareAccelerator": "CPU",
+            "Size": 2725445062,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "3.8B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          },
+          "Phi3MiniCPUACC4": {
+            "Id": "f4eba19c-b93f-4a4b-b003-0cfd1322ebad",
+            "Name": "Phi 3 Mini CPU ACC4",
+            "Url": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4",
+            "Description": "Phi 3 Mini CPU Accuracy Level 4 - recommended for performance",
+            "HardwareAccelerator": "CPU",
+            "Size": 2725453459,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "3.8B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          }
+        }
+      },
+      "Phi3Medium": {
+        "Id": "phi3medium",
+        "Name": "Phi 3 Medium",
+        "Description": "Phi-3 Medium is a 14B parameter, lightweight, state-of-the-art open language model",
+        "DocsUrl": "https://huggingface.co/microsoft/Phi-3-medium-4k-instruct-onnx-directml",
+        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-medium-4k-instruct/blob/main/README.md",
+        "Models": {
+          "Phi3MediumDirectML": {
+            "Id": "40c41664-eb68-47ae-b0e4-aa831a882ddf",
+            "Name": "Phi 3 Medium DirectML",
+            "Url": "https://huggingface.co/microsoft/Phi-3-medium-4k-instruct-onnx-directml/tree/main/directml-int4-awq-block-128",
+            "Description": "Phi 3 Medium DirectML will run on your GPU",
+            "HardwareAccelerator": "DML",
+            "Size": 7502551089,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "14B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          },
+          "Phi3MediumCPUACC4": {
+            "Id": "93a8383b-5a8e-46fd-9243-d41d0555c678",
+            "Name": "Phi 3 Medium CPU ACC4",
+            "Url": "https://huggingface.co/microsoft/Phi-3-medium-4k-instruct-onnx-cpu/tree/main/cpu-int4-rtn-block-32-acc-level-4",
+            "Description": "Phi 3 Medium CPU Accuracy Level 4",
+            "HardwareAccelerator": "CPU",
+            "Size": 9285363032,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "14B",
+            "PromptTemplate": "Phi3",
+            "License": "mit"
+          }
+        }
+      },
+      "Mistral": {
+        "Id": "mistral",
+        "Name": "Mistral",
+        "Description": "The Mistral-7B-Instruct-v0.2 Large Language Model (LLM) is an instruct fine-tuned version of the Mistral-7B-v0.2",
+        "DocsUrl": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX",
+        "ReadmeUrl": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/blob/main/README.md",
+        "Models": {
+          "Mistral7BInstruct02DirectML": {
+            "Id": "860cfb52-51e8-4bec-9aba-66763c622931",
+            "Name": "Mistral 7B Instruct 0.2 DirectML",
+            "Url": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/tree/main/onnx/directml/mistralai_Mistral-7B-Instruct-v0.2",
+            "Description": "Mistral 7B Instruct 0.2 DirectML will run on your GPU",
+            "HardwareAccelerator": "DML",
+            "Size": 3971040210,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "7B",
+            "PromptTemplate": "Mistral",
+            "License": "apache-2.0"
+          },
+          "Mistral7BInstruct02CPU": {
+            "Id": "4e01634b-1c52-4e59-9f0f-0994a0730548",
+            "Name": "Mistral 7B Instruct 0.2 CPU",
+            "Url": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/tree/main/onnx/cpu_and_mobile/mistral-7b-instruct-v0.2-cpu-int4-rtn-block-32",
+            "Description": "Mistral 7B Instruct 0.2 CPU Accuracy Level 1 - recommended for accuracy",
+            "HardwareAccelerator": "CPU",
+            "Size": 4988642920,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "7B",
+            "PromptTemplate": "Mistral",
+            "License": "apache-2.0"
+          },
+          "Mistral7BInstruct02CPUACC4": {
+            "Id": "5f0d4fc6-c339-4820-a78f-9346b6bbdc76",
+            "Name": "Mistral 7B Instruct 0.2 CPU ACC4",
+            "Url": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/tree/main/onnx/cpu_and_mobile/mistral-7b-instruct-v0.2-cpu-int4-rtn-block-32-acc-level-4",
+            "Description": "Mistral 7B Instruct 0.2 CPU Accuracy Level 4 - recommended for performance",
+            "HardwareAccelerator": "CPU",
+            "Size": 4988651315,
+            "Icon": "Microsoft.svg",
+            "ParameterSize": "7B",
+            "PromptTemplate": "Mistral",
+            "License": "apache-2.0"
+          }
+        }
+      }
+    }
+  }
+}

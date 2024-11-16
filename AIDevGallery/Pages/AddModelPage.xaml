@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.AddModelPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:utils="using:AIDevGallery.Utils"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <converters:EmptyStringToObjectConverter
+            x:Key="EmptyStringToObjectConverter"
+            EmptyValue="False"
+            NotEmptyValue="True" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid
+            Padding="0,64,0,32"
+            Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{StaticResource TitleTextBlockStyle}"
+                Text="Search models" />
+            <TextBlock
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Browse and download language models from Hugging Face." />
+
+            <Grid
+                Grid.Row="2"
+                MaxWidth="560"
+                ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="SearchTextBox"
+                    KeyDown="SearchTextBox_KeyDown"
+                    PlaceholderText="Search a language model.." />
+                <Button
+                    x:Name="SearchButton"
+                    Grid.Column="1"
+                    Height="32"
+                    AutomationProperties.Name="Search"
+                    Click="Button_Click"
+                    IsEnabled="{Binding ElementName=SearchTextBox, Path=Text, Converter={StaticResource EmptyStringToObjectConverter}}"
+                    Style="{StaticResource AccentButtonStyle}">
+                    <FontIcon FontSize="16" Glyph="&#xE721;" />
+                </Button>
+            </Grid>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Padding="24,0,24,0">
+            <ItemsRepeater
+                Grid.Row="1"
+                Margin="0,24,0,24"
+                ItemsSource="{x:Bind results}"
+                TabFocusNavigation="Local">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinColumnSpacing="16" MinRowSpacing="32" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="local:Result">
+                        <Grid
+                            Width="324"
+                            Height="286"
+                            Padding="24"
+                            RowSpacing="8"
+                            Style="{StaticResource CardGridStyle}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="56" />
+                                <RowDefinition Height="48" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock
+                                Grid.Row="1"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind SearchResult.Author}" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="{x:Bind SearchResult.Name}"
+                                TextWrapping="Wrap" />
+                            <StackPanel
+                                Grid.Row="3"
+                                Orientation="Horizontal"
+                                Spacing="8">
+                                <FontIcon
+                                    Margin="0,4,0,0"
+                                    VerticalAlignment="Top"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Glyph="&#xE7BA;"
+                                    ToolTipService.ToolTip="{x:Bind Details.Compatibility.CompatibilityIssueDescription}"
+                                    Visibility="{x:Bind VisibleWhenCompatibilityIssue}" />
+                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorsString(Details.HardwareAccelerators)}" />
+                                <TextBlock Text="{x:Bind utils:AppUtils.FileSizeToString(Details.Size)}" />
+                            </StackPanel>
+
+                            <!--<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
+                                <Run FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xEF40;" />
+                                <Run Text="{x:Bind SearchResult.HardwareAccelerator}" />
+                            </TextBlock>-->
+                            <StackPanel
+                                Grid.Row="4"
+                                Orientation="Horizontal"
+                                Spacing="24">
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
+                                    <Run
+                                        AutomationProperties.AccessibilityView="Raw"
+                                        FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                        Text="&#xE896;" />
+                                    <Run Text="{x:Bind SearchResult.Downloads}" />
+                                </TextBlock>
+
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
+                                    <Run
+                                        AutomationProperties.AccessibilityView="Raw"
+                                        FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                        Text="&#xEB51;" />
+                                    <Run Text="{x:Bind SearchResult.Likes}" />
+                                </TextBlock>
+                                <HyperlinkButton
+                                    Margin="0,-6,0,0"
+                                    AutomationProperties.Name="View license"
+                                    Click="Hyperlink_Click"
+                                    DataContext="{x:Bind}">
+                                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
+                                        <Run
+                                            AutomationProperties.AccessibilityView="Raw"
+                                            FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                            Text="&#xE8A5;" />
+                                        <Run Text="{x:Bind License.Name}" />
+                                    </TextBlock>
+                                </HyperlinkButton>
+                            </StackPanel>
+                            <Button
+                                Grid.Row="5"
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Stretch"
+                                Click="DownloadModelClicked"
+                                Content="Download"
+                                AutomationProperties.Name="{x:Bind SearchResult.Name}"
+                                AutomationProperties.HelpText="Download"
+                                DataContext="{x:Bind}"
+                                IsEnabled="{x:Bind IsModelDownloadable}"
+                                Visibility="{x:Bind local:AddModelPage.VisibleWhenNotDownloaded(State), Mode=OneWay}" />
+                            <Button
+                                Grid.Row="5"
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.Name="{x:Bind SearchResult.Name}"
+                                AutomationProperties.HelpText="Model Details"
+                                Click="ViewModelDetails"
+                                Content="Model details"
+                                DataContext="{x:Bind}"
+                                Visibility="{x:Bind local:AddModelPage.VisibleWhenDownloaded(State), Mode=OneWay}" />
+                            <TextBlock
+                                Grid.Row="6"
+                                Text="Downloading"
+                                Visibility="{x:Bind local:AddModelPage.VisibleWhenDownloading(State), Mode=OneWay}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        <ContentDialog
+            x:Name="DownloadDialog"
+            Title="Download model"
+            DefaultButton="Primary"
+            IsPrimaryButtonEnabled="{Binding ElementName=AgreeCheckBox, Path=IsChecked}"
+            PrimaryButtonText="Download"
+            SecondaryButtonText="Cancel">
+            <ContentDialog.Content>
+                <StackPanel MinWidth="360">
+                    <InfoBar
+                        x:Name="WarningInfoBar"
+                        Title="Model is not recommended"
+                        Margin="0,0,0,16"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Warning" />
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="You are about to download" />
+                        <Run x:Name="ModelNameTxt" FontWeight="SemiBold" />
+                        <Run Text="from " />
+                        <Run FontWeight="SemiBold" Text="Hugging Face." />
+                        <LineBreak /><Run Text="This model has not been tested with our samples and may or may not work." />
+                        <LineBreak />
+                        <LineBreak /><Run Text="License:" />
+                        <Hyperlink x:Name="ModelLicenseLink">
+                            <Run x:Name="ModelLicenseLabel" />
+                        </Hyperlink>
+                    </TextBlock>
+                    <CheckBox
+                        x:Name="AgreeCheckBox"
+                        Margin="0,16,0,0"
+                        Content="I have reviewed and agree with the license" />
+                </StackPanel>
+            </ContentDialog.Content>
+        </ContentDialog>
+    </Grid>
+</Page>

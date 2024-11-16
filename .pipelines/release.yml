@@ -1,0 +1,118 @@
+trigger:
+  branches:
+    include:
+      - rel/v*
+pr: none
+
+resources:
+  repositories:
+  - repository: 1esPipelines
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+parameters:
+  - name: platforms
+    type: object
+    default:
+    - dotnet_platform: x64
+      hostArchitecture: amd64
+      pool_name: Azure-Pipelines-1ESPT-ExDShared
+      pool_image: windows-latest
+    - dotnet_platform: arm64
+      hostArchitecture: arm64
+      pool_name: aidevgallery_arm64_pool_v2
+      pool_image: aidevgallery_arm64_1es_img
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: Azure-Pipelines-1ESPT-ExDShared
+        image: windows-latest
+        os: windows
+    stages:
+    - stage: Build
+      jobs:
+      - ${{ each platform in parameters.platforms }}:
+        - job: Build_${{ platform.dotnet_platform }}
+          pool:
+            name: ${{ platform.pool_name }}
+            image: ${{ platform.pool_image }}
+            os: windows
+            hostArchitecture: ${{ platform.hostArchitecture }}
+          steps:
+            - checkout: self
+            - task: UseDotNet@2
+              displayName: Setup .NET 9
+              condition: ${{ eq(platform.hostArchitecture, 'amd64') }}
+              inputs:
+                version: 9.0.x
+            - task: PowerShell@2
+              displayName: Setup .NET 9
+              condition: ${{ eq(platform.hostArchitecture, 'arm64') }}
+              inputs:
+                targetType: 'inline'
+                script: |
+                  Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile "./dotnet-install.ps1"
+                  ./dotnet-install.ps1 -Version latest -Architecture arm64 -Channel 9.0 -InstallDir $(Agent.ToolsDirectory)/dotnet
+                  echo '##vso[task.prependpath]$(Agent.ToolsDirectory)/dotnet'
+                  echo '##vso[task.setvariable variable=DOTNET_ROOT;isOutput=false;issecret=false;]$(Agent.ToolsDirectory)/dotnet'
+            - script: move /Y $(Build.SourcesDirectory)\.pipelines\release-nuget.config $(Build.SourcesDirectory)\nuget.config
+              displayName: Add release package source
+            - task: NuGetAuthenticate@1
+            - task: PowerShell@2
+              displayName: Replace Stubbed Files
+              inputs:
+                filePath: '.pipelines/Unstub.ps1'
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: custom
+                custom: tool
+                arguments: install --tool-path . nbgv
+              displayName: Install NBGV tool
+            - script: nbgv cloud -c
+              displayName: Set Version
+            - task: PowerShell@2
+              displayName: 'Replace Official AppxManifest'
+              inputs:
+                targetType: 'inline'
+                script: Copy-Item "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.Store.appxmanifest" -Destination "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.appxmanifest" -Force
+            - template: ./.pipelines/templates/build.yaml@self
+              parameters:
+                dotnet_configuration: Release
+                dotnet_platform: ${{ platform.dotnet_platform }}
+    - stage: Publish
+      dependsOn:
+        - Build
+      jobs:
+      - job: Publish
+        timeoutInMinutes: 360
+        templateContext:
+          type: releaseJob
+          isProduction: true
+          inputs:
+          - ${{ each platform in parameters.platforms }}:
+            - input: pipelineArtifact
+              artifactName: MSIX-${{ platform.dotnet_platform }}
+              targetPath: $(Pipeline.Workspace)
+        pool:
+          name: Azure-Pipelines-1ESPT-ExDShared
+          image: windows-latest
+          os: windows
+        steps:
+          - task: MS-RDX-MRO.windows-store-publish-dev.publish-task.store-publish@3
+            displayName: 'Publish Release StoreBroker Package'
+            inputs:
+              serviceEndpoint: 'AIDevGallery - StoreBroker'
+              appId: 9NZSH7JGHK7W
+              inputMethod: 'Packages'
+              sourceFolder: '$(Pipeline.Workspace)'
+              contents: '**/AIDevGallery_*.msix'
+              force: true
+              skipPolling: true
+              deletePackages: true
+              numberOfPackagesToKeep: 1
+              targetPublishMode: Manual
+              Visibility: Private
