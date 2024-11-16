@@ -25,8 +25,8 @@ parameters:
       pool_image: windows-latest
     - dotnet_platform: arm64
       hostArchitecture: arm64
-      pool_name: aidevgallery_arm64_pool_v2
-      pool_image: aidevgallery_arm64_1es_img
+      pool_name: wcrgallery_arm64_pool_v2
+      pool_image: wcrgallery_arm64_1es_img
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
