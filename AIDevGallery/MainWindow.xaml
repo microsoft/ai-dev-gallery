@@ -167,7 +167,10 @@
                                     Width="32"
                                     Height="32"
                                     IsActive="False" />
-                                <FontIcon FontSize="14" Glyph="&#xE896;" />
+                                <FontIcon
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    FontSize="14"
+                                    Glyph="&#xE896;" />
                             </Grid>
                         </Button.Content>
                         <Button.Flyout>
