@@ -30,6 +30,8 @@ namespace AIDevGallery.Utils
 
         public static async Task<ModelCacheStore> CreateForApp(string cacheDir, List<CachedModel>? models = null)
         {
+            ModelCacheStore? modelCacheStore = null;
+
             try
             {
                 if (models == null)
@@ -39,21 +41,22 @@ namespace AIDevGallery.Utils
                     {
                         var json = await File.ReadAllTextAsync(cacheFile);
 
-                        return new ModelCacheStore(cacheDir, JsonSerializer.Deserialize(json, AppDataSourceGenerationContext.Default.ListCachedModel));
+                        modelCacheStore = new ModelCacheStore(cacheDir, JsonSerializer.Deserialize(json, AppDataSourceGenerationContext.Default.ListCachedModel));
                     }
                 }
                 else
                 {
-                    ModelCacheStore modelCacheStore = new(cacheDir, models);
-                    await modelCacheStore.Save();
-                    return modelCacheStore;
+                    modelCacheStore = new(cacheDir, models);
                 }
             }
             catch
             {
             }
 
-            return new ModelCacheStore(cacheDir, null);
+            modelCacheStore ??= new ModelCacheStore(cacheDir, null);
+            await modelCacheStore.ValidateAndSave();
+
+            return modelCacheStore;
         }
 
         private async Task Save()
@@ -90,6 +93,21 @@ namespace AIDevGallery.Utils
         {
             _models.Clear();
             ModelsChanged?.Invoke(this);
+            await Save();
+        }
+
+        private async Task ValidateAndSave()
+        {
+            List<CachedModel> models = [.. _models];
+
+            foreach (var cachedModel in models)
+            {
+                if (!Path.Exists(cachedModel.Path))
+                {
+                    _models.Remove(cachedModel);
+                }
+            }
+
             await Save();
         }
     }
