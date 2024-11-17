@@ -368,11 +368,11 @@ namespace AIDevGallery.ProjectGenerator
 
             if (isMultiModel)
             {
-                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplates[0], sampleParams.CancellationToken)";
+                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplates[0], System.Threading.CancellationToken.None)";
             }
             else
             {
-                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplate, sampleParams.CancellationToken)";
+                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplate, System.Threading.CancellationToken.None)";
             }
         }
 
