@@ -75,5 +75,16 @@ namespace AIDevGallery.Controls
                 App.ModelCache.AddModelToDownloadQueue(downloadableModel.ModelDetails);
             }
         }
+
+        private void ClearHistory_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (DownloadableModel model in downloadProgresses.ToList())
+            {
+                if (model.Status is DownloadStatus.Completed or DownloadStatus.Canceled)
+                {
+                    downloadProgresses.Remove(model);
+                }
+            }
+        }
     }
 }
