@@ -71,7 +71,7 @@ namespace AIDevGallery
                     _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
                     break;
                 case "settings":
-                    Navigate(typeof(SettingsPage));
+                    Navigate(typeof(SettingsPage), obj);
                     break;
             }
         }
