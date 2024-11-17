@@ -17,10 +17,27 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <TextBlock
+            FontWeight="SemiBold"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
             Text="Downloads" />
+        <Button
+            HorizontalAlignment="Right"
+            AutomationProperties.Name="More options"
+            Content="{ui:FontIcon Glyph=&#xE712;,
+                                  FontSize=16}"
+            Style="{StaticResource SubtleButtonStyle}"
+            ToolTipService.ToolTip="More options">
+            <Button.Flyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Click="ClearHistory_Click" Text="Clear history" />
+                </MenuFlyout>
+            </Button.Flyout>
+        </Button>
         <ItemsRepeater
             Grid.Row="1"
             IsTabStop="False"

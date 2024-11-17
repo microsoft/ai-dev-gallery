@@ -21,8 +21,8 @@ parameters:
       pool_image: windows-latest
     - dotnet_platform: arm64
       hostArchitecture: arm64
-      pool_name: aidevgallery_arm64_pool_v2
-      pool_image: aidevgallery_arm64_1es_img
+      pool_name: wcrgallery_arm64_pool_v2
+      pool_image: wcrgallery_arm64_1es_img
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
@@ -106,7 +106,7 @@ extends:
             displayName: 'Publish Release StoreBroker Package'
             inputs:
               serviceEndpoint: 'AIDevGallery - StoreBroker'
-              appId: 9NZSH7JGHK7W
+              appId: 9N9PN1MM3BD5
               inputMethod: 'Packages'
               sourceFolder: '$(Pipeline.Workspace)'
               contents: '**/AIDevGallery_*.msix'
