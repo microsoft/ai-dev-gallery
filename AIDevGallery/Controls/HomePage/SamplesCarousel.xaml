@@ -49,19 +49,23 @@
             <SelectorBarItem
                 x:Name="RecentItem"
                 Icon="Clock"
+                Style="{StaticResource TokenSelectorBarItemStyle}"
                 Tag="Recent"
                 Text="Recent"
                 Visibility="Collapsed" />
             <SelectorBarItem
                 Icon="{ui:FontIcon Glyph=&#xF2B7;}"
+                Style="{StaticResource TokenSelectorBarItemStyle}"
                 Tag="Language"
                 Text="Language" />
             <SelectorBarItem
                 Icon="{ui:FontIcon Glyph=&#xE91B;}"
+                Style="{StaticResource TokenSelectorBarItemStyle}"
                 Tag="Image"
                 Text="Image" />
             <SelectorBarItem
                 Icon="{ui:FontIcon Glyph=&#xEC4F;}"
+                Style="{StaticResource TokenSelectorBarItemStyle}"
                 Tag="Audio"
                 Text="Audio" />
         </SelectorBar>

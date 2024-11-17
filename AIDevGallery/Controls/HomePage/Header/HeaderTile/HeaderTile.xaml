@@ -17,29 +17,23 @@
 
     <Style BasedOn="{StaticResource DefaultHeaderTileStyle}" TargetType="local:HeaderTile" />
     <Style x:Key="DefaultHeaderTileStyle" TargetType="local:HeaderTile">
-        <Setter Property="Width" Value="300" />
+        <Setter Property="Width" Value="420" />
         <Setter Property="UseSystemFocusVisuals" Value="True" />
         <Setter Property="UseLayoutRounding" Value="True" />
-        <Setter Property="Height" Value="160" />
+        <Setter Property="Height" Value="224" />
         <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="ui:VisualExtensions.Scale" Value="0.6" />
         <Setter Property="ui:VisualExtensions.NormalizedCenterPoint" Value="0.5, 0.5" />
         <Setter Property="ui:Effects.Shadow">
             <Setter.Value>
                 <media:AttachedCardShadow
-                    BlurRadius="12"
+                    BlurRadius="16"
                     CornerRadius="8"
-                    Opacity="0.2"
+                    Opacity="0.3"
                     Offset="0"
                     Color="#000000" />
             </Setter.Value>
         </Setter>
-        <!--<Setter Property="animations:Implicit.Animations">
-            <Setter.Value>
-                <animations:ImplicitAnimationSet>
-                    <animations:ScaleAnimation Duration="0:0:0.6" />
-                </animations:ImplicitAnimationSet>
-            </Setter.Value>
-        </Setter>-->
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:HeaderTile">
@@ -81,18 +75,14 @@
                                     Duration="0:0:0.6" />
                             </animations:Implicit.HideAnimations>
                             <TextBlock
-                                FontSize="12"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                 Text="{TemplateBinding Header}" />
                             <TextBlock
-                                FontSize="10"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{TemplateBinding Description}"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
-
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="SelectedStates">
                                 <VisualState x:Name="NotSelected" />

@@ -22,6 +22,8 @@ internal partial class AnimatedImage : UserControl
         set => SetValue(ImageUrlProperty, value);
     }
 
+    AnimationSet selectAnimation = [new OpacityAnimation() { From = 1, To = 0, Duration = TimeSpan.FromMilliseconds(400) }];
+
     public AnimatedImage()
     {
         this.InitializeComponent();
@@ -35,12 +37,21 @@ internal partial class AnimatedImage : UserControl
     private void OnIsImageChanged()
     {
         BottomImage.Source = new BitmapImage(this.ImageUrl);
-        AnimationSet selectAnimation = [new OpacityAnimation() { From = 1, To = 0, Duration = TimeSpan.FromMilliseconds(1000) }];
-        selectAnimation.Completed += (s, e) =>
-        {
-            TopImage.Source = new BitmapImage(this.ImageUrl);
-            TopImage.Opacity = 1;
-        };
         selectAnimation.Start(TopImage);
+    }
+
+    private void SelectAnimation_Completed(object? sender, EventArgs e)
+    {
+        TopImage.Source = new BitmapImage(this.ImageUrl);
+        TopImage.Opacity = 1;
+    }
+
+    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        selectAnimation.Completed += SelectAnimation_Completed;
+    }
+    private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+    {
+        selectAnimation.Completed -= SelectAnimation_Completed;
     }
 }

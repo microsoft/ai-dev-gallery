@@ -8,7 +8,7 @@
 
     <ResourceDictionary.ThemeDictionaries>
         <!--  ControlFillColorQuarternaryBrush does not exist (yet) in WinUI, only in Windows Visual Library (Figma)  -->
-        <ResourceDictionary x:Key="Default">
+        <ResourceDictionary x:Key="Dark">
             <StaticResource x:Key="TokenItemBackground" ResourceKey="ControlFillColorDefaultBrush" />
             <StaticResource x:Key="TokenItemBackgroundPointerOver" ResourceKey="ControlFillColorSecondaryBrush" />
             <StaticResource x:Key="TokenItemBackgroundPressed" ResourceKey="ControlFillColorSecondaryBrush" />
@@ -92,7 +92,6 @@
                                 <RepositionThemeTransition />
                             </TransitionCollection>
                         </Grid.ChildrenTransitions>
-
                         <ItemsView
                             x:Name="PART_ItemsView"
                             MaxWidth="{TemplateBinding MaxWidth}"
@@ -110,7 +109,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="SelectorBarItem">
+    <Style x:Key="TokenSelectorBarItemStyle" TargetType="SelectorBarItem">
         <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
         <Setter Property="Background" Value="{ThemeResource TokenItemBackground}" />
         <Setter Property="Foreground" Value="{ThemeResource TokenItemForeground}" />

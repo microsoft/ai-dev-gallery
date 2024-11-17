@@ -104,7 +104,6 @@ internal sealed partial class HeaderCarousel : UserControl
         selectedTile = (HeaderTile)sender;
         selectionTimer.Stop();
         deselectionTimer.Stop();
-
         bool isPrevious = false;
         foreach (HeaderTile t in TilePanel.Children)
         {
@@ -119,6 +118,8 @@ internal sealed partial class HeaderCarousel : UserControl
         {
             await Task.Delay(1000);
         }
+
+     //   await Task.Delay(650);
 
         SetTileVisuals();
     }

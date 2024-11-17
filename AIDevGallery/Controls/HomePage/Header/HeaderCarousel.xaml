@@ -122,14 +122,18 @@
             x:Name="scrollViewer"
             Grid.Row="1"
             Margin="0,96,0,0"
-            HorizontalScrollBarVisibility="Hidden">
+            HorizontalAlignment="Stretch"
+            HorizontalScrollBarVisibility="Hidden"
+            HorizontalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Disabled"
+            VerticalScrollMode="Disabled">
             <StackPanel
                 x:Name="TilePanel"
                 Padding="64,0,64,0"
+                HorizontalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="16">
+                Spacing="-148">
                 <local:HeaderTile
-                    Width="200"
                     Description="Chat with a local language model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Chat"
@@ -146,7 +150,6 @@
                     PointerExited="Tile_PointerExited"
                     SampleID="summarize-text" />
                 <local:HeaderTile
-                    Width="160"
                     Description="Semantically search text with a local embeddings model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Semantic Search"
@@ -171,7 +174,6 @@
                     PointerExited="Tile_PointerExited"
                     SampleID="classify-image" />
                 <local:HeaderTile
-                    Width="160"
                     Description="Simple audio translation to English"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Translate"
@@ -188,7 +190,6 @@
                     PointerExited="Tile_PointerExited"
                     SampleID="detect-objects" />
                 <local:HeaderTile
-                    Width="186"
                     Description="Segment an image"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Image Segmentation"
