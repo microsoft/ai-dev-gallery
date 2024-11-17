@@ -222,26 +222,8 @@ namespace AIDevGallery.ProjectGenerator
             };
 
             string modelTemplateString = GetPromptTemplateString(modelInfos.Values.Select(m => m.ModelPromptTemplate).ToList());
-            string modelPathString;
-            string hardwareAcceleratorString;
-            string sampleNavigationParameterName;
-            bool isMultiModel;
-            if (modelInfos.Count > 1)
-            {
-                modelPathString = "[" + Environment.NewLine + string.Join($",{Environment.NewLine}", modelInfos.Values.Select(m => "            " + m.ModelPathStr)) + Environment.NewLine + "        ]";
-                isMultiModel = true;
-                hardwareAcceleratorString = "[" + string.Join(", ", modelInfos.Values.Select(m => $"HardwareAccelerator.{m.HardwareAccelerator}")) + "]";
-                sampleNavigationParameterName = "MultiModelSampleNavigationParameters";
-            }
-            else
-            {
-                modelPathString = modelInfos.Values.First().ModelPathStr;
-                isMultiModel = false;
-                hardwareAcceleratorString = $"HardwareAccelerator.{modelInfos.Values.First().HardwareAccelerator}";
-                sampleNavigationParameterName = "SampleNavigationParameters";
-            }
 
-            var className = await AddFilesFromSampleAsync(sample, packageReferences, safeProjectName, outputPath, addLllmTypes, isMultiModel, cancellationToken);
+            var className = await AddFilesFromSampleAsync(sample, packageReferences, safeProjectName, outputPath, addLllmTypes, modelInfos, cancellationToken);
 
             foreach (var file in files)
             {
@@ -251,12 +233,6 @@ namespace AIDevGallery.ProjectGenerator
                 if (renames.TryGetValue(fileName, out var newName))
                 {
                     relativePath = relativePath.Replace(fileName, newName);
-                }
-
-                if ((fileName == "MultiModelSampleNavigationParameters.cs" && modelInfos.Count == 1) ||
-                    (fileName == "SampleNavigationParameters.cs" && modelInfos.Count > 1))
-                {
-                    continue;
                 }
 
                 var outputPathFile = Path.Join(outputPath, relativePath);
@@ -287,10 +263,7 @@ namespace AIDevGallery.ProjectGenerator
                     content = content.Replace("$XmlEscapedPublisher$", xmlEscapedPublisher);
                     content = content.Replace("$DotNetVersion$", DotNetVersion);
                     content = content.Replace("$MainSamplePage$", className);
-                    content = content.Replace("$modelPath$", modelPathString);
-                    content = content.Replace("$modelHardwareAccelerator$", hardwareAcceleratorString);
                     content = content.Replace("$promptTemplate$", modelTemplateString);
-                    content = content.Replace("$sampleNavigationParameterName$", sampleNavigationParameterName);
 
                     // Write the file
                     await File.WriteAllTextAsync(outputPathFile, content, cancellationToken);
@@ -386,7 +359,7 @@ namespace AIDevGallery.ProjectGenerator
             return outputPath;
         }
 
-        private string GetChatClientLoaderString(Sample sample, bool isMultiModel)
+        private string GetChatClientLoaderString(Sample sample, bool isMultiModel, string modelPath)
         {
             if (!sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
             {
@@ -395,11 +368,11 @@ namespace AIDevGallery.ProjectGenerator
 
             if (isMultiModel)
             {
-                return "GenAIModel.CreateAsync(sampleParams.ModelPaths[0], sampleParams.PromptTemplates[0], sampleParams.CancellationToken)";
+                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplates[0], sampleParams.CancellationToken)";
             }
             else
             {
-                return "GenAIModel.CreateAsync(sampleParams.ModelPath, sampleParams.PromptTemplate, sampleParams.CancellationToken)";
+                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplate, sampleParams.CancellationToken)";
             }
         }
 
@@ -511,7 +484,14 @@ namespace AIDevGallery.ProjectGenerator
             return modelPromptTemplateSb.ToString();
         }
 
-        private async Task<string> AddFilesFromSampleAsync(Sample sample, List<(string PackageName, string? Version)> packageReferences, string safeProjectName, string outputPath, bool addLllmTypes, bool isMultiModel, CancellationToken cancellationToken)
+        private async Task<string> AddFilesFromSampleAsync(
+            Sample sample,
+            List<(string PackageName, string? Version)> packageReferences,
+            string safeProjectName,
+            string outputPath,
+            bool addLllmTypes,
+            Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos,
+            CancellationToken cancellationToken)
         {
             var sharedCode = sample.SharedCode.ToList();
             if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate) &&
@@ -557,11 +537,37 @@ namespace AIDevGallery.ProjectGenerator
             if (!string.IsNullOrEmpty(sample.CSCode))
             {
                 var cleanCsSource = CleanCsSource(sample.CSCode, safeProjectName, true);
-                var chatClientLoader = GetChatClientLoaderString(sample, isMultiModel);
+                cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+
+                string modelPath;
+                if (modelInfos.Count > 1)
+                {
+                    cleanCsSource = cleanCsSource.Replace("MultiModelSampleNavigationParameters", "SampleNavigationParameters");
+
+                    int i = 0;
+                    foreach (var modelInfo in modelInfos)
+                    {
+                        cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.HardwareAccelerator}");
+                        cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
+                        i++;
+                    }
+
+                    modelPath = modelInfos.First().Value.ModelPathStr;
+                }
+                else
+                {
+                    var modelInfo = modelInfos.Values.First();
+                    cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.HardwareAccelerator}");
+                    cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
+                    modelPath = modelInfo.ModelPathStr;
+                }
+
+                cleanCsSource = cleanCsSource.Replace("sampleParams.CancellationToken", "CancellationToken.None");
+
+                var chatClientLoader = GetChatClientLoaderString(sample, modelInfos.Count > 1, modelPath);
                 if (chatClientLoader != null)
                 {
                     cleanCsSource = cleanCsSource.Replace("sampleParams.GetIChatClientAsync()", chatClientLoader);
-                    cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
                 }
 
                 await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml.cs"), cleanCsSource, cancellationToken);
