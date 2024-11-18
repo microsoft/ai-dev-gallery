@@ -108,9 +108,9 @@
                 <NavigationViewItem
                     Content="Contribute"
                     SelectsOnInvoked="False"
-                    Tag="Feedback">
+                    Tag="Contribute">
                     <NavigationViewItem.Icon>
-                        <ImageIcon Source="{ThemeResource GitHubIconImage}" />
+                        <ImageIcon Opacity="0.6" Source="{ThemeResource GitHubIconImage}" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
