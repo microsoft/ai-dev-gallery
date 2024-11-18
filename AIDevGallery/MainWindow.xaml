@@ -80,7 +80,7 @@
             IsBackButtonVisible="Collapsed"
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
-            ItemInvoked="NavView_ItemInvoked"
+            SelectionFollowsFocus="Disabled"
             Style="{StaticResource MainNavigationViewStyle}">
             <!--<NavigationView.Resources>
                 <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
@@ -93,10 +93,12 @@
                     Tag="Home" />
                 <NavigationViewItem
                     Content="Samples"
+                    x:Name="SamplesNavItem"
                     Icon="{ui:FontIcon Glyph=&#xE754;}"
                     Tag="Samples" />
                 <NavigationViewItem
                     Content="Models"
+                    x:Name="ModelsNavItem"
                     Icon="{ui:FontIcon Glyph=&#xF158;}"
                     Tag="Models" />
                 <!--<NavigationViewItem
@@ -119,7 +121,31 @@
                     Tag="Settings" />
             </NavigationView.FooterMenuItems>
             <NavigationView.Content>
-                <Frame x:Name="NavFrame" Navigating="NavFrame_Navigating" />
+                <NavigationView
+                    x:Name="InnerNavView"
+                    CompactModeThresholdWidth="0"
+                    ExpandedModeThresholdWidth="0"
+                    IsBackButtonVisible="Collapsed"
+                    IsPaneOpen="True"
+                    IsPaneToggleButtonVisible="False"
+                    SelectionChanged="InnerNavViewSelectionChanged"
+                    IsPaneVisible="True"
+                    IsSettingsVisible="False"
+                    OpenPaneLength="0">
+                    <NavigationView.Resources>
+                        <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
+                        <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
+                    </NavigationView.Resources>
+                    <NavigationView.PaneHeader>
+                        <TextBlock
+                            x:Name="NavViewInnerHeader"
+                            Margin="16,12,0,12"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </NavigationView.PaneHeader>
+                    <NavigationView.Content>
+                        <Frame x:Name="NavFrame" Navigating="NavFrame_Navigating" />
+                    </NavigationView.Content>
+                </NavigationView>
             </NavigationView.Content>
         </NavigationView>
         <controls:TitleBar
