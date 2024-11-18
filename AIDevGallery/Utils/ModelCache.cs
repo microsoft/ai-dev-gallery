@@ -117,13 +117,13 @@ namespace AIDevGallery.Utils
             }
         }
 
-        public async Task DeleteCache()
+        public async Task ClearCache()
         {
             ModelCacheDeletedEvent.Log();
-            await CacheStore.DeleteCache();
 
             var cacheDir = GetCacheFolder();
             Directory.Delete(cacheDir, true);
+            await CacheStore.ClearAsync();
         }
 
         public async Task MoveCache(string path, CancellationToken ct)

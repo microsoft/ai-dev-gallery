@@ -45,5 +45,15 @@
         <NavigationView.Content>
             <Frame x:Name="NavFrame" />
         </NavigationView.Content>
+        <NavigationView.PaneFooter>
+            <StackPanel Orientation="Vertical">
+                <HyperlinkButton
+                    Grid.Row="1"
+                    Margin="0,4,0,0"
+                    HorizontalAlignment="Right"
+                    Click="ManageModelsClicked"
+                    Content="Manage models" />
+            </StackPanel>
+        </NavigationView.PaneFooter>
     </NavigationView>
 </Page>
