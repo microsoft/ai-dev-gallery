@@ -17,11 +17,12 @@
 
     <Style BasedOn="{StaticResource DefaultHeaderTileStyle}" TargetType="local:HeaderTile" />
     <Style x:Key="DefaultHeaderTileStyle" TargetType="local:HeaderTile">
-        <Setter Property="Width" Value="300" />
+        <Setter Property="Width" Value="360" />
         <Setter Property="UseSystemFocusVisuals" Value="True" />
         <Setter Property="UseLayoutRounding" Value="True" />
-        <Setter Property="Height" Value="160" />
+        <Setter Property="Height" Value="208" />
         <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="ui:VisualExtensions.Scale" Value="0.8" />
         <Setter Property="ui:VisualExtensions.NormalizedCenterPoint" Value="0.5, 0.5" />
         <Setter Property="ui:Effects.Shadow">
             <Setter.Value>
@@ -33,13 +34,6 @@
                     Color="#000000" />
             </Setter.Value>
         </Setter>
-        <!--<Setter Property="animations:Implicit.Animations">
-            <Setter.Value>
-                <animations:ImplicitAnimationSet>
-                    <animations:ScaleAnimation Duration="0:0:0.6" />
-                </animations:ImplicitAnimationSet>
-            </Setter.Value>
-        </Setter>-->
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:HeaderTile">
@@ -47,6 +41,10 @@
                         Padding="0"
                         AutomationProperties.Name="{TemplateBinding Header}"
                         CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid.Lights>
+                            <local:HoverLight />
+                            <local:AmbLight />
+                        </Grid.Lights>
                         <Image
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
@@ -74,21 +72,18 @@
                                 <animations:OpacityAnimation
                                     From="1.0"
                                     To="0"
-                                    Duration="0:0:0.2" />
+                                    Duration="0:0:0.35" />
                                 <animations:TranslationAnimation
                                     From="0"
                                     To="0,200,0"
                                     Duration="0:0:0.6" />
                             </animations:Implicit.HideAnimations>
                             <TextBlock
-                                FontSize="12"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                                 Text="{TemplateBinding Header}" />
                             <TextBlock
-                                FontSize="10"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{TemplateBinding Description}"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>

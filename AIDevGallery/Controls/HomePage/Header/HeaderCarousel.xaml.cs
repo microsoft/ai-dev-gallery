@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -28,10 +29,30 @@ internal sealed partial class HeaderCarousel : UserControl
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
+        SubscribeToEvents();
         ResetAndShuffle();
         SelectNextTile();
         selectionTimer.Tick += SelectionTimer_Tick;
         selectionTimer.Start();
+    }
+
+    private void SubscribeToEvents()
+    {
+        foreach (HeaderTile tile in TilePanel.Children)
+        {
+            tile.PointerEntered += Tile_PointerEntered;
+            tile.PointerExited += Tile_PointerExited;
+            tile.Click += Tile_Click;
+        }
+    }
+
+    private void Tile_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is HeaderTile tile)
+        {
+            tile.PointerExited -= Tile_PointerExited;
+            App.MainWindow.NavigateToPage(App.FindScenarioById(tile.SampleID));
+        }
     }
 
     private void SelectionTimer_Tick(object? sender, object e)
@@ -120,6 +141,8 @@ internal sealed partial class HeaderCarousel : UserControl
             await Task.Delay(1000);
         }
 
+        // Wait for the animation of a potential other tile to finish
+        await Task.Delay(500);
         SetTileVisuals();
     }
 
