@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace AIDevGallery.Utils
 {
@@ -122,43 +123,52 @@ namespace AIDevGallery.Utils
             {
                 var baseUrl = $"https://huggingface.co/api/models/{hfUrl.Organization}/{hfUrl.Repo}/tree/{hfUrl.Ref}";
 
-                var httpClient = httpMessageHandler != null ? new HttpClient(httpMessageHandler) : new HttpClient();
-                var semaphore = new SemaphoreSlim(4, 4);
+                using var httpClient = httpMessageHandler != null ? new HttpClient(httpMessageHandler) : new HttpClient();
 
-                while (hfFiles.Any(f => f.Type == "directory"))
-                {
-                    var folders = hfFiles.Where(f => f.Type == "directory").ToList();
-                    List<Task> tasks = [];
-                    foreach (var folder in folders)
+                ActionBlock<string> actionBlock = null!;
+                actionBlock = new ActionBlock<string>(
+                    async (string path) =>
                     {
-                        hfFiles.Remove(folder);
-                        tasks.Add(Task.Run(
-                            async () =>
-                            {
-                                await semaphore.WaitAsync(cancellationToken);
-                                var response = await httpClient.GetAsync($"{baseUrl}/{folder.Path}", cancellationToken);
-                                var responseContent = await response.Content.ReadAsStringAsync();
-
-                                var files = JsonSerializer.Deserialize(responseContent, SourceGenerationContext.Default.ListHuggingFaceModelFileDetails);
-                                if (files != null)
-                                {
-                                    hfFiles.AddRange(files);
-                                }
-
-                                semaphore.Release();
+                        var response = await httpClient.GetAsync($"{baseUrl}/{path}", cancellationToken);
 #if NET8_0_OR_GREATER
-                            },
-                            cancellationToken));
+                        var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 #else
-                            }));
+                        var stream = await response.Content.ReadAsStreamAsync();
 #endif
-                    }
+                        var files = await JsonSerializer.DeserializeAsync(stream, SourceGenerationContext.Default.ListHuggingFaceModelFileDetails, cancellationToken);
+                        if (files != null)
+                        {
+                            lock (hfFiles)
+                            {
+                                foreach (var file in files.Where(f => f.Type != "directory"))
+                                {
+                                    hfFiles.Add(file);
+                                }
+                            }
 
-                    await Task.WhenAll(tasks);
+                            foreach (var folder in files.Where(f => f.Type == "directory" && f.Path != null))
+                            {
+                                actionBlock.Post(folder.Path!);
+                            }
+                        }
+
+                        if (actionBlock.InputCount == 0)
+                        {
+                            actionBlock.Complete();
+                        }
+                    },
+                    new ExecutionDataflowBlockOptions
+                    {
+                        MaxDegreeOfParallelism = 4,
+                        CancellationToken = cancellationToken
+                    });
+
+                foreach (var folder in hfFiles.Where(f => f.Type == "directory" && f.Path != null))
+                {
+                    actionBlock.Post(folder.Path!);
                 }
 
-                semaphore.Dispose();
-                httpClient.Dispose();
+                await actionBlock.Completion;
             }
 
             return hfFiles.Select(f =>
