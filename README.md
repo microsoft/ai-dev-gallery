@@ -1,9 +1,11 @@
 ![WindowsAI hero image](docs/images/header.png)
 
 <h1 align="center">
-    AI Dev Gallery
+    AI Dev Gallery (Preview)
 </h1>
 
+> [!IMPORTANT]  
+> This app is currently in public preview. We are looking for feedback. Please let us know what you think by creating an [issue](https://github.com/microsoft/ai-dev-gallery/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
 The AI Dev Gallery is an app designed to help Windows app developers integrate AI capabilities within their own apps and projects. The app contains the following:
 
