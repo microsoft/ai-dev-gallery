@@ -30,24 +30,15 @@ namespace AIDevGallery
             NavView.ItemInvoked += NavView_ItemInvoked;
             NavView.Loaded += (sender, args) =>
             {
-                NavigateToPage(obj);
+                if (obj is List<ModelType> list)
+                {
+                    NavigateToPage(list.FirstOrDefault());
+                }
+                else
+                {
+                    NavigateToPage(obj);
+                }
             };
-        }
-
-        public void NavigateToPage(object? obj)
-        {
-            if (obj is Scenario)
-            {
-                Navigate("Samples", obj);
-            }
-            else if (obj is ModelType or List<ModelType>)
-            {
-                Navigate("Models", obj);
-            }
-            else
-            {
-                Navigate("Home");
-            }
         }
 
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
@@ -66,7 +57,7 @@ namespace AIDevGallery
                     if (NavFrame.SourcePageType != typeof(HomePage))
                     {
                         NavFrame.Navigate(typeof(HomePage));
-                        CloseInnerPane();
+                        HideInnerPane();
                         _navItemHistory.Push(null);
                     }
 
@@ -84,7 +75,7 @@ namespace AIDevGallery
                     if (NavFrame.SourcePageType != typeof(SettingsPage))
                     {
                         NavFrame.Navigate(typeof(SettingsPage));
-                        CloseInnerPane();
+                        HideInnerPane();
                         _navItemHistory.Push(null);
                     }
 
@@ -92,16 +83,23 @@ namespace AIDevGallery
             }
         }
 
-        public void Navigate(SearchResult result)
+        public void NavigateToPage(object? obj)
         {
-            if (result.Tag is Scenario scenario)
+            DispatcherQueue.TryEnqueue(() =>
             {
-                Navigate("samples", scenario);
-            }
-            else if (result.Tag is ModelType modelType)
-            {
-                Navigate("models", modelType);
-            }
+                if (obj is Scenario)
+                {
+                    Navigate("Samples", obj);
+                }
+                else if (obj is ModelType)
+                {
+                    Navigate("Models", obj);
+                }
+                else
+                {
+                    Navigate("Home");
+                }
+            });
         }
 
         private void SetTitleBar()
@@ -148,7 +146,7 @@ namespace AIDevGallery
         {
             if (args.ChosenSuggestion is SearchResult result)
             {
-                Navigate(result);
+                NavigateToPage(result.Tag);
             }
 
             SearchBox.Text = string.Empty;
@@ -161,6 +159,18 @@ namespace AIDevGallery
                 _navItemHistory.Pop();
                 NavFrame.GoBack();
             }
+        }
+
+        private void HideInnerPane()
+        {
+            // InnerNavView.IsPaneVisible = false; throws exception https://github.com/microsoft/microsoft-ui-xaml/issues/6715
+            InnerNavView.OpenPaneLength = 0d;
+        }
+
+        private void ShowInnerPane()
+        {
+            // InnerNavView.IsPaneVisible = true; throws exception randomly https://github.com/microsoft/microsoft-ui-xaml/issues/6715
+            InnerNavView.OpenPaneLength = 248d;
         }
 
         private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
@@ -178,7 +188,7 @@ namespace AIDevGallery
                 }
                 else
                 {
-                    CloseInnerPane();
+                    HideInnerPane();
                 }
             }
         }
@@ -224,12 +234,22 @@ namespace AIDevGallery
         {
             if (_currentSelectedNavItem == SamplesNavItem && IsInnerNavViewPaneVisible && obj == null)
             {
-                CloseInnerPane();
+                HideInnerPane();
                 return;
             }
 
+            ModelsFooter.Visibility = Visibility.Collapsed;
             InnerNavView.MenuItems.Clear();
             NavViewInnerHeader.Text = "Samples";
+
+            if (obj is Scenario scenario)
+            {
+                NavigateToScenario(scenario: scenario);
+            }
+            else if (obj is SampleNavigationArgs samplesArgs)
+            {
+                NavigateToScenario(sampleArgs: samplesArgs);
+            }
 
             foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
             {
@@ -250,64 +270,24 @@ namespace AIDevGallery
             }
 
             ShowInnerPane();
-
-            Scenario? scenario = null;
-
-            if (obj is SampleNavigationArgs sampleArgs)
-            {
-                NavFrame.Navigate(typeof(ScenarioPage), sampleArgs);
-                scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-                _navItemHistory.Push(scenario);
-
-                InnerNavView.SelectionChanged -= InnerNavViewSelectionChanged;
-                SetSelectedScenarioInInnerMenu(scenario: scenario);
-                InnerNavView.SelectionChanged += InnerNavViewSelectionChanged;
-            }
-            else
-            {
-                if (obj is Scenario sc)
-                {
-                    scenario = sc;
-                }
-
-                SetSelectedScenarioInInnerMenu(scenario: scenario);
-            }
-        }
-
-        private void CloseInnerPane()
-        {
-            try
-            {
-                // InnerNavView.IsPaneVisible = false; throws exception https://github.com/microsoft/microsoft-ui-xaml/issues/6715
-                InnerNavView.OpenPaneLength = 0d;
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        private void ShowInnerPane()
-        {
-            try
-            {
-                // InnerNavView.IsPaneVisible = true; throws exception randomly https://github.com/microsoft/microsoft-ui-xaml/issues/6715
-                InnerNavView.OpenPaneLength = 248d;
-            }
-            catch (Exception)
-            {
-            }
+            SetSelectedScenarioInInnerMenu();
         }
 
         private void ShowModels(object? obj)
         {
             if (_currentSelectedNavItem == ModelsNavItem && IsInnerNavViewPaneVisible && obj == null)
             {
-                CloseInnerPane();
+                HideInnerPane();
                 return;
             }
 
             InnerNavView.MenuItems.Clear();
             NavViewInnerHeader.Text = "Models";
+
+            if (obj is ModelType modelType)
+            {
+                NavigateToModelView(modelType: modelType);
+            }
 
             List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
             rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
@@ -358,6 +338,8 @@ namespace AIDevGallery
                     Tag = "AddModel"
                 });
             }
+
+            ModelsFooter.Visibility = Visibility.Visible;
 
             ShowInnerPane();
             SetSelectedModelInInnerMenu();
@@ -437,17 +419,18 @@ namespace AIDevGallery
             }
         }
 
-        private void NavigateToScenario(Scenario scenario, SampleNavigationArgs? sampleArgs = null)
+        private void NavigateToScenario(Scenario? scenario = null, SampleNavigationArgs? sampleArgs = null)
         {
             if (sampleArgs != null)
             {
                 if (!(_navItemHistory.TryPeek(out object? currentNavItem) && currentNavItem is SampleNavigationArgs args && args == sampleArgs))
                 {
                     NavFrame.Navigate(typeof(ScenarioPage), sampleArgs);
+                    scenario ??= ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
                     _navItemHistory.Push(scenario);
                 }
             }
-            else
+            else if (scenario != null)
             {
                 if (!(_navItemHistory.TryPeek(out object? currentNavItem) && currentNavItem is Scenario sc && sc == scenario))
                 {

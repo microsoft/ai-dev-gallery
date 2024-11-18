@@ -145,6 +145,16 @@
                     <NavigationView.Content>
                         <Frame x:Name="NavFrame" Navigating="NavFrame_Navigating" />
                     </NavigationView.Content>
+                    <NavigationView.PaneFooter>
+                        <StackPanel Orientation="Vertical" x:Name="ModelsFooter" Visibility="Collapsed">
+                            <HyperlinkButton
+                                Grid.Row="1"
+                                Margin="0,4,0,0"
+                                HorizontalAlignment="Right"
+                                Click="ManageModelsClicked"
+                                Content="Manage models" />
+                        </StackPanel>
+                    </NavigationView.PaneFooter>
                 </NavigationView>
             </NavigationView.Content>
         </NavigationView>
