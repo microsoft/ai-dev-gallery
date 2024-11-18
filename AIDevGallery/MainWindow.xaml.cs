@@ -118,7 +118,7 @@ namespace AIDevGallery
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(titleBar);
             titleBar.Window = this;
-            this.AppWindow.SetIcon("Assets/AIGallery.ico");
+            this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
 
             this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
 
