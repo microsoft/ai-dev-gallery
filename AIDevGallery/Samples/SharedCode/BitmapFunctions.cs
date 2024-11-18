@@ -127,6 +127,40 @@ namespace AIDevGallery.Samples.SharedCode
             return input;
         }
 
+        public static Tensor<float> PreprocessBitmapForYOLO(Bitmap bitmap, Tensor<float> input)
+        {
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+
+            BitmapData bmpData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+            int stride = bmpData.Stride;
+            IntPtr ptr = bmpData.Scan0;
+            int bytes = Math.Abs(stride) * height;
+            byte[] rgbValues = new byte[bytes];
+
+            Marshal.Copy(ptr, rgbValues, 0, bytes);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * stride + x * 3;
+                    byte blue = rgbValues[index];
+                    byte green = rgbValues[index + 1];
+                    byte red = rgbValues[index + 2];
+
+                    input[0, y, x, 0] = red / 255f;
+                    input[0, y, x, 1] = green / 255f;
+                    input[0, y, x, 2] = blue / 255f;
+                }
+            }
+
+            bitmap.UnlockBits(bmpData);
+
+            return input;
+        }
+
         public static DenseTensor<float> PreprocessBitmapForObjectDetection(Bitmap bitmap, int paddedHeight, int paddedWidth)
         {
             int width = bitmap.Width;
