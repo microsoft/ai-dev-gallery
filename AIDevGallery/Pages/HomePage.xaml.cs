@@ -17,7 +17,6 @@ namespace AIDevGallery.Pages
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
             NavigatedToPageEvent.Log(nameof(HomePage));
         }
     }

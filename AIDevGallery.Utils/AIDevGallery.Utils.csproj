@@ -11,8 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json"/>
-    <PackageReference Include="System.Memory"/>
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>build; analyzers</IncludeAssets>
