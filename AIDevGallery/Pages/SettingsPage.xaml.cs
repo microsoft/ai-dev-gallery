@@ -130,7 +130,7 @@ namespace AIDevGallery.Pages
 
             if (result == ContentDialogResult.Primary)
             {
-                await App.ModelCache.DeleteCache();
+                await App.ModelCache.ClearCache();
                 GetStorageInfo();
             }
         }

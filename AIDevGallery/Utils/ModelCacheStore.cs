@@ -30,6 +30,8 @@ namespace AIDevGallery.Utils
 
         public static async Task<ModelCacheStore> CreateForApp(string cacheDir, List<CachedModel>? models = null)
         {
+            ModelCacheStore? modelCacheStore = null;
+
             try
             {
                 if (models == null)
@@ -39,28 +41,35 @@ namespace AIDevGallery.Utils
                     {
                         var json = await File.ReadAllTextAsync(cacheFile);
 
-                        return new ModelCacheStore(cacheDir, JsonSerializer.Deserialize(json, AppDataSourceGenerationContext.Default.ListCachedModel));
+                        modelCacheStore = new ModelCacheStore(cacheDir, JsonSerializer.Deserialize(json, AppDataSourceGenerationContext.Default.ListCachedModel));
                     }
                 }
                 else
                 {
-                    ModelCacheStore modelCacheStore = new(cacheDir, models);
-                    await modelCacheStore.Save();
-                    return modelCacheStore;
+                    modelCacheStore = new(cacheDir, models);
                 }
             }
             catch
             {
             }
 
-            return new ModelCacheStore(cacheDir, null);
+            modelCacheStore ??= new ModelCacheStore(cacheDir, null);
+            await modelCacheStore.ValidateAndSaveAsync();
+
+            return modelCacheStore;
         }
 
-        private async Task Save()
+        private async Task SaveAsync()
         {
             var cacheFile = Path.Combine(CacheDir, "cache.json");
 
             var str = JsonSerializer.Serialize(_models, AppDataSourceGenerationContext.Default.ListCachedModel);
+
+            if (!Path.Exists(CacheDir))
+            {
+                Directory.CreateDirectory(CacheDir);
+            }
+
             await File.WriteAllTextAsync(cacheFile, str);
         }
 
@@ -76,21 +85,36 @@ namespace AIDevGallery.Utils
 
             ModelsChanged?.Invoke(this);
 
-            await Save();
+            await SaveAsync();
         }
 
         public async Task RemoveModel(CachedModel model)
         {
             _models.Remove(model);
             ModelsChanged?.Invoke(this);
-            await Save();
+            await SaveAsync();
         }
 
-        public async Task DeleteCache()
+        public async Task ClearAsync()
         {
             _models.Clear();
             ModelsChanged?.Invoke(this);
-            await Save();
+            await SaveAsync();
+        }
+
+        private async Task ValidateAndSaveAsync()
+        {
+            List<CachedModel> models = [.. _models];
+
+            foreach (var cachedModel in models)
+            {
+                if (!Path.Exists(cachedModel.Path))
+                {
+                    _models.Remove(cachedModel);
+                }
+            }
+
+            await SaveAsync();
         }
     }
 }
