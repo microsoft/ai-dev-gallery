@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-
 using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
@@ -15,9 +13,9 @@ namespace AIDevGallery.Controls;
 
 internal partial class HoverLight : XamlLight
 {
-    private ExpressionAnimation _lightPositionExpression;
-    private Vector3KeyFrameAnimation _offsetAnimation;
-    private static readonly string Id = typeof(HoverLight).FullName;
+    private ExpressionAnimation? _lightPositionExpression;
+    private Vector3KeyFrameAnimation? _offsetAnimation;
+    private static readonly string Id = typeof(HoverLight).FullName!;
 
     protected override void OnConnected(UIElement targetElement)
     {
@@ -44,7 +42,7 @@ internal partial class HoverLight : XamlLight
 
         spotLight.Offset = restingPosition;
 
-        // Define expression animation that relates light's offset to pointer position 
+        // Define expression animation that relates light's offset to pointer position
         CompositionPropertySet hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
         _lightPositionExpression = compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
         _lightPositionExpression.SetReferenceParameter("hover", hoverPosition);
@@ -55,7 +53,7 @@ internal partial class HoverLight : XamlLight
         targetElement.PointerExited += TargetElement_PointerExited;
 
         // Add UIElement to the Light's Targets
-        HoverLight.AddTargetElement(GetId(), targetElement);
+        AddTargetElement(GetId(), targetElement);
     }
 
     private void MoveToRestingPosition()
@@ -95,10 +93,11 @@ internal partial class HoverLight : XamlLight
     protected override void OnDisconnected(UIElement oldElement)
     {
         // Dispose Light and Composition resources when it is removed from the tree
-        HoverLight.RemoveTargetElement(GetId(), oldElement);
+        RemoveTargetElement(GetId(), oldElement);
         CompositionLight.Dispose();
-        _lightPositionExpression.Dispose();
-        _offsetAnimation.Dispose();
+
+        _lightPositionExpression?.Dispose();
+        _offsetAnimation?.Dispose();
     }
 
     protected override string GetId()

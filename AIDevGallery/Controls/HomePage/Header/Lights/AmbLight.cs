@@ -10,7 +10,7 @@ namespace AIDevGallery.Controls;
 
 internal partial class AmbLight : XamlLight
 {
-    private static readonly string Id = typeof(AmbLight).FullName;
+    private static readonly string Id = typeof(AmbLight).FullName!;
 
     protected override void OnConnected(UIElement newElement)
     {
@@ -24,13 +24,13 @@ internal partial class AmbLight : XamlLight
         CompositionLight = ambientLight;
 
         // Add UIElement to the Light's Targets
-        AmbLight.AddTargetElement(GetId(), newElement);
+        AddTargetElement(GetId(), newElement);
     }
 
     protected override void OnDisconnected(UIElement oldElement)
     {
         // Dispose Light when it is removed from the tree
-        AmbLight.RemoveTargetElement(GetId(), oldElement);
+        RemoveTargetElement(GetId(), oldElement);
         CompositionLight.Dispose();
     }
 
