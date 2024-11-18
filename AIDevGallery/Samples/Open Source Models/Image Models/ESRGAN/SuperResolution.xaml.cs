@@ -8,9 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,7 +34,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN
           Name = "Enhance Image",
           Id = "9b74cdc1-f5f7-430f-bed0-712ffc063508",
           Icon = "\uE8B3")]
-    internal sealed partial class SuperResolution : Page
+    internal sealed partial class SuperResolution : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
 
@@ -54,15 +52,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN
         }
 
         /// <inheritdoc/>
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                var hardwareAccelerator = sampleParams.HardwareAccelerator;
-                await InitModel(sampleParams.ModelPath, hardwareAccelerator);
-                sampleParams.NotifyCompletion();
-            }
+            var hardwareAccelerator = sampleParams.HardwareAccelerator;
+            await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+            sampleParams.NotifyCompletion();
         }
 
         private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)

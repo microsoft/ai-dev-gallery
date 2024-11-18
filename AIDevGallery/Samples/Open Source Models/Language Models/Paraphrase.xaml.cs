@@ -7,7 +7,6 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
         ],
         Id = "9e006e82-8e3f-4401-8a83-d4c4c59cc20c",
         Icon = "\uE8D4")]
-    internal sealed partial class Paraphrase : Page
+    internal sealed partial class Paraphrase : BaseSamplePage
     {
         private IChatClient? model;
         private CancellationTokenSource? cts;
@@ -39,15 +38,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                model = await sampleParams.GetIChatClientAsync();
-                InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
-                sampleParams.NotifyCompletion();
-            }
+            model = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

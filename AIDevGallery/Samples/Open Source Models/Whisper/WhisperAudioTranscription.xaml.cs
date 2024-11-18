@@ -5,8 +5,6 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using NAudio.Wave;
 using System.IO;
 using System.Threading;
@@ -29,7 +27,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper
         ],
         Id = "c7e248af-86e8-49ba-9f44-022230963261",
         Icon = "\uE8D4")]
-    internal sealed partial class WhisperAudioTranscription : Page
+    internal sealed partial class WhisperAudioTranscription : BaseSamplePage
     {
         private WaveInEvent? waveIn;
         private MemoryStream? audioStream;
@@ -49,14 +47,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper
             DataContext = this;
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
-                sampleParams.NotifyCompletion();
-            }
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

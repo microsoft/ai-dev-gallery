@@ -4,9 +4,8 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
 {
@@ -32,21 +31,18 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
         ],
         Id = "c0d6c4f1-8daa-409f-a686-3de388edbf91",
         Icon = "\uE8D4")]
-    internal sealed partial class SemanticSuggest : Page
+    internal sealed partial class SemanticSuggest : BaseSamplePage
     {
         public SemanticSuggest()
         {
             this.InitializeComponent();
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                this.MySemanticComboBox.EmbeddingGenerator = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-                sampleParams.NotifyCompletion();
-            }
+            this.MySemanticComboBox.EmbeddingGenerator = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+            sampleParams.NotifyCompletion();
+            return Task.CompletedTask;
         }
 
         public List<string> ShoppingCategories { get; } =

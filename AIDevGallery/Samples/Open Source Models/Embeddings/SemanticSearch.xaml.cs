@@ -40,7 +40,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
         ],
         Id = "41391b3f-f143-4719-a171-b0ce9c4cdcd6",
         Icon = "\uE8D4")]
-    internal sealed partial class SemanticSearch : Page
+    internal sealed partial class SemanticSearch : BaseSamplePage
     {
         private EmbeddingGenerator? _embeddings;
         private CancellationTokenSource cts = new();
@@ -55,16 +55,13 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
             this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-                sampleParams.NotifyCompletion();
-            }
+            _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+            sampleParams.NotifyCompletion();
 
             this.SourceTextBox.Text = _sampleText;
+            return Task.CompletedTask;
         }
 
         // <exclude>
