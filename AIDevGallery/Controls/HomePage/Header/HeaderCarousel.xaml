@@ -111,9 +111,9 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run Text="Learn how to build next-gen experiences with on-device AI." />
-                    <!--<Run Text="This app is in preview," />
-                    <Hyperlink NavigateUri="www.microsoft.com">learn more</Hyperlink>-->
+                    <Run Text="Build next-gen experiences with on-device AI." />
+                    <Run Text="This app is in" />
+                    <Hyperlink NavigateUri="https://aka.ms/ai-dev-gallery">preview</Hyperlink><Run Text="." />
                 </TextBlock>
             </Grid>
 
