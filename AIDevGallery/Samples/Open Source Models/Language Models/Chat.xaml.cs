@@ -8,7 +8,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -35,7 +34,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             SharedCodeEnum.ChatTemplateSelector,
             SharedCodeEnum.Utils
         ])]
-    internal sealed partial class Chat : Page
+    internal sealed partial class Chat : BaseSamplePage
     {
         private CancellationTokenSource? cts;
         public ObservableCollection<Message> Messages { get; } = [];
@@ -48,15 +47,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                model = await sampleParams.GetIChatClientAsync();
+            model = await sampleParams.GetIChatClientAsync();
 
-                sampleParams.NotifyCompletion();
-            }
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

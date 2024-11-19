@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +31,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels
             "Microsoft.ML.OnnxRuntimeGenAI.DirectML"
         ],
         Name = "Describe Image")]
-    internal sealed partial class DescribeImage : Page
+    internal sealed partial class DescribeImage : BaseSamplePage
     {
         private Model? model;
         private MultiModalProcessor? processor;
@@ -46,19 +45,14 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels
             this.Unloaded += (sender, args) => Dispose();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
+            await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
+            sampleParams.NotifyCompletion();
 
-            if (e.Parameter is SampleNavigationParameters sampleParams)
+            if (!sampleParams.CancellationToken.IsCancellationRequested)
             {
-                await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
-                sampleParams.NotifyCompletion();
-
-                if (!sampleParams.CancellationToken.IsCancellationRequested)
-                {
-                    await LoadAndDescribeImage(await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg"));
-                }
+                await LoadAndDescribeImage(await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg"));
             }
         }
 

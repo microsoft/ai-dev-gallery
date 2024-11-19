@@ -17,7 +17,7 @@
   <Properties>
     <DisplayName>AI Dev Gallery Dev</DisplayName>
     <PublisherDisplayName>nikol</PublisherDisplayName>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <Logo>Assets\AppIcon\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -37,10 +37,16 @@
         DisplayName="AI Dev Gallery Dev"
         Description="AI Dev Gallery Dev"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        Square150x150Logo="Assets\AppIcon\MedTile.png"
+        Square44x44Logo="Assets\AppIcon\AppList.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\AppIcon\WideTile.png"  Square71x71Logo="Assets\AppIcon\SmallTile.png" Square310x310Logo="Assets\AppIcon\LargeTile.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo"/>
+            <uap:ShowOn Tile="wide310x150Logo"/>
+            <uap:ShowOn Tile="square310x310Logo"/>
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Assets\AppIcon\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
         <uap:Extension Category="windows.protocol">
