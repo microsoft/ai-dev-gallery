@@ -15,7 +15,7 @@ The AI Dev Gallery is an app designed to help Windows app developers integrate A
 
 <p align="center">
 <br/>
-<img src="docs/images/AI Gallery.png" alt="AI Dev Gallery" width="480"/>
+<img src="docs/images/AI Gallery.png" alt="AI Dev Gallery" width="600"/>
 
 ## 🚀 Getting Started
 Follow the following guide to install the AI Dev Gallery locally:
