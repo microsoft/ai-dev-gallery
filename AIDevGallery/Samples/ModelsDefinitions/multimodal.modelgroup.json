@@ -9,20 +9,39 @@
         "Id": "692400f7-2946-464f-b341-df9c8fab3eb7",
         "Name": "Phi 3 Vision",
         "Description": "Phi-3 Vision is a lightweight, state-of-the-art open multimodal model built upon datasets that include synthetic data and filtered publicly available web data with a focus on very high-quality, reasoning dense data both on text and vision. The model belongs to the Phi-3 model family, and the multimodal version supports up to 128K context length (in tokens). The base model has undergone a rigorous enhancement process, incorporating both supervised fine-tuning and direct preference optimization, to ensure precise instruction adherence and robust safety measures.",
-        "DocsUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct",
+        "DocsUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx",
         "Models": {
           "Phi3VisionCPU": {
             "Id": "ae0f58bb-43a0-4950-b7e4-088187291c27",
             "Name": "Phi 3 Vision CPU",
-            "Url": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx-cpu/tree/main/cpu-int4-rtn-block-32-acc-level-4",
+            "Url": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4",
             "Description": "ONNX model optimized to run on CPU using int4 quantization via RTN",
             "HardwareAccelerator": "CPU",
-            "Size": 3220580286,
+            "Size": 3220615084,
             "ParameterSize": "4.2B",
             "License": "mit"
           }
         },
-        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct/blob/main/README.md"
+        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/blob/main/README.md"
+      },
+      "Phi35Vision": {
+        "Id": "692400f7-2946-464f-b341-df9c8fab3ec8",
+        "Name": "Phi 3.5 Vision",
+        "Description": "Phi-3.5 Vision is a lightweight, state-of-the-art open multimodal model built upon datasets that include synthetic data and filtered publicly available web data with a focus on very high-quality, reasoning dense data both on text and vision. The model belongs to the Phi-3.5 model family, and the multimodal version supports up to 128K context length (in tokens). The base model has undergone a rigorous enhancement process, incorporating both supervised fine-tuning and direct preference optimization, to ensure precise instruction adherence and robust safety measures.",
+        "DocsUrl": "https://huggingface.co/microsoft/Phi-3.5-vision-instruct-onnx",
+        "Models": {
+          "Phi3VisionCPU": {
+            "Id": "ae0f58bb-43a0-4950-b7e4-088187291c3a",
+            "Name": "Phi 3.5 Vision CPU",
+            "Url": "https://huggingface.co/microsoft/Phi-3.5-vision-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4",
+            "Description": "ONNX model optimized to run on CPU using int4 quantization via RTN",
+            "HardwareAccelerator": "CPU",
+            "Size": 3220612860,
+            "ParameterSize": "4.2B",
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/blob/main/README.md"
       }
     }
   }
