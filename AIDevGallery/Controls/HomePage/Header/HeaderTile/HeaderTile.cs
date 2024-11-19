@@ -5,7 +5,6 @@ using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using ScaleAnimation = CommunityToolkit.WinUI.Animations.ScaleAnimation;
 
 namespace AIDevGallery.Controls;
 
@@ -23,7 +22,7 @@ internal partial class HeaderTile : Button
         set => SetValue(ImageUrlProperty, value);
     }
 
-    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: string.Empty));
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null));
 
     public string Header
     {
@@ -31,7 +30,7 @@ internal partial class HeaderTile : Button
         set => SetValue(HeaderProperty, value);
     }
 
-    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: string.Empty));
+    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null));
 
     public string Description
     {
@@ -62,14 +61,7 @@ internal partial class HeaderTile : Button
 
     protected override void OnApplyTemplate()
     {
-        Click -= HeaderTile_Click;
         base.OnApplyTemplate();
-        Click += HeaderTile_Click;
-    }
-
-    private void HeaderTile_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow.NavigateToPage(App.FindScenarioById(SampleID));
     }
 
     protected virtual void IsSelectedChanged(object oldValue, object newValue)
@@ -83,13 +75,13 @@ internal partial class HeaderTile : Button
         {
             Canvas.SetZIndex(this, 10);
             VisualStateManager.GoToState(this, "Selected", true);
-            AnimationSet selectAnimation = [new ScaleAnimation() { To = "1.4", Duration = TimeSpan.FromMilliseconds(600) }, new OpacityDropShadowAnimation() { To = 0.4 }, new BlurRadiusDropShadowAnimation() { To = 24 }];
+            AnimationSet selectAnimation = [new ScaleAnimation() { To = "1.0", Duration = TimeSpan.FromMilliseconds(600) }, new OpacityDropShadowAnimation() { To = 0.4 }, new BlurRadiusDropShadowAnimation() { To = 24 }];
             selectAnimation.Start(this);
         }
         else
         {
             VisualStateManager.GoToState(this, "NotSelected", true);
-            AnimationSet deselectAnimation = [new ScaleAnimation() { To = "1.0", Duration = TimeSpan.FromMilliseconds(600) }, new OpacityDropShadowAnimation() { To = 0.2 }, new BlurRadiusDropShadowAnimation() { To = 12 }];
+            AnimationSet deselectAnimation = [new ScaleAnimation() { To = "0.8", Duration = TimeSpan.FromMilliseconds(350) }, new OpacityDropShadowAnimation() { To = 0.2 }, new BlurRadiusDropShadowAnimation() { To = 12 }];
             deselectAnimation.Completed += (s, e) =>
             {
                 Canvas.SetZIndex(this, 0);

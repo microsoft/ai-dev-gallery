@@ -122,48 +122,33 @@ namespace AIDevGallery
                 foreach (Scenario scenario in category.Scenarios)
                 {
                     SearchIndex.Add(new SearchResult() { Label = scenario.Name, Icon = scenario.Icon!, Description = scenario.Description!, Tag = scenario });
+                }
+            }
 
-                    // TODO
-                    /*
-                    foreach (ScenarioSample sample in scenario.Samples)
+            List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
+            rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
+
+            foreach (var key in rootModels)
+            {
+                if (ModelTypeHelpers.ParentMapping.TryGetValue(key, out List<ModelType>? innerItems))
+                {
+                    if (innerItems?.Count > 0)
                     {
-                        if (sample.ModelDetails != null)
+                        foreach (var childNavigationItem in innerItems)
                         {
-                            if (!SearchIndex.Any(sr => sr.Label == sample.ModelDetails.Name))
+                            if (ModelTypeHelpers.ModelGroupDetails.TryGetValue(childNavigationItem, out var modelGroup))
                             {
-                                if (sample.ModelDetails.Parent != null)
-                                {
-                                    SearchIndex.Add(new SearchResult() { Label = sample.ModelDetails.Name, Description = sample.ModelDetails.Description, Tag = sample.ModelDetails.Parent });
-                                }
+                                SearchIndex.Add(new SearchResult() { Label = modelGroup.Name, Icon = modelGroup.Icon, Description = modelGroup.Name!, Tag = childNavigationItem });
+                            }
+                            else if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(childNavigationItem, out var modelFamily))
+                            {
+                                SearchIndex.Add(new SearchResult() { Label = modelFamily.Name, Description = modelFamily.Description, Tag = childNavigationItem });
+                            }
+                            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(childNavigationItem, out var apiDefinition))
+                            {
+                                SearchIndex.Add(new SearchResult() { Label = apiDefinition.Name, Icon = apiDefinition.Icon, Description = apiDefinition.Name!, Tag = childNavigationItem });
                             }
                         }
-                    }
-                    */
-                }
-            }
-
-            foreach (var sample in SampleDetails.Samples)
-            {
-                AddModelTypes(sample.Model1Types);
-                AddModelTypes(sample.Model2Types);
-            }
-
-            static void AddModelTypes(List<ModelType>? modelTypes)
-            {
-                if (modelTypes == null)
-                {
-                    return;
-                }
-
-                foreach (var modelType in modelTypes)
-                {
-                    if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
-                    {
-                        SearchIndex.Add(new SearchResult() { Label = modelDetails.Name, Description = modelDetails.Description, Tag = modelType });
-                    }
-                    else if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(modelType, out var modelFamily))
-                    {
-                        SearchIndex.Add(new SearchResult() { Label = modelFamily.Name, Description = modelFamily.Description, Tag = modelType });
                     }
                 }
             }

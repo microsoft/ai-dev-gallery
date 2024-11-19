@@ -122,88 +122,68 @@
             x:Name="scrollViewer"
             Grid.Row="1"
             Margin="0,96,0,0"
-            HorizontalScrollBarVisibility="Hidden">
+            HorizontalScrollBarVisibility="Hidden"
+            VerticalScrollBarVisibility="Disabled"
+            VerticalScrollMode="Disabled">
             <StackPanel
                 x:Name="TilePanel"
                 Padding="64,0,64,0"
                 Orientation="Horizontal"
-                Spacing="16">
+                Spacing="-48">
                 <local:HeaderTile
-                    Width="200"
                     Description="Chat with a local language model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Chat"
                     ImageUrl="ms-appx:///Assets/TileImages/Chat.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="chat" />
                 <local:HeaderTile
                     Description="Summarize text with a local language model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Text Summarization"
                     ImageUrl="ms-appx:///Assets/TileImages/TextSummarization.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="summarize-text" />
                 <local:HeaderTile
-                    Width="160"
                     Description="Semantically search text with a local embeddings model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Semantic Search"
                     ImageUrl="ms-appx:///Assets/TileImages/SemanticSearch.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="semantic-search" />
                 <local:HeaderTile
                     Description="Generate text with a local model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Text Generation"
                     ImageUrl="ms-appx:///Assets/TileImages/TextGeneration.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="generate-text" />
                 <local:HeaderTile
                     Description="Classify the main object of a given photo"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Classify Image"
                     ImageUrl="ms-appx:///Assets/TileImages/ClassifyImage.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="classify-image" />
                 <local:HeaderTile
-                    Width="160"
                     Description="Simple audio translation to English"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Translate"
                     ImageUrl="ms-appx:///Assets/TileImages/Translation.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="translate-audio" />
                 <local:HeaderTile
                     Description="Detect items in a photo"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Detect Objects"
                     ImageUrl="ms-appx:///Assets/TileImages/DetectObjects.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="detect-objects" />
                 <local:HeaderTile
-                    Width="186"
                     Description="Segment an image"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Image Segmentation"
                     ImageUrl="ms-appx:///Assets/TileImages/ImageSegmentation.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
                     SampleID="segment-image" />
                 <local:HeaderTile
                     Description="Transcribe audio into text"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Transcribe"
                     ImageUrl="ms-appx:///Assets/TileImages/Transcription.png"
-                    PointerEntered="Tile_PointerEntered"
-                    PointerExited="Tile_PointerExited"
-                    SampleID="transcribe" />
+                    SampleID="transcribe-audio" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

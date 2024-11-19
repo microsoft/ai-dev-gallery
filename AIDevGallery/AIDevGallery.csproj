@@ -238,6 +238,7 @@
     <None Remove="Assets\TileImages\DetectObjects.png" />
     <None Remove="Assets\TileImages\ImageSegmentation.png" />
     <None Remove="Assets\TileImages\SemanticSearch.png" />
+    <None Remove="Assets\TileImages\Speech.png" />
     <None Remove="Assets\TileImages\TextGeneration.png" />
     <None Remove="Assets\TileImages\TextSummarization.png" />
     <None Remove="Assets\TileImages\Transcription.png" />

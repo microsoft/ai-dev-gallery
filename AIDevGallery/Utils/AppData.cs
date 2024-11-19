@@ -92,7 +92,7 @@ internal class AppData
     private static AppData GetDefault()
     {
         var homeDirPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var cacheDir = Path.Combine(homeDirPath, ".cache", "winai");
+        var cacheDir = Path.Combine(homeDirPath, ".cache", "aigallery");
 
         return new AppData
         {

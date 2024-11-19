@@ -495,6 +495,13 @@ internal class LicenseInfo
                 }
             },
             {
+                "llama3.2", new LicenseInfo
+                {
+                    Name = "Llama 3.2 Community License Agreement",
+                    LicenseUrl = "https://huggingface.co/meta-llama/Llama-3.2-1B/blob/main/LICENSE.txt"
+                }
+            },
+            {
                 "gemma", new LicenseInfo
                 {
                     Name = "Gemma Terms of Use",
