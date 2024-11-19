@@ -36,7 +36,7 @@
                     AutomationProperties.Name="Add model"
                     Click="AddModelClicked">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon FontSize="16" Glyph="&#xE721;" />
+                        <FontIcon FontSize="16" Glyph="&#xE710;" />
                         <TextBlock Text="Add model" />
                     </StackPanel>
                 </Button>
