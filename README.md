@@ -23,7 +23,7 @@ Follow the following guide to install the AI Dev Gallery locally:
 ### 1. Set up the Environment
 
 >**⚠️ Note**: The AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later to build and Windows 10 or later to execute.
-If you're building an app with Visual Studio and the Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here)).
+If you're building an app with WinUI and Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here)).
 
 **Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here?tabs=vs-2022-17-10#required-workloads-and-components):**
 - Windows application development
@@ -39,7 +39,7 @@ git clone https://github.com/microsoft/AI-Dev-Gallery.git
 .\AIDevGallery.sln
 ```
 
-Hit F5 to run AI Dev Gallery!
+Hit <kbd>F5</kbd> to run AI Dev Gallery!
 
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help you.
 
