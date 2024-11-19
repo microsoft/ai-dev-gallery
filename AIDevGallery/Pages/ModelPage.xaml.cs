@@ -52,7 +52,9 @@ namespace AIDevGallery.Pages
 
                 ModelFamily = new ModelFamily
                 {
+                    Id = details.Id + "Family",
                     ReadmeUrl = details.ReadmeUrl ?? string.Empty,
+                    DocsUrl = details.ReadmeUrl ?? details.Url,
                     Name = details.Name
                 };
             }

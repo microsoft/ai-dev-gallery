@@ -57,10 +57,10 @@ namespace AIDevGallery
                     if (NavFrame.SourcePageType != typeof(HomePage))
                     {
                         NavFrame.Navigate(typeof(HomePage));
-                        HideInnerPane();
                         _navItemHistory.Push(null);
                     }
 
+                    HideInnerPane();
                     break;
                 case "samples":
                     ShowScenarios(obj);
@@ -75,10 +75,10 @@ namespace AIDevGallery
                     if (NavFrame.SourcePageType != typeof(SettingsPage))
                     {
                         NavFrame.Navigate(typeof(SettingsPage));
-                        HideInnerPane();
                         _navItemHistory.Push(null);
                     }
 
+                    HideInnerPane();
                     break;
             }
         }
@@ -411,7 +411,11 @@ namespace AIDevGallery
                 {
                     NavigateToModelView(modelType: modelType);
                 }
-                else if (item.Tag is string str && str == "AddModel")
+                else if (item.Tag is ModelDetails modelDetails && !(_navItemHistory.TryPeek(out object? currentNavItem3) && currentNavItem3 is ModelDetails md && md == modelDetails))
+                {
+                    NavigateToModelView(modelDetails: modelDetails);
+                }
+                else if (item.Tag is string str && str == "AddModel" && NavFrame.SourcePageType != typeof(AddModelPage))
                 {
                     NavFrame.Navigate(typeof(AddModelPage));
                     _navItemHistory.Push("AddModel");
@@ -445,14 +449,7 @@ namespace AIDevGallery
             if (modelDetails != null)
             {
                 NavFrame.Navigate(typeof(ModelPage), modelDetails);
-
-                foreach (var modelFamily in ModelTypeHelpers.ModelFamilyDetails)
-                {
-                    if (modelFamily.Value.Id == modelDetails.Id)
-                    {
-                        _navItemHistory.Push(modelFamily.Key);
-                    }
-                }
+                _navItemHistory.Push(modelDetails);
             }
             else if (modelType != null)
             {
@@ -503,7 +500,7 @@ namespace AIDevGallery
             return false;
         }
 
-        private bool SetSelectedModelInInnerMenu(NavigationViewItem? item = null, ModelType? modelType = null)
+        private bool SetSelectedModelInInnerMenu(NavigationViewItem? item = null, ModelType? modelType = null, ModelDetails? modelDetails = null)
         {
             if (_navItemHistory.TryPeek(out var currentNavItem) && currentNavItem is string str && str == "AddModel" && item != null && item.Tag is string str2 && str2 == "AddModel")
             {
@@ -522,13 +519,24 @@ namespace AIDevGallery
                 return true;
             }
 
+            if (modelDetails == null && _navItemHistory.TryPeek(out var currentNavItem3) && currentNavItem3 is ModelDetails md)
+            {
+                modelDetails = md;
+            }
+
+            if (item != null && modelDetails != null && item.Tag is ModelDetails md2 && modelDetails.Id == md2.Id)
+            {
+                InnerNavView.SelectedItem = item;
+                return true;
+            }
+
             var items = item == null ? InnerNavView.MenuItems : item.MenuItems;
 
             foreach (var menuItem in items)
             {
                 if (menuItem is NavigationViewItem navItem)
                 {
-                    if (SetSelectedModelInInnerMenu(navItem, modelType))
+                    if (SetSelectedModelInInnerMenu(navItem, modelType, modelDetails))
                     {
                         return true;
                     }
