@@ -69,7 +69,7 @@ namespace AIDevGallery
                     ShowModelsClicked(obj);
                     break;
                 case "feedback":
-                    _ = Launcher.LaunchUriAsync(new Uri("https://github.com/microsoft/Windows-Copilot-Runtime-Gallery/issues"));
+                    _ = Launcher.LaunchUriAsync(new Uri("https://github.com/microsoft/ai-dev-gallery/issues"));
                     break;
                 case "settings":
                     if (NavFrame.SourcePageType != typeof(SettingsPage))
