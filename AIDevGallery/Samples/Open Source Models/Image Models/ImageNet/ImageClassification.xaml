@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
     xmlns:samples="using:AIDevGallery.Samples"
-    x:Class="AIDevGallery.Samples.OpenSourceModels.ImageClassificationSqueezeNet"
+    x:Class="AIDevGallery.Samples.OpenSourceModels.ImageClassification"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -13,7 +13,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
         <StackPanel
+            Grid.Column="0"
+            Margin="12"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Spacing="12">
