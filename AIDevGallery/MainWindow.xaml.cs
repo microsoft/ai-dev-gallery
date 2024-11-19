@@ -63,10 +63,10 @@ namespace AIDevGallery
                     HideInnerPane();
                     break;
                 case "samples":
-                    ShowScenarios(obj);
+                    ShowScenariosClicked(obj);
                     break;
                 case "models":
-                    ShowModels(obj);
+                    ShowModelsClicked(obj);
                     break;
                 case "feedback":
                     _ = Launcher.LaunchUriAsync(new Uri("https://github.com/microsoft/Windows-Copilot-Runtime-Gallery/issues"));
@@ -180,11 +180,11 @@ namespace AIDevGallery
             {
                 if (e.SourcePageType == typeof(ScenarioPage))
                 {
-                    ShowScenarios(null);
+                    ShowScenariosClicked(null);
                 }
                 else if (e.SourcePageType == typeof(ModelPage) || e.SourcePageType == typeof(AddModelPage))
                 {
-                    ShowModels(null);
+                    ShowModelsClicked(null);
                 }
                 else
                 {
@@ -230,17 +230,13 @@ namespace AIDevGallery
             NavView.ItemInvoked += NavView_ItemInvoked;
         }
 
-        private void ShowScenarios(object? obj)
+        private void ShowScenariosClicked(object? obj)
         {
             if (_currentSelectedNavItem == SamplesNavItem && IsInnerNavViewPaneVisible && obj == null)
             {
                 HideInnerPane();
                 return;
             }
-
-            ModelsFooter.Visibility = Visibility.Collapsed;
-            InnerNavView.MenuItems.Clear();
-            NavViewInnerHeader.Text = "Samples";
 
             if (obj is Scenario scenario)
             {
@@ -251,29 +247,39 @@ namespace AIDevGallery
                 NavigateToScenario(sampleArgs: samplesArgs);
             }
 
-            foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
+            if (NavViewInnerHeader.Text != "Samples")
             {
-                var categoryMenu = new NavigationViewItem()
-                {
-                    Content = scenarioCategory.Name,
-                    Icon = new FontIcon() { Glyph = scenarioCategory.Icon },
-                    Tag = scenarioCategory,
-                    IsExpanded = true
-                };
-                foreach (var sc in scenarioCategory.Scenarios)
-                {
-                    categoryMenu.MenuItems.Add(new NavigationViewItem() { Content = sc.Name, Tag = sc });
-                }
+                ModelsFooter.Visibility = Visibility.Collapsed;
+                InnerNavView.MenuItems.Clear();
+                NavViewInnerHeader.Text = "Samples";
 
-                categoryMenu.SelectsOnInvoked = false;
-                InnerNavView.MenuItems.Add(categoryMenu);
+                foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
+                {
+                    var categoryMenu = new NavigationViewItem()
+                    {
+                        Content = scenarioCategory.Name,
+                        Icon = new FontIcon() { Glyph = scenarioCategory.Icon },
+                        Tag = scenarioCategory,
+                        IsExpanded = true
+                    };
+                    foreach (var sc in scenarioCategory.Scenarios)
+                    {
+                        categoryMenu.MenuItems.Add(new NavigationViewItem() { Content = sc.Name, Tag = sc });
+                    }
+
+                    categoryMenu.SelectsOnInvoked = false;
+                    InnerNavView.MenuItems.Add(categoryMenu);
+                }
             }
 
             ShowInnerPane();
-            SetSelectedScenarioInInnerMenu();
+            if (!SetSelectedScenarioInInnerMenu())
+            {
+                InnerNavView.SelectedItem = null;
+            }
         }
 
-        private void ShowModels(object? obj)
+        private void ShowModelsClicked(object? obj)
         {
             if (_currentSelectedNavItem == ModelsNavItem && IsInnerNavViewPaneVisible && obj == null)
             {
@@ -281,68 +287,78 @@ namespace AIDevGallery
                 return;
             }
 
-            InnerNavView.MenuItems.Clear();
-            NavViewInnerHeader.Text = "Models";
-
             if (obj is ModelType modelType)
             {
                 NavigateToModelView(modelType: modelType);
             }
-
-            List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
-            rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
-            foreach (var key in ModelTypeHelpers.ModelFamilyDetails)
+            else if (obj is ModelDetails modelDetails)
             {
-                foreach (var mapping in ModelTypeHelpers.ParentMapping)
+                NavigateToModelView(modelDetails: modelDetails);
+            }
+
+            if (NavViewInnerHeader.Text != "Models")
+            {
+                InnerNavView.MenuItems.Clear();
+                NavViewInnerHeader.Text = "Models";
+
+                List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
+                rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
+                foreach (var key in ModelTypeHelpers.ModelFamilyDetails)
                 {
-                    foreach (var key2 in mapping.Value)
+                    foreach (var mapping in ModelTypeHelpers.ParentMapping)
                     {
-                        if (key.Key == key2)
+                        foreach (var key2 in mapping.Value)
                         {
-                            rootModels.Remove(key.Key);
+                            if (key.Key == key2)
+                            {
+                                rootModels.Remove(key.Key);
+                            }
                         }
                     }
                 }
-            }
 
-            NavigationViewItem? languageModelsNavItem = null;
+                NavigationViewItem? languageModelsNavItem = null;
 
-            foreach (var key in rootModels.OrderBy(ModelTypeHelpers.GetModelOrder))
-            {
-                var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
-                navItem.IsExpanded = true;
-                InnerNavView.MenuItems.Add(navItem);
-
-                if (key == ModelType.LanguageModels)
+                foreach (var key in rootModels.OrderBy(ModelTypeHelpers.GetModelOrder))
                 {
-                    languageModelsNavItem = navItem;
+                    var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
+                    navItem.IsExpanded = true;
+                    InnerNavView.MenuItems.Add(navItem);
+
+                    if (key == ModelType.LanguageModels)
+                    {
+                        languageModelsNavItem = navItem;
+                    }
                 }
-            }
 
-            if (languageModelsNavItem != null)
-            {
-                var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
-
-                foreach (var cachedModel in userAddedModels)
+                if (languageModelsNavItem != null)
                 {
+                    var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
+
+                    foreach (var cachedModel in userAddedModels)
+                    {
+                        languageModelsNavItem.MenuItems.Add(new NavigationViewItem
+                        {
+                            Content = cachedModel.Details.Name.Split('/').Last(),
+                            Tag = cachedModel.Details,
+                        });
+                    }
+
                     languageModelsNavItem.MenuItems.Add(new NavigationViewItem
                     {
-                        Content = cachedModel.Details.Name.Split('/').Last(),
-                        Tag = cachedModel.Details,
+                        Content = "+ Add Language Model",
+                        Tag = "AddModel"
                     });
                 }
 
-                languageModelsNavItem.MenuItems.Add(new NavigationViewItem
-                {
-                    Content = "+ Add Language Model",
-                    Tag = "AddModel"
-                });
+                ModelsFooter.Visibility = Visibility.Visible;
             }
 
-            ModelsFooter.Visibility = Visibility.Visible;
-
             ShowInnerPane();
-            SetSelectedModelInInnerMenu();
+            if (!SetSelectedModelInInnerMenu())
+            {
+                InnerNavView.SelectedItem = null;
+            }
         }
 
         private static NavigationViewItem CreateFromItem(ModelType key, bool includeChildren)
