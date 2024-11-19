@@ -30,7 +30,6 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <controls:HeaderCarousel Height="436" />
-
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,0,0,76"
@@ -44,28 +43,5 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
-
     </Grid>
-    <!--<VisualStateManager.VisualStateGroups>
-                    <VisualStateGroup x:Name="LayoutVisualStates">
-                        <VisualState x:Name="WideLayout">
-                            <VisualState.StateTriggers>
-                                <AdaptiveTrigger MinWindowWidth="960" />
-                            </VisualState.StateTriggers>
-                        </VisualState>
-                        <VisualState x:Name="NarrowLayout">
-                            <VisualState.StateTriggers>
-                                <AdaptiveTrigger MinWindowWidth="0" />
-                            </VisualState.StateTriggers>
-                            <VisualState.Setters>
-                                <Setter Target="Carousel.(Grid.Column)" Value="0" />
-                                <Setter Target="Carousel.(Grid.Row)" Value="1" />
-                                <Setter Target="Carousel.HorizontalAlignment" Value="Stretch" />
-                                <Setter Target="Carousel.MaxWidth" Value="1200" />
-                                <Setter Target="Carousel.Margin" Value="0,48,0,0" />
-                            </VisualState.Setters>
-                        </VisualState>
-                    </VisualStateGroup>
-                </VisualStateManager.VisualStateGroups>-->
-
 </Page>

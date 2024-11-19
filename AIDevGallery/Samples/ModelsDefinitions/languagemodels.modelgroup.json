@@ -118,7 +118,7 @@
             "Description": "Mistral 7B Instruct 0.2 DirectML will run on your GPU",
             "HardwareAccelerator": "DML",
             "Size": 3971040210,
-            "Icon": "Microsoft.svg",
+            "Icon": "Mistral.svg",
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
             "License": "apache-2.0"
@@ -130,7 +130,7 @@
             "Description": "Mistral 7B Instruct 0.2 CPU Accuracy Level 1 - recommended for accuracy",
             "HardwareAccelerator": "CPU",
             "Size": 4988642920,
-            "Icon": "Microsoft.svg",
+            "Icon": "Mistral.svg",
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
             "License": "apache-2.0"
@@ -142,7 +142,7 @@
             "Description": "Mistral 7B Instruct 0.2 CPU Accuracy Level 4 - recommended for performance",
             "HardwareAccelerator": "CPU",
             "Size": 4988651315,
-            "Icon": "Microsoft.svg",
+            "Icon": "Mistral.svg",
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
             "License": "apache-2.0"

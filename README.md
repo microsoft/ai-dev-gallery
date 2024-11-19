@@ -7,11 +7,11 @@
 > [!IMPORTANT]  
 > This app is currently in public preview. We are looking for feedback. Please let us know what you think by creating an [issue](https://github.com/microsoft/ai-dev-gallery/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
-The AI Dev Gallery is an app designed to help Windows app developers integrate AI capabilities within their own apps and projects. The app contains the following:
+The AI Dev Gallery is an app designed to help Windows developers integrate AI capabilities within their own apps and projects. The app contains the following:
 
 - **Interactive samples powered by local AI models**
 - **Explore, download, and run models from Hugging Face and GitHub**
-- **The ability to view source code and export visual studio project for each sample**
+- **The ability to view source code and export Visual Studio projects for each sample**
 
 <p align="center">
 <br/>
@@ -23,12 +23,10 @@ Follow the following guide to install the AI Dev Gallery locally:
 ### 1. Set up the Environment
 
 >**⚠️ Note**: The AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later to build and Windows 10 or later to execute.
-If you're building an app with the Windows App SDK for the first time, follow the [installation instructions here.](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/set-up-your-development-environment)
+If you're building an app with WinUI and Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here)).
 
-**Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/set-up-your-development-environment?tabs=cs-vs-community%2Ccpp-vs-community%2Cvs-2022-17-1-a%2Cvs-2022-17-1-b#required-workloads-and-components):**
-- .NET Desktop Development.
-- Windows App SDK C# Templates
-- Windows 10 SDK (10.0.19041.0)
+**Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here?tabs=vs-2022-17-10#required-workloads-and-components):**
+- Windows application development
 
 ### 2. Clone the Repository
 
@@ -39,8 +37,9 @@ git clone https://github.com/microsoft/AI-Dev-Gallery.git
 ### 3. Open .sln with Visual Studio and Build!
 ```shell
 .\AIDevGallery.sln
-
 ```
+
+Press <kbd>F5</kbd> to run AI Dev Gallery!
 
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help you.
 
@@ -63,7 +62,7 @@ Any samples or docs improvements you'd like to see? We're always looking for a h
 - **Q: Is a Microsoft account necessary to use the app?**
   - **A:** No, the app does NOT require a Microsoft account for use.
 - **Q: Can I use the app without an internet connection?**
-  - **A:** Yes, the app works offline since the AI models are downloaded locally. However, you will need to be online to download additional AI models from Hugging Face or Github.
+  - **A:** Yes, the app works offline since the AI models are downloaded locally. However, you will need to be online to download additional AI models from Hugging Face or GitHub.
 - **Q: What AI models are available in the app?**
   - **A:** The app features popular open source models and will eventually include APIs from the <a href="https://learn.microsoft.com/windows/ai/overview">Windows Copilot Runtime</a>. When executing a sample, you can select which model you want to use.
 - **Q: Is the app's source code accessible? Can I contribute new samples?**
