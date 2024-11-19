@@ -4,11 +4,9 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
@@ -20,7 +18,7 @@ using Windows.Storage.Pickers;
 namespace AIDevGallery.Samples.OpenSourceModels
 {
     [GallerySample(
-        Model1Types = [ModelType.ResNet],
+        Model1Types = [ModelType.MobileNet, ModelType.ResNet, ModelType.SqueezeNet],
         Scenario = ScenarioType.ImageClassifyImage,
         NugetPackageReferences = [
             "System.Drawing.Common",
@@ -34,16 +32,14 @@ namespace AIDevGallery.Samples.OpenSourceModels
             SharedCodeEnum.BitmapFunctions,
             SharedCodeEnum.DeviceUtils
         ],
-        Name = "ResNet Image Classification",
-        Id = "09d73ba7-b877-45f9-9df7-41898ab4d339",
+        Name = "ImageNet Image Classification",
+        Id = "09d73ba7-b877-45f9-9de6-41898ab4d339",
         Icon = "\uE8B9")]
-    internal sealed partial class ImageClassificationResNet : BaseSamplePage
+    internal sealed partial class ImageClassification : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
 
-        public HardwareAccelerator HardwareAccelerator { get; private set; }
-
-        public ImageClassificationResNet()
+        public ImageClassification()
         {
             this.Unloaded += (s, e) => _inferenceSession?.Dispose();
             this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
@@ -52,7 +48,6 @@ namespace AIDevGallery.Samples.OpenSourceModels
 
         protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            HardwareAccelerator = sampleParams.HardwareAccelerator;
             await InitModel(sampleParams.ModelPath);
             sampleParams.NotifyCompletion();
 
@@ -77,10 +72,6 @@ namespace AIDevGallery.Samples.OpenSourceModels
 
                 SessionOptions sessionOptions = new();
                 sessionOptions.RegisterOrtExtensions();
-                if (HardwareAccelerator == HardwareAccelerator.DML)
-                {
-                    sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-                }
 
                 _inferenceSession = new InferenceSession(modelPath, sessionOptions);
             });
@@ -104,32 +95,29 @@ namespace AIDevGallery.Samples.OpenSourceModels
             var file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                // Call function to run inference and classify image
                 UploadImageButton.Focus(FocusState.Programmatic);
                 await ClassifyImage(file.Path);
-            }
-            else
-            {
-                PredictionsStackPanel.Children.Clear();
-
-                TextBlock feedbackTextBlock = new()
-                {
-                    Text = "No image selected",
-                    FontSize = 14,
-                    Margin = new Thickness(0, 0, 8, 0),
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-
-                PredictionsStackPanel.Children.Add(feedbackTextBlock);
             }
         }
 
         private async Task ClassifyImage(string filePath)
         {
-            if (!Path.Exists(filePath))
+            if (!Path.Exists(filePath) || _inferenceSession == null)
             {
                 return;
             }
+
+            // Grab model metadata
+            var inputName = _inferenceSession.InputNames[0];
+            var inputMetadata = _inferenceSession.InputMetadata[inputName];
+            var dimensions = inputMetadata.Dimensions;
+
+            // Set batch size to 1
+            int batchSize = 1;
+            dimensions[0] = batchSize;
+
+            int inputWidth = dimensions[2];
+            int inputHeight = dimensions[3];
 
             BitmapImage bitmapImage = new(new Uri(filePath));
             UploadedImage.Source = bitmapImage;
@@ -140,22 +128,19 @@ namespace AIDevGallery.Samples.OpenSourceModels
                 Bitmap image = new(filePath);
 
                 // Resize image
-                int width = 224;
-                int height = 224;
-                var resizedImage = BitmapFunctions.ResizeBitmap(image, width, height);
+                var resizedImage = BitmapFunctions.ResizeBitmap(image, inputWidth, inputHeight);
                 image.Dispose();
                 image = resizedImage;
 
                 // Preprocess image
-                Tensor<float> input = new DenseTensor<float>([1, 3, 224, 224]);
+                Tensor<float> input = new DenseTensor<float>(dimensions);
                 input = BitmapFunctions.PreprocessBitmapWithStdDev(image, input);
                 image.Dispose();
 
                 // Setup inputs
-                var inputMetadataName = _inferenceSession!.InputNames[0];
                 var inputs = new List<NamedOnnxValue>
                 {
-                    NamedOnnxValue.CreateFromTensor(inputMetadataName, input)
+                    NamedOnnxValue.CreateFromTensor(inputName, input)
                 };
 
                 // Run inference
