@@ -123,7 +123,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels
                 yield break;
             }
 
-            var images = Images.Load([imagePath]);
+            var images = Images.Load(imagePath);
 
             var prompt = $@"<|user|>\n<|image_1|>\n{question}<|end|>\n<|assistant|>\n";
             string[] stopTokens = ["</s>", "<|user|>", "<|end|>", "<|assistant|>"];
