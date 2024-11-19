@@ -10,7 +10,6 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,7 +37,7 @@ namespace AIDevGallery.Samples.OpenSourceModels
         Name = "ResNet Image Classification",
         Id = "09d73ba7-b877-45f9-9df7-41898ab4d339",
         Icon = "\uE8B9")]
-    internal sealed partial class ImageClassificationResNet : Page
+    internal sealed partial class ImageClassificationResNet : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
 
@@ -51,17 +50,13 @@ namespace AIDevGallery.Samples.OpenSourceModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                HardwareAccelerator = sampleParams.HardwareAccelerator;
-                await InitModel(sampleParams.ModelPath);
-                sampleParams.NotifyCompletion();
+            HardwareAccelerator = sampleParams.HardwareAccelerator;
+            await InitModel(sampleParams.ModelPath);
+            sampleParams.NotifyCompletion();
 
-                await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
-            }
+            await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
         }
 
         // <exclude>

@@ -7,7 +7,6 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     SharedCode = [
         SharedCodeEnum.GenAIModel
     ])]
-internal sealed partial class CustomSystemPrompt : Page
+internal sealed partial class CustomSystemPrompt : BaseSamplePage
 {
     private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
     private IChatClient? model;
@@ -41,15 +40,11 @@ internal sealed partial class CustomSystemPrompt : Page
         DoSampleToggle.Toggled += DoSampleToggle_Toggled;
     }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        base.OnNavigatedTo(e);
-        if (e.Parameter is SampleNavigationParameters sampleParams)
-        {
-            model = await sampleParams.GetIChatClientAsync();
-            InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
-            sampleParams.NotifyCompletion();
-        }
+        model = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+        sampleParams.NotifyCompletion();
     }
 
     // <exclude>

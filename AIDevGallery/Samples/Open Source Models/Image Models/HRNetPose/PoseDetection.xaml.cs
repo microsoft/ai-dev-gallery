@@ -8,9 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,7 +34,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose
         Name = "Pose Detection",
         Id = "9b74ccc0-f5f7-430f-bed0-712ffc063508",
         Icon = "\uE8B3")]
-    internal sealed partial class PoseDetection : Page
+    internal sealed partial class PoseDetection : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
         public PoseDetection()
@@ -53,17 +51,13 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose
         }
 
         // </exclude>
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                var hardwareAccelerator = sampleParams.HardwareAccelerator;
-                await InitModel(sampleParams.ModelPath, hardwareAccelerator);
-                sampleParams.NotifyCompletion();
+            var hardwareAccelerator = sampleParams.HardwareAccelerator;
+            await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+            sampleParams.NotifyCompletion();
 
-                await DetectPose(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
-            }
+            await DetectPose(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
         }
 
         private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)

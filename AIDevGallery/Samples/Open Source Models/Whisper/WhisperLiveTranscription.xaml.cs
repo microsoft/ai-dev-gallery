@@ -5,9 +5,8 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.OpenSourceModels.Whisper
 {
@@ -26,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper
         ],
         Id = "2b13b8ef-a75c-4982-9f7e-eae1a11c87a2",
         Icon = "\uE8D4")]
-    internal sealed partial class WhisperLiveTranscription : Page
+    internal sealed partial class WhisperLiveTranscription : BaseSamplePage
     {
         private readonly AudioRecorder audioRecorder;
         private bool isRecording;
@@ -42,14 +41,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper
             audioRecorder = new AudioRecorder(UpdateTranscription);
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
-                sampleParams.NotifyCompletion();
-            }
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Drawing;
 using System.Threading;
@@ -46,7 +45,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration
         ],
         Icon = "\uEE71")]
 
-    internal sealed partial class GenerateImage : Page
+    internal sealed partial class GenerateImage : BaseSamplePage
     {
         private string prompt = string.Empty;
         private bool modelReady;
@@ -62,24 +61,19 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
+            var hardwareAccelerator = sampleParams.HardwareAccelerator;
+            var parentFolder = sampleParams.ModelPath;
 
-            if (e.Parameter is SampleNavigationParameters sampleParams)
+            await Task.Run(() =>
             {
-                var hardwareAccelerator = sampleParams.HardwareAccelerator;
-                var parentFolder = sampleParams.ModelPath;
+                stableDiffusion = new StableDiffusion(parentFolder, hardwareAccelerator);
+            });
 
-                await Task.Run(() =>
-                {
-                    stableDiffusion = new StableDiffusion(parentFolder, hardwareAccelerator);
-                });
+            modelReady = true;
 
-                modelReady = true;
-
-                sampleParams.NotifyCompletion();
-            }
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>
@@ -167,8 +161,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration
                             await ErrorDialog.ShowAsync();
                         });
                     }
-
-                    return Task.CompletedTask;
                 },
                 token);
 

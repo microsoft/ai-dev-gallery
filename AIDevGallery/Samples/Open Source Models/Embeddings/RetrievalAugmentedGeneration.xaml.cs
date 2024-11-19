@@ -49,7 +49,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
         ],
         Id = "9C1FB14D-4841-449C-9563-4551106BB693",
         Icon = "\uE8D4")]
-    internal sealed partial class RetrievalAugmentedGeneration : Page
+    internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         private readonly ChatOptions _chatOptions = GenAIModel.GetDefaultChatOptions();
         private EmbeddingGenerator? _embeddings;
@@ -89,20 +89,16 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
             this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is MultiModelSampleNavigationParameters sampleParams)
-            {
-                _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
-                _chatClient = await sampleParams.GetIChatClientAsync();
-                _chatOptions.MaxOutputTokens = 2048;
+            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            _chatClient = await sampleParams.GetIChatClientAsync();
+            _chatOptions.MaxOutputTokens = 2048;
 
-                sampleParams.NotifyCompletion();
+            sampleParams.NotifyCompletion();
 
-                IndexPDFButton.IsEnabled = true;
-                IndexPDFText.Text = "Select a PDF";
-            }
+            IndexPDFButton.IsEnabled = true;
+            IndexPDFText.Text = "Select a PDF";
         }
 
         // <exclude>
