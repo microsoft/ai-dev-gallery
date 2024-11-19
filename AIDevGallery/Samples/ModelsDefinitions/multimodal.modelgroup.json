@@ -17,7 +17,7 @@
             "Url": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/tree/main/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4",
             "Description": "ONNX model optimized to run on CPU using int4 quantization via RTN",
             "HardwareAccelerator": "CPU",
-            "Size": 3220580286,
+            "Size": 3220615084,
             "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
             "License": "mit"
