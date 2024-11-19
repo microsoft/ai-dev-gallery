@@ -39,7 +39,7 @@ git clone https://github.com/microsoft/AI-Dev-Gallery.git
 .\AIDevGallery.sln
 ```
 
-Hit <kbd>F5</kbd> to run AI Dev Gallery!
+Press <kbd>F5</kbd> to run AI Dev Gallery!
 
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help you.
 
