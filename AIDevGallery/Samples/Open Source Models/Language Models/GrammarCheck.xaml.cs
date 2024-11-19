@@ -7,7 +7,6 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
         Name = "Grammar Check",
         Id = "9e1b5ac5-3521-4e88-a2ce-60152a6cb44f",
         Icon = "\uE8D4")]
-    internal sealed partial class GrammarCheck : Page
+    internal sealed partial class GrammarCheck : BaseSamplePage
     {
         private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
         private IChatClient? model;
@@ -40,15 +39,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                model = await sampleParams.GetIChatClientAsync();
-                InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
-                sampleParams.NotifyCompletion();
-            }
+            model = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

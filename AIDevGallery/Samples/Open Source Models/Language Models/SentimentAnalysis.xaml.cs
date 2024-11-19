@@ -7,7 +7,6 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
         Name = "Sentiment Analysis",
         Id = "9cc84d1e-6b02-4bd2-a350-6e38c3a92ced",
         Icon = "\uE8D4")]
-    internal sealed partial class SentimentAnalysis : Page
+    internal sealed partial class SentimentAnalysis : BaseSamplePage
     {
         private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
         private IChatClient? model;
@@ -41,15 +40,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                model = await sampleParams.GetIChatClientAsync();
-                InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
-                sampleParams.NotifyCompletion();
-            }
+            model = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

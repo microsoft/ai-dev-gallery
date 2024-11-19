@@ -1,6 +1,4 @@
-using System.Threading;
 using Microsoft.UI.Xaml;
-using $safeprojectname$.SharedCode;
 
 namespace $safeprojectname$
 {
@@ -11,7 +9,7 @@ namespace $safeprojectname$
             this.InitializeComponent();
             this.RootFrame.Loaded += (sender, args) =>
             {
-                RootFrame.Navigate(typeof($MainSamplePage$), new SampleNavigationParameters());
+                RootFrame.Navigate(typeof($MainSamplePage$));
             };
         }
 

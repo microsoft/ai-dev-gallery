@@ -221,8 +221,6 @@ namespace AIDevGallery.ProjectGenerator
                 { "ProjectTemplate.csproj", $"{safeProjectName}.csproj" }
             };
 
-            string modelTemplateString = GetPromptTemplateString(modelInfos.Values.Select(m => m.ModelPromptTemplate).ToList());
-
             var className = await AddFilesFromSampleAsync(sample, packageReferences, safeProjectName, outputPath, addLllmTypes, modelInfos, cancellationToken);
 
             foreach (var file in files)
@@ -263,7 +261,6 @@ namespace AIDevGallery.ProjectGenerator
                     content = content.Replace("$XmlEscapedPublisher$", xmlEscapedPublisher);
                     content = content.Replace("$DotNetVersion$", DotNetVersion);
                     content = content.Replace("$MainSamplePage$", className);
-                    content = content.Replace("$promptTemplate$", modelTemplateString);
 
                     // Write the file
                     await File.WriteAllTextAsync(outputPathFile, content, cancellationToken);
@@ -359,21 +356,14 @@ namespace AIDevGallery.ProjectGenerator
             return outputPath;
         }
 
-        private string GetChatClientLoaderString(Sample sample, bool isMultiModel, string modelPath)
+        private string GetChatClientLoaderString(Sample sample, string modelPath, string promptTemplate)
         {
             if (!sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
             {
                 return string.Empty;
             }
 
-            if (isMultiModel)
-            {
-                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplates[0], System.Threading.CancellationToken.None)";
-            }
-            else
-            {
-                return $"GenAIModel.CreateAsync({modelPath}, sampleParams.PromptTemplate, System.Threading.CancellationToken.None)";
-            }
+            return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
         }
 
         private static async Task CopyFileAsync(string sourceFile, string destinationFile, CancellationToken cancellationToken)
@@ -391,95 +381,69 @@ namespace AIDevGallery.ProjectGenerator
             return str;
         }
 
-        private string GetPromptTemplateString(List<PromptTemplate?> promptTemplates)
+        private string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
         {
-            if (promptTemplates.Count == 0 ||
-                promptTemplates.All(pt => pt == null))
+            if (promptTemplate == null)
             {
-                return string.Empty;
+                return "null";
             }
 
             StringBuilder modelPromptTemplateSb = new();
-            if (promptTemplates.Count == 1)
+            var spaces = new string(' ', spaceCount);
+            modelPromptTemplateSb.AppendLine("new LlmPromptTemplate");
+            modelPromptTemplateSb.Append(spaces);
+            modelPromptTemplateSb.AppendLine("{");
+            if (!string.IsNullOrEmpty(promptTemplate.System))
             {
-                modelPromptTemplateSb.AppendLine("public LlmPromptTemplate? PromptTemplate { get; } =");
-            }
-            else
-            {
-                modelPromptTemplateSb.AppendLine("public LlmPromptTemplate?[] PromptTemplates { get; } = [");
-            }
-
-            foreach (var promptTemplate in promptTemplates)
-            {
-                if (promptTemplate == null)
-                {
-                    modelPromptTemplateSb.AppendLine("            null,");
-                    continue;
-                }
-
+                modelPromptTemplateSb.Append(spaces);
                 modelPromptTemplateSb.AppendLine(
-                        $$"""
-                                    new LlmPromptTemplate
-                                    {
-                        """);
-                if (!string.IsNullOrEmpty(promptTemplate.System))
-                {
-                    modelPromptTemplateSb.AppendLine(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            """
-                                            System = "{0}",
-                            """,
-                            EscapeNewLines(promptTemplate.System)));
-                }
-
-                if (!string.IsNullOrEmpty(promptTemplate.User))
-                {
-                    modelPromptTemplateSb.AppendLine(string.Format(
-                            CultureInfo.InvariantCulture,
-                            """
-                                            User = "{0}",
-                            """,
-                            EscapeNewLines(promptTemplate.User)));
-                }
-
-                if (!string.IsNullOrEmpty(promptTemplate.Assistant))
-                {
-                    modelPromptTemplateSb.AppendLine(string.Format(
-                            CultureInfo.InvariantCulture,
-                            """
-                                            Assistant = "{0}",
-                            """,
-                            EscapeNewLines(promptTemplate.Assistant)));
-                }
-
-                if (promptTemplate.Stop != null && promptTemplate.Stop.Length > 0)
-                {
-                    var stopStr = string.Join(", ", promptTemplate.Stop.Select(s =>
-                        string.Format(
-                                CultureInfo.InvariantCulture,
-                                """
-                                "{0}"
-                                """,
-                                EscapeNewLines(s))));
-                    modelPromptTemplateSb.Append("                Stop = [ ");
-                    modelPromptTemplateSb.Append(stopStr);
-                    modelPromptTemplateSb.AppendLine("]");
-                }
-
-                modelPromptTemplateSb.Append("            }");
-                if (promptTemplates.Count > 1)
-                {
-                    modelPromptTemplateSb.AppendLine(",");
-                }
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        """
+                            System = "{0}",
+                        """,
+                        EscapeNewLines(promptTemplate.System)));
             }
 
-            if (promptTemplates.Count > 1)
+            if (!string.IsNullOrEmpty(promptTemplate.User))
             {
-                modelPromptTemplateSb.Append("        ]");
+                modelPromptTemplateSb.Append(spaces);
+                modelPromptTemplateSb.AppendLine(string.Format(
+                        CultureInfo.InvariantCulture,
+                        """
+                            User = "{0}",
+                        """,
+                        EscapeNewLines(promptTemplate.User)));
             }
 
-            modelPromptTemplateSb.Append(';');
+            if (!string.IsNullOrEmpty(promptTemplate.Assistant))
+            {
+                modelPromptTemplateSb.Append(spaces);
+                modelPromptTemplateSb.AppendLine(string.Format(
+                        CultureInfo.InvariantCulture,
+                        """
+                            Assistant = "{0}",
+                        """,
+                        EscapeNewLines(promptTemplate.Assistant)));
+            }
+
+            if (promptTemplate.Stop != null && promptTemplate.Stop.Length > 0)
+            {
+                modelPromptTemplateSb.Append(spaces);
+                var stopStr = string.Join(", ", promptTemplate.Stop.Select(s =>
+                    string.Format(
+                            CultureInfo.InvariantCulture,
+                            """
+                            "{0}"
+                            """,
+                            EscapeNewLines(s))));
+                modelPromptTemplateSb.Append("    Stop = [ ");
+                modelPromptTemplateSb.Append(stopStr);
+                modelPromptTemplateSb.AppendLine("]");
+            }
+
+            modelPromptTemplateSb.Append(spaces);
+            modelPromptTemplateSb.Append('}');
 
             return modelPromptTemplateSb.ToString();
         }
@@ -497,7 +461,7 @@ namespace AIDevGallery.ProjectGenerator
             if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate) &&
                 (addLllmTypes || sample.SharedCode.Contains(SharedCodeEnum.GenAIModel)))
             {
-                // Always used inside SampleNavigationParameters.cs and GenAIModel.cs
+                // Always used inside GenAIModel.cs
                 sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
             }
 
@@ -531,6 +495,10 @@ namespace AIDevGallery.ProjectGenerator
             if (!string.IsNullOrEmpty(sample.XAMLCode))
             {
                 var xamlSource = CleanXamlSource(sample.XAMLCode, safeProjectName, out className);
+                xamlSource = xamlSource.Replace($"{Environment.NewLine}    xmlns:samples=\"using:AIDevGallery.Samples\"", string.Empty);
+                xamlSource = xamlSource.Replace("<samples:BaseSamplePage", "<Page");
+                xamlSource = xamlSource.Replace("</samples:BaseSamplePage>", "</Page>");
+
                 await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml"), xamlSource, cancellationToken);
             }
 
@@ -538,12 +506,18 @@ namespace AIDevGallery.ProjectGenerator
             {
                 var cleanCsSource = CleanCsSource(sample.CSCode, safeProjectName, true);
                 cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+                cleanCsSource = cleanCsSource.Replace(": BaseSamplePage", ": Microsoft.UI.Xaml.Controls.Page");
+                cleanCsSource = cleanCsSource.Replace(
+                    "Task LoadModelAsync(SampleNavigationParameters sampleParams)",
+                    "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
+                cleanCsSource = cleanCsSource.Replace(
+                    "Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)",
+                    "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
+                cleanCsSource = cleanCsSource.Replace($"{Environment.NewLine}            return Task.CompletedTask;", string.Empty);
 
                 string modelPath;
                 if (modelInfos.Count > 1)
                 {
-                    cleanCsSource = cleanCsSource.Replace("MultiModelSampleNavigationParameters", "SampleNavigationParameters");
-
                     int i = 0;
                     foreach (var modelInfo in modelInfos)
                     {
@@ -564,10 +538,20 @@ namespace AIDevGallery.ProjectGenerator
 
                 cleanCsSource = cleanCsSource.Replace("sampleParams.CancellationToken", "CancellationToken.None");
 
-                var chatClientLoader = GetChatClientLoaderString(sample, modelInfos.Count > 1, modelPath);
-                if (chatClientLoader != null)
+                var search = "sampleParams.GetIChatClientAsync()";
+                int index = cleanCsSource.IndexOf(search, StringComparison.OrdinalIgnoreCase);
+                if (index > 0)
                 {
-                    cleanCsSource = cleanCsSource.Replace("sampleParams.GetIChatClientAsync()", chatClientLoader);
+                    int newLineIndex = cleanCsSource[..index].LastIndexOf(Environment.NewLine, StringComparison.OrdinalIgnoreCase);
+                    var subStr = cleanCsSource[(newLineIndex + Environment.NewLine.Length)..];
+                    var subStrWithoutSpaces = subStr.TrimStart();
+                    var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
+                    var promptTemplate = GetPromptTemplateString(modelInfos.Values.First().ModelPromptTemplate, spaceCount);
+                    var chatClientLoader = GetChatClientLoaderString(sample, modelPath, promptTemplate);
+                    if (chatClientLoader != null)
+                    {
+                        cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
+                    }
                 }
 
                 await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml.cs"), cleanCsSource, cancellationToken);

@@ -15,9 +15,8 @@ namespace AIDevGallery.Models
     {
         public string[] ModelPaths { get; } = modelPaths;
         public HardwareAccelerator[] HardwareAccelerators { get; } = hardwareAccelerators;
-        public LlmPromptTemplate?[] PromptTemplates { get; } = promptTemplates;
 
         protected override string ChatClientModelPath => ModelPaths[0];
-        protected override LlmPromptTemplate? ChatClientPromptTemplate => PromptTemplates[0];
+        protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplates[0];
     }
 }
