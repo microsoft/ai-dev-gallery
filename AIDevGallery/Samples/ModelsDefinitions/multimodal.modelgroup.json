@@ -19,7 +19,6 @@
             "HardwareAccelerator": "CPU",
             "Size": 3220580286,
             "Icon": "Microsoft.svg",
-            "Size": 3220615084,
             "ParameterSize": "4.2B",
             "License": "mit"
           }
@@ -39,6 +38,7 @@
             "Description": "ONNX model optimized to run on CPU using int4 quantization via RTN",
             "HardwareAccelerator": "CPU",
             "Size": 3220612860,
+            "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
             "License": "mit"
           }
