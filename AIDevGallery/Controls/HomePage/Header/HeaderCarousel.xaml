@@ -60,7 +60,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="RootGrid" CornerRadius="8,0,0,0">
-        <wuc:OpacityMaskView
+        <local:OpacityMaskView
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             OpacityMask="{ThemeResource OverlayRadialGradient}">
@@ -75,7 +75,7 @@
                     </Border.Background>
                 </Border>
             </Grid>
-        </wuc:OpacityMaskView>
+        </local:OpacityMaskView>
         <StackPanel
             Padding="24"
             HorizontalAlignment="Center"

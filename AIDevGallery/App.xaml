@@ -14,7 +14,7 @@
                 <ResourceDictionary Source="/Styles/SelectorBar.xaml" />
                 <ResourceDictionary Source="/Controls/CopyButton/CopyButton.xaml" />
                 <ResourceDictionary Source="/Controls/HomePage/Header/HeaderTile/HeaderTile.xaml" />
-                <!--<ResourceDictionary Source="/Controls/OpacityMaskView/RedirectVisualView.xaml" />-->
+                <ResourceDictionary Source="/Controls/HomePage/Header/OpacityMaskView/RedirectVisualView.xaml" />
                 <ResourceDictionary Source="/Controls/TitleBar/TitleBar.xaml" />
                 <ResourceDictionary Source="/Samples/SharedCode/SemanticComboBox.xaml" />
                 <ResourceDictionary Source="/Samples/SharedCode/SmartPasteForm.xaml" />
