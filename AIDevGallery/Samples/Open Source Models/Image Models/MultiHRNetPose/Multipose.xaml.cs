@@ -74,7 +74,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
                 await InitModels(sampleParams.ModelPaths[0], sampleParams.HardwareAccelerators[0], sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
                 sampleParams.NotifyCompletion();
 
-                await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
+                await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
             }
         }
 
@@ -155,21 +155,22 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             // Step 1: Detect where the "person" tag is found in the image
             List<Prediction> predictions = await FindPeople(originalImage);
             predictions = predictions.Where(x => x.Label == "person").ToList();
-
+            int i = 0;
             foreach (var prediction in predictions)
             {
                 if (prediction.Box != null)
                 {
-                    using Bitmap croppedImage = CropImage(originalImage, prediction.Box);
+                    Bitmap croppedImage = CropImage(originalImage, prediction.Box);
 
-                    // Run pose detection
-                    using Bitmap poseOverlay = await DetectPose(croppedImage, originalImage);
+                    Bitmap poseOverlay = await DetectPose(croppedImage);
 
-                    // Overlay pose back onto the original image
-                    OverlayImage(originalImage, poseOverlay, prediction.Box);
-
-                    // Overlay the pose result back onto the original image
                     originalImage = OverlayImage(originalImage, poseOverlay, prediction.Box);
+
+                    //if(i == 2)
+                    //{
+                    //    break;
+                    //}
+                    i++;
                 }
             }
 
@@ -191,32 +192,33 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
         {
             using Graphics graphics = Graphics.FromImage(originalImage);
 
-            // Draw the overlay image within the bounding box
+            // Scale the overlay to match the bounding box size
             graphics.DrawImage(overlay, new Rectangle(
                 (int)box.Xmin,
                 (int)box.Ymin,
                 (int)(box.Xmax - box.Xmin),
-                (int)(box.Ymax - box.Ymin)));
+                (int)(box.Ymax - box.Ymin)
+            ));
 
             return originalImage;
         }
 
-        private async Task<Bitmap> DetectPose(Bitmap image, Bitmap og)
+
+        private async Task<Bitmap> DetectPose(Bitmap image)
         {
-            if (_poseSession == null)
+            if (image == null)
             {
                 return null;
             }
 
-            // Set up
-            var inputName = _poseSession.InputNames[0];
+            var inputName = _poseSession!.InputNames[0];
             var inputDimensions = _poseSession.InputMetadata[inputName].Dimensions;
-
-            int modelInputWidth = inputDimensions[2];
-            int modelInputHeight = inputDimensions[3];
 
             var originalImageWidth = image.Width;
             var originalImageHeight = image.Height;
+
+            int modelInputWidth = inputDimensions[2];
+            int modelInputHeight = inputDimensions[3];
 
             // Resize Bitmap
             using Bitmap resizedImage = BitmapFunctions.ResizeBitmap(image, modelInputWidth, modelInputHeight);
@@ -227,54 +229,22 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
                 Tensor<float> input = new DenseTensor<float>([1, 3, modelInputWidth, modelInputHeight]);
                 input = BitmapFunctions.PreprocessBitmapWithStdDev(resizedImage, input);
 
-                var inputMetadataName = _poseSession!.InputNames[0];
-
                 // Setup inputs
                 var inputs = new List<NamedOnnxValue>
                 {
-                    NamedOnnxValue.CreateFromTensor(inputMetadataName, input)
+                    NamedOnnxValue.CreateFromTensor(inputName, input)
                 };
 
                 // Run inference
                 using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _poseSession!.Run(inputs);
                 var heatmaps = results[0].AsTensor<float>();
                 List<(float X, float Y)> keypointCoordinates = PostProcessResults(heatmaps, originalImageWidth, originalImageHeight);
-
-                keypointCoordinates = ScaleKeypointsToOriginal(keypointCoordinates, image, og);
-
                 return keypointCoordinates;
             });
 
             // Render predictions and create output bitmap
-            Bitmap output = RenderPredictions(image, predictions);
-
-            return output;
+            return RenderPredictions(image, predictions);
         }
-
-        private List<(float X, float Y)> ScaleKeypointsToOriginal(
-    List<(float X, float Y)> keypoints,
-    Bitmap croppedSegment,
-    Bitmap originalImage,
-    Box croppedBox)
-        {
-            List<(float X, float Y)> scaledKeypoints = new();
-
-            // Calculate scaling factors from the cropped segment to the original image
-            float scaleX = (croppedBox.Xmax - croppedBox.Xmin) / croppedSegment.Width;
-            float scaleY = (croppedBox.Ymax - croppedBox.Ymin) / croppedSegment.Height;
-
-            foreach (var (x, y) in keypoints)
-            {
-                // Scale keypoints to match the original image dimensions
-                float scaledX = x * scaleX + croppedBox.Xmin;
-                float scaledY = y * scaleY + croppedBox.Ymin;
-
-                scaledKeypoints.Add((scaledX, scaledY));
-            }
-
-            return scaledKeypoints;
-        }
-
 
         private List<(float X, float Y)> PostProcessResults(Tensor<float> heatmaps, float originalWidth, float originalHeight)
         {
@@ -437,21 +407,16 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             return predictions;
         }
 
-        private List<Prediction> ExtractPredictions(
-            List<Tensor<float>> gridTensors,
-            List<(float Width, float Height)> anchors,
-            int inputWidth,
-            int inputHeight,
-            int originalWidth,
-            int originalHeight)
+        private List<Prediction> ExtractPredictions(List<Tensor<float>> gridTensors, List<(float Width, float Height)> anchors, int inputWidth, int inputHeight, int originalWidth, int originalHeight)
         {
             var predictions = new List<Prediction>();
             int anchorCounter = 0;
-            float confidenceThreshold = 0.5f;
+            float confidenceThreshold = .5f;
 
             foreach (var tensor in gridTensors)
             {
-                int gridSize = tensor.Dimensions[2];
+                var gridSize = tensor.Dimensions[2];
+
                 int gridX = gridSize;
                 int gridY = gridSize;
                 int numAnchors = tensor.Dimensions[3];
@@ -470,53 +435,59 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
                             }
 
                             // Extract bounding box and confidence
-                            float bx = Sigmoid(predictionVector[0]);
-                            float by = Sigmoid(predictionVector[1]);
+                            float bx = Sigmoid(predictionVector[0]); // x offset
+                            float by = Sigmoid(predictionVector[1]); // y offset
                             float bw = (float)Math.Exp(predictionVector[2]) * anchors[anchorCounter + anchor].Width;
                             float bh = (float)Math.Exp(predictionVector[3]) * anchors[anchorCounter + anchor].Height;
                             float confidence = Sigmoid(predictionVector[4]);
 
+                            // Skip low-confidence predictions
                             if (confidence < confidenceThreshold)
                             {
                                 continue;
                             }
 
-                            // Class probabilities
+                            // Get class probabilities
                             var classProbs = predictionVector.Skip(5).Select(Sigmoid).ToArray();
                             float maxProb = classProbs.Max();
                             int classIndex = Array.IndexOf(classProbs, maxProb);
 
+                            // Skip if class probability is low
                             if (maxProb * confidence < confidenceThreshold)
                             {
                                 continue;
                             }
 
-                            // Scale box to original dimensions
+                            // Adjust bounding box to image dimensions
+                            bx = (bx + j) * (inputWidth / gridX); // Convert to absolute x
+                            by = (by + i) * (inputHeight / gridY); // Convert to absolute y
+                            bw *= inputWidth / 416;          // Normalize to input width
+                            bh *= inputHeight / 416;         // Normalize to input height
+
                             float scale = Math.Min((float)inputWidth / originalWidth, (float)inputHeight / originalHeight);
                             int offsetX = (inputWidth - (int)(originalWidth * scale)) / 2;
                             int offsetY = (inputHeight - (int)(originalHeight * scale)) / 2;
 
-                            float xmin = ((bx - bw / 2) * gridX - offsetX) / scale;
-                            float ymin = ((by - bh / 2) * gridY - offsetY) / scale;
-                            float xmax = ((bx + bw / 2) * gridX - offsetX) / scale;
-                            float ymax = ((by + bh / 2) * gridY - offsetY) / scale;
+                            float xmin = (bx - bw / 2 - offsetX) / scale;
+                            float ymin = (by - bh / 2 - offsetY) / scale;
+                            float xmax = (bx + bw / 2 - offsetX) / scale;
+                            float ymax = (by + bh / 2 - offsetY) / scale;
 
-                            xmin = Math.Max(0, xmin);
-                            ymin = Math.Max(0, ymin);
-                            xmax = Math.Min(originalWidth, xmax);
-                            ymax = Math.Min(originalHeight, ymax);
+                            // Define your class labels (replace with your model's labels)
+                            string[] labels = RCNNLabelMap.Labels.Skip(1).ToArray();
 
                             // Add prediction
                             predictions.Add(new Prediction
                             {
                                 Box = new Box(xmin, ymin, xmax, ymax),
-                                Label = RCNNLabelMap.Labels[classIndex], // Replace with your labels
+                                Label = labels[classIndex], // Use label from the provided labels array
                                 Confidence = confidence * maxProb
                             });
                         }
                     }
                 }
 
+                // Increment anchorCounter for the next grid level
                 anchorCounter += numAnchors;
             }
 
