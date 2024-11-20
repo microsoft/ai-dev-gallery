@@ -162,7 +162,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
                 {
                     Bitmap croppedImage = CropImage(originalImage, prediction.Box);
 
-                    Bitmap poseOverlay = await DetectPose(croppedImage);
+                    Bitmap poseOverlay = await DetectPose(croppedImage, originalImage);
 
                     originalImage = OverlayImage(originalImage, poseOverlay, prediction.Box);
 
@@ -203,8 +203,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             return originalImage;
         }
 
-
-        private async Task<Bitmap> DetectPose(Bitmap image)
+        private async Task<Bitmap> DetectPose(Bitmap image, Bitmap baseImage)
         {
             if (image == null)
             {
@@ -243,7 +242,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             });
 
             // Render predictions and create output bitmap
-            return RenderPredictions(image, predictions);
+            return RenderPredictions(image, predictions, baseImage);
         }
 
         private List<(float X, float Y)> PostProcessResults(Tensor<float> heatmaps, float originalWidth, float originalHeight)
@@ -286,16 +285,16 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             return keypointCoordinates;
         }
 
-        private Bitmap RenderPredictions(Bitmap originalImage, List<(float X, float Y)> keypoints)
+        private Bitmap RenderPredictions(Bitmap originalImage, List<(float X, float Y)> keypoints, Bitmap baseImage)
         {
             Bitmap outputImage = new(originalImage);
 
             using (Graphics g = Graphics.FromImage(outputImage))
             {
-                int markerSize = (int)((originalImage.Width + originalImage.Height) * 0.02 / 2);
+                int markerSize = (int)((baseImage.Width + baseImage.Height) * 0.015 / 2);
                 Brush brush = Brushes.Red;
 
-                using Pen linePen = new(Color.Blue, 5);
+                using Pen linePen = new(Color.Blue, markerSize / 2);
                 List<(int StartIdx, int EndIdx)> connections =
                 [
                     (5, 6),   // Left shoulder to right shoulder
