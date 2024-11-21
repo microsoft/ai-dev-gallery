@@ -170,30 +170,19 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN
                 return predictions;
             });
 
-            RenderPredictions(image, predictions);
-            image.Dispose();
+            BitmapImage outputImage = BitmapFunctions.RenderPredictions(image, predictions);
 
-            Loader.IsActive = false;
-            Loader.Visibility = Visibility.Collapsed;
-            UploadButton.Visibility = Visibility.Visible;
-        }
-
-        private void RenderPredictions(Bitmap image, List<Prediction> predictions)
-        {
-            BitmapFunctions.DrawPredictions(image, predictions);
-
-            BitmapImage bitmapImage = new();
-            using (MemoryStream memoryStream = new())
+            DispatcherQueue.TryEnqueue(() =>
             {
-                image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                DefaultImage.Source = outputImage;
+                Loader.IsActive = false;
+                Loader.Visibility = Visibility.Collapsed;
+                UploadButton.Visibility = Visibility.Visible;
+            });
 
-                memoryStream.Position = 0;
-
-                bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
-            }
-
-            DefaultImage.Source = bitmapImage;
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
+            image.Dispose();
         }
+
     }
 }

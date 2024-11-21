@@ -26,7 +26,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose
         SharedCode = [
             SharedCodeEnum.Prediction,
             SharedCodeEnum.BitmapFunctions,
-            SharedCodeEnum.DeviceUtils
+            SharedCodeEnum.DeviceUtils,
+            SharedCodeEnum.PoseHelper
         ],
         NugetPackageReferences = [
             "System.Drawing.Common",
@@ -151,13 +152,20 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose
                 // Run inference
                 using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
                 var heatmaps = results[0].AsTensor<float>();
-                List<(float X, float Y)> keypointCoordinates = PostProcessResults(heatmaps, originalImageWidth, originalImageHeight);
+
+                var outputName = _inferenceSession!.OutputNames[0];
+                var outputDimensions = _inferenceSession!.OutputMetadata[outputName].Dimensions;
+
+                float outputWidth = outputDimensions[2];
+                float outputHeight = outputDimensions[3];
+
+                List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessResults(heatmaps, originalImageWidth, originalImageHeight, outputWidth, outputHeight);
                 return keypointCoordinates;
             });
 
             // Render predictions and create output bitmap
-            using Bitmap output = RenderPredictions(image, predictions);
-            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(output);
+            using Bitmap output = PoseHelper.RenderPredictions(image, predictions, .02f);
+            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(output);
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: key points rendered."); // <exclude-line>
 
             DispatcherQueue.TryEnqueue(() =>

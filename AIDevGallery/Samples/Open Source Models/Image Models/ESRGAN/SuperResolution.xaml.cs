@@ -160,7 +160,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN
                 return finalOutputBitmap;
             });
 
-            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(bitmapOutput);
+            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(bitmapOutput);
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image enhancement complete.");  // <exclude-line>
 
             bitmapOutput.Dispose();

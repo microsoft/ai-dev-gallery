@@ -243,7 +243,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet
             });
 
             // Convert the final overlay to BitmapImage for display
-            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(processedImage);
+            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(processedImage);
 
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: all regions segmented."); // <exclude-line>
 
