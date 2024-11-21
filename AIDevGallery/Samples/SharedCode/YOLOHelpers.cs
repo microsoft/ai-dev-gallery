@@ -5,13 +5,11 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace AIDevGallery.Samples.SharedCode
 {
     internal class YOLOHelpers
     {
-
         public static List<Prediction> ExtractPredictions(List<Tensor<float>> gridTensors, List<(float Width, float Height)> anchors, int inputWidth, int inputHeight, int originalWidth, int originalHeight)
         {
             var predictions = new List<Prediction>();

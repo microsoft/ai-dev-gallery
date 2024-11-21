@@ -19,9 +19,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
 {
     [GallerySample(
@@ -257,7 +254,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
         {
             if (image == null)
             {
-                return null;
+                return new Bitmap(0, 0);
             }
 
             var inputName = _poseSession!.InputNames[0];
