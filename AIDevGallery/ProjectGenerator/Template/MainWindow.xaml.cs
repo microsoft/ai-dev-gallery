@@ -1,6 +1,4 @@
-using System.Threading;
 using Microsoft.UI.Xaml;
-using $safeprojectname$.SharedCode;
 
 namespace $safeprojectname$
 {
@@ -11,11 +9,7 @@ namespace $safeprojectname$
             this.InitializeComponent();
             this.RootFrame.Loaded += (sender, args) =>
             {
-                var sampleLoadingCts = new CancellationTokenSource();
-
-                var localModelDetails = new $sampleNavigationParameterName$(sampleLoadingCts.Token);
-
-                RootFrame.Navigate(typeof($MainSamplePage$), localModelDetails);
+                RootFrame.Navigate(typeof($MainSamplePage$));
             };
         }
 

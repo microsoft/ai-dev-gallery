@@ -266,5 +266,10 @@ namespace AIDevGallery.Pages
             NavView.SelectedItem = null;
             NavFrame.Navigate(typeof(AddModelPage));
         }
+
+        private void ManageModelsClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            App.MainWindow.Navigate("settings", "ModelManagement");
+        }
     }
 }

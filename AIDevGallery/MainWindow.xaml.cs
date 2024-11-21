@@ -67,11 +67,11 @@ namespace AIDevGallery
                 case "guides":
                     Navigate(typeof(GuidesPage));
                     break;
-                case "feedback":
+                case "contribute":
                     _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
                     break;
                 case "settings":
-                    Navigate(typeof(SettingsPage));
+                    Navigate(typeof(SettingsPage), obj);
                     break;
             }
         }
@@ -118,7 +118,7 @@ namespace AIDevGallery
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(titleBar);
             titleBar.Window = this;
-            this.AppWindow.SetIcon("Assets/AIGallery.ico");
+            this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
 
             this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
 

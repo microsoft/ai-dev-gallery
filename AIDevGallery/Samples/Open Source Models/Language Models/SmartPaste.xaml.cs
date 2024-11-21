@@ -4,10 +4,9 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Extensions.AI;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
 {
@@ -27,7 +26,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             SharedCodeEnum.SmartPasteFormXaml,
             SharedCodeEnum.GenAIModel
         ])]
-    internal sealed partial class SmartPaste : Page
+    internal sealed partial class SmartPaste : BaseSamplePage
     {
         private IChatClient? model;
         public List<string> FieldLabels { get; set; } = ["Name", "Address", "City", "State", "Zip"];
@@ -46,19 +45,15 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             }
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
+            model = await sampleParams.GetIChatClientAsync();
+            if (model != null)
             {
-                model = await sampleParams.GetIChatClientAsync();
-                if (model != null)
-                {
-                    this.SmartForm.Model = model;
-                }
-
-                sampleParams.NotifyCompletion();
+                this.SmartForm.Model = model;
             }
+
+            sampleParams.NotifyCompletion();
         }
 
         private void CleanUp()

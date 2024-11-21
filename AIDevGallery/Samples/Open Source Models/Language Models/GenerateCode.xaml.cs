@@ -8,7 +8,6 @@ using ColorCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
@@ -30,7 +29,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
         Name = "Generate Code",
         Id = "2270c051-a91c-4af9-8975-a99fda6b024b",
         Icon = "\uE8D4")]
-    internal sealed partial class GenerateCode : Page
+    internal sealed partial class GenerateCode : BaseSamplePage
     {
         private readonly RichTextBlockFormatter formatter = new();
         private IChatClient? model;
@@ -45,15 +44,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                model = await sampleParams.GetIChatClientAsync();
-                InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
-                sampleParams.NotifyCompletion();
-            }
+            model = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+            sampleParams.NotifyCompletion();
         }
 
         // <exclude>

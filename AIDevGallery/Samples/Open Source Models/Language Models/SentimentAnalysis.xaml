@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Page
+<samples:BaseSamplePage
+    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.SentimentAnalysis"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -79,4 +80,4 @@
                 TextWrapping="WrapWholeWords" />
         </ScrollViewer>
     </Grid>
-</Page>
+</samples:BaseSamplePage>

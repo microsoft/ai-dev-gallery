@@ -7,9 +7,7 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -35,7 +33,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN
         Name = "Faster RCNN Object Detection",
         Id = "9b74ccc0-f5f7-430f-bed0-758ffc063508",
         Icon = "\uE8B3")]
-    internal sealed partial class ObjectDetection : Page
+    internal sealed partial class ObjectDetection : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
 
@@ -46,18 +44,14 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN
             this.InitializeComponent();
         }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                await InitModel(sampleParams.ModelPath);
+            await InitModel(sampleParams.ModelPath);
 
-                sampleParams.NotifyCompletion();
+            sampleParams.NotifyCompletion();
 
-                // Loads inference on default image
-                await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
-            }
+            // Loads inference on default image
+            await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
         }
 
         // <exclude>
