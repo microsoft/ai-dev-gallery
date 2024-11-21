@@ -341,8 +341,7 @@ namespace AIDevGallery.Samples.SharedCode
                 (int)box.Xmin,
                 (int)box.Ymin,
                 (int)(box.Xmax - box.Xmin),
-                (int)(box.Ymax - box.Ymin)
-            ));
+                (int)(box.Ymax - box.Ymin)));
 
             return originalImage;
         }

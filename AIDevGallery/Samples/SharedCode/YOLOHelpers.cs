@@ -32,7 +32,7 @@ namespace AIDevGallery.Samples.SharedCode
                         {
                             // Access prediction vector
                             var predictionVector = new List<float>();
-                            for (int k = 0; k < tensor.Dimensions[^1]; k++) // Loop over the last dimension
+                            for (int k = 0; k < tensor.Dimensions[^1]; k++)
                             {
                                 predictionVector.Add(tensor[0, i, j, anchor, k]);
                             }

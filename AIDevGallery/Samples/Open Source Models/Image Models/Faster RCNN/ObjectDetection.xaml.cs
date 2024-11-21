@@ -13,7 +13,6 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
@@ -183,6 +182,5 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
             image.Dispose();
         }
-
     }
 }

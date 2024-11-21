@@ -38,7 +38,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             "Microsoft.ML.OnnxRuntime.Extensions"
         ],
         Name = "Multiple Pose Detection",
-        Id = "9b74ccc0-f5f7-430f-bed0-712ffc063508",
+        Id = "9b74ccc0-f5f7-430f-bed0-71211c063508",
         Icon = "\uE8B3")]
     internal sealed partial class Multipose : Page
     {
@@ -135,7 +135,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
 
         private async Task RunPipeline(string filePath)
         {
-            if (!File.Exists(filePath)) // Corrected from Path.Exists
+            if (!File.Exists(filePath))
             {
                 return;
             }

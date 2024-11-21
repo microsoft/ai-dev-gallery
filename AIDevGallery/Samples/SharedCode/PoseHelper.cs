@@ -2,10 +2,8 @@
 // Licensed under the MIT License.
 
 using Microsoft.ML.OnnxRuntime.Tensors;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace AIDevGallery.Samples.SharedCode
 {
