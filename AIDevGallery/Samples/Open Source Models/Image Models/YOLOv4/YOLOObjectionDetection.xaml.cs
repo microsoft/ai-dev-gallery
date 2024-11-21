@@ -8,9 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,7 +36,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4
         Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
         Icon = "\uE8B3")]
 
-    internal sealed partial class YOLOObjectionDetection : Page
+    internal sealed partial class YOLOObjectionDetection : BaseSamplePage
     {
         private InferenceSession? _inferenceSession;
 
@@ -46,7 +44,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4
         {
             this.Unloaded += (s, e) => _inferenceSession?.Dispose();
 
-            this.Loaded += (s, e) => Page_Loaded();
+            this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
             this.InitializeComponent();
         }
 
@@ -55,19 +53,16 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4
             UploadButton.Focus(FocusState.Programmatic);
         }
 
-        /// <inheritdoc/>
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        // </exclude>
+        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is SampleNavigationParameters sampleParams)
-            {
-                var hardwareAccelerator = sampleParams.HardwareAccelerator;
-                await InitModel(sampleParams.ModelPath, hardwareAccelerator);
-                sampleParams.NotifyCompletion();
+            var hardwareAccelerator = sampleParams.HardwareAccelerator;
+            await InitModel(sampleParams.ModelPath, hardwareAccelerator);
 
-                // Loads inference on default image
-                await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
-            }
+            sampleParams.NotifyCompletion();
+
+            // Loads inference on default image
+            await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
         }
 
         private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)

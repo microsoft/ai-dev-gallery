@@ -8,9 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -18,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
+using Windows.System;
 
 namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
 {
@@ -41,7 +40,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
         Name = "Multiple Pose Detection",
         Id = "9b74ccc0-f5f7-430f-bed0-71211c063508",
         Icon = "\uE8B3")]
-    internal sealed partial class Multipose : Page
+    internal sealed partial class Multipose : BaseSamplePage
     {
         private InferenceSession? _detectionSession;
         private InferenceSession? _poseSession;
@@ -65,16 +64,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
         }
 
         // </exclude>
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is MultiModelSampleNavigationParameters sampleParams)
-            {
-                await InitModels(sampleParams.ModelPaths[0], sampleParams.HardwareAccelerators[0], sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
-                sampleParams.NotifyCompletion();
+            await InitModels(sampleParams.ModelPaths[0], sampleParams.HardwareAccelerators[0], sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            sampleParams.NotifyCompletion();
 
-                await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
-            }
+            await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
         }
 
         private Task InitModels(string poseModelPath, HardwareAccelerator poseHardwareAccelerator, string detectionModelPath, HardwareAccelerator detectionHardwareAccelerator)
