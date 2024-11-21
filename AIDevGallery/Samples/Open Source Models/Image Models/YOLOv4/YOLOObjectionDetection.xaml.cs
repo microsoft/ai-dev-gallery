@@ -33,8 +33,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4
             "Microsoft.ML.OnnxRuntime.DirectML",
             "Microsoft.ML.OnnxRuntime.Extensions"
         ],
-        Name = "Object Detection",
-        Id = "9b74ccc0-f5f7-430f-bed0-758ffd163508",
+        Name = "YOLO Object Detection",
+        Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
         Icon = "\uE8B3")]
 
     internal sealed partial class YOLOObjectionDetection : Page
