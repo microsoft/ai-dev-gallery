@@ -159,9 +159,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             {
                 if (prediction.Box != null)
                 {
-                    Bitmap croppedImage = BitmapFunctions.CropImage(originalImage, prediction.Box);
+                    using Bitmap croppedImage = BitmapFunctions.CropImage(originalImage, prediction.Box);
 
-                    Bitmap poseOverlay = await DetectPose(croppedImage, originalImage);
+                    using Bitmap poseOverlay = await DetectPose(croppedImage, originalImage);
 
                     originalImage = BitmapFunctions.OverlayImage(originalImage, poseOverlay, prediction.Box);
                 }
