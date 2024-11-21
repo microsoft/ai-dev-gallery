@@ -26,7 +26,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4
             SharedCodeEnum.Prediction,
             SharedCodeEnum.BitmapFunctions,
             SharedCodeEnum.RCNNLabelMap,
-            SharedCodeEnum.YOLOHelpers
+            SharedCodeEnum.YOLOHelpers,
+            SharedCodeEnum.DeviceUtils
         ],
         NugetPackageReferences = [
             "System.Drawing.Common",

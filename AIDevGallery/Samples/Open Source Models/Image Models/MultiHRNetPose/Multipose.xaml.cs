@@ -30,7 +30,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
             SharedCodeEnum.BitmapFunctions,
             SharedCodeEnum.DeviceUtils,
             SharedCodeEnum.PoseHelper,
-            SharedCodeEnum.YOLOHelpers
+            SharedCodeEnum.YOLOHelpers,
+            SharedCodeEnum.RCNNLabelMap
         ],
         NugetPackageReferences = [
             "System.Drawing.Common",
