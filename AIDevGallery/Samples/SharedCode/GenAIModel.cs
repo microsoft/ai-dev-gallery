@@ -287,11 +287,13 @@ internal class GenAIModel : IChatClient, IDisposable
             cancellationToken);
     }
 
-    public TService? GetService<TService>(object? key = null)
-        where TService : class
+    public object? GetService(Type serviceType, object? serviceKey = null)
     {
-        return typeof(TService) == typeof(Model) && _model != null ? (TService)(object)_model :
-            typeof(TService) == typeof(Tokenizer) && _tokenizer != null ? (TService)(object)_tokenizer :
-            this as TService;
+        return
+            serviceKey is not null ? null :
+            _model is not null && serviceType?.IsInstanceOfType(_model) is true ? _model :
+            _tokenizer is not null && serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
+            serviceType?.IsInstanceOfType(this) is true ? this :
+            null;
     }
 }
