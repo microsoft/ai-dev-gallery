@@ -5,26 +5,25 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.AI;
 using System;
 
-namespace AIDevGallery.Samples.SharedCode
+namespace AIDevGallery.Samples.SharedCode;
+
+internal partial class Message : ObservableObject
 {
-    internal partial class Message : ObservableObject
+    [ObservableProperty]
+    private string content;
+    public DateTime MsgDateTime { get; private set; }
+
+    public ChatRole Role { get; set; }
+
+    public Message(string content, DateTime dateTime, ChatRole role)
     {
-        [ObservableProperty]
-        private string content;
-        public DateTime MsgDateTime { get; private set; }
+        Content = content;
+        MsgDateTime = dateTime;
+        Role = role;
+    }
 
-        public ChatRole Role { get; set; }
-
-        public Message(string content, DateTime dateTime, ChatRole role)
-        {
-            Content = content;
-            MsgDateTime = dateTime;
-            Role = role;
-        }
-
-        public override string ToString()
-        {
-            return $"{MsgDateTime} {Content}";
-        }
+    public override string ToString()
+    {
+        return $"{MsgDateTime} {Content}";
     }
 }
