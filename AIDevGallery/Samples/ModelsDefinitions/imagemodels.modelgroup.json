@@ -16,8 +16,11 @@
             "Name": "Faster RCNN 10",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx",
             "Description": "FPN",
-            "HardwareAccelerator": [ "CPU", "DML" ],
-            "SupportedOnQualcomm":  true,
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
             "Size": 167330019,
             "License": "mit"
           },
@@ -26,7 +29,10 @@
             "Name": "Faster RCNN 12",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-12.onnx",
             "Description": "FPN-fp32",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 176713194,
             "License": "mit"
@@ -45,7 +51,10 @@
             "Name": "ResNet101 v1 7",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/resnet/model/resnet101-v1-7.onnx",
             "Description": "ResNet101 v1 7",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 178914043,
             "License": "apache-2.0"
@@ -55,7 +64,10 @@
             "Name": "ResNet50 v1 7",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/resnet/model/resnet50-v1-7.onnx",
             "Description": "ResNet50 v1 7",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 102583340,
             "License": "apache-2.0"
@@ -74,8 +86,11 @@
             "Name": "MobileNet v2 1.0",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/mobilenet/model/mobilenetv2-10.onnx",
             "Description": "MobileNet v2 1.0",
-            "HardwareAccelerator": [ "CPU", "DML" ],
-            "SupportedOnQualcomm":  true,
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
             "Size": 13963115,
             "License": "apache-2.0"
           }
@@ -93,7 +108,10 @@
             "Name": "SqueezeNet 1.1",
             "Url": "https://github.com/onnx/models/blob/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx",
             "Description": "SqueezeNet 1.1",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 4956208,
             "License": "apache-2.0"
@@ -134,7 +152,10 @@
             "Name": "ESRGAN",
             "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/esrgan/esrgan.onnx",
             "Description": "ESRGAN",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 67162397,
             "License": "apache-2.0"
@@ -153,7 +174,10 @@
             "Name": "FFNet 78s",
             "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_78s/ffnet_78s.onnx",
             "Description": "FFNet 78s",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 109974166,
             "License": "bsd-3-clause"
@@ -163,13 +187,38 @@
             "Name": "FFNet 54s",
             "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_54s/ffnet_54s.onnx",
             "Description": "FFNet 54s",
-            "HardwareAccelerator": [ "CPU", "DML" ],
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
             "SupportedOnQualcomm": true,
             "Size": 72188137,
             "License": "bsd-3-clause"
           }
         },
         "ReadmeUrl": "https://huggingface.co/qualcomm/FFNet-78S/blob/main/README.md"
+      },
+      "YOLO": {
+        "Id": "yolo",
+        "Name": "YOLO",
+        "Description": "YOLO (You Only Look Once) is a state-of-the-art, real-time object detection algorithm.",
+        "DocsUrl": "https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov4",
+        "Models": {
+          "YOLOv4": {
+            "Id": "b7cae3a2-478f-1177-9559-709df5dfe703",
+            "Name": "YOLOv4",
+            "Url": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/yolov4/model/yolov4.onnx",
+            "Description": "YOLOv4 optimizes the speed and accuracy of object detection.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
+            "Size": 257470589,
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/yolov4/README.md"
       }
     }
   }
