@@ -45,7 +45,7 @@ Press <kbd>F5</kbd> to run AI Dev Gallery!
 
 <br/>
 
-## Device Requirements
+## 💻 Device Requirements
 - **Minimum OS Version**: Windows 10, version 1809 (10.0; Build 17763)
 - **Architecture**: x64, ARM64
 - **Memory**: At least 16 GB is recommended
@@ -74,7 +74,7 @@ Any samples or docs improvements you'd like to see? We're always looking for a h
 
 <br/>
 
-## Contributing
+## ✨ Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -90,7 +90,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 <br/>
 
-## Trademarks
+## 📚 Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
 trademarks or logos is subject to and must follow 
@@ -100,10 +100,10 @@ Any use of third-party trademarks or logos are subject to those third-party's po
 
 <br/>
 
-## Code of Conduct
+## 🔔 Code of Conduct
 This project has adopted the <a href="https://github.com/microsoft/AI-Dev-Gallery/blob/main/CODE_OF_CONDUCT.md"> Microsoft Open Source Code of Conduct</a>.
 
 <br/>
 
-## Privacy Statement
+## 📢 Privacy Statement
 The application logs basic telemetry. Please read the <a href="http://go.microsoft.com/fwlink/?LinkId=521839"> Microsoft privacy statement</a> for more information. 
