@@ -18,79 +18,94 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
+namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
+
+[GallerySample(
+    Name = "Semantic Search",
+    Model1Types = [ModelType.EmbeddingModel],
+    Scenario = ScenarioType.TextSemanticSearch,
+    SharedCode = [
+        SharedCodeEnum.EmbeddingGenerator,
+        SharedCodeEnum.EmbeddingModelInput,
+        SharedCodeEnum.TokenizerExtensions,
+        SharedCodeEnum.DeviceUtils,
+        SharedCodeEnum.StringData
+    ],
+    NugetPackageReferences = [
+        "System.Numerics.Tensors",
+        "Microsoft.ML.Tokenizers",
+        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Extensions.AI.Abstractions",
+        "Microsoft.SemanticKernel.Connectors.InMemory"
+    ],
+    Id = "41391b3f-f143-4719-a171-b0ce9c4cdcd6",
+    Icon = "\uE8D4")]
+internal sealed partial class SemanticSearch : BaseSamplePage
 {
-    [GallerySample(
-        Name = "Semantic Search",
-        Model1Types = [ModelType.EmbeddingModel],
-        Scenario = ScenarioType.TextSemanticSearch,
-        SharedCode = [
-            SharedCodeEnum.EmbeddingGenerator,
-            SharedCodeEnum.EmbeddingModelInput,
-            SharedCodeEnum.TokenizerExtensions,
-            SharedCodeEnum.DeviceUtils,
-            SharedCodeEnum.StringData
-        ],
-        NugetPackageReferences = [
-            "System.Numerics.Tensors",
-            "Microsoft.ML.Tokenizers",
-            "Microsoft.ML.OnnxRuntime.DirectML",
-            "Microsoft.Extensions.AI.Abstractions",
-            "Microsoft.SemanticKernel.Connectors.InMemory"
-        ],
-        Id = "41391b3f-f143-4719-a171-b0ce9c4cdcd6",
-        Icon = "\uE8D4")]
-    internal sealed partial class SemanticSearch : BaseSamplePage
+    private EmbeddingGenerator? _embeddings;
+    private CancellationTokenSource cts = new();
+
+    public SemanticSearch()
     {
-        private EmbeddingGenerator? _embeddings;
-        private CancellationTokenSource cts = new();
-
-        public SemanticSearch()
+        this.InitializeComponent();
+        this.Unloaded += (s, e) =>
         {
-            this.InitializeComponent();
-            this.Unloaded += (s, e) =>
-            {
-                CleanUp();
-            };
-            this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
-        }
-
-        protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
-        {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-            sampleParams.NotifyCompletion();
-
-            this.SourceTextBox.Text = _sampleText;
-            return Task.CompletedTask;
-        }
-
-        // <exclude>
-        private void Page_Loaded()
-        {
-            SearchTextBox.Focus(FocusState.Programmatic);
-        }
-
-        // </exclude>
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
             CleanUp();
-        }
+        };
+        this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
+    }
 
-        private void CleanUp()
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    {
+        _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+        sampleParams.NotifyCompletion();
+
+        this.SourceTextBox.Text = _sampleText;
+        return Task.CompletedTask;
+    }
+
+    // <exclude>
+    private void Page_Loaded()
+    {
+        SearchTextBox.Focus(FocusState.Programmatic);
+    }
+
+    // </exclude>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        CleanUp();
+    }
+
+    private void CleanUp()
+    {
+        _embeddings?.Dispose();
+    }
+
+    private void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        this.SearchButton.IsEnabled = !string.IsNullOrEmpty(this.SearchTextBox.Text) && !string.IsNullOrEmpty(this.SourceTextBox.Text);
+        ErrorMessage.IsOpen = string.IsNullOrEmpty(this.SearchTextBox.Text) || string.IsNullOrEmpty(this.SourceTextBox.Text);
+    }
+
+    internal static readonly string[] ParagraphSeparators = ["\n", "\r"];
+
+    private void SearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        var sourceText = this.SourceTextBox.Text;
+        var searchText = this.SearchTextBox.Text;
+
+        if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
         {
-            _embeddings?.Dispose();
+            this.OutputProgressBar.Visibility = Visibility.Visible;
+            this.ResultsGrid.Visibility = Visibility.Visible;
+            Search(sourceText, searchText);
         }
+    }
 
-        private void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            this.SearchButton.IsEnabled = !string.IsNullOrEmpty(this.SearchTextBox.Text) && !string.IsNullOrEmpty(this.SourceTextBox.Text);
-            ErrorMessage.IsOpen = string.IsNullOrEmpty(this.SearchTextBox.Text) || string.IsNullOrEmpty(this.SourceTextBox.Text);
-        }
-
-        internal static readonly string[] ParagraphSeparators = ["\n", "\r"];
-
-        private void SearchButton_Click(object sender, RoutedEventArgs e)
+    private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && SearchTextBox.Text.Length > 0)
         {
             var sourceText = this.SourceTextBox.Text;
             var searchText = this.SearchTextBox.Text;
@@ -99,154 +114,139 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings
             {
                 this.OutputProgressBar.Visibility = Visibility.Visible;
                 this.ResultsGrid.Visibility = Visibility.Visible;
+                SearchTextBox.IsEnabled = false;
                 Search(sourceText, searchText);
             }
         }
+    }
 
-        private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+    public void Search(string sourceText, string searchText)
+    {
+        CancellationToken ct = CancelGenerationAndGetNewToken();
+
+        if (_embeddings == null)
         {
-            if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && SearchTextBox.Text.Length > 0)
-            {
-                var sourceText = this.SourceTextBox.Text;
-                var searchText = this.SearchTextBox.Text;
-
-                if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
-                {
-                    this.OutputProgressBar.Visibility = Visibility.Visible;
-                    this.ResultsGrid.Visibility = Visibility.Visible;
-                    SearchTextBox.IsEnabled = false;
-                    Search(sourceText, searchText);
-                }
-            }
+            return;
         }
 
-        public void Search(string sourceText, string searchText)
-        {
-            CancellationToken ct = CancelGenerationAndGetNewToken();
-
-            if (_embeddings == null)
+        Task.Run(
+            async () =>
             {
-                return;
-            }
+                var sourceParagraphs = sourceText
+                                .Split(ParagraphSeparators, StringSplitOptions.RemoveEmptyEntries)
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToList();
 
-            Task.Run(
-                async () =>
+                var sourceContent = new List<string>();
+
+                for (int i = 0; i < sourceParagraphs.Count; i++)
                 {
-                    var sourceParagraphs = sourceText
-                                    .Split(ParagraphSeparators, StringSplitOptions.RemoveEmptyEntries)
-                                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                                    .ToList();
+                    var paragraph = sourceParagraphs[i];
 
-                    var sourceContent = new List<string>();
+                    var sourceSentences = paragraph
+                                .Split('.', StringSplitOptions.RemoveEmptyEntries)
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToList();
 
-                    for (int i = 0; i < sourceParagraphs.Count; i++)
+                    var maxLength = 1024 / 2;
+                    for (int s = 0; s < sourceSentences.Count; s++)
                     {
-                        var paragraph = sourceParagraphs[i];
-
-                        var sourceSentences = paragraph
-                                    .Split('.', StringSplitOptions.RemoveEmptyEntries)
-                                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                                    .ToList();
-
-                        var maxLength = 1024 / 2;
-                        for (int s = 0; s < sourceSentences.Count; s++)
+                        var content = sourceSentences[s];
+                        int index = 0;
+                        var contentChunks = new List<string>();
+                        while (index < content.Length)
                         {
-                            var content = sourceSentences[s];
-                            int index = 0;
-                            var contentChunks = new List<string>();
-                            while (index < content.Length)
+                            if (index + maxLength >= content.Length)
                             {
-                                if (index + maxLength >= content.Length)
-                                {
-                                    contentChunks.Add(
-                                        SentenceEndRegex().Replace(content[index..].Trim(), "."));
-                                    break;
-                                }
-
-                                int lastIndexOfBreak = content.LastIndexOf(' ', index + maxLength, maxLength);
-                                if (lastIndexOfBreak <= index)
-                                {
-                                    lastIndexOfBreak = index + maxLength;
-                                }
-
                                 contentChunks.Add(
-                                    Regex.Replace(content[index..lastIndexOfBreak].Trim(), @"(\.){2,}", "."));
-
-                                index = lastIndexOfBreak + 1;
+                                    SentenceEndRegex().Replace(content[index..].Trim(), "."));
+                                break;
                             }
 
-                            sourceSentences.RemoveAt(s);
-                            sourceSentences.InsertRange(s, contentChunks);
-                            i += contentChunks.Count - 1;
+                            int lastIndexOfBreak = content.LastIndexOf(' ', index + maxLength, maxLength);
+                            if (lastIndexOfBreak <= index)
+                            {
+                                lastIndexOfBreak = index + maxLength;
+                            }
+
+                            contentChunks.Add(
+                                Regex.Replace(content[index..lastIndexOfBreak].Trim(), @"(\.){2,}", "."));
+
+                            index = lastIndexOfBreak + 1;
                         }
 
-                        sourceContent.AddRange(sourceSentences);
+                        sourceSentences.RemoveAt(s);
+                        sourceSentences.InsertRange(s, contentChunks);
+                        i += contentChunks.Count - 1;
                     }
 
-                    sourceContent = sourceContent
-                        .Where(x => x != "\"")
-                        .ToList();
+                    sourceContent.AddRange(sourceSentences);
+                }
 
-                    GeneratedEmbeddings<Embedding<float>> searchVectors;
-                    GeneratedEmbeddings<Embedding<float>> sourceVectors;
+                sourceContent = sourceContent
+                    .Where(x => x != "\"")
+                    .ToList();
+
+                GeneratedEmbeddings<Embedding<float>> searchVectors;
+                GeneratedEmbeddings<Embedding<float>> sourceVectors;
 
 #pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-                    IVectorStore? vectorStore = new InMemoryVectorStore();
+                IVectorStore? vectorStore = new InMemoryVectorStore();
 #pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-                    var stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
-                    await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+                var stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
+                await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
 
-                    searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
+                searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
 
-                    sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
+                sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
 
-                    await foreach (var key in stringsCollection.UpsertBatchAsync(
-                        sourceVectors.Select((x, i) => new StringData
-                        {
-                            Key = i,
-                            Text = sourceContent[i],
-                            Vector = x.Vector
-                        }),
-                        null,
-                        ct).ConfigureAwait(false))
+                await foreach (var key in stringsCollection.UpsertBatchAsync(
+                    sourceVectors.Select((x, i) => new StringData
                     {
+                        Key = i,
+                        Text = sourceContent[i],
+                        Vector = x.Vector
+                    }),
+                    null,
+                    ct).ConfigureAwait(false))
+                {
+                }
+
+                var vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
+                    searchVectors[0].Vector,
+                    new VectorSearchOptions
+                    {
+                        // Number of results to return
+                        Top = 5,
+                        VectorPropertyName = nameof(StringData.Vector)
+                    },
+                    ct).ConfigureAwait(false);
+
+                var resultMessage = string.Join("\n\n", vectorSearchResults.Results.ToBlockingEnumerable().Select(r => r.Record.Text));
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (this.OutputProgressBar.Visibility == Visibility.Visible)
+                    {
+                        this.OutputProgressBar.Visibility = Visibility.Collapsed;
+                        SearchTextBox.IsEnabled = true;
                     }
 
-                    var vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
-                        searchVectors[0].Vector,
-                        new VectorSearchOptions
-                        {
-                            // Number of results to return
-                            Top = 5,
-                            VectorPropertyName = nameof(StringData.Vector)
-                        },
-                        ct).ConfigureAwait(false);
+                    this.ResultsTextBlock.Text = resultMessage;
+                });
+            },
+            ct);
+    }
 
-                    var resultMessage = string.Join("\n\n", vectorSearchResults.Results.ToBlockingEnumerable().Select(r => r.Record.Text));
+    private CancellationToken CancelGenerationAndGetNewToken()
+    {
+        cts.Cancel();
+        cts.Dispose();
+        cts = new CancellationTokenSource();
+        return cts.Token;
+    }
 
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        if (this.OutputProgressBar.Visibility == Visibility.Visible)
-                        {
-                            this.OutputProgressBar.Visibility = Visibility.Collapsed;
-                            SearchTextBox.IsEnabled = true;
-                        }
-
-                        this.ResultsTextBlock.Text = resultMessage;
-                    });
-                },
-                ct);
-        }
-
-        private CancellationToken CancelGenerationAndGetNewToken()
-        {
-            cts.Cancel();
-            cts.Dispose();
-            cts = new CancellationTokenSource();
-            return cts.Token;
-        }
-
-        private const string _sampleText = @"The Story of Little Red Riding Hood
+    private const string _sampleText = @"The Story of Little Red Riding Hood
 
 Once upon a time there was a dear little girl who was loved by every one who looked at her, but most of all by her grandmother, and there was nothing that she would not have given to the child. Once she gave her a little cap of red velvet, which suited her so well that she would never wear anything else. So she was always called Little Red Riding Hood.
 
@@ -328,7 +328,6 @@ Soon afterwards the wolf knocked, and cried, ""open the door, grandmother, I am 
 
 But they did not speak, or open the door, so the grey-beard stole twice or thrice round the house, and at last jumped on the roof, intending to wait until Little Red Riding Hood went home in the evening, and then to steal after her and devour her in the darkness. But the grandmother saw what was in his thoughts. In front of the house was a great stone trough, so she said to the child, take the pail, Little Red Riding Hood. I made some sausages yesterday, so carry the water in which I boiled them to the trough. Little Red Riding Hood carried until the great trough was quite full. Then the smell of the sausages reached the wolf, and he sniffed and peeped down, and at last stretched out his neck so far that he could no longer keep his footing and began to slip, and slipped down from the roof straight into the great trough, and was drowned. But Little Red Riding Hood went joyously home, and no one ever did anything to harm her again.";
 
-        [GeneratedRegex(@"(\.){2,}")]
-        private static partial Regex SentenceEndRegex();
-    }
+    [GeneratedRegex(@"(\.){2,}")]
+    private static partial Regex SentenceEndRegex();
 }
