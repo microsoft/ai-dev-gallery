@@ -287,11 +287,13 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         _sessionOptions.Dispose();
     }
 
-    public TService? GetService<TService>(object? key = null)
-        where TService : class
+    public object? GetService(Type serviceType, object? serviceKey = null)
     {
-        return typeof(TService) == typeof(InferenceSession) ? (TService)(object)_inferenceSession :
-            typeof(TService) == typeof(Tokenizer) ? (TService)(object)_tokenizer :
-            this as TService;
+        return
+            serviceKey is not null ? null :
+            serviceType?.IsInstanceOfType(_inferenceSession) is true ? _inferenceSession :
+            serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
+            serviceType?.IsInstanceOfType(this) is true ? this :
+            null;
     }
 }
