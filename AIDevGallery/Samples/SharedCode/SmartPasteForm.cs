@@ -15,27 +15,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace AIDevGallery.Samples.SharedCode
+namespace AIDevGallery.Samples.SharedCode;
+
+internal sealed partial class SmartPasteForm : Control
 {
-    internal sealed partial class SmartPasteForm : Control
+    private IChatClient? model;
+    private List<string>? fieldLabels;
+    private ProgressRing pasteProgressRing;
+    public ObservableCollection<FormField> Fields { get; } = [];
+    public List<string>? FieldLabels
     {
-        private IChatClient? model;
-        private List<string>? fieldLabels;
-        private ProgressRing pasteProgressRing;
-        public ObservableCollection<FormField> Fields { get; } = [];
-        public List<string>? FieldLabels
-        {
-            get => (List<string>)GetValue(FieldLabelsProperty);
-            set => SetValue(FieldLabelsProperty, value);
-        }
+        get => (List<string>)GetValue(FieldLabelsProperty);
+        set => SetValue(FieldLabelsProperty, value);
+    }
 
-        public IChatClient Model
-        {
-            get => (IChatClient)GetValue(ModelProperty);
-            set => SetValue(ModelProperty, value);
-        }
+    public IChatClient Model
+    {
+        get => (IChatClient)GetValue(ModelProperty);
+        set => SetValue(ModelProperty, value);
+    }
 
-        private readonly string _systemPrompt = @"
+    private readonly string _systemPrompt = @"
 You parse clumped text content to matching labels.
 You will receive input in the following format:
 { ""labels"": [list of label strings], ""text"": ""arbitrary text content"" }.
@@ -50,186 +50,185 @@ Rules:
 4. Always add the opening and closing braces ({ and }).
 5. DO NOT PROVIDE ANY EXPLANATION OF YOUR ANSWER NO MATTER WHAT.";
 
-        public SmartPasteForm()
+    public SmartPasteForm()
+    {
+        this.DefaultStyleKey = typeof(SmartPasteForm);
+        pasteProgressRing = new ProgressRing();
+    }
+
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        pasteProgressRing = (ProgressRing)GetTemplateChild("PasteProgressRing");
+        if (GetTemplateChild("SmartPasteButton") is Button smartPasteButton)
         {
-            this.DefaultStyleKey = typeof(SmartPasteForm);
-            pasteProgressRing = new ProgressRing();
+            smartPasteButton.Click += SmartPasteButton_Click;
         }
+    }
 
-        protected override void OnApplyTemplate()
+    private static void OnFieldLabelsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        List<string> labels = (List<string>)e.NewValue;
+        if (labels != null)
         {
-            base.OnApplyTemplate();
-
-            pasteProgressRing = (ProgressRing)GetTemplateChild("PasteProgressRing");
-            if (GetTemplateChild("SmartPasteButton") is Button smartPasteButton)
+            SmartPasteForm form = (SmartPasteForm)d;
+            form.fieldLabels = labels;
+            form.Fields.Clear();
+            foreach (string label in labels)
             {
-                smartPasteButton.Click += SmartPasteButton_Click;
-            }
-        }
-
-        private static void OnFieldLabelsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            List<string> labels = (List<string>)e.NewValue;
-            if (labels != null)
-            {
-                SmartPasteForm form = (SmartPasteForm)d;
-                form.fieldLabels = labels;
-                form.Fields.Clear();
-                foreach (string label in labels)
-                {
-                    form.Fields.Add(new FormField { Label = label, Value = string.Empty });
-                }
-            }
-        }
-
-        private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            IChatClient model = (IChatClient)e.NewValue;
-            if (model != null)
-            {
-                SmartPasteForm form = (SmartPasteForm)d;
-                form.model = model;
+                form.Fields.Add(new FormField { Label = label, Value = string.Empty });
             }
         }
+    }
 
-        private async Task<Dictionary<string, string>> InferPasteValues(string clipboardText)
+    private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        IChatClient model = (IChatClient)e.NewValue;
+        if (model != null)
         {
-            if (model == null)
+            SmartPasteForm form = (SmartPasteForm)d;
+            form.model = model;
+        }
+    }
+
+    private async Task<Dictionary<string, string>> InferPasteValues(string clipboardText)
+    {
+        if (model == null)
+        {
+            return [];
+        }
+
+        string outputMessage = string.Empty;
+        PromptInput input = new()
+        {
+            Labels = fieldLabels,
+            Text = clipboardText.Length > GenAIModel.DefaultMaxLength ?
+                clipboardText[..GenAIModel.DefaultMaxLength] :
+                clipboardText
+        };
+
+        CancellationTokenSource cts = new();
+        string output = string.Empty;
+
+        await foreach (var messagePart in model.CompleteStreamingAsync(
+            [
+                new ChatMessage(ChatRole.System, _systemPrompt),
+                new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
+            ],
+            null,
+            cts.Token))
+        {
+            outputMessage += messagePart;
+
+            Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
+            if (match.Success)
             {
-                return [];
-            }
-
-            string outputMessage = string.Empty;
-            PromptInput input = new()
-            {
-                Labels = fieldLabels,
-                Text = clipboardText.Length > GenAIModel.DefaultMaxLength ?
-                    clipboardText[..GenAIModel.DefaultMaxLength] :
-                    clipboardText
-            };
-
-            CancellationTokenSource cts = new();
-            string output = string.Empty;
-
-            await foreach (var messagePart in model.CompleteStreamingAsync(
-                [
-                    new ChatMessage(ChatRole.System, _systemPrompt),
-                    new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
-                ],
-                null,
-                cts.Token))
-            {
-                outputMessage += messagePart;
-
-                Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
-                if (match.Success)
-                {
-                    output = match.Value;
-                    cts.Cancel();
-                    break;
-                }
-            }
-
-            cts.Dispose();
-
-            if (string.IsNullOrWhiteSpace(output))
-            {
-                return [];
-            }
-
-            try
-            {
-                return JsonSerializer.Deserialize(output, SmartPasteSourceGenerationContext.Default.DictionaryStringString) ?? [];
-            }
-            catch (JsonException)
-            {
-                return [];
+                output = match.Value;
+                cts.Cancel();
+                break;
             }
         }
 
-        private async Task<string> GetTextFromClipboard()
+        cts.Dispose();
+
+        if (string.IsNullOrWhiteSpace(output))
         {
-            DataPackageView clipboardContent = Clipboard.GetContent();
-            string textClipboardContent = string.Empty;
-
-            if (clipboardContent.Contains(StandardDataFormats.Text))
-            {
-                textClipboardContent = await clipboardContent.GetTextAsync();
-            }
-
-            return textClipboardContent;
+            return [];
         }
 
-        private async void SmartPasteButton_Click(object sender, RoutedEventArgs e)
+        try
         {
-            ((Button)sender).IsEnabled = false;
-            pasteProgressRing.IsActive = true;
-            string clipboardText = await GetTextFromClipboard();
-            _ = Task.Run(async () =>
+            return JsonSerializer.Deserialize(output, SmartPasteSourceGenerationContext.Default.DictionaryStringString) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    private async Task<string> GetTextFromClipboard()
+    {
+        DataPackageView clipboardContent = Clipboard.GetContent();
+        string textClipboardContent = string.Empty;
+
+        if (clipboardContent.Contains(StandardDataFormats.Text))
+        {
+            textClipboardContent = await clipboardContent.GetTextAsync();
+        }
+
+        return textClipboardContent;
+    }
+
+    private async void SmartPasteButton_Click(object sender, RoutedEventArgs e)
+    {
+        ((Button)sender).IsEnabled = false;
+        pasteProgressRing.IsActive = true;
+        string clipboardText = await GetTextFromClipboard();
+        _ = Task.Run(async () =>
+        {
+            Dictionary<string, string> pasteValues = await InferPasteValues(clipboardText);
+            _ = DispatcherQueue.TryEnqueue(() =>
             {
-                Dictionary<string, string> pasteValues = await InferPasteValues(clipboardText);
-                _ = DispatcherQueue.TryEnqueue(() =>
-                {
-                    PasteValuesToForm(pasteValues);
-                    pasteProgressRing.IsActive = false;
-                    ((Button)sender).IsEnabled = true;
-                });
+                PasteValuesToForm(pasteValues);
+                pasteProgressRing.IsActive = false;
+                ((Button)sender).IsEnabled = true;
             });
-        }
+        });
+    }
 
-        private void PasteValuesToForm(Dictionary<string, string> values)
+    private void PasteValuesToForm(Dictionary<string, string> values)
+    {
+        foreach (FormField field in Fields)
         {
-            foreach (FormField field in Fields)
-            {
-                field.Value = string.Empty;
+            field.Value = string.Empty;
 
-                if (field.Label != null && values.TryGetValue(field.Label, out string? value))
-                {
-                    field.Value = value;
-                }
+            if (field.Label != null && values.TryGetValue(field.Label, out string? value))
+            {
+                field.Value = value;
             }
         }
-
-        public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(
-            nameof(Model),
-            typeof(IChatClient),
-            typeof(SmartPasteForm),
-            new PropertyMetadata(default(IChatClient), new PropertyChangedCallback(OnModelChanged)));
-
-        public static readonly DependencyProperty FieldLabelsProperty = DependencyProperty.Register(
-            nameof(FieldLabels),
-            typeof(List<string>),
-            typeof(SmartPasteForm),
-            new PropertyMetadata(default(List<string>), new PropertyChangedCallback(OnFieldLabelsChanged)));
     }
 
-    internal class FormField : ObservableObject
+    public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(
+        nameof(Model),
+        typeof(IChatClient),
+        typeof(SmartPasteForm),
+        new PropertyMetadata(default(IChatClient), new PropertyChangedCallback(OnModelChanged)));
+
+    public static readonly DependencyProperty FieldLabelsProperty = DependencyProperty.Register(
+        nameof(FieldLabels),
+        typeof(List<string>),
+        typeof(SmartPasteForm),
+        new PropertyMetadata(default(List<string>), new PropertyChangedCallback(OnFieldLabelsChanged)));
+}
+
+internal class FormField : ObservableObject
+{
+    private string? label;
+    private string? value;
+    public string? Label
     {
-        private string? label;
-        private string? value;
-        public string? Label
-        {
-            get => label;
-            set => SetProperty(ref label, value);
-        }
-
-        public string? Value
-        {
-            get => this.value;
-            set => SetProperty(ref this.value, value);
-        }
+        get => label;
+        set => SetProperty(ref label, value);
     }
 
-    internal class PromptInput
+    public string? Value
     {
-        public List<string>? Labels { get; set; }
-        public string? Text { get; set; }
+        get => this.value;
+        set => SetProperty(ref this.value, value);
     }
+}
 
-    [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
-    [JsonSerializable(typeof(PromptInput))]
-    [JsonSerializable(typeof(Dictionary<string, string>))]
-    internal partial class SmartPasteSourceGenerationContext : JsonSerializerContext
-    {
-    }
+internal class PromptInput
+{
+    public List<string>? Labels { get; set; }
+    public string? Text { get; set; }
+}
+
+[JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
+[JsonSerializable(typeof(PromptInput))]
+[JsonSerializable(typeof(Dictionary<string, string>))]
+internal partial class SmartPasteSourceGenerationContext : JsonSerializerContext
+{
 }

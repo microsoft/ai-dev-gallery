@@ -8,57 +8,56 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels
+namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
+
+[GallerySample(
+    Name = "Smart Paste",
+    Model1Types = [ModelType.LanguageModels],
+    Id = "cdd824f9-2472-4aac-bce9-f2b06f7e6b14",
+    Icon = "\uE8D4",
+    Scenario = ScenarioType.SmartControlsSmartPaste,
+    NugetPackageReferences = [
+        "CommunityToolkit.Mvvm",
+        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
+        "Microsoft.Extensions.AI.Abstractions"
+    ],
+    SharedCode = [
+        SharedCodeEnum.SmartPasteFormCs,
+        SharedCodeEnum.SmartPasteFormXaml,
+        SharedCodeEnum.GenAIModel
+    ])]
+internal sealed partial class SmartPaste : BaseSamplePage
 {
-    [GallerySample(
-        Name = "Smart Paste",
-        Model1Types = [ModelType.LanguageModels],
-        Id = "cdd824f9-2472-4aac-bce9-f2b06f7e6b14",
-        Icon = "\uE8D4",
-        Scenario = ScenarioType.SmartControlsSmartPaste,
-        NugetPackageReferences = [
-            "CommunityToolkit.Mvvm",
-            "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
-            "Microsoft.Extensions.AI.Abstractions"
-        ],
-        SharedCode = [
-            SharedCodeEnum.SmartPasteFormCs,
-            SharedCodeEnum.SmartPasteFormXaml,
-            SharedCodeEnum.GenAIModel
-        ])]
-    internal sealed partial class SmartPaste : BaseSamplePage
+    private IChatClient? model;
+    public List<string> FieldLabels { get; set; } = ["Name", "Address", "City", "State", "Zip"];
+
+    public SmartPaste()
     {
-        private IChatClient? model;
-        public List<string> FieldLabels { get; set; } = ["Name", "Address", "City", "State", "Zip"];
+        this.Unloaded += (s, e) => CleanUp();
 
-        public SmartPaste()
+        try
         {
-            this.Unloaded += (s, e) => CleanUp();
+            this.InitializeComponent();
+        }
+        catch (Exception e)
+        {
+            System.Diagnostics.Debug.WriteLine(e.Message);
+        }
+    }
 
-            try
-            {
-                this.InitializeComponent();
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.Message);
-            }
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    {
+        model = await sampleParams.GetIChatClientAsync();
+        if (model != null)
+        {
+            this.SmartForm.Model = model;
         }
 
-        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
-        {
-            model = await sampleParams.GetIChatClientAsync();
-            if (model != null)
-            {
-                this.SmartForm.Model = model;
-            }
+        sampleParams.NotifyCompletion();
+    }
 
-            sampleParams.NotifyCompletion();
-        }
-
-        private void CleanUp()
-        {
-            model?.Dispose();
-        }
+    private void CleanUp()
+    {
+        model?.Dispose();
     }
 }
