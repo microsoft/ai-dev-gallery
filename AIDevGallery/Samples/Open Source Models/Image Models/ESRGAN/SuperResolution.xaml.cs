@@ -15,160 +15,159 @@ using System.Drawing;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
-namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN
+namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
+
+[GallerySample(
+      Model1Types = [ModelType.ESRGAN],
+      Scenario = ScenarioType.ImageEnhanceImage,
+      SharedCode = [
+        SharedCodeEnum.Prediction,
+        SharedCodeEnum.BitmapFunctions,
+        SharedCodeEnum.NarratorHelper,
+        SharedCodeEnum.DeviceUtils,
+      ],
+      NugetPackageReferences = [
+        "System.Drawing.Common",
+        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.ML.OnnxRuntime.Extensions"
+      ],
+      Name = "Enhance Image",
+      Id = "9b74cdc1-f5f7-430f-bed0-712ffc063508",
+      Icon = "\uE8B3")]
+internal sealed partial class SuperResolution : BaseSamplePage
 {
-    [GallerySample(
-          Model1Types = [ModelType.ESRGAN],
-          Scenario = ScenarioType.ImageEnhanceImage,
-          SharedCode = [
-            SharedCodeEnum.Prediction,
-            SharedCodeEnum.BitmapFunctions,
-            SharedCodeEnum.NarratorHelper,
-            SharedCodeEnum.DeviceUtils,
-          ],
-          NugetPackageReferences = [
-            "System.Drawing.Common",
-            "Microsoft.ML.OnnxRuntime.DirectML",
-            "Microsoft.ML.OnnxRuntime.Extensions"
-          ],
-          Name = "Enhance Image",
-          Id = "9b74cdc1-f5f7-430f-bed0-712ffc063508",
-          Icon = "\uE8B3")]
-    internal sealed partial class SuperResolution : BaseSamplePage
+    private InferenceSession? _inferenceSession;
+
+    public SuperResolution()
     {
-        private InferenceSession? _inferenceSession;
+        this.Unloaded += (s, e) => _inferenceSession?.Dispose();
 
-        public SuperResolution()
+        this.Loaded += (s, e) => Page_Loaded();
+        this.InitializeComponent();
+    }
+
+    private void Page_Loaded()
+    {
+        UploadButton.Focus(FocusState.Programmatic);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    {
+        var hardwareAccelerator = sampleParams.HardwareAccelerator;
+        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+        sampleParams.NotifyCompletion();
+    }
+
+    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    {
+        return Task.Run(() =>
         {
-            this.Unloaded += (s, e) => _inferenceSession?.Dispose();
-
-            this.Loaded += (s, e) => Page_Loaded();
-            this.InitializeComponent();
-        }
-
-        private void Page_Loaded()
-        {
-            UploadButton.Focus(FocusState.Programmatic);
-        }
-
-        /// <inheritdoc/>
-        protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
-        {
-            var hardwareAccelerator = sampleParams.HardwareAccelerator;
-            await InitModel(sampleParams.ModelPath, hardwareAccelerator);
-            sampleParams.NotifyCompletion();
-        }
-
-        private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
-        {
-            return Task.Run(() =>
+            if (_inferenceSession != null)
             {
-                if (_inferenceSession != null)
-                {
-                    return;
-                }
-
-                SessionOptions sessionOptions = new();
-                sessionOptions.RegisterOrtExtensions();
-                if (hardwareAccelerator == HardwareAccelerator.DML)
-                {
-                    sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-                }
-
-                _inferenceSession = new InferenceSession(modelPath, sessionOptions);
-            });
-        }
-
-        private async void UploadButton_Click(object sender, RoutedEventArgs e)
-        {
-            var window = new Window();
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-            // Create a FileOpenPicker
-            var picker = new FileOpenPicker();
-
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-            // Set the file type filter
-            picker.FileTypeFilter.Add(".png");
-            picker.FileTypeFilter.Add(".jpeg");
-            picker.FileTypeFilter.Add(".jpg");
-            picker.FileTypeFilter.Add(".bmp");
-
-            picker.ViewMode = PickerViewMode.Thumbnail;
-
-            // Pick a file
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
-            {
-                // Call function to run inference and classify image
-                UploadButton.Focus(FocusState.Programmatic);
-                await EnhanceImage(file.Path);
+                return;
             }
-        }
 
-        private async Task EnhanceImage(string filePath)
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+            if (hardwareAccelerator == HardwareAccelerator.DML)
+            {
+                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+            }
+
+            _inferenceSession = new InferenceSession(modelPath, sessionOptions);
+        });
+    }
+
+    private async void UploadButton_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+        // Create a FileOpenPicker
+        var picker = new FileOpenPicker();
+
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        // Set the file type filter
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".jpg");
+        picker.FileTypeFilter.Add(".bmp");
+
+        picker.ViewMode = PickerViewMode.Thumbnail;
+
+        // Pick a file
+        var file = await picker.PickSingleFileAsync();
+        if (file != null)
         {
-            Loader.IsActive = true;
-            Loader.Visibility = Visibility.Visible;
-            UploadButton.Visibility = Visibility.Collapsed;
-
-            DefaultImage.Source = new BitmapImage(new Uri(filePath));
-            NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
-
-            using Bitmap image = new(filePath);
-
-            var originalImageWidth = image.Width;
-            var originalImageHeight = image.Height;
-
-            DefaultImageDimensions.Text = $"{originalImageWidth}x{originalImageHeight}";
-
-            int modelInputWidth = 128;
-            int modelInputHeight = 128;
-
-            // Resize Bitmap
-            using Bitmap resizedImage = BitmapFunctions.ResizeWithPadding(image, modelInputWidth, modelInputHeight);
-
-            var bitmapOutput = await Task.Run(() =>
-            {
-                // Preprocessing
-                Tensor<float> input = new DenseTensor<float>([1, 3, modelInputWidth, modelInputHeight]);
-                input = BitmapFunctions.PreprocessBitmapWithoutNormalization(resizedImage, input);
-
-                // Setup inputs
-                var inputMetadataName = _inferenceSession!.InputNames[0];
-                var inputs = new List<NamedOnnxValue>
-                {
-                    NamedOnnxValue.CreateFromTensor(inputMetadataName ?? "image", input)
-                };
-
-                // Run inference
-                using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
-
-                // Postprocessing
-                using Bitmap outputBitmap = BitmapFunctions.TensorToBitmap(results);
-
-                // 4 is the model scaling factor for ESRGAN
-                Bitmap finalOutputBitmap = BitmapFunctions.CropAndScale(outputBitmap, originalImageWidth, originalImageHeight, 4);
-
-                return finalOutputBitmap;
-            });
-
-            BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(bitmapOutput);
-            NarratorHelper.AnnounceImageChanged(DefaultImage, "Image enhancement complete.");  // <exclude-line>
-
-            bitmapOutput.Dispose();
-
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                ScaledImage.Visibility = Visibility.Visible;
-                ScaledImage.Source = outputImage;
-                ScaledImageDimensions.Visibility = Visibility.Visible;
-                ScaledImageDimensions.Text = $"{outputImage.PixelWidth}x{outputImage.PixelHeight}";
-                Loader.IsActive = false;
-                Loader.Visibility = Visibility.Collapsed;
-                UploadButton.Visibility = Visibility.Visible;
-            });
+            // Call function to run inference and classify image
+            UploadButton.Focus(FocusState.Programmatic);
+            await EnhanceImage(file.Path);
         }
+    }
+
+    private async Task EnhanceImage(string filePath)
+    {
+        Loader.IsActive = true;
+        Loader.Visibility = Visibility.Visible;
+        UploadButton.Visibility = Visibility.Collapsed;
+
+        DefaultImage.Source = new BitmapImage(new Uri(filePath));
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
+
+        using Bitmap image = new(filePath);
+
+        var originalImageWidth = image.Width;
+        var originalImageHeight = image.Height;
+
+        DefaultImageDimensions.Text = $"{originalImageWidth}x{originalImageHeight}";
+
+        int modelInputWidth = 128;
+        int modelInputHeight = 128;
+
+        // Resize Bitmap
+        using Bitmap resizedImage = BitmapFunctions.ResizeWithPadding(image, modelInputWidth, modelInputHeight);
+
+        var bitmapOutput = await Task.Run(() =>
+        {
+            // Preprocessing
+            Tensor<float> input = new DenseTensor<float>([1, 3, modelInputWidth, modelInputHeight]);
+            input = BitmapFunctions.PreprocessBitmapWithoutNormalization(resizedImage, input);
+
+            // Setup inputs
+            var inputMetadataName = _inferenceSession!.InputNames[0];
+            var inputs = new List<NamedOnnxValue>
+            {
+                NamedOnnxValue.CreateFromTensor(inputMetadataName ?? "image", input)
+            };
+
+            // Run inference
+            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
+
+            // Postprocessing
+            using Bitmap outputBitmap = BitmapFunctions.TensorToBitmap(results);
+
+            // 4 is the model scaling factor for ESRGAN
+            Bitmap finalOutputBitmap = BitmapFunctions.CropAndScale(outputBitmap, originalImageWidth, originalImageHeight, 4);
+
+            return finalOutputBitmap;
+        });
+
+        BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(bitmapOutput);
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image enhancement complete.");  // <exclude-line>
+
+        bitmapOutput.Dispose();
+
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            ScaledImage.Visibility = Visibility.Visible;
+            ScaledImage.Source = outputImage;
+            ScaledImageDimensions.Visibility = Visibility.Visible;
+            ScaledImageDimensions.Text = $"{outputImage.PixelWidth}x{outputImage.PixelHeight}";
+            Loader.IsActive = false;
+            Loader.Visibility = Visibility.Collapsed;
+            UploadButton.Visibility = Visibility.Visible;
+        });
     }
 }

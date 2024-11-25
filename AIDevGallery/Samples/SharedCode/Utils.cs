@@ -7,23 +7,22 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 
-namespace AIDevGallery.Samples.SharedCode
+namespace AIDevGallery.Samples.SharedCode;
+
+internal static class Utils
 {
-    internal static class Utils
+    public static SolidColorBrush PhiMessageTypeToColor(ChatRole type)
     {
-        public static SolidColorBrush PhiMessageTypeToColor(ChatRole type)
-        {
-            return (type == ChatRole.User) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromArgb(255, 68, 228, 255));
-        }
+        return (type == ChatRole.User) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromArgb(255, 68, 228, 255));
+    }
 
-        public static SolidColorBrush PhiMessageTypeToForeground(ChatRole type)
-        {
-            return (type == ChatRole.User) ? new SolidColorBrush(Colors.Black) : new SolidColorBrush(Color.FromArgb(255, 80, 80, 80));
-        }
+    public static SolidColorBrush PhiMessageTypeToForeground(ChatRole type)
+    {
+        return (type == ChatRole.User) ? new SolidColorBrush(Colors.Black) : new SolidColorBrush(Color.FromArgb(255, 80, 80, 80));
+    }
 
-        public static Visibility BoolToVisibleInversed(bool value)
-        {
-            return value ? Visibility.Collapsed : Visibility.Visible;
-        }
+    public static Visibility BoolToVisibleInversed(bool value)
+    {
+        return value ? Visibility.Collapsed : Visibility.Visible;
     }
 }

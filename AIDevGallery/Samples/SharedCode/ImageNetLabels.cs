@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-namespace AIDevGallery.Samples.SharedCode
+namespace AIDevGallery.Samples.SharedCode;
+
+internal class ImageNetLabels
 {
-    internal class ImageNetLabels
-    {
-        public static readonly string[] Labels = [
+    public static readonly string[] Labels = [
 "tench, Tinca tinca",
 "goldfish, Carassius auratus",
 "great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias",
@@ -1007,5 +1007,4 @@ namespace AIDevGallery.Samples.SharedCode
 "ear, spike, capitulum",
 "toilet tissue, toilet paper, bathroom tissue"
 ];
-    }
 }

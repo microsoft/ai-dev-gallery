@@ -4,17 +4,16 @@
 using Microsoft.Extensions.VectorData;
 using System;
 
-namespace AIDevGallery.Samples.SharedCode
+namespace AIDevGallery.Samples.SharedCode;
+
+internal class StringData
 {
-    internal class StringData
-    {
-        [VectorStoreRecordKey]
-        public required int Key { get; init; }
+    [VectorStoreRecordKey]
+    public required int Key { get; init; }
 
-        [VectorStoreRecordData]
-        public required string Text { get; init; }
+    [VectorStoreRecordData]
+    public required string Text { get; init; }
 
-        [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
-        public required ReadOnlyMemory<float> Vector { get; init; }
-    }
+    [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
+    public required ReadOnlyMemory<float> Vector { get; init; }
 }
