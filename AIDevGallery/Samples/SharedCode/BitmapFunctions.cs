@@ -127,6 +127,41 @@ internal class BitmapFunctions
         return input;
     }
 
+    public static Tensor<float> PreprocessBitmapForYOLO(Bitmap bitmap, Tensor<float> input)
+    {
+        int width = bitmap.Width;
+        int height = bitmap.Height;
+
+        BitmapData bmpData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+        int stride = bmpData.Stride;
+        IntPtr ptr = bmpData.Scan0;
+        int bytes = Math.Abs(stride) * height;
+        byte[] rgbValues = new byte[bytes];
+
+        Marshal.Copy(ptr, rgbValues, 0, bytes);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = y * stride + x * 3;
+                byte blue = rgbValues[index];
+                byte green = rgbValues[index + 1];
+                byte red = rgbValues[index + 2];
+
+                // The reason this needs its own function is because the variables are in different places in the input
+                input[0, y, x, 0] = red / 255f;
+                input[0, y, x, 1] = green / 255f;
+                input[0, y, x, 2] = blue / 255f;
+            }
+        }
+
+        bitmap.UnlockBits(bmpData);
+
+        return input;
+    }
+
     public static DenseTensor<float> PreprocessBitmapForObjectDetection(Bitmap bitmap, int paddedHeight, int paddedWidth)
     {
         int width = bitmap.Width;
@@ -162,11 +197,12 @@ internal class BitmapFunctions
         return input;
     }
 
-    public static void DrawPredictions(Bitmap bitmap, List<Prediction> predictions)
+    public static BitmapImage RenderPredictions(Bitmap image, List<Prediction> predictions)
     {
-        using Graphics g = Graphics.FromImage(bitmap);
-        int markerSize = (int)((bitmap.Width + bitmap.Height) * 0.02 / 2);
-        int fontSize = (int)((bitmap.Width + bitmap.Height) * .02 / 2);
+        // Draw prediciton
+        using Graphics g = Graphics.FromImage(image);
+        int markerSize = (int)((image.Width + image.Height) * 0.02 / 2);
+        int fontSize = (int)((image.Width + image.Height) * .02 / 2);
         fontSize = Math.Max(fontSize, 1);
         using Pen pen = new(Color.Red, markerSize / 10);
         using Brush brush = new SolidBrush(Color.White);
@@ -188,8 +224,22 @@ internal class BitmapFunctions
             string labelText = $"{p.Label}, {p.Confidence:0.00}";
             g.DrawString(labelText, font, brush, new PointF(p.Box.Xmin, p.Box.Ymin));
         }
+
+        // returns bitmap image
+        BitmapImage bitmapImage = new();
+        using (MemoryStream memoryStream = new())
+        {
+            image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+
+            memoryStream.Position = 0;
+
+            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+        }
+
+        return bitmapImage;
     }
 
+    // For super resolution
     public static Bitmap CropAndScale(Bitmap paddedBitmap, int originalWidth, int originalHeight, int modelScalingFactor)
     {
         float scale = Math.Min(128f / originalWidth, 128f / originalHeight);
@@ -222,9 +272,10 @@ internal class BitmapFunctions
 
     public static Bitmap TensorToBitmap(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> tensor)
     {
+        // Assumes output tensor shape [batch, c, w, h]
         var outputTensor = tensor[0].AsTensor<float>();
-        int height = outputTensor.Dimensions[2];  // 512
-        int width = outputTensor.Dimensions[3];   // 512
+        int height = outputTensor.Dimensions[2];
+        int width = outputTensor.Dimensions[3];
 
         // Create the bitmap
         Bitmap bitmap = new(width, height, PixelFormat.Format24bppRgb);
@@ -268,7 +319,34 @@ internal class BitmapFunctions
         return bitmap;
     }
 
-    public static BitmapImage ConvertBitmapToBitmapImageAsync(Bitmap bitmap)
+    // Crops bitmap given a prediciton box
+    public static Bitmap CropImage(Bitmap originalImage, Box box)
+    {
+        int xmin = Math.Max(0, (int)box.Xmin);
+        int ymin = Math.Max(0, (int)box.Ymin);
+        int width = Math.Min(originalImage.Width - xmin, (int)(box.Xmax - box.Xmin));
+        int height = Math.Min(originalImage.Height - ymin, (int)(box.Ymax - box.Ymin));
+
+        Rectangle cropRectangle = new(xmin, ymin, width, height);
+        return originalImage.Clone(cropRectangle, originalImage.PixelFormat);
+    }
+
+    // Overlays cropped section a bitmap inside the original image in the Box region
+    public static Bitmap OverlayImage(Bitmap originalImage, Bitmap overlay, Box box)
+    {
+        using Graphics graphics = Graphics.FromImage(originalImage);
+
+        // Scale the overlay to match the bounding box size
+        graphics.DrawImage(overlay, new Rectangle(
+            (int)box.Xmin,
+            (int)box.Ymin,
+            (int)(box.Xmax - box.Xmin),
+            (int)(box.Ymax - box.Ymin)));
+
+        return originalImage;
+    }
+
+    public static BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
     {
         using var stream = new InMemoryRandomAccessStream();
 

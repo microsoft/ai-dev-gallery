@@ -140,7 +140,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
                     {
                         this.DispatcherQueue.TryEnqueue(() =>
                         {
-                            BitmapImage bitmapImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(image);
+                            BitmapImage bitmapImage = BitmapFunctions.ConvertBitmapToBitmapImage(image);
                             DefaultImage.Source = bitmapImage;
                             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new image generated."); // <exclude-line>
                             DefaultImage.Visibility = Visibility.Visible;

@@ -11,7 +11,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
@@ -31,7 +30,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
-    Name = "Object Detection",
+    Name = "Faster RCNN Object Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-758ffc063508",
     Icon = "\uE8B3")]
 internal sealed partial class ObjectDetection : BaseSamplePage
@@ -164,29 +163,17 @@ internal sealed partial class ObjectDetection : BaseSamplePage
             return predictions;
         });
 
-        RenderPredictions(image, predictions);
-        image.Dispose();
+        BitmapImage outputImage = BitmapFunctions.RenderPredictions(image, predictions);
 
-        Loader.IsActive = false;
-        Loader.Visibility = Visibility.Collapsed;
-        UploadButton.Visibility = Visibility.Visible;
-    }
-
-    private void RenderPredictions(Bitmap image, List<Prediction> predictions)
-    {
-        BitmapFunctions.DrawPredictions(image, predictions);
-
-        BitmapImage bitmapImage = new();
-        using (MemoryStream memoryStream = new())
+        DispatcherQueue.TryEnqueue(() =>
         {
-            image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            DefaultImage.Source = outputImage;
+            Loader.IsActive = false;
+            Loader.Visibility = Visibility.Collapsed;
+            UploadButton.Visibility = Visibility.Visible;
+        });
 
-            memoryStream.Position = 0;
-
-            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
-        }
-
-        DefaultImage.Source = bitmapImage;
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
+        image.Dispose();
     }
 }

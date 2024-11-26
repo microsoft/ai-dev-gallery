@@ -24,7 +24,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose;
     SharedCode = [
         SharedCodeEnum.Prediction,
         SharedCodeEnum.BitmapFunctions,
-        SharedCodeEnum.DeviceUtils
+        SharedCodeEnum.DeviceUtils,
+        SharedCodeEnum.PoseHelper
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
@@ -145,13 +146,20 @@ internal sealed partial class PoseDetection : BaseSamplePage
             // Run inference
             using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
             var heatmaps = results[0].AsTensor<float>();
-            List<(float X, float Y)> keypointCoordinates = PostProcessResults(heatmaps, originalImageWidth, originalImageHeight);
+
+            var outputName = _inferenceSession!.OutputNames[0];
+            var outputDimensions = _inferenceSession!.OutputMetadata[outputName].Dimensions;
+
+            float outputWidth = outputDimensions[2];
+            float outputHeight = outputDimensions[3];
+
+            List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessResults(heatmaps, originalImageWidth, originalImageHeight, outputWidth, outputHeight);
             return keypointCoordinates;
         });
 
         // Render predictions and create output bitmap
-        using Bitmap output = RenderPredictions(image, predictions);
-        BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(output);
+        using Bitmap output = PoseHelper.RenderPredictions(image, predictions, .02f);
+        BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(output);
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: key points rendered."); // <exclude-line>
 
         DispatcherQueue.TryEnqueue(() =>
@@ -161,88 +169,5 @@ internal sealed partial class PoseDetection : BaseSamplePage
             Loader.Visibility = Visibility.Collapsed;
             UploadButton.Visibility = Visibility.Visible;
         });
-    }
-
-    private List<(float X, float Y)> PostProcessResults(Tensor<float> heatmaps, float originalWidth, float originalHeight)
-    {
-        List<(float X, float Y)> keypointCoordinates = [];
-
-        // Scaling factors from heatmap (64x48) directly to original image size
-        float scale_x = originalWidth / 64f;
-        float scale_y = originalHeight / 48f;
-
-        int numKeypoints = heatmaps.Dimensions[1];
-        int heatmapWidth = heatmaps.Dimensions[2];
-        int heatmapHeight = heatmaps.Dimensions[3];
-
-        for (int i = 0; i < numKeypoints; i++)
-        {
-            float maxVal = float.MinValue;
-            int maxX = 0, maxY = 0;
-
-            for (int x = 0; x < heatmapWidth; x++)
-            {
-                for (int y = 0; y < heatmapHeight; y++)
-                {
-                    float value = heatmaps[0, i, y, x];
-                    if (value > maxVal)
-                    {
-                        maxVal = value;
-                        maxX = x;
-                        maxY = y;
-                    }
-                }
-            }
-
-            float scaledX = maxX * scale_x;
-            float scaledY = maxY * scale_y;
-
-            keypointCoordinates.Add((scaledX, scaledY));
-        }
-
-        return keypointCoordinates;
-    }
-
-    private Bitmap RenderPredictions(Bitmap originalImage, List<(float X, float Y)> keypoints)
-    {
-        Bitmap outputImage = new(originalImage);
-
-        using (Graphics g = Graphics.FromImage(outputImage))
-        {
-            int markerSize = (int)((originalImage.Width + originalImage.Height) * 0.02 / 2);
-            Brush brush = Brushes.Red;
-
-            using Pen linePen = new(Color.Blue, 5);
-            List<(int StartIdx, int EndIdx)> connections =
-            [
-                (5, 6),   // Left shoulder to right shoulder
-                    (5, 7),   // Left shoulder to left elbow
-                    (7, 9),   // Left elbow to left wrist
-                    (6, 8),   // Right shoulder to right elbow
-                    (8, 10),  // Right elbow to right wrist
-                    (11, 12), // Left hip to right hip
-                    (5, 11),  // Left shoulder to left hip
-                    (6, 12),  // Right shoulder to right hip
-                    (11, 13), // Left hip to left knee
-                    (13, 15), // Left knee to left ankle
-                    (12, 14), // Right hip to right knee
-                    (14, 16) // Right knee to right ankle
-            ];
-
-            foreach (var (startIdx, endIdx) in connections)
-            {
-                var (startPointX, startPointY) = keypoints[startIdx];
-                var (endPointX, endPointY) = keypoints[endIdx];
-
-                g.DrawLine(linePen, startPointX, startPointY, endPointX, endPointY);
-            }
-
-            foreach (var (x, y) in keypoints)
-            {
-                g.FillEllipse(brush, x - markerSize / 2, y - markerSize / 2, markerSize, markerSize);
-            }
-        }
-
-        return outputImage;
     }
 }

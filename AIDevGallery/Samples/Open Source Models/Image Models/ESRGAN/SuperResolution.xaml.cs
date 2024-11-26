@@ -154,7 +154,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
             return finalOutputBitmap;
         });
 
-        BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImageAsync(bitmapOutput);
+        BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(bitmapOutput);
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image enhancement complete.");  // <exclude-line>
 
         bitmapOutput.Dispose();
