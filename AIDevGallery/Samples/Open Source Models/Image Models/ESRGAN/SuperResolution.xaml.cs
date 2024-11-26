@@ -112,6 +112,8 @@ internal sealed partial class SuperResolution : BaseSamplePage
         Loader.IsActive = true;
         Loader.Visibility = Visibility.Visible;
         UploadButton.Visibility = Visibility.Collapsed;
+        UpscaledPanel.Visibility = Visibility.Collapsed;
+        OriginalPanel.Visibility = Visibility.Visible;
 
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
@@ -121,7 +123,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
         var originalImageWidth = image.Width;
         var originalImageHeight = image.Height;
 
-        DefaultImageDimensions.Text = $"{originalImageWidth}x{originalImageHeight}";
+        DefaultImageDimensions.Text = $"{originalImageWidth} x {originalImageHeight}";
 
         int modelInputWidth = 128;
         int modelInputHeight = 128;
@@ -161,10 +163,9 @@ internal sealed partial class SuperResolution : BaseSamplePage
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            ScaledImage.Visibility = Visibility.Visible;
+            UpscaledPanel.Visibility = Visibility.Visible;
             ScaledImage.Source = outputImage;
-            ScaledImageDimensions.Visibility = Visibility.Visible;
-            ScaledImageDimensions.Text = $"{outputImage.PixelWidth}x{outputImage.PixelHeight}";
+            ScaledImageDimensions.Text = $"{outputImage.PixelWidth} x {outputImage.PixelHeight}";
             Loader.IsActive = false;
             Loader.Visibility = Visibility.Collapsed;
             UploadButton.Visibility = Visibility.Visible;
