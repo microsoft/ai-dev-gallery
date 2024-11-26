@@ -25,17 +25,63 @@ namespace AIDevGallery.Controls
         private Sample? _sampleCache;
         private List<ModelDetails>? _modelsCache;
         private CancellationTokenSource? _sampleLoadingCts;
+        private TaskCompletionSource? _sampleLoadedCompletionSource;
         private double _codePaneWidth;
+
+        private static readonly List<WeakReference<SampleContainer>> References = [];
+
+        internal static bool AnySamplesLoading()
+        {
+            return References.Any(r => r.TryGetTarget(out var sampleContainer) && sampleContainer._sampleLoadedCompletionSource != null);
+        }
+
+        internal static async Task WaitUnloadAllAsync()
+        {
+            foreach (var reference in References)
+            {
+                if (reference.TryGetTarget(out var sampleContainer))
+                {
+                    sampleContainer.CancelCTS();
+                    if (sampleContainer._sampleLoadedCompletionSource != null)
+                    {
+                        try
+                        {
+                            await sampleContainer._sampleLoadedCompletionSource.Task;
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        finally
+                        {
+                            sampleContainer._sampleLoadedCompletionSource = null;
+                        }
+                    }
+                }
+            }
+
+            References.Clear();
+        }
+
+        private void CancelCTS()
+        {
+            if (_sampleLoadingCts != null)
+            {
+                _sampleLoadingCts.Cancel();
+                _sampleLoadingCts = null;
+            }
+        }
 
         public SampleContainer()
         {
             this.InitializeComponent();
+            References.Add(new WeakReference<SampleContainer>(this));
             this.Unloaded += (sender, args) =>
             {
-                if (_sampleLoadingCts != null)
+                CancelCTS();
+                var reference = References.FirstOrDefault(r => r.TryGetTarget(out var sampleContainer) && sampleContainer == this);
+                if (reference != null)
                 {
-                    _sampleLoadingCts.Cancel();
-                    _sampleLoadingCts = null;
+                    References.Remove(reference);
                 }
             };
         }
@@ -54,11 +100,7 @@ namespace AIDevGallery.Controls
                 return;
             }
 
-            if (_sampleLoadingCts != null)
-            {
-                _sampleLoadingCts.Cancel();
-                _sampleLoadingCts = null;
-            }
+            CancelCTS();
 
             if (models == null)
             {
@@ -101,7 +143,7 @@ namespace AIDevGallery.Controls
             SampleFrame.Content = null;
 
             _sampleLoadingCts = new CancellationTokenSource();
-
+            _sampleLoadedCompletionSource = new TaskCompletionSource();
             BaseSampleNavigationParameters sampleNavigationParameters;
 
             var modelPath = cachedModelsPaths.First();
@@ -113,6 +155,7 @@ namespace AIDevGallery.Controls
                     modelPath,
                     models.First().HardwareAccelerators.First(),
                     models.First().PromptTemplate?.ToLlmPromptTemplate(),
+                    _sampleLoadedCompletionSource,
                     token);
             }
             else
@@ -129,13 +172,18 @@ namespace AIDevGallery.Controls
                     [.. cachedModelsPaths],
                     [.. hardwareAccelerators],
                     [.. promptTemplates],
+                    _sampleLoadedCompletionSource,
                     token);
             }
 
             NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
             SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
-            await sampleNavigationParameters.SampleLoadedCompletionSource.Task;
+            await _sampleLoadedCompletionSource.Task;
+
+            _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts = null;
+
             NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
             VisualStateManager.GoToState(this, "SampleLoaded", true);

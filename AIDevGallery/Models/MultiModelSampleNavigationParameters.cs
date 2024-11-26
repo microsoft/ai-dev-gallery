@@ -3,6 +3,7 @@
 
 using AIDevGallery.Samples.SharedCode;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Models
 {
@@ -10,8 +11,9 @@ namespace AIDevGallery.Models
             string[] modelPaths,
             HardwareAccelerator[] hardwareAccelerators,
             LlmPromptTemplate?[] promptTemplates,
+            TaskCompletionSource sampleLoadedCompletionSource,
             CancellationToken loadingCanceledToken)
-        : BaseSampleNavigationParameters(loadingCanceledToken)
+        : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
     {
         public string[] ModelPaths { get; } = modelPaths;
         public HardwareAccelerator[] HardwareAccelerators { get; } = hardwareAccelerators;
