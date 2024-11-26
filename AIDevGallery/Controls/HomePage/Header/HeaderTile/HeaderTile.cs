@@ -23,7 +23,7 @@ internal partial class HeaderTile : Button
         set => SetValue(ImageUrlProperty, value);
     }
 
-    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null, (d, e) => ((HeaderTile)d).IsHeaderChanged((string)e.OldValue, (string)e.NewValue)));
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null, (d, e) => ((HeaderTile)d).HeaderChanged((string)e.OldValue, (string)e.NewValue)));
 
     public string Header
     {
@@ -58,7 +58,6 @@ internal partial class HeaderTile : Button
     public HeaderTile()
     {
         this.DefaultStyleKey = typeof(HeaderTile);
-        SetAccesibileName();
     }
 
     protected override void OnApplyTemplate()
@@ -92,12 +91,12 @@ internal partial class HeaderTile : Button
         }
     }
 
-    protected virtual void IsHeaderChanged(string oldValue, string newValue)
+    protected virtual void HeaderChanged(string oldValue, string newValue)
     {
-        SetAccesibileName();
+        SetAccessibleName();
     }
 
-    private void SetAccesibileName()
+    private void SetAccessibleName()
     {
         if (!string.IsNullOrEmpty(Header))
         {
