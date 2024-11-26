@@ -78,11 +78,10 @@ internal static class AppUtils
     {
         switch (hardwareAccelerator)
         {
-            default:
-            case HardwareAccelerator.CPU:
-                return "CPU";
             case HardwareAccelerator.DML:
                 return "GPU";
+            default:
+                return hardwareAccelerator.ToString();
         }
     }
 
