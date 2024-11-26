@@ -57,7 +57,6 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" />
     <PackageReference Include="MathNet.Numerics" />
-    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
@@ -83,7 +82,13 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(Platform) == 'ARM64'">
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(Platform) == 'x64'">
+    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
   </ItemGroup>
