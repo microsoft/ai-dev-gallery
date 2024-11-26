@@ -121,6 +121,11 @@
         "Description": "Models in this scenario will detect human poses and posture.",
         "Id": "detect-pose"
       },
+      "DetectPoses": {
+        "Name": "Detect Multiple Human Poses",
+        "Description": "Models in this scenario will detect human poses and posture.",
+        "Id": "detect-poses"
+      },
       "EnhanceImage": {
         "Name": "Enhance Image",
         "Description": "Image enhancing models will upscale low resolution images improving their clarity.",

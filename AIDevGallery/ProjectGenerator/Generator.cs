@@ -513,7 +513,7 @@ namespace AIDevGallery.ProjectGenerator
                 cleanCsSource = cleanCsSource.Replace(
                     "Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)",
                     "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
-                cleanCsSource = cleanCsSource.Replace($"{Environment.NewLine}            return Task.CompletedTask;", string.Empty);
+                cleanCsSource = RegexReturnTaskCompletedTask().Replace(cleanCsSource, string.Empty);
 
                 string modelPath;
                 if (modelInfos.Count > 1)
@@ -565,6 +565,9 @@ namespace AIDevGallery.ProjectGenerator
 
         [GeneratedRegex(@"xmlns:local=""using:(\w.+)""")]
         private static partial Regex XamlLocalUsing();
+
+        [GeneratedRegex(@"[\r\n][\s]*return Task.CompletedTask;")]
+        private static partial Regex RegexReturnTaskCompletedTask();
 
         private string CleanXamlSource(string xamlCode, string newNamespace, out string className)
         {

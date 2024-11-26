@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.OpenSourceModels.ESRGAN.SuperResolution"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:AIDevGallery.Samples.OpenSourceModels.ESRGAN"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Samples.OpenSourceModels.ESRGAN"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
 
     <ScrollViewer>
@@ -15,64 +15,95 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--  Before Image Section  -->
+            <StackPanel
+                x:Name="OriginalPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    x:Name="TestLabel"
+                    HorizontalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="Original" />
+                <ScrollViewer
+                    HorizontalAlignment="Center"
+                    HorizontalScrollBarVisibility="Auto"
+                    HorizontalScrollMode="Auto"
+                    MaxZoomFactor="4"
+                    MinZoomFactor="1"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto"
+                    ZoomMode="Enabled">
+                    <Viewbox
+                        MaxWidth="400"
+                        MaxHeight="500"
+                        HorizontalAlignment="Center"
+                        Stretch="Uniform"
+                        StretchDirection="Both">
+                        <Image x:Name="DefaultImage" />
+                    </Viewbox>
+                </ScrollViewer>
+                <TextBlock
+                    x:Name="DefaultImageDimensions"
+                    HorizontalAlignment="Center"
+                    AutomationProperties.Name="DefaultImageDimensions" />
+            </StackPanel>
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <!-- Before Image Section -->
-                <StackPanel Grid.Column="0">
-                    <TextBlock x:Name="TestLabel" Text="Before" FontWeight="Bold" FontSize="16" />
-                    <ScrollViewer ZoomMode="Enabled" 
-                                  MaxZoomFactor="4"
-                                  MinZoomFactor="1"
-                                  HorizontalScrollMode="Auto"
-                                  VerticalScrollMode="Auto"
-                                  HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-                        <Viewbox Stretch="Uniform" StretchDirection="Both" MaxWidth="400" MaxHeight="500">
-                            <Image x:Name="DefaultImage" />
-                        </Viewbox>
-                    </ScrollViewer>
-                    <TextBlock AutomationProperties.Name="DefaultImageDimensions" x:Name="DefaultImageDimensions" FontWeight="Bold" FontSize="16" />
-                </StackPanel>
-
-                <!-- After Image Section -->
-                <StackPanel Margin="16,0,0,0" Grid.Column="1">
-                    <TextBlock Text="After" FontWeight="Bold" FontSize="16" />
-                    <ScrollViewer ZoomMode="Enabled" 
-                        MinZoomFactor="1"
-                        MaxZoomFactor="4"
-                        HorizontalScrollMode="Auto"
-                        VerticalScrollMode="Auto"
-                        HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Auto">
-                        <Viewbox Stretch="Uniform" StretchDirection="Both">
-                            <Image MaxWidth="400"
-                                   MaxHeight="500"
-                                   x:Name="ScaledImage"
-                                   Visibility="Collapsed" />     
-                        </Viewbox>
-                    </ScrollViewer>
-                    <TextBlock AutomationProperties.Name="ScaledImageDimensions" x:Name="ScaledImageDimensions" FontWeight="Bold" FontSize="16" />
-                </StackPanel>
-            </Grid>
+            <!--  After Image Section  -->
+            <StackPanel
+                x:Name="UpscaledPanel"
+                Grid.Column="1"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="Upscaled" />
+                <ScrollViewer
+                    HorizontalAlignment="Center"
+                    HorizontalScrollBarVisibility="Auto"
+                    HorizontalScrollMode="Auto"
+                    MaxZoomFactor="4"
+                    MinZoomFactor="1"
+                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollMode="Auto"
+                    ZoomMode="Enabled">
+                    <Viewbox
+                        HorizontalAlignment="Center"
+                        Stretch="Uniform"
+                        StretchDirection="Both">
+                        <Image
+                            x:Name="ScaledImage"
+                            MaxWidth="400"
+                            MaxHeight="500" />
+                    </Viewbox>
+                </ScrollViewer>
+                <TextBlock
+                    x:Name="ScaledImageDimensions"
+                    HorizontalAlignment="Center"
+                    AutomationProperties.Name="ScaledImageDimensions" />
+            </StackPanel>
 
             <ProgressRing
-            x:Name="Loader"
-            Grid.Row="1"
-            IsActive="false"
-            Visibility="Collapsed" />
+                x:Name="Loader"
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                IsActive="false"
+                Visibility="Collapsed" />
 
-            <!-- Upload Button -->
+            <!--  Upload Button  -->
             <Button
-            x:Name="UploadButton"
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            Click="UploadButton_Click"
-            Content="Select image"
-            Style="{StaticResource AccentButtonStyle}" />
+                x:Name="UploadButton"
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Center"
+                Click="UploadButton_Click"
+                Content="Select image"
+                Style="{StaticResource AccentButtonStyle}" />
         </Grid>
     </ScrollViewer>
 </samples:BaseSamplePage>
