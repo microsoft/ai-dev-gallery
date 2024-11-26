@@ -71,6 +71,11 @@ namespace AIDevGallery.Controls
                 App.MainWindow.NavigateToPage(App.FindScenarioById(item.Id!));
             }
         }
+
+        private void AllSamplesButton_Click(object sender, RoutedEventArgs e)
+        {
+            App.MainWindow.Navigate("samples");
+        }
     }
 
     internal class RowSample

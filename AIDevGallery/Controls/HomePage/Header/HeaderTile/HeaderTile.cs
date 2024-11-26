@@ -3,6 +3,7 @@
 
 using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using System;
 
@@ -22,7 +23,7 @@ internal partial class HeaderTile : Button
         set => SetValue(ImageUrlProperty, value);
     }
 
-    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null));
+    public static readonly DependencyProperty HeaderProperty = DependencyProperty.Register(nameof(Header), typeof(string), typeof(HeaderTile), new PropertyMetadata(defaultValue: null, (d, e) => ((HeaderTile)d).HeaderChanged((string)e.OldValue, (string)e.NewValue)));
 
     public string Header
     {
@@ -87,6 +88,19 @@ internal partial class HeaderTile : Button
                 Canvas.SetZIndex(this, 0);
             };
             deselectAnimation.Start(this);
+        }
+    }
+
+    protected virtual void HeaderChanged(string oldValue, string newValue)
+    {
+        SetAccessibleName();
+    }
+
+    private void SetAccessibleName()
+    {
+        if (!string.IsNullOrEmpty(Header))
+        {
+            AutomationProperties.SetName(this, Header);
         }
     }
 }
