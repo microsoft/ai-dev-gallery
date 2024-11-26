@@ -89,9 +89,15 @@ namespace AIDevGallery.Pages
             foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
             {
                 var categoryMenu = new NavigationViewItem() { Content = scenarioCategory.Name, Icon = new FontIcon() { Glyph = scenarioCategory.Icon }, Tag = scenarioCategory };
+                ToolTip categoryToolTip = new() { Content = scenarioCategory.Name };
+                ToolTipService.SetToolTip(categoryMenu, categoryToolTip);
+
                 foreach (var scenario in scenarioCategory.Scenarios)
                 {
-                    categoryMenu.MenuItems.Add(new NavigationViewItem() { Content = scenario.Name, Tag = scenario });
+                    NavigationViewItem currNavItem = new() { Content = scenario.Name, Tag = scenario };
+                    ToolTip secnarioToolTip = new() { Content = scenario.Name };
+                    ToolTipService.SetToolTip(currNavItem, secnarioToolTip);
+                    categoryMenu.MenuItems.Add(currNavItem);
                 }
 
                 categoryMenu.SelectsOnInvoked = false;
