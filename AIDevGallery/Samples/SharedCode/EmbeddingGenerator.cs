@@ -32,6 +32,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly SessionOptions _sessionOptions;
     private readonly InferenceSession _inferenceSession;
     private readonly BertTokenizer _tokenizer;
+    private readonly int _chunkSize = 128;
 
     public EmbeddingGeneratorMetadata Metadata { get; }
     public EmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
@@ -43,6 +44,15 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         if (hardwareAccelerator == HardwareAccelerator.DML)
         {
             _sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+        }
+        else if (hardwareAccelerator == HardwareAccelerator.QNN)
+        {
+            Dictionary<string, string> options = new()
+            {
+                { "backend_path", "QnnHtp.dll" }
+            };
+            _sessionOptions.AppendExecutionProvider("QNN", options);
+            _chunkSize = 8;
         }
 
         _inferenceSession = new InferenceSession(Path.Join(modelPath, "onnx", "model.onnx"), _sessionOptions);
@@ -103,9 +113,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         EmbeddingGenerationOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        int chunkSize = 128;
-
-        var chunks = values.Chunk(chunkSize);
+        var chunks = values.Chunk(_chunkSize);
 
         using var runOptions = new RunOptions();
 

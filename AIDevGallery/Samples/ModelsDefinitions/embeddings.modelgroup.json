@@ -18,7 +18,8 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 90636722,
@@ -44,7 +45,8 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 133358075,
