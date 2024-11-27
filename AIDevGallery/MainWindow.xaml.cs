@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
@@ -11,10 +12,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Windows.System;
+using WinUIEx;
 
 namespace AIDevGallery
 {
-    internal sealed partial class MainWindow : WinUIEx.WindowEx
+    internal sealed partial class MainWindow : WindowEx
     {
         public MainWindow(object? obj = null)
         {
@@ -25,6 +27,17 @@ namespace AIDevGallery
             this.NavView.Loaded += (sender, args) =>
             {
                 NavigateToPage(obj);
+            };
+
+            Closed += async (sender, args) =>
+            {
+                if (SampleContainer.AnySamplesLoading())
+                {
+                    this.Hide();
+                    args.Handled = true;
+                    await SampleContainer.WaitUnloadAllAsync();
+                    Close();
+                }
             };
         }
 
