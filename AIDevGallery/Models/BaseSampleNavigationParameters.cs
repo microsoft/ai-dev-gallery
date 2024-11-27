@@ -8,18 +8,16 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Models
 {
-    internal abstract class BaseSampleNavigationParameters(CancellationToken loadingCanceledToken)
+    internal abstract class BaseSampleNavigationParameters(TaskCompletionSource sampleLoadedCompletionSource, CancellationToken loadingCanceledToken)
     {
         public CancellationToken CancellationToken { get; private set; } = loadingCanceledToken;
 
         protected abstract string ChatClientModelPath { get; }
         protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
-        internal TaskCompletionSource<bool> SampleLoadedCompletionSource { get; } = new TaskCompletionSource<bool>();
-
         public void NotifyCompletion()
         {
-            SampleLoadedCompletionSource.SetResult(true);
+            sampleLoadedCompletionSource.SetResult();
         }
 
         public async Task<IChatClient?> GetIChatClientAsync()

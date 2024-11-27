@@ -282,6 +282,7 @@ internal class GenAIModel : IChatClient, IDisposable
             () =>
             {
                 _model = new Model(modelDir);
+                cancellationToken.ThrowIfCancellationRequested();
                 _tokenizer = new Tokenizer(_model);
             },
             cancellationToken);
