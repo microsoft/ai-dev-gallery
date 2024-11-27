@@ -433,10 +433,17 @@ namespace AIDevGallery.Pages
                         Text = $"An error occurred while exporting the project. {message}",
                         TextWrapping = TextWrapping.WrapWholeWords
                     },
+                    PrimaryButtonText = "Copy details",
                     CloseButtonText = "Close"
                 };
 
-                await errorDialog.ShowAsync();
+                var result = await errorDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    var dataPackage = new DataPackage();
+                    dataPackage.SetText(ex.ToString());
+                    Clipboard.SetContentWithOptions(dataPackage, null);
+                }
             }
         }
 
