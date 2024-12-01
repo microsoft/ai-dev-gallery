@@ -156,7 +156,7 @@ internal sealed partial class Chat : BaseSamplePage
                 NarratorHelper.Announce(InputBox, "Content has finished generating.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
                 StopBtn.Visibility = Visibility.Collapsed;
                 SendBtn.Visibility = Visibility.Visible;
-                EnableInputBoxWithPlaceholder()
+                EnableInputBoxWithPlaceholder();
             });
         });
     }
