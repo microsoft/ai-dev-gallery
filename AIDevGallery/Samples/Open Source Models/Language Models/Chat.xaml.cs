@@ -83,10 +83,21 @@ internal sealed partial class Chat : BaseSamplePage
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter &&
-            !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
+            !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift)
+                .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
             sender is TextBox &&
             !string.IsNullOrWhiteSpace(InputBox.Text))
         {
+            var cursorPosition = InputBox.SelectionStart;
+            var text = InputBox.Text;
+            if (cursorPosition > 0 && (text[cursorPosition - 1] == '\n' || text[cursorPosition - 1] == '\r'))
+            {
+                text = text.Remove(cursorPosition - 1, 1);
+                InputBox.Text = text;
+            }
+
+            InputBox.SelectionStart = cursorPosition - 1;
+
             SendMessage();
         }
     }
