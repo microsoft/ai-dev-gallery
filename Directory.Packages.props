@@ -18,9 +18,9 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.20.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.20.1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.13.0" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.5.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.5.2" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.6.241106002" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.1.240916" />
