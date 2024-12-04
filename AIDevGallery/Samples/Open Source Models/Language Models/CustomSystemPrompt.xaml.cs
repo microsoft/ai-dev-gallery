@@ -43,7 +43,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
 
@@ -180,18 +180,19 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     private void InputBox_Changed(object sender, TextChangedEventArgs e)
     {
-        var maxInputLength = GenAIModel.DefaultMaxLength;
-
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            InputTextBox.Description = $"{inputLength} of {maxInputLength}";
-            if (inputLength >= maxInputLength)
+            if (inputLength >= chatOptions.MaxOutputTokens)
             {
-                InputTextBox.Description += ". Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {chatOptions.MaxOutputTokens}. Max characters reached.";
+            }
+            else
+            {
+                InputTextBox.Description = $"{inputLength} of {chatOptions.MaxOutputTokens}";
             }
 
-            GenerateButton.IsEnabled = inputLength <= maxInputLength;
+            GenerateButton.IsEnabled = inputLength <= chatOptions.MaxOutputTokens;
         }
         else
         {
