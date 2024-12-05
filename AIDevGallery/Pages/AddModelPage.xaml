@@ -68,20 +68,23 @@
             </Grid>
         </Grid>
 
-        <ScrollViewer Grid.Row="1" Padding="24,0,24,0">
-            <ItemsRepeater
-                Grid.Row="1"
-                Margin="0,24,0,24"
-                ItemsSource="{x:Bind results}"
-                TabFocusNavigation="Local">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout MinColumnSpacing="16" MinRowSpacing="32" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="local:Result">
+        <ItemsView Grid.Row="1"
+                   Padding="24 0 24 0"
+                   Margin="0 24 0 24"
+                   ItemsSource="{x:Bind results}"
+                   SelectionMode="None"
+                   TabFocusNavigation="Local">
+            <ItemsView.Layout>
+                <UniformGridLayout MinColumnSpacing="16"
+                                   MinRowSpacing="32"
+                                   ItemsStretch="Fill"
+                                   MinItemWidth="282"
+                                   MinItemHeight="286"/>
+            </ItemsView.Layout>
+            <ItemsView.ItemTemplate>
+                <DataTemplate x:DataType="local:Result">
+                    <ItemContainer>
                         <Grid
-                            Width="324"
-                            Height="286"
                             Padding="24"
                             RowSpacing="8"
                             Style="{StaticResource CardGridStyle}">
@@ -119,10 +122,6 @@
                                 <TextBlock Text="{x:Bind utils:AppUtils.FileSizeToString(Details.Size)}" />
                             </StackPanel>
 
-                            <!--<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                                <Run FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xEF40;" />
-                                <Run Text="{x:Bind SearchResult.HardwareAccelerator}" />
-                            </TextBlock>-->
                             <StackPanel
                                 Grid.Row="4"
                                 Orientation="Horizontal"
@@ -182,11 +181,11 @@
                                 Text="Downloading"
                                 Visibility="{x:Bind local:AddModelPage.VisibleWhenDownloading(State), Mode=OneWay}" />
                         </Grid>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </ScrollViewer>
-
+                    </ItemContainer>
+                </DataTemplate>
+            </ItemsView.ItemTemplate>
+        </ItemsView>
+        
         <ContentDialog
             x:Name="DownloadDialog"
             Title="Download model"
