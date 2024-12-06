@@ -71,7 +71,7 @@
         <ItemsView Grid.Row="1"
                    Padding="24 0 24 0"
                    Margin="0 24 0 24"
-                   ItemsSource="{x:Bind results}"
+                   ItemsSource="{x:Bind results, Mode="OneWay"}"
                    SelectionMode="None"
                    TabFocusNavigation="Local">
             <ItemsView.Layout>
