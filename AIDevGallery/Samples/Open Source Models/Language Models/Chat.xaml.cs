@@ -8,6 +8,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -47,6 +48,8 @@ internal sealed partial class Chat : BaseSamplePage
         this.InitializeComponent();
     }
 
+    private ScrollViewer? scrollViewer;
+
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
@@ -71,6 +74,7 @@ internal sealed partial class Chat : BaseSamplePage
     {
         StopBtn.Visibility = Visibility.Collapsed;
         SendBtn.Visibility = Visibility.Visible;
+        EnableInputBoxWithPlaceholder();
         cts?.Cancel();
         cts?.Dispose();
         cts = null;
@@ -78,8 +82,22 @@ internal sealed partial class Chat : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter &&
+            !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift)
+                .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
+            sender is TextBox &&
+            !string.IsNullOrWhiteSpace(InputBox.Text))
         {
+            var cursorPosition = InputBox.SelectionStart;
+            var text = InputBox.Text;
+            if (cursorPosition > 0 && (text[cursorPosition - 1] == '\n' || text[cursorPosition - 1] == '\r'))
+            {
+                text = text.Remove(cursorPosition - 1, 1);
+                InputBox.Text = text;
+            }
+
+            InputBox.SelectionStart = cursorPosition - 1;
+
             SendMessage();
         }
     }
@@ -101,7 +119,7 @@ internal sealed partial class Chat : BaseSamplePage
             return;
         }
 
-        Messages.Add(new Message(text, DateTime.Now, ChatRole.User));
+        Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
 
@@ -115,6 +133,8 @@ internal sealed partial class Chat : BaseSamplePage
             {
                 Messages.Add(responseMessage);
                 StopBtn.Visibility = Visibility.Visible;
+                InputBox.IsEnabled = false;
+                InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
             });
 
             cts = new CancellationTokenSource();
@@ -147,6 +167,7 @@ internal sealed partial class Chat : BaseSamplePage
                 NarratorHelper.Announce(InputBox, "Content has finished generating.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
                 StopBtn.Visibility = Visibility.Collapsed;
                 SendBtn.Visibility = Visibility.Visible;
+                EnableInputBoxWithPlaceholder();
             });
         });
     }
@@ -159,5 +180,65 @@ internal sealed partial class Chat : BaseSamplePage
     private void StopBtn_Click(object sender, RoutedEventArgs e)
     {
         CancelResponse();
+    }
+
+    private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        SendBtn.IsEnabled = !string.IsNullOrWhiteSpace(InputBox.Text);
+    }
+
+    private void EnableInputBoxWithPlaceholder()
+    {
+        InputBox.IsEnabled = true;
+        InputBox.PlaceholderText = "Enter your prompt (Press Shift + Enter to insert a newline)";
+    }
+
+    private void InvertedListView_Loaded(object sender, RoutedEventArgs e)
+    {
+        scrollViewer = FindElement<ScrollViewer>(InvertedListView);
+
+        ItemsStackPanel? itemsStackPanel = FindElement<ItemsStackPanel>(InvertedListView);
+        if (itemsStackPanel != null)
+        {
+            itemsStackPanel.SizeChanged += ItemsStackPanel_SizeChanged;
+        }
+    }
+
+    private void ItemsStackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (scrollViewer != null)
+        {
+            bool isScrollbarVisible = scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible;
+
+            if (isScrollbarVisible)
+            {
+                InvertedListView.Padding = new Thickness(-12, 0, 12, 24);
+            }
+            else
+            {
+                InvertedListView.Padding = new Thickness(-12, 0, -12, 24);
+            }
+        }
+    }
+
+    private T? FindElement<T>(DependencyObject element)
+        where T : DependencyObject
+    {
+        if (element is T targetElement)
+        {
+            return targetElement;
+        }
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+        {
+            var child = VisualTreeHelper.GetChild(element, i);
+            var result = FindElement<T>(child);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 }
