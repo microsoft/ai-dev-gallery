@@ -9,9 +9,9 @@
 
 The AI Dev Gallery is an app designed to help Windows developers integrate AI capabilities within their own apps and projects. The app contains the following:
 
-- **Interactive samples powered by local AI models**
-- **Explore, download, and run models from Hugging Face and GitHub**
-- **The ability to view source code and export Visual Studio projects for each sample**
+- **Over 25 interactive samples powered by local AI models**
+- **Easily explore, download, and run models from Hugging Face and GitHub**
+- **The ability to view the C# source code and simply export a standalone Visual Studio project for each sample**
 
 <p align="center">
 <br/>
