@@ -69,21 +69,23 @@
         </Grid>
 
         <ScrollViewer Grid.Row="1" Padding="24,0,24,0">
-            <ItemsRepeater
-                Grid.Row="1"
-                Margin="0,24,0,24"
-                ItemsSource="{x:Bind results}"
+            <ItemsRepeater 
+                Margin="0 24 0 24"
+                ItemsSource="{x:Bind results, Mode=OneWay}"
                 TabFocusNavigation="Local">
                 <ItemsRepeater.Layout>
-                    <UniformGridLayout MinColumnSpacing="16" MinRowSpacing="32" />
+                    <UniformGridLayout
+                            MinColumnSpacing="16"
+                            MinRowSpacing="32"
+                            ItemsStretch="Fill"
+                            MinItemWidth="282"
+                            MinItemHeight="286"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:Result">
-                        <Grid
-                            Width="324"
-                            Height="286"
-                            Padding="24"
-                            RowSpacing="8"
+                        <Grid 
+                            Padding="24" 
+                            RowSpacing="8" 
                             Style="{StaticResource CardGridStyle}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -119,10 +121,6 @@
                                 <TextBlock Text="{x:Bind utils:AppUtils.FileSizeToString(Details.Size)}" />
                             </StackPanel>
 
-                            <!--<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                                <Run FontFamily="{StaticResource SymbolThemeFontFamily}" Text="&#xEF40;" />
-                                <Run Text="{x:Bind SearchResult.HardwareAccelerator}" />
-                            </TextBlock>-->
                             <StackPanel
                                 Grid.Row="4"
                                 Orientation="Horizontal"
