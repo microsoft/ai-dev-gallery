@@ -152,7 +152,8 @@ namespace AIDevGallery.Models
     internal enum HardwareAccelerator
     {
         CPU,
-        DML
+        DML,
+        QNN
     }
 }
 

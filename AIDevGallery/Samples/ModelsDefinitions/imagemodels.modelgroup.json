@@ -132,7 +132,8 @@
             "Description": "HRNet Pose",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 114232171,

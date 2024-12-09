@@ -23,7 +23,8 @@ internal class ModelCompatibility
 
         ModelCompatibilityState compatibility;
         if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
-            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && modelDetails.SupportedOnQualcomm == true))
+            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && modelDetails.SupportedOnQualcomm == true) ||
+            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
         {
             compatibility = ModelCompatibilityState.Compatible;
         }
