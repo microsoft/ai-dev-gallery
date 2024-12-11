@@ -76,6 +76,14 @@ internal sealed partial class PoseDetection : BaseSamplePage
             {
                 sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
             }
+            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            {
+                Dictionary<string, string> options = new()
+                {
+                    { "backend_path", "QnnHtp.dll" }
+                };
+                sessionOptions.AppendExecutionProvider("QNN", options);
+            }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
