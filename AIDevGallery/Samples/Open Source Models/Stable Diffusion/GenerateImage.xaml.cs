@@ -153,14 +153,19 @@ internal sealed partial class GenerateImage : BaseSamplePage
                 }
                 catch (Exception ex)
                 {
-                    this.DispatcherQueue.TryEnqueue(async () =>
+                    if (ex is not OperationCanceledException)
                     {
-                        ErrorDialog.CloseButtonText = "OK";
-                        ErrorDialog.Title = "Error";
-                        ErrorDialog.Content = ex.Message;
-                        await ErrorDialog.ShowAsync();
-                    });
+                        this.DispatcherQueue.TryEnqueue(async () =>
+                        {
+                            ErrorDialog.CloseButtonText = "OK";
+                            ErrorDialog.Title = "Error";
+                            ErrorDialog.Content = ex.Message;
+                            await ErrorDialog.ShowAsync();
+                        });
+                    }
                 }
+
+                this.DispatcherQueue.TryEnqueue(() => GenerateButton.Content = "Generate");
             },
             token);
 
