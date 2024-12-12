@@ -116,6 +116,21 @@
         "Description": "Object detection models detect items in a photo and give you their locations and associated confidence.",
         "Id": "detect-objects"
       },
+      "DetectText": {
+        "Name": "Detect Text",
+        "Description": "Detect text in an image.",
+        "Id": "detect-text"
+      },
+      "IncreaseFidelity": {
+        "Name": "Increase image fidelity",
+        "Description": "Increase image fidelity.",
+        "Id": "increase-fidelity"
+      },
+      "BackgroundRemover": {
+        "Name": "Remove background",
+        "Description": "Remove image background.",
+        "Id": "background-remover"
+      },
       "DetectPose": {
         "Name": "Detect Human Pose",
         "Description": "Models in this scenario will detect human poses and posture.",

@@ -15,7 +15,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Content Moderation",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextContentModeration,
     NugetPackageReferences = [
         "Microsoft.ML.OnnxRuntimeGenAI.DirectML",

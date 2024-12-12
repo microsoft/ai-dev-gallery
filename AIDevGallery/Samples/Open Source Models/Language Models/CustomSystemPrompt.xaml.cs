@@ -14,7 +14,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Custom Parameters",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Id = "0d884b79-26ab-47a3-a752-1b8a7fa5737d",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,

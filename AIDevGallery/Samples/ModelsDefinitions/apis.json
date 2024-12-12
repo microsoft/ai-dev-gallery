@@ -1,2 +1,37 @@
 ﻿{
+  "WCRAPIs": {
+    "Id": "813b4497-a9b2-445a-832a-5dd8bc6d6158",
+    "Name": "Windows Copilot Runtime APIs",
+    "Icon": "\uF4A5",
+    "Apis": {
+      "PhiSilica": {
+        "Id": "9b56e116-c142-4be1-827c-cb023743aca2",
+        "Name": "Phi Silica",
+        "Icon": "WCRAPI.svg",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl"
+      },
+      "TextRecognitionOCR": {
+        "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
+        "Name": "Text Recognition (OCR)",
+        "Icon": "WCRAPI.svg",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
+        "License": "ms-pl"
+      },
+      "ImageScaler": {
+        "Id": "97ed0b95-3f14-415c-bb1f-9a6c59b78c3d",
+        "Name": "ImageScaler",
+        "Icon": "WCRAPI.svg",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
+        "License": "ms-pl"
+      },
+      "BackgroundRemover": {
+        "Id": "9d445930-b353-429a-9674-777eef771ccf",
+        "Name": "BackgroundRemover",
+        "Icon": "WCRAPI.svg",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
+        "License": "ms-pl"
+      }
+    }
+  }
 }

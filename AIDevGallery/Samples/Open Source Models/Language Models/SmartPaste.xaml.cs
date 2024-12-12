@@ -12,7 +12,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Smart Paste",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Id = "cdd824f9-2472-4aac-bce9-f2b06f7e6b14",
     Icon = "\uE8D4",
     Scenario = ScenarioType.SmartControlsSmartPaste,

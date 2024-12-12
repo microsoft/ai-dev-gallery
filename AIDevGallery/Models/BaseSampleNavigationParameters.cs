@@ -22,6 +22,11 @@ namespace AIDevGallery.Models
 
         public async Task<IChatClient?> GetIChatClientAsync()
         {
+            if (ChatClientModelPath == $"file://{ModelType.PhiSilica}")
+            {
+                return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
+            }
+
             return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
         }
     }
