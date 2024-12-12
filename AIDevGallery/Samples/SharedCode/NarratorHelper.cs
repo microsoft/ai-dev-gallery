@@ -27,6 +27,6 @@ internal class NarratorHelper
     public static void Announce(UIElement ue, string annoucement, string activityID)
     {
         var peer = FrameworkElementAutomationPeer.FromElement(ue);
-        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, annoucement, activityID);
+        peer?.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, annoucement, activityID);
     }
 }
