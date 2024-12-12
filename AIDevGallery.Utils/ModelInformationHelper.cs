@@ -171,7 +171,7 @@ namespace AIDevGallery.Utils
                 await actionBlock.Completion;
             }
 
-            return hfFiles.Select(f =>
+            return hfFiles.Where(f => f.Type != "directory").Select(f =>
                 new ModelFileDetails()
                 {
                     DownloadUrl = $"https://huggingface.co/{hfUrl.Organization}/{hfUrl.Repo}/resolve/{hfUrl.Ref}/{f.Path}",
