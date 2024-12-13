@@ -1,18 +1,30 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AIDevGallery.Pages
 {
     internal sealed partial class ScenarioSelectionPage : Page
     {
+        internal record FilterRecord(string? Tag, string Text);
+
+        private readonly List<FilterRecord> filters =
+        [
+            new(null, "All Scenarios" ),
+            new("npu", "NPU Scenarios" ),
+            new("gpu", "GPU Scenarios" ),
+            new("wcr-api", "WCR API Scenarios" )
+        ];
+
         private static LastInternalNavigation? lastInternalNavigation;
         private Scenario? selectedScenario;
 
@@ -84,8 +96,10 @@ namespace AIDevGallery.Pages
             base.OnNavigatedTo(e);
         }
 
-        private void SetUpScenarios()
+        private void SetUpScenarios(string? filter = null)
         {
+            NavView.MenuItems.Clear();
+
             foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
             {
                 var categoryMenu = new NavigationViewItem() { Content = scenarioCategory.Name, Icon = new FontIcon() { Glyph = scenarioCategory.Icon }, Tag = scenarioCategory };
@@ -94,6 +108,25 @@ namespace AIDevGallery.Pages
 
                 foreach (var scenario in scenarioCategory.Scenarios)
                 {
+                    if (filter != null)
+                    {
+                        var models = GetModelsForScenario(scenario);
+                        if (filter == "gpu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.DML)))
+                        {
+                            continue;
+                        }
+
+                        if (filter == "npu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.QNN)))
+                        {
+                            continue;
+                        }
+
+                        if (filter == "wcr-api" && !models.Any(m => m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            continue;
+                        }
+                    }
+
                     NavigationViewItem currNavItem = new() { Content = scenario.Name, Tag = scenario };
                     ToolTip secnarioToolTip = new() { Content = scenario.Name };
                     ToolTipService.SetToolTip(currNavItem, secnarioToolTip);
@@ -101,8 +134,30 @@ namespace AIDevGallery.Pages
                 }
 
                 categoryMenu.SelectsOnInvoked = false;
-                NavView.MenuItems.Add(categoryMenu);
+
+                if (categoryMenu.MenuItems.Count > 0)
+                {
+                    NavView.MenuItems.Add(categoryMenu);
+                }
             }
+        }
+
+        private List<ModelDetails> GetModelsForScenario(Scenario scenario)
+        {
+            var samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
+            List<ModelDetails> modelDetails = [];
+            foreach (var sample in samples)
+            {
+                modelDetails.AddRange(ModelDetailsHelper.GetModelDetails(sample)
+                                                        .SelectMany(d => d)
+                                                        .GroupBy(kv => kv.Key)
+                                                        .ToDictionary(g => g.Key, g => g.First().Value)
+                                                        .Values
+                                                        .SelectMany(v => v)
+                                                        .ToList());
+            }
+
+            return modelDetails;
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -143,6 +198,19 @@ namespace AIDevGallery.Pages
                     {
                         SetSelectedScenarioInMenu(navItem, scenario);
                     }
+                }
+            }
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var tag = (e.AddedItems[0] as FilterRecord)!.Tag;
+            SetUpScenarios(tag);
+            if (selectedScenario != null)
+            {
+                foreach (NavigationViewItem item in NavView.MenuItems)
+                {
+                    SetSelectedScenarioInMenu(item, selectedScenario);
                 }
             }
         }
