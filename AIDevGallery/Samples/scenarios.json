@@ -141,11 +141,6 @@
         "Description": "Models in this scenario will detect human poses and posture.",
         "Id": "detect-poses"
       },
-      "EnhanceImage": {
-        "Name": "Enhance Image",
-        "Description": "Image enhancing models will upscale low resolution images improving their clarity.",
-        "Id": "enhance-image"
-      },
       "SegmentImage": {
         "Name": "Segment Image",
         "Description": "Models in this scenario will segment images into different regions.",
