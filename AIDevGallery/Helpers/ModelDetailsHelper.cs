@@ -34,7 +34,7 @@ namespace AIDevGallery.Helpers
                 Id = apiDefinition.Id,
                 Icon = apiDefinition.Icon,
                 Name = apiDefinition.Name,
-                HardwareAccelerators = [HardwareAccelerator.DML],
+                HardwareAccelerators = [HardwareAccelerator.DML], // Switch to QNN(?) once PR #41 merges
                 IsUserAdded = false,
                 SupportedOnQualcomm = true,
                 ReadmeUrl = apiDefinition.ReadmeUrl,
