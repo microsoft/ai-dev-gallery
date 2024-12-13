@@ -550,6 +550,11 @@ namespace AIDevGallery.ProjectGenerator
                     }
                 }
 
+                if (sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
+                {
+                    cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
+                }
+
                 await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml.cs"), cleanCsSource, cancellationToken);
             }
 
@@ -564,6 +569,9 @@ namespace AIDevGallery.ProjectGenerator
 
         [GeneratedRegex(@"[\r\n][\s]*return Task.CompletedTask;")]
         private static partial Regex RegexReturnTaskCompletedTask();
+
+        [GeneratedRegex(@"(\s*)this.InitializeComponent\(\);")]
+        private static partial Regex RegexInitializeComponent();
 
         private string CleanXamlSource(string xamlCode, string newNamespace, out string className)
         {

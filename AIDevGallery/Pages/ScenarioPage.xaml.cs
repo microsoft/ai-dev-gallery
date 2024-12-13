@@ -361,6 +361,7 @@ namespace AIDevGallery.Pages
                 {
                     var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
                     var picker = new FolderPicker();
+                    picker.FileTypeFilter.Add("*");
                     WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
                     var folder = await picker.PickSingleFolderAsync();
                     if (folder != null)
