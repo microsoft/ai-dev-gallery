@@ -77,12 +77,32 @@
                     Message="To enable this sample, download the required models."
                     Severity="Informational"
                     Visibility="Collapsed" />
-                <ProgressRing
-                    x:Name="sampleLoadingProgressRing"
-                    Width="64"
-                    Height="64"
-                    Background="LightGray"
-                    IsActive="False" />
+                <StackPanel
+                    x:Name="loadingRingContainer"
+                    Orientation="Vertical"
+                    Visibility="Collapsed"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    >
+                    <ProgressRing
+                        x:Name="sampleLoadingProgressRing"
+                        Width="64"
+                        Height="64"
+                        Background="LightGray"
+                        IsActive="False" />
+                    <RichTextBlock
+                        x:Name="wcrApisLoadingTextBlock"
+                        HorizontalAlignment="Center"
+                        TextWrapping="WrapWholeWords"
+                        Visibility="Collapsed"
+                        TextAlignment="Center"
+                        Margin="12">
+                        <Paragraph>
+                            <Run Text="Requesting model. Download progress can be tracked in" />
+                            <Hyperlink Click="WindowsUpdateHyperlinkClicked">Windows Update</Hyperlink>.
+                        </Paragraph>
+                    </RichTextBlock>
+                </StackPanel>
             </Grid>
             <Grid
                 x:Name="CodeGrid"
@@ -163,6 +183,7 @@
                 </VisualState>
                 <VisualState x:Name="SampleLoading">
                     <VisualState.Setters>
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
                         <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
                     </VisualState.Setters>
                 </VisualState>

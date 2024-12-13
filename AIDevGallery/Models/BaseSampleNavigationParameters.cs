@@ -15,6 +15,8 @@ namespace AIDevGallery.Models
         protected abstract string ChatClientModelPath { get; }
         protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
+        public bool ShowWcrModelLoadingMessage { get; set; }
+
         public void NotifyCompletion()
         {
             sampleLoadedCompletionSource.SetResult();
@@ -24,6 +26,11 @@ namespace AIDevGallery.Models
         {
             if (ChatClientModelPath == $"file://{ModelType.PhiSilica}")
             {
+                if (!PhiSilicaClient.IsAvailable())
+                {
+                    this.ShowWcrModelLoadingMessage = true;
+                }
+
                 return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
             }
 
