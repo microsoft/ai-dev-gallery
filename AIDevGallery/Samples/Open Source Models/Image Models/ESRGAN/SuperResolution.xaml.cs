@@ -19,7 +19,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
 
 [GallerySample(
       Model1Types = [ModelType.ESRGAN],
-      Scenario = ScenarioType.ImageEnhanceImage,
+      Scenario = ScenarioType.ImageIncreaseFidelity,
       SharedCode = [
         SharedCodeEnum.Prediction,
         SharedCodeEnum.BitmapFunctions,
