@@ -45,7 +45,7 @@ namespace AIDevGallery.ProjectGenerator
             return safeName;
         }
 
-        internal Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
+        internal Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
         {
             var packageReferences = new List<(string PackageName, string? Version)>
             {
@@ -63,7 +63,7 @@ namespace AIDevGallery.ProjectGenerator
 
         internal const string DotNetVersion = "net9.0";
 
-        private async Task<string> GenerateAsyncInternal(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> models, bool copyModelLocally, List<(string PackageName, string? Version)> packageReferences, string outputPath, CancellationToken cancellationToken)
+        private async Task<string> GenerateAsyncInternal(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, List<(string PackageName, string? Version)> packageReferences, string outputPath, CancellationToken cancellationToken)
         {
             var projectName = $"{sample.Name}Sample";
             string safeProjectName = ToSafeVariableName(projectName);
@@ -130,14 +130,12 @@ namespace AIDevGallery.ProjectGenerator
                 }
 
                 PromptTemplate? modelPromptTemplate = null;
-                HardwareAccelerator hardwareAccelerator = HardwareAccelerator.CPU;
                 string modelId = string.Empty;
                 bool isSingleFile = false;
 
                 if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
                 {
                     modelPromptTemplate = modelDetails.PromptTemplate;
-                    hardwareAccelerator = modelDetails.HardwareAccelerators.First();
                     modelId = modelDetails.Id;
                 }
                 else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.ModelUrl) is var modelDetails2 && modelDetails2.Value != null)
@@ -148,12 +146,10 @@ namespace AIDevGallery.ProjectGenerator
                         addLllmTypes = true;
                     }
 
-                    hardwareAccelerator = modelDetails2.Value.HardwareAccelerators.First();
                     modelId = modelDetails2.Value.Id;
                 }
                 else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinitionDetails))
                 {
-                    hardwareAccelerator = HardwareAccelerator.DML;
                     modelId = apiDefinitionDetails.Id;
                 }
 
@@ -196,7 +192,7 @@ namespace AIDevGallery.ProjectGenerator
                     modelPathStr = $"@\"{modelInfo.CachedModelDirectoryPath}\"";
                 }
 
-                modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, hardwareAccelerator, modelPromptTemplate));
+                modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate));
 
                 if (modelTypes.First() == modelType)
                 {

@@ -146,14 +146,16 @@ namespace AIDevGallery.UnitTests
         {
             var modelsDetails = ModelDetailsHelper.GetModelDetails(sample);
 
-            Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> cachedModelsToGenerator = new()
+            ModelDetails modelDetails1 = modelsDetails[0].Values.First().First();
+            Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = new()
             {
-                [sample.Model1Types.First()] = ("FakePath", modelsDetails[0].Values.First().First().Url)
+                [sample.Model1Types.First()] = ("FakePath", modelsDetails[0].Values.First().First().Url, modelDetails1.HardwareAccelerators.First())
             };
 
             if (sample.Model2Types != null && modelsDetails.Count > 1)
             {
-                cachedModelsToGenerator[sample.Model2Types.First()] = ("FakePath", modelsDetails[1].Values.First().First().Url);
+                ModelDetails modelDetails2 = modelsDetails[1].Values.First().First();
+                cachedModelsToGenerator[sample.Model2Types.First()] = ("FakePath", modelDetails2.Url, modelDetails2.HardwareAccelerators.First());
             }
 
             var projectPath = await generator.GenerateAsync(sample, cachedModelsToGenerator, false, TmpPathProjectGenerator, cancellationToken);
