@@ -271,19 +271,58 @@ namespace AIDevGallery.ProjectGenerator
                 var project = ProjectRootElement.Open(csproj);
                 var itemGroup = project.AddItemGroup();
 
-                foreach (var packageReference in packageReferences)
+                static void AddPackageReference(ProjectItemGroupElement itemGroup, string packageName, string? version)
                 {
-                    var packageName = packageReference.PackageName;
-                    var version = packageReference.Version;
                     var packageReferenceItem = itemGroup.AddItem("PackageReference", packageName);
 
                     if (packageName == "Microsoft.Windows.CsWin32")
                     {
                         packageReferenceItem.AddMetadata("PrivateAssets", "all", true);
                     }
+                    else if (packageName == "Microsoft.AI.DirectML" ||
+                             packageName == "Microsoft.ML.OnnxRuntime.DirectML" ||
+                             packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
+                    {
+                        packageReferenceItem.Condition = "$(Platform) == 'x64'";
+                    }
+                    else if (packageName == "Microsoft.ML.OnnxRuntime.Qnn" ||
+                             packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
+                             packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
+                    {
+                        packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
+                    }
 
                     var versionStr = version ?? PackageVersionHelpers.PackageVersions[packageName];
                     packageReferenceItem.AddMetadata("Version", versionStr, true);
+
+                    if (packageName == "Microsoft.ML.OnnxRuntimeGenAI")
+                    {
+                        var noneItem = itemGroup.AddItem("None", "$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\\runtimes\\win-arm64\\native\\onnxruntime-genai.dll");
+                        noneItem.Condition = "$(Platform) == 'ARM64'";
+                        noneItem.AddMetadata("Link", "onnxruntime-genai.dll", false);
+                        noneItem.AddMetadata("CopyToOutputDirectory", "PreserveNewest", false);
+                        noneItem.AddMetadata("Visible", "false", false);
+
+                        packageReferenceItem.AddMetadata("GeneratePathProperty", "true", true);
+                        packageReferenceItem.AddMetadata("ExcludeAssets", "all", true);
+                    }
+                }
+
+                foreach (var packageReference in packageReferences)
+                {
+                    var packageName = packageReference.PackageName;
+                    var version = packageReference.Version;
+                    if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
+                    {
+                        AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn", null);
+                    }
+                    else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
+                    {
+                        AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI", null);
+                        AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed", null);
+                    }
+
+                    AddPackageReference(itemGroup, packageName, version);
                 }
 
                 if (copyModelLocally)
