@@ -80,7 +80,9 @@ internal sealed partial class PoseDetection : BaseSamplePage
             {
                 Dictionary<string, string> options = new()
                 {
-                    { "backend_path", "QnnHtp.dll" }
+                    { "backend_path", "QnnHtp.dll" },
+                    { "htp_performance_mode", "high_performance" },
+                    { "htp_graph_finalization_optimization_mode", "3" }
                 };
                 sessionOptions.AppendExecutionProvider("QNN", options);
             }

@@ -87,6 +87,16 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose
                 {
                     poseOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
                 }
+                else if (poseHardwareAccelerator == HardwareAccelerator.QNN)
+                {
+                    Dictionary<string, string> options = new()
+                    {
+                        { "backend_path", "QnnHtp.dll" },
+                        { "htp_performance_mode", "high_performance" },
+                        { "htp_graph_finalization_optimization_mode", "3" }
+                    };
+                    poseOptions.AppendExecutionProvider("QNN", options);
+                }
 
                 _poseSession = new InferenceSession(poseModelPath, poseOptions);
 

@@ -23,12 +23,11 @@ internal class ModelCompatibility
 
         ModelCompatibilityState compatibility;
         if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
-            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && modelDetails.SupportedOnQualcomm == true) ||
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
         {
             compatibility = ModelCompatibilityState.Compatible;
         }
-        else if (!DeviceUtils.IsArm64())
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && !DeviceUtils.IsArm64())
         {
             var vram = DeviceUtils.GetVram();
             var minimumSizeNeeded = Math.Round((float)(modelDetails.Size / BytesInGB), 1);
@@ -60,10 +59,20 @@ internal class ModelCompatibility
                 }
             }
         }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && DeviceUtils.IsArm64())
+        {
+            compatibility = ModelCompatibilityState.NotCompatible;
+            description = $"This model is not currently supported on Qualcomm devices.";
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !DeviceUtils.IsArm64())
+        {
+            compatibility = ModelCompatibilityState.NotCompatible;
+            description = $"This model is not supported on your device and requires a Qualcomm NPU.";
+        }
         else
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = $"This model is not yet supported on Qualcomm devices.";
+            description = $"This model is not supported on your device.";
         }
 
         return new ModelCompatibility
