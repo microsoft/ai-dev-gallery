@@ -2,6 +2,7 @@ trigger:
   branches:
     include:
       - main
+      - dev/**
 pr: none
 
 resources:
