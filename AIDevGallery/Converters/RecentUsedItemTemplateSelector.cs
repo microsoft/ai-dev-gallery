@@ -5,24 +5,23 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace AIDevGallery.Converters
+namespace AIDevGallery.Converters;
+
+internal partial class RecentUsedItemTemplateSelector : DataTemplateSelector
 {
-    internal partial class RecentUsedItemTemplateSelector : DataTemplateSelector
+    public DataTemplate ScenarioTemplate { get; set; } = null!;
+
+    public DataTemplate ModelTemplate { get; set; } = null!;
+
+    protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
     {
-        public DataTemplate ScenarioTemplate { get; set; } = null!;
-
-        public DataTemplate ModelTemplate { get; set; } = null!;
-
-        protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
+        if (item is MostRecentlyUsedItem selectedItem && selectedItem.Type == MostRecentlyUsedItemType.Scenario)
         {
-            if (item is MostRecentlyUsedItem selectedItem && selectedItem.Type == MostRecentlyUsedItemType.Scenario)
-            {
-                return ScenarioTemplate;
-            }
-            else
-            {
-                return ModelTemplate;
-            }
+            return ScenarioTemplate;
+        }
+        else
+        {
+            return ModelTemplate;
         }
     }
 }

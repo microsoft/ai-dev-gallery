@@ -4,15 +4,14 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.SourceGenerator.Models
+namespace AIDevGallery.SourceGenerator.Models;
+
+[JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+[JsonSerializable(typeof(Dictionary<string, ScenarioCategory>))]
+[JsonSerializable(typeof(Dictionary<string, ModelFamily>))]
+[JsonSerializable(typeof(Dictionary<string, ModelGroup>))]
+[JsonSerializable(typeof(Dictionary<string, ApiGroup>))]
+[JsonSerializable(typeof(Dictionary<string, PromptTemplate>))]
+internal partial class SourceGenerationContext : JsonSerializerContext
 {
-    [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonSerializable(typeof(Dictionary<string, ScenarioCategory>))]
-    [JsonSerializable(typeof(Dictionary<string, ModelFamily>))]
-    [JsonSerializable(typeof(Dictionary<string, ModelGroup>))]
-    [JsonSerializable(typeof(Dictionary<string, ApiGroup>))]
-    [JsonSerializable(typeof(Dictionary<string, PromptTemplate>))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
-    {
-    }
 }

@@ -4,46 +4,45 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace AIDevGallery.Controls
+namespace AIDevGallery.Controls;
+
+internal partial class SamplesCarousel : UserControl
 {
-    internal partial class SamplesCarousel : UserControl
+    public SamplesCarousel()
     {
-        public SamplesCarousel()
-        {
-            this.InitializeComponent();
-            SetupSampleView();
-        }
+        this.InitializeComponent();
+        SetupSampleView();
+    }
 
-        private void SetupSampleView()
+    private void SetupSampleView()
+    {
+        if (App.AppData.MostRecentlyUsedItems.Count > 0)
         {
-            if (App.AppData.MostRecentlyUsedItems.Count > 0)
+            RecentItem.Visibility = Visibility.Visible;
+
+            foreach (var item in App.AppData.MostRecentlyUsedItems)
             {
-                RecentItem.Visibility = Visibility.Visible;
-
-                foreach (var item in App.AppData.MostRecentlyUsedItems)
+                RowSample s = new()
                 {
-                    RowSample s = new()
-                    {
-                        Title = item.DisplayName,
-                        Icon = new FontIcon() { Glyph = item.Icon },
-                        Description = item.Description,
-                        Id = item.ItemId
-                    };
-                    RecentItemsRow.SampleCards.Add(s);
-                }
+                    Title = item.DisplayName,
+                    Icon = new FontIcon() { Glyph = item.Icon },
+                    Description = item.Description,
+                    Id = item.ItemId
+                };
+                RecentItemsRow.SampleCards.Add(s);
             }
         }
+    }
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (App.AppData.MostRecentlyUsedItems.Count > 0)
         {
-            if (App.AppData.MostRecentlyUsedItems.Count > 0)
-            {
-                FilterBar.SelectedItem = FilterBar.Items[0];
-            }
-            else
-            {
-                FilterBar.SelectedItem = FilterBar.Items[1];
-            }
+            FilterBar.SelectedItem = FilterBar.Items[0];
+        }
+        else
+        {
+            FilterBar.SelectedItem = FilterBar.Items[1];
         }
     }
 }

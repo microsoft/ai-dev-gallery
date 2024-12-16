@@ -6,62 +6,61 @@ using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AIDevGallery.SourceGenerator
+namespace AIDevGallery.SourceGenerator;
+
+[Generator(LanguageNames.CSharp)]
+internal class DependencyVersionsSourceGenerator : IIncrementalGenerator
 {
-    [Generator(LanguageNames.CSharp)]
-    internal class DependencyVersionsSourceGenerator : IIncrementalGenerator
+    private Dictionary<string, string>? packageVersions = null;
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        private Dictionary<string, string>? packageVersions = null;
+        packageVersions = Helpers.GetPackageVersions();
 
-        public void Initialize(IncrementalGeneratorInitializationContext context)
+        context.RegisterPostInitializationOutput(Execute);
+    }
+
+    public void Execute(IncrementalGeneratorPostInitializationContext context)
+    {
+        if (packageVersions == null)
         {
-            packageVersions = Helpers.GetPackageVersions();
-
-            context.RegisterPostInitializationOutput(Execute);
+            return;
         }
 
-        public void Execute(IncrementalGeneratorPostInitializationContext context)
-        {
-            if (packageVersions == null)
+        GeneratePackageVersionsFile(context, packageVersions);
+    }
+
+    private static void GeneratePackageVersionsFile(IncrementalGeneratorPostInitializationContext context, Dictionary<string, string> packageVersions)
+    {
+        var sourceBuilder = new StringBuilder();
+
+        sourceBuilder.AppendLine(
+            $$""""
+            #nullable enable
+
+            using System.Collections.Generic;
+            using AIDevGallery.Models;
+
+            namespace AIDevGallery.Samples;
+
+            internal static partial class PackageVersionHelpers
             {
-                return;
-            }
+            """");
 
-            GeneratePackageVersionsFile(context, packageVersions);
-        }
-
-        private static void GeneratePackageVersionsFile(IncrementalGeneratorPostInitializationContext context, Dictionary<string, string> packageVersions)
+        sourceBuilder.AppendLine("    internal static Dictionary<string, string> PackageVersions { get; } = new ()");
+        sourceBuilder.AppendLine("    {");
+        foreach (var packageVersion in packageVersions)
         {
-            var sourceBuilder = new StringBuilder();
-
             sourceBuilder.AppendLine(
-                $$""""
-                #nullable enable
-
-                using System.Collections.Generic;
-                using AIDevGallery.Models;
-
-                namespace AIDevGallery.Samples;
-
-                internal static partial class PackageVersionHelpers
-                {
-                """");
-
-            sourceBuilder.AppendLine("    internal static Dictionary<string, string> PackageVersions { get; } = new ()");
-            sourceBuilder.AppendLine("    {");
-            foreach (var packageVersion in packageVersions)
-            {
-                sourceBuilder.AppendLine(
-                        $$""""
-                                { "{{packageVersion.Key}}", "{{packageVersion.Value}}" },
-                        """");
-            }
-
-            sourceBuilder.AppendLine("    };");
-
-            sourceBuilder.AppendLine("}");
-
-            context.AddSource($"PackageVersionHelpers.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+                    $$""""
+                            { "{{packageVersion.Key}}", "{{packageVersion.Value}}" },
+                    """");
         }
+
+        sourceBuilder.AppendLine("    };");
+
+        sourceBuilder.AppendLine("}");
+
+        context.AddSource($"PackageVersionHelpers.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
     }
 }

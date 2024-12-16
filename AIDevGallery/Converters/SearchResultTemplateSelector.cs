@@ -5,24 +5,23 @@ using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace AIDevGallery.Converters
+namespace AIDevGallery.Converters;
+
+internal partial class SearchResultTemplateSelector : DataTemplateSelector
 {
-    internal partial class SearchResultTemplateSelector : DataTemplateSelector
+    public DataTemplate ScenarioTemplate { get; set; } = null!;
+
+    public DataTemplate ModelTemplate { get; set; } = null!;
+
+    protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
     {
-        public DataTemplate ScenarioTemplate { get; set; } = null!;
-
-        public DataTemplate ModelTemplate { get; set; } = null!;
-
-        protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
+        if (item is SearchResult selectedItem && selectedItem.Tag.GetType() == typeof(Scenario))
         {
-            if (item is SearchResult selectedItem && selectedItem.Tag.GetType() == typeof(Scenario))
-            {
-                return ScenarioTemplate;
-            }
-            else
-            {
-                return ModelTemplate;
-            }
+            return ScenarioTemplate;
+        }
+        else
+        {
+            return ModelTemplate;
         }
     }
 }

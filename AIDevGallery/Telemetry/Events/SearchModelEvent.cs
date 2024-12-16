@@ -6,28 +6,27 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class SearchModelEvent : EventBase
 {
-    [EventData]
-    internal class SearchModelEvent : EventBase
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+
+    public string Query { get; }
+
+    private SearchModelEvent(string query)
     {
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+        Query = query;
+    }
 
-        public string Query { get; }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+        // No sensitive strings to replace.
+    }
 
-        private SearchModelEvent(string query)
-        {
-            Query = query;
-        }
-
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-            // No sensitive strings to replace.
-        }
-
-        public static void Log(string query)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("SearchModel_Event", LogLevel.Measure, new SearchModelEvent(query));
-        }
+    public static void Log(string query)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("SearchModel_Event", LogLevel.Measure, new SearchModelEvent(query));
     }
 }

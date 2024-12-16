@@ -6,30 +6,29 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class ModelDownloadCancelEvent : EventBase
 {
-    [EventData]
-    internal class ModelDownloadCancelEvent : EventBase
+    internal ModelDownloadCancelEvent(string modelUrl, DateTime canceledTime)
     {
-        internal ModelDownloadCancelEvent(string modelUrl, DateTime canceledTime)
-        {
-            ModelUrl = modelUrl;
-            CanceledTime = canceledTime;
-        }
+        ModelUrl = modelUrl;
+        CanceledTime = canceledTime;
+    }
 
-        public string ModelUrl { get; private set; }
+    public string ModelUrl { get; private set; }
 
-        public DateTime CanceledTime { get; private set; }
+    public DateTime CanceledTime { get; private set; }
 
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
 
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-        }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+    }
 
-        public static void Log(string modelUrl)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadCancel_Event", LogLevel.Measure, new ModelDownloadCancelEvent(modelUrl, DateTime.Now));
-        }
+    public static void Log(string modelUrl)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadCancel_Event", LogLevel.Measure, new ModelDownloadCancelEvent(modelUrl, DateTime.Now));
     }
 }

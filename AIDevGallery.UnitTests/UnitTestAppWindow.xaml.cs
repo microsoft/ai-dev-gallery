@@ -3,19 +3,18 @@
 
 using Microsoft.UI.Xaml;
 
-namespace AIDevGallery.UnitTests
-{
-    internal sealed partial class UnitTestAppWindow : Window
-    {
-        public UnitTestAppWindow()
-        {
-            this.InitializeComponent();
-        }
+namespace AIDevGallery.UnitTests;
 
-        public void SetRootGridContent(UIElement content)
-        {
-            this.RootGrid.Children.Clear();
-            this.RootGrid.Children.Add(content);
-        }
+internal sealed partial class UnitTestAppWindow : Window
+{
+    public UnitTestAppWindow()
+    {
+        this.InitializeComponent();
+    }
+
+    public void SetRootGridContent(UIElement content)
+    {
+        this.RootGrid.Children.Clear();
+        this.RootGrid.Children.Add(content);
     }
 }

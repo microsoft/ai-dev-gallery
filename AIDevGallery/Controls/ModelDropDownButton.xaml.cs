@@ -5,34 +5,33 @@ using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace AIDevGallery.Controls
+namespace AIDevGallery.Controls;
+
+internal sealed partial class ModelDropDownButton : UserControl
 {
-    internal sealed partial class ModelDropDownButton : UserControl
+    public ModelDropDownButton()
     {
-        public ModelDropDownButton()
-        {
-            this.InitializeComponent();
-        }
+        this.InitializeComponent();
+    }
 
-        public static readonly DependencyProperty FlyoutContentProperty = DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(ModelDropDownButton), new PropertyMetadata(defaultValue: null));
+    public static readonly DependencyProperty FlyoutContentProperty = DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(ModelDropDownButton), new PropertyMetadata(defaultValue: null));
 
-        public object FlyoutContent
-        {
-            get => (object)GetValue(FlyoutContentProperty);
-            set => SetValue(FlyoutContentProperty, value);
-        }
+    public object FlyoutContent
+    {
+        get => (object)GetValue(FlyoutContentProperty);
+        set => SetValue(FlyoutContentProperty, value);
+    }
 
-        public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(nameof(Model), typeof(ModelDetails), typeof(ModelDropDownButton), new PropertyMetadata(defaultValue: null));
+    public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(nameof(Model), typeof(ModelDetails), typeof(ModelDropDownButton), new PropertyMetadata(defaultValue: null));
 
-        public ModelDetails? Model
-        {
-            get => (ModelDetails)GetValue(ModelProperty);
-            set => SetValue(ModelProperty, value);
-        }
+    public ModelDetails? Model
+    {
+        get => (ModelDetails)GetValue(ModelProperty);
+        set => SetValue(ModelProperty, value);
+    }
 
-        public void HideFlyout()
-        {
-            DropDown.Flyout.Hide();
-        }
+    public void HideFlyout()
+    {
+        DropDown.Flyout.Hide();
     }
 }

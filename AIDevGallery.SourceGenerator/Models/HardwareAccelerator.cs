@@ -3,12 +3,11 @@
 
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.SourceGenerator.Models
+namespace AIDevGallery.SourceGenerator.Models;
+
+[JsonConverter(typeof(JsonStringEnumConverter<HardwareAccelerator>))]
+internal enum HardwareAccelerator
 {
-    [JsonConverter(typeof(JsonStringEnumConverter<HardwareAccelerator>))]
-    internal enum HardwareAccelerator
-    {
-        CPU,
-        DML
-    }
+    CPU,
+    DML
 }

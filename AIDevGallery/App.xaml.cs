@@ -12,142 +12,141 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AIDevGallery
+namespace AIDevGallery;
+
+/// <summary>
+/// Provides application-specific behavior to supplement the default Application class.
+/// </summary>
+public partial class App : Application
 {
     /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
+    /// Gets, or initializes, the singleton application object. This is the first line of authored code
+    /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
-    public partial class App : Application
+    internal static MainWindow MainWindow { get; private set; } = null!;
+    internal static ModelCache ModelCache { get; private set; } = null!;
+    internal static AppData AppData { get; private set; } = null!;
+    internal static List<SearchResult> SearchIndex { get; private set; } = null!;
+
+    internal App()
     {
-        /// <summary>
-        /// Gets, or initializes, the singleton application object. This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        internal static MainWindow MainWindow { get; private set; } = null!;
-        internal static ModelCache ModelCache { get; private set; } = null!;
-        internal static AppData AppData { get; private set; } = null!;
-        internal static List<SearchResult> SearchIndex { get; private set; } = null!;
+        this.InitializeComponent();
+    }
 
-        internal App()
+    /// <summary>
+    /// Invoked when the application is launched.
+    /// </summary>
+    /// <param name="args">Details about the launch request and process.</param>
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        await LoadSamples();
+        AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
+        var activationParam = ActivationHelper.GetActivationParam(appActivationArguments);
+        MainWindow = new MainWindow(activationParam);
+
+        MainWindow.Activate();
+    }
+
+    internal static List<ModelType> FindSampleItemById(string id)
+    {
+        foreach (var sample in SampleDetails.Samples)
         {
-            this.InitializeComponent();
+            if (sample.Id == id)
+            {
+                return sample.Model1Types;
+            }
         }
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
-        protected override async void OnLaunched(LaunchActivatedEventArgs args)
+        foreach (var modelFamily in ModelTypeHelpers.ModelFamilyDetails)
         {
-            await LoadSamples();
-            AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
-            var activationParam = ActivationHelper.GetActivationParam(appActivationArguments);
-            MainWindow = new MainWindow(activationParam);
-
-            MainWindow.Activate();
+            if (modelFamily.Value.Id == id)
+            {
+                return [modelFamily.Key];
+            }
         }
 
-        internal static List<ModelType> FindSampleItemById(string id)
+        foreach (var modelGroup in ModelTypeHelpers.ModelGroupDetails)
         {
-            foreach (var sample in SampleDetails.Samples)
+            if (modelGroup.Value.Id == id)
             {
-                if (sample.Id == id)
-                {
-                    return sample.Model1Types;
-                }
+                return [modelGroup.Key];
             }
-
-            foreach (var modelFamily in ModelTypeHelpers.ModelFamilyDetails)
-            {
-                if (modelFamily.Value.Id == id)
-                {
-                    return [modelFamily.Key];
-                }
-            }
-
-            foreach (var modelGroup in ModelTypeHelpers.ModelGroupDetails)
-            {
-                if (modelGroup.Value.Id == id)
-                {
-                    return [modelGroup.Key];
-                }
-            }
-
-            foreach (var modelDetails in ModelTypeHelpers.ModelDetails)
-            {
-                if (modelDetails.Value.Id == id)
-                {
-                    return [modelDetails.Key];
-                }
-            }
-
-            foreach (var apiDefinition in ModelTypeHelpers.ApiDefinitionDetails)
-            {
-                if (apiDefinition.Value.Id == id)
-                {
-                    return [apiDefinition.Key];
-                }
-            }
-
-            return [];
         }
 
-        internal static Scenario? FindScenarioById(string id)
+        foreach (var modelDetails in ModelTypeHelpers.ModelDetails)
         {
-            foreach (var category in ScenarioCategoryHelpers.AllScenarioCategories)
+            if (modelDetails.Value.Id == id)
             {
-                var foundScenario = category.Scenarios.FirstOrDefault(scenario => scenario.Id == id);
-                if (foundScenario != null)
-                {
-                    return foundScenario;
-                }
+                return [modelDetails.Key];
             }
-
-            return null;
         }
 
-        private async Task LoadSamples()
+        foreach (var apiDefinition in ModelTypeHelpers.ApiDefinitionDetails)
         {
-            AppData = await AppData.GetForApp();
-            TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = false; // AppData.IsDiagnosticDataEnabled;
-            ModelCache = await ModelCache.CreateForApp(AppData);
-            GenerateSearchIndex();
+            if (apiDefinition.Value.Id == id)
+            {
+                return [apiDefinition.Key];
+            }
         }
 
-        private void GenerateSearchIndex()
+        return [];
+    }
+
+    internal static Scenario? FindScenarioById(string id)
+    {
+        foreach (var category in ScenarioCategoryHelpers.AllScenarioCategories)
         {
-            SearchIndex = [];
-            foreach (ScenarioCategory category in ScenarioCategoryHelpers.AllScenarioCategories)
+            var foundScenario = category.Scenarios.FirstOrDefault(scenario => scenario.Id == id);
+            if (foundScenario != null)
             {
-                foreach (Scenario scenario in category.Scenarios)
-                {
-                    SearchIndex.Add(new SearchResult() { Label = scenario.Name, Icon = scenario.Icon!, Description = scenario.Description!, Tag = scenario });
-                }
+                return foundScenario;
             }
+        }
 
-            List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
-            rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
+        return null;
+    }
 
-            foreach (var key in rootModels)
+    private async Task LoadSamples()
+    {
+        AppData = await AppData.GetForApp();
+        TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = false; // AppData.IsDiagnosticDataEnabled;
+        ModelCache = await ModelCache.CreateForApp(AppData);
+        GenerateSearchIndex();
+    }
+
+    private void GenerateSearchIndex()
+    {
+        SearchIndex = [];
+        foreach (ScenarioCategory category in ScenarioCategoryHelpers.AllScenarioCategories)
+        {
+            foreach (Scenario scenario in category.Scenarios)
             {
-                if (ModelTypeHelpers.ParentMapping.TryGetValue(key, out List<ModelType>? innerItems))
+                SearchIndex.Add(new SearchResult() { Label = scenario.Name, Icon = scenario.Icon!, Description = scenario.Description!, Tag = scenario });
+            }
+        }
+
+        List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
+        rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
+
+        foreach (var key in rootModels)
+        {
+            if (ModelTypeHelpers.ParentMapping.TryGetValue(key, out List<ModelType>? innerItems))
+            {
+                if (innerItems?.Count > 0)
                 {
-                    if (innerItems?.Count > 0)
+                    foreach (var childNavigationItem in innerItems)
                     {
-                        foreach (var childNavigationItem in innerItems)
+                        if (ModelTypeHelpers.ModelGroupDetails.TryGetValue(childNavigationItem, out var modelGroup))
                         {
-                            if (ModelTypeHelpers.ModelGroupDetails.TryGetValue(childNavigationItem, out var modelGroup))
-                            {
-                                SearchIndex.Add(new SearchResult() { Label = modelGroup.Name, Icon = modelGroup.Icon, Description = modelGroup.Name!, Tag = childNavigationItem });
-                            }
-                            else if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(childNavigationItem, out var modelFamily))
-                            {
-                                SearchIndex.Add(new SearchResult() { Label = modelFamily.Name, Description = modelFamily.Description, Tag = childNavigationItem });
-                            }
-                            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(childNavigationItem, out var apiDefinition))
-                            {
-                                SearchIndex.Add(new SearchResult() { Label = apiDefinition.Name, Icon = apiDefinition.Icon, Description = apiDefinition.Name!, Tag = childNavigationItem });
-                            }
+                            SearchIndex.Add(new SearchResult() { Label = modelGroup.Name, Icon = modelGroup.Icon, Description = modelGroup.Name!, Tag = childNavigationItem });
+                        }
+                        else if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(childNavigationItem, out var modelFamily))
+                        {
+                            SearchIndex.Add(new SearchResult() { Label = modelFamily.Name, Description = modelFamily.Description, Tag = childNavigationItem });
+                        }
+                        else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(childNavigationItem, out var apiDefinition))
+                        {
+                            SearchIndex.Add(new SearchResult() { Label = apiDefinition.Name, Icon = apiDefinition.Icon, Description = apiDefinition.Name!, Tag = childNavigationItem });
                         }
                     }
                 }

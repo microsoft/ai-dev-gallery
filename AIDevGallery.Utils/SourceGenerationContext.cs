@@ -4,12 +4,11 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.Utils
+namespace AIDevGallery.Utils;
+
+[JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
+[JsonSerializable(typeof(List<GitHubModelFileDetails>))]
+[JsonSerializable(typeof(List<HuggingFaceModelFileDetails>))]
+internal partial class SourceGenerationContext : JsonSerializerContext
 {
-    [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
-    [JsonSerializable(typeof(List<GitHubModelFileDetails>))]
-    [JsonSerializable(typeof(List<HuggingFaceModelFileDetails>))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
-    {
-    }
 }

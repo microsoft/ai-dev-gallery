@@ -4,22 +4,21 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace AIDevGallery.Controls
+namespace AIDevGallery.Controls;
+
+internal sealed partial class Token : UserControl
 {
-    internal sealed partial class Token : UserControl
+    public string Text
     {
-        public string Text
-        {
-            get { return (string)GetValue(TextProperty); }
-            set { SetValue(TextProperty, value); }
-        }
+        get { return (string)GetValue(TextProperty); }
+        set { SetValue(TextProperty, value); }
+    }
 
-        public static readonly DependencyProperty TextProperty =
-            DependencyProperty.Register(nameof(Text), typeof(string), typeof(Token), new PropertyMetadata(null));
+    public static readonly DependencyProperty TextProperty =
+        DependencyProperty.Register(nameof(Text), typeof(string), typeof(Token), new PropertyMetadata(null));
 
-        public Token()
-        {
-            this.InitializeComponent();
-        }
+    public Token()
+    {
+        this.InitializeComponent();
     }
 }

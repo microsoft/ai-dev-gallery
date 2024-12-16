@@ -5,23 +5,22 @@ using AIDevGallery.Telemetry.Events;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
-namespace AIDevGallery.Pages
+namespace AIDevGallery.Pages;
+
+/// <summary>
+/// An empty page that can be used on its own or navigated to within a Frame.
+/// </summary>
+internal sealed partial class GuidesPage : Page
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    internal sealed partial class GuidesPage : Page
+    public GuidesPage()
     {
-        public GuidesPage()
-        {
-            this.InitializeComponent();
-        }
+        this.InitializeComponent();
+    }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            base.OnNavigatedTo(e);
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
 
-            NavigatedToPageEvent.Log(nameof(GuidesPage));
-        }
+        NavigatedToPageEvent.Log(nameof(GuidesPage));
     }
 }

@@ -6,31 +6,30 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class NavigatedToPageEvent : EventBase
 {
-    [EventData]
-    internal class NavigatedToPageEvent : EventBase
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+
+    public string PageName
     {
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+        get;
+    }
 
-        public string PageName
-        {
-            get;
-        }
+    private NavigatedToPageEvent(string pageName)
+    {
+        PageName = pageName;
+    }
 
-        private NavigatedToPageEvent(string pageName)
-        {
-            PageName = pageName;
-        }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+        // No sensitive strings to replace.
+    }
 
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-            // No sensitive strings to replace.
-        }
-
-        public static void Log(string pageName)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("NavigatedToPage_Event", LogLevel.Measure, new NavigatedToPageEvent(pageName));
-        }
+    public static void Log(string pageName)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("NavigatedToPage_Event", LogLevel.Measure, new NavigatedToPageEvent(pageName));
     }
 }

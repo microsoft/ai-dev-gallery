@@ -6,30 +6,29 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class ToggleCodeButtonEvent : EventBase
 {
-    [EventData]
-    internal class ToggleCodeButtonEvent : EventBase
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+
+    public string Name { get; }
+    public bool IsChecked { get; }
+
+    private ToggleCodeButtonEvent(string name, bool isChecked)
     {
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+        Name = name;
+        IsChecked = isChecked;
+    }
 
-        public string Name { get; }
-        public bool IsChecked { get; }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+        // No sensitive strings to replace.
+    }
 
-        private ToggleCodeButtonEvent(string name, bool isChecked)
-        {
-            Name = name;
-            IsChecked = isChecked;
-        }
-
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-            // No sensitive strings to replace.
-        }
-
-        public static void Log(string name, bool isChecked)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("ToggleCodeButton_Event", LogLevel.Measure, new ToggleCodeButtonEvent(name, isChecked));
-        }
+    public static void Log(string name, bool isChecked)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("ToggleCodeButton_Event", LogLevel.Measure, new ToggleCodeButtonEvent(name, isChecked));
     }
 }

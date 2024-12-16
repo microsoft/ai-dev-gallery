@@ -5,12 +5,11 @@ using AIDevGallery.Models;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.Utils
+namespace AIDevGallery.Utils;
+
+[JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
+[JsonSerializable(typeof(AppData))]
+[JsonSerializable(typeof(List<CachedModel>))]
+internal partial class AppDataSourceGenerationContext : JsonSerializerContext
 {
-    [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
-    [JsonSerializable(typeof(AppData))]
-    [JsonSerializable(typeof(List<CachedModel>))]
-    internal partial class AppDataSourceGenerationContext : JsonSerializerContext
-    {
-    }
 }
