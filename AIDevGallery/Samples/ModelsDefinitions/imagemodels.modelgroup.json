@@ -110,7 +110,8 @@
             "Description": "SqueezeNet 1.1",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 4956208,
@@ -155,7 +156,8 @@
             "Description": "ESRGAN",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 67162397,
@@ -177,7 +179,8 @@
             "Description": "FFNet 78s",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 109974166,
@@ -190,7 +193,8 @@
             "Description": "FFNet 54s",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "DML",
+              "QNN"
             ],
             "SupportedOnQualcomm": true,
             "Size": 72188137,
