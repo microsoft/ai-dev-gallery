@@ -3,18 +3,17 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace AIDevGallery.SourceGenerator.Extensions
-{
-    internal static class AttributeDataExtensions
-    {
-        public static Location? GetLocation(this AttributeData attributeData)
-        {
-            if (attributeData.ApplicationSyntaxReference is { } syntaxReference)
-            {
-                return syntaxReference.SyntaxTree.GetLocation(syntaxReference.Span);
-            }
+namespace AIDevGallery.SourceGenerator.Extensions;
 
-            return null;
+internal static class AttributeDataExtensions
+{
+    public static Location? GetLocation(this AttributeData attributeData)
+    {
+        if (attributeData.ApplicationSyntaxReference is { } syntaxReference)
+        {
+            return syntaxReference.SyntaxTree.GetLocation(syntaxReference.Span);
         }
+
+        return null;
     }
 }

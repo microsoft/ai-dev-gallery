@@ -6,23 +6,22 @@ using Microsoft.Extensions.AI;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Models
+namespace AIDevGallery.Models;
+
+internal abstract class BaseSampleNavigationParameters(TaskCompletionSource sampleLoadedCompletionSource, CancellationToken loadingCanceledToken)
 {
-    internal abstract class BaseSampleNavigationParameters(TaskCompletionSource sampleLoadedCompletionSource, CancellationToken loadingCanceledToken)
+    public CancellationToken CancellationToken { get; private set; } = loadingCanceledToken;
+
+    protected abstract string ChatClientModelPath { get; }
+    protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
+
+    public void NotifyCompletion()
     {
-        public CancellationToken CancellationToken { get; private set; } = loadingCanceledToken;
+        sampleLoadedCompletionSource.SetResult();
+    }
 
-        protected abstract string ChatClientModelPath { get; }
-        protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
-
-        public void NotifyCompletion()
-        {
-            sampleLoadedCompletionSource.SetResult();
-        }
-
-        public async Task<IChatClient?> GetIChatClientAsync()
-        {
-            return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
-        }
+    public async Task<IChatClient?> GetIChatClientAsync()
+    {
+        return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
     }
 }

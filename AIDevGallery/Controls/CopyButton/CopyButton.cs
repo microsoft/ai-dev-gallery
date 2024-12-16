@@ -6,30 +6,29 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 
-namespace AIDevGallery.Controls
+namespace AIDevGallery.Controls;
+
+internal sealed partial class CopyButton : Button
 {
-    internal sealed partial class CopyButton : Button
+    public CopyButton()
     {
-        public CopyButton()
+        this.DefaultStyleKey = typeof(CopyButton);
+    }
+
+    private void CopyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetTemplateChild("CopyToClipboardSuccessAnimation") is Storyboard storyBoard)
         {
-            this.DefaultStyleKey = typeof(CopyButton);
+            storyBoard.Begin();
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (GetTemplateChild("CopyToClipboardSuccessAnimation") is Storyboard storyBoard)
-            {
-                storyBoard.Begin();
-            }
+        NarratorHelper.Announce(this, "Copied to clipboard", "CopiedToClipboardActivityId");
+    }
 
-            NarratorHelper.Announce(this, "Copied to clipboard", "CopiedToClipboardActivityId");
-        }
-
-        protected override void OnApplyTemplate()
-        {
-            Click -= CopyButton_Click;
-            base.OnApplyTemplate();
-            Click += CopyButton_Click;
-        }
+    protected override void OnApplyTemplate()
+    {
+        Click -= CopyButton_Click;
+        base.OnApplyTemplate();
+        Click += CopyButton_Click;
     }
 }
