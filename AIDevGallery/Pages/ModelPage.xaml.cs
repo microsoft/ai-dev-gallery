@@ -17,194 +17,193 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace AIDevGallery.Pages
+namespace AIDevGallery.Pages;
+
+internal sealed partial class ModelPage : Page
 {
-    internal sealed partial class ModelPage : Page
+    public ModelFamily? ModelFamily { get; set; }
+    private ModelType? modelFamilyType;
+    public bool IsNotApi => !modelFamilyType.HasValue || !ModelTypeHelpers.ApiDefinitionDetails.ContainsKey(modelFamilyType.Value);
+
+    public ModelPage()
     {
-        public ModelFamily? ModelFamily { get; set; }
-        private ModelType? modelFamilyType;
-        public bool IsNotApi => !modelFamilyType.HasValue || !ModelTypeHelpers.ApiDefinitionDetails.ContainsKey(modelFamilyType.Value);
+        this.InitializeComponent();
+        this.Unloaded += ModelPage_Unloaded;
+    }
 
-        public ModelPage()
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is MostRecentlyUsedItem mru)
         {
-            this.InitializeComponent();
-            this.Unloaded += ModelPage_Unloaded;
+            var modelFamilyId = mru.ItemId;
+        }
+        else if (e.Parameter is ModelType modelType && ModelTypeHelpers.ModelFamilyDetails.TryGetValue(modelType, out var modelFamilyDetails))
+        {
+            modelFamilyType = modelType;
+            ModelFamily = modelFamilyDetails;
+
+            modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
+        }
+        else if (e.Parameter is ModelDetails details)
+        {
+            // this is likely user added model
+            modelSelectionControl.SetModels([details]);
+
+            ModelFamily = new ModelFamily
+            {
+                ReadmeUrl = details.ReadmeUrl ?? string.Empty,
+                Name = details.Name
+            };
+        }
+        else if (e.Parameter is ModelType apiType && ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(apiType, out var apiDefinition))
+        {
+            // API
+            modelFamilyType = apiType;
+
+            ModelFamily = new ModelFamily
+            {
+                Id = apiDefinition.Id,
+                ReadmeUrl = apiDefinition.ReadmeUrl,
+                DocsUrl = apiDefinition.ReadmeUrl,
+                Name = apiDefinition.Name,
+            };
+
+            modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
+        }
+        else
+        {
+            throw new InvalidOperationException("Invalid navigation parameter");
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is MostRecentlyUsedItem mru)
-            {
-                var modelFamilyId = mru.ItemId;
-            }
-            else if (e.Parameter is ModelType modelType && ModelTypeHelpers.ModelFamilyDetails.TryGetValue(modelType, out var modelFamilyDetails))
-            {
-                modelFamilyType = modelType;
-                ModelFamily = modelFamilyDetails;
+            var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
+        }
+        else
+        {
+            summaryGrid.Visibility = Visibility.Collapsed;
+        }
 
-                modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
-            }
-            else if (e.Parameter is ModelDetails details)
-            {
-                // this is likely user added model
-                modelSelectionControl.SetModels([details]);
+        EnableSampleListIfModelIsDownloaded();
+        App.ModelCache.CacheStore.ModelsChanged += CacheStore_ModelsChanged;
+    }
 
-                ModelFamily = new ModelFamily
+    private void ModelPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        App.ModelCache.CacheStore.ModelsChanged -= CacheStore_ModelsChanged;
+    }
+
+    private void CacheStore_ModelsChanged(ModelCacheStore sender)
+    {
+        EnableSampleListIfModelIsDownloaded();
+    }
+
+    private void EnableSampleListIfModelIsDownloaded()
+    {
+        if (modelSelectionControl.Models != null && modelSelectionControl.Models.Count > 0)
+        {
+            foreach (var model in modelSelectionControl.Models)
+            {
+                if (App.ModelCache.GetCachedModel(model.Url) != null || model.Size == 0)
                 {
-                    ReadmeUrl = details.ReadmeUrl ?? string.Empty,
-                    Name = details.Name
-                };
-            }
-            else if (e.Parameter is ModelType apiType && ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(apiType, out var apiDefinition))
-            {
-                // API
-                modelFamilyType = apiType;
-
-                ModelFamily = new ModelFamily
-                {
-                    Id = apiDefinition.Id,
-                    ReadmeUrl = apiDefinition.ReadmeUrl,
-                    DocsUrl = apiDefinition.ReadmeUrl,
-                    Name = apiDefinition.Name,
-                };
-
-                modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid navigation parameter");
-            }
-
-            if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
-            {
-                var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
-            }
-            else
-            {
-                summaryGrid.Visibility = Visibility.Collapsed;
-            }
-
-            EnableSampleListIfModelIsDownloaded();
-            App.ModelCache.CacheStore.ModelsChanged += CacheStore_ModelsChanged;
-        }
-
-        private void ModelPage_Unloaded(object sender, RoutedEventArgs e)
-        {
-            App.ModelCache.CacheStore.ModelsChanged -= CacheStore_ModelsChanged;
-        }
-
-        private void CacheStore_ModelsChanged(ModelCacheStore sender)
-        {
-            EnableSampleListIfModelIsDownloaded();
-        }
-
-        private void EnableSampleListIfModelIsDownloaded()
-        {
-            if (modelSelectionControl.Models != null && modelSelectionControl.Models.Count > 0)
-            {
-                foreach (var model in modelSelectionControl.Models)
-                {
-                    if (App.ModelCache.GetCachedModel(model.Url) != null || model.Size == 0)
-                    {
-                        SampleList.IsEnabled = true;
-                    }
+                    SampleList.IsEnabled = true;
                 }
             }
         }
+    }
 
-        private async Task LoadReadme(string url)
+    private async Task LoadReadme(string url)
+    {
+        string readmeContents = string.Empty;
+
+        if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
         {
-            string readmeContents = string.Empty;
-
-            if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
-            {
-                readmeContents = await GithubApi.GetContentsOfTextFile(url);
-            }
-            else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
-            {
-                readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
-            }
-
-            if (!string.IsNullOrWhiteSpace(readmeContents))
-            {
-                readmeContents = Regex.Replace(readmeContents, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
-                markdownTextBlock.Text = readmeContents;
-            }
-
-            readmeProgressRing.IsActive = false;
+            readmeContents = await GithubApi.GetContentsOfTextFile(url);
+        }
+        else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        {
+            readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }
 
-        private IEnumerable<ModelDetails> GetAllSampleDetails()
+        if (!string.IsNullOrWhiteSpace(readmeContents))
         {
-            if (!modelFamilyType.HasValue || !ModelTypeHelpers.ParentMapping.TryGetValue(modelFamilyType.Value, out List<ModelType>? modelTypes))
-            {
-                yield break;
-            }
-
-            if (modelTypes.Count == 0)
-            {
-                // Its an API
-                modelTypes = [modelFamilyType.Value];
-            }
-
-            foreach (var modelType in modelTypes)
-            {
-                if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
-                {
-                    yield return modelDetails;
-                }
-                else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinition))
-                {
-                    yield return ModelDetailsHelper.GetModelDetailsFromApiDefinition(modelType, apiDefinition);
-                }
-            }
+            readmeContents = Regex.Replace(readmeContents, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
+            markdownTextBlock.Text = readmeContents;
         }
 
-        private void ModelSelectionControl_SelectedModelChanged(object sender, ModelDetails? modelDetails)
+        readmeProgressRing.IsActive = false;
+    }
+
+    private IEnumerable<ModelDetails> GetAllSampleDetails()
+    {
+        if (!modelFamilyType.HasValue || !ModelTypeHelpers.ParentMapping.TryGetValue(modelFamilyType.Value, out List<ModelType>? modelTypes))
         {
-            // if we don't have a modelType, we are in a user added language model, use same samples as Phi
-            var modelType = modelFamilyType ?? ModelType.Phi3Mini;
-
-            var samples = SampleDetails.Samples.Where(s => s.Model1Types.Contains(modelType) || s.Model2Types?.Contains(modelType) == true).ToList();
-            if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelType)))
-            {
-                var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
-                samples.AddRange(SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true));
-            }
-
-            SampleList.ItemsSource = samples;
+            yield break;
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        if (modelTypes.Count == 0)
         {
-            if (ModelFamily == null || ModelFamily.Id == null)
-            {
-                return;
-            }
-
-            var dataPackage = new DataPackage();
-            dataPackage.SetText($"aidevgallery://models/{ModelFamily.Id}");
-            Clipboard.SetContentWithOptions(dataPackage, null);
+            // Its an API
+            modelTypes = [modelFamilyType.Value];
         }
 
-        private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+        foreach (var modelType in modelTypes)
         {
-            ModelDetailsLinkClickedEvent.Log(e.Link);
-            Process.Start(new ProcessStartInfo()
+            if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
-                FileName = e.Link,
-                UseShellExecute = true
-            });
+                yield return modelDetails;
+            }
+            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinition))
+            {
+                yield return ModelDetailsHelper.GetModelDetailsFromApiDefinition(modelType, apiDefinition);
+            }
+        }
+    }
+
+    private void ModelSelectionControl_SelectedModelChanged(object sender, ModelDetails? modelDetails)
+    {
+        // if we don't have a modelType, we are in a user added language model, use same samples as Phi
+        var modelType = modelFamilyType ?? ModelType.Phi3Mini;
+
+        var samples = SampleDetails.Samples.Where(s => s.Model1Types.Contains(modelType) || s.Model2Types?.Contains(modelType) == true).ToList();
+        if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelType)))
+        {
+            var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
+            samples.AddRange(SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true));
         }
 
-        private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
+        SampleList.ItemsSource = samples;
+    }
+
+    private void CopyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ModelFamily == null || ModelFamily.Id == null)
         {
-            if (args.InvokedItem is Sample sample)
-            {
-                var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
-                App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
-            }
+            return;
+        }
+
+        var dataPackage = new DataPackage();
+        dataPackage.SetText($"aidevgallery://models/{ModelFamily.Id}");
+        Clipboard.SetContentWithOptions(dataPackage, null);
+    }
+
+    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    {
+        ModelDetailsLinkClickedEvent.Log(e.Link);
+        Process.Start(new ProcessStartInfo()
+        {
+            FileName = e.Link,
+            UseShellExecute = true
+        });
+    }
+
+    private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItem is Sample sample)
+        {
+            var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
+            App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
         }
     }
 }

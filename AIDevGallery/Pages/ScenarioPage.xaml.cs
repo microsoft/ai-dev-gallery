@@ -21,449 +21,448 @@ using System.Threading;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 
-namespace AIDevGallery.Pages
+namespace AIDevGallery.Pages;
+
+internal sealed partial class ScenarioPage : Page
 {
-    internal sealed partial class ScenarioPage : Page
+    private Scenario? scenario;
+    private List<Sample>? samples;
+    private Sample? sample;
+    private ModelDetails? selectedModelDetails;
+    private ModelDetails? selectedModelDetails2;
+
+    public ScenarioPage()
     {
-        private Scenario? scenario;
-        private List<Sample>? samples;
-        private Sample? sample;
-        private ModelDetails? selectedModelDetails;
-        private ModelDetails? selectedModelDetails2;
+        this.InitializeComponent();
+    }
 
-        public ScenarioPage()
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is Scenario scenario)
         {
-            this.InitializeComponent();
+            this.scenario = scenario;
+            PopulateModelControls();
+        }
+        else if (e.Parameter is SampleNavigationArgs sampleArgs)
+        {
+            this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
+            PopulateModelControls(sampleArgs.ModelDetails);
+        }
+    }
+
+    private void PopulateModelControls(ModelDetails? initialModelToLoad = null)
+    {
+        if (scenario == null)
+        {
+            return;
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
+        List<Dictionary<ModelType, List<ModelDetails>>>? modelsDetailsDict = null;
+
+        if (samples.Count == 0)
         {
-            base.OnNavigatedTo(e);
-            if (e.Parameter is Scenario scenario)
-            {
-                this.scenario = scenario;
-                PopulateModelControls();
-            }
-            else if (e.Parameter is SampleNavigationArgs sampleArgs)
-            {
-                this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-                PopulateModelControls(sampleArgs.ModelDetails);
-            }
+            return;
         }
-
-        private void PopulateModelControls(ModelDetails? initialModelToLoad = null)
+        else if (samples.Count == 1)
         {
-            if (scenario == null)
-            {
-                return;
-            }
+            modelsDetailsDict = ModelDetailsHelper.GetModelDetails(samples.First());
+        }
+        else
+        {
+            var sample = samples.First();
+            var modelKey = sample.Model1Types.First(); // First only?
 
-            samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
-            List<Dictionary<ModelType, List<ModelDetails>>>? modelsDetailsDict = null;
+            if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey)))
+            {
+                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey)).Key;
 
-            if (samples.Count == 0)
-            {
-                return;
-            }
-            else if (samples.Count == 1)
-            {
-                modelsDetailsDict = ModelDetailsHelper.GetModelDetails(samples.First());
-            }
-            else
-            {
-                var sample = samples.First();
-                var modelKey = sample.Model1Types.First(); // First only?
+                var listModelDetails = new List<ModelDetails>();
 
-                if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey)))
+                foreach (var s in samples)
                 {
-                    var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey)).Key;
+                    listModelDetails.AddRange(ModelDetailsHelper.GetModelDetails(s).First().First().Value);
+                }
 
-                    var listModelDetails = new List<ModelDetails>();
+                modelsDetailsDict =
+                [
+                    new Dictionary<ModelType, List<ModelDetails>>
+                    {
+                        [parentKey] = listModelDetails
+                    }
+                ];
+            }
+
+            if (sample.Model2Types != null)
+            {
+                var modelKey2 = sample.Model2Types.First(); // First only?
+
+                if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey2)))
+                {
+                    var parentKey2 = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey2)).Key;
+
+                    var listModelDetails2 = new List<ModelDetails>();
 
                     foreach (var s in samples)
                     {
-                        listModelDetails.AddRange(ModelDetailsHelper.GetModelDetails(s).First().First().Value);
+                        listModelDetails2.AddRange(ModelDetailsHelper.GetModelDetails(s).ElementAt(1).First().Value);
                     }
 
-                    modelsDetailsDict =
-                    [
+                    modelsDetailsDict ??= [];
+
+                    modelsDetailsDict.Add(
                         new Dictionary<ModelType, List<ModelDetails>>
                         {
-                            [parentKey] = listModelDetails
-                        }
-                    ];
+                            [parentKey2] = listModelDetails2
+                        });
                 }
+            }
+        }
 
-                if (sample.Model2Types != null)
+        if (modelsDetailsDict == null)
+        {
+            return;
+        }
+
+        var models = modelsDetailsDict.First().SelectMany(g => g.Value).ToList();
+
+        selectedModelDetails = SelectLatestOrDefault(models);
+
+        if (modelsDetailsDict.Count > 1)
+        {
+            var models2 = modelsDetailsDict.ElementAt(1).SelectMany(g => g.Value).ToList();
+            selectedModelDetails2 = SelectLatestOrDefault(models2);
+            modelSelectionControl2.SetModels(models2, initialModelToLoad);
+        }
+
+        modelSelectionControl.SetModels(models, initialModelToLoad);
+        UpdatePlaceholderControl();
+    }
+
+    private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
+    {
+        var latestModelOrApiUsageHistory = App.AppData.UsageHistory.FirstOrDefault(id => models.Any(m => m.Id == id));
+
+        if (latestModelOrApiUsageHistory != null)
+        {
+            // select most recently used if there is one
+            return models.First(m => m.Id == latestModelOrApiUsageHistory);
+        }
+
+        return models.FirstOrDefault();
+    }
+
+    private async void ModelSelectionControl_SelectedModelChanged(object sender, ModelDetails? modelDetails)
+    {
+        ModelDropDown.HideFlyout();
+        ModelDropDown2.HideFlyout();
+
+        if (samples == null)
+        {
+            return;
+        }
+
+        if ((ModelSelectionControl)sender == modelSelectionControl)
+        {
+            selectedModelDetails = modelDetails;
+        }
+        else
+        {
+            selectedModelDetails2 = modelDetails;
+        }
+
+        if (selectedModelDetails != null)
+        {
+            foreach (var s in samples)
+            {
+                var extDict = ModelDetailsHelper.GetModelDetails(s).FirstOrDefault(dict => dict.Values.Any(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id)))?.Values;
+                if (extDict != null)
                 {
-                    var modelKey2 = sample.Model2Types.First(); // First only?
-
-                    if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey2)))
+                    var dict = extDict.FirstOrDefault(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id));
+                    if (dict != null)
                     {
-                        var parentKey2 = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey2)).Key;
-
-                        var listModelDetails2 = new List<ModelDetails>();
-
-                        foreach (var s in samples)
-                        {
-                            listModelDetails2.AddRange(ModelDetailsHelper.GetModelDetails(s).ElementAt(1).First().Value);
-                        }
-
-                        modelsDetailsDict ??= [];
-
-                        modelsDetailsDict.Add(
-                            new Dictionary<ModelType, List<ModelDetails>>
-                            {
-                                [parentKey2] = listModelDetails2
-                            });
+                        sample = s;
+                        break;
                     }
                 }
             }
+        }
+        else
+        {
+            sample = null;
+        }
 
-            if (modelsDetailsDict == null)
-            {
-                return;
-            }
+        if (sample == null)
+        {
+            return;
+        }
 
-            var models = modelsDetailsDict.First().SelectMany(g => g.Value).ToList();
-
-            selectedModelDetails = SelectLatestOrDefault(models);
-
-            if (modelsDetailsDict.Count > 1)
-            {
-                var models2 = modelsDetailsDict.ElementAt(1).SelectMany(g => g.Value).ToList();
-                selectedModelDetails2 = SelectLatestOrDefault(models2);
-                modelSelectionControl2.SetModels(models2, initialModelToLoad);
-            }
-
-            modelSelectionControl.SetModels(models, initialModelToLoad);
+        if ((sample.Model2Types == null && selectedModelDetails == null) ||
+            (sample.Model2Types != null && (selectedModelDetails == null || selectedModelDetails2 == null)))
+        {
             UpdatePlaceholderControl();
+
+            VisualStateManager.GoToState(this, "NoModelSelected", true);
+            return;
         }
-
-        private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
+        else
         {
-            var latestModelOrApiUsageHistory = App.AppData.UsageHistory.FirstOrDefault(id => models.Any(m => m.Id == id));
+            VisualStateManager.GoToState(this, "ModelSelected", true);
+            ModelDropDown2.Visibility = Visibility.Collapsed;
 
-            if (latestModelOrApiUsageHistory != null)
+            ModelDropDown.Model = selectedModelDetails;
+            List<ModelDetails> models = [selectedModelDetails!];
+
+            if (sample.Model2Types != null)
             {
-                // select most recently used if there is one
-                return models.First(m => m.Id == latestModelOrApiUsageHistory);
+                models.Add(selectedModelDetails2!);
+                ModelDropDown2.Model = selectedModelDetails2;
+                ModelDropDown2.Visibility = Visibility.Visible;
             }
 
-            return models.FirstOrDefault();
+            await SampleContainer.LoadSampleAsync(sample, models);
+
+            await App.AppData.AddMru(
+                new MostRecentlyUsedItem()
+                {
+                    Type = MostRecentlyUsedItemType.Scenario,
+                    ItemId = scenario!.Id,
+                    Icon = scenario.Icon,
+                    Description = scenario.Description,
+                    SubItemId = selectedModelDetails!.Id,
+                    DisplayName = scenario.Name
+                },
+                selectedModelDetails.Id);
+        }
+    }
+
+    private void UpdatePlaceholderControl()
+    {
+        if (sample == null || (sample.Model2Types == null && selectedModelDetails == null))
+        {
+            PlaceholderControl.SetModels(modelSelectionControl.Models);
+        }
+        else
+        {
+            PlaceholderControl.SetModels(modelSelectionControl2.Models);
+        }
+    }
+
+    private void CopyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dataPackage = new DataPackage();
+        dataPackage.SetText("aidevgallery://scenarios/" + scenario!.Id);
+        Clipboard.SetContentWithOptions(dataPackage, null);
+    }
+
+    private void CodeToggle_Click(object sender, RoutedEventArgs args)
+    {
+        if (sender is ToggleButton btn)
+        {
+            if (sample != null)
+            {
+                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
+            }
+
+            if (btn.IsChecked == true)
+            {
+                SampleContainer.ShowCode();
+            }
+            else
+            {
+                SampleContainer.HideCode();
+            }
+        }
+    }
+
+    private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button ||
+            sample == null ||
+            selectedModelDetails == null ||
+            (sample.Model2Types != null && selectedModelDetails2 == null))
+        {
+            return;
         }
 
-        private async void ModelSelectionControl_SelectedModelChanged(object sender, ModelDetails? modelDetails)
-        {
-            ModelDropDown.HideFlyout();
-            ModelDropDown2.HideFlyout();
+        Dictionary<ModelType, (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator)> cachedModels = [];
 
-            if (samples == null)
+        (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator) cachedModel;
+
+        if (selectedModelDetails.Size == 0)
+        {
+            cachedModel = (selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+        }
+        else
+        {
+            var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails.Url);
+            if (realCachedModel == null)
             {
                 return;
             }
 
-            if ((ModelSelectionControl)sender == modelSelectionControl)
-            {
-                selectedModelDetails = modelDetails;
-            }
-            else
-            {
-                selectedModelDetails2 = modelDetails;
-            }
+            cachedModel = (selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+        }
 
-            if (selectedModelDetails != null)
-            {
-                foreach (var s in samples)
-                {
-                    var extDict = ModelDetailsHelper.GetModelDetails(s).FirstOrDefault(dict => dict.Values.Any(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id)))?.Values;
-                    if (extDict != null)
-                    {
-                        var dict = extDict.FirstOrDefault(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id));
-                        if (dict != null)
-                        {
-                            sample = s;
-                            break;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                sample = null;
-            }
+        var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
 
-            if (sample == null)
+        var model1Type = sample.Model1Types.Any(cachedSampleItem.Contains)
+            ? sample.Model1Types.First(cachedSampleItem.Contains)
+            : sample.Model1Types.First();
+        cachedModels.Add(model1Type, cachedModel);
+
+        if (sample.Model2Types != null)
+        {
+            if (selectedModelDetails2 == null)
             {
                 return;
             }
 
-            if ((sample.Model2Types == null && selectedModelDetails == null) ||
-                (sample.Model2Types != null && (selectedModelDetails == null || selectedModelDetails2 == null)))
+            if (selectedModelDetails2.Size == 0)
             {
-                UpdatePlaceholderControl();
-
-                VisualStateManager.GoToState(this, "NoModelSelected", true);
-                return;
+                cachedModel = (selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
             }
             else
             {
-                VisualStateManager.GoToState(this, "ModelSelected", true);
-                ModelDropDown2.Visibility = Visibility.Collapsed;
-
-                ModelDropDown.Model = selectedModelDetails;
-                List<ModelDetails> models = [selectedModelDetails!];
-
-                if (sample.Model2Types != null)
-                {
-                    models.Add(selectedModelDetails2!);
-                    ModelDropDown2.Model = selectedModelDetails2;
-                    ModelDropDown2.Visibility = Visibility.Visible;
-                }
-
-                await SampleContainer.LoadSampleAsync(sample, models);
-
-                await App.AppData.AddMru(
-                    new MostRecentlyUsedItem()
-                    {
-                        Type = MostRecentlyUsedItemType.Scenario,
-                        ItemId = scenario!.Id,
-                        Icon = scenario.Icon,
-                        Description = scenario.Description,
-                        SubItemId = selectedModelDetails!.Id,
-                        DisplayName = scenario.Name
-                    },
-                    selectedModelDetails.Id);
-            }
-        }
-
-        private void UpdatePlaceholderControl()
-        {
-            if (sample == null || (sample.Model2Types == null && selectedModelDetails == null))
-            {
-                PlaceholderControl.SetModels(modelSelectionControl.Models);
-            }
-            else
-            {
-                PlaceholderControl.SetModels(modelSelectionControl2.Models);
-            }
-        }
-
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dataPackage = new DataPackage();
-            dataPackage.SetText("aidevgallery://scenarios/" + scenario!.Id);
-            Clipboard.SetContentWithOptions(dataPackage, null);
-        }
-
-        private void CodeToggle_Click(object sender, RoutedEventArgs args)
-        {
-            if (sender is ToggleButton btn)
-            {
-                if (sample != null)
-                {
-                    ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
-                }
-
-                if (btn.IsChecked == true)
-                {
-                    SampleContainer.ShowCode();
-                }
-                else
-                {
-                    SampleContainer.HideCode();
-                }
-            }
-        }
-
-        private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button button ||
-                sample == null ||
-                selectedModelDetails == null ||
-                (sample.Model2Types != null && selectedModelDetails2 == null))
-            {
-                return;
-            }
-
-            Dictionary<ModelType, (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator)> cachedModels = [];
-
-            (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator) cachedModel;
-
-            if (selectedModelDetails.Size == 0)
-            {
-                cachedModel = (selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
-            }
-            else
-            {
-                var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails.Url);
+                var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails2.Url);
                 if (realCachedModel == null)
                 {
                     return;
                 }
 
-                cachedModel = (selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+                cachedModel = (selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
             }
 
-            var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
+            var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
+                ? sample.Model2Types.First(cachedSampleItem.Contains)
+                : sample.Model2Types.First();
 
-            var model1Type = sample.Model1Types.Any(cachedSampleItem.Contains)
-                ? sample.Model1Types.First(cachedSampleItem.Contains)
-                : sample.Model1Types.First();
-            cachedModels.Add(model1Type, cachedModel);
-
-            if (sample.Model2Types != null)
-            {
-                if (selectedModelDetails2 == null)
-                {
-                    return;
-                }
-
-                if (selectedModelDetails2.Size == 0)
-                {
-                    cachedModel = (selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
-                }
-                else
-                {
-                    var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails2.Url);
-                    if (realCachedModel == null)
-                    {
-                        return;
-                    }
-
-                    cachedModel = (selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
-                }
-
-                var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
-                    ? sample.Model2Types.First(cachedSampleItem.Contains)
-                    : sample.Model2Types.First();
-
-                cachedModels.Add(model2Type, cachedModel);
-            }
-
-            ContentDialog? dialog = null;
-            try
-            {
-                var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
-                if (totalSize == 0)
-                {
-                    copyRadioButtons.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    copyRadioButtons.Visibility = Visibility.Visible;
-                    ModelExportSizeTxt.Text = AppUtils.FileSizeToString(totalSize);
-                }
-
-                var output = await ExportDialog.ShowAsync();
-
-                if (output == ContentDialogResult.Primary)
-                {
-                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-                    var picker = new FolderPicker();
-                    picker.FileTypeFilter.Add("*");
-                    WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-                    var folder = await picker.PickSingleFolderAsync();
-                    if (folder != null)
-                    {
-                        var generator = new Generator();
-
-                        dialog = new ContentDialog
-                        {
-                            XamlRoot = this.XamlRoot,
-                            Title = "Creating Visual Studio project..",
-                            Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
-                        };
-                        _ = dialog.ShowAsync();
-
-                        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = cachedModels
-                            .Select(cm => (cm.Key, (cm.Value.Path, cm.Value.Url, cm.Value.HardwareAccelerator)))
-                            .ToDictionary(x => x.Key, x => (x.Item2.Path, x.Item2.Url, x.Item2.HardwareAccelerator));
-
-                        var projectPath = await generator.GenerateAsync(
-                            sample,
-                            cachedModelsToGenerator,
-                            copyRadioButton.IsChecked == true && copyRadioButtons.Visibility == Visibility.Visible,
-                            folder.Path,
-                            CancellationToken.None);
-
-                        dialog.Closed += async (_, _) =>
-                        {
-                            var confirmationDialog = new ContentDialog
-                            {
-                                XamlRoot = this.XamlRoot,
-                                Title = "Project exported",
-                                Content = new TextBlock
-                                {
-                                    Text = "The project has been successfully exported to the selected folder.",
-                                    TextWrapping = TextWrapping.WrapWholeWords
-                                },
-                                PrimaryButtonText = "Open folder",
-                                PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
-                                CloseButtonText = "Close"
-                            };
-
-                            var shouldOpenFolder = await confirmationDialog.ShowAsync();
-                            if (shouldOpenFolder == ContentDialogResult.Primary)
-                            {
-                                await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
-                            }
-                        };
-                        dialog.Hide();
-                        dialog = null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                dialog?.Hide();
-
-                var message = "Please try again, or report this issue.";
-                if (ex is IOException)
-                {
-                    message = ex.Message;
-                }
-
-                var errorDialog = new ContentDialog
-                {
-                    XamlRoot = this.XamlRoot,
-                    Title = "Error while exporting project",
-                    Content = new TextBlock
-                    {
-                        Text = $"An error occurred while exporting the project. {message}",
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    },
-                    PrimaryButtonText = "Copy details",
-                    CloseButtonText = "Close"
-                };
-
-                var result = await errorDialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
-                {
-                    var dataPackage = new DataPackage();
-                    dataPackage.SetText(ex.ToString());
-                    Clipboard.SetContentWithOptions(dataPackage, null);
-                }
-            }
+            cachedModels.Add(model2Type, cachedModel);
         }
 
-        private void ModelSelectionControl_ModelCollectionChanged(object sender)
+        ContentDialog? dialog = null;
+        try
         {
-            PopulateModelControls();
-        }
-
-        private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            // Calculate if the modelselectors collide with the export/code buttons
-            if ((ModelPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
+            var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
+            if (totalSize == 0)
             {
-                VisualStateManager.GoToState(this, "NarrowLayout", true);
+                copyRadioButtons.Visibility = Visibility.Collapsed;
             }
             else
             {
-                VisualStateManager.GoToState(this, "WideLayout", true);
+                copyRadioButtons.Visibility = Visibility.Visible;
+                ModelExportSizeTxt.Text = AppUtils.FileSizeToString(totalSize);
             }
+
+            var output = await ExportDialog.ShowAsync();
+
+            if (output == ContentDialogResult.Primary)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+                var picker = new FolderPicker();
+                picker.FileTypeFilter.Add("*");
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var folder = await picker.PickSingleFolderAsync();
+                if (folder != null)
+                {
+                    var generator = new Generator();
+
+                    dialog = new ContentDialog
+                    {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Creating Visual Studio project..",
+                        Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+                    };
+                    _ = dialog.ShowAsync();
+
+                    Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = cachedModels
+                        .Select(cm => (cm.Key, (cm.Value.Path, cm.Value.Url, cm.Value.HardwareAccelerator)))
+                        .ToDictionary(x => x.Key, x => (x.Item2.Path, x.Item2.Url, x.Item2.HardwareAccelerator));
+
+                    var projectPath = await generator.GenerateAsync(
+                        sample,
+                        cachedModelsToGenerator,
+                        copyRadioButton.IsChecked == true && copyRadioButtons.Visibility == Visibility.Visible,
+                        folder.Path,
+                        CancellationToken.None);
+
+                    dialog.Closed += async (_, _) =>
+                    {
+                        var confirmationDialog = new ContentDialog
+                        {
+                            XamlRoot = this.XamlRoot,
+                            Title = "Project exported",
+                            Content = new TextBlock
+                            {
+                                Text = "The project has been successfully exported to the selected folder.",
+                                TextWrapping = TextWrapping.WrapWholeWords
+                            },
+                            PrimaryButtonText = "Open folder",
+                            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+                            CloseButtonText = "Close"
+                        };
+
+                        var shouldOpenFolder = await confirmationDialog.ShowAsync();
+                        if (shouldOpenFolder == ContentDialogResult.Primary)
+                        {
+                            await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
+                        }
+                    };
+                    dialog.Hide();
+                    dialog = null;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            dialog?.Hide();
+
+            var message = "Please try again, or report this issue.";
+            if (ex is IOException)
+            {
+                message = ex.Message;
+            }
+
+            var errorDialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Error while exporting project",
+                Content = new TextBlock
+                {
+                    Text = $"An error occurred while exporting the project. {message}",
+                    TextWrapping = TextWrapping.WrapWholeWords
+                },
+                PrimaryButtonText = "Copy details",
+                CloseButtonText = "Close"
+            };
+
+            var result = await errorDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(ex.ToString());
+                Clipboard.SetContentWithOptions(dataPackage, null);
+            }
+        }
+    }
+
+    private void ModelSelectionControl_ModelCollectionChanged(object sender)
+    {
+        PopulateModelControls();
+    }
+
+    private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Calculate if the modelselectors collide with the export/code buttons
+        if ((ModelPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
+        {
+            VisualStateManager.GoToState(this, "NarrowLayout", true);
+        }
+        else
+        {
+            VisualStateManager.GoToState(this, "WideLayout", true);
         }
     }
 }

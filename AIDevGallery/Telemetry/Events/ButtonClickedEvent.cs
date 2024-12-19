@@ -6,31 +6,30 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class ButtonClickedEvent : EventBase
 {
-    [EventData]
-    internal class ButtonClickedEvent : EventBase
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+
+    public string ButtonName
     {
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+        get;
+    }
 
-        public string ButtonName
-        {
-            get;
-        }
+    private ButtonClickedEvent(string buttonName)
+    {
+        ButtonName = buttonName;
+    }
 
-        private ButtonClickedEvent(string buttonName)
-        {
-            ButtonName = buttonName;
-        }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+        // No sensitive strings to replace.
+    }
 
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-            // No sensitive strings to replace.
-        }
-
-        public static void Log(string buttonName)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("ButtonClicked_Event", LogLevel.Measure, new ButtonClickedEvent(buttonName));
-        }
+    public static void Log(string buttonName)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("ButtonClicked_Event", LogLevel.Measure, new ButtonClickedEvent(buttonName));
     }
 }
