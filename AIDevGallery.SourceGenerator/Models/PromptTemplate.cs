@@ -3,17 +3,16 @@
 
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.SourceGenerator.Models
+namespace AIDevGallery.SourceGenerator.Models;
+
+internal class PromptTemplate
 {
-    internal class PromptTemplate
-    {
-        [JsonPropertyName("system")]
-        public string? System { get; init; }
-        [JsonPropertyName("user")]
-        public required string User { get; init; }
-        [JsonPropertyName("assistant")]
-        public string? Assistant { get; init; }
-        [JsonPropertyName("stop")]
-        public required string[] Stop { get; init; }
-    }
+    [JsonPropertyName("system")]
+    public string? System { get; init; }
+    [JsonPropertyName("user")]
+    public required string User { get; init; }
+    [JsonPropertyName("assistant")]
+    public string? Assistant { get; init; }
+    [JsonPropertyName("stop")]
+    public required string[] Stop { get; init; }
 }

@@ -5,11 +5,10 @@ using AIDevGallery.Models;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.Utils
+namespace AIDevGallery.Utils;
+
+[JsonSerializable(typeof(List<HFSearchResult>))]
+[JsonSerializable(typeof(GenAIConfig))]
+internal partial class SourceGenerationContext : JsonSerializerContext
 {
-    [JsonSerializable(typeof(List<HFSearchResult>))]
-    [JsonSerializable(typeof(GenAIConfig))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
-    {
-    }
 }
