@@ -116,7 +116,7 @@ namespace AIDevGallery.Pages
                             continue;
                         }
 
-                        if (filter == "npu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.QNN)))
+                        if (filter == "npu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
                         {
                             continue;
                         }
