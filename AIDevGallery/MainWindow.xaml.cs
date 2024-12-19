@@ -14,198 +14,197 @@ using System.Linq;
 using Windows.System;
 using WinUIEx;
 
-namespace AIDevGallery
+namespace AIDevGallery;
+
+internal sealed partial class MainWindow : WindowEx
 {
-    internal sealed partial class MainWindow : WindowEx
+    public MainWindow(object? obj = null)
     {
-        public MainWindow(object? obj = null)
+        this.InitializeComponent();
+        SetTitleBar();
+        App.ModelCache.DownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
+
+        this.NavView.Loaded += (sender, args) =>
         {
-            this.InitializeComponent();
-            SetTitleBar();
-            App.ModelCache.DownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
+            NavigateToPage(obj);
+        };
 
-            this.NavView.Loaded += (sender, args) =>
+        Closed += async (sender, args) =>
+        {
+            if (SampleContainer.AnySamplesLoading())
             {
-                NavigateToPage(obj);
-            };
+                this.Hide();
+                args.Handled = true;
+                await SampleContainer.WaitUnloadAllAsync();
+                Close();
+            }
+        };
+    }
 
-            Closed += async (sender, args) =>
-            {
-                if (SampleContainer.AnySamplesLoading())
-                {
-                    this.Hide();
-                    args.Handled = true;
-                    await SampleContainer.WaitUnloadAllAsync();
-                    Close();
-                }
-            };
+    public void NavigateToPage(object? obj)
+    {
+        if (obj is Scenario)
+        {
+            Navigate("Samples", obj);
+        }
+        else if (obj is ModelType or List<ModelType>)
+        {
+            Navigate("Models", obj);
+        }
+        else
+        {
+            Navigate("Home");
+        }
+    }
+
+    private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        Navigate(args.InvokedItem.ToString()!);
+    }
+
+    public void Navigate(string Tag, object? obj = null)
+    {
+        Tag = Tag.ToLower(CultureInfo.CurrentCulture);
+
+        switch (Tag)
+        {
+            case "home":
+                Navigate(typeof(HomePage));
+                break;
+            case "samples":
+                Navigate(typeof(ScenarioSelectionPage), obj);
+                break;
+            case "models":
+                Navigate(typeof(ModelSelectionPage), obj);
+                break;
+            case "guides":
+                Navigate(typeof(GuidesPage));
+                break;
+            case "contribute":
+                _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
+                break;
+            case "settings":
+                Navigate(typeof(SettingsPage), obj);
+                break;
+        }
+    }
+
+    private void Navigate(Type page, object? param = null)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            NavFrame.Navigate(page, param);
+        });
+    }
+
+    public void Navigate(MostRecentlyUsedItem mru)
+    {
+        if (mru.Type == MostRecentlyUsedItemType.Model)
+        {
+            Navigate("models", mru);
+        }
+        else
+        {
+            Navigate("samples", mru);
+        }
+    }
+
+    public void Navigate(Sample sample)
+    {
+        Navigate("samples", sample);
+    }
+
+    public void Navigate(SearchResult result)
+    {
+        if (result.Tag is Scenario scenario)
+        {
+            Navigate("samples", scenario);
+        }
+        else if (result.Tag is ModelType modelType)
+        {
+            Navigate("models", modelType);
+        }
+    }
+
+    private void SetTitleBar()
+    {
+        this.ExtendsContentIntoTitleBar = true;
+        this.SetTitleBar(titleBar);
+        titleBar.Window = this;
+        this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
+
+        this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
+
+        if (this.Title.EndsWith("Dev", StringComparison.InvariantCulture))
+        {
+            titleBar.Subtitle = "Dev";
+        }
+        else if (this.Title.EndsWith("Preview", StringComparison.InvariantCulture))
+        {
+            titleBar.Subtitle = "Preview";
+        }
+    }
+
+    private void DownloadQueue_ModelsChanged(ModelDownloadQueue sender)
+    {
+        DownloadProgressPanel.Visibility = Visibility.Visible;
+        DownloadProgressRing.IsActive = sender.GetDownloads().Count > 0;
+        DownloadFlyout.ShowAt(DownloadBtn);
+    }
+
+    private void ManageModelsClicked(object sender, RoutedEventArgs e)
+    {
+        NavFrame.Navigate(typeof(SettingsPage), "ModelManagement");
+    }
+
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
+        {
+            var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(sender.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+            SearchBox.ItemsSource = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label);
+        }
+    }
+
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (args.ChosenSuggestion is SearchResult result)
+        {
+            Navigate(result);
         }
 
-        public void NavigateToPage(object? obj)
+        SearchBox.Text = string.Empty;
+    }
+
+    private void TitleBar_BackButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (NavFrame.CanGoBack)
         {
-            if (obj is Scenario)
-            {
-                Navigate("Samples", obj);
-            }
-            else if (obj is ModelType or List<ModelType>)
-            {
-                Navigate("Models", obj);
-            }
-            else
-            {
-                Navigate("Home");
-            }
+            NavFrame.GoBack();
         }
+    }
 
-        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+    {
+        if (e.SourcePageType == typeof(ScenarioSelectionPage))
         {
-            Navigate(args.InvokedItem.ToString()!);
+            NavView.SelectedItem = NavView.MenuItems[1];
         }
-
-        public void Navigate(string Tag, object? obj = null)
+        else if (e.SourcePageType == typeof(ModelSelectionPage))
         {
-            Tag = Tag.ToLower(CultureInfo.CurrentCulture);
-
-            switch (Tag)
-            {
-                case "home":
-                    Navigate(typeof(HomePage));
-                    break;
-                case "samples":
-                    Navigate(typeof(ScenarioSelectionPage), obj);
-                    break;
-                case "models":
-                    Navigate(typeof(ModelSelectionPage), obj);
-                    break;
-                case "guides":
-                    Navigate(typeof(GuidesPage));
-                    break;
-                case "contribute":
-                    _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
-                    break;
-                case "settings":
-                    Navigate(typeof(SettingsPage), obj);
-                    break;
-            }
+            NavView.SelectedItem = NavView.MenuItems[2];
         }
-
-        private void Navigate(Type page, object? param = null)
+        else if (e.SourcePageType == typeof(GuidesPage))
         {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                NavFrame.Navigate(page, param);
-            });
+            NavView.SelectedItem = NavView.MenuItems[3];
         }
-
-        public void Navigate(MostRecentlyUsedItem mru)
+        else if (e.SourcePageType == typeof(SettingsPage))
         {
-            if (mru.Type == MostRecentlyUsedItemType.Model)
-            {
-                Navigate("models", mru);
-            }
-            else
-            {
-                Navigate("samples", mru);
-            }
+            NavView.SelectedItem = NavView.FooterMenuItems[1];
         }
-
-        public void Navigate(Sample sample)
+        else
         {
-            Navigate("samples", sample);
-        }
-
-        public void Navigate(SearchResult result)
-        {
-            if (result.Tag is Scenario scenario)
-            {
-                Navigate("samples", scenario);
-            }
-            else if (result.Tag is ModelType modelType)
-            {
-                Navigate("models", modelType);
-            }
-        }
-
-        private void SetTitleBar()
-        {
-            this.ExtendsContentIntoTitleBar = true;
-            this.SetTitleBar(titleBar);
-            titleBar.Window = this;
-            this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
-
-            this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
-
-            if (this.Title.EndsWith("Dev", StringComparison.InvariantCulture))
-            {
-                titleBar.Subtitle = "Dev";
-            }
-            else if (this.Title.EndsWith("Preview", StringComparison.InvariantCulture))
-            {
-                titleBar.Subtitle = "Preview";
-            }
-        }
-
-        private void DownloadQueue_ModelsChanged(ModelDownloadQueue sender)
-        {
-            DownloadProgressPanel.Visibility = Visibility.Visible;
-            DownloadProgressRing.IsActive = sender.GetDownloads().Count > 0;
-            DownloadFlyout.ShowAt(DownloadBtn);
-        }
-
-        private void ManageModelsClicked(object sender, RoutedEventArgs e)
-        {
-            NavFrame.Navigate(typeof(SettingsPage), "ModelManagement");
-        }
-
-        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-        {
-            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
-            {
-                var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(sender.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-                SearchBox.ItemsSource = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label);
-            }
-        }
-
-        private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-        {
-            if (args.ChosenSuggestion is SearchResult result)
-            {
-                Navigate(result);
-            }
-
-            SearchBox.Text = string.Empty;
-        }
-
-        private void TitleBar_BackButtonClick(object sender, RoutedEventArgs e)
-        {
-            if (NavFrame.CanGoBack)
-            {
-                NavFrame.GoBack();
-            }
-        }
-
-        private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
-        {
-            if (e.SourcePageType == typeof(ScenarioSelectionPage))
-            {
-                NavView.SelectedItem = NavView.MenuItems[1];
-            }
-            else if (e.SourcePageType == typeof(ModelSelectionPage))
-            {
-                NavView.SelectedItem = NavView.MenuItems[2];
-            }
-            else if (e.SourcePageType == typeof(GuidesPage))
-            {
-                NavView.SelectedItem = NavView.MenuItems[3];
-            }
-            else if (e.SourcePageType == typeof(SettingsPage))
-            {
-                NavView.SelectedItem = NavView.FooterMenuItems[1];
-            }
-            else
-            {
-                NavView.SelectedItem = NavView.MenuItems[0];
-            }
+            NavView.SelectedItem = NavView.MenuItems[0];
         }
     }
 }
