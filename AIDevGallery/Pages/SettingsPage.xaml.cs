@@ -179,6 +179,7 @@ internal sealed partial class SettingsPage : Page
 
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
         var folder = await picker.PickSingleFolderAsync();
         if (folder != null && folder.Path != App.ModelCache.GetCacheFolder())
