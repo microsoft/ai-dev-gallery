@@ -36,14 +36,9 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _textRecognizer = await InitializeRecognizer();
-        sampleParams.NotifyCompletion();
-    }
-
-    public async Task<TextRecognizer> InitializeRecognizer()
-    {
         if (!TextRecognizer.IsAvailable())
         {
+            sampleParams.ShowWcrModelLoadingMessage = true;
             var loadResult = await TextRecognizer.MakeAvailableAsync();
             if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
             {
@@ -51,7 +46,9 @@ internal sealed partial class OCRSample : BaseSamplePage
             }
         }
 
-        return await TextRecognizer.CreateAsync();
+        _textRecognizer = await TextRecognizer.CreateAsync();
+
+        sampleParams.NotifyCompletion();
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

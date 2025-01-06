@@ -174,6 +174,11 @@ internal class PhiSilicaClient : IChatClient
             null;
     }
 
+    public static bool IsAvailable()
+    {
+        return LanguageModel.IsAvailable();
+    }
+
     private async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

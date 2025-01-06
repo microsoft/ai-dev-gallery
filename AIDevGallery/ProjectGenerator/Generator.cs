@@ -525,6 +525,7 @@ namespace AIDevGallery.ProjectGenerator
             {
                 var cleanCsSource = CleanCsSource(sample.CSCode, safeProjectName, true);
                 cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+                cleanCsSource = cleanCsSource.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
                 cleanCsSource = cleanCsSource.Replace(": BaseSamplePage", ": Microsoft.UI.Xaml.Controls.Page");
                 cleanCsSource = cleanCsSource.Replace(
                     "Task LoadModelAsync(SampleNavigationParameters sampleParams)",

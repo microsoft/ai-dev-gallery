@@ -17,6 +17,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.System;
 
 namespace AIDevGallery.Controls
 {
@@ -179,6 +180,11 @@ namespace AIDevGallery.Controls
             NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
             SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
+            if (sampleNavigationParameters.ShowWcrModelLoadingMessage)
+            {
+                this.wcrApisLoadingTextBlock.Visibility = Visibility.Visible;
+            }
+
             await _sampleLoadedCompletionSource.Task;
 
             _sampleLoadedCompletionSource = null;
@@ -186,6 +192,7 @@ namespace AIDevGallery.Controls
 
             NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
+            this.wcrApisLoadingTextBlock.Visibility = Visibility.Collapsed;
             VisualStateManager.GoToState(this, "SampleLoaded", true);
 
             CodePivot.Items.Clear();
@@ -356,6 +363,12 @@ namespace AIDevGallery.Controls
                 lightStyles[ScopeName.XmlName].Foreground = "#FF400000";
                 return lightStyles;
             }
+        }
+
+        private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+        {
+            var uri = new Uri("ms-settings:windowsupdate");
+            await Launcher.LaunchUriAsync(uri);
         }
     }
 }

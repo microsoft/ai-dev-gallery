@@ -23,6 +23,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
+    NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
 [ObservableObject]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
@@ -39,14 +40,9 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _imageScaler = await InitializeScaler();
-        sampleParams.NotifyCompletion();
-    }
-
-    public async Task<ImageScaler> InitializeScaler()
-    {
         if (!ImageScaler.IsAvailable())
         {
+            sampleParams.ShowWcrModelLoadingMessage = true;
             var loadResult = await ImageScaler.MakeAvailableAsync();
             if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
             {
@@ -54,9 +50,9 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             }
         }
 
-        var scaler = await ImageScaler.CreateAsync();
-        ScaleSlider.Maximum = scaler.MaxSupportedScaleFactor;
-        return scaler;
+        _imageScaler = await ImageScaler.CreateAsync();
+        ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+        sampleParams.NotifyCompletion();
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
