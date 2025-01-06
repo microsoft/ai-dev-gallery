@@ -6,8 +6,9 @@ on:
     branches:
       - 'main'
       - 'rel/v**'
+      - 'dev/**'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev/**" ]
 
 jobs:
   build:

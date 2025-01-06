@@ -6,30 +6,29 @@ using Microsoft.Diagnostics.Telemetry.Internal;
 using System;
 using System.Diagnostics.Tracing;
 
-namespace AIDevGallery.Telemetry.Events
+namespace AIDevGallery.Telemetry.Events;
+
+[EventData]
+internal class ModelDownloadCompleteEvent : EventBase
 {
-    [EventData]
-    internal class ModelDownloadCompleteEvent : EventBase
+    internal ModelDownloadCompleteEvent(string modelUrl, DateTime completeTime)
     {
-        internal ModelDownloadCompleteEvent(string modelUrl, DateTime completeTime)
-        {
-            ModelUrl = modelUrl;
-            CompleteTime = completeTime;
-        }
+        ModelUrl = modelUrl;
+        CompleteTime = completeTime;
+    }
 
-        public string ModelUrl { get; private set; }
+    public string ModelUrl { get; private set; }
 
-        public DateTime CompleteTime { get; private set; }
+    public DateTime CompleteTime { get; private set; }
 
-        public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
+    public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
 
-        public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
-        {
-        }
+    public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
+    {
+    }
 
-        public static void Log(string modelUrl)
-        {
-            TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadComplete_Event", LogLevel.Measure, new ModelDownloadCompleteEvent(modelUrl, DateTime.Now));
-        }
+    public static void Log(string modelUrl)
+    {
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadComplete_Event", LogLevel.Measure, new ModelDownloadCompleteEvent(modelUrl, DateTime.Now));
     }
 }
