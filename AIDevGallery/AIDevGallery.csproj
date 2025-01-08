@@ -12,6 +12,7 @@
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
     <NoWarn>CS8305;WMC1501</NoWarn>
     <!-- https://github.com/microsoft/CsWin32/issues/1273 -->
     <NoWarn>$(NoWarn);IL2050</NoWarn>

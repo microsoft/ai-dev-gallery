@@ -10,7 +10,7 @@ namespace AIDevGallery.Samples.SharedCode;
 internal partial class Message : ObservableObject
 {
     [ObservableProperty]
-    private string content;
+    public partial string Content { get; set; }
     public DateTime MsgDateTime { get; private set; }
 
     public ChatRole Role { get; set; }

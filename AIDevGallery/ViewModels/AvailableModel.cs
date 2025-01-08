@@ -11,7 +11,7 @@ internal partial class AvailableModel : ObservableObject, IModelView
     public ModelDetails ModelDetails { get; private set; }
 
     [ObservableProperty]
-    private bool optionsVisible;
+    public partial bool OptionsVisible { get; set; }
 
     public AvailableModel(ModelDetails modelDetails)
     {
