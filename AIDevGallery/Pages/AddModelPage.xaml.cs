@@ -323,7 +323,7 @@ internal partial class Result : ObservableObject
     public Visibility VisibleWhenCompatibilityIssue => Details.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible ? Visibility.Collapsed : Visibility.Visible;
 
     [ObservableProperty]
-    private ResultState state;
+    public partial ResultState State { get; set; }
 }
 
 internal enum ResultState
