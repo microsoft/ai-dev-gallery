@@ -54,6 +54,7 @@ internal sealed partial class AddModelPage : Page
     private async Task SearchAsync()
     {
         SearchButton.IsEnabled = false;
+        SearchButtonProgressBar.Visibility = Visibility.Visible;
         SearchTextBox.IsEnabled = false;
 
         if (cts != null && !cts.IsCancellationRequested)
@@ -66,6 +67,7 @@ internal sealed partial class AddModelPage : Page
         await SearchModels(SearchTextBox.Text, cts.Token);
 
         SearchButton.IsEnabled = true;
+        SearchButtonProgressBar.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = true;
     }
 
