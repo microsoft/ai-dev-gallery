@@ -12,7 +12,7 @@ internal partial class BaseModel : ObservableObject, IModelView
     public ModelCompatibility Compatibility { get; init; }
 
     [ObservableProperty]
-    private bool optionsVisible;
+    public partial bool OptionsVisible { get; set; }
 
     public BaseModel(ModelDetails modelDetails)
     {
