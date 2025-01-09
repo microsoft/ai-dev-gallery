@@ -63,7 +63,18 @@
                     Click="Button_Click"
                     IsEnabled="{Binding ElementName=SearchTextBox, Path=Text, Converter={StaticResource EmptyStringToObjectConverter}}"
                     Style="{StaticResource AccentButtonStyle}">
-                    <FontIcon FontSize="16" Glyph="&#xE721;" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ProgressRing
+                            x:Name="SearchButtonProgressBar"
+                            Width="16"
+                            Height="16"
+                            IsIndeterminate="True"
+                            Visibility="Collapsed" />
+                        <FontIcon
+                            FontSize="16"
+                            Glyph="&#xE721;" />
+                    </StackPanel>
+
                 </Button>
             </Grid>
         </Grid>
