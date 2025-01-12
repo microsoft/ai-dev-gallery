@@ -24,17 +24,32 @@
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
         </NavigationView.Resources>
         <NavigationView.PaneHeader>
-            <StackPanel Orientation="Vertical" Margin="16,12,0,12" Spacing="12">
-                <TextBlock
-                    Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="Samples" />
-                <ComboBox SelectedIndex="0"
-                          SelectionChanged="ComboBox_SelectionChanged"
-                          ItemsSource="{x:Bind filters}"
-                          DisplayMemberPath="Text"
-                          SelectedValuePath="Tag">
-                </ComboBox>
-            </StackPanel>
+            <Grid Margin="16,12,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Samples" />
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="0,0,4,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="2">
+                    <FontIcon
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="14"
+                        Glyph="&#xE71C;" />
+                    <ComboBox
+                        AutomationProperties.Name="Filters"
+                        DisplayMemberPath="Text"
+                        ItemsSource="{x:Bind filters}"
+                        SelectedIndex="0"
+                        SelectedValuePath="Tag"
+                        SelectionChanged="ComboBox_SelectionChanged"
+                        Style="{StaticResource SubtleComboBoxStyle}" />
+                </StackPanel>
+            </Grid>
         </NavigationView.PaneHeader>
         <NavigationView.Content>
             <Frame x:Name="NavFrame" />

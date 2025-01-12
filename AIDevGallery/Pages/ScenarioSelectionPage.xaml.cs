@@ -18,10 +18,10 @@ internal sealed partial class ScenarioSelectionPage : Page
 
     private readonly List<FilterRecord> filters =
     [
-        new(null, "All Scenarios" ),
-        new("npu", "NPU Scenarios" ),
-        new("gpu", "GPU Scenarios" ),
-        new("wcr-api", "WCR API Scenarios" )
+        new(null, "All" ),
+        new("npu", "NPU" ),
+        new("gpu", "GPU" ),
+        new("wcr-api", "WCR API" )
     ];
 
     private static LastInternalNavigation? lastInternalNavigation;
