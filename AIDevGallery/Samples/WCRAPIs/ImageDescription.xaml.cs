@@ -29,8 +29,8 @@ namespace AIDevGallery.Samples.WCRAPIs;
 [ObservableObject]
 internal sealed partial class ImageDescription : BaseSamplePage
 {
-    private SoftwareBitmap _inputBitmap;
-    private ImageDescriptionGenerator _imageDescriptor;
+    private SoftwareBitmap? _inputBitmap;
+    private ImageDescriptionGenerator? _imageDescriptor;
 
     public ImageDescription()
     {
@@ -73,8 +73,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             using var randomAccessStream = await file.OpenReadAsync();
             var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            var displayableImage = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, displayableImage);
+            _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+            await SetImageSource(ImageSrc, _inputBitmap);
             ResponseTxt.Text = string.Empty;
             DescribeImage(_inputBitmap);
         }
