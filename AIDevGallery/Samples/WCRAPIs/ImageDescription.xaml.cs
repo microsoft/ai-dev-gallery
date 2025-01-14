@@ -8,6 +8,7 @@ using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Threading.Tasks;
@@ -20,38 +21,35 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
     Name = "ImageScaler",
-    Model1Types = [ModelType.ImageScaler],
-    Scenario = ScenarioType.ImageIncreaseFidelity,
-    Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
+    Model1Types = [ModelType.ImageDescription],
+    Scenario = ScenarioType.ImageDescribeImageWcr,
+    Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
     NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
 [ObservableObject]
-internal sealed partial class IncreaseFidelity : BaseSamplePage
+internal sealed partial class ImageDescription : BaseSamplePage
 {
-    private ImageScaler? _imageScaler;
+    private SoftwareBitmap _inputBitmap;
+    private ImageDescriptionGenerator _imageDescriptor;
 
-    [ObservableProperty]
-    private double _imageScale = 2;
-
-    public IncreaseFidelity()
+    public ImageDescription()
     {
         this.InitializeComponent();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageScaler.IsAvailable())
+        sampleParams.ShowWcrModelLoadingMessage = true;
+        if (!ImageDescriptionGenerator.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await ImageScaler.MakeAvailableAsync();
+            var loadResult = await ImageDescriptionGenerator.MakeAvailableAsync();
             if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
             {
                 throw new InvalidOperationException(loadResult.ExtendedError.Message);
             }
         }
 
-        _imageScaler = await ImageScaler.CreateAsync();
-        ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+        _imageDescriptor = await ImageDescriptionGenerator.CreateAsync();
         sampleParams.NotifyCompletion();
     }
 
@@ -77,12 +75,8 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
             var displayableImage = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
             await SetImageSource(ImageSrc, displayableImage);
-
-            var scaledImage = ScaleImage(displayableImage);
-            if (scaledImage != null)
-            {
-                await SetImageSource(ImageDst, scaledImage);
-            }
+            ResponseTxt.Text = string.Empty;
+            DescribeImage(_inputBitmap);
         }
     }
 
@@ -105,29 +99,41 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
             BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            var bitmap = await decoder.GetSoftwareBitmapAsync();
+            _inputBitmap = await decoder.GetSoftwareBitmapAsync();
 
-            await SetImageSource(ImageSrc, bitmap);
-
-            var scaledImage = ScaleImage(bitmap);
-            if (scaledImage != null)
-            {
-                await SetImageSource(ImageDst, scaledImage);
-            }
+            await SetImageSource(ImageSrc, _inputBitmap);
+            ResponseTxt.Text = string.Empty;
+            DescribeImage(_inputBitmap);
         }
     }
 
-    private SoftwareBitmap? ScaleImage(SoftwareBitmap softwareBitmap)
+    private async void DescribeImage(SoftwareBitmap bitmap)
     {
-        if (_imageScaler == null)
+        if (_inputBitmap == null)
         {
-            return null;
+            return;
         }
 
-        var width = (int)(softwareBitmap.PixelWidth * ImageScale);
-        var height = (int)(softwareBitmap.PixelHeight * ImageScale);
+        DispatcherQueue?.TryEnqueue(() => LoadImageProgressRing.Visibility = Visibility.Visible);
+        var isFirstWord = true;
+        using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+        var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer);
+        describeTask.Progress += (asyncInfo, delta) =>
+        {
+            var result = asyncInfo.GetResults().Response;
 
-        var bitmap = _imageScaler.ScaleSoftwareBitmap(softwareBitmap, width, height);
-        return bitmap;
+            DispatcherQueue?.TryEnqueue(() =>
+            {
+                if (isFirstWord)
+                {
+                    LoadImageProgressRing.Visibility = Visibility.Collapsed;
+                    isFirstWord = false;
+                }
+
+                ResponseTxt.Text = result;
+            });
+        };
+        await describeTask;
+        LoadImageProgressRing.Visibility = Visibility.Collapsed;
     }
 }
