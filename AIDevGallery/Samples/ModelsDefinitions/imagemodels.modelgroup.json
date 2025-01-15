@@ -167,7 +167,7 @@
         "Id": "ffnet",
         "Name": "FFNet",
         "Description": "A  fuss-free network that segments street scene images with per-pixel classes like road, sidewalk, and pedestrian. Trained on the Cityscapes dataset.",
-        "DocsUrl": "https://huggingface.co/qualcomm/HRNetPose",
+        "DocsUrl": "https://huggingface.co/qualcomm/FFNet-78S",
         "Models": {
           "FFNet78s": {
             "Id": "b7cae302-478f-1177-9559-709df5dfe703",
