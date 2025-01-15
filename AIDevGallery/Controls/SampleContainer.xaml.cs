@@ -6,8 +6,6 @@ using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
-using ColorCode.Common;
-using ColorCode.Styling;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
