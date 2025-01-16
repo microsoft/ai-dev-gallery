@@ -25,7 +25,7 @@ internal class HFSearchResult
     [JsonPropertyName("likes")]
     public int Likes { get; set; }
     [JsonPropertyName("trendingScore")]
-    public int TrendingScore { get; set; }
+    public double TrendingScore { get; set; }
     [JsonPropertyName("_private")]
     public bool Private { get; set; }
     [JsonPropertyName("sha")]
