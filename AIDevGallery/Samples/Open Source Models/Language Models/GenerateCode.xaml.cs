@@ -144,6 +144,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
         {
             IsProgressVisible = true;
             StopBtn.Visibility = Visibility.Visible;
+            _currentLanguage = currentLanguage;
             GenerateSolution(InputTextBox.Text, currentLanguage);
         }
     }
