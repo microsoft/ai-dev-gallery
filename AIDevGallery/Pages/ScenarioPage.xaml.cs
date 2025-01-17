@@ -208,6 +208,7 @@ internal sealed partial class ScenarioPage : Page
         }
         else
         {
+            PlaceholderControl.HideDownloadDialog();
             VisualStateManager.GoToState(this, "ModelSelected", true);
             ModelDropDown2.Visibility = Visibility.Collapsed;
 
