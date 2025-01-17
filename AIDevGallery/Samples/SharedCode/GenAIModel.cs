@@ -254,9 +254,9 @@ internal class GenAIModel : IChatClient, IDisposable
                 generator.GenerateNextToken();
                 part = tokenizerStream.Decode(generator.GetSequence(0)[^1]);
 
-                if (ct.IsCancellationRequested)
+                if (ct.IsCancellationRequested && stopTokensAvailable)
                 {
-                    part = "<|end|>";
+                    part = _template!.Stop!.Last();
                 }
 
                 stringBuilder.Append(part);
