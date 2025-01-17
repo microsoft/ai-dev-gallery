@@ -137,7 +137,7 @@ internal sealed partial class ScenarioPage : Page
         }
 
         modelSelectionControl.SetModels(models, initialModelToLoad);
-        UpdatePlaceholderControl();
+        UpdateModelSelectionPlaceholderControl();
     }
 
     private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
@@ -201,14 +201,14 @@ internal sealed partial class ScenarioPage : Page
         if ((sample.Model2Types == null && selectedModelDetails == null) ||
             (sample.Model2Types != null && (selectedModelDetails == null || selectedModelDetails2 == null)))
         {
-            UpdatePlaceholderControl();
+            UpdateModelSelectionPlaceholderControl();
 
             VisualStateManager.GoToState(this, "NoModelSelected", true);
             return;
         }
         else
         {
-            PlaceholderControl.HideDownloadDialog();
+            ModelSelectionPlaceholderControl.HideDownloadDialog();
             VisualStateManager.GoToState(this, "ModelSelected", true);
             ModelDropDown2.Visibility = Visibility.Collapsed;
 
@@ -238,15 +238,15 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void UpdatePlaceholderControl()
+    private void UpdateModelSelectionPlaceholderControl()
     {
         if (sample == null || (sample.Model2Types == null && selectedModelDetails == null))
         {
-            PlaceholderControl.SetModels(modelSelectionControl.Models);
+            ModelSelectionPlaceholderControl.SetModels(modelSelectionControl.Models);
         }
         else
         {
-            PlaceholderControl.SetModels(modelSelectionControl2.Models);
+            ModelSelectionPlaceholderControl.SetModels(modelSelectionControl2.Models);
         }
     }
 

@@ -138,7 +138,7 @@
                     <Run Text="Consider one of these to get started:" />
                 </TextBlock>
                 <controls:ModelSelectionControl
-                    x:Name="PlaceholderControl"
+                    x:Name="ModelSelectionPlaceholderControl"
                     Grid.Row="1"
                     MinWidth="360"
                     ModelCardVisibility="Visible"
