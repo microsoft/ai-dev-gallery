@@ -30,6 +30,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+        "team.jpg"
+    ],
     Name = "Faster RCNN Object Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-758ffc063508",
     Icon = "\uE8B3")]

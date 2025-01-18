@@ -32,6 +32,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+        "pose_default.png"
+    ],
     Name = "Pose Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-712ffc063508",
     Icon = "\uE8B3")]
