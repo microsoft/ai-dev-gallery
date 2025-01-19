@@ -221,4 +221,14 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             }
         }
     }
+
+    private void ResetButton_Click(object sender, RoutedEventArgs e)
+    {
+        MinLengthSlider.Value = GenAIModel.DefaultMinLength;
+        MaxLengthSlider.Value = GenAIModel.DefaultMaxLength;
+        TopPSlider.Value = GenAIModel.DefaultTopP;
+        TopKSlider.Value = GenAIModel.DefaultTopK;
+        TemperatureSlider.Value = GenAIModel.DefaultTemperature;
+        DoSampleToggle.IsOn = true;
+    }
 }

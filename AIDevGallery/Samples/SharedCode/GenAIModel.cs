@@ -19,12 +19,12 @@ internal class GenAIModel : IChatClient, IDisposable
     private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
 
     // Search Options
-    private const int DefaultTopK = 50;
-    private const float DefaultTopP = 0.9f;
-    private const float DefaultTemperature = 1;
-    private const int DefaultMinLength = 0;
+    public const int DefaultTopK = 50;
+    public const float DefaultTopP = 0.9f;
+    public const float DefaultTemperature = 1;
+    public const int DefaultMinLength = 0;
     public const int DefaultMaxLength = 1024;
-    private const bool DefaultDoSample = false;
+    public const bool DefaultDoSample = false;
 
     private Model? _model;
     private Tokenizer? _tokenizer;

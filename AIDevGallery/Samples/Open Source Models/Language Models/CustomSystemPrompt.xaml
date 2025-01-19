@@ -18,6 +18,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid RowSpacing="8">
@@ -115,8 +116,15 @@
                 </StackPanel>
             </Grid>
             <Button
-                x:Name="GenerateButton"
+                x:Name="ResetButton"
                 Grid.Row="1"
+                MinWidth="86"
+                HorizontalAlignment="Right"
+                Click="ResetButton_Click"
+                Content="Reset To Default"/>
+            <Button
+                x:Name="GenerateButton"
+                Grid.Row="2"
                 MinWidth="86"
                 HorizontalAlignment="Right"
                 Click="GenerateButton_Click"
@@ -125,7 +133,7 @@
                 Style="{StaticResource AccentButtonStyle}" />
             <Button
                 x:Name="StopBtn"
-                Grid.Row="1"
+                Grid.Row="2"
                 MinWidth="86"
                 HorizontalAlignment="Right"
                 AutomationProperties.Name="Stop"
@@ -148,12 +156,12 @@
                 </StackPanel>
             </Button>
             <TextBlock
-                Grid.Row="2"
+                Grid.Row="3"
                 Style="{ThemeResource BodyStrongTextBlockStyle}"
                 Text="Output:" />
             <TextBlock
                 x:Name="OutputTextBlock"
-                Grid.Row="3"
+                Grid.Row="4"
                 AutomationProperties.Name="Output"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 IsTextSelectionEnabled="True"
