@@ -51,7 +51,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
         sampleParams.NotifyCompletion();
 
         // Loads inference on default image
-        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\pose_default.png");
     }
 
     // <exclude>

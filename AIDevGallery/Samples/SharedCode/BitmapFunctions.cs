@@ -199,14 +199,10 @@ internal class BitmapFunctions
 
     public static BitmapImage RenderPredictions(Bitmap image, List<Prediction> predictions)
     {
-        // Draw prediciton
         using Graphics g = Graphics.FromImage(image);
-        int markerSize = (int)((image.Width + image.Height) * 0.02 / 2);
-        int fontSize = (int)((image.Width + image.Height) * .02 / 2);
-        fontSize = Math.Max(fontSize, 1);
-        using Pen pen = new(Color.Red, markerSize / 10);
+        float markerSize = (image.Width + image.Height) * 0.001f;
+        using Pen pen = new(Color.Red, markerSize);
         using Brush brush = new SolidBrush(Color.White);
-        using Font font = new("Arial", fontSize);
         foreach (var p in predictions)
         {
             if (p == null || p.Box == null)
@@ -220,8 +216,11 @@ internal class BitmapFunctions
             g.DrawLine(pen, p.Box.Xmax, p.Box.Ymax, p.Box.Xmin, p.Box.Ymax);
             g.DrawLine(pen, p.Box.Xmin, p.Box.Ymax, p.Box.Xmin, p.Box.Ymin);
 
-            // Draw the label and confidence
+            // Calculate adjusted font and  draw the label
+            float maxTextWidth = p.Box.Xmax - p.Box.Xmin;
             string labelText = $"{p.Label}, {p.Confidence:0.00}";
+            float adjustedFontSize = Math.Clamp(maxTextWidth / ((float)labelText.Length), 8, 16);
+            using Font font = new("Arial", adjustedFontSize);
             g.DrawString(labelText, font, brush, new PointF(p.Box.Xmin, p.Box.Ymin));
         }
 
