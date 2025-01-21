@@ -109,7 +109,7 @@
                         FontSize="12"
                         Header="Temperature"
                         Maximum="5"
-                        Minimum="0"
+                        Minimum="0.01"
                         StepFrequency="0.01"
                         ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
                         Value="1" />
