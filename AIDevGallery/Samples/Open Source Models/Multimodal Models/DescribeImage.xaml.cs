@@ -214,8 +214,8 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
             LoadImageButton.IsEnabled = false;
             ButtonTextBlock.Text = "Cancel";
-            ToolTipService.SetToolTip(DescribeImageButton, "Cancel generation");
-            AutomationProperties.SetName(DescribeImageButton, "Cancel generation");
+            ToolTipService.SetToolTip(DescribeImageButton, "Cancel generation"); // <exclude-line>
+            AutomationProperties.SetName(DescribeImageButton, "Cancel generation"); // <exclude-line>
             Output.Text = string.Empty;
             Loader.IsActive = true;
             Loader.Visibility = Visibility.Visible;
