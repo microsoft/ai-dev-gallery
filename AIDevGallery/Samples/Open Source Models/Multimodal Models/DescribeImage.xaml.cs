@@ -166,7 +166,6 @@ internal sealed partial class DescribeImage : BaseSamplePage
         var file = await PickFileAsync();
         if (file != null)
         {
-            // Load the image
             imageFile = file;
             LoadImage(imageFile);
 
