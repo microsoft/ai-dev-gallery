@@ -46,8 +46,6 @@ internal sealed partial class DescribeImage : BaseSamplePage
         this.Unloaded += (sender, args) => Dispose();
     }
 
-    // Enter here
-    // Initialize Model
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
