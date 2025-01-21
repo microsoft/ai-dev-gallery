@@ -170,7 +170,6 @@ internal sealed partial class DescribeImage : BaseSamplePage
             imageFile = file;
             LoadImage(imageFile);
 
-            // Run inference
             await DescribeTheImage(imageFile);
         }
     }
