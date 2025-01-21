@@ -130,7 +130,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
         var inputTensors = processor.ProcessImages(prompt, images);
 
         using GeneratorParams generatorParams = new(model);
-        generatorParams.SetSearchOption("max_length", 2500);
+        generatorParams.SetSearchOption("max_length", 4096);
         generatorParams.SetInputs(inputTensors);
 
         ct.ThrowIfCancellationRequested();
