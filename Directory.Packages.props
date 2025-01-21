@@ -42,8 +42,9 @@
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.112" />
     <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.12.0" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="3.7.0" />
-    <PackageVersion Include="MSTest.TestFramework" Version="3.7.0" />
+    <!-- Keep version in sync with GHAction build.yml (vstest.console.exe) -->
+    <PackageVersion Include="MSTest.TestAdapter" Version="3.6.4" />
+    <PackageVersion Include="MSTest.TestFramework" Version="3.6.4" />
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
     <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
