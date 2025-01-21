@@ -523,4 +523,9 @@ internal partial class ModelSelectionControl : UserControl
             }
         }
     }
+
+    public void HideDownloadDialog()
+    {
+        DownloadDialog?.Hide();
+    }
 }
