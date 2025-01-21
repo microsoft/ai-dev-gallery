@@ -179,7 +179,6 @@ internal sealed partial class DescribeImage : BaseSamplePage
     {
         if (ButtonTextBlock.Text == "Run sample" && imageFile != null)
         {
-            // Run inference, image already loaded
             await DescribeTheImage(imageFile);
         }
         else if (ButtonTextBlock.Text == "Cancel" && _cts != null)
