@@ -126,7 +126,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "ParaphraseDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {ParaphrasedTextBlock.Text}", "ParaphraseDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     ParaphraseButton.Visibility = Visibility.Visible;
                 });

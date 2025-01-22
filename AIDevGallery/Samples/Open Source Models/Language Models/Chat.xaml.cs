@@ -164,7 +164,7 @@ internal sealed partial class Chat : BaseSamplePage
 
             DispatcherQueue.TryEnqueue(() =>
             {
-                NarratorHelper.Announce(InputBox, "Content has finished generating.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
+                NarratorHelper.Announce(InputBox, $"Response has finished generating: {responseMessage.Content}", "ChatDoneAnnouncementActivityId"); // <exclude-line>
                 StopBtn.Visibility = Visibility.Collapsed;
                 SendBtn.Visibility = Visibility.Visible;
                 EnableInputBoxWithPlaceholder();

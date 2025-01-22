@@ -128,7 +128,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "SentimentAnalysisDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {SentimentTextBlock.Text}", "SentimentAnalysisDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     SentimentButton.Visibility = Visibility.Visible;
                     if (!matchFound)

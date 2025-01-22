@@ -131,7 +131,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GrammarDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {CheckedTextBlock.Text}", "GrammarDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     CheckGrammarButton.Visibility = Visibility.Visible;
                 });

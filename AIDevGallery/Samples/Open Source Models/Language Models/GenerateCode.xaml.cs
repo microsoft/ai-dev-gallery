@@ -121,7 +121,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateCodeDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {generatedCode}", "GenerateCodeDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.IsEnabled = true;
                     GenerateButton.Visibility = Visibility.Visible;

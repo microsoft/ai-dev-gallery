@@ -143,7 +143,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "ContentModerationDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {GenerateTextBlock.Text}", "ContentModerationDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.IsEnabled = true;
                     InputTextBox.IsEnabled = true;

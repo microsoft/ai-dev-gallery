@@ -139,7 +139,7 @@ internal sealed partial class ExplainCode : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "CodeExplanationDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {ExplanationTextBlock.Text}", "CodeExplanationDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     ExplainButton.IsEnabled = true;
                     ExplainButton.Visibility = Visibility.Visible;

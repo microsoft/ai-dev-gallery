@@ -127,7 +127,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "CustomPromptDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {OutputTextBlock.Text}", "CustomPromptDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.Visibility = Visibility.Visible;
                     InputTextBox.IsEnabled = true;

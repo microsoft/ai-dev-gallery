@@ -123,7 +123,7 @@ internal sealed partial class Summarize : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "SummaryDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {SummaryTextBlock.Text}", "SummaryDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     SummarizeButton.Visibility = Visibility.Visible;
                 });

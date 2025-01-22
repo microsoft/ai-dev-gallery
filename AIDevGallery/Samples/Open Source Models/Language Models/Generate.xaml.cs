@@ -6,6 +6,8 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System.Threading;
@@ -57,6 +59,8 @@ internal sealed partial class Generate : BaseSamplePage
     {
         CancelGeneration();
         model?.Dispose();
+
+        NarratorHelper.StopAnnouncement(InputTextBox, "GenerateDoneAnnouncementActivityId");
     }
 
     public bool IsProgressVisible
@@ -129,7 +133,7 @@ internal sealed partial class Generate : BaseSamplePage
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
+                    NarratorHelper.Announce(InputTextBox, $"Content has finished generating: {GenerateTextBlock.Text}", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.Visibility = Visibility.Visible;
                     InputTextBox.IsEnabled = true;

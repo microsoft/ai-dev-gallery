@@ -29,4 +29,14 @@ internal class NarratorHelper
         var peer = FrameworkElementAutomationPeer.FromElement(ue);
         peer?.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, annoucement, activityID);
     }
+
+    public static void StopAnnouncement(UIElement ue, string activityID)
+    {
+        var peer = FrameworkElementAutomationPeer.FromElement(ue);
+        peer?.RaiseNotificationEvent(
+            AutomationNotificationKind.Other, // General interruption, no specific kind
+            AutomationNotificationProcessing.MostRecent, // Ensures it supersedes ongoing announcements
+            string.Empty, // Empty message effectively cancels the narration
+            activityID);
+    }
 }

@@ -131,7 +131,7 @@ internal sealed partial class Translate : BaseSamplePage
 
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        NarratorHelper.Announce(InputTextBox, "Translation has finished generating.", "TranslationDoneAnnouncementActivityId"); // <exclude-line>
+                        NarratorHelper.Announce(InputTextBox, $"Translation has finished generating: {TranslatedTextBlock.Text}", "TranslationDoneAnnouncementActivityId"); // <exclude-line>
                         StopBtn.Visibility = Visibility.Collapsed;
                         TranslateButton.Visibility = Visibility.Visible;
                     });
