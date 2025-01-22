@@ -52,6 +52,8 @@ internal sealed partial class ModelPage : Page
 
             ModelFamily = new ModelFamily
             {
+                Id = details.Id,
+                DocsUrl = details.ReadmeUrl ?? string.Empty,
                 ReadmeUrl = details.ReadmeUrl ?? string.Empty,
                 Name = details.Name
             };
