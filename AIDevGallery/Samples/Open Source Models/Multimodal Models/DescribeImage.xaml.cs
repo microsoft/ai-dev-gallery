@@ -167,7 +167,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
             imageFile = file;
             LoadImage(imageFile);
 
-            await DescribeTheImage(imageFile);
+            await DescribeTheImage();
         }
     }
 
@@ -175,7 +175,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
     {
         if (ButtonTextBlock.Text == "Run sample" && imageFile != null)
         {
-            await DescribeTheImage(imageFile);
+            await DescribeTheImage();
         }
         else if (ButtonTextBlock.Text == "Cancel" && _cts != null)
         {
@@ -200,7 +200,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
         imageFile = file;
     }
 
-    private async Task DescribeTheImage(StorageFile file)
+    private async Task DescribeTheImage()
     {
         _cts = new CancellationTokenSource();
         try
@@ -221,7 +221,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
             {
                 try
                 {
-                    await foreach (var part in InferStreaming("What is this image", file.Path, _cts.Token))
+                    await foreach (var part in InferStreaming("What is this image", imageFile!.Path, _cts.Token))
                     {
                         DispatcherQueue.TryEnqueue(() => Output.Text += part);
                     }

@@ -48,7 +48,7 @@
                         Visibility="Collapsed" />
                     <TextBlock 
                         x:Name="ButtonTextBlock" 
-                        Text="Run Sample" />
+                        Text="Run sample" />
                 </StackPanel>
             </Button>
         </StackPanel>
