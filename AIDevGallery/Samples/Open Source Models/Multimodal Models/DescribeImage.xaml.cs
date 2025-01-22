@@ -139,7 +139,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
             ct.ThrowIfCancellationRequested();
 
             await Task.Delay(0, ct).ConfigureAwait(false);
-            
+
             // This step takes a long time, theoretically, most cancellation get hung here
             generator.ComputeLogits();
             ct.ThrowIfCancellationRequested();
