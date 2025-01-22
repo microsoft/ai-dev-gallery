@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Telemetry;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
@@ -29,7 +31,15 @@ internal class HuggingFaceApi
         var response = await client.GetAsync(searchUrl);
         var responseContent = await response.Content.ReadAsStringAsync();
 
-        return JsonSerializer.Deserialize(responseContent, SourceGenerationContext.Default.ListHFSearchResult);
+        try
+        {
+            return JsonSerializer.Deserialize(responseContent, SourceGenerationContext.Default.ListHFSearchResult);
+        }
+        catch (Exception ex)
+        {
+            TelemetryFactory.Get<ITelemetry>().LogException("HuggingFaceApiSearchFailed_Event", ex);
+            return [];
+        }
     }
 
     /// <summary>
