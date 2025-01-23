@@ -9,6 +9,7 @@ using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
@@ -68,13 +69,13 @@ internal sealed partial class AddModelPage : Page
 
         SearchButton.IsEnabled = true;
         SearchButtonProgressBar.Visibility = Visibility.Collapsed;
+        NoModelsFoundTxt.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = true;
     }
 
     private async Task SearchModels(string query, CancellationToken cancellationToken)
     {
         this.results.Clear();
-
         SearchModelEvent.Log(query);
 
         var results = await HuggingFaceApi.FindModels(query);
@@ -86,6 +87,7 @@ internal sealed partial class AddModelPage : Page
 
         if (results == null || results.Count <= 0)
         {
+            NoModelsFoundTxt.Visibility = Visibility.Visible;
             return;
         }
 
@@ -318,6 +320,11 @@ internal sealed partial class AddModelPage : Page
     internal static Visibility VisibleWhenDownloading(ResultState state)
     {
         return state == ResultState.Downloading ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        this.Focus(FocusState.Programmatic);
     }
 }
 
