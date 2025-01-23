@@ -37,6 +37,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+        "team.jpg"
+    ],
     Name = "Multiple Pose Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-71211c063508",
     Icon = "\uE8B3")]
