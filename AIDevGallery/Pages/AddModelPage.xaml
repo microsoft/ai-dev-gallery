@@ -73,14 +73,26 @@
                 Visibility="Collapsed" />
         </Grid>
 
-        <TextBlock
-            x:Name="NoModelsFoundTxt"
+        <StackPanel
+            x:Name="NoResultsPanel"
             Grid.Row="1"
             Margin="0,64,0,0"
             HorizontalAlignment="Center"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="No models found."
-            Visibility="Visible" />
+            Orientation="Vertical"
+            Spacing="16"
+            Visibility="Collapsed">
+            <FontIcon
+                HorizontalAlignment="Center"
+                AutomationProperties.AccessibilityView="Raw"
+                FontSize="48"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Glyph="&#xE721;" />
+            <TextBlock
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="No models found.." />
+        </StackPanel>
+
 
         <ScrollViewer Grid.Row="1" Padding="24,0,24,0">
             <ItemsRepeater

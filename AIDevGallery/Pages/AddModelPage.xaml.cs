@@ -9,7 +9,6 @@ using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
@@ -56,6 +55,7 @@ internal sealed partial class AddModelPage : Page
     {
         SearchButton.IsEnabled = false;
         SearchButtonProgressBar.Visibility = Visibility.Visible;
+        NoResultsPanel.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = false;
 
         if (cts != null && !cts.IsCancellationRequested)
@@ -69,7 +69,6 @@ internal sealed partial class AddModelPage : Page
 
         SearchButton.IsEnabled = true;
         SearchButtonProgressBar.Visibility = Visibility.Collapsed;
-        NoModelsFoundTxt.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = true;
     }
 
@@ -87,7 +86,7 @@ internal sealed partial class AddModelPage : Page
 
         if (results == null || results.Count <= 0)
         {
-            NoModelsFoundTxt.Visibility = Visibility.Visible;
+            NoResultsPanel.Visibility = Visibility.Visible;
             return;
         }
 
