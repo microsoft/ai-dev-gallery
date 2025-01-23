@@ -28,11 +28,16 @@
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,0,0,1">
             <StackPanel
-                Margin="0,32,0,36"
+                Margin="0,16,0,36"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Center"
                 Orientation="Vertical"
                 Spacing="4">
+                <TextBlock
+                    Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Search for models" />
                 <TextBlock
                     Grid.Row="1"
                     HorizontalAlignment="Center"
@@ -104,7 +109,7 @@
                         ItemsStretch="Fill"
                         MinColumnSpacing="12"
                         MinItemWidth="386"
-                        MinRowSpacing="24" />
+                        MinRowSpacing="16" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:Result">
