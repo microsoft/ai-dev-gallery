@@ -30,6 +30,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+        "pose_default.png"
+    ],
     Name = "Faster RCNN Object Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-758ffc063508",
     Icon = "\uE8B3")]
@@ -51,7 +54,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
         sampleParams.NotifyCompletion();
 
         // Loads inference on default image
-        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\pose_default.png");
     }
 
     // <exclude>

@@ -34,6 +34,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+       "streetscape.png",
+    ],
     Id = "9b74acc0-a5f7-430f-bed0-958ffc063598",
     Icon = "\uE8B3")]
 internal sealed partial class SegmentStreets : BaseSamplePage
