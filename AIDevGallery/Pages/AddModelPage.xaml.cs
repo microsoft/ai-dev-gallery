@@ -55,6 +55,7 @@ internal sealed partial class AddModelPage : Page
     {
         SearchButton.IsEnabled = false;
         SearchButtonProgressBar.Visibility = Visibility.Visible;
+        NoResultsPanel.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = false;
 
         if (cts != null && !cts.IsCancellationRequested)
@@ -74,7 +75,6 @@ internal sealed partial class AddModelPage : Page
     private async Task SearchModels(string query, CancellationToken cancellationToken)
     {
         this.results.Clear();
-
         SearchModelEvent.Log(query);
 
         var results = await HuggingFaceApi.FindModels(query);
@@ -86,6 +86,7 @@ internal sealed partial class AddModelPage : Page
 
         if (results == null || results.Count <= 0)
         {
+            NoResultsPanel.Visibility = Visibility.Visible;
             return;
         }
 
@@ -318,6 +319,11 @@ internal sealed partial class AddModelPage : Page
     internal static Visibility VisibleWhenDownloading(ResultState state)
     {
         return state == ResultState.Downloading ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        this.Focus(FocusState.Programmatic);
     }
 }
 
