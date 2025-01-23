@@ -31,7 +31,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private readonly int defaultTopK = 50;
     private readonly float defaultTopP = 0.9f;
     private readonly float defaultTemperature = 1;
-    private readonly int defaultMinLength;
+    private readonly int defaultMinLength = 0;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
     private IChatClient? model;
