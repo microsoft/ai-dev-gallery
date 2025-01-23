@@ -53,7 +53,7 @@
                     VerticalAlignment="Center"
                     FontSize="10"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="AI-generated content might contain mistakes."
+                    Text="AI-generated content might be incorrect, offensive, or biased."
                     TextAlignment="Center"
                     Visibility="Visible" />
             </StackPanel>
