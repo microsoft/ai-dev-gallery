@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
@@ -203,6 +204,7 @@ internal class BitmapFunctions
         float markerSize = (image.Width + image.Height) * 0.001f;
         using Pen pen = new(Color.Red, markerSize);
         using Brush brush = new SolidBrush(Color.White);
+        using Font font = new("Arial", GetAdjustedFontsize(predictions));
         foreach (var p in predictions)
         {
             if (p == null || p.Box == null)
@@ -216,11 +218,7 @@ internal class BitmapFunctions
             g.DrawLine(pen, p.Box.Xmax, p.Box.Ymax, p.Box.Xmin, p.Box.Ymax);
             g.DrawLine(pen, p.Box.Xmin, p.Box.Ymax, p.Box.Xmin, p.Box.Ymin);
 
-            // Calculate adjusted font and  draw the label
-            float maxTextWidth = p.Box.Xmax - p.Box.Xmin;
             string labelText = $"{p.Label}, {p.Confidence:0.00}";
-            float adjustedFontSize = Math.Clamp(maxTextWidth / ((float)labelText.Length), 8, 16);
-            using Font font = new("Arial", adjustedFontSize);
             g.DrawString(labelText, font, brush, new PointF(p.Box.Xmin, p.Box.Ymin));
         }
 
@@ -358,5 +356,19 @@ internal class BitmapFunctions
         bitmapImage.SetSource(stream);
 
         return bitmapImage;
+    }
+
+    private static float GetAdjustedFontsize(List<Prediction> predictions)
+    {
+        float adjustedFontSize = 12;
+
+        if(predictions.Count > 0)
+        {
+            int maxPredictionTextLength = predictions.Select(p => p.Label.Length).ToList().Max() + 5;
+            float minPredictionBoxWidth = predictions.Select(p => p.Box!.Xmax - p.Box!.Xmin).ToList().Min();
+            adjustedFontSize = Math.Clamp(minPredictionBoxWidth / ((float)maxPredictionTextLength), 8, 16);
+        }
+
+        return adjustedFontSize;
     }
 }
