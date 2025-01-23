@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Xml.Linq;
 
 namespace AIDevGallery.Utils;
 
@@ -499,6 +501,13 @@ internal class LicenseInfo
                 {
                     Name = "Llama 3.2 Community License Agreement",
                     LicenseUrl = "https://huggingface.co/meta-llama/Llama-3.2-1B/blob/main/LICENSE.txt"
+                }
+            },
+            {
+                "llama3.3", new LicenseInfo
+                {
+                    Name = "Llama 3.3 Community License Agreement",
+                    LicenseUrl = "https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct/blob/main/LICENSE"
                 }
             },
             {

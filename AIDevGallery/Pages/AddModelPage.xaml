@@ -132,14 +132,30 @@
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind SearchResult.Author}" />
-                            <TextBlock
-                                Grid.Row="1"
-                                Margin="0,4,0,6"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="{x:Bind SearchResult.Name}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap" />
+                            
+                            <StackPanel Orientation="Horizontal"
+                                        Grid.Row="1"
+                                        Margin="0,4,0,6"
+                                        Spacing="4">
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="{x:Bind SearchResult.Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxWidth="260"
+                                    TextWrapping="NoWrap" />
+
+                                <HyperlinkButton
+                                     AutomationProperties.Name="View model card in the browser"
+                                     NavigateUri="{x:Bind HFUrl}"
+                                     ToolTipService.ToolTip="View model card in the browser">
+                                    <Image
+                                            Width="16"
+                                            AutomationProperties.AccessibilityView="Raw"
+                                            Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(Details.Url)}" />
+                                </HyperlinkButton>
+                            </StackPanel>
 
                             <StackPanel
                                 Grid.Row="2"
@@ -212,7 +228,8 @@
                                         MaxWidth="146"
                                         Padding="0"
                                         VerticalAlignment="Center"
-                                        AutomationProperties.Name="View license"
+                                        AutomationProperties.Name="Open license in browser"
+                                        ToolTipService.ToolTip="Open license in browser"
                                         Click="Hyperlink_Click"
                                         DataContext="{x:Bind}">
                                         <TextBlock
