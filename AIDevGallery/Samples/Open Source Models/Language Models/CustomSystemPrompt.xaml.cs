@@ -28,6 +28,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 internal sealed partial class CustomSystemPrompt : BaseSamplePage
 {
     private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
+    private readonly int defaultTopK = 50;
+    private readonly float defaultTopP = 0.9f;
+    private readonly float defaultTemperature = 1;
+    private readonly int defaultMinLength;
+    private readonly int defaultMaxLength = 1024;
+    private readonly bool defaultDoSample = true;
     private IChatClient? model;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
@@ -224,11 +230,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     private void ResetButton_Click(object sender, RoutedEventArgs e)
     {
-        MinLengthSlider.Value = GenAIModel.DefaultMinLength;
-        MaxLengthSlider.Value = GenAIModel.DefaultMaxLength;
-        TopPSlider.Value = GenAIModel.DefaultTopP;
-        TopKSlider.Value = GenAIModel.DefaultTopK;
-        TemperatureSlider.Value = GenAIModel.DefaultTemperature;
-        DoSampleToggle.IsOn = true;
+        MinLengthSlider.Value = defaultMinLength;
+        MaxLengthSlider.Value = defaultMaxLength;
+        TopPSlider.Value = defaultTopP;
+        TopKSlider.Value = defaultTopK;
+        TemperatureSlider.Value = defaultTemperature;
+        DoSampleToggle.IsOn = defaultDoSample;
     }
 }

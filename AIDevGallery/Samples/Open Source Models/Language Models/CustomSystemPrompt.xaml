@@ -64,7 +64,7 @@
                         Minimum="0"
                         StepFrequency="1"
                         ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
-                        Value="0" />
+                        Value="{x:Bind defaultMinLength, Mode=OneTime}" />
                     <Slider
                         x:Name="MaxLengthSlider"
                         FontSize="12"
@@ -73,12 +73,12 @@
                         Minimum="1"
                         StepFrequency="1"
                         ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
-                        Value="1024" />
+                        Value="{x:Bind defaultMaxLength, Mode=OneTime}" />
                     <ToggleSwitch
                         x:Name="DoSampleToggle"
                         FontSize="12"
                         Header="Sampling Enabled"
-                        IsOn="True"
+                        IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
                         ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
                 </StackPanel>
                 <StackPanel
@@ -94,7 +94,7 @@
                         Minimum="0"
                         StepFrequency="0.01"
                         ToolTipService.ToolTip="The top P parameter tells the model to only consider tokens up until a cumulative probability of P. Lower this value for more predictable, focused generation and increase it for more random response."
-                        Value=".9" />
+                        Value="{x:Bind defaultTopP, Mode=OneTime}" />
                     <Slider
                         x:Name="TopKSlider"
                         FontSize="12"
@@ -103,7 +103,7 @@
                         Minimum="0"
                         StepFrequency="1"
                         ToolTipService.ToolTip="The top K parameter tells the model to only consider the K most probable tokens at each generation step. Lower this value for more predictable, focused generation and increase it for more random response."
-                        Value="50" />
+                        Value="{x:Bind defaultTopK, Mode=OneTime}" />
                     <Slider
                         x:Name="TemperatureSlider"
                         FontSize="12"
@@ -112,7 +112,7 @@
                         Minimum="0.01"
                         StepFrequency="0.01"
                         ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
-                        Value="1" />
+                        Value="{x:Bind defaultTemperature, Mode=OneTime}" />
                 </StackPanel>
             </Grid>
             <Button
