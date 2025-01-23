@@ -32,6 +32,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
+    AssetFilenames = [
+        "team.jpg"
+    ],
     Name = "YOLO Object Detection",
     Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
     Icon = "\uE8B3")]
