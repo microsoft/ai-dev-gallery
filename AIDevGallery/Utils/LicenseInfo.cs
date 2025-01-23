@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Xml.Linq;
 
 namespace AIDevGallery.Utils;
 
