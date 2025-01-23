@@ -345,7 +345,7 @@
                             <SplitView.Pane>
                                 <Grid
                                     x:Name="PaneContentGrid"
-                                    HorizontalAlignment="Left"
+                                    HorizontalAlignment="Stretch"
                                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=TemplateSettings.LeftPaneVisibility}">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />

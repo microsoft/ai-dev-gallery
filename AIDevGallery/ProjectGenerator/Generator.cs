@@ -263,6 +263,17 @@ internal partial class Generator
             }
         }
 
+        // Add Asset Files
+        foreach(string assetFilename in sample.AssetFilenames)
+        {
+            string fullAssetPath = Path.Join(Package.Current.InstalledLocation.Path, "Assets", assetFilename);
+            string fullOutputAssetPath = Path.Combine(outputPath, "Assets", assetFilename);
+            if (Path.GetExtension(fullAssetPath) is ".jpg" or ".png")
+            {
+                File.Copy(fullAssetPath, fullOutputAssetPath);
+            }
+        }
+
         var csproj = Path.Join(outputPath, $"{safeProjectName}.csproj");
 
         // Add NuGet references
