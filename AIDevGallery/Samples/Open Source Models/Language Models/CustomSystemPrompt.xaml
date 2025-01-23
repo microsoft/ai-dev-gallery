@@ -64,7 +64,7 @@
                         Minimum="0"
                         StepFrequency="1"
                         ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
-                        Value="{x:Bind defaultMinLength, Mode=OneTime}" />
+                        Value="0" />
                     <Slider
                         x:Name="MaxLengthSlider"
                         FontSize="12"
