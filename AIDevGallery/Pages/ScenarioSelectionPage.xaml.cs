@@ -21,7 +21,8 @@ internal sealed partial class ScenarioSelectionPage : Page
         new(null, "All" ),
         new("npu", "NPU" ),
         new("gpu", "GPU" ),
-        new("wcr-api", "WCR API" )
+
+        // new("wcr-api", "WCR API" )
     ];
 
     private static LastInternalNavigation? lastInternalNavigation;
