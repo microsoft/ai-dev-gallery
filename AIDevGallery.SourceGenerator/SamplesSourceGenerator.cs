@@ -307,6 +307,13 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                             nugetPackageReferences = nugetPackageReferencesRef.Value.Values.Select(v => (string)v.Value!).ToArray();
                         }
 
+                        string[]? assetFilenames = null;
+                        var assetFilenamesRef = attributeData.NamedArguments.FirstOrDefault(a => a.Key == "AssetFilenames");
+                        if(!assetFilenamesRef.Value.IsNull)
+                        {
+                            assetFilenames = assetFilenamesRef.Value.Values.Select(v => (string)v.Value!).ToArray();
+                        }
+
                         return new SampleModel(
                             Owner: typeSymbol.GetFullyQualifiedName(),
                             Name: name,
@@ -317,6 +324,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                             Icon: icon,
                             Scenario: scenario,
                             NugetPackageReferences: nugetPackageReferences,
+                            AssetFilenames: assetFilenames,
                             attributeData.GetLocation());
                     }
                     catch (Exception)
@@ -399,6 +407,10 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                         }
                     }
 
+                    var assetFilenames = sample.AssetFilenames != null && sample.AssetFilenames.Length > 0
+                        ? string.Join(", ", sample.AssetFilenames.Select(a => $"\"{a}\""))
+                        : string.Empty;
+
                     sourceBuilder.AppendLine(
                         $$""""""
                             new Sample
@@ -419,7 +431,8 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                                 Model1Types = GetModelTypesFrom(1, typeof({{sample.Owner}}))!,
                                 Model2Types = GetModelTypesFrom(2, typeof({{sample.Owner}})),
                                 SharedCode = GetSharedCodeFrom(typeof({{sample.Owner}})),
-                                NugetPackageReferences = [ {{nugetPackageReferences}} ]
+                                NugetPackageReferences = [ {{nugetPackageReferences}} ],
+                                AssetFilenames = [ {{assetFilenames}} ]
                             },
                         """""");
                 }
@@ -436,7 +449,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
     }
 
     private record ScenarioModel(string EnumName, string ScenarioCategoryType, string Id, string Name, string Description);
-    private record SampleModel(string Owner, string Name, string PageType, string XAMLCode, string CSCode, string Id, string Icon, string? Scenario, string[]? NugetPackageReferences, Location? Location);
+    private record SampleModel(string Owner, string Name, string PageType, string XAMLCode, string CSCode, string Id, string Icon, string? Scenario, string[]? NugetPackageReferences, string[]? AssetFilenames, Location? Location);
     private record ModelDefinitionModel(string EnumName, string Parent, string Name, string Id, string Description, string Url, string HardwareAccelerator, long Size, string ParameterSize);
 }
 #pragma warning restore RS1035 // Do not use APIs banned for analyzers
