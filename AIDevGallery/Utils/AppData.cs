@@ -16,6 +16,7 @@ internal class AppData
 {
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
+    public CustomParametersState? LastCustomParamtersState { get; set; }
 
     // model or api ids
     public required LinkedList<string> UsageHistory { get; set; }
@@ -101,4 +102,16 @@ internal class AppData
             UsageHistory = new()
         };
     }
+}
+
+internal class CustomParametersState
+{
+    public bool? DoSample { get; set; }
+    public int? MaxLength { get; set; }
+    public int? MinLength { get; set; }
+    public int? TopK { get; set; }
+    public float? TopP { get; set; }
+    public float? Temperature { get; set; }
+    public string? UserPrompt { get; set; }
+    public string? SystemPrompt { get; set; }
 }
