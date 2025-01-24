@@ -227,7 +227,7 @@ internal sealed partial class AddModelPage : Page
 
     private PromptTemplate? GetTemplateFromName(string name)
     {
-        switch (name)
+        switch (name.ToLower(System.Globalization.CultureInfo.InvariantCulture))
         {
             case string p when p.Contains("phi3") || p.Contains("phi-3"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
@@ -235,6 +235,8 @@ internal sealed partial class AddModelPage : Page
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
             case string m when m.Contains("mistral"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Mistral];
+            case string q when q.Contains("qwen"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Qwen];
             default:
                 return null;
         }
