@@ -35,5 +35,13 @@
       "<|im_start|>",
       "<|im_end|>"
     ]
+  },
+  "Gemma": {
+    "user": "<start_of_turn>user\n{{CONTENT}}<end_of_turn>\n",
+    "assistant": "<start_of_turn>model\n{{CONTENT}}<end_of_turn>\n",
+    "stop": [
+      "<start_of_turn>",
+      "<end_of_turn>"
+    ]
   }
 }

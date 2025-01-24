@@ -229,14 +229,16 @@ internal sealed partial class AddModelPage : Page
     {
         switch (name.ToLower(System.Globalization.CultureInfo.InvariantCulture))
         {
-            case string p when p.Contains("phi3") || p.Contains("phi-3"):
+            case string p when p.Contains("phi"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
-            case string l when l.Contains("llama") || l.Contains("llama-3"):
+            case string l when l.Contains("llama") || l.Contains("nemotron"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
             case string m when m.Contains("mistral"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Mistral];
             case string q when q.Contains("qwen"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Qwen];
+            case string g when g.Contains("gemma"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Gemma];
             default:
                 return null;
         }
