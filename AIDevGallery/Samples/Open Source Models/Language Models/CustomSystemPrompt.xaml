@@ -39,7 +39,7 @@
                     AcceptsReturn="True"
                     AutomationProperties.Name="Prompt input"
                     PlaceholderText="Enter a system prompt for the model..."
-                    Text="You are a helpful assistant."
+                    Text="{x:Bind defaultSystemPrompt, Mode=OneTime}"
                     TextWrapping="Wrap" />
                 <TextBox
                     x:Name="InputTextBox"

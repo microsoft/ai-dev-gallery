@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -33,6 +34,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private readonly float defaultTemperature = 1;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
+    private readonly string defaultSystemPrompt = "You are a helpful assistant.";
     private IChatClient? model;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
@@ -40,6 +42,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     public CustomSystemPrompt()
     {
         Unloaded += (s, e) => CleanUp();
+        Unloaded += (s, e) => Page_Unloaded(); // <exclude-line>
         Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         InitializeComponent();
         DoSampleToggle.Toggled += DoSampleToggle_Toggled;
@@ -56,6 +59,36 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private void Page_Loaded()
     {
         InputTextBox.Focus(FocusState.Programmatic);
+        CustomParametersState? lastState = App.AppData.LastCustomParamtersState;
+        if (lastState != null)
+        {
+            DoSampleToggle.IsOn = lastState.DoSample ?? defaultDoSample;
+            MinLengthSlider.Value = lastState.MinLength ?? 0;
+            MaxLengthSlider.Value = lastState.MaxLength ?? defaultMaxLength;
+            TopKSlider.Value = lastState.TopK ?? defaultTopK;
+            TemperatureSlider.Value = lastState.Temperature ?? defaultTemperature;
+            TopPSlider.Value = lastState.TopP ?? defaultTopP;
+            SystemPromptInputTextBox.Text = lastState.SystemPrompt ?? defaultSystemPrompt;
+            InputTextBox.Text = lastState.UserPrompt ?? string.Empty;
+        }
+    }
+
+    private void Page_Unloaded()
+    {
+        CustomParametersState lastState = new()
+        {
+            DoSample = DoSampleToggle.IsOn,
+            MinLength = (int)MinLengthSlider.Value,
+            MaxLength = (int)MaxLengthSlider.Value,
+            TopK = (int)TopKSlider.Value,
+            TopP = (float)TopPSlider.Value,
+            Temperature = (float)TemperatureSlider.Value,
+            SystemPrompt = SystemPromptInputTextBox.Text,
+            UserPrompt = InputTextBox.Text
+        };
+
+        App.AppData.LastCustomParamtersState = lastState;
+        App.AppData.SaveAsync();
     }
 
     // </exclude>
