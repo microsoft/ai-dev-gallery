@@ -45,17 +45,23 @@
             </Grid>
         </ScrollViewer>
         <InfoBar
+            x:Name="DiagnosticsInfoBar"
             Title="Send optional diagnostic data"
             Margin="16"
             VerticalAlignment="Bottom"
             IsClosable="False"
-            IsOpen="True"
-            Message="As a part of using this app, your app sends Microsoft a limited set of data that is necessary to keep this app secure, up to date, and working as expected. Help us improve your experience and fix problems more quickly by sending us additional diagnostic data.">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Content="Yes" />
-                <Button Content="No" />
+            IsOpen="False"
+            Message="Help us improve this app by sharing diagnostics data to inform bug fixes, performance, and feature enhancements.">
+            <StackPanel
+                Margin="0,0,0,8"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="DiagnosticsYesButton_Click"
+                    Content="Yes"
+                    Style="{StaticResource AccentButtonStyle}" />
+                <Button Click="DiagnosticsNoButton_Click" Content="No" />
             </StackPanel>
         </InfoBar>
-
     </Grid>
 </Page>

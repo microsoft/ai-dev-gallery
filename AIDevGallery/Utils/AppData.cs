@@ -24,10 +24,13 @@ internal class AppData
 
     public bool IsFirstRun { get; set; }
 
+    public bool IsDiagnosticsMessageDismissed { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
         IsFirstRun = true;
+        IsDiagnosticsMessageDismissed = false;
     }
 
     private static string GetConfigFilePath()
