@@ -14,13 +14,13 @@ internal partial class DownloadableModel : BaseModel
     private readonly DispatcherTimer _progressTimer;
 
     [ObservableProperty]
-    private float progress;
+    public partial float Progress { get; set; }
 
     [ObservableProperty]
-    private bool canDownload;
+    public partial bool CanDownload { get; set; }
 
     [ObservableProperty]
-    private DownloadStatus status = DownloadStatus.Waiting;
+    public partial DownloadStatus Status { get; set; } = DownloadStatus.Waiting;
 
     public bool IsDownloadEnabled => Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible;
 

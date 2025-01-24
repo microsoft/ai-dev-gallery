@@ -5,44 +5,43 @@ using Microsoft.UI.Xaml;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 
-namespace AIDevGallery.UnitTests
+namespace AIDevGallery.UnitTests;
+
+/// <summary>
+/// Provides application-specific behavior to supplement the default Application class.
+/// </summary>
+public partial class UnitTestApp : Application
 {
     /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
+    /// Initializes a new instance of the <see cref="UnitTestApp"/> class.
+    /// Initializes the singleton application object.  This is the first line of authored code
+    /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
-    public partial class UnitTestApp : Application
+    public UnitTestApp()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UnitTestApp"/> class.
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public UnitTestApp()
-        {
-            this.InitializeComponent();
-        }
+        this.InitializeComponent();
+    }
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs args)
-        {
-            Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.CreateDefaultUI();
+    /// <summary>
+    /// Invoked when the application is launched.
+    /// </summary>
+    /// <param name="args">Details about the launch request and process.</param>
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.CreateDefaultUI();
 
-            window = new UnitTestAppWindow();
-            window.Activate();
+        window = new UnitTestAppWindow();
+        window.Activate();
 
-            UITestMethodAttribute.DispatcherQueue = window.DispatcherQueue;
+        UITestMethodAttribute.DispatcherQueue = window.DispatcherQueue;
 
-            Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.Run(Environment.CommandLine);
-        }
+        Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.Run(Environment.CommandLine);
+    }
 
-        private static UnitTestAppWindow? window;
+    private static UnitTestAppWindow? window;
 
-        public static void SetWindowContent(UIElement content)
-        {
-            window?.SetRootGridContent(content);
-        }
+    public static void SetWindowContent(UIElement content)
+    {
+        window?.SetRootGridContent(content);
     }
 }

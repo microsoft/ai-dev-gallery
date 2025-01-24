@@ -3,20 +3,21 @@
 
 using AIDevGallery.Samples.SharedCode;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace AIDevGallery.Models
+namespace AIDevGallery.Models;
+
+internal class SampleNavigationParameters(
+        string modelPath,
+        HardwareAccelerator hardwareAccelerator,
+        LlmPromptTemplate? promptTemplate,
+        TaskCompletionSource sampleLoadedCompletionSource,
+        CancellationToken loadingCanceledToken)
+    : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
 {
-    internal class SampleNavigationParameters(
-            string modelPath,
-            HardwareAccelerator hardwareAccelerator,
-            LlmPromptTemplate? promptTemplate,
-            CancellationToken loadingCanceledToken)
-        : BaseSampleNavigationParameters(loadingCanceledToken)
-    {
-        public string ModelPath { get; } = modelPath;
-        public HardwareAccelerator HardwareAccelerator { get; } = hardwareAccelerator;
+    public string ModelPath { get; } = modelPath;
+    public HardwareAccelerator HardwareAccelerator { get; } = hardwareAccelerator;
 
-        protected override string ChatClientModelPath => ModelPath;
-        protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
-    }
+    protected override string ChatClientModelPath => ModelPath;
+    protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
 }

@@ -30,6 +30,7 @@ internal class GenAIModel : IChatClient, IDisposable
     private Tokenizer? _tokenizer;
     private LlmPromptTemplate? _template;
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
+    private static OgaHandle? _ogaHandle;
 
     public static ChatOptions GetDefaultChatOptions()
     {
@@ -84,6 +85,11 @@ internal class GenAIModel : IChatClient, IDisposable
         return model;
     }
 
+    public static void InitializeGenAI()
+    {
+        _ogaHandle = new OgaHandle();
+    }
+
     [MemberNotNullWhen(true, nameof(_model), nameof(_tokenizer))]
     public bool IsReady => _model != null && _tokenizer != null;
 
@@ -93,6 +99,7 @@ internal class GenAIModel : IChatClient, IDisposable
     {
         _model?.Dispose();
         _tokenizer?.Dispose();
+        _ogaHandle?.Dispose();
     }
 
     private string GetPrompt(IEnumerable<ChatMessage> history)
@@ -247,9 +254,9 @@ internal class GenAIModel : IChatClient, IDisposable
                 generator.GenerateNextToken();
                 part = tokenizerStream.Decode(generator.GetSequence(0)[^1]);
 
-                if (ct.IsCancellationRequested)
+                if (ct.IsCancellationRequested && stopTokensAvailable)
                 {
-                    part = "<|end|>";
+                    part = _template!.Stop!.Last();
                 }
 
                 stringBuilder.Append(part);
@@ -282,6 +289,7 @@ internal class GenAIModel : IChatClient, IDisposable
             () =>
             {
                 _model = new Model(modelDir);
+                cancellationToken.ThrowIfCancellationRequested();
                 _tokenizer = new Tokenizer(_model);
             },
             cancellationToken);

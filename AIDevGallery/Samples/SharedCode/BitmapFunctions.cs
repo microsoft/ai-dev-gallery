@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
@@ -199,14 +200,11 @@ internal class BitmapFunctions
 
     public static BitmapImage RenderPredictions(Bitmap image, List<Prediction> predictions)
     {
-        // Draw prediciton
         using Graphics g = Graphics.FromImage(image);
-        int markerSize = (int)((image.Width + image.Height) * 0.02 / 2);
-        int fontSize = (int)((image.Width + image.Height) * .02 / 2);
-        fontSize = Math.Max(fontSize, 1);
-        using Pen pen = new(Color.Red, markerSize / 10);
+        float markerSize = (image.Width + image.Height) * 0.001f;
+        using Pen pen = new(Color.Red, markerSize);
         using Brush brush = new SolidBrush(Color.White);
-        using Font font = new("Arial", fontSize);
+        using Font font = new("Arial", GetAdjustedFontsize(predictions));
         foreach (var p in predictions)
         {
             if (p == null || p.Box == null)
@@ -220,7 +218,6 @@ internal class BitmapFunctions
             g.DrawLine(pen, p.Box.Xmax, p.Box.Ymax, p.Box.Xmin, p.Box.Ymax);
             g.DrawLine(pen, p.Box.Xmin, p.Box.Ymax, p.Box.Xmin, p.Box.Ymin);
 
-            // Draw the label and confidence
             string labelText = $"{p.Label}, {p.Confidence:0.00}";
             g.DrawString(labelText, font, brush, new PointF(p.Box.Xmin, p.Box.Ymin));
         }
@@ -359,5 +356,19 @@ internal class BitmapFunctions
         bitmapImage.SetSource(stream);
 
         return bitmapImage;
+    }
+
+    private static float GetAdjustedFontsize(List<Prediction> predictions)
+    {
+        float adjustedFontSize = 12;
+
+        if(predictions.Count > 0)
+        {
+            int maxPredictionTextLength = predictions.Select(p => p.Label.Length).ToList().Max() + 5;
+            float minPredictionBoxWidth = predictions.Select(p => p.Box!.Xmax - p.Box!.Xmin).ToList().Min();
+            adjustedFontSize = Math.Clamp(minPredictionBoxWidth / ((float)maxPredictionTextLength), 8, 16);
+        }
+
+        return adjustedFontSize;
     }
 }
