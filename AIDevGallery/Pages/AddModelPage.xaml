@@ -132,28 +132,30 @@
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind SearchResult.Author}" />
-                            
-                            <StackPanel Orientation="Horizontal"
-                                        Grid.Row="1"
-                                        Margin="0,4,0,6"
-                                        Spacing="4">
+
+                            <StackPanel
+                                Grid.Row="1"
+                                Margin="0,4,0,6"
+                                Orientation="Horizontal"
+                                Spacing="4">
 
                                 <TextBlock
+                                    MaxWidth="260"
                                     VerticalAlignment="Center"
                                     Style="{StaticResource BodyStrongTextBlockStyle}"
                                     Text="{x:Bind SearchResult.Name}"
                                     TextTrimming="CharacterEllipsis"
-                                    MaxWidth="260"
                                     TextWrapping="NoWrap" />
 
                                 <HyperlinkButton
-                                     AutomationProperties.Name="View model card in the browser"
-                                     NavigateUri="{x:Bind HFUrl}"
-                                     ToolTipService.ToolTip="View model card in the browser">
+                                    Padding="0"
+                                    AutomationProperties.Name="View model card in the browser"
+                                    NavigateUri="{x:Bind HFUrl}"
+                                    ToolTipService.ToolTip="View model card in the browser">
                                     <Image
-                                            Width="16"
-                                            AutomationProperties.AccessibilityView="Raw"
-                                            Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(Details.Url)}" />
+                                        Width="16"
+                                        AutomationProperties.AccessibilityView="Raw"
+                                        Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(Details.Url)}" />
                                 </HyperlinkButton>
                             </StackPanel>
 
@@ -229,9 +231,9 @@
                                         Padding="0"
                                         VerticalAlignment="Center"
                                         AutomationProperties.Name="Open license in browser"
-                                        ToolTipService.ToolTip="Open license in browser"
                                         Click="Hyperlink_Click"
-                                        DataContext="{x:Bind}">
+                                        DataContext="{x:Bind}"
+                                        ToolTipService.ToolTip="Open license in browser">
                                         <TextBlock
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Style="{StaticResource CaptionTextBlockStyle}"
