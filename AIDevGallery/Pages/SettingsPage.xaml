@@ -105,19 +105,15 @@
                             </DataTemplate>
                         </toolkit:SettingsExpander.ItemTemplate>
                     </toolkit:SettingsExpander>
-                    <!--<TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
-                    <toolkit:SettingsCard Header="Send optional diagnostic data" HeaderIcon="{ui:FontIcon Glyph=&#xE9D9;}">
-                        <toolkit:SettingsCard.Description>
-                            <TextBlock FontSize="12" >
-                                <Run Text="Help Microsoft improve your Application experience and fix problems more quickly by sending us additional diagnostic data." />
-                            </TextBlock>
-                        </toolkit:SettingsCard.Description>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
+                    <toolkit:SettingsCard
+                        Description="Help Microsoft improve your Application experience and fix problems more quickly by sending us additional diagnostic data."
+                        Header="Diagnostic data"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE9D9;}">
                         <ToggleSwitch x:Name="DiagnosticDataToggleSwitch" Toggled="DiagnosticDataToggleSwitch_Toggled" />
                     </toolkit:SettingsCard>
-                    <TextBlock TextWrapping="Wrap" FontSize="10">
-                        <Bold> You're sending required diagnostic data. </Bold>
-                        <Run> As a part of using this app, your app sends Microsoft a limited set of data that is necessary to keep this app secure, up to date, and working as expected. </Run>
-                    </TextBlock>-->
+
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="About" />
                     <toolkit:SettingsExpander
                         AutomationProperties.AccessibilityView="Raw"
