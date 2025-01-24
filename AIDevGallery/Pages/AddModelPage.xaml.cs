@@ -55,6 +55,7 @@ internal sealed partial class AddModelPage : Page
     {
         SearchButton.IsEnabled = false;
         SearchButtonProgressBar.Visibility = Visibility.Visible;
+        NoResultsPanel.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = false;
 
         if (cts != null && !cts.IsCancellationRequested)
@@ -66,6 +67,11 @@ internal sealed partial class AddModelPage : Page
 
         await SearchModels(SearchTextBox.Text, cts.Token);
 
+        if (results == null || results.Count <= 0)
+        {
+            NoResultsPanel.Visibility = Visibility.Visible;
+        }
+
         SearchButton.IsEnabled = true;
         SearchButtonProgressBar.Visibility = Visibility.Collapsed;
         SearchTextBox.IsEnabled = true;
@@ -74,7 +80,6 @@ internal sealed partial class AddModelPage : Page
     private async Task SearchModels(string query, CancellationToken cancellationToken)
     {
         this.results.Clear();
-
         SearchModelEvent.Log(query);
 
         var results = await HuggingFaceApi.FindModels(query);
@@ -83,11 +88,6 @@ internal sealed partial class AddModelPage : Page
         string announcement = $"{resultCount} search result{(resultCount == 1 ? string.Empty : 's')} found";
 
         NarratorHelper.Announce(SearchTextBox, announcement, "modelSearchActivityId");
-
-        if (results == null || results.Count <= 0)
-        {
-            return;
-        }
 
         ActionBlock<(HFSearchResult Result, Sibling Config, string? ReadmeUrl)> actionBlock = null!;
         actionBlock = new ActionBlock<(HFSearchResult Result, Sibling Config, string? ReadmeUrl)>(
@@ -135,7 +135,7 @@ internal sealed partial class AddModelPage : Page
                         IsUserAdded = true,
                         PromptTemplate = GetTemplateFromName(result.Id),
                         Size = filesToDownload.Sum(f => f.Size),
-                        ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null,
+                        ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
                     };
 
                     string? licenseKey = null;
@@ -171,7 +171,8 @@ internal sealed partial class AddModelPage : Page
                             Details = details,
                             SearchResult = result,
                             License = LicenseInfo.GetLicenseInfo(licenseKey),
-                            State = state
+                            State = state,
+                            HFUrl = $"https://huggingface.co/{result.Id}"
                         });
                     });
                 }
@@ -226,14 +227,18 @@ internal sealed partial class AddModelPage : Page
 
     private PromptTemplate? GetTemplateFromName(string name)
     {
-        switch (name)
+        switch (name.ToLower(System.Globalization.CultureInfo.InvariantCulture))
         {
-            case string p when p.Contains("phi3") || p.Contains("phi-3"):
+            case string p when p.Contains("phi"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
-            case string l when l.Contains("llama") || l.Contains("llama-3"):
+            case string l when l.Contains("llama") || l.Contains("nemotron"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
             case string m when m.Contains("mistral"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Mistral];
+            case string q when q.Contains("qwen"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Qwen];
+            case string g when g.Contains("gemma"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Gemma];
             default:
                 return null;
         }
@@ -319,6 +324,11 @@ internal sealed partial class AddModelPage : Page
     {
         return state == ResultState.Downloading ? Visibility.Visible : Visibility.Collapsed;
     }
+
+    private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        this.Focus(FocusState.Programmatic);
+    }
 }
 
 internal partial class Result : ObservableObject
@@ -326,6 +336,7 @@ internal partial class Result : ObservableObject
     public required HFSearchResult SearchResult { get; init; }
     public required ModelDetails Details { get; init; }
     public required LicenseInfo License { get; init; }
+    public required string HFUrl { get; init; }
 
     public bool IsModelDownloadable => Details.Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible;
     public Visibility VisibleWhenCompatibilityIssue => Details.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible ? Visibility.Collapsed : Visibility.Visible;

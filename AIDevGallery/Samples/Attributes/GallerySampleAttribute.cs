@@ -17,4 +17,5 @@ internal sealed class GallerySampleAttribute : Attribute
     public ScenarioType Scenario { get; init; }
     public SharedCodeEnum[]? SharedCode { get; init; }
     public string[]? NugetPackageReferences { get; init; }
+    public string[]? AssetFilenames { get; init; }
 }
