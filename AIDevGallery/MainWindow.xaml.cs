@@ -78,9 +78,6 @@ internal sealed partial class MainWindow : WindowEx
             case "models":
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
-            case "guides":
-                Navigate(typeof(GuidesPage));
-                break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
                 break;
@@ -186,10 +183,6 @@ internal sealed partial class MainWindow : WindowEx
         else if (e.SourcePageType == typeof(ModelSelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[2];
-        }
-        else if (e.SourcePageType == typeof(GuidesPage))
-        {
-            NavView.SelectedItem = NavView.MenuItems[3];
         }
         else if (e.SourcePageType == typeof(SettingsPage))
         {
