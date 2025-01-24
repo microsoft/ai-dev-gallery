@@ -32,6 +32,7 @@ internal class Sample
     public string XAMLCode { get; init; } = null!;
     public List<Samples.SharedCodeEnum> SharedCode { get; init; } = null!;
     public List<string> NugetPackageReferences { get; init; } = null!;
+    public List<string> AssetFilenames { get; init; } = null!;
 }
 
 internal class ModelFamily
