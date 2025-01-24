@@ -68,6 +68,7 @@ internal partial class Generator
         var projectName = $"{sample.Name}Sample";
         string safeProjectName = ToSafeVariableName(projectName);
         string guid9 = Guid.NewGuid().ToString();
+        string slnProjGuid = Guid.NewGuid().ToString();
         string xmlEscapedPublisher = "MyTestPublisher";
         string xmlEscapedPublisherDistinguishedName = $"CN={xmlEscapedPublisher}";
 
@@ -210,7 +211,7 @@ internal partial class Generator
 
         SampleProjectGeneratedEvent.Log(sample.Id, model1Id, model2Id, copyModelLocally);
 
-        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml"];
+        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln"];
 
         // Get all files from the template directory with the allowed extensions
         var files = Directory.GetFiles(templatePath, "*.*", SearchOption.AllDirectories).Where(file => extensions.Any(file.EndsWith));
@@ -218,10 +219,13 @@ internal partial class Generator
         var renames = new Dictionary<string, string>
         {
             { "Package-managed.appxmanifest", "Package.appxmanifest" },
-            { "ProjectTemplate.csproj", $"{safeProjectName}.csproj" }
+            { "ProjectTemplate.csproj", $"{safeProjectName}.csproj" },
+            { "SolutionTemplate.sln", $"{safeProjectName}.sln" }
         };
 
-        var className = await AddFilesFromSampleAsync(sample, packageReferences, safeProjectName, outputPath, addLllmTypes, modelInfos, cancellationToken);
+        var baseNamespace = "AIDevGallery.Sample";
+
+        var className = await AddFilesFromSampleAsync(sample, packageReferences, baseNamespace, outputPath, addLllmTypes, modelInfos, cancellationToken);
 
         foreach (var file in files)
         {
@@ -255,7 +259,9 @@ internal partial class Generator
 
                 // Replace the variables
                 content = content.Replace("$projectname$", projectName);
-                content = content.Replace("$safeprojectname$", safeProjectName);
+                content = content.Replace("$safeprojectname$", baseNamespace);
+                content = content.Replace("$projectFileName$", safeProjectName);
+                content = content.Replace("$projectGuid$", slnProjGuid);
                 content = content.Replace("$guid9$", guid9);
                 content = content.Replace("$XmlEscapedPublisherDistinguishedName$", xmlEscapedPublisherDistinguishedName);
                 content = content.Replace("$XmlEscapedPublisher$", xmlEscapedPublisher);
@@ -462,7 +468,7 @@ internal partial class Generator
     private async Task<string> AddFilesFromSampleAsync(
         Sample sample,
         List<(string PackageName, string? Version)> packageReferences,
-        string safeProjectName,
+        string baseNamespace,
         string outputPath,
         bool addLllmTypes,
         Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos,
@@ -492,20 +498,32 @@ internal partial class Generator
             var source = SharedCodeHelpers.GetSource(sharedCodeEnum);
             if (fileName.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
             {
-                source = CleanXamlSource(source, $"{safeProjectName}.SharedCode", out _);
+                source = CleanXamlSource(source, $"{baseNamespace}.Utils", out _);
             }
             else
             {
-                source = CleanCsSource(source, $"{safeProjectName}.SharedCode", false);
+                source = CleanCsSource(source, $"{baseNamespace}.Utils", false);
             }
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, fileName), source, cancellationToken);
+            string directory = outputPath;
+
+            if (sharedCodeEnum != SharedCodeEnum.NativeMethods)
+            {
+                if (!Directory.Exists(Path.Join(outputPath, "Utils")))
+                {
+                    Directory.CreateDirectory(Path.Join(outputPath, "Utils"));
+                }
+
+                directory = Path.Join(outputPath, "Utils");
+            }
+
+            await File.WriteAllTextAsync(Path.Join(directory, fileName), source, cancellationToken);
         }
 
         string className = "Sample";
         if (!string.IsNullOrEmpty(sample.XAMLCode))
         {
-            var xamlSource = CleanXamlSource(sample.XAMLCode, safeProjectName, out className);
+            var xamlSource = CleanXamlSource(sample.XAMLCode, baseNamespace, out className);
             xamlSource = xamlSource.Replace($"{Environment.NewLine}    xmlns:samples=\"using:AIDevGallery.Samples\"", string.Empty);
             xamlSource = xamlSource.Replace("<samples:BaseSamplePage", "<Page");
             xamlSource = xamlSource.Replace("</samples:BaseSamplePage>", "</Page>");
@@ -515,7 +533,7 @@ internal partial class Generator
 
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
-            var cleanCsSource = CleanCsSource(sample.CSCode, safeProjectName, true);
+            var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
             cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
             cleanCsSource = cleanCsSource.Replace(": BaseSamplePage", ": Microsoft.UI.Xaml.Controls.Page");
             cleanCsSource = cleanCsSource.Replace(
@@ -606,7 +624,7 @@ internal partial class Generator
 
         xamlCode = XamlLocalUsing().Replace(xamlCode, $"xmlns:local=\"using:{newNamespace}\"");
 
-        xamlCode = xamlCode.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.SharedCode\"");
+        xamlCode = xamlCode.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.Utils\"");
 
         return xamlCode;
     }
@@ -634,7 +652,7 @@ internal partial class Generator
 
         if (addSharedSourceNamespace)
         {
-            var namespaceLine = $"using {newNamespace}.SharedCode;";
+            var namespaceLine = $"using {newNamespace}.Utils;";
             if (!source.Contains(namespaceLine))
             {
                 source = namespaceLine + Environment.NewLine + source;
