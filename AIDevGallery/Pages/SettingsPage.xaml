@@ -108,7 +108,7 @@
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
                     <toolkit:SettingsCard
-                        Description="Help Microsoft improve your Application experience and fix problems more quickly by sending us additional diagnostic data."
+                        Description="Help us improve this app by sharing diagnostics data to inform bug fixes, performance, and feature enhancements"
                         Header="Diagnostic data"
                         HeaderIcon="{ui:FontIcon Glyph=&#xE9D9;}">
                         <ToggleSwitch x:Name="DiagnosticDataToggleSwitch" Toggled="DiagnosticDataToggleSwitch_Toggled" />

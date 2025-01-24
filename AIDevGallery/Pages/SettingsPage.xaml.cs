@@ -42,7 +42,7 @@ internal sealed partial class SettingsPage : Page
         VersionTextRun.Text = AppUtils.GetAppVersion();
         GetStorageInfo();
 
-        // DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
+        DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
