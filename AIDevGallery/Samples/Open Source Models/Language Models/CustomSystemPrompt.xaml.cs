@@ -73,7 +73,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         }
     }
 
-    private void Page_Unloaded()
+    private async void Page_Unloaded()
     {
         CustomParametersState lastState = new()
         {
@@ -88,7 +88,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         };
 
         App.AppData.LastCustomParamtersState = lastState;
-        App.AppData.SaveAsync();
+        await App.AppData.SaveAsync();
     }
 
     // </exclude>
