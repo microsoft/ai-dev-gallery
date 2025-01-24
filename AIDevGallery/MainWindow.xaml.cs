@@ -21,7 +21,6 @@ namespace AIDevGallery;
 internal sealed partial class MainWindow : WindowEx
 {
     private readonly Stack<object?> _navItemHistory = new();
-    private NavigationViewItem? _currentSelectedNavItem;
     private bool IsInnerNavViewPaneVisible => InnerNavView.OpenPaneLength > 0;
 
     public MainWindow(object? obj = null)
@@ -212,41 +211,29 @@ internal sealed partial class MainWindow : WindowEx
         NavView.ItemInvoked -= NavView_ItemInvoked;
         page ??= NavFrame.SourcePageType;
 
-        if (IsInnerNavViewPaneVisible && NavViewInnerHeader.Text == "Samples")
+        if (page == typeof(ScenarioPage))
         {
             NavView.SelectedItem = SamplesNavItem;
         }
-        else if (IsInnerNavViewPaneVisible && NavViewInnerHeader.Text == "Models")
+        else if (page == typeof(ModelPage) || page == typeof(AddModelPage))
         {
             NavView.SelectedItem = ModelsNavItem;
         }
+        else if (page == typeof(SettingsPage))
+        {
+            NavView.SelectedItem = NavView.FooterMenuItems[1];
+        }
         else
         {
-            if (page == typeof(ScenarioPage))
-            {
-                NavView.SelectedItem = SamplesNavItem;
-            }
-            else if (page == typeof(ModelPage) || page == typeof(AddModelPage))
-            {
-                NavView.SelectedItem = ModelsNavItem;
-            }
-            else if (page == typeof(SettingsPage))
-            {
-                NavView.SelectedItem = NavView.FooterMenuItems[1];
-            }
-            else
-            {
-                NavView.SelectedItem = NavView.MenuItems[0];
-            }
+            NavView.SelectedItem = NavView.MenuItems[0];
         }
 
-        _currentSelectedNavItem = NavView.SelectedItem as NavigationViewItem;
-        NavView.ItemInvoked += NavView_ItemInvoked;
+        DispatcherQueue.TryEnqueue(() => NavView.ItemInvoked += NavView_ItemInvoked);
     }
 
     private void ShowScenariosClicked(object? obj)
     {
-        if (_currentSelectedNavItem == SamplesNavItem && IsInnerNavViewPaneVisible && obj == null)
+        if (NavViewInnerHeader.Text == "Samples" && IsInnerNavViewPaneVisible && obj == null)
         {
             HideInnerPane();
             return;
@@ -295,7 +282,7 @@ internal sealed partial class MainWindow : WindowEx
 
     private void ShowModelsClicked(object? obj)
     {
-        if (_currentSelectedNavItem == ModelsNavItem && IsInnerNavViewPaneVisible && obj == null)
+        if (NavViewInnerHeader.Text == "Models" && IsInnerNavViewPaneVisible && obj == null)
         {
             HideInnerPane();
             return;
