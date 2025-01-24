@@ -99,10 +99,6 @@
                     Content="Models"
                     Icon="{ui:FontIcon Glyph=&#xF158;}"
                     Tag="Models" />
-                <!--<NavigationViewItem
-                    Content="Guides"
-                    Icon="Document"
-                    Tag="Guides" />-->
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem
@@ -125,8 +121,8 @@
         <TitleBar
             x:Name="titleBar"
             Title="AI Dev Gallery"
-            BackRequested="TitleBar_BackRequested"
             Height="48"
+            BackRequested="TitleBar_BackRequested"
             IsBackButtonVisible="{x:Bind NavFrame.CanGoBack, Mode=OneWay}"
             IsTabStop="False">
             <TitleBar.IconSource>
