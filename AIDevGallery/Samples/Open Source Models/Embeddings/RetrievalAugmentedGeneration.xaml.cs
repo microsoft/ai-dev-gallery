@@ -14,7 +14,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -68,13 +67,10 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         [VectorStoreRecordKey]
         public required int Key { get; init; }
-
         [VectorStoreRecordData]
         public required uint Page { get; init; }
-
         [VectorStoreRecordData]
         public required string Text { get; init; }
-
         [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
         public required ReadOnlyMemory<float> Vector { get; init; }
     }
@@ -82,10 +78,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     public RetrievalAugmentedGeneration()
     {
         this.InitializeComponent();
-        this.Unloaded += (s, e) =>
-        {
-            CleanUp();
-        };
+        this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
     }
 
@@ -126,6 +119,204 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         _inMemoryRandomAccessStream?.Dispose();
         _cts?.Cancel();
         _cts = null;
+    }
+
+    private async void IndexPDFButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_embeddings == null)
+        {
+            return;
+        }
+
+        ToSelectingState();
+
+        _pdfFile = await SelectPDFFromFileSystem();
+        if (_pdfFile == null)
+        {
+            ToSelectState();
+            return;
+        }
+
+        await IndexPDF();
+    }
+
+    private async Task IndexPDF()
+    {
+        if (_pdfFile == null || _embeddings == null)
+        {
+            return;
+        }
+
+        IndexPDFText.Text = "Indexing PDF...";
+
+        var contents = new List<(string Text, uint Page)>();
+
+        using (PdfDocument document = PdfDocument.Open(_pdfFile.Path))
+        {
+            foreach (var page in document.GetPages())
+            {
+                var words = page.GetWords();
+                var builder = string.Join(" ", words);
+
+                var range = builder
+                        .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Select(x => ((string Text, uint Page))(x, page.Number));
+
+                contents.AddRange(range);
+            }
+        }
+
+        if (contents.Count == 0)
+        {
+            ToSelectState();
+            PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
+            return;
+        }
+
+        // 2) Split the text into chunks to make sure they are
+        // smaller than what the Embeddings model supports
+        var maxLength = 1024 / 2;
+        List<(string Text, uint Page)> chunkedContents = [];
+        foreach (var content in contents)
+        {
+            chunkedContents.AddRange(SplitInChunks(content, maxLength));
+        }
+
+        contents = chunkedContents;
+
+        if (_cts != null)
+        {
+            _cts.Cancel();
+            _cts = null;
+            AskSLMButton.Content = "Answer";
+            return;
+        }
+
+        _cts = new CancellationTokenSource();
+
+        // 3) Index the chunks
+#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        _vectorStore = new InMemoryVectorStore();
+#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
+        await _pdfPages.CreateCollectionIfNotExistsAsync(_cts.Token).ConfigureAwait(false);
+
+        var total = contents.Count;
+        try
+        {
+            int i = 0;
+            await foreach (var embedding in _embeddings.GenerateStreamingAsync(contents.Select(c => c.Text), null, _cts.Token).ConfigureAwait(false))
+            {
+                await _pdfPages.UpsertAsync(
+                    new PdfPageData
+                    {
+                        Key = i,
+                        Page = contents[i].Page,
+                        Text = contents[i].Text,
+                        Vector = embedding.Vector
+                    },
+                    null,
+                    _cts.Token).ConfigureAwait(false);
+                i++;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            DispatcherQueue.TryEnqueue(ToSelectState);
+            return;
+        }
+        finally
+        {
+            _cts = null;
+        }
+
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            ShowPDFPage.IsEnabled = true;
+            IndexPDFGrid.Visibility = Visibility.Collapsed;
+            ChatGrid.Visibility = Visibility.Visible;
+            SelectNewPDFButton.Visibility = Visibility.Visible;
+        });
+    }
+
+    private async Task DoRAG()
+    {
+        if (_embeddings == null || _chatClient == null || _pdfPages == null)
+        {
+            return;
+        }
+
+        if (_cts != null)
+        {
+            _cts.Cancel();
+            _cts = null;
+            AskSLMButton.Content = "Answer";
+            return;
+        }
+
+        selectedPageIndex = 0;
+        AskSLMButton.Content = "Cancel";
+        SearchTextBox.IsEnabled = false;
+        _cts = new CancellationTokenSource();
+
+        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from specific PDF pages provided by the user. " +
+            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.";
+
+        var searchPrompt = this.SearchTextBox.Text;
+
+        // 4) Search the chunks using the user's prompt, with the same model used for indexing
+        var searchVector = await _embeddings.GenerateAsync([searchPrompt], null, _cts.Token);
+        var vectorSearchResults = await _pdfPages.VectorizedSearchAsync(
+                searchVector[0].Vector,
+                new VectorSearchOptions
+                {
+                    Top = 5,
+                    VectorPropertyName = nameof(PdfPageData.Vector)
+                },
+                _cts.Token);
+
+        var contents = vectorSearchResults.Results.ToBlockingEnumerable()
+                .Select(r => r.Record)
+                .DistinctBy(c => c.Page)
+                .OrderBy(c => c.Page);
+
+        selectedPages = contents.Select(c => c.Page).ToList();
+
+        PagesUsedRun.Text = $"Using page(s) : {string.Join(", ", selectedPages)}";
+        InformationSV.Visibility = Visibility.Visible;
+
+        var pagesChunks = contents.GroupBy(c => c.Page)
+            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => c.Text))}");
+
+        AnswerRun.Text = string.Empty;
+        var fullResult = string.Empty;
+
+        await Task.Run(
+            async () =>
+            {
+                await foreach (var partialResult in _chatClient.CompleteStreamingAsync(
+                    [
+                        new ChatMessage(ChatRole.System, systemPrompt),
+                        .. pagesChunks.Select(c => new ChatMessage(ChatRole.User, c)),
+                        new ChatMessage(ChatRole.User, searchPrompt),
+                    ],
+                    _chatOptions,
+                    _cts.Token))
+                {
+                    fullResult += partialResult;
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        AnswerRun.Text = fullResult;
+                    });
+                }
+            },
+            _cts.Token);
+
+        _cts = null;
+
+        AskSLMButton.Content = "Answer";
+        SearchTextBox.IsEnabled = true;
     }
 
     private void Grid_Loaded(object sender, RoutedEventArgs e)
@@ -230,169 +421,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         PdfImageGrid.Visibility = Visibility.Collapsed;
     }
 
-    private async void IndexPDFButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_embeddings == null)
-        {
-            return;
-        }
-
-        IndexPDFButton.IsEnabled = false;
-        LoadPDFProgressRing.IsActive = true;
-        LoadPDFProgressRing.Visibility = Visibility.Visible;
-        PdfProblemTextBlock.Text = string.Empty;
-        IndexPDFText.Text = "Selecting PDF...";
-
-        var window = new Window();
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-        var picker = new FileOpenPicker();
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        // Set the file type filter
-        picker.FileTypeFilter.Add(".pdf");
-
-        // Pick a file
-        _pdfFile = await picker.PickSingleFileAsync();
-        if (_pdfFile == null)
-        {
-            IndexPDFButton.IsEnabled = true;
-            LoadPDFProgressRing.IsActive = false;
-            LoadPDFProgressRing.Visibility = Visibility.Collapsed;
-            IndexPDFProgressStackPanel.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        IndexPDFText.Text = "Indexing PDF...";
-
-        var contents = new List<(string Text, uint Page)>();
-
-        // 1) Read the PDF file
-        using (PdfDocument document = PdfDocument.Open(_pdfFile.Path))
-        {
-            foreach (var page in document.GetPages())
-            {
-                var words = page.GetWords();
-                var builder = string.Join(" ", words);
-
-                var range = builder
-                        .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                        .Where(x => !string.IsNullOrWhiteSpace(x))
-                        .Select(x => ((string Text, uint Page))(x, page.Number));
-
-                contents.AddRange(range);
-            }
-        }
-
-        if (contents.Count == 0)
-        {
-            IndexPDFButton.IsEnabled = true;
-            LoadPDFProgressRing.IsActive = false;
-            LoadPDFProgressRing.Visibility = Visibility.Collapsed;
-            IndexPDFText.Text = "Select PDF";
-            PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
-            return;
-        }
-
-        // 2) Split the text into chunks to make sure they are
-        // smaller than what the Embeddings model supports
-        var maxLength = 1024 / 2;
-        List<(string Text, uint Page)> chunkedContents = [];
-        foreach (var content in contents)
-        {
-            chunkedContents.AddRange(SplitInChunks(content, maxLength));
-        }
-
-        contents = chunkedContents;
-
-        IndexPDFProgressBar.Minimum = 0;
-        IndexPDFProgressBar.Maximum = contents.Count;
-        IndexPDFProgressBar.Value = 0;
-
-        Stopwatch sw = Stopwatch.StartNew();
-
-        void UpdateProgress(float progress)
-        {
-            var elapsed = sw.Elapsed;
-            if (progress == 0)
-            {
-                progress = 0.0001f;
-            }
-
-            var remaining = TimeSpan.FromSeconds((long)(elapsed.TotalSeconds / progress * (1 - progress) / 5) * 5);
-
-            LoadPDFProgressRing.Value = progress * contents.Count;
-            IndexPDFText.Text = $"Indexing PDF... {progress:P0} ({remaining})";
-        }
-
-        if (_cts != null)
-        {
-            _cts.Cancel();
-            _cts = null;
-            AskSLMButton.Content = "Answer";
-            return;
-        }
-
-        _cts = new CancellationTokenSource();
-
-        // 3) Index the chunks
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
-        await _pdfPages.CreateCollectionIfNotExistsAsync(_cts.Token).ConfigureAwait(false);
-
-        var total = contents.Count;
-        try
-        {
-            int i = 0;
-            await foreach (var embedding in _embeddings.GenerateStreamingAsync(contents.Select(c => c.Text), null, _cts.Token).ConfigureAwait(false))
-            {
-                await _pdfPages.UpsertAsync(
-                    new PdfPageData
-                    {
-                        Key = i,
-                        Page = contents[i].Page,
-                        Text = contents[i].Text,
-                        Vector = embedding.Vector
-                    },
-                    null,
-                    _cts.Token).ConfigureAwait(false);
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    UpdateProgress((float)i / total);
-                });
-                i++;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                IndexPDFButton.IsEnabled = true;
-                LoadPDFProgressRing.IsActive = false;
-                LoadPDFProgressRing.Visibility = Visibility.Collapsed;
-                IndexPDFProgressStackPanel.Visibility = Visibility.Collapsed;
-                IndexPDFText.Text = "Select PDF";
-            });
-
-            return;
-        }
-        finally
-        {
-            _cts = null;
-        }
-
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            ShowPDFPage.IsEnabled = true;
-            IndexPDFText.Text = "Indexing PDF... Done!";
-            IndexPDFProgressStackPanel.Visibility = Visibility.Collapsed;
-            IndexPDFGrid.Visibility = Visibility.Collapsed;
-            ChatGrid.Visibility = Visibility.Visible;
-        });
-    }
-
     private IEnumerable<(string Text, uint Page)> SplitInChunks((string Text, uint Page) input, int maxLength)
     {
         var sentences = input.Text.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -441,6 +469,27 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         }
     }
 
+    private void ToSelectState()
+    {
+        ShowPDFPage.IsEnabled = false;
+        SelectNewPDFButton.Visibility = Visibility.Collapsed;
+        IndexPDFGrid.Visibility = Visibility.Visible;
+        ChatGrid.Visibility = Visibility.Collapsed;
+        IndexPDFButton.IsEnabled = true;
+        LoadPDFProgressRing.IsActive = false;
+        LoadPDFProgressRing.Visibility = Visibility.Collapsed;
+        IndexPDFText.Text = "Select PDF";
+    }
+
+    private void ToSelectingState()
+    {
+        IndexPDFButton.IsEnabled = false;
+        LoadPDFProgressRing.IsActive = true;
+        LoadPDFProgressRing.Visibility = Visibility.Visible;
+        PdfProblemTextBlock.Text = string.Empty;
+        IndexPDFText.Text = "Selecting PDF...";
+    }
+
     private async void AskSLMButton_Click(object sender, RoutedEventArgs e)
     {
         if (SearchTextBox.Text.Length > 0)
@@ -457,82 +506,25 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         }
     }
 
-    private async Task DoRAG()
+    private async Task<StorageFile> SelectPDFFromFileSystem()
     {
-        if (_embeddings == null || _chatClient == null || _pdfPages == null)
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        var picker = new FileOpenPicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.FileTypeFilter.Add(".pdf");
+        return await picker.PickSingleFileAsync();
+    }
+
+    private async void SelectNewPDF_Click(object sender, RoutedEventArgs e)
+    {
+        StorageFile pdfFile = await SelectPDFFromFileSystem();
+        if(pdfFile != null)
         {
-            return;
+            _pdfFile = pdfFile;
+            ToSelectState();
+            ToSelectingState();
+            await IndexPDF();
         }
-
-        if (_cts != null)
-        {
-            _cts.Cancel();
-            _cts = null;
-            AskSLMButton.Content = "Answer";
-            return;
-        }
-
-        selectedPageIndex = 0;
-        AskSLMButton.Content = "Cancel";
-        SearchTextBox.IsEnabled = false;
-        _cts = new CancellationTokenSource();
-
-        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from specific PDF pages provided by the user. " +
-            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.";
-
-        var searchPrompt = this.SearchTextBox.Text;
-
-        // 4) Search the chunks using the user's prompt, with the same model used for indexing
-        var searchVector = await _embeddings.GenerateAsync([searchPrompt], null, _cts.Token);
-        var vectorSearchResults = await _pdfPages.VectorizedSearchAsync(
-                searchVector[0].Vector,
-                new VectorSearchOptions
-                {
-                    Top = 5,
-                    VectorPropertyName = nameof(PdfPageData.Vector)
-                },
-                _cts.Token);
-
-        var contents = vectorSearchResults.Results.ToBlockingEnumerable()
-                .Select(r => r.Record)
-                .DistinctBy(c => c.Page)
-                .OrderBy(c => c.Page);
-
-        selectedPages = contents.Select(c => c.Page).ToList();
-
-        PagesUsedRun.Text = $"Using page(s) : {string.Join(", ", selectedPages)}";
-        InformationSV.Visibility = Visibility.Visible;
-
-        var pagesChunks = contents.GroupBy(c => c.Page)
-            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => c.Text))}");
-
-        AnswerRun.Text = string.Empty;
-        var fullResult = string.Empty;
-
-        await Task.Run(
-            async () =>
-            {
-                await foreach (var partialResult in _chatClient.CompleteStreamingAsync(
-                    [
-                        new ChatMessage(ChatRole.System, systemPrompt),
-                        .. pagesChunks.Select(c => new ChatMessage(ChatRole.User, c)),
-                        new ChatMessage(ChatRole.User, searchPrompt),
-                    ],
-                    _chatOptions,
-                    _cts.Token))
-                {
-                    fullResult += partialResult;
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        AnswerRun.Text = fullResult;
-                    });
-                }
-            },
-            _cts.Token);
-
-        _cts = null;
-
-        AskSLMButton.Content = "Answer";
-        SearchTextBox.IsEnabled = true;
     }
 }
