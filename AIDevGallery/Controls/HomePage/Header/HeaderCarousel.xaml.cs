@@ -125,23 +125,16 @@ internal sealed partial class HeaderCarousel : UserControl
         selectionTimer.Stop();
         deselectionTimer.Stop();
 
-        bool isPrevious = false;
         foreach (HeaderTile t in TilePanel.Children)
         {
             if (t != selectedTile && t.IsSelected)
             {
                 t.IsSelected = false;
-                isPrevious = true;
             }
         }
 
-        if (isPrevious)
-        {
-            await Task.Delay(1000);
-        }
-
         // Wait for the animation of a potential other tile to finish
-        await Task.Delay(500);
+        await Task.Delay(360);
         SetTileVisuals();
     }
 
