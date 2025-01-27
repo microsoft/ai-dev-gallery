@@ -322,7 +322,7 @@ internal partial class ModelSelectionControl : UserControl
             // we are in the sample view, open in app modelcard
             if (ModelCardVisibility == Visibility.Visible)
             {
-                App.MainWindow.Navigate("Models", details.Id);
+                App.MainWindow.Navigate("Models", details);
             }
 
             // we are in the in app modelcard, open browser to modelcard
