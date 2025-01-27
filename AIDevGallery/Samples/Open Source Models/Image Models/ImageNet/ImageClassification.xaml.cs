@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -51,7 +52,8 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath);
+        var hardwareAccelerator = sampleParams.HardwareAccelerator;
+        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
         sampleParams.NotifyCompletion();
 
         await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
@@ -64,7 +66,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath)
+    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
     {
         return Task.Run(() =>
         {
@@ -75,6 +77,20 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
+            if (hardwareAccelerator == HardwareAccelerator.DML)
+            {
+                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+            }
+            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            {
+                Dictionary<string, string> options = new()
+                    {
+                        { "backend_path", "QnnHtp.dll" },
+                        { "htp_performance_mode", "high_performance" },
+                        { "htp_graph_finalization_optimization_mode", "3" }
+                    };
+                sessionOptions.AppendExecutionProvider("QNN", options);
+            }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });

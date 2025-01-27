@@ -81,11 +81,12 @@ internal static class AppUtils
     {
         switch (hardwareAccelerator)
         {
-            default:
-            case HardwareAccelerator.CPU:
-                return "CPU";
             case HardwareAccelerator.DML:
                 return "GPU";
+            case HardwareAccelerator.QNN:
+                return "NPU";
+            default:
+                return hardwareAccelerator.ToString();
         }
     }
 
@@ -97,7 +98,9 @@ internal static class AppUtils
             case HardwareAccelerator.CPU:
                 return "This model will run on CPU";
             case HardwareAccelerator.DML:
-                return "This model will run on GPU with DirectML";
+                return "This model will run on supported GPUs with DirectML";
+            case HardwareAccelerator.QNN:
+                return "This model will run on Qualcomm NPUs";
         }
     }
 

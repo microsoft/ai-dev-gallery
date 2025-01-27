@@ -44,6 +44,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "Microsoft.ML.Tokenizers",
         "System.Numerics.Tensors",
         "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
+        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI.Abstractions",
         "Microsoft.SemanticKernel.Connectors.InMemory"
     ],
