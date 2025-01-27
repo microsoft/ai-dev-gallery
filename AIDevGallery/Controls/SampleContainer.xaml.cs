@@ -26,7 +26,7 @@ internal sealed partial class SampleContainer : UserControl
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
-    private double _codePaneWidth;
+    private double _sidePaneWidth;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -307,18 +307,22 @@ internal sealed partial class SampleContainer : UserControl
         RenderCode(true);
     }
 
-    public void ShowCode()
+    public void OpenSidePane(string state)
     {
-        RenderCode();
+        if (state == "CodeState")
+        {
+            RenderCode();
+        }
 
-        CodeColumn.Width = _codePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_codePaneWidth);
-        VisualStateManager.GoToState(this, "ShowCodePane", true);
+        SidePaneColumn.Width = _sidePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_sidePaneWidth);
+        VisualStateManager.GoToState(this, state, true);
+        VisualStateManager.GoToState(this, "ShowSidePaneState", true);
     }
 
-    public void HideCode()
+    public void HideSidePane()
     {
-        _codePaneWidth = CodeColumn.ActualWidth;
-        VisualStateManager.GoToState(this, "HideCodePane", true);
+        _sidePaneWidth = SidePaneColumn.ActualWidth;
+        VisualStateManager.GoToState(this, "HideSidePaneState", true);
     }
 
     private async void NuGetPackage_Click(object sender, RoutedEventArgs e)

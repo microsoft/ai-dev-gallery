@@ -25,11 +25,10 @@
             VerticalAlignment="Stretch"
             Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1,1,1,1"
-            CornerRadius="{StaticResource OverlayCornerRadius}">
+            BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="100" />
-                <ColumnDefinition x:Name="CodeColumn" Width="0" />
+                <ColumnDefinition x:Name="SidePaneColumn" Width="0" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -81,66 +80,165 @@
                     x:Name="sampleLoadingProgressRing"
                     Width="64"
                     Height="64"
-                    Background="LightGray"
                     IsActive="False" />
             </Grid>
             <Grid
-                x:Name="CodeGrid"
+                x:Name="SidePaneGrid"
+                Grid.RowSpan="2"
                 Grid.Column="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,0,0,0"
                 Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid>
-                    <Pivot x:Name="CodePivot">
-                        <Pivot.Resources>
-                            <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
-                        </Pivot.Resources>
-                    </Pivot>
-                </Grid>
-                <Rectangle
-                    Grid.Row="1"
-                    Height="1"
-                    HorizontalAlignment="Stretch"
-                    Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
-                <Expander
-                    Grid.Row="2"
-                    HorizontalAlignment="Stretch"
-                    BorderThickness="0"
-                    CornerRadius="0"
-                    IsExpanded="True">
-                    <Expander.Resources>
-                        <SolidColorBrush x:Key="ExpanderContentBorderBrush" Color="{ThemeResource CardStrokeColorDefaultBrush}" />
-                        <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="Transparent" />
-                    </Expander.Resources>
-                    <Expander.Header>
+                <Grid x:Name="InfoGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Margin="16,12,12,12"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Model info" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="16,0,16,0"
+                        Orientation="Vertical">
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="About Phi 3.5 Mini CPU ACC4" />
                         <TextBlock
+                            FontSize="12"
+                            Text="A fuss-free network that segments street scene images with per-pixel classes like road, sidewalk, and pedestrian. Trained on the Cityscapes dataset."
+                            TextWrapping="Wrap" />
+                        <TextBlock Margin="0,12,0,0">
+                            <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Hardware accelerator" /> <LineBreak /><Run FontSize="12" Text="CPU" />
+                        </TextBlock>
+                        <TextBlock Margin="0,12,0,0">
+                            <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Number of parameters" /> <LineBreak /><Run FontSize="12" Text="3.8B" />
+                        </TextBlock>
+                        <TextBlock Margin="0,12,0,0">
+                            <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="License" /> <LineBreak /><Hyperlink FontSize="12" UnderlineStyle="None">MIT</Hyperlink></TextBlock>
+                        <TextBlock Margin="0,12,0,0">
+                            <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Source" /> <LineBreak /><Hyperlink FontSize="12" UnderlineStyle="None">Hugging Face</Hyperlink></TextBlock>
+                        <TextBlock Margin="0,12,0,0" TextWrapping="Wrap">
+                            <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="File path" /> <LineBreak /><Hyperlink FontSize="12" UnderlineStyle="None">C:\Users\nielslaute\.cache\aigallery\microsoft--Phi-3.5-mini-instruct-onnx\main\cpu_and_mobile\cpu-int4-awq-block-128-acc-level-4</Hyperlink></TextBlock>
+                    </StackPanel>
+                    <Rectangle
+                        Grid.Row="2"
+                        Height="1"
+                        Margin="0,16,0,0"
+                        Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                    <TextBlock
+                        Grid.Row="3"
+                        Margin="16,12,12,12"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Sample info" />
+                    <StackPanel
+                        Grid.Row="4"
+                        Margin="16,0,16,0"
+                        Orientation="Vertical">
+                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="System prompt" />
+                        <TextBlock
+                            FontFamily="Cascadia Code"
+                            FontSize="12"
+                            IsTextSelectionEnabled="True"
+                            Text="You generate text based on a user-provided topic. Respond with only the generated content and no extraneous text."
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Margin="0,12,0,0"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="Required NuGet packages" />
-                    </Expander.Header>
-                    <Expander.Content>
-                        <ItemsRepeater Margin="-12,-8,-12,-8" ItemsSource="{x:Bind _sampleCache.NugetPackageReferences}">
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <HyperlinkButton
-                                        Click="NuGetPackage_Click"
-                                        Content="{x:Bind}"
-                                        FontSize="13"
-                                        Tag="{x:Bind}" />
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </Expander.Content>
-                </Expander>
+                            Text="User prompt" />
+                        <TextBlock
+                            FontFamily="Cascadia Code"
+                            FontSize="12"
+                            IsTextSelectionEnabled="True"
+                            Text="Generate text based on the topic: + input"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+                <Grid x:Name="PerfGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Margin="16,12,12,12"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Performance" />
+                    <ScrollViewer Grid.Row="1" Padding="16">
+                        <Image
+                            Width="286"
+                            HorizontalAlignment="Left"
+                            Source="/Assets/Devices.png" />
+                    </ScrollViewer>
+                </Grid>
+                <Grid x:Name="CodeGrid">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Margin="16,12,12,12"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Source code" />
+                    <StackPanel
+                        Margin="0,0,16,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <HyperlinkButton Padding="0">
+                            <HyperlinkButton>
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Image Width="14" Source="/Assets/VSIcon.svg" />
+                                    <TextBlock Text="Export" />
+                                </StackPanel>
+                            </HyperlinkButton>
+                        </HyperlinkButton>
+                        <HyperlinkButton Padding="0" Content="Packages">
+                            <!--<HyperlinkButton.Flyout>
+                                <Flyout>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="Required NuGet packages" />
+                                        <ItemsRepeater
+                                            Grid.Row="1"
+                                            Margin="-12,-8,-12,-8"
+                                            ItemsSource="{x:Bind _sampleCache.NugetPackageReferences}">
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <HyperlinkButton
+                                                        Click="NuGetPackage_Click"
+                                                        Content="{x:Bind}"
+                                                        FontSize="13"
+                                                        Tag="{x:Bind}" />
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </Grid>
+                                </Flyout>
+                            </HyperlinkButton.Flyout>-->
+                        </HyperlinkButton>
+                    </StackPanel>
+                
+                    <Grid Grid.Row="2">
+                        <Pivot x:Name="CodePivot" Margin="4,16,-12,-12">
+                            <Pivot.Resources>
+                                <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
+                            </Pivot.Resources>
+                        </Pivot>
+                    </Grid>
+                </Grid>
             </Grid>
             <toolkitcontrols:GridSplitter
-                x:Name="CodeGridSplitter"
+                x:Name="SidePaneGridSplitter"
                 Grid.Column="1"
                 Width="16"
                 HorizontalAlignment="Left"
@@ -173,16 +271,39 @@
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
-            <VisualStateGroup x:Name="CodeStates">
-                <VisualState x:Name="HideCodePane">
+            <VisualStateGroup x:Name="SidePaneVisibilityStates">
+                <VisualState x:Name="HideSidePaneState">
                     <VisualState.Setters>
-                        <Setter Target="CodeColumn.Width" Value="0" />
+                        <Setter Target="SidePaneColumn.Width" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
-                <VisualState x:Name="ShowCodePane">
+                <VisualState x:Name="ShowSidePaneState">
+                    <VisualState.Setters>
+                        <Setter Target="SidePaneGrid.Visibility" Value="Visible" />
+                        <Setter Target="SidePaneGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="SidePaneStates">
+                <VisualState x:Name="CodeState">
                     <VisualState.Setters>
                         <Setter Target="CodeGrid.Visibility" Value="Visible" />
-                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                        <Setter Target="InfoGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="PerfGrid.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="InfoState">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="InfoGrid.Visibility" Value="Visible" />
+                        <Setter Target="PerfGrid.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PerfState">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="InfoGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="PerfGrid.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
