@@ -37,6 +37,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
     private MultiModalProcessor? processor;
     private TokenizerStream? tokenizerStream;
     private CancellationTokenSource? _cts;
+    private StorageFile? imageFile;
 
     public DescribeImage()
     {
@@ -50,9 +51,11 @@ internal sealed partial class DescribeImage : BaseSamplePage
         await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
         sampleParams.NotifyCompletion();
 
+        // Load default image
         if (!sampleParams.CancellationToken.IsCancellationRequested)
         {
-            await LoadAndDescribeImage(await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg"));
+            imageFile = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+            LoadImage(this.imageFile);
         }
     }
 
@@ -125,8 +128,10 @@ internal sealed partial class DescribeImage : BaseSamplePage
         var inputTensors = processor.ProcessImages(prompt, images);
 
         using GeneratorParams generatorParams = new(model);
-        generatorParams.SetSearchOption("max_length", 2500);
+        generatorParams.SetSearchOption("max_length", 4096);
         generatorParams.SetInputs(inputTensors);
+
+        ct.ThrowIfCancellationRequested();
 
         using var generator = new Generator(model, generatorParams);
         while (!generator.IsDone())
@@ -135,6 +140,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
             await Task.Delay(0, ct).ConfigureAwait(false);
 
+            // This step takes a long time, theoretically, most cancellation get hung here
             generator.ComputeLogits();
             ct.ThrowIfCancellationRequested();
 
@@ -153,68 +159,100 @@ internal sealed partial class DescribeImage : BaseSamplePage
         }
     }
 
-    private async void Button_Click(object sender, RoutedEventArgs e)
+    private async void LoadButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_cts != null)
-        {
-            _cts.Cancel();
-            SelectImageButton.IsEnabled = false;
-            ButtonTextBlock.Text = "Canceling";
-            return;
-        }
-
         var file = await PickFileAsync();
         if (file != null)
         {
-            SelectImageButton.Focus(FocusState.Programmatic);
-            await LoadAndDescribeImage(file);
+            imageFile = file;
+            LoadImage(imageFile);
+
+            await DescribeTheImage();
         }
     }
 
-    private async Task LoadAndDescribeImage(StorageFile file)
+    private async void Button_Click(object sender, RoutedEventArgs e)
     {
-        ButtonTextBlock.Text = "Cancel";
-        ToolTipService.SetToolTip(SelectImageButton, "Cancel generation");
-        AutomationProperties.SetName(SelectImageButton, "Cancel generation");
-        Output.Text = string.Empty;
-        Loader.IsActive = true;
-        Loader.Visibility = Visibility.Visible;
-
-        _cts = new CancellationTokenSource();
-
-        using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.Read))
+        if (ButtonTextBlock.Text == "Run sample" && imageFile != null)
         {
-            BitmapImage bitmapImage = new();
-            await bitmapImage.SetSourceAsync(fileStream);
-            DefaultImage.Source = bitmapImage;
-            NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload"); // <exclude-line>
+            await DescribeTheImage();
         }
-
-        await Task.Run(async () =>
+        else if (ButtonTextBlock.Text == "Cancel" && _cts != null)
         {
-            try
-            {
-                await foreach (var part in InferStreaming("What is this image", file.Path, _cts.Token))
-                {
-                    DispatcherQueue.TryEnqueue(() => Output.Text += part);
-                }
-            }
-            catch
-            {
-            }
-        });
+            CancelGeneration();
+        }
+    }
 
-        ResetState();
+    private void CancelGeneration()
+    {
+        _cts!.Cancel();
+        DescribeImageButton.IsEnabled = false;
+        ButtonTextBlock.Text = "Canceling, this could take a while";
+    }
+
+    private async void LoadImage(StorageFile file)
+    {
+        using IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.Read);
+        BitmapImage bitmapImage = new();
+        await bitmapImage.SetSourceAsync(fileStream);
+        DefaultImage.Source = bitmapImage;
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload"); // <exclude-line>
+        imageFile = file;
+    }
+
+    private async Task DescribeTheImage()
+    {
+        _cts = new CancellationTokenSource();
+        try
+        {
+            _cts.Token.ThrowIfCancellationRequested();
+
+            LoadImageButton.IsEnabled = false;
+            ButtonTextBlock.Text = "Cancel";
+            ToolTipService.SetToolTip(DescribeImageButton, "Cancel generation"); // <exclude-line>
+            AutomationProperties.SetName(DescribeImageButton, "Cancel generation"); // <exclude-line>
+            Output.Text = string.Empty;
+            Loader.IsActive = true;
+            Loader.Visibility = Visibility.Visible;
+
+            _cts.Token.ThrowIfCancellationRequested();
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    await foreach (var part in InferStreaming("What is this image", imageFile!.Path, _cts.Token))
+                    {
+                        DispatcherQueue.TryEnqueue(() => Output.Text += part);
+                    }
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    ResetState();
+                }
+            });
+        }
+        catch
+        {
+            ResetState();
+        }
     }
 
     private void ResetState()
     {
         _cts = null;
-        ButtonTextBlock.Text = "Select image";
-        ToolTipService.SetToolTip(SelectImageButton, "Select image"); // <exclude-line>
-        AutomationProperties.SetName(SelectImageButton, "Select image"); // <exclude-line>
-        SelectImageButton.IsEnabled = true;
-        Loader.IsActive = false;
-        Loader.Visibility = Visibility.Collapsed;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            ButtonTextBlock.Text = "Run sample";
+            DescribeImageButton.IsEnabled = true;
+            LoadImageButton.IsEnabled = true;
+            ToolTipService.SetToolTip(DescribeImageButton, "Run sample"); // <exclude-line>
+            AutomationProperties.SetName(DescribeImageButton, "Run sample"); // <exclude-line>
+            Loader.IsActive = false;
+            Loader.Visibility = Visibility.Collapsed;
+        });
     }
 }
