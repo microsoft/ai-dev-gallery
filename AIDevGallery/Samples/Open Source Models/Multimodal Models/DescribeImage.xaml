@@ -14,28 +14,44 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button
-            x:Name="SelectImageButton"
-            HorizontalAlignment="Center"
-            Click="Button_Click"
-            ToolTipService.ToolTip="Select Image"
-            AutomationProperties.Name="Select Image">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <ProgressRing
-                    x:Name="Loader"
-                    Width="12"
-                    Height="12"
-                    IsActive="false"
-                    Visibility="Collapsed" />
-                <TextBlock x:Name="ButtonTextBlock" Text="Select image" />
-            </StackPanel>
-        </Button>
         <Image
             x:Name="DefaultImage"
-            Grid.Row="1"
+            Grid.Row="0"
             MaxHeight="300"
             HorizontalAlignment="Center"
             Stretch="Uniform" />
+        <StackPanel 
+              Grid.Row="1" 
+              Spacing="5"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Orientation="Horizontal">
+            <Button
+                x:Name="LoadImageButton"
+                HorizontalAlignment="Center"
+                Click="LoadButton_Click"
+                ToolTipService.ToolTip="Select image"
+                AutomationProperties.Name="Select image"
+                Content="Select Image"/>
+            <Button
+                x:Name="DescribeImageButton"
+                HorizontalAlignment="Center"
+                Click="Button_Click"
+                ToolTipService.ToolTip="Run sample"
+                AutomationProperties.Name="Run sample">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ProgressRing
+                        x:Name="Loader"
+                        Width="12"
+                        Height="12"
+                        IsActive="false"
+                        Visibility="Collapsed" />
+                    <TextBlock 
+                        x:Name="ButtonTextBlock" 
+                        Text="Run sample" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
         <ScrollViewer
             Grid.Row="2"
             HorizontalScrollBarVisibility="Disabled"
