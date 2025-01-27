@@ -9,5 +9,6 @@ namespace AIDevGallery.SourceGenerator.Models;
 internal enum HardwareAccelerator
 {
     CPU,
-    DML
+    DML,
+    QNN
 }
