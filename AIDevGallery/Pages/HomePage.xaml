@@ -58,9 +58,9 @@
                 Spacing="8">
                 <Button
                     Click="DiagnosticsYesButton_Click"
-                    Content="Yes"
+                    Content="Allow"
                     Style="{StaticResource AccentButtonStyle}" />
-                <Button Click="DiagnosticsNoButton_Click" Content="No" />
+                <Button Click="DiagnosticsNoButton_Click" Content="Don't allow" />
             </StackPanel>
         </InfoBar>
     </Grid>
