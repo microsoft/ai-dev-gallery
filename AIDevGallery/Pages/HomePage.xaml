@@ -49,6 +49,7 @@
             Title="Send optional diagnostic data"
             Margin="16"
             VerticalAlignment="Bottom"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
             IsClosable="False"
             IsOpen="False"
             Message="Help us improve this app by sharing diagnostics data to inform bug fixes, performance, and feature enhancements.">
