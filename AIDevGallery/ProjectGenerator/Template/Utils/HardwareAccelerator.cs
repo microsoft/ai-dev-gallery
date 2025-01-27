@@ -3,5 +3,6 @@ namespace $safeprojectname$.Utils;
 internal enum HardwareAccelerator
 {
     CPU,
-    DML
+    DML,
+    QNN
 }

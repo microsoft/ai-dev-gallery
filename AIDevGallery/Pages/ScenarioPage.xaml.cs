@@ -287,13 +287,13 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        Dictionary<ModelType, (string Id, string Path, string Url, long ModelSize)> cachedModels = [];
+        Dictionary<ModelType, (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator)> cachedModels = [];
 
-        (string Id, string Path, string Url, long ModelSize) cachedModel;
+        (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator) cachedModel;
 
         if (selectedModelDetails.Size == 0)
         {
-            cachedModel = (selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0);
+            cachedModel = (selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
         }
         else
         {
@@ -303,7 +303,7 @@ internal sealed partial class ScenarioPage : Page
                 return;
             }
 
-            cachedModel = (selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize);
+            cachedModel = (selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
@@ -322,7 +322,7 @@ internal sealed partial class ScenarioPage : Page
 
             if (selectedModelDetails2.Size == 0)
             {
-                cachedModel = (selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0);
+                cachedModel = (selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
             }
             else
             {
@@ -332,7 +332,7 @@ internal sealed partial class ScenarioPage : Page
                     return;
                 }
 
-                cachedModel = (selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize);
+                cachedModel = (selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
             }
 
             var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
@@ -377,9 +377,9 @@ internal sealed partial class ScenarioPage : Page
                     };
                     _ = dialog.ShowAsync();
 
-                    Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> cachedModelsToGenerator = cachedModels
-                        .Select(cm => (cm.Key, (cm.Value.Path, cm.Value.Url)))
-                        .ToDictionary(x => x.Key, x => (x.Item2.Path, x.Item2.Url));
+                    Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = cachedModels
+                        .Select(cm => (cm.Key, (cm.Value.Path, cm.Value.Url, cm.Value.HardwareAccelerator)))
+                        .ToDictionary(x => x.Key, x => (x.Item2.Path, x.Item2.Url, x.Item2.HardwareAccelerator));
 
                     var projectPath = await generator.GenerateAsync(
                         sample,
