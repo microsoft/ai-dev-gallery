@@ -3,6 +3,9 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
+using ColorCode.Common;
+using ColorCode.Styling;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
@@ -159,6 +162,34 @@ internal static class AppUtils
         else
         {
             return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/HuggingFace.svg"));
+        }
+    }
+
+    public static StyleDictionary GetCodeHighlightingStyleFromElementTheme(ElementTheme theme)
+    {
+        if (theme == ElementTheme.Dark)
+        {
+            StyleDictionary darkStyles = StyleDictionary.DefaultDark;
+            darkStyles[ScopeName.Comment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDocComment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDocTag].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlComment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDelimiter].Foreground = StyleDictionary.White;
+            darkStyles[ScopeName.Keyword].Foreground = "#FF41D6FF";
+            darkStyles[ScopeName.String].Foreground = "#FFFFB100";
+            darkStyles[ScopeName.XmlAttributeValue].Foreground = "#FF41D6FF";
+            darkStyles[ScopeName.XmlAttributeQuotes].Foreground = "#FF41D6FF";
+            return darkStyles;
+        }
+        else
+        {
+            StyleDictionary lightStyles = StyleDictionary.DefaultLight;
+            lightStyles[ScopeName.XmlDocComment].Foreground = "#FF006828";
+            lightStyles[ScopeName.XmlDocTag].Foreground = "#FF006828";
+            lightStyles[ScopeName.Comment].Foreground = "#FF006828";
+            lightStyles[ScopeName.XmlAttribute].Foreground = "#FFB5004D";
+            lightStyles[ScopeName.XmlName].Foreground = "#FF400000";
+            return lightStyles;
         }
     }
 }
