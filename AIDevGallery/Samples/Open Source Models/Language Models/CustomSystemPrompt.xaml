@@ -1,159 +1,158 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.CustomSystemPrompt"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
     xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
 
     <ScrollViewer
-        Padding="0,0,16,0"
+        Padding="0,0,8,0"
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
-        <Grid RowSpacing="8">
+        <Grid ColumnSpacing="36" RowSpacing="8">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid RowSpacing="8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
-                </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="286" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Vertical" Spacing="12">
                 <TextBox
                     x:Name="SystemPromptInputTextBox"
                     Grid.Row="0"
-                    Height="100"
+                    MinHeight="96"
+                    MaxHeight="300"
                     AcceptsReturn="True"
                     AutomationProperties.Name="Prompt input"
-                    PlaceholderText="Enter a system prompt for the model..."
-                    Text="You are a helpful assistant."
+                    Header="System prompt"
+                    PlaceholderText="Enter a system prompt for the model.."
+                    Text="{x:Bind defaultSystemPrompt, Mode=OneTime}"
                     TextWrapping="Wrap" />
                 <TextBox
                     x:Name="InputTextBox"
-                    Grid.Row="1"
-                    Height="100"
+                    MinHeight="96"
+                    MaxHeight="300"
+                    Margin="0,12,0,0"
                     AcceptsReturn="True"
                     AutomationProperties.Name="Query input"
                     Description=" "
-                    PlaceholderText="Enter a query to the model for a response..."
+                    Header="Query"
+                    PlaceholderText="Enter a query to the model for a response.."
                     TextChanged="InputBox_Changed"
                     TextWrapping="Wrap" />
                 <StackPanel
-                    Grid.RowSpan="2"
-                    Grid.Column="1"
-                    Margin="10,0,0,0"
-                    Spacing="20">
-                    <Slider
-                        x:Name="MinLengthSlider"
-                        FontSize="12"
-                        Header="Min Length"
-                        Maximum="2048"
-                        Minimum="0"
-                        StepFrequency="1"
-                        ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
-                        Value="0" />
-                    <Slider
-                        x:Name="MaxLengthSlider"
-                        FontSize="12"
-                        Header="Max Length"
-                        Maximum="2048"
-                        Minimum="1"
-                        StepFrequency="1"
-                        ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
-                        Value="1024" />
-                    <ToggleSwitch
-                        x:Name="DoSampleToggle"
-                        FontSize="12"
-                        Header="Sampling Enabled"
-                        IsOn="True"
-                        ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="GenerateButton"
+                        Grid.Row="2"
+                        MinWidth="86"
+                        HorizontalAlignment="Right"
+                        Click="GenerateButton_Click"
+                        Content="Generate"
+                        IsEnabled="False"
+                        Style="{StaticResource AccentButtonStyle}" />
+                    <Button
+                        x:Name="StopBtn"
+                        Grid.Row="2"
+                        MinWidth="86"
+                        HorizontalAlignment="Right"
+                        AutomationProperties.Name="Stop"
+                        Click="StopBtn_Click"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon
+                                x:Name="StopIcon"
+                                FontSize="16"
+                                Glyph="&#xE73B;" />
+                            <ProgressRing
+                                x:Name="OutputProgressBar"
+                                Width="16"
+                                Height="16"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                IsIndeterminate="True"
+                                Visibility="Collapsed" />
+                            <TextBlock Text="Stop" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="ResetButton"
+                        Grid.Row="1"
+                        MinWidth="86"
+                        HorizontalAlignment="Right"
+                        Click="ResetButton_Click"
+                        Content="Reset to defaults" />
                 </StackPanel>
-                <StackPanel
-                    Grid.RowSpan="2"
-                    Grid.Column="2"
-                    Margin="10,0,0,0"
-                    Spacing="20">
-                    <Slider
-                        x:Name="TopPSlider"
-                        FontSize="12"
-                        Header="Top P"
-                        Maximum="1"
-                        Minimum="0"
-                        StepFrequency="0.01"
-                        ToolTipService.ToolTip="The top P parameter tells the model to only consider tokens up until a cumulative probability of P. Lower this value for more predictable, focused generation and increase it for more random response."
-                        Value=".9" />
-                    <Slider
-                        x:Name="TopKSlider"
-                        FontSize="12"
-                        Header="Top K"
-                        Maximum="200"
-                        Minimum="0"
-                        StepFrequency="1"
-                        ToolTipService.ToolTip="The top K parameter tells the model to only consider the K most probable tokens at each generation step. Lower this value for more predictable, focused generation and increase it for more random response."
-                        Value="50" />
-                    <Slider
-                        x:Name="TemperatureSlider"
-                        FontSize="12"
-                        Header="Temperature"
-                        Maximum="5"
-                        Minimum="0"
-                        StepFrequency="0.01"
-                        ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
-                        Value="1" />
-                </StackPanel>
-            </Grid>
-            <Button
-                x:Name="GenerateButton"
-                Grid.Row="1"
-                MinWidth="86"
-                HorizontalAlignment="Right"
-                Click="GenerateButton_Click"
-                Content="Generate"
-                IsEnabled="False"
-                Style="{StaticResource AccentButtonStyle}" />
-            <Button
-                x:Name="StopBtn"
-                Grid.Row="1"
-                MinWidth="86"
-                HorizontalAlignment="Right"
-                AutomationProperties.Name="Stop"
-                Click="StopBtn_Click"
-                Style="{ThemeResource AccentButtonStyle}"
-                Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon
-                        x:Name="StopIcon"
-                        FontSize="16"
-                        Glyph="&#xE73B;" />
-                    <ProgressRing
-                        x:Name="OutputProgressBar"
-                        Width="16"
-                        Height="16"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        IsIndeterminate="True"
-                        Visibility="Collapsed" />
-                    <TextBlock Text="Stop" />
-                </StackPanel>
-            </Button>
+            </StackPanel>
+
+            <StackPanel
+                Grid.RowSpan="3"
+                Grid.Column="1"
+                Spacing="12">
+                <Slider
+                    x:Name="MinLengthSlider"
+                    Header="Min Length"
+                    Maximum="2048"
+                    Minimum="0"
+                    StepFrequency="1"
+                    ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
+                    Value="0" />
+                <Slider
+                    x:Name="MaxLengthSlider"
+                    Header="Max Length"
+                    Maximum="2048"
+                    Minimum="1"
+                    StepFrequency="1"
+                    ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
+                    Value="{x:Bind defaultMaxLength, Mode=OneTime}" />
+                <Slider
+                    x:Name="TopPSlider"
+                    Header="Top P"
+                    Maximum="1"
+                    Minimum="0"
+                    StepFrequency="0.01"
+                    ToolTipService.ToolTip="The top P parameter tells the model to only consider tokens up until a cumulative probability of P. Lower this value for more predictable, focused generation and increase it for more random response."
+                    Value="{x:Bind defaultTopP, Mode=OneTime}" />
+                <Slider
+                    x:Name="TopKSlider"
+                    Header="Top K"
+                    Maximum="200"
+                    Minimum="0"
+                    StepFrequency="1"
+                    ToolTipService.ToolTip="The top K parameter tells the model to only consider the K most probable tokens at each generation step. Lower this value for more predictable, focused generation and increase it for more random response."
+                    Value="{x:Bind defaultTopK, Mode=OneTime}" />
+                <Slider
+                    x:Name="TemperatureSlider"
+                    Header="Temperature"
+                    Maximum="5"
+                    Minimum="0.01"
+                    StepFrequency="0.01"
+                    ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
+                    Value="{x:Bind defaultTemperature, Mode=OneTime}" />
+                <ToggleSwitch
+                    x:Name="DoSampleToggle"
+                    Header="Sampling"
+                    IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
+                    ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
+            </StackPanel>
             <TextBlock
-                Grid.Row="2"
+                Grid.Row="1"
+                Margin="0,16,0,0"
                 Style="{ThemeResource BodyStrongTextBlockStyle}"
                 Text="Output:" />
             <TextBlock
                 x:Name="OutputTextBlock"
-                Grid.Row="3"
+                Grid.Row="2"
                 AutomationProperties.Name="Output"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 IsTextSelectionEnabled="True"

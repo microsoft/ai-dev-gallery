@@ -32,6 +32,9 @@ namespace AIDevGallery.Samples.OpenSourceModels;
         SharedCodeEnum.BitmapFunctions,
         SharedCodeEnum.DeviceUtils
     ],
+    AssetFilenames = [
+        "team.jpg"
+    ],
     Name = "ImageNet Image Classification",
     Id = "09d73ba7-b877-45f9-9de6-41898ab4d339",
     Icon = "\uE8B9")]

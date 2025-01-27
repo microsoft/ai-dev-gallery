@@ -26,5 +26,22 @@
       "<|end_header_id|>",
       "<|eot_id|>"
     ]
+  },
+  "Qwen": {
+    "system": "<|im_start|>system\n{{CONTENT}}<|im_end|>\n",
+    "user": "<|im_start|>user\n{{CONTENT}}<|im_end|>\n",
+    "assistant": "<|im_start|>assistant\n{{CONTENT}}<|im_end|>",
+    "stop": [
+      "<|im_start|>",
+      "<|im_end|>"
+    ]
+  },
+  "Gemma": {
+    "user": "<start_of_turn>user\n{{CONTENT}}<end_of_turn>\n",
+    "assistant": "<start_of_turn>model\n{{CONTENT}}<end_of_turn>\n",
+    "stop": [
+      "<start_of_turn>",
+      "<end_of_turn>"
+    ]
   }
 }
