@@ -22,7 +22,6 @@ using UglyToad.PdfPig;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
-using WinUICommunity;
 
 namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
 
