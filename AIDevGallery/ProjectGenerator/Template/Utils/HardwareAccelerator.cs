@@ -1,4 +1,4 @@
-namespace $safeprojectname$.SharedCode;
+namespace $safeprojectname$.Utils;
 
 internal enum HardwareAccelerator
 {
