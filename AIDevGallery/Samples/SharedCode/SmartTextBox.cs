@@ -13,6 +13,7 @@ namespace AIDevGallery.Samples.SharedCode;
 internal sealed partial class SmartTextBox : Control
 {
     private IChatClient? _model;
+    private string? _text = string.Empty;
     private CancellationTokenSource? _cts;
     private string? _previousText;
     private string _input = string.Empty;
@@ -39,6 +40,12 @@ internal sealed partial class SmartTextBox : Control
         set => SetValue(ModelProperty, value);
     }
 
+    public string Text
+    {
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
+    }
+
     protected override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
@@ -51,10 +58,15 @@ internal sealed partial class SmartTextBox : Control
         _aiFlyout = (Flyout)GetTemplateChild("AIFlyout");
         _actionFlyoutListView = (ListView)GetTemplateChild("FlyoutActionListView");
 
+        _aiConfirmTip.Target = _inputTextBox;
+        _describeChangesTip.Target = _inputTextBox;
+
         _aiConfirmTip.ActionButtonClick += AiConfirmTip_ActionButtonClick;
         _describeChangesTip.ActionButtonClick += DescribeChangesTip_ActionButtonClick;
         _describeChangesTip.CloseButtonClick += DescribeChangesTip_CloseButtonClick;
         _actionFlyoutListView.ItemClick += ActionFlyoutListView_ItemClick;
+
+        _inputTextBox.Document.SetText(TextSetOptions.None, _text);
     }
 
     private async Task<string> Infer(string systemPrompt, string query, ChatOptions? options = null)
@@ -149,8 +161,8 @@ internal sealed partial class SmartTextBox : Control
         _selectStart = selection.StartPosition;
         _selectEnd = selection.EndPosition;
         var tag = (e.ClickedItem as FrameworkElement)!.Tag;
-        _inputTextBox!.Document.GetText(TextGetOptions.None, out _previousText);
-        _inputTextBox!.IsEnabled = false;
+        _inputTextBox.Document.GetText(TextGetOptions.None, out _previousText);
+        _inputTextBox.IsEnabled = false;
         _aiFlyout!.Hide();
         _loadingProgressBar!.Visibility = Visibility.Visible;
         string output = string.Empty;
@@ -235,16 +247,16 @@ internal sealed partial class SmartTextBox : Control
         if (output.Length > 0)
         {
             _inputTextBox!.Document.Selection.StartPosition = _selectStart;
-            _inputTextBox!.Document.Selection.EndPosition = _selectEnd;
-            _inputTextBox!.Document.Selection.SetText(TextSetOptions.None, output);
+            _inputTextBox.Document.Selection.EndPosition = _selectEnd;
+            _inputTextBox.Document.Selection.SetText(TextSetOptions.None, output);
             _aiConfirmTip!.IsOpen = true;
         }
 
         _loadingProgressBar!.Visibility = Visibility.Collapsed;
         _changesInputBox!.Text = string.Empty;
         _inputTextBox!.IsEnabled = true;
-        _inputTextBox!.Document.Selection.StartPosition = 0;
-        _inputTextBox!.Document.Selection.EndPosition = 0;
+        _inputTextBox.Document.Selection.StartPosition = 0;
+        _inputTextBox.Document.Selection.EndPosition = 0;
     }
 
     private void DescribeChangesTip_CloseButtonClick(TeachingTip sender, object args)
@@ -262,6 +274,12 @@ internal sealed partial class SmartTextBox : Control
         typeof(SmartTextBox),
         new PropertyMetadata(default(IChatClient), new PropertyChangedCallback(OnModelChanged)));
 
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register(
+        nameof(Text),
+        typeof(string),
+        typeof(SmartTextBox),
+        new PropertyMetadata(default(string), new PropertyChangedCallback(OnTextChanged)));
+
     private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         IChatClient model = (IChatClient)e.NewValue;
@@ -269,6 +287,17 @@ internal sealed partial class SmartTextBox : Control
         {
             SmartTextBox smartTextBox = (SmartTextBox)d;
             smartTextBox._model = model;
+        }
+    }
+
+    private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        string text = (string)e.NewValue;
+        if(text != null)
+        {
+            SmartTextBox smartTextBox = (SmartTextBox)d;
+            smartTextBox._text = text;
+            smartTextBox._inputTextBox?.Document.SetText(TextSetOptions.None, text);
         }
     }
 }
