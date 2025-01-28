@@ -22,6 +22,7 @@ using UglyToad.PdfPig;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using WinUICommunity;
 
 namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
 
@@ -59,6 +60,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private StorageFile? _pdfFile;
     private InMemoryRandomAccessStream? _inMemoryRandomAccessStream;
     private CancellationTokenSource? _cts;
+    private bool _isCancellable = false;
 
     private List<uint>? selectedPages;
     private int selectedPageIndex = -1;
@@ -124,6 +126,14 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     private async void IndexPDFButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_isCancellable)
+        {
+            _cts?.Cancel();
+            _cts = null;
+            ToSelectState();
+            return;
+        }
+
         if (_embeddings == null)
         {
             return;
@@ -148,88 +158,77 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             return;
         }
 
-        IndexPDFText.Text = "Indexing PDF...";
-
-        var contents = new List<(string Text, uint Page)>();
-
-        using (PdfDocument document = PdfDocument.Open(_pdfFile.Path))
-        {
-            foreach (var page in document.GetPages())
-            {
-                var words = page.GetWords();
-                var builder = string.Join(" ", words);
-
-                var range = builder
-                        .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                        .Where(x => !string.IsNullOrWhiteSpace(x))
-                        .Select(x => ((string Text, uint Page))(x, page.Number));
-
-                contents.AddRange(range);
-            }
-        }
-
-        if (contents.Count == 0)
-        {
-            ToSelectState();
-            PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
-            return;
-        }
-
-        // 2) Split the text into chunks to make sure they are
-        // smaller than what the Embeddings model supports
-        var maxLength = 1024 / 2;
-        List<(string Text, uint Page)> chunkedContents = [];
-        foreach (var content in contents)
-        {
-            chunkedContents.AddRange(SplitInChunks(content, maxLength));
-        }
-
-        contents = chunkedContents;
-
-        if (_cts != null)
-        {
-            _cts.Cancel();
-            _cts = null;
-            AskSLMButton.Content = "Answer";
-            return;
-        }
-
+        ToIndexingState();
         _cts = new CancellationTokenSource();
+        CancellationToken ct = _cts.Token;
 
-        // 3) Index the chunks
 #pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _vectorStore = new InMemoryVectorStore();
 #pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
-        await _pdfPages.CreateCollectionIfNotExistsAsync(_cts.Token).ConfigureAwait(false);
+        await _pdfPages.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+        int chunksProcessedCount = 0;
 
-        var total = contents.Count;
         try
         {
-            int i = 0;
-            await foreach (var embedding in _embeddings.GenerateStreamingAsync(contents.Select(c => c.Text), null, _cts.Token).ConfigureAwait(false))
+            await Task.Run(
+            async () =>
             {
-                await _pdfPages.UpsertAsync(
-                    new PdfPageData
+                using PdfDocument document = PdfDocument.Open(_pdfFile.Path);
+                foreach (var page in document.GetPages())
+                {
+                    string pageText = string.Join(" ", page.GetWords());
+
+                    if(pageText == string.Empty)
                     {
-                        Key = i,
-                        Page = contents[i].Page,
-                        Text = contents[i].Text,
-                        Vector = embedding.Vector
-                    },
-                    null,
-                    _cts.Token).ConfigureAwait(false);
-                i++;
-            }
+                        continue;
+                    }
+
+                    List<(string Text, uint Page)> pageChunks = SplitInChunks((pageText, (uint)page.Number), 512).ToList();
+                    int i = 0;
+                    await foreach(var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
+                    {
+                        await _pdfPages.UpsertAsync(
+                        new PdfPageData
+                        {
+                            Key = chunksProcessedCount,
+                            Page = pageChunks[i].Page,
+                            Text = pageChunks[i].Text,
+                            Vector = embedding.Vector
+                        },
+                        null,
+                        ct).ConfigureAwait(false);
+                        i++;
+                        chunksProcessedCount++;
+                    }
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        UpdateProgress(page.Number, document.NumberOfPages);
+                    });
+                }
+            },
+            ct);
+
+            ct.ThrowIfCancellationRequested();
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            DispatcherQueue.TryEnqueue(ToSelectState);
+            ToSelectState();
+
+            if (ex is not OperationCanceledException)
+            {
+                PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
+            }
+
             return;
         }
-        finally
+
+        if(chunksProcessedCount == 0)
         {
-            _cts = null;
+            ToSelectState();
+            PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
+            return;
         }
 
         DispatcherQueue.TryEnqueue(() =>
@@ -352,6 +351,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
             PdfImage.Source = bitmapImage;
             PdfImageGrid.Visibility = Visibility.Visible;
+            SelectNewPDFButton.Visibility = Visibility.Collapsed;
             UpdatePreviousAndNextPageButtonEnabled();
         });
     }
@@ -393,6 +393,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private void PdfImage_Tapped(object sender, TappedRoutedEventArgs e)
     {
         PdfImageGrid.Visibility = Visibility.Collapsed;
+        SelectNewPDFButton.Visibility = Visibility.Visible;
     }
 
     private async void PreviousPageButton_Click(object sender, RoutedEventArgs e)
@@ -420,6 +421,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private void ClosePdfButton_Click(object sender, RoutedEventArgs e)
     {
         PdfImageGrid.Visibility = Visibility.Collapsed;
+        SelectNewPDFButton.Visibility = Visibility.Visible;
     }
 
     private IEnumerable<(string Text, uint Page)> SplitInChunks((string Text, uint Page) input, int maxLength)
@@ -472,6 +474,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     private void ToSelectState()
     {
+        _pdfPages?.DeleteCollectionAsync();
+        HideProgress();
+        _isCancellable = false;
         ShowPDFPage.IsEnabled = false;
         SelectNewPDFButton.Visibility = Visibility.Collapsed;
         IndexPDFGrid.Visibility = Visibility.Visible;
@@ -489,6 +494,15 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         LoadPDFProgressRing.Visibility = Visibility.Visible;
         PdfProblemTextBlock.Text = string.Empty;
         IndexPDFText.Text = "Selecting PDF...";
+    }
+
+    private void ToIndexingState()
+    {
+        IndexPDFButton.IsEnabled = true;
+        IndexPDFText.Text = "Cancel";
+        _isCancellable = true;
+        ProgressPanel.Visibility = Visibility.Visible;
+        PdfProblemTextBlock.Text = string.Empty;
     }
 
     private async void AskSLMButton_Click(object sender, RoutedEventArgs e)
@@ -524,8 +538,23 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         {
             _pdfFile = pdfFile;
             ToSelectState();
-            ToSelectingState();
             await IndexPDF();
         }
+    }
+
+    private void UpdateProgress(int currentPage, int totalPages)
+    {
+        int progressValue = (int)Math.Floor((float)currentPage / (float)totalPages * 100);
+        string progressString = $"Indexed {currentPage} of {totalPages} pages ({progressValue}%)";
+
+        IndexingProgressBar.Value = progressValue;
+        ProgressStatusTextBlock.Text = progressString;
+    }
+
+    private void HideProgress()
+    {
+        ProgressPanel.Visibility = Visibility.Collapsed;
+        IndexingProgressBar.Value = 0;
+        ProgressStatusTextBlock.Text = string.Empty;
     }
 }

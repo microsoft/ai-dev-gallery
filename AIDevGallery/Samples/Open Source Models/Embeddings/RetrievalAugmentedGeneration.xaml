@@ -143,6 +143,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
                 x:Name="PdfProblemTextBlock"
@@ -169,6 +170,10 @@
                     <TextBlock x:Name="IndexPDFText" Text="Select a PDF" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
+            <StackPanel x:Name="ProgressPanel" HorizontalAlignment="Center" Grid.Row="2" Visibility="Collapsed" Spacing="8">
+                <ProgressBar x:Name="IndexingProgressBar" Width="250" Value="0"/>
+                <TextBlock x:Name="ProgressStatusTextBlock" HorizontalAlignment="Center"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </samples:BaseSamplePage>
