@@ -59,7 +59,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private StorageFile? _pdfFile;
     private InMemoryRandomAccessStream? _inMemoryRandomAccessStream;
     private CancellationTokenSource? _cts;
-    private bool _isCancellable = false;
+    private bool _isCancellable;
 
     private List<uint>? selectedPages;
     private int selectedPageIndex = -1;
