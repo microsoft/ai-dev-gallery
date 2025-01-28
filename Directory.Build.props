@@ -22,4 +22,12 @@
   <PropertyGroup Condition="$(Configuration)=='Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <PropertyGroup>
+    <IsWindowsAppSDKPreRelease>
+      $([System.String]::Copy('$(Microsoft_WindowsAppSDK_Version)').Contains('-'))
+    </IsWindowsAppSDKPreRelease>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(IsWindowsAppSDKPreRelease) == 'true' And $(SelfContainedIfPreviewWASDK) == 'true'">
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
 </Project>
