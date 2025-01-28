@@ -262,7 +262,6 @@ internal partial class Generator
                 content = content.Replace("$XmlEscapedPublisherDistinguishedName$", xmlEscapedPublisherDistinguishedName);
                 content = content.Replace("$XmlEscapedPublisher$", xmlEscapedPublisher);
                 content = content.Replace("$DotNetVersion$", DotNetVersion);
-                content = content.Replace("$MainSamplePage$", className);
 
                 // Write the file
                 await File.WriteAllTextAsync(outputPathFile, content, cancellationToken);
@@ -270,7 +269,7 @@ internal partial class Generator
         }
 
         // Add Asset Files
-        foreach(string assetFilename in sample.AssetFilenames)
+        foreach (string assetFilename in sample.AssetFilenames)
         {
             string fullAssetPath = Path.Join(Package.Current.InstalledLocation.Path, "Assets", assetFilename);
             string fullOutputAssetPath = Path.Combine(outputPath, "Assets", assetFilename);
@@ -563,14 +562,15 @@ internal partial class Generator
             xamlSource = xamlSource.Replace("<samples:BaseSamplePage", "<Page");
             xamlSource = xamlSource.Replace("</samples:BaseSamplePage>", "</Page>");
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml"), xamlSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml"), xamlSource, cancellationToken);
         }
 
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
             var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
             cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
-            cleanCsSource = cleanCsSource.Replace(": BaseSamplePage", ": Microsoft.UI.Xaml.Controls.Page");
+            cleanCsSource = cleanCsSource.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
+            cleanCsSource = cleanCsSource.Replace($"public {className}()", "public Sample()");
             cleanCsSource = cleanCsSource.Replace(
                 "Task LoadModelAsync(SampleNavigationParameters sampleParams)",
                 "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
@@ -623,7 +623,7 @@ internal partial class Generator
                 cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
             }
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml.cs"), cleanCsSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), cleanCsSource, cancellationToken);
         }
 
         return className;
@@ -650,7 +650,7 @@ internal partial class Generator
             _ = oldClassFullName[..oldClassFullName.LastIndexOf('.')];
             className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
 
-            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
         }
         else
         {
