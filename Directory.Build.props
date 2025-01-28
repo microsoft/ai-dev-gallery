@@ -23,11 +23,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
-    <IsWindowsAppSDKPreRelease>
-      $([System.String]::Copy('$(Microsoft_WindowsAppSDK_Version)').Contains('-'))
-    </IsWindowsAppSDKPreRelease>
+    <!-- Turn on/off depending on weather the WinAppSDK is prerelease or not -->
+    <IsWindowsAppSDKPreRelease>true</IsWindowsAppSDKPreRelease>
   </PropertyGroup>
-  <PropertyGroup Condition="$(IsWindowsAppSDKPreRelease) == 'true' And $(SelfContainedIfPreviewWASDK) == 'true'">
+  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 </Project>
