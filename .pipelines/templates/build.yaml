@@ -12,11 +12,11 @@ steps:
       $manifest.Package.Identity.Version = "$($env:GitBuildVersionSimple).0"
       $manifest.Save($manifestPath)
   displayName: Update Package Manifest Version
-- script: dotnet restore AIDevGallery.sln -r win-${{ parameters.dotnet_platform }} /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:PublishReadyToRun=true
+- script: dotnet restore AIDevGallery.sln -r win-${{ parameters.dotnet_platform }} /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
   displayName: Restore dependencies - ${{ parameters.dotnet_platform }}
 - script: |
     dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-    dotnet build AIDevGallery --no-restore -r win-${{ parameters.dotnet_platform }} -f net9.0-windows10.0.22621.0 /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true
+    dotnet build AIDevGallery --no-restore -r win-${{ parameters.dotnet_platform }} -f net9.0-windows10.0.22621.0 /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true
   displayName: Build - ${{ parameters.dotnet_platform }}
 - task: CopyFiles@2
   displayName: Copy MSIX Artifacts - ${{ parameters.dotnet_platform }}

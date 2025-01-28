@@ -25,7 +25,7 @@ internal class VaeDecoder : IDisposable
     {
         // Run session and send the input data in to get inference output.
         using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> output = vaeDecoderInferenceSession.Run(input);
-        var result = output[0].AsTensor<float>();
+        var result = output[0].AsTensor<float>().Clone();
 
         return result;
     }
