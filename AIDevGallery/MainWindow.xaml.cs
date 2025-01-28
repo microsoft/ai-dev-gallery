@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Samples;
@@ -20,6 +21,17 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
+    internal record FilterRecord(string? Tag, string Text);
+
+    private readonly List<FilterRecord> filters =
+    [
+        new(null, "All" ),
+        new("npu", "NPU" ),
+        new("gpu", "GPU" ),
+
+        // new("wcr-api", "WCR API" )
+    ];
+
     private readonly Stack<object?> _navItemHistory = new();
     private bool IsInnerNavViewPaneVisible => InnerNavView.OpenPaneLength > 0;
 
@@ -251,29 +263,89 @@ internal sealed partial class MainWindow : WindowEx
         if (NavViewInnerHeader.Text != "Samples")
         {
             ModelsFooter.Visibility = Visibility.Collapsed;
-            InnerNavView.MenuItems.Clear();
             NavViewInnerHeader.Text = "Samples";
+            HardwareFiltersComboBox.SelectedIndex = 0;
+            NavViewInnerFilterPanel.Visibility = Visibility.Visible;
+            PopulateScenarios();
+        }
 
-            foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
+        ShowInnerPane();
+        if (!SetSelectedScenarioInInnerMenu())
+        {
+            InnerNavView.SelectedItem = null;
+        }
+    }
+
+    private void PopulateScenarios(string? filter = null)
+    {
+        InnerNavView.MenuItems.Clear();
+
+        foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
+        {
+            var categoryMenu = new NavigationViewItem()
             {
-                var categoryMenu = new NavigationViewItem()
+                Content = scenarioCategory.Name,
+                Icon = new FontIcon() { Glyph = scenarioCategory.Icon },
+                Tag = scenarioCategory,
+                IsExpanded = true
+            };
+            foreach (var sc in scenarioCategory.Scenarios)
+            {
+                if (filter != null)
                 {
-                    Content = scenarioCategory.Name,
-                    Icon = new FontIcon() { Glyph = scenarioCategory.Icon },
-                    Tag = scenarioCategory,
-                    IsExpanded = true
-                };
-                foreach (var sc in scenarioCategory.Scenarios)
-                {
-                    categoryMenu.MenuItems.Add(new NavigationViewItem() { Content = sc.Name, Tag = sc });
+                    var models = GetModelsForScenario(sc);
+                    if (filter == "gpu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.DML)))
+                    {
+                        continue;
+                    }
+
+                    if (filter == "npu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    if (filter == "wcr-api" && !models.Any(m => m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        continue;
+                    }
                 }
 
+                NavigationViewItem currNavItem = new() { Content = sc.Name, Tag = sc };
+                ToolTip secnarioToolTip = new() { Content = sc.Name };
+                ToolTipService.SetToolTip(currNavItem, secnarioToolTip);
+                categoryMenu.MenuItems.Add(currNavItem);
+            }
+
+            if (categoryMenu.MenuItems.Count > 0)
+            {
                 categoryMenu.SelectsOnInvoked = false;
                 InnerNavView.MenuItems.Add(categoryMenu);
             }
         }
+    }
 
-        ShowInnerPane();
+    private List<ModelDetails> GetModelsForScenario(Scenario scenario)
+    {
+        var samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
+        List<ModelDetails> modelDetails = [];
+        foreach (var sample in samples)
+        {
+            modelDetails.AddRange(ModelDetailsHelper.GetModelDetails(sample)
+                                                    .SelectMany(d => d)
+                                                    .GroupBy(kv => kv.Key)
+                                                    .ToDictionary(g => g.Key, g => g.First().Value)
+                                                    .Values
+                                                    .SelectMany(v => v)
+                                                    .ToList());
+        }
+
+        return modelDetails;
+    }
+
+    private void ScenariosFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var tag = (e.AddedItems[0] as FilterRecord)!.Tag;
+        PopulateScenarios(tag);
         if (!SetSelectedScenarioInInnerMenu())
         {
             InnerNavView.SelectedItem = null;
@@ -301,6 +373,7 @@ internal sealed partial class MainWindow : WindowEx
         {
             InnerNavView.MenuItems.Clear();
             NavViewInnerHeader.Text = "Models";
+            NavViewInnerFilterPanel.Visibility = Visibility.Collapsed;
 
             List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];
             rootModels.AddRange(ModelTypeHelpers.ModelFamilyDetails.Keys);
