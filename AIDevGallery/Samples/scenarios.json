@@ -126,6 +126,11 @@
         "Description": "Detect text in an image.",
         "Id": "detect-text"
       },
+      "DetectTextLines": {
+        "Name": "Detect Text Lines",
+        "Description": "Detect lines of text in an image.",
+        "Id": "detect-text-lines"
+      },
       "IncreaseFidelity": {
         "Name": "Increase image fidelity",
         "Description": "Increase image fidelity.",
