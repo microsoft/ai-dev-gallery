@@ -198,14 +198,14 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             {
                 if (s is TextBlock { Tag: Rectangle rectangle })
                 {
-                    HighlightRectangle(rectangle);
+                    HilightRectangle(rectangle);
                 }
             };
             textLine.PointerExited += (s, e) =>
             {
                 if (s is TextBlock { Tag: Rectangle rectangle })
                 {
-                    DehighlightRectangle(rectangle);
+                    DehilightRectangle(rectangle);
                 }
             };
             TextPanel.Children.Add(textLine);
@@ -214,14 +214,14 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             {
                 if (s is Rectangle rectangle)
                 {
-                    HighlightRectangle(rectangle);
+                    HilightRectangle(rectangle);
                 }
             };
             rect.PointerExited += (s, e) =>
             {
                 if (s is Rectangle rectangle)
                 {
-                    DehighlightRectangle(rectangle);
+                    DehilightRectangle(rectangle);
                 }
             };
             rect.PointerPressed += (s, e) => CopyTextToClipboard(((s as Rectangle)?.Tag as TextBlock)?.Text ?? string.Empty);
@@ -231,7 +231,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         RectCanvas.Visibility = Visibility.Visible;
     }
 
-    private static void DehighlightRectangle(Rectangle rectangle)
+    private static void DehilightRectangle(Rectangle rectangle)
     {
         if (rectangle.Tag is TextBlock textLine)
         {
@@ -242,7 +242,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         Canvas.SetZIndex(rectangle, 0);
     }
 
-    private static void HighlightRectangle(Rectangle rectangle)
+    private static void HilightRectangle(Rectangle rectangle)
     {
         if (rectangle.Tag is TextBlock textLine)
         {
