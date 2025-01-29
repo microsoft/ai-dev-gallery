@@ -69,7 +69,6 @@ internal sealed partial class MainWindow : WindowEx
     private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
         Navigate(args.InvokedItem.ToString()!);
-        UpdateNavViewSelectedItem();
     }
 
     public void Navigate(string Tag, object? obj = null)
@@ -106,6 +105,8 @@ internal sealed partial class MainWindow : WindowEx
                 HideInnerPane();
                 break;
         }
+
+        UpdateNavViewSelectedItem();
     }
 
     public void NavigateToPage(object? obj)
@@ -200,7 +201,6 @@ internal sealed partial class MainWindow : WindowEx
 
     private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
     {
-        UpdateNavViewSelectedItem(e.SourcePageType);
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
             if (e.SourcePageType == typeof(ScenarioPage))
@@ -223,7 +223,15 @@ internal sealed partial class MainWindow : WindowEx
         NavView.ItemInvoked -= NavView_ItemInvoked;
         page ??= NavFrame.SourcePageType;
 
-        if (page == typeof(ScenarioPage))
+        if (IsInnerNavViewPaneVisible && NavViewInnerHeader.Text == "Samples")
+        {
+            NavView.SelectedItem = SamplesNavItem;
+        }
+        else if (IsInnerNavViewPaneVisible && NavViewInnerHeader.Text == "Models")
+        {
+            NavView.SelectedItem = ModelsNavItem;
+        }
+        else if (page == typeof(ScenarioPage))
         {
             NavView.SelectedItem = SamplesNavItem;
         }

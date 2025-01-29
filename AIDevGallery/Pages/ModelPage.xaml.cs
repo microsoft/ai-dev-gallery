@@ -47,16 +47,29 @@ internal sealed partial class ModelPage : Page
         }
         else if (e.Parameter is ModelDetails details)
         {
-            // this is likely user added model
-            modelSelectionControl.SetModels([details]);
+            var modelTypes = GetFamilyModelType(App.FindSampleItemById(details.Id));
 
-            ModelFamily = new ModelFamily
+            if (modelTypes != null && modelTypes.Count > 0)
             {
-                Id = details.Id + "Family",
-                ReadmeUrl = details.ReadmeUrl ?? string.Empty,
-                DocsUrl = details.ReadmeUrl ?? details.Url,
-                Name = details.Name
-            };
+                modelFamilyType = modelTypes[0];
+                ModelTypeHelpers.ModelFamilyDetails.TryGetValue(modelTypes[0], out var family);
+                ModelFamily = family;
+
+                modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
+            }
+            else
+            {
+                // this is likely user added model
+                modelSelectionControl.SetModels([details]);
+
+                ModelFamily = new ModelFamily
+                {
+                    Id = details.Id + "Family",
+                    ReadmeUrl = details.ReadmeUrl ?? string.Empty,
+                    DocsUrl = details.ReadmeUrl ?? details.Url,
+                    Name = details.Name
+                };
+            }
         }
         else if (e.Parameter is ModelType apiType && ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(apiType, out var apiDefinition))
         {
@@ -89,6 +102,21 @@ internal sealed partial class ModelPage : Page
 
         EnableSampleListIfModelIsDownloaded();
         App.ModelCache.CacheStore.ModelsChanged += CacheStore_ModelsChanged;
+
+        static List<ModelType>? GetFamilyModelType(List<ModelType>? modelTypes)
+        {
+            if (modelTypes != null && modelTypes.Count > 0)
+            {
+                var modelType = modelTypes.First();
+                if (ModelTypeHelpers.ModelDetails.ContainsKey(modelType))
+                {
+                    var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType));
+                    modelTypes = [parent.Key];
+                }
+            }
+
+            return modelTypes;
+        }
     }
 
     private void ModelPage_Unloaded(object sender, RoutedEventArgs e)
