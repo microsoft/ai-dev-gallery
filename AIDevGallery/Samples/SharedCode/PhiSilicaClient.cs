@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.AI;
+using Microsoft.ML.OnnxRuntimeGenAI;
+using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,14 @@ namespace AIDevGallery.Samples.SharedCode;
 internal class PhiSilicaClient : IChatClient
 {
     private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
+
+    // Search Options
+    private const int DefaultTopK = 50;
+    private const float DefaultTopP = 0.9f;
+    private const float DefaultTemperature = 1;
+    private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
+    private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
+    private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
 
     private readonly LlmPromptTemplate _promptTemplate;
 
@@ -32,6 +42,22 @@ internal class PhiSilicaClient : IChatClient
             User = "<|user|>\n{{CONTENT}}<|end|>\n",
             Assistant = "<|assistant|>\n{{CONTENT}}<|end|>\n",
             Stop = ["<|system|>", "<|user|>", "<|assistant|>", "<|end|>"]
+        };
+    }
+
+    public static ChatOptions GetDefaultChatOptions()
+    {
+        return new ChatOptions
+        {
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "skill", DefaultLanguageModelSkill },
+                { "input_moderation", DefaultInputModeration},
+                { "output_moderation", DefaultOutputModeration},
+            },
+            Temperature = DefaultTemperature,
+            TopP = DefaultTopP,
+            TopK = DefaultTopK,
         };
     }
 
@@ -62,13 +88,26 @@ internal class PhiSilicaClient : IChatClient
 
         var prompt = GetPrompt(chatMessages);
 
-        var response = await _languageModel.GenerateResponseWithProgressAsync(prompt).AsTask(cancellationToken);
-        if (response.Status == LanguageModelResponseStatus.Complete)
+        LanguageModelResponse? response;
+        if (options == null)
+        {
+            response = await _languageModel.GenerateResponseWithProgressAsync(prompt).AsTask(cancellationToken);
+        }
+        else
+        {
+            var (modelOptions, filterOptions) = GetModelOptions(options);
+            response = await _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions).AsTask(cancellationToken);
+        }
+
+        if (response?.Status == LanguageModelResponseStatus.Complete)
         {
             return new ChatCompletion(new ChatMessage(ChatRole.Assistant, response.Response));
         }
-
-        return new ChatCompletion(new ChatMessage(ChatRole.Assistant, string.Empty));
+        else
+        {
+            var message = response?.Status == LanguageModelResponseStatus.BlockedByPolicy ? "Response blocked by policy" : string.Empty;
+            return new ChatCompletion(new ChatMessage(ChatRole.Assistant, message));
+        }
     }
 
     public async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -88,6 +127,48 @@ internal class PhiSilicaClient : IChatClient
                 Text = part,
             };
         }
+    }
+
+    private (LanguageModelOptions? ModelOptions, ContentFilterOptions? FilterOptions) GetModelOptions(ChatOptions options)
+    {
+        if (options == null)
+        {
+            return (null, null);
+        }
+
+        var languageModelOptions = new LanguageModelOptions
+        {
+            Skill = options.AdditionalProperties?.TryGetValue("skill", out LanguageModelSkill skill) == true ? skill : DefaultLanguageModelSkill,
+            Temp = options.Temperature ?? DefaultTemperature,
+            Top_k = (uint)(options.TopK ?? DefaultTopK),
+            Top_p = (uint)(options.TopP ?? DefaultTopP),
+        };
+
+        var contentFilterOptions = new ContentFilterOptions();
+
+        if (options?.AdditionalProperties?.TryGetValue("input_moderation", out SeverityLevel inputModeration) == true && inputModeration != SeverityLevel.None)
+        {
+            contentFilterOptions.PromptMinSeverityLevelToBlock = new TextContentFilterSeverity
+            {
+                HateContentSeverity = inputModeration,
+                SexualContentSeverity = inputModeration,
+                ViolentContentSeverity = inputModeration,
+                SelfHarmContentSeverity = inputModeration
+            };
+        }
+
+        if (options?.AdditionalProperties?.TryGetValue("output_moderation", out SeverityLevel outputModeration) == true && outputModeration != SeverityLevel.None)
+        {
+            contentFilterOptions.ResponseMinSeverityLevelToBlock = new TextContentFilterSeverity
+            {
+                HateContentSeverity = outputModeration,
+                SexualContentSeverity = outputModeration,
+                ViolentContentSeverity = outputModeration,
+                SelfHarmContentSeverity = outputModeration
+            };
+        }
+
+        return (languageModelOptions, contentFilterOptions);
     }
 
     private string GetPrompt(IEnumerable<ChatMessage> history)
@@ -207,7 +288,17 @@ internal class PhiSilicaClient : IChatClient
 
         if (!_languageModel.IsPromptLargerThanContext(prompt))
         {
-            var progress = _languageModel.GenerateResponseWithProgressAsync(prompt);
+            IAsyncOperationWithProgress<LanguageModelResponse, string>? progress;
+            if (options == null)
+            {
+                progress = _languageModel.GenerateResponseWithProgressAsync(prompt);
+            }
+            else
+            {
+                var (modelOptions, filterOptions) = GetModelOptions(options);
+                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions);
+            }
+
             progress.Progress = (result, value) =>
             {
                 currentResponse = value;
@@ -229,7 +320,15 @@ internal class PhiSilicaClient : IChatClient
                 }
             }
 
-            await progress;
+            var response = await progress;
+
+            yield return response?.Status switch
+            {
+                LanguageModelResponseStatus.BlockedByPolicy => "\nBlocked by policy",
+                LanguageModelResponseStatus.PromptBlockedByPolicy => "\nPrompt blocked by policy",
+                LanguageModelResponseStatus.ResponseBlockedByPolicy => "\nResponse blocked by policy",
+                _ => string.Empty,
+            };
         }
         else
         {

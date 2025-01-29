@@ -8,6 +8,9 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI.ContentModeration;
+using Microsoft.Windows.AI.Generative;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,10 +37,24 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private readonly float defaultTemperature = 1;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
+    private readonly LanguageModelSkill defaultSkill = LanguageModelSkill.General;
+    private readonly SeverityLevel defaultSeverityLevel;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
     private IChatClient? model;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
+
+    public LanguageModelSkill LanguageModelSkill { get; set; } = LanguageModelSkill.General;
+
+    public List<LanguageModelSkill> LanguageModelSkills { get; } = [LanguageModelSkill.General, LanguageModelSkill.TextToTable, LanguageModelSkill.Summarize, LanguageModelSkill.Rewrite];
+
+    public SeverityLevel InputModerationLevel { get; set; } = SeverityLevel.None;
+
+    public SeverityLevel OutputModerationLevel { get; set; } = SeverityLevel.None;
+
+    public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.None, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
+
+    public bool IsPhiSilica { get; private set; }
 
     public CustomSystemPrompt()
     {
@@ -51,6 +68,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
+        IsPhiSilica = model is PhiSilicaClient;
         InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
@@ -70,6 +88,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             TopPSlider.Value = lastState.TopP ?? defaultTopP;
             SystemPromptInputTextBox.Text = lastState.SystemPrompt ?? defaultSystemPrompt;
             InputTextBox.Text = lastState.UserPrompt ?? string.Empty;
+            SkillCombo.SelectedItem = lastState.ModelSkill ?? LanguageModelSkill.General;
+            InputModerationCombo.SelectedItem = lastState.InputContentModeration ?? SeverityLevel.None;
+            OutputModerationCombo.SelectedItem = lastState.OutputContentModeration ?? SeverityLevel.None;
         }
     }
 
@@ -84,7 +105,10 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             TopP = (float)TopPSlider.Value,
             Temperature = (float)TemperatureSlider.Value,
             SystemPrompt = SystemPromptInputTextBox.Text,
-            UserPrompt = InputTextBox.Text
+            UserPrompt = InputTextBox.Text,
+            ModelSkill = LanguageModelSkill,
+            InputContentModeration = InputModerationLevel,
+            OutputContentModeration = OutputModerationLevel
         };
 
         App.AppData.LastCustomParamtersState = lastState;
@@ -209,6 +233,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         chatOptions.TopK = (int)TopKSlider.Value;
         chatOptions.TopP = (float)TopPSlider.Value;
         chatOptions.AdditionalProperties!["do_sample"] = DoSampleToggle.IsOn;
+        chatOptions.AdditionalProperties!["skill"] = LanguageModelSkill;
+        chatOptions.AdditionalProperties!["input_moderation"] = InputModerationLevel;
+        chatOptions.AdditionalProperties!["output_moderation"] = OutputModerationLevel;
     }
 
     private void StopBtn_Click(object sender, RoutedEventArgs e)
@@ -268,5 +295,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         TopKSlider.Value = defaultTopK;
         TemperatureSlider.Value = defaultTemperature;
         DoSampleToggle.IsOn = defaultDoSample;
+        LanguageModelSkill = defaultSkill;
+        InputModerationLevel = defaultSeverityLevel;
+        OutputModerationLevel = defaultSeverityLevel;
     }
 }

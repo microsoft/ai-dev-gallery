@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.CustomSystemPrompt"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:samples="using:AIDevGallery.Samples"
-    xmlns:ui="using:CommunityToolkit.WinUI"
-    mc:Ignorable="d">
-
-    <ScrollViewer
-        Padding="0,0,8,0"
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
+        x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.CustomSystemPrompt"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:samples="using:AIDevGallery.Samples" xmlns:ui="using:CommunityToolkit.WinUI"
+        mc:Ignorable="d">
+    <ScrollViewer Padding="0,0,8,0" HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
         <Grid ColumnSpacing="36" RowSpacing="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -23,140 +19,127 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="286" />
             </Grid.ColumnDefinitions>
-
             <StackPanel Orientation="Vertical" Spacing="12">
-                <TextBox
-                    x:Name="SystemPromptInputTextBox"
-                    Grid.Row="0"
-                    MinHeight="96"
-                    MaxHeight="300"
-                    AcceptsReturn="True"
-                    AutomationProperties.Name="Prompt input"
-                    Header="System prompt"
-                    PlaceholderText="Enter a system prompt for the model.."
-                    Text="{x:Bind defaultSystemPrompt, Mode=OneTime}"
-                    TextWrapping="Wrap" />
-                <TextBox
-                    x:Name="InputTextBox"
-                    MinHeight="96"
-                    MaxHeight="300"
-                    Margin="0,12,0,0"
-                    AcceptsReturn="True"
-                    AutomationProperties.Name="Query input"
-                    Description=" "
-                    Header="Query"
-                    PlaceholderText="Enter a query to the model for a response.."
-                    TextChanged="InputBox_Changed"
-                    TextWrapping="Wrap" />
-                <StackPanel
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    Spacing="8">
-                    <Button
-                        x:Name="GenerateButton"
-                        Grid.Row="2"
-                        MinWidth="86"
-                        HorizontalAlignment="Right"
-                        Click="GenerateButton_Click"
-                        Content="Generate"
-                        IsEnabled="False"
-                        Style="{StaticResource AccentButtonStyle}" />
-                    <Button
-                        x:Name="StopBtn"
-                        Grid.Row="2"
-                        MinWidth="86"
-                        HorizontalAlignment="Right"
-                        AutomationProperties.Name="Stop"
-                        Click="StopBtn_Click"
-                        Style="{ThemeResource AccentButtonStyle}"
-                        Visibility="Collapsed">
+                <TextBox x:Name="SystemPromptInputTextBox" Grid.Row="0" MinHeight="96"
+                        MaxHeight="300" AcceptsReturn="True"
+                        AutomationProperties.Name="Prompt input" Header="System prompt"
+                        PlaceholderText="Enter a system prompt for the model.."
+                        Text="{x:Bind defaultSystemPrompt, Mode=OneTime}"
+                        TextWrapping="Wrap" />
+                <TextBox x:Name="InputTextBox" MinHeight="96" MaxHeight="300"
+                        Margin="0,12,0,0" AcceptsReturn="True"
+                        AutomationProperties.Name="Query input" Description=" "
+                        Header="Query"
+                        PlaceholderText="Enter a query to the model for a response.."
+                        TextChanged="InputBox_Changed" TextWrapping="Wrap" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
+                        Spacing="8">
+                    <Button x:Name="GenerateButton" Grid.Row="2" MinWidth="86"
+                            HorizontalAlignment="Right" Click="GenerateButton_Click"
+                            Content="Generate" IsEnabled="False"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    <Button x:Name="StopBtn" Grid.Row="2" MinWidth="86"
+                            HorizontalAlignment="Right" AutomationProperties.Name="Stop"
+                            Click="StopBtn_Click"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon
-                                x:Name="StopIcon"
-                                FontSize="16"
-                                Glyph="&#xE73B;" />
-                            <ProgressRing
-                                x:Name="OutputProgressBar"
-                                Width="16"
-                                Height="16"
-                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                IsIndeterminate="True"
-                                Visibility="Collapsed" />
+                            <FontIcon x:Name="StopIcon" FontSize="16" Glyph="&#xE73B;" />
+                            <ProgressRing x:Name="OutputProgressBar" Width="16"
+                                    Height="16"
+                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                    IsIndeterminate="True" Visibility="Collapsed" />
                             <TextBlock Text="Stop" />
                         </StackPanel>
                     </Button>
-                    <Button
-                        x:Name="ResetButton"
-                        Grid.Row="1"
-                        MinWidth="86"
-                        HorizontalAlignment="Right"
-                        Click="ResetButton_Click"
-                        Content="Reset to defaults" />
+                    <Button x:Name="ResetButton" Grid.Row="1" MinWidth="86"
+                            HorizontalAlignment="Right" Click="ResetButton_Click"
+                            Content="Reset to defaults" />
                 </StackPanel>
             </StackPanel>
-
-            <StackPanel
-                Grid.RowSpan="3"
-                Grid.Column="1"
-                Spacing="12">
-                <Slider
-                    x:Name="MinLengthSlider"
-                    Header="Min Length"
-                    Maximum="2048"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
-                    Value="0" />
-                <Slider
-                    x:Name="MaxLengthSlider"
-                    Header="Max Length"
-                    Maximum="2048"
-                    Minimum="1"
-                    StepFrequency="1"
-                    ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
-                    Value="{x:Bind defaultMaxLength, Mode=OneTime}" />
-                <Slider
-                    x:Name="TopPSlider"
-                    Header="Top P"
-                    Maximum="1"
-                    Minimum="0"
-                    StepFrequency="0.01"
-                    ToolTipService.ToolTip="The top P parameter tells the model to only consider tokens up until a cumulative probability of P. Lower this value for more predictable, focused generation and increase it for more random response."
-                    Value="{x:Bind defaultTopP, Mode=OneTime}" />
-                <Slider
-                    x:Name="TopKSlider"
-                    Header="Top K"
-                    Maximum="200"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ToolTipService.ToolTip="The top K parameter tells the model to only consider the K most probable tokens at each generation step. Lower this value for more predictable, focused generation and increase it for more random response."
-                    Value="{x:Bind defaultTopK, Mode=OneTime}" />
-                <Slider
-                    x:Name="TemperatureSlider"
-                    Header="Temperature"
-                    Maximum="5"
-                    Minimum="0.01"
-                    StepFrequency="0.01"
-                    ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
-                    Value="{x:Bind defaultTemperature, Mode=OneTime}" />
-                <ToggleSwitch
-                    x:Name="DoSampleToggle"
-                    Header="Sampling"
-                    IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
-                    ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
+            <StackPanel Grid.RowSpan="3" Grid.Column="1" Spacing="12">
+                <Slider x:Name="MinLengthSlider" Header="Min Length" Maximum="2048"
+                        Minimum="0" StepFrequency="1"
+                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
+                        ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
+                        Value="0" />
+                <Slider x:Name="MaxLengthSlider" Header="Max Length" Maximum="2048"
+                        Minimum="1" StepFrequency="1"
+                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
+                        ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
+                        Value="{x:Bind defaultMaxLength, Mode=OneTime}" />
+                <Slider x:Name="TopPSlider" Header="Top P" Maximum="1" Minimum="0"
+                        StepFrequency="0.01"
+                        ToolTipService.ToolTip="The top P parameter tells the model to only consider tokens up until a cumulative probability of P. Lower this value for more predictable, focused generation and increase it for more random response."
+                        Value="{x:Bind defaultTopP, Mode=OneTime}" />
+                <Slider x:Name="TopKSlider" Header="Top K" Maximum="200" Minimum="0"
+                        StepFrequency="1"
+                        ToolTipService.ToolTip="The top K parameter tells the model to only consider the K most probable tokens at each generation step. Lower this value for more predictable, focused generation and increase it for more random response."
+                        Value="{x:Bind defaultTopK, Mode=OneTime}" />
+                <Slider x:Name="TemperatureSlider" Header="Temperature" Maximum="5"
+                        Minimum="0.01" StepFrequency="0.01"
+                        ToolTipService.ToolTip="The temperature parameter is a scaling factor for the probability distribution of tokens during generation. Values lower than 1 will produce more deterministic response while values higher than 1 will increase ramdomness."
+                        Value="{x:Bind defaultTemperature, Mode=OneTime}" />
+                <ToggleSwitch x:Name="DoSampleToggle" Header="Sampling"
+                        IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
+                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
+                        ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
+                <StackPanel x:Name="PhiSilicaParams" Spacing="12" Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                    <TextBlock VerticalAlignment="Center" Text="Skill">
+                         <ToolTipService.ToolTip>
+                             <ToolTip>
+                                 <StackPanel>
+                                     <TextBlock Text="The skill used for the response." />
+                                     <TextBlock Margin="10,0" Text="General - Don't use any skill for the response" />
+                                     <TextBlock Margin="10,0" Text="TextToTable - Generates a csv table with the data" />
+                                     <TextBlock Margin="10,0" Text="Summarize - Summarizes the text" />
+                                     <TextBlock Margin="10,0" Text="Rewrite - Rewrites the input text" />
+                                 </StackPanel>
+                             </ToolTip>
+                         </ToolTipService.ToolTip>
+                    </TextBlock>
+                    <ComboBox Width="120" x:Name ="SkillCombo" VerticalAlignment="Center" 
+                            ItemsSource="{x:Bind LanguageModelSkills}"
+                            SelectedItem="{x:Bind LanguageModelSkill, Mode=OneTime}" />
+                    <TextBlock VerticalAlignment="Center" Text="Prompt Content Moderation">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock Text="Content moderation for the input prompt" />
+                                    <TextBlock Margin="10,0" Text="Level of content moderation for the input prompt" />
+                                    <TextBlock Margin="10,0" Text="'None' level will set a minimum content moderation." />
+                                    <TextBlock Margin="10,0" Text="'None' won't remove content moderation" />
+                                </StackPanel>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                    </TextBlock>
+                    <ComboBox Width="110" x:Name="InputModerationCombo" VerticalAlignment="Center"
+                            ItemsSource="{x:Bind SeverityLevels}"
+                            SelectedItem="{x:Bind InputModerationLevel, Mode=OneTime}" />
+                    <TextBlock VerticalAlignment="Center" Text="Response Content Moderation">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock Text="Content moderation for the response" TextWrapping="Wrap" />
+                                    <TextBlock Margin="10,0" Text="Level of content moderation for the response" />
+                                    <TextBlock Margin="10,0" Text="'None' level will set a minimum content moderation." />
+                                    <TextBlock Margin="10,0" Text="'None' won't remove content moderation" />
+                                </StackPanel>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                    </TextBlock>
+                    <ComboBox Width="110" x:Name="OutputModerationCombo"
+                            VerticalAlignment="Center"
+                            ItemsSource="{x:Bind SeverityLevels}"
+                            SelectedItem="{x:Bind OutputModerationLevel, Mode=OneTime}" />
+                </StackPanel>
             </StackPanel>
-            <TextBlock
-                Grid.Row="1"
-                Margin="0,16,0,0"
-                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                Text="Output:" />
-            <TextBlock
-                x:Name="OutputTextBlock"
-                Grid.Row="2"
-                AutomationProperties.Name="Output"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                IsTextSelectionEnabled="True"
-                TextWrapping="WrapWholeWords" />
+            <TextBlock Grid.Row="1" Margin="0,16,0,0"
+                    Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Output:" />
+            <TextBlock x:Name="OutputTextBlock" Grid.Row="2"
+                    AutomationProperties.Name="Output"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True" TextWrapping="WrapWholeWords" />
         </Grid>
     </ScrollViewer>
 </samples:BaseSamplePage>

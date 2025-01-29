@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Telemetry;
+using Microsoft.Windows.AI.ContentModeration;
+using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -114,4 +116,7 @@ internal class CustomParametersState
     public float? Temperature { get; set; }
     public string? UserPrompt { get; set; }
     public string? SystemPrompt { get; set; }
+    public LanguageModelSkill? ModelSkill { get; set; }
+    public SeverityLevel? InputContentModeration { get; set; }
+    public SeverityLevel? OutputContentModeration { get; set; }
 }
