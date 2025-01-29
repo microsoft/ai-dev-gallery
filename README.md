@@ -14,11 +14,16 @@ The AI Dev Gallery is an app designed to help Windows developers integrate AI ca
 - **The ability to view the C# source code and simply export a standalone Visual Studio project for each sample**
 
 <p align="center">
-<br/>
 <img src="docs/images/HeroImage1.png" alt="AI Dev Gallery" width="600"/>
+</p>
+<p align="center">
+<a href="https://aka.ms/">
+	<img alt="Store badge" src="README_Images/storeBadge.png" width="200"/>
+</a>
+</p>
 
 ## 🚀 Getting Started
-Follow the following guide to install the AI Dev Gallery locally:
+You can download [AI Dev Gallery from the Microsoft Store](https://aka.ms/), or follow the following guide to install it locally:
 
 ### 1. Set up the Environment
 
