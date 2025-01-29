@@ -18,7 +18,7 @@ The AI Dev Gallery is an app designed to help Windows developers integrate AI ca
 </p>
 <p align="center">
 <a href="https://aka.ms/">
-	<img alt="Store badge" src="README_Images/storeBadge.png" width="200"/>
+	<img alt="Store badge" src="docs/images/storeBadge.png" width="200"/>
 </a>
 </p>
 
