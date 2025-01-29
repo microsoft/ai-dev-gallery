@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     SharedCode = [
         SharedCodeEnum.GenAIModel
     ])]
-internal sealed partial class CustomSystemPrompt : BaseSamplePage
+internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
     private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
     private readonly int defaultTopK = 50;
@@ -38,11 +39,12 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
     private readonly LanguageModelSkill defaultSkill = LanguageModelSkill.General;
-    private readonly SeverityLevel defaultSeverityLevel;
+    private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.None;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
     private IChatClient? model;
     private CancellationTokenSource? cts;
-    private bool isProgressVisible;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public LanguageModelSkill LanguageModelSkill { get; set; } = LanguageModelSkill.General;
 
@@ -54,7 +56,15 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.None, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
 
-    public bool IsPhiSilica { get; private set; }
+    public bool IsPhiSilica
+    {
+        get;
+        private set
+        {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPhiSilica)));
+        }
+    }
 
     public CustomSystemPrompt()
     {
@@ -124,10 +134,10 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     public bool IsProgressVisible
     {
-        get => isProgressVisible;
+        get;
         set
         {
-            isProgressVisible = value;
+            field = value;
             DispatcherQueue.TryEnqueue(() =>
             {
                 OutputProgressBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
@@ -168,7 +178,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        if (isProgressVisible)
+                        if (IsProgressVisible)
                         {
                             StopBtn.Visibility = Visibility.Visible;
                             IsProgressVisible = false;

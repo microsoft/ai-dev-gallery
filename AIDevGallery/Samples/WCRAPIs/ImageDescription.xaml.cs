@@ -3,7 +3,6 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +25,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
     NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
-[ObservableObject]
+
 internal sealed partial class ImageDescription : BaseSamplePage
 {
     private SoftwareBitmap? _inputBitmap;
@@ -117,23 +116,27 @@ internal sealed partial class ImageDescription : BaseSamplePage
         DispatcherQueue?.TryEnqueue(() => LoadImageProgressRing.Visibility = Visibility.Visible);
         var isFirstWord = true;
         using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
-        var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer);
-        describeTask.Progress += (asyncInfo, delta) =>
+        var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
+        if (describeTask != null)
         {
-            var result = asyncInfo.GetResults().Response;
-
-            DispatcherQueue?.TryEnqueue(() =>
+            describeTask.Progress += (asyncInfo, delta) =>
             {
-                if (isFirstWord)
-                {
-                    LoadImageProgressRing.Visibility = Visibility.Collapsed;
-                    isFirstWord = false;
-                }
+                var result = asyncInfo.GetResults().Response;
 
-                ResponseTxt.Text = result;
-            });
-        };
-        await describeTask;
+                DispatcherQueue?.TryEnqueue(() =>
+                {
+                    if (isFirstWord)
+                    {
+                        LoadImageProgressRing.Visibility = Visibility.Collapsed;
+                        isFirstWord = false;
+                    }
+
+                    ResponseTxt.Text = result;
+                });
+            };
+            await describeTask;
+        }
+
         LoadImageProgressRing.Visibility = Visibility.Collapsed;
     }
 }

@@ -3,13 +3,13 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
@@ -25,13 +25,21 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
     NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
-[ObservableObject]
-internal sealed partial class IncreaseFidelity : BaseSamplePage
+internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyPropertyChanged
 {
     private ImageScaler? _imageScaler;
 
-    [ObservableProperty]
-    private double _imageScale = 2;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private double ImageScale
+    {
+        get;
+        set
+        {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageScale)));
+        }
+    }
 
     public IncreaseFidelity()
     {
@@ -51,6 +59,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         }
 
         _imageScaler = await ImageScaler.CreateAsync();
+        ImageScale = 2;
         ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
         sampleParams.NotifyCompletion();
     }

@@ -269,7 +269,6 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             {
                 sb.AppendLine(textLine.Text);
             }
-
         }
 
         CopyTextToClipboard(sb.ToString());
@@ -305,8 +304,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             BitmapAlphaMode.Premultiplied,
             transform,
             ExifOrientationMode.IgnoreExifOrientation,
-            ColorManagementMode.DoNotColorManage
-        );
+            ColorManagementMode.DoNotColorManage);
 
         croppedBitmap.CopyFromBuffer(pixelData.DetachPixelData().AsBuffer());
 

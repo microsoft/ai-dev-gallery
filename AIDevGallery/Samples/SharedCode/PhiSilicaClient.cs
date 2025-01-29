@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.AI;
-using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
 using System;
@@ -52,8 +51,8 @@ internal class PhiSilicaClient : IChatClient
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "skill", DefaultLanguageModelSkill },
-                { "input_moderation", DefaultInputModeration},
-                { "output_moderation", DefaultOutputModeration},
+                { "input_moderation", DefaultInputModeration },
+                { "output_moderation", DefaultOutputModeration },
             },
             Temperature = DefaultTemperature,
             TopP = DefaultTopP,
