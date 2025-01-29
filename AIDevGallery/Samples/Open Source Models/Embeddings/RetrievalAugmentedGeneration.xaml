@@ -24,7 +24,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Click="SelectNewPDF_Click"
-            Margin="12"
+            Margin="12" Style="{StaticResource AccentButtonStyle}"
             Visibility="Collapsed"/>
         <ScrollViewer x:Name="InformationSV" Padding="16" Visibility="Collapsed">
             <TextBlock TextWrapping="Wrap" AutomationProperties.Name="PDF Information">
