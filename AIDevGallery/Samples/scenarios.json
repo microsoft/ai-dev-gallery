@@ -64,6 +64,11 @@
     "Name": "Smart Controls",
     "Icon": "\uE74C",
     "Scenarios": {
+      "SmartTextBox": {
+        "Name": "Smart Text Box",
+        "Description": "Perform common language model actions within a text box control.",
+        "Id": "smart-text"
+      },
       "SmartPaste": {
         "Name": "Smart Paste",
         "Description": "Smart paste text with local language model.",
