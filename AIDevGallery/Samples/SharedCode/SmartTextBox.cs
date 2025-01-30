@@ -12,7 +12,7 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal sealed partial class SmartTextBox : Control
 {
-    private IChatClient? _model;
+    private IChatClient? _chatClient;
     private string? _text = string.Empty;
     private CancellationTokenSource? _cts;
     private string? _previousText;
@@ -34,10 +34,10 @@ internal sealed partial class SmartTextBox : Control
         this.Unloaded += (s, e) => CleanUp();
     }
 
-    public IChatClient Model
+    public IChatClient ChatClient
     {
-        get => (IChatClient)GetValue(ModelProperty);
-        set => SetValue(ModelProperty, value);
+        get => (IChatClient)GetValue(ChatClientProperty);
+        set => SetValue(ChatClientProperty, value);
     }
 
     public string Text
@@ -71,7 +71,7 @@ internal sealed partial class SmartTextBox : Control
 
     private async Task<string> Infer(string systemPrompt, string query, ChatOptions? options = null)
     {
-        if (_model == null)
+        if (_chatClient == null)
         {
             return string.Empty;
         }
@@ -80,7 +80,7 @@ internal sealed partial class SmartTextBox : Control
 
         ChatOptions chatOptions = options ?? GenAIModel.GetDefaultChatOptions();
 
-        return (await _model.CompleteAsync(
+        return (await _chatClient.CompleteAsync(
             [
                 new ChatMessage(ChatRole.System, systemPrompt),
                     new ChatMessage(ChatRole.User, query)
@@ -131,7 +131,7 @@ internal sealed partial class SmartTextBox : Control
 
     private async Task<string> DescribeChanges(string textToChange, string changes)
     {
-        string systemPrompt = "You apply user-defined changes to text. When provided with text, apply the described changes to the text. Respond with only the changed text. Respond with ONLY the changed text and DO NOT provide an explanation , note, any sort of justification of your changes. The changes are: " + changes + ". The provided text is: " + textToChange;
+        string systemPrompt = "You apply user-defined changes to text. When provided with text, apply the described changes to the text. Respond with only the changed text. Respond with ONLY the changed text and DO NOT provide an explanation, note, any sort of justification of your changes. The changes are: " + changes + ". The provided text is: " + textToChange;
         ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
         chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
         return await Infer(systemPrompt, textToChange, chatOptions);
@@ -140,7 +140,7 @@ internal sealed partial class SmartTextBox : Control
     private void CleanUp()
     {
         CancelGeneration();
-        _model?.Dispose();
+        _chatClient?.Dispose();
     }
 
     private void CancelGeneration()
@@ -268,11 +268,11 @@ internal sealed partial class SmartTextBox : Control
         _inputTextBox!.Document.Selection.EndPosition = 0;
     }
 
-    public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(
-        nameof(Model),
+    public static readonly DependencyProperty ChatClientProperty = DependencyProperty.Register(
+        nameof(ChatClient),
         typeof(IChatClient),
         typeof(SmartTextBox),
-        new PropertyMetadata(default(IChatClient), new PropertyChangedCallback(OnModelChanged)));
+        new PropertyMetadata(default(IChatClient), new PropertyChangedCallback(OnChatClientChanged)));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register(
         nameof(Text),
@@ -280,13 +280,13 @@ internal sealed partial class SmartTextBox : Control
         typeof(SmartTextBox),
         new PropertyMetadata(default(string), new PropertyChangedCallback(OnTextChanged)));
 
-    private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnChatClientChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         IChatClient model = (IChatClient)e.NewValue;
         if (model != null)
         {
             SmartTextBox smartTextBox = (SmartTextBox)d;
-            smartTextBox._model = model;
+            smartTextBox._chatClient = model;
         }
     }
 

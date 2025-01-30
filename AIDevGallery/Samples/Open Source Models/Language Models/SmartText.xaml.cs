@@ -46,7 +46,7 @@ internal sealed partial class SmartText : BaseSamplePage
         _model = await sampleParams.GetIChatClientAsync();
         if (_model != null)
         {
-            this.SmartTextBox.Model = _model;
+            this.SmartTextBox.ChatClient = _model;
         }
 
         sampleParams.NotifyCompletion();
