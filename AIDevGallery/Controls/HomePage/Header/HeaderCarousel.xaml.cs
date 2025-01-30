@@ -193,6 +193,7 @@ internal sealed partial class HeaderCarousel : UserControl
         await Task.Delay(360);
         SetTileVisuals();
     }
+
     private void Tile_GotFocus(object sender, RoutedEventArgs e)
     {
         selectedTile = (HeaderTile)sender;
@@ -208,16 +209,5 @@ internal sealed partial class HeaderCarousel : UserControl
     private void UserControl_Unloaded(object sender, RoutedEventArgs e)
     {
         UnsubscribeToEvents();
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
-        foreach (HeaderTile t in TilePanel.Children)
-        {
-
-            t.IsSelected = false;
-
-        }
     }
 }
