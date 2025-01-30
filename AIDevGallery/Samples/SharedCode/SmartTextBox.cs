@@ -2,11 +2,17 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.AI;
+using Microsoft.UI.Input;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.System;
+using Windows.UI.Core;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -65,6 +71,7 @@ internal sealed partial class SmartTextBox : Control
         _describeChangesTip.ActionButtonClick += DescribeChangesTip_ActionButtonClick;
         _describeChangesTip.CloseButtonClick += DescribeChangesTip_CloseButtonClick;
         _actionFlyoutListView.ItemClick += ActionFlyoutListView_ItemClick;
+        _inputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
 
         _inputTextBox.Document.SetText(TextSetOptions.None, _text);
     }
@@ -150,11 +157,6 @@ internal sealed partial class SmartTextBox : Control
         _cts = null;
     }
 
-    public void SetText(string text)
-    {
-        _inputTextBox!.Document.SetText(TextSetOptions.None, text);
-    }
-
     private async void ActionFlyoutListView_ItemClick(object sender, ItemClickEventArgs e)
     {
         ITextSelection selection = _inputTextBox!.Document.Selection;
@@ -217,6 +219,18 @@ internal sealed partial class SmartTextBox : Control
             _inputTextBox.IsEnabled = true;
             _inputTextBox.Document.Selection.StartPosition = 0;
             _inputTextBox.Document.Selection.EndPosition = 0;
+        }
+    }
+
+    private void InputTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        bool isControlKeyPressed = (InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        if (e.Key == VirtualKey.A && isControlKeyPressed)
+        {
+            FlyoutShowOptions flyoutShowOptions = new();
+            flyoutShowOptions.ShowMode = FlyoutShowMode.Transient;
+            DispatcherQueue.TryEnqueue(() => _aiFlyout!.ShowAt((FrameworkElement)sender, flyoutShowOptions));
+            _inputTextBox!.Document.Selection.SetRange(0, int.MaxValue);
         }
     }
 
