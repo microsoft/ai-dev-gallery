@@ -17,11 +17,13 @@
         IsPaneToggleButtonVisible="False"
         IsPaneVisible="True"
         IsSettingsVisible="False"
-        OpenPaneLength="248"
+        OpenPaneLength="276"
         SelectionChanged="NavView_SelectionChanged">
         <NavigationView.Resources>
             <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
         </NavigationView.Resources>
         <NavigationView.PaneHeader>
             <Grid Margin="16,12,0,12">

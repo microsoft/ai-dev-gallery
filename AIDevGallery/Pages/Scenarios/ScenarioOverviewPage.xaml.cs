@@ -6,7 +6,8 @@ using AIDevGallery.Samples;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 namespace AIDevGallery.Pages;
-public sealed partial class ScenarioOverviewPage : Page
+
+internal sealed partial class ScenarioOverviewPage : Page
 {
     public ScenarioOverviewPage()
     {
@@ -18,10 +19,6 @@ public sealed partial class ScenarioOverviewPage : Page
         base.OnNavigatedTo(e);
 
         view.ItemsSource = ScenarioCategoryHelpers.AllScenarioCategories;
-        foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
-        {
-       
-        }
     }
 
     private void ItemsView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
