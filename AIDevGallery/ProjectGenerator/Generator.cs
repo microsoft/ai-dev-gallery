@@ -289,6 +289,11 @@ internal partial class Generator
 
             static void AddPackageReference(ProjectItemGroupElement itemGroup, string packageName, string? version)
             {
+                if (itemGroup.Items.Any(i => i.ItemType == "PackageReference" && i.Include == packageName))
+                {
+                    return;
+                }
+
                 var packageReferenceItem = itemGroup.AddItem("PackageReference", packageName);
 
                 if (packageName == "Microsoft.Windows.CsWin32")
