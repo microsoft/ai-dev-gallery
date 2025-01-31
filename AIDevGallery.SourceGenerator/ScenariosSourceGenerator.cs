@@ -67,20 +67,26 @@ internal class ScenariosSourceGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("    internal static List<ScenarioCategory> AllScenarioCategories { get; } = [");
         foreach (var scenarioCategory in scenarioCategories)
         {
-            string icon = Helpers.EscapeUnicodeString(scenarioCategory.Value.Icon);
+            string categoryIcon = Helpers.EscapeUnicodeString(scenarioCategory.Value.Icon);
 
             sourceBuilder.AppendLine(
                 $$""""
                         new ScenarioCategory
                         {
                             Name = "{{scenarioCategory.Value.Name}}",
-                            Icon = {{icon}},
+                            Icon = {{categoryIcon}},
                             Description = "{{scenarioCategory.Value.Description}}",
                             Scenarios = new List<Scenario>
                             {
                 """");
             foreach (var scenario in scenarioCategory.Value.Scenarios)
             {
+                string scenarioIcon = categoryIcon;
+                if (scenario.Value.Icon is string icon)
+                {
+                    scenarioIcon = Helpers.EscapeUnicodeString(icon);
+                }
+
                 sourceBuilder.AppendLine(
                     $$""""""
                                     new Scenario
@@ -89,7 +95,7 @@ internal class ScenariosSourceGenerator : IIncrementalGenerator
                                         Name = "{{scenario.Value.Name}}",
                                         Description = "{{scenario.Value.Description}}",
                                         Id = "{{scenario.Value.Id}}",
-                                        Icon = {{icon}}
+                                        Icon = {{scenarioIcon}}
                                     },
                     """""");
             }

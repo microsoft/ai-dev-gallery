@@ -7,27 +7,32 @@
       "GenerateText": {
         "Name": "Generate Text",
         "Description": "Generate text with local language model.",
-        "Id": "generate-text"
+        "Id": "generate-text",
+        "Icon": "\uEB9F"
       },
       "SummarizeText": {
         "Name": "Summarize Text",
         "Description": "Summarize text with local language model.",
-        "Id": "summarize-text"
+        "Id": "summarize-text",
+        "Icon": "\uE8BC"
       },
       "Chat": {
         "Name": "Chat",
         "Description": "Chat with local language model.",
-        "Id": "chat"
+        "Id": "chat",
+        "Icon": "\uE8F2"
       },
       "TranslateText": {
         "Name": "Translate Text",
         "Description": "Translate text with local language model.",
-        "Id": "translate-text"
+        "Id": "translate-text",
+        "Icon": "\uF2B7"
       },
       "GrammarCheckText": {
         "Name": "Grammar Check",
         "Description": "Grammar check text with local language model.",
-        "Id": "grammar-check-text"
+        "Id": "grammar-check-text",
+        "Icon": "\uF87B"
       },
       "ParaphraseText": {
         "Name": "Paraphrase Text",
@@ -37,7 +42,8 @@
       "AnalyzeSentimentText": {
         "Name": "Analyze Text Sentiment",
         "Description": "Analyze text sentiment with local language model.",
-        "Id": "analyze-sentiment-text"
+        "Id": "analyze-sentiment-text",
+        "Icon": "\uE9D5"
       },
       "CustomParameters": {
         "Name": "Custom Parameters",
@@ -52,12 +58,14 @@
       "SemanticSearch": {
         "Name": "Semantic Search",
         "Description": "Semantically search text with a local embeddings model.",
-        "Id": "semantic-search"
+        "Id": "semantic-search",
+        "Icon": "\uE773"
       },
       "RetrievalAugmentedGeneration": {
         "Name": "Retrieval Augmented Generation",
         "Description": "Use existing data to improve responses given by a local language model.",
-        "Id": "retrieval-augmented-generation"
+        "Id": "retrieval-augmented-generation",
+        "Icon": "\uF571"
       }
     }
   },
@@ -67,17 +75,18 @@
     "Description": "Smart controls scenarios are designed to help you perform common language model actions within a text box control, smart paste text with local language model, and suggest ComboBox options semantically with an embeddings model.",
     "Scenarios": {
       "SmartTextBox": {
-        "Name": "Smart Text Box",
+        "Name": "Smart TextBox",
         "Description": "Perform common language model actions within a text box control.",
         "Id": "smart-text"
       },
       "SmartPaste": {
         "Name": "Smart Paste",
         "Description": "Smart paste text with local language model.",
-        "Id": "smart-paste"
+        "Id": "smart-paste",
+        "Icon": "\uE77F"
       },
       "SemanticComboBox": {
-        "Name": "Semantic Combo Box",
+        "Name": "Semantic ComboBox",
         "Description": "Suggest ComboBox options semantically with an embeddings model.",
         "Id": "semantic-combo-box"
       }
@@ -113,7 +122,8 @@
       "DescribeImage": {
         "Name": "Describe Image",
         "Description": "Describe image with a multimodal language model",
-        "Id": "describe-image"
+        "Id": "describe-image",
+        "Icon": "\uE8BA"
       },
       "ClassifyImage": {
         "Name": "Classify Image",
@@ -123,7 +133,8 @@
       "DetectObjects": {
         "Name": "Detect Objects",
         "Description": "Object detection models detect items in a photo and give you their locations and associated confidence.",
-        "Id": "detect-objects"
+        "Id": "detect-objects",
+        "Icon": "\uE7C5"
       },
       "DetectPose": {
         "Name": "Detect Human Pose",
@@ -138,7 +149,8 @@
       "EnhanceImage": {
         "Name": "Enhance Image",
         "Description": "Image enhancing models will upscale low resolution images improving their clarity.",
-        "Id": "enhance-image"
+        "Id": "enhance-image",
+        "Icon": "\uEE71"
       },
       "SegmentImage": {
         "Name": "Segment Image",
@@ -155,17 +167,20 @@
       "TranscribeAudio": {
         "Name": "Transcribe Audio or Video",
         "Description": "Simple audio transcription with Whisper.",
-        "Id": "transcribe-audio"
+        "Id": "transcribe-audio",
+        "Icon": "\uED1E"
       },
       "TranscribeLiveAudio": {
         "Name": "Transcribe Audio or Video Live",
         "Description": "Live audio transcription with Whisper.",
-        "Id": "transcribe-live-audio"
+        "Id": "transcribe-live-audio",
+        "Icon": "\uED1E"
       },
       "TranslateAudio": {
         "Name": "Translate Audio or Video",
         "Description": "Simple audio translation to English with Whisper.",
-        "Id": "translate-audio"
+        "Id": "translate-audio",
+        "Icon": "\uF2B7"
       }
     }
   }
