@@ -109,7 +109,7 @@ public partial class App : Application
     private async Task LoadSamples()
     {
         AppData = await AppData.GetForApp();
-        TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = false; // AppData.IsDiagnosticDataEnabled;
+        TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = AppData.IsDiagnosticDataEnabled;
         ModelCache = await ModelCache.CreateForApp(AppData);
         GenerateSearchIndex();
     }
