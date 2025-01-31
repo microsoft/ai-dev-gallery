@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
     xmlns:models="using:AIDevGallery.Models"
+    xmlns:util="using:AIDevGallery.Utils"
     xmlns:wuc="using:WinUICommunity"
     mc:Ignorable="d">
 
@@ -66,7 +67,6 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Margin="24,16,0,48" Orientation="Vertical">
@@ -74,11 +74,11 @@
                     <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Explore different samples powered by local models" />
                 </StackPanel>
 
-                <controls:TileGallery />
                 <ItemsRepeater
-                    x:Name="view"
+                    x:Name="allView"
                     Grid.Row="1"
                     Margin="24,0,24,24"
+                    ItemsSource="{x:Bind allScenarioCategories, Mode=OneWay}"
                     TabFocusNavigation="Local">
                     <ItemsRepeater.Layout>
                         <StackLayout Orientation="Vertical" Spacing="36" />
@@ -97,7 +97,6 @@
                                     FontWeight="SemiBold"
                                     Text="{x:Bind Name}"
                                     TextWrapping="Wrap" />
-
                                 <!--<TextBlock
                                 Grid.Row="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -105,9 +104,8 @@
                                 TextWrapping="Wrap" />-->
                                 <ItemsView
                                     Grid.Row="2"
-                                    Margin="0,0,0,0"
                                     IsItemInvokedEnabled="True"
-                                    ItemInvoked="ItemsView_ItemInvoked"
+                                    ItemInvoked="ScenarioItemsView_ItemInvoked"
                                     ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
                                     SelectionMode="None">
                                     <ItemsView.Layout>
