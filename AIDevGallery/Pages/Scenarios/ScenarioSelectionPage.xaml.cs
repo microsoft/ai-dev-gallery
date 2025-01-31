@@ -72,9 +72,12 @@ internal sealed partial class ScenarioSelectionPage : Page
 
             if (scenario != null)
             {
-                foreach (NavigationViewItem item in NavView.MenuItems)
+                foreach (var itemBase in NavView.MenuItems)
                 {
-                    SetSelectedScenarioInMenu(item, scenario);
+                    if (itemBase is NavigationViewItem item)
+                    {
+                        SetSelectedScenarioInMenu(item, scenario);
+                    }
                 }
             }
             else
@@ -99,7 +102,8 @@ internal sealed partial class ScenarioSelectionPage : Page
     private void SetUpScenarios(string? filter = null)
     {
         NavView.MenuItems.Clear();
-
+        NavView.MenuItems.Add(new NavigationViewItem() { Content = "Overview", Icon = new FontIcon() { Glyph = "\uF0E2" }, Tag = "Overview" });
+        NavView.MenuItems.Add(new NavigationViewItemSeparator());
         foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
         {
             var categoryMenu = new NavigationViewItem() { Content = scenarioCategory.Name, Icon = new FontIcon() { Glyph = scenarioCategory.Icon }, Tag = scenarioCategory };
@@ -162,9 +166,16 @@ internal sealed partial class ScenarioSelectionPage : Page
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (args.SelectedItem is NavigationViewItem item && item.Tag is Scenario scenario && scenario != selectedScenario)
+        if (args.SelectedItem is NavigationViewItem item)
         {
-            NavigateToScenario(scenario);
+            if (item.Tag is Scenario scenario && scenario != selectedScenario)
+            {
+                NavigateToScenario(scenario);
+            }
+            else if (item.Tag is string tag && tag == "Overview")
+            {
+                NavFrame.Navigate(typeof(ScenarioOverviewPage));
+            }
         }
     }
 
@@ -208,9 +219,12 @@ internal sealed partial class ScenarioSelectionPage : Page
         SetUpScenarios(tag);
         if (selectedScenario != null)
         {
-            foreach (NavigationViewItem item in NavView.MenuItems)
+            foreach (var itemBase in NavView.MenuItems)
             {
-                SetSelectedScenarioInMenu(item, selectedScenario);
+                if (itemBase is NavigationViewItem item)
+                {
+                    SetSelectedScenarioInMenu(item, selectedScenario);
+                }
             }
         }
     }
