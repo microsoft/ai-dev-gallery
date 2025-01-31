@@ -75,6 +75,7 @@ internal class ScenariosSourceGenerator : IIncrementalGenerator
                         {
                             Name = "{{scenarioCategory.Value.Name}}",
                             Icon = {{icon}},
+                            Description = "{{scenarioCategory.Value.Description}}",
                             Scenarios = new List<Scenario>
                             {
                 """");

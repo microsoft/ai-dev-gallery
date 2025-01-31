@@ -2,6 +2,7 @@
   "Text": {
     "Name": "Text",
     "Icon": "\uE8BD",
+    "Description": "Text scenarios are designed to help you generate, summarize, chat, translate, grammar check, paraphrase, analyze sentiment, and more with local language models.",
     "Scenarios": {
       "GenerateText": {
         "Name": "Generate Text",
@@ -63,6 +64,7 @@
   "SmartControls": {
     "Name": "Smart Controls",
     "Icon": "\uE74C",
+    "Description": "Smart controls scenarios are designed to help you perform common language model actions within a text box control, smart paste text with local language model, and suggest ComboBox options semantically with an embeddings model.",
     "Scenarios": {
       "SmartTextBox": {
         "Name": "Smart Text Box",
@@ -84,6 +86,7 @@
   "Code": {
     "Name": "Code",
     "Icon": "\uE943",
+    "Description": "Code scenarios are designed to help you generate, explain, and analyze code with local language models.",
     "Scenarios": {
       "GenerateCode": {
         "Name": "Generate Code",
@@ -100,6 +103,7 @@
   "Image": {
     "Name": "Image",
     "Icon": "\uEB9F",
+    "Description": "Image scenarios are designed to help you generate, describe, classify, detect objects, detect human poses, enhance, and segment images with local models.",
     "Scenarios": {
       "GenerateImage": {
         "Name": "Generate Image",
@@ -146,6 +150,7 @@
   "AudioAndVideo": {
     "Name": "Audio and Video",
     "Icon": "\uEA69",
+    "Description": "Audio and video scenarios are designed to help you transcribe, translate, and summarize audio and video with local models.",
     "Scenarios": {
       "TranscribeAudio": {
         "Name": "Transcribe Audio or Video",
