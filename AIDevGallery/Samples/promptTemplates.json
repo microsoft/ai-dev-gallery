@@ -43,5 +43,16 @@
       "<start_of_turn>",
       "<end_of_turn>"
     ]
+  },
+  "DeepSeekR1": {
+    "system": "<｜begin▁of▁sentence｜>{{CONTENT}}",
+    "user": "<｜User｜>{{CONTENT}}",
+    "assistant": "<｜Assistant｜>{{CONTENT}}<｜end▁of▁sentence｜>",
+    "stop": [
+      "<｜User｜>",
+      "<｜Assistant｜>",
+      "<｜end▁of▁sentence｜>",
+      "<｜begin▁of▁sentence｜>"
+    ]
   }
 }
