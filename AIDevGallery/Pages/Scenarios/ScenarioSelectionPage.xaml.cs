@@ -102,7 +102,7 @@ internal sealed partial class ScenarioSelectionPage : Page
     private void SetUpScenarios(string? filter = null)
     {
         NavView.MenuItems.Clear();
-        NavView.MenuItems.Add(new NavigationViewItem() { Content = "Overview", Icon = new FontIcon() { Glyph = "\uE754" }, Tag = "Overview" });
+        NavView.MenuItems.Add(new NavigationViewItem() { Content = "Overview", Icon = new FontIcon() { Glyph = "\uF0E2" }, Tag = "Overview" });
         NavView.MenuItems.Add(new NavigationViewItemSeparator());
         foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
         {
@@ -219,9 +219,12 @@ internal sealed partial class ScenarioSelectionPage : Page
         SetUpScenarios(tag);
         if (selectedScenario != null)
         {
-            foreach (NavigationViewItem item in NavView.MenuItems)
+            foreach (var itemBase in NavView.MenuItems)
             {
-                SetSelectedScenarioInMenu(item, selectedScenario);
+                if (itemBase is NavigationViewItem item)
+                {
+                    SetSelectedScenarioInMenu(item, selectedScenario);
+                }
             }
         }
     }

@@ -61,106 +61,99 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <wuc:OpacityMaskView
-            Height="186"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            OpacityMask="{ThemeResource OverlayRadialGradient}">
-            <Grid>
-                <controls:AnimatedImage
-                    x:Name="BackDropImage"
-                    ImageUrl="ms-appx:///Assets/TileImages/Speech.png"
-                    Visibility="Visible" />
-                <Border Visibility="Visible">
-                    <Border.Background>
-                        <media:BackdropBlurBrush Amount="100.0" />
-                    </Border.Background>
-                </Border>
-            </Grid>
-        </wuc:OpacityMaskView>
 
         <ScrollViewer Grid.Row="1">
-            <ItemsRepeater
-                x:Name="view"
-                Margin="24,0,24,24"
-                TabFocusNavigation="Local">
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Vertical" Spacing="36" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:ScenarioCategory">
-                        <Grid RowSpacing="4">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <TextBlock
-                                Margin="4,0,0,0"
-                                FontSize="20"
-                                FontWeight="SemiBold"
-                                Text="{x:Bind Name}"
-                                TextWrapping="Wrap" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Margin="24,16,0,48" Orientation="Vertical">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Overview" />
+                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Explore different samples powered by local models" />
+                </StackPanel>
 
-                            <!--<TextBlock
+                <controls:TileGallery />
+                <ItemsRepeater
+                    x:Name="view"
+                    Grid.Row="1"
+                    Margin="24,0,24,24"
+                    TabFocusNavigation="Local">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Vertical" Spacing="36" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:ScenarioCategory">
+                            <Grid RowSpacing="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Margin="4,0,0,0"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind Name}"
+                                    TextWrapping="Wrap" />
+
+                                <!--<TextBlock
                                 Grid.Row="1"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Text="{x:Bind Description}"
                                 TextWrapping="Wrap" />-->
-                            <ItemsView
-                                Grid.Row="2"
-                                Margin="0,0,0,0"
-                                IsItemInvokedEnabled="True"
-                                ItemInvoked="ItemsView_ItemInvoked"
-                                ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
-                                SelectionMode="None">
-                                <ItemsView.Layout>
-                                    <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
-                                </ItemsView.Layout>
-                                <ItemsView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Scenario">
-                                        <ItemContainer AutomationProperties.Name="{x:Bind Name}">
-                                            <Grid
-                                                Width="274"
-                                                Height="96"
-                                                Padding="16"
-                                                RowSpacing="8"
-                                                Style="{StaticResource CardGridStyle}">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="*" />
-                                                </Grid.RowDefinitions>
-                                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                                    <FontIcon
-                                                        AutomationProperties.AccessibilityView="Raw"
-                                                        FontSize="20"
-                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                        Glyph="{x:Bind Icon}" />
+                                <ItemsView
+                                    Grid.Row="2"
+                                    Margin="0,0,0,0"
+                                    IsItemInvokedEnabled="True"
+                                    ItemInvoked="ItemsView_ItemInvoked"
+                                    ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
+                                    SelectionMode="None">
+                                    <ItemsView.Layout>
+                                        <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
+                                    </ItemsView.Layout>
+                                    <ItemsView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Scenario">
+                                            <ItemContainer AutomationProperties.Name="{x:Bind Name}">
+                                                <Grid
+                                                    Width="274"
+                                                    Height="96"
+                                                    Padding="16"
+                                                    RowSpacing="8"
+                                                    Style="{StaticResource CardGridStyle}">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                                        <FontIcon
+                                                            AutomationProperties.AccessibilityView="Raw"
+                                                            FontSize="20"
+                                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                            Glyph="{x:Bind Icon}" />
+                                                        <TextBlock
+                                                            VerticalAlignment="Center"
+                                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                            Text="{x:Bind Name}" />
+                                                    </StackPanel>
                                                     <TextBlock
-                                                        VerticalAlignment="Center"
-                                                        Style="{StaticResource BodyStrongTextBlockStyle}"
-                                                        Text="{x:Bind Name}" />
-                                                </StackPanel>
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    FontSize="12"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind Description}"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="Wrap" />
-                                            </Grid>
-                                        </ItemContainer>
-                                    </DataTemplate>
-                                </ItemsView.ItemTemplate>
-                            </ItemsView>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                                                        Grid.Row="1"
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        Text="{x:Bind Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="Wrap" />
+                                                </Grid>
+                                            </ItemContainer>
+                                        </DataTemplate>
+                                    </ItemsView.ItemTemplate>
+                                </ItemsView>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </Grid>
         </ScrollViewer>
 
     </Grid>

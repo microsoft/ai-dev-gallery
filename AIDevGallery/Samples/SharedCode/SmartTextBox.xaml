@@ -18,30 +18,35 @@
                             </Style>
                         </Grid.Resources>
                         <StackPanel Margin="32">
-                            <TeachingTip 
+                            <TeachingTip
                                 x:Name="AiConfirmTip"
                                 Title="Keep changes?"
-                                Subtitle="Revert or confirm these changes."
-                                IsLightDismissEnabled="False"
                                 ActionButtonContent="Revert"
-                                PreferredPlacement="Bottom"
                                 CloseButtonContent="Confirm Changes"
+                                IsLightDismissEnabled="False"
+                                PreferredPlacement="Bottom"
+                                Subtitle="Revert or confirm these changes."
                                 TailVisibility="Collapsed">
                                 <TeachingTip.IconSource>
                                     <SymbolIconSource Symbol="Refresh" />
                                 </TeachingTip.IconSource>
                             </TeachingTip>
-                            <TeachingTip 
+                            <TeachingTip
                                 x:Name="DescribeChangesTip"
                                 Title="Describe your changes."
-                                Subtitle="Apply a custom prompt to your text."
-                                IsLightDismissEnabled="False"
                                 ActionButtonContent="Confirm"
-                                PreferredPlacement="Bottom"
                                 CloseButtonContent="Cancel"
+                                IsLightDismissEnabled="False"
+                                PreferredPlacement="Bottom"
+                                Subtitle="Apply a custom prompt to your text."
                                 TailVisibility="Collapsed">
                                 <TeachingTip.Content>
-                                    <TextBox x:Name="ChangesInputBox" HorizontalAlignment="Left" Width="250" Margin="16" PlaceholderText="Describe your changes..."></TextBox>
+                                    <TextBox
+                                        x:Name="ChangesInputBox"
+                                        Width="250"
+                                        Margin="16"
+                                        HorizontalAlignment="Left"
+                                        PlaceholderText="Describe your changes..." />
                                 </TeachingTip.Content>
                                 <TeachingTip.IconSource>
                                     <SymbolIconSource Symbol="Edit" />
@@ -49,10 +54,13 @@
                             </TeachingTip>
                             <RichEditBox
                                 x:Name="InputTextBox"
-                                MinWidth="300"
-                                Height="200">
+                                Height="200"
+                                MinWidth="300">
                                 <RichEditBox.SelectionFlyout>
-                                    <Flyout x:Name="AIFlyout" FlyoutPresenterStyle="{StaticResource CustomFlyoutPresenterStyle}" AllowFocusOnInteraction="True">
+                                    <Flyout
+                                        x:Name="AIFlyout"
+                                        AllowFocusOnInteraction="True"
+                                        FlyoutPresenterStyle="{StaticResource CustomFlyoutPresenterStyle}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
@@ -90,10 +98,11 @@
                                                     IsItemClickEnabled="True"
                                                     SelectionMode="None">
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Describe" Orientation="Horizontal" Spacing="8">
-                                                            <FontIcon
-                                                                FontSize="16"
-                                                                Glyph="&#xF4A5;">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Describe">
+                                                            <FontIcon FontSize="16" Glyph="&#xF4A5;">
                                                                 <FontIcon.Foreground>
                                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                                         <GradientStop Offset="0.0" Color="#0078D4" />
@@ -106,31 +115,46 @@
                                                         </StackPanel>
                                                     </ListViewItem>
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Proofread" Orientation="Horizontal" Spacing="8">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Proofread">
                                                             <FontIcon FontSize="16" Glyph="&#xE71E;" />
                                                             <TextBlock Text="Proofread" />
                                                         </StackPanel>
                                                     </ListViewItem>
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Shorten" Orientation="Horizontal" Spacing="8">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Shorten">
                                                             <FontIcon FontSize="16" Glyph="&#xECC9;" />
                                                             <TextBlock Text="Make shorter" />
                                                         </StackPanel>
                                                     </ListViewItem>
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Lengthen" Orientation="Horizontal" Spacing="8">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Lengthen">
                                                             <FontIcon FontSize="16" Glyph="&#xECC8;" />
                                                             <TextBlock Text="Make longer" />
                                                         </StackPanel>
                                                     </ListViewItem>
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Professional" Orientation="Horizontal" Spacing="8">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Professional">
                                                             <FontIcon FontSize="16" Glyph="&#xEFA9;" />
                                                             <TextBlock Text="Tone - Professional" />
                                                         </StackPanel>
                                                     </ListViewItem>
                                                     <ListViewItem>
-                                                        <StackPanel Tag="Casual" Orientation="Horizontal" Spacing="8">
+                                                        <StackPanel
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Tag="Casual">
                                                             <FontIcon FontSize="16" Glyph="&#xEFA9;" />
                                                             <TextBlock Text="Tone - Casual" />
                                                         </StackPanel>
@@ -141,7 +165,12 @@
                                     </Flyout>
                                 </RichEditBox.SelectionFlyout>
                             </RichEditBox>
-                            <ProgressBar x:Name="LoadingProgressBar" Width="798"  VerticalAlignment="Center" IsIndeterminate="True" Visibility="Collapsed"/>
+                            <ProgressBar
+                                x:Name="LoadingProgressBar"
+                                Width="798"
+                                VerticalAlignment="Center"
+                                IsIndeterminate="True"
+                                Visibility="Collapsed" />
                         </StackPanel>
                     </Grid>
                 </ControlTemplate>

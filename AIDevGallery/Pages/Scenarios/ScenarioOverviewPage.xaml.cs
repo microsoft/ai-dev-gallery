@@ -18,7 +18,7 @@ internal sealed partial class ScenarioOverviewPage : Page
     {
         base.OnNavigatedTo(e);
 
-        view.ItemsSource = ScenarioCategoryHelpers.AllScenarioCategories;
+        allView.ItemsSource = ScenarioCategoryHelpers.AllScenarioCategories;
     }
 
     private void ItemsView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)

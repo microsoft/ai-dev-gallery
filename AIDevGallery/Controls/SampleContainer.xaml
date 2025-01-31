@@ -21,7 +21,6 @@
         <Grid
             x:Name="SampleCard"
             Grid.Row="1"
-            Margin="0,0,0,0"
             VerticalAlignment="Stretch"
             Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -37,7 +36,7 @@
             <StackPanel
                 x:Name="AIContentWarningPanel"
                 Grid.Row="1"
-                Margin="0,8,0,8"
+                Margin="0,8,0,12"
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Spacing="4"
@@ -62,7 +61,7 @@
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
-                    Padding="16,16,16,0"
+                    Padding="24,24,24,0"
                     Visibility="Collapsed" />
 
                 <InfoBar
@@ -80,7 +79,6 @@
                     x:Name="sampleLoadingProgressRing"
                     Width="64"
                     Height="64"
-                    Background="LightGray"
                     IsActive="False" />
             </Grid>
             <Grid

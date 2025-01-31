@@ -23,7 +23,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Padding="16" Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Grid Padding="24,16,24,24" Background="{ThemeResource LayerFillColorDefaultBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />

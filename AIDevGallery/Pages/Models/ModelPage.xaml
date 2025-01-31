@@ -27,7 +27,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock
-            Margin="16,0,0,0"
+            Margin="4,0,0,0"
             Style="{StaticResource SubtitleTextBlockStyle}"
             Text="{x:Bind ModelFamily.Name}" />
         <StackPanel

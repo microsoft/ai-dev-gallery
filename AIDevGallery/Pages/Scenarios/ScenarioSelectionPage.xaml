@@ -41,6 +41,7 @@
                     <FontIcon
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="14"
+                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                         Glyph="&#xE71C;" />
                     <ComboBox
                         AutomationProperties.Name="Filters"
