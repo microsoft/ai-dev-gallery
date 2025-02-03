@@ -91,7 +91,15 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            NavFrame.Navigate(page, param);
+            if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
+            {
+                // No need to navigate to the ScenarioSelectionPage again, we just want to navigate to the right subpage
+                scenarioPage.HandleNavigation(param);
+            }
+            else
+            {
+                NavFrame.Navigate(page, param);
+            }
         });
     }
 

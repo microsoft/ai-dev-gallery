@@ -41,62 +41,67 @@ internal sealed partial class ScenarioSelectionPage : Page
 
         this.NavView.Loaded += (sender, args) =>
         {
-            Scenario? scenario = null;
-            object? parameter = e.Parameter;
-
-            if (e.Parameter == null && lastInternalNavigation?.Parameter != null)
-            {
-                parameter = lastInternalNavigation.Parameter;
-            }
-
-            if (parameter is Scenario sc)
-            {
-                scenario = sc;
-            }
-            else if (parameter is MostRecentlyUsedItem mru)
-            {
-                scenario = App.FindScenarioById(mru.ItemId);
-            }
-            else if (parameter is Sample sample)
-            {
-                scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sample.Scenario);
-            }
-            else if (parameter is SampleNavigationArgs sampleArgs)
-            {
-                scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-                if (scenario != null)
-                {
-                    NavigateToScenario(scenario, sampleArgs);
-                }
-            }
-
-            if (scenario != null)
-            {
-                foreach (var itemBase in NavView.MenuItems)
-                {
-                    if (itemBase is NavigationViewItem item)
-                    {
-                        SetSelectedScenarioInMenu(item, scenario);
-                    }
-                }
-            }
-            else
-            {
-                if (NavView.MenuItems[0] is NavigationViewItem item)
-                {
-                    if (item.MenuItems != null && item.MenuItems.Count > 0)
-                    {
-                        item.IsExpanded = true;
-                        NavView.SelectedItem = item.MenuItems[0];
-                    }
-                    else
-                    {
-                        NavView.SelectedItem = item;
-                    }
-                }
-            }
+            HandleNavigation(e.Parameter);
         };
         base.OnNavigatedTo(e);
+    }
+
+    public void HandleNavigation(object? obj)
+    {
+        Scenario? scenario = null;
+        object? parameter = obj;
+
+        if (obj == null && lastInternalNavigation?.Parameter != null)
+        {
+            parameter = lastInternalNavigation.Parameter;
+        }
+
+        if (parameter is Scenario sc)
+        {
+            scenario = sc;
+        }
+        else if (parameter is MostRecentlyUsedItem mru)
+        {
+            scenario = App.FindScenarioById(mru.ItemId);
+        }
+        else if (parameter is Sample sample)
+        {
+            scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sample.Scenario);
+        }
+        else if (parameter is SampleNavigationArgs sampleArgs)
+        {
+            scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
+            if (scenario != null)
+            {
+                NavigateToScenario(scenario, sampleArgs);
+            }
+        }
+
+        if (scenario != null)
+        {
+            foreach (var itemBase in NavView.MenuItems)
+            {
+                if (itemBase is NavigationViewItem item)
+                {
+                    SetSelectedScenarioInMenu(item, scenario);
+                }
+            }
+        }
+        else
+        {
+            if (NavView.MenuItems[0] is NavigationViewItem item)
+            {
+                if (item.MenuItems != null && item.MenuItems.Count > 0)
+                {
+                    item.IsExpanded = true;
+                    NavView.SelectedItem = item.MenuItems[0];
+                }
+                else
+                {
+                    NavView.SelectedItem = item;
+                }
+            }
+        }
     }
 
     private void SetUpScenarios(string? filter = null)
