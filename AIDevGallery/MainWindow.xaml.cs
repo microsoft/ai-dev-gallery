@@ -98,7 +98,22 @@ internal sealed partial class MainWindow : WindowEx
             }
             else
             {
-                NavFrame.Navigate(page, param);
+                if (param == null && NavFrame.Content != null && NavFrame.Content.GetType() == page)
+                {
+                    if (NavFrame.Content is ScenarioSelectionPage page)
+                    {
+                        page.ShowHideNavPane();
+                    }
+                    else if (NavFrame.Content is ModelSelectionPage modelPage)
+                    {
+                        modelPage.ShowHideNavPane();
+                    }
+                    return;
+                }
+                else
+                {
+                    NavFrame.Navigate(page, param);
+                }
             }
         });
     }
