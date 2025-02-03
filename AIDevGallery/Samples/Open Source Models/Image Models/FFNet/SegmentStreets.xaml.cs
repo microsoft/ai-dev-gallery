@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet;
 
 [GallerySample(
     Model1Types = [ModelType.FFNet],
-    Scenario = ScenarioType.ImageSegmentImage,
+    Scenario = ScenarioType.ImageSegmentStreet,
     Name = "Segment Streetscapes",
     SharedCode = [
         SharedCodeEnum.Prediction,
