@@ -10,9 +10,17 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Pickers.Provider;
+using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
 
@@ -53,6 +61,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
     private StableDiffusion? stableDiffusion;
     private bool isCanceling;
     private Task? inferenceTask;
+    private BitmapImage? _currentBitmapImage;
 
     public GenerateImage()
     {
@@ -120,6 +129,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
             return;
         }
 
+        SaveButton.IsEnabled = false;
         GenerateButton.Content = "Stop";
 
         prompt = InputBox.Text;
@@ -142,6 +152,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
                         {
                             BitmapImage bitmapImage = BitmapFunctions.ConvertBitmapToBitmapImage(image);
                             DefaultImage.Source = bitmapImage;
+                            SaveButton.IsEnabled = true;
                             NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new image generated."); // <exclude-line>
                             DefaultImage.Visibility = Visibility.Visible;
                         });
@@ -192,5 +203,33 @@ internal sealed partial class GenerateImage : BaseSamplePage
         cts.Dispose();
         cts = new CancellationTokenSource();
         return cts.Token;
+    }
+
+    private async void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(new Window());
+        FileSavePicker picker = new FileSavePicker
+        {
+           SuggestedStartLocation = PickerLocationId.PicturesLibrary
+        };
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.SuggestedFileName = "image.png";
+        picker.FileTypeChoices.Add("PNG", new List<string> { ".png" });
+
+        StorageFile file = await picker.PickSaveFileAsync();
+
+        if(file != null && DefaultImage.Source != null)
+        {
+            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap();
+            await renderTargetBitmap.RenderAsync(DefaultImage);
+
+            var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
+            byte[] pixels = pixelBuffer.ToArray();
+
+            using IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite);
+            BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, fileStream);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, (uint)renderTargetBitmap.PixelWidth, (uint)renderTargetBitmap.PixelHeight, 96, 96, pixels);
+            await encoder.FlushAsync();
+        }
     }
 }
