@@ -30,6 +30,6 @@ internal class NavigatedToPageEvent : EventBase
 
     public static void Log(string pageName)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("NavigatedToPage_Event", LogLevel.Measure, new NavigatedToPageEvent(pageName));
+        TelemetryFactory.Get<ITelemetry>().Log("NavigatedToPage_Event", LogLevel.Critical, new NavigatedToPageEvent(pageName));
     }
 }
