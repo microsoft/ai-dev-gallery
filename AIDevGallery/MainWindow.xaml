@@ -99,6 +99,10 @@
                     Content="Models"
                     Icon="{ui:FontIcon Glyph=&#xF158;}"
                     Tag="Models" />
+                <NavigationViewItem
+                    Content="APIs"
+                    Icon="{ui:FontIcon Glyph=&#xE81E;}"
+                    Tag="APIs" />
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem
