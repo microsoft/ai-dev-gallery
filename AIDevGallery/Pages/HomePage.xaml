@@ -44,23 +44,181 @@
                     <controls:SamplesCarousel Margin="0,32,0,48" />
                 </StackPanel>
 
-                <Grid Grid.Row="1" Width="680">
-
-                    <Grid Style="{StaticResource CardGridStyle}">
-
+                <Grid
+                    Grid.Row="1"
+                    Width="760"
+                    Margin="0,0,0,48"
+                    ColumnSpacing="24"
+                    RowSpacing="24">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="210" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        Grid.ColumnSpan="2"
+                        HorizontalAlignment="Center"
+                        Orientation="Vertical">
                         <TextBlock
-                            Width="200"
-                            FontWeight="SemiBold"
-                            Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="Explore over 25+ interactive samples with models running locally on your CPU, GPU or NPU."
-                            TextWrapping="Wrap">
-                            <TextBlock.Foreground>
-                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Offset="0" Color="{ThemeResource SystemAccentColorDark3}" />
-                                    <GradientStop Offset="1" Color="{ThemeResource SystemAccentColorLight1}" />
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource TitleTextBlockStyle}"
+                            Text="Get started" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="See what AI Dev Gallery and WCR has to offer" />
+                    </StackPanel>
+
+                    <Grid
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        ColumnSpacing="36"
+                        Style="{StaticResource CardGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid
+                            Grid.RowSpan="2"
+                            Grid.ColumnSpan="2"
+                            Margin="-16"
+                            Opacity="0.12">
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="-0.2,0" EndPoint="1, 1">
+                                    <GradientStop Offset="0" Color="Transparent" />
+                                    <GradientStop Offset="0.5" Color="#3286EE" />
+                                    <GradientStop Offset="1" Color="#C8AEC4" />
                                 </LinearGradientBrush>
-                            </TextBlock.Foreground>
-                        </TextBlock>
+                            </Grid.Background>
+                        </Grid>
+
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="Explore samples"
+                                TextWrapping="Wrap">
+                                <!--<TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Offset="0" Color="{ThemeResource SystemAccentColorDark3}" />
+                                            <GradientStop Offset="1" Color="{ThemeResource SystemAccentColorLight1}" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>-->
+                            </TextBlock>
+                            <TextBlock Text="Explore over 25+ interactive samples with models running locally on your CPU, GPU or NPU." TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Image
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Width="360"
+                            Margin="0,0,-48,-24"
+                            Source="ms-appx:///Assets/Samples.png" />
+
+                        <HyperlinkButton
+                            Grid.Row="1"
+                            Padding="0"
+                            Content="Explore samples &gt;" />
+                    </Grid>
+
+                    <Grid
+                        Grid.Row="2"
+                        Padding="24"
+                        ColumnSpacing="36"
+                        Style="{StaticResource CardGridStyle}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid
+                            Grid.RowSpan="2"
+                            Grid.ColumnSpan="2"
+                            Margin="-24"
+                            Opacity="0.10">
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="-0.2,0" EndPoint="1, 1">
+                                    <GradientStop Offset="0" Color="#C8AEC4" />
+                                    <GradientStop Offset="0.5" Color="#3286EE" />
+                                    <GradientStop Offset="1" Color="Transparent" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                        </Grid>
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="View and export code"
+                                TextWrapping="Wrap" />
+                            <TextBlock Text="View code for any sample, or export it so you can re-use it in your code!" TextWrapping="Wrap" />
+                            <Image
+                                Grid.Row="1"
+                                Width="600"
+                                Height="192"
+                                Margin="52,36,-24,-24"
+                                Source="ms-appx:///Assets/Code.svg"
+                                Stretch="UniformToFill" />
+                        </StackPanel>
+
+                    </Grid>
+
+
+
+                    <Grid
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Padding="24"
+                        ColumnSpacing="36"
+                        Style="{StaticResource CardGridStyle}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid
+                            Grid.RowSpan="2"
+                            Grid.ColumnSpan="2"
+                            Margin="-24"
+                            Opacity="0.10">
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="1,1" EndPoint="0, 0">
+                                    <GradientStop Offset="0" Color="#3286EE" />
+                                    <GradientStop Offset="1" Color="#C8AEC4" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                        </Grid>
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="Models and APIs"
+                                TextWrapping="Wrap" />
+                            <TextBlock Text="Just download and start exploring the many different models." TextWrapping="Wrap" />
+                            <HyperlinkButton Padding="0" Content="Explore all models &gt;" />
+
+                        </StackPanel>
+                        <Image
+                            Grid.Row="1"
+                            Width="286"
+                            Margin="0,0,0,-12"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Source="ms-appx:///Assets/Models.svg" />
                     </Grid>
                 </Grid>
             </Grid>

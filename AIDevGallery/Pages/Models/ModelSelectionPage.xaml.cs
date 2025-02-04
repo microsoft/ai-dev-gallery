@@ -135,6 +135,9 @@ internal sealed partial class ModelSelectionPage : Page
         }
 
         NavigationViewItem? languageModelsNavItem = null;
+        NavView.MenuItems.Clear();
+        NavView.MenuItems.Add(new NavigationViewItem() { Content = "Overview", Icon = new FontIcon() { Glyph = "\uF0E2" }, Tag = "Overview" });
+        NavView.MenuItems.Add(new NavigationViewItemSeparator());
 
         foreach (var key in rootModels.OrderBy(ModelTypeHelpers.GetModelOrder))
         {
@@ -227,13 +230,13 @@ internal sealed partial class ModelSelectionPage : Page
             {
                 parameter = modelType;
             }
-            else if (item.Tag is string tag && tag == "ModelManagement")
-            {
-                pageType = typeof(ModelSelectionPage);
-            }
             else if (item.Tag is ModelDetails details)
             {
                 parameter = details;
+            }
+            else if (item.Tag is string tag && tag == "Overview")
+            {
+                pageType = typeof(ModelOverviewPage);
             }
 
             lastInternalNavigation = new LastInternalNavigation(pageType, parameter);
