@@ -5,12 +5,12 @@
     "Scenarios": {
       "GenerateText": {
         "Name": "Generate Text",
-        "Description": "Generate text with local language model. Enter a topic in the textbox and click 'Generate' to generate text on that topic.",
+        "Description": "Generate text with a local language model. Enter a topic in the textbox and click 'Generate' to generate text on that topic.",
         "Id": "generate-text"
       },
       "SummarizeText": {
         "Name": "Summarize Text",
-        "Description": "Summarize text with local language model. Enter long-form text into the textbox and click 'Summarize' to summarize the entered text.",
+        "Description": "Summarize text with a local language model. Enter long-form text into the textbox and click 'Summarize' to summarize the entered text.",
         "Id": "summarize-text"
       },
       "Chat": {
@@ -20,22 +20,22 @@
       },
       "TranslateText": {
         "Name": "Translate Text",
-        "Description": "Translate text with local language model. Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
+        "Description": "Translate text with a local language model. Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
         "Id": "translate-text"
       },
       "GrammarCheckText": {
         "Name": "Grammar Check",
-        "Description": "Grammar check text with local language model. Enter some text into the textbox and click 'Check' to get output correct for grammar, spelling, and punctuation.",
+        "Description": "Grammar check text with a local language model. Enter some text into the textbox and click 'Check' to get output correct for grammar, spelling, and punctuation.",
         "Id": "grammar-check-text"
       },
       "ParaphraseText": {
         "Name": "Paraphrase Text",
-        "Description": "Paraphrase text with local language model. Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
+        "Description": "Paraphrase text with a local language model. Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
         "Id": "paraphrase-text"
       },
       "AnalyzeSentimentText": {
         "Name": "Analyze Text Sentiment",
-        "Description": "Analyze text sentiment with local language model. Enter some text into the textbox and click 'Analyze' to the analyze the sentiment of the text. The output will contain an integer sentiment score in the range of -2 to 2, and an associated sentiment string.",
+        "Description": "Analyze text sentiment with a local language model. Enter some text into the textbox and click 'Analyze' to the analyze the sentiment of the text. The output will contain an integer sentiment score in the range of -2 to 2, and an associated sentiment string.",
         "Id": "analyze-sentiment-text"
       },
       "CustomParameters": {
@@ -71,7 +71,7 @@
       },
       "SmartPaste": {
         "Name": "Smart Paste",
-        "Description": "Smart paste text with local language model. Copy some address data to your clipboard, and click 'Paste' to have a language model semantically parse your clipboard into the proper fields.",
+        "Description": "Smart paste text with a local language model. Copy some address data to your clipboard, and click 'Paste' to have a language model semantically parse your clipboard into the proper fields.",
         "Id": "smart-paste"
       },
       "SemanticComboBox": {
