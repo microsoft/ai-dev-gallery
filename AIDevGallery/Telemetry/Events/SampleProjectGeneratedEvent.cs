@@ -33,6 +33,6 @@ internal class SampleProjectGeneratedEvent : EventBase
 
     public static void Log(string sampleId, string model1Id, string model2Id, bool copyModelLocally)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("SampleProjectGenerated_Event", LogLevel.Measure, new SampleProjectGeneratedEvent(sampleId, model1Id, model2Id, copyModelLocally));
+        TelemetryFactory.Get<ITelemetry>().Log("SampleProjectGenerated_Event", LogLevel.Critical, new SampleProjectGeneratedEvent(sampleId, model1Id, model2Id, copyModelLocally));
     }
 }
