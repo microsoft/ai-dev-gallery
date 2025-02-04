@@ -79,7 +79,7 @@ internal sealed partial class MainWindow : WindowEx
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
             case "apis":
-                Navigate(typeof(WCROverview));
+                Navigate(typeof(APISelectionPage));
                 break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));

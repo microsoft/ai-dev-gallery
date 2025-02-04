@@ -8,181 +8,192 @@
     xmlns:local="using:AIDevGallery.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
-    xmlns:wuc="using:WinUICommunity"
     mc:Ignorable="d">
-    <Page.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.05" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.35" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.55" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.95" Color="#00FFFFFF" />
-                        <GradientStop Offset="1" Color="#00FFFFFF" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FF000000" />
-                        <GradientStop Offset="0.05" Color="#FF000000" />
-                        <GradientStop Offset="0.35" Color="#FF000000" />
-                        <GradientStop Offset="0.55" Color="#FF000000" />
-                        <GradientStop Offset="0.95" Color="#00000000" />
-                        <GradientStop Offset="1" Color="#00000000" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="HighContrast">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FF000000" />
-                        <GradientStop Offset="0.05" Color="#FF000000" />
-                        <GradientStop Offset="0.35" Color="#FF000000" />
-                        <GradientStop Offset="0.55" Color="#FF000000" />
-                        <GradientStop Offset="0.95" Color="#00000000" />
-                        <GradientStop Offset="1" Color="#00000000" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
 
-            <LinearGradientBrush x:Key="LightTextGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Offset="0.1" Color="#FFFFFF" />
-                <GradientStop Offset="0.3" Color="#E9E9E9" />
-                <GradientStop Offset="0.6" Color="#FDFDFD" />
-                <GradientStop Offset="0.9" Color="#FFFFFF" />
-            </LinearGradientBrush>
-            <LinearGradientBrush x:Key="DarkTextGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Offset="0.1" Color="#303030" />
-                <GradientStop Offset="0.3" Color="#4A4A4A" />
-                <GradientStop Offset="0.6" Color="#161515" />
-                <GradientStop Offset="0.9" Color="#303030" />
-            </LinearGradientBrush>
-        </ResourceDictionary>
-    </Page.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <wuc:OpacityMaskView
-            Height="186"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            OpacityMask="{ThemeResource OverlayRadialGradient}">
+    <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
+        <ScrollViewer Grid.Row="1">
             <Grid>
-                <controls:AnimatedImage
-                    x:Name="BackDropImage"
-                    ImageUrl="ms-appx:///Assets/TileImages/Speech.png"
-                    Visibility="Visible" />
-                <Border Visibility="Visible">
-                    <Border.Background>
-                        <media:BackdropBlurBrush Amount="100.0" />
-                    </Border.Background>
-                </Border>
-            </Grid>
-        </wuc:OpacityMaskView>
-        <Grid
-            Width="116"
-            Margin="0,0,0,-16"
-            Padding="16"
-            VerticalAlignment="Bottom"
-            Style="{StaticResource CardGridStyle}">
-            <Image Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
-        </Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Height="240" CornerRadius="0">
+                    <!--<Grid.Lights>
+                   <controls:HoverLight />
+                   <controls:AmbLight />
+               </Grid.Lights>-->
+                    <Grid Opacity="0.25">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="1, 1">
+                                <GradientStop Offset="0" Color="#D9E8F9" />
+                                <GradientStop Offset="0.5" Color="#2D87F1" />
+                                <GradientStop Offset="1" Color="Transparent" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                    </Grid>
+                    <StackPanel Margin="24,16,24,16" Orientation="Vertical">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Overview" />
+                        <TextBlock
+                            Width="480"
+                            Margin="0,12,0,12"
+                            HorizontalAlignment="Left"
+                            TextWrapping="Wrap">
+                            <Run Text="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models." />
+                        </TextBlock>
 
-        <StackPanel
-            Grid.Row="1"
-            Margin="24,48,24,24"
-            Orientation="Vertical">
-            <TextBlock
-                HorizontalAlignment="Center"
-                Style="{StaticResource TitleTextBlockStyle}"
-                Text="Windows Copilot Runtime APIs" />
-            <StackPanel
-                Margin="0,16,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="8">
-                <Button>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon FontSize="14" Glyph="&#xE8A5;" />
-                        <TextBlock Text="Documentation" />
+                        <Button>
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon
+                                        FontSize="16"
+                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Glyph="&#xE7C3;" />
+                                    <TextBlock Text="Learn more about WCR" />
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
                     </StackPanel>
-                </Button>
-                <Button>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon FontSize="14" Glyph="&#xE8FD;" />
-                        <TextBlock Text="Release notes" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-            <TextBlock Margin="0,24,0,0" TextWrapping="Wrap">
+
+                    <Canvas
+                        Width="260"
+                        Margin="0,-16,36,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top">
+
+
+                        <Grid
+                            Canvas.Left="36"
+                            Canvas.Top="86"
+                            Padding="16"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <Image Width="56" Source="/Assets/ModelIcons/WCRAPI.svg" />
+                        </Grid>
+
+                        <Grid
+                            Canvas.Left="82"
+                            Canvas.Top="186"
+                            Padding="8"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <FontIcon
+                                FontSize="24"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE8F2;" />
+                        </Grid>
+
+
+                        <Grid
+                            Canvas.Left="140"
+                            Canvas.Top="120"
+                            Padding="16"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <FontIcon
+                                FontSize="48"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE7C5;" />
+
+                        </Grid>
+                        <Grid
+                            Canvas.Left="140"
+                            Canvas.Top="36"
+                            Padding="16"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <FontIcon
+                                FontSize="36"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE799;" />
+                        </Grid>
+                        <Grid
+                            Canvas.Left="82                             "
+                            Canvas.Top="36"
+                            Padding="8"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <FontIcon
+                                FontSize="24"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE7A8;" />
+                        </Grid>
+                    </Canvas>
+
+
+                </Grid>
+
+
+
+                <!--   <TextBlock Margin="0,24,0,0" TextWrapping="Wrap">
                 <Run Text="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models." />
                 <LineBreak />
                 <LineBreak /><Run Text="Designed to deliver a frictionless experience, these pre-optimized models run efficiently on Copilot+ PCs, operating locally and continuously in the background to provide instant, intelligent insights and assistance." />
-            </TextBlock>
-            <TextBlock
-                Margin="0,24,0,12"
-                FontWeight="SemiBold"
-                Text="Explore APIs" />
+            </TextBlock>-->
 
-            <ItemsView
-                x:Name="APIViewer"
-                IsItemInvokedEnabled="True"
-                ItemInvoked="APIViewer_ItemInvoked"
-                ItemsSource="{x:Bind apis, Mode=OneWay}"
-                SelectionMode="None">
-                <ItemsView.Layout>
-                    <UniformGridLayout MinColumnSpacing="12" MinRowSpacing="12" />
-                </ItemsView.Layout>
-                <ItemsView.ItemTemplate>
-                    <DataTemplate x:DataType="local:TempWCRAPI">
-                        <ItemContainer
-                            VerticalAlignment="Stretch"
-                            VerticalContentAlignment="Stretch"
-                            AutomationProperties.Name="{x:Bind Name}"
-                            CornerRadius="16">
-                            <Grid
-                                Width="260"
-                                Height="186"
-                                Padding="20,6,12,6"
-                                VerticalAlignment="Stretch"
-                                ColumnSpacing="20"
-                                CornerRadius="16"
-                                RowSpacing="2"
-                                Style="{StaticResource CardGridStyle}">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <FontIcon
-                                    Margin="0,24,0,8"
-                                    HorizontalAlignment="Left"
-                                    FontSize="36"
-                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                    Glyph="{x:Bind Glyph}" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="24"
+                    Orientation="Vertical"
+                    Spacing="16">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Explore Windows Copilot Runtime APIs" />
 
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                                    Text="{x:Bind Name}" />
-                                <TextBlock
-                                    Grid.Row="2"
-                                    Margin="0,8,0,0"
-                                    VerticalAlignment="Top"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Text="{x:Bind Description}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="Wrap" />
-                            </Grid>
-                        </ItemContainer>
-                    </DataTemplate>
-                </ItemsView.ItemTemplate>
-            </ItemsView>
+                    <ItemsView
+                        x:Name="APIViewer"
+                        IsItemInvokedEnabled="True"
+                        ItemInvoked="APIViewer_ItemInvoked"
+                        ItemsSource="{x:Bind apis, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ItemsView.Layout>
+                            <UniformGridLayout MinColumnSpacing="12" MinRowSpacing="12" />
+                        </ItemsView.Layout>
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="local:TempWCRAPI">
+                                <ItemContainer
+                                    VerticalAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    AutomationProperties.Name="{x:Bind Name}"
+                                    CornerRadius="8">
+                                    <Grid
+                                        Width="260"
+                                        Height="186"
+                                        Padding="20,6,12,6"
+                                        VerticalAlignment="Stretch"
+                                        ColumnSpacing="20"
+                                        CornerRadius="8"
+                                        RowSpacing="2"
+                                        Style="{StaticResource CardGridStyle}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <FontIcon
+                                            Margin="0,24,0,8"
+                                            HorizontalAlignment="Left"
+                                            FontSize="36"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="{x:Bind Glyph}" />
 
-        </StackPanel>
-
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                            Text="{x:Bind Name}" />
+                                        <TextBlock
+                                            Grid.Row="2"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Top"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Description}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="Wrap" />
+                                    </Grid>
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Page>
