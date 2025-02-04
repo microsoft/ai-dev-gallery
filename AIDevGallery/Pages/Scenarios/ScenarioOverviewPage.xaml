@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
     xmlns:models="using:AIDevGallery.Models"
+    xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:util="using:AIDevGallery.Utils"
     xmlns:wuc="using:WinUICommunity"
     mc:Ignorable="d">
@@ -69,15 +70,83 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <StackPanel Margin="24,16,0,48" Orientation="Vertical">
-                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Overview" />
-                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Explore different samples powered by local models" />
-                </StackPanel>
+                <Grid Height="240" CornerRadius="0">
+                    <Grid Opacity="0.15">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="-0.2,0" EndPoint="1, 1">
+                                <GradientStop Offset="0" Color="#3286EE" />
+                                <GradientStop Offset="0.5" Color="#C8AEC4" />
+                                <GradientStop Offset="1" Color="Transparent" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                    </Grid>
+                    <StackPanel Margin="24,16,24,16" Orientation="Vertical">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Overview" />
+                        <TextBlock
+                            Width="386"
+                            Margin="0,12,0,12"
+                            HorizontalAlignment="Left"
+                            Text="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience."
+                            TextWrapping="Wrap" />
+                        <Button Content="Action button" />
+                    </StackPanel>
 
+                    <Canvas
+                        Width="260"
+                        Margin="0,-16,36,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top">
+
+
+                        <Grid
+                            Canvas.Left="36"
+                            Canvas.Top="86"
+                            Width="208"
+                            Padding="4"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CardGridStyle}">
+                            <ui:Effects.Shadow>
+                                <media:AttachedCardShadow
+                                    BlurRadius="12"
+                                    CornerRadius="8"
+                                    Opacity="0.2"
+                                    Offset="0"
+                                    Color="#000000" />
+                            </ui:Effects.Shadow>
+                            <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
+                        </Grid>
+                        <Grid
+                            Canvas.Left="0"
+                            Canvas.Top="56"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                            Style="{StaticResource CardGridStyle}">
+                            <SymbolIcon
+                                Width="28"
+                                Height="28"
+                                Symbol="Permissions" />
+                        </Grid>
+                        <Grid
+                            Canvas.Left="208"
+                            Canvas.Top="148"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                            Style="{StaticResource CardGridStyle}">
+                            <SymbolIcon
+                                Width="28"
+                                Height="28"
+                                Symbol="Setting" />
+                        </Grid>
+                    </Canvas>
+
+
+                </Grid>
                 <ItemsRepeater
                     x:Name="allView"
                     Grid.Row="1"
-                    Margin="24,0,24,24"
+                    Margin="24,36,24,24"
                     ItemsSource="{x:Bind allScenarioCategories, Mode=OneWay}"
                     TabFocusNavigation="Local">
                     <ItemsRepeater.Layout>
@@ -92,7 +161,7 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <TextBlock
-                                    Margin="4,0,0,0"
+                                    Margin="2,0,0,0"
                                     FontSize="16"
                                     FontWeight="SemiBold"
                                     Text="{x:Bind Name}"
