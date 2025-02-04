@@ -27,6 +27,6 @@ internal class SearchModelEvent : EventBase
 
     public static void Log(string query)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("SearchModel_Event", LogLevel.Measure, new SearchModelEvent(query));
+        TelemetryFactory.Get<ITelemetry>().Log("SearchModel_Event", LogLevel.Critical, new SearchModelEvent(query));
     }
 }

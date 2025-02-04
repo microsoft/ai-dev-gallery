@@ -27,6 +27,6 @@ internal class DownloadSearchedModelEvent : EventBase
 
     public static void Log(string modelName)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("DownloadSearchedModel_Event", LogLevel.Measure, new DownloadSearchedModelEvent(modelName));
+        TelemetryFactory.Get<ITelemetry>().Log("DownloadSearchedModel_Event", LogLevel.Critical, new DownloadSearchedModelEvent(modelName));
     }
 }

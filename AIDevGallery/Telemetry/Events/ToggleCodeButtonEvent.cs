@@ -29,6 +29,6 @@ internal class ToggleCodeButtonEvent : EventBase
 
     public static void Log(string name, bool isChecked)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ToggleCodeButton_Event", LogLevel.Measure, new ToggleCodeButtonEvent(name, isChecked));
+        TelemetryFactory.Get<ITelemetry>().Log("ToggleCodeButton_Event", LogLevel.Critical, new ToggleCodeButtonEvent(name, isChecked));
     }
 }
