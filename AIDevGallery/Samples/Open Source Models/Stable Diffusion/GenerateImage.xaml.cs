@@ -59,7 +59,6 @@ internal sealed partial class GenerateImage : BaseSamplePage
     private StableDiffusion? stableDiffusion;
     private bool isCanceling;
     private Task? inferenceTask;
-    private BitmapImage? _currentBitmapImage;
 
     public GenerateImage()
     {
