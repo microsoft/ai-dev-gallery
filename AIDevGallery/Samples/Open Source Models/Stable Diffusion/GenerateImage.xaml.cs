@@ -12,14 +12,12 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.Storage.Pickers.Provider;
 using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
