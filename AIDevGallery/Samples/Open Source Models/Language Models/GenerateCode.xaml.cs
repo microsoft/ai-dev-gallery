@@ -256,7 +256,6 @@ internal sealed partial class GenerateCode : BaseSamplePage
     {
         bool wasParsed = false;
         string[] lines = code.Split('\n');
-        LogStringArray(lines);
         string outputCode = code;
 
         if (lines.Length > 1)
