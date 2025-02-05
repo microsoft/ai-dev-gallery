@@ -285,9 +285,4 @@ internal sealed partial class GenerateCode : BaseSamplePage
 
         return outputCode;
     }
-
-    private void LogStringArray(string[] lines)
-    {
-        System.Diagnostics.Debug.WriteLine("[" + string.Join(", ", lines) + "]");
-    }
 }
