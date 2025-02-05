@@ -11,22 +11,47 @@
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Image x:Name="DefaultImage" HorizontalAlignment="Center" Stretch="Uniform"/>
-        <ProgressRing x:Name="Loader" IsActive="false" Visibility="Collapsed" />
-
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-            <TextBox x:Name="InputBox" KeyUp="TextBox_KeyUp" AutomationProperties.Name="Prompt input" PlaceholderText="Enter prompt to generate image" HorizontalAlignment="Center" Width="400" Margin="0,0,10,0" />
-            <Button x:Name="GenerateButton" Click="GenerateButton_Click" HorizontalAlignment="Center" Content="Generate" />
+        <Image 
+            x:Name="DefaultImage" 
+            HorizontalAlignment="Center" 
+            Stretch="Uniform"/>
+        <ProgressRing 
+            x:Name="Loader" 
+            IsActive="false" 
+            Visibility="Collapsed" />
+        <StackPanel 
+            Grid.Row="1" 
+            Orientation="Horizontal" 
+            HorizontalAlignment="Center" 
+            Margin="0,20,0,0" 
+            Spacing="10">
+            <TextBox 
+                x:Name="InputBox" 
+                KeyUp="TextBox_KeyUp" 
+                AutomationProperties.Name="Prompt input" 
+                PlaceholderText="Enter prompt to generate image" 
+                HorizontalAlignment="Center" 
+                Width="400"/>
+            <Button 
+                x:Name="GenerateButton" 
+                Click="GenerateButton_Click"
+                Style="{StaticResource AccentButtonStyle}"
+                Content="Generate" />
+            <Button
+                x:Name="SaveButton"
+                Click="SaveButton_Click"
+                Content="Save Image"
+                IsEnabled="False"/>
         </StackPanel>
-
-        <ContentDialog x:Name="ErrorDialog" 
-               Title="Error"
-               IsPrimaryButtonEnabled="True"
-               IsSecondaryButtonEnabled="False"
-               CloseButtonClick="CloseButton_Click"
-               CloseButtonText="OK"/>
+        <ContentDialog 
+            x:Name="ErrorDialog" 
+            Title="Error"
+            IsPrimaryButtonEnabled="True"
+            IsSecondaryButtonEnabled="False"
+            CloseButtonClick="CloseButton_Click"
+            CloseButtonText="OK"/>
     </Grid>
 </samples:BaseSamplePage>
