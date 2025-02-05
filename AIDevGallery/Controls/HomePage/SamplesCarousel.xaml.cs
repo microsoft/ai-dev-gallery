@@ -26,7 +26,7 @@ internal partial class SamplesCarousel : UserControl
                 {
                     Title = item.DisplayName,
                     Icon = new FontIcon() { Glyph = item.Icon },
-                    Description = item.Description,
+                    Description = GetFirstSentenceFromDescription(item.Description),
                     Id = item.ItemId
                 };
                 RecentItemsRow.SampleCards.Add(s);
@@ -44,5 +44,24 @@ internal partial class SamplesCarousel : UserControl
         {
             FilterBar.SelectedItem = FilterBar.Items[1];
         }
+    }
+
+    private string GetFirstSentenceFromDescription(string? description)
+    {
+        if (description == null)
+        {
+            return string.Empty;
+        }
+
+        int i;
+        for(i = 0; i < description.Length; i++)
+        {
+            if (description[i] == '.')
+            {
+                break;
+            }
+        }
+
+        return description.Substring(0, i + 1);
     }
 }
