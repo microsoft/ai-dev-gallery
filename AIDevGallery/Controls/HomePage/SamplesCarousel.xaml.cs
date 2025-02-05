@@ -62,6 +62,6 @@ internal partial class SamplesCarousel : UserControl
             }
         }
 
-        return description.Substring(0, i + 1);
+        return i == description.Length ? description : description.Substring(0, i + 1);
     }
 }
