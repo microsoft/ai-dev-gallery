@@ -81,7 +81,6 @@
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
-    <PackageReference Include="WinUICommunity.Components" />
     <PackageReference Include="WinUIEx" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
