@@ -58,16 +58,13 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath);
+        await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
         sampleParams.NotifyCompletion();
     }
 
-    private async Task InitModel(string modelPath)
+    private async Task InitModel(string modelPath, CancellationToken token)
     {
         (_chatCompletionService, _semanticKernel) = ChatCompletionServiceFactory.GetSemanticKernelChatCompletionService(modelPath);
-
-        // Force service to load by sending it a dummy request
-        await _chatCompletionService.GetChatMessageContentAsync(string.Empty, null, _semanticKernel);
         InputBox.IsEnabled = true;
         _modelReady = true;
     }
@@ -82,6 +79,8 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
     private void CleanUp()
     {
         CancelResponse();
+        _chatCompletionService = null;
+        _semanticKernel = null;
     }
 
     private void CancelResponse()
@@ -136,9 +135,10 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
         _chatHistory.AddUserMessage(text);
         var contentStartedBeingGenerated = false; // <exclude-line>
-        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
+        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>
 
-        Task.Run(async () =>
+        Task.Run(
+        async () =>
         {
             var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant);
 
