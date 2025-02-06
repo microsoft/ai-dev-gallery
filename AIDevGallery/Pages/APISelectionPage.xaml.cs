@@ -1,66 +1,81 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery;
 using AIDevGallery.Models;
-using AIDevGallery.Pages;
-using CommunityToolkit.WinUI.Controls;
+using AIDevGallery.Samples;
+using AIDevGallery.Telemetry.Events;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Collections.Generic;
 
 namespace AIDevGallery.Pages;
 
-public sealed partial class APISelectionPage : Page
+internal sealed partial class APISelectionPage : Page
 {
     public APISelectionPage()
     {
         this.InitializeComponent();
     }
 
-    private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        Type pageType = typeof(ModelPage);
-        object? parameter = null;
+        NavigatedToPageEvent.Log(nameof(APISelectionPage));
 
-
-        if (args.SelectedItem is NavigationViewItem item)
+        SetupAPIs();
+        NavView.Loaded += (sender, args) =>
         {
-
-            if (item.Tag is string param)
+            if (e.Parameter is ModelType type)
             {
-                if (param == "Overview")
+                SetSelectedAPIInMenu(type);
+            }
+            else
+            {
+                NavView.SelectedItem = NavView.MenuItems[0];
+            }
+        };
+    }
+
+    private void SetupAPIs()
+    {
+        if (ModelTypeHelpers.ParentMapping.TryGetValue(ModelType.WCRAPIs, out List<ModelType>? innerItems))
+        {
+            foreach (var o in innerItems)
+            {
+                if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(o, out var apiDefinition))
                 {
-                    pageType = typeof(WCROverview);
-                }
-                else
-                {
-                    switch (param)
-                    {
-                        case "PhiSilica":
-                            parameter = ModelType.PhiSilica;
-                            break;
-                        case "ImageScaler":
-                            parameter = ModelType.ImageScaler;
-                            break;
-                        case "OCR":
-                            parameter = ModelType.TextRecognitionOCR;
-                            break;
-                        case "BackgroundRemover":
-                            parameter = ModelType.BackgroundRemover;
-                            break;
-                        case "ImageDescription":
-                            parameter = ModelType.ImageDescription;
-                            break;
-                    }
+                    NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph, Tag = o } });
                 }
             }
-
-            NavFrame.Navigate(pageType, parameter);
         }
     }
 
-    private void NavView_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        NavView.SelectedItem = NavView.MenuItems[0];
+        Type pageType = typeof(ModelPage);
+
+        if (args.SelectedItem is NavigationViewItem item)
+        {
+            if (item.Tag is ModelType modelType)
+            {
+                NavFrame.Navigate(pageType, modelType);
+            }
+            else
+            {
+                NavFrame.Navigate(typeof(WCROverview));
+            }
+        }
+    }
+
+    private void SetSelectedAPIInMenu(ModelType selectedType)
+    {
+        foreach (var item in NavView.MenuItems)
+        {
+            if (item is NavigationViewItem navItem && navItem.Tag is ModelType mt && mt == selectedType)
+            {
+                NavView.SelectedItem = navItem;
+                return;
+            }
+        }
     }
 }

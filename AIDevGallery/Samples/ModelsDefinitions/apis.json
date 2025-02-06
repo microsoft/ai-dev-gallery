@@ -8,6 +8,8 @@
         "Id": "9b56e116-c142-4be1-827c-cb023743aca2",
         "Name": "Phi Silica",
         "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE8F2",
+        "Description": "This API recognizes and extracts text from images.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl"
       },
@@ -15,6 +17,8 @@
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
         "Name": "Text Recognition (OCR)",
         "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE7A8",
+        "Description": "This API recognizes text in an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
         "License": "ms-pl"
       },
@@ -22,6 +26,8 @@
         "Id": "97ed0b95-3f14-415c-bb1f-9a6c59b78c3d",
         "Name": "ImageScaler",
         "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uED61",
+        "Description": "This API scales an image to a specified size.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl"
       },
@@ -29,6 +35,8 @@
         "Id": "9d445930-b353-429a-9674-777eef771ccf",
         "Name": "BackgroundRemover",
         "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE7C5",
+        "Description": "This API removes the background from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl"
       },
@@ -36,6 +44,8 @@
         "Id": "bdab049c-9b01-48f4-b12d-acb911b0a61c",
         "Name": "ImageDescription",
         "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE799",
+        "Description": "This API generates a description of an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl"
       }

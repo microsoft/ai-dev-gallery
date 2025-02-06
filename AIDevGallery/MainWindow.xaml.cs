@@ -60,7 +60,7 @@ internal sealed partial class MainWindow : WindowEx
 
     private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
-        Navigate(args.InvokedItem.ToString()!);
+        Navigate(args.InvokedItemContainer.Tag.ToString()!);
     }
 
     public void Navigate(string Tag, object? obj = null)
@@ -79,7 +79,7 @@ internal sealed partial class MainWindow : WindowEx
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
             case "apis":
-                Navigate(typeof(APISelectionPage));
+                Navigate(typeof(APISelectionPage), obj);
                 break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
@@ -186,6 +186,10 @@ internal sealed partial class MainWindow : WindowEx
         else if (e.SourcePageType == typeof(ModelSelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[2];
+        }
+        else if (e.SourcePageType == typeof(APISelectionPage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[3];
         }
         else if (e.SourcePageType == typeof(SettingsPage))
         {

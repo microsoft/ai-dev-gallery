@@ -18,7 +18,6 @@
         IsPaneToggleButtonVisible="False"
         IsPaneVisible="True"
         IsSettingsVisible="False"
-        Loaded="NavView_Loaded"
         OpenPaneLength="248"
         SelectionChanged="NavView_SelectionChanged">
         <NavigationView.Resources>
@@ -30,7 +29,7 @@
                 <TextBlock
                     Margin="16,12,0,12"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="APIs" />
+                    Text="WCR APIs" />
             </StackPanel>
         </NavigationView.PaneHeader>
         <NavigationView.MenuItems>
@@ -40,26 +39,6 @@
                 Tag="Overview" />
             <NavigationViewItemSeparator />
             <NavigationViewItemHeader Content="Available APIs" />
-            <NavigationViewItem
-                Content="Phi Silica"
-                Icon="{ui:FontIcon Glyph=&#xE8F2;}"
-                Tag="PhiSilica" />
-            <NavigationViewItem
-                Content="Text Recognition (OCR)"
-                Icon="{ui:FontIcon Glyph=&#xE7A8;}"
-                Tag="OCR" />
-            <NavigationViewItem
-                Content="Background Remover"
-                Icon="{ui:FontIcon Glyph=&#xED61;}"
-                Tag="BackgroundRemover" />
-            <NavigationViewItem
-                Content="Image Description"
-                Icon="{ui:FontIcon Glyph=&#xE7C5;}"
-                Tag="ImageDescription" />
-            <NavigationViewItem
-                Content="Image Scaler"
-                Icon="{ui:FontIcon Glyph=&#xE799;}"
-                Tag="ImageScaler" />
         </NavigationView.MenuItems>
         <NavigationView.Content>
             <Frame x:Name="NavFrame" />
