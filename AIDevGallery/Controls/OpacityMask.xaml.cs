@@ -18,7 +18,8 @@ namespace AIDevGallery.Controls;
 [TemplatePart(Name = ContentPresenterTemplateName, Type = typeof(ContentPresenter))]
 public partial class OpacityMaskView : ContentControl
 {
-    // This is from the Windows Community Toolkit Labs: https://github.com/CommunityToolkit/Labs-Windows/pull/491
+    // This is from Windows Community Toolkit Labs: https://github.com/CommunityToolkit/Labs-Windows/pull/491
+
     /// <summary>
     /// Identifies the <see cref="OpacityMask"/> property.
     /// </summary>
