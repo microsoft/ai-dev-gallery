@@ -22,4 +22,11 @@
   <PropertyGroup Condition="$(Configuration)=='Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- Turn on/off depending on weather the WinAppSDK is prerelease or not -->
+    <IsWindowsAppSDKPreRelease>true</IsWindowsAppSDKPreRelease>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
 </Project>

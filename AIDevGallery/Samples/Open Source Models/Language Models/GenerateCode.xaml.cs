@@ -5,6 +5,8 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using ColorCode;
+using ColorCode.Common;
+using ColorCode.Styling;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -31,16 +33,20 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class GenerateCode : BaseSamplePage
 {
-    private readonly RichTextBlockFormatter formatter = new();
+    private RichTextBlockFormatter formatter;
     private IChatClient? model;
     private CancellationTokenSource? cts;
 
     public ObservableCollection<string> LanguageStrings { get; } = ["C#", "C++", "Java", "Python", "JavaScript", "TypeScript"];
+    private string _currentLanguage = "C#";
+    private string _currentCode = string.Empty;
 
     public GenerateCode()
     {
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
+        formatter = new RichTextBlockFormatter(GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+        this.ActualThemeChanged += GenerateCode_ActualThemeChanged;
         this.InitializeComponent();
     }
 
@@ -114,6 +120,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
 
                         generatedCode += messagePart;
 
+                        _currentCode = generatedCode;
                         this.GenerateRichTextBlock.Blocks.Clear();
                         formatter.FormatRichTextBlock(generatedCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
                     });
@@ -138,6 +145,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
         {
             IsProgressVisible = true;
             StopBtn.Visibility = Visibility.Visible;
+            _currentLanguage = currentLanguage;
             GenerateSolution(InputTextBox.Text, currentLanguage);
         }
     }
@@ -188,6 +196,44 @@ internal sealed partial class GenerateCode : BaseSamplePage
         {
             InputTextBox.Description = string.Empty;
             GenerateButton.IsEnabled = false;
+        }
+    }
+
+    private void GenerateCode_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        formatter = new RichTextBlockFormatter(GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+        if (_currentCode != null && _currentCode.Length > 0)
+        {
+            this.GenerateRichTextBlock.Blocks.Clear();
+            formatter.FormatRichTextBlock(_currentCode, languageDict[_currentLanguage], this.GenerateRichTextBlock);
+        }
+    }
+
+    private StyleDictionary GetCodeHighlightingStyleFromElementTheme(ElementTheme theme)
+    {
+        if (theme == ElementTheme.Dark)
+        {
+            StyleDictionary darkStyles = StyleDictionary.DefaultDark;
+            darkStyles[ScopeName.Comment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDocComment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDocTag].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlComment].Foreground = StyleDictionary.BrightGreen;
+            darkStyles[ScopeName.XmlDelimiter].Foreground = StyleDictionary.White;
+            darkStyles[ScopeName.Keyword].Foreground = "#FF41D6FF";
+            darkStyles[ScopeName.String].Foreground = "#FFFFB100";
+            darkStyles[ScopeName.XmlAttributeValue].Foreground = "#FF41D6FF";
+            darkStyles[ScopeName.XmlAttributeQuotes].Foreground = "#FF41D6FF";
+            return darkStyles;
+        }
+        else
+        {
+            StyleDictionary lightStyles = StyleDictionary.DefaultLight;
+            lightStyles[ScopeName.XmlDocComment].Foreground = "#FF006828";
+            lightStyles[ScopeName.XmlDocTag].Foreground = "#FF006828";
+            lightStyles[ScopeName.Comment].Foreground = "#FF006828";
+            lightStyles[ScopeName.XmlAttribute].Foreground = "#FFB5004D";
+            lightStyles[ScopeName.XmlName].Foreground = "#FF400000";
+            return lightStyles;
         }
     }
 }
