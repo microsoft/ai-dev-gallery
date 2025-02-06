@@ -64,7 +64,7 @@ internal sealed partial class APISelectionPage : Page
         }
     }
 
-    private void SetSelectedAPIInMenu(ModelType selectedType)
+    public void SetSelectedAPIInMenu(ModelType selectedType)
     {
         foreach (var item in NavView.MenuItems)
         {
