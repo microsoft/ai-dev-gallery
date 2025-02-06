@@ -21,7 +21,6 @@ internal sealed partial class APISelectionPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         NavigatedToPageEvent.Log(nameof(APISelectionPage));
-
         SetupAPIs();
         NavView.Loaded += (sender, args) =>
         {
@@ -40,11 +39,11 @@ internal sealed partial class APISelectionPage : Page
     {
         if (ModelTypeHelpers.ParentMapping.TryGetValue(ModelType.WCRAPIs, out List<ModelType>? innerItems))
         {
-            foreach (var o in innerItems)
+            foreach (var item in innerItems)
             {
-                if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(o, out var apiDefinition))
+                if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(item, out var apiDefinition))
                 {
-                    NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph, Tag = o } });
+                    NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
                 }
             }
         }
@@ -52,13 +51,11 @@ internal sealed partial class APISelectionPage : Page
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        Type pageType = typeof(ModelPage);
-
         if (args.SelectedItem is NavigationViewItem item)
         {
-            if (item.Tag is ModelType modelType)
+            if (item.Tag is ModelType type)
             {
-                NavFrame.Navigate(pageType, modelType);
+                NavFrame.Navigate(typeof(ModelPage), type);
             }
             else
             {

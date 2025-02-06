@@ -8,6 +8,7 @@
     xmlns:local="using:AIDevGallery.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
+    xmlns:models="using:AIDevGallery.Models"
     mc:Ignorable="d">
 
     <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
@@ -60,7 +61,6 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top">
 
-
                         <Grid
                             Canvas.Left="36"
                             Canvas.Top="86"
@@ -82,7 +82,6 @@
                                 Glyph="&#xE8F2;" />
                         </Grid>
 
-
                         <Grid
                             Canvas.Left="140"
                             Canvas.Top="120"
@@ -93,7 +92,6 @@
                                 FontSize="48"
                                 Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                 Glyph="&#xE7C5;" />
-
                         </Grid>
                         <Grid
                             Canvas.Left="140"
@@ -118,17 +116,7 @@
                                 Glyph="&#xE7A8;" />
                         </Grid>
                     </Canvas>
-
-
                 </Grid>
-
-
-
-                <!--   <TextBlock Margin="0,24,0,0" TextWrapping="Wrap">
-                <Run Text="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models." />
-                <LineBreak />
-                <LineBreak /><Run Text="Designed to deliver a frictionless experience, these pre-optimized models run efficiently on Copilot+ PCs, operating locally and continuously in the background to provide instant, intelligent insights and assistance." />
-            </TextBlock>-->
 
                 <StackPanel
                     Grid.Row="1"
@@ -141,13 +129,13 @@
                         x:Name="APIViewer"
                         IsItemInvokedEnabled="True"
                         ItemInvoked="APIViewer_ItemInvoked"
-                        ItemsSource="{x:Bind apis, Mode=OneWay}"
+                        ItemsSource="{x:Bind wcrAPIs, Mode=OneWay}"
                         SelectionMode="None">
                         <ItemsView.Layout>
                             <UniformGridLayout MinColumnSpacing="12" MinRowSpacing="12" />
                         </ItemsView.Layout>
                         <ItemsView.ItemTemplate>
-                            <DataTemplate x:DataType="local:TempWCRAPI">
+                            <DataTemplate x:DataType="models:ApiDefinition">
                                 <ItemContainer
                                     VerticalAlignment="Stretch"
                                     VerticalContentAlignment="Stretch"
@@ -173,7 +161,7 @@
                                             HorizontalAlignment="Left"
                                             FontSize="36"
                                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                            Glyph="{x:Bind Glyph}" />
+                                            Glyph="{x:Bind IconGlyph}" />
 
                                         <TextBlock
                                             Grid.Row="1"
