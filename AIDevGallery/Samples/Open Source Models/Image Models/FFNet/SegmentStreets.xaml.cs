@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet;
 
 [GallerySample(
     Model1Types = [ModelType.FFNet],
-    Scenario = ScenarioType.ImageSegmentImage,
+    Scenario = ScenarioType.ImageSegmentStreet,
     Name = "Segment Streetscapes",
     SharedCode = [
         SharedCodeEnum.Prediction,
@@ -79,6 +79,16 @@ internal sealed partial class SegmentStreets : BaseSamplePage
             if (hardwareAccelerator == HardwareAccelerator.DML)
             {
                 sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+            }
+            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            {
+                Dictionary<string, string> options = new()
+                    {
+                        { "backend_path", "QnnHtp.dll" },
+                        { "htp_performance_mode", "high_performance" },
+                        { "htp_graph_finalization_optimization_mode", "3" }
+                    };
+                sessionOptions.AppendExecutionProvider("QNN", options);
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);

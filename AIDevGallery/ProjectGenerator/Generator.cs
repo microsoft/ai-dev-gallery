@@ -45,7 +45,7 @@ internal partial class Generator
         return safeName;
     }
 
-    internal Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
+    internal Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
     {
         var packageReferences = new List<(string PackageName, string? Version)>
         {
@@ -63,11 +63,12 @@ internal partial class Generator
 
     internal const string DotNetVersion = "net9.0";
 
-    private async Task<string> GenerateAsyncInternal(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl)> models, bool copyModelLocally, List<(string PackageName, string? Version)> packageReferences, string outputPath, CancellationToken cancellationToken)
+    private async Task<string> GenerateAsyncInternal(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, List<(string PackageName, string? Version)> packageReferences, string outputPath, CancellationToken cancellationToken)
     {
         var projectName = $"{sample.Name}Sample";
         string safeProjectName = ToSafeVariableName(projectName);
         string guid9 = Guid.NewGuid().ToString();
+        string slnProjGuid = Guid.NewGuid().ToString();
         string xmlEscapedPublisher = "MyTestPublisher";
         string xmlEscapedPublisherDistinguishedName = $"CN={xmlEscapedPublisher}";
 
@@ -130,14 +131,12 @@ internal partial class Generator
             }
 
             PromptTemplate? modelPromptTemplate = null;
-            HardwareAccelerator hardwareAccelerator = HardwareAccelerator.CPU;
             string modelId = string.Empty;
             bool isSingleFile = false;
 
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
                 modelPromptTemplate = modelDetails.PromptTemplate;
-                hardwareAccelerator = modelDetails.HardwareAccelerators.First();
                 modelId = modelDetails.Id;
             }
             else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.ModelUrl) is var modelDetails2 && modelDetails2.Value != null)
@@ -148,12 +147,10 @@ internal partial class Generator
                     addLllmTypes = true;
                 }
 
-                hardwareAccelerator = modelDetails2.Value.HardwareAccelerators.First();
                 modelId = modelDetails2.Value.Id;
             }
             else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinitionDetails))
             {
-                hardwareAccelerator = HardwareAccelerator.DML;
                 modelId = apiDefinitionDetails.Id;
             }
 
@@ -202,7 +199,7 @@ internal partial class Generator
                 modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
             }
 
-            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, hardwareAccelerator, modelPromptTemplate, isPhiSilica));
+            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate, isPhiSilica));
 
             if (modelTypes.First() == modelType)
             {
@@ -216,7 +213,7 @@ internal partial class Generator
 
         SampleProjectGeneratedEvent.Log(sample.Id, model1Id, model2Id, copyModelLocally);
 
-        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml"];
+        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln"];
 
         // Get all files from the template directory with the allowed extensions
         var files = Directory.GetFiles(templatePath, "*.*", SearchOption.AllDirectories).Where(file => extensions.Any(file.EndsWith));
@@ -224,10 +221,13 @@ internal partial class Generator
         var renames = new Dictionary<string, string>
         {
             { "Package-managed.appxmanifest", "Package.appxmanifest" },
-            { "ProjectTemplate.csproj", $"{safeProjectName}.csproj" }
+            { "ProjectTemplate.csproj", $"{safeProjectName}.csproj" },
+            { "SolutionTemplate.sln", $"{safeProjectName}.sln" }
         };
 
-        var className = await AddFilesFromSampleAsync(sample, packageReferences, safeProjectName, outputPath, addLllmTypes, modelInfos, cancellationToken);
+        var baseNamespace = "AIDevGallery.Sample";
+
+        var className = await AddFilesFromSampleAsync(sample, packageReferences, baseNamespace, outputPath, addLllmTypes, modelInfos, cancellationToken);
 
         foreach (var file in files)
         {
@@ -261,12 +261,13 @@ internal partial class Generator
 
                 // Replace the variables
                 content = content.Replace("$projectname$", projectName);
-                content = content.Replace("$safeprojectname$", safeProjectName);
+                content = content.Replace("$safeprojectname$", baseNamespace);
+                content = content.Replace("$projectFileName$", safeProjectName);
+                content = content.Replace("$projectGuid$", slnProjGuid);
                 content = content.Replace("$guid9$", guid9);
                 content = content.Replace("$XmlEscapedPublisherDistinguishedName$", xmlEscapedPublisherDistinguishedName);
                 content = content.Replace("$XmlEscapedPublisher$", xmlEscapedPublisher);
                 content = content.Replace("$DotNetVersion$", DotNetVersion);
-                content = content.Replace("$MainSamplePage$", className);
 
                 // Write the file
                 await File.WriteAllTextAsync(outputPathFile, content, cancellationToken);
@@ -292,19 +293,64 @@ internal partial class Generator
             var project = ProjectRootElement.Open(csproj);
             var itemGroup = project.AddItemGroup();
 
-            foreach (var packageReference in packageReferences)
+            static void AddPackageReference(ProjectItemGroupElement itemGroup, string packageName, string? version)
             {
-                var packageName = packageReference.PackageName;
-                var version = packageReference.Version;
+                if (itemGroup.Items.Any(i => i.ItemType == "PackageReference" && i.Include == packageName))
+                {
+                    return;
+                }
+
                 var packageReferenceItem = itemGroup.AddItem("PackageReference", packageName);
 
                 if (packageName == "Microsoft.Windows.CsWin32")
                 {
                     packageReferenceItem.AddMetadata("PrivateAssets", "all", true);
                 }
+                else if (packageName == "Microsoft.AI.DirectML" ||
+                            packageName == "Microsoft.ML.OnnxRuntime.DirectML" ||
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
+                {
+                    packageReferenceItem.Condition = "$(Platform) == 'x64'";
+                }
+                else if (packageName == "Microsoft.ML.OnnxRuntime.Qnn" ||
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
+                {
+                    packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
+                }
 
                 var versionStr = version ?? PackageVersionHelpers.PackageVersions[packageName];
                 packageReferenceItem.AddMetadata("Version", versionStr, true);
+
+                if (packageName == "Microsoft.ML.OnnxRuntimeGenAI")
+                {
+                    var noneItem = itemGroup.AddItem("None", "$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\\runtimes\\win-arm64\\native\\onnxruntime-genai.dll");
+                    noneItem.Condition = "$(Platform) == 'ARM64'";
+                    noneItem.AddMetadata("Link", "onnxruntime-genai.dll", false);
+                    noneItem.AddMetadata("CopyToOutputDirectory", "PreserveNewest", false);
+                    noneItem.AddMetadata("Visible", "false", false);
+
+                    packageReferenceItem.AddMetadata("GeneratePathProperty", "true", true);
+                    packageReferenceItem.AddMetadata("ExcludeAssets", "all", true);
+                }
+            }
+
+            foreach (var packageReference in packageReferences)
+            {
+                var packageName = packageReference.PackageName;
+                var version = packageReference.Version;
+                if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
+                {
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn", null);
+                }
+                else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
+                {
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn", null);
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI", null);
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed", null);
+                }
+
+                AddPackageReference(itemGroup, packageName, version);
             }
 
             if (copyModelLocally)
@@ -473,7 +519,7 @@ internal partial class Generator
     private async Task<string> AddFilesFromSampleAsync(
         Sample sample,
         List<(string PackageName, string? Version)> packageReferences,
-        string safeProjectName,
+        string baseNamespace,
         string outputPath,
         bool addLllmTypes,
         Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos,
@@ -511,33 +557,46 @@ internal partial class Generator
             var source = SharedCodeHelpers.GetSource(sharedCodeEnum);
             if (fileName.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
             {
-                source = CleanXamlSource(source, $"{safeProjectName}.SharedCode", out _);
+                source = CleanXamlSource(source, $"{baseNamespace}.Utils", out _);
             }
             else
             {
-                source = CleanCsSource(source, $"{safeProjectName}.SharedCode", false);
+                source = CleanCsSource(source, $"{baseNamespace}.Utils", false);
             }
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, fileName), source, cancellationToken);
+            string directory = outputPath;
+
+            if (sharedCodeEnum != SharedCodeEnum.NativeMethods)
+            {
+                if (!Directory.Exists(Path.Join(outputPath, "Utils")))
+                {
+                    Directory.CreateDirectory(Path.Join(outputPath, "Utils"));
+                }
+
+                directory = Path.Join(outputPath, "Utils");
+            }
+
+            await File.WriteAllTextAsync(Path.Join(directory, fileName), source, cancellationToken);
         }
 
         string className = "Sample";
         if (!string.IsNullOrEmpty(sample.XAMLCode))
         {
-            var xamlSource = CleanXamlSource(sample.XAMLCode, safeProjectName, out className);
+            var xamlSource = CleanXamlSource(sample.XAMLCode, baseNamespace, out className);
             xamlSource = xamlSource.Replace($"{Environment.NewLine}    xmlns:samples=\"using:AIDevGallery.Samples\"", string.Empty);
             xamlSource = xamlSource.Replace("<samples:BaseSamplePage", "<Page");
             xamlSource = xamlSource.Replace("</samples:BaseSamplePage>", "</Page>");
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml"), xamlSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml"), xamlSource, cancellationToken);
         }
 
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
-            var cleanCsSource = CleanCsSource(sample.CSCode, safeProjectName, true);
+            var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
             cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
-            cleanCsSource = cleanCsSource.Replace(": BaseSamplePage", ": Microsoft.UI.Xaml.Controls.Page");
+            cleanCsSource = cleanCsSource.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
+            cleanCsSource = cleanCsSource.Replace($"public {className}()", "public Sample()");
             cleanCsSource = cleanCsSource.Replace(
                 "Task LoadModelAsync(SampleNavigationParameters sampleParams)",
                 "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
@@ -591,7 +650,7 @@ internal partial class Generator
                 cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
             }
 
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"{className}.xaml.cs"), cleanCsSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), cleanCsSource, cancellationToken);
         }
 
         return className;
@@ -618,7 +677,7 @@ internal partial class Generator
             _ = oldClassFullName[..oldClassFullName.LastIndexOf('.')];
             className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
 
-            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
         }
         else
         {
@@ -627,7 +686,7 @@ internal partial class Generator
 
         xamlCode = XamlLocalUsing().Replace(xamlCode, $"xmlns:local=\"using:{newNamespace}\"");
 
-        xamlCode = xamlCode.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.SharedCode\"");
+        xamlCode = xamlCode.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.Utils\"");
 
         return xamlCode;
     }
@@ -655,7 +714,7 @@ internal partial class Generator
 
         if (addSharedSourceNamespace)
         {
-            var namespaceLine = $"using {newNamespace}.SharedCode;";
+            var namespaceLine = $"using {newNamespace}.Utils;";
             if (!source.Contains(namespaceLine))
             {
                 source = namespaceLine + Environment.NewLine + source;

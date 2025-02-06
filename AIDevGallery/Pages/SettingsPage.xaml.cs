@@ -42,7 +42,7 @@ internal sealed partial class SettingsPage : Page
         VersionTextRun.Text = AppUtils.GetAppVersion();
         GetStorageInfo();
 
-        // DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
+        DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
@@ -153,14 +153,15 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
-    // private async void DiagnosticDataToggleSwitch_Toggled(object sender, RoutedEventArgs e)
-    // {
-    //    if (App.AppData.IsDiagnosticDataEnabled != DiagnosticDataToggleSwitch.IsOn)
-    //    {
-    //        App.AppData.IsDiagnosticDataEnabled = DiagnosticDataToggleSwitch.IsOn;
-    //        await App.AppData.SaveAsync();
-    //    }
-    // }
+    private async void DiagnosticDataToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (App.AppData.IsDiagnosticDataEnabled != DiagnosticDataToggleSwitch.IsOn)
+        {
+            App.AppData.IsDiagnosticDataEnabled = DiagnosticDataToggleSwitch.IsOn;
+            await App.AppData.SaveAsync();
+        }
+    }
+
     private async void ChangeCacheFolder_Click(object sender, RoutedEventArgs e)
     {
         var downloadCount = App.ModelCache.DownloadQueue.GetDownloads().Count;

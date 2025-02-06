@@ -21,7 +21,7 @@ internal class ModelCacheMovedEvent : EventBase
 
     public static void Log(string newPath)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelCacheMoved_Event", LogLevel.Measure, new ModelCacheMovedEvent(newPath));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelCacheMoved_Event", LogLevel.Critical, new ModelCacheMovedEvent(newPath));
     }
 
     public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)

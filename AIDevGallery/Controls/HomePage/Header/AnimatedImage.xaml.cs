@@ -35,7 +35,7 @@ internal partial class AnimatedImage : UserControl
     private void OnIsImageChanged()
     {
         BottomImage.Source = new BitmapImage(this.ImageUrl);
-        AnimationSet selectAnimation = [new OpacityAnimation() { From = 1, To = 0, Duration = TimeSpan.FromMilliseconds(1000) }];
+        AnimationSet selectAnimation = [new OpacityAnimation() { From = 1, To = 0, Duration = TimeSpan.FromMilliseconds(800) }];
         selectAnimation.Completed += (s, e) =>
         {
             TopImage.Source = new BitmapImage(this.ImageUrl);

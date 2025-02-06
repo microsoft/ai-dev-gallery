@@ -27,6 +27,6 @@ internal class ModelDeletedEvent : EventBase
 
     public static void Log(string modelName)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelDeleted_Event", LogLevel.Measure, new ModelDeletedEvent(modelName));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDeleted_Event", LogLevel.Critical, new ModelDeletedEvent(modelName));
     }
 }

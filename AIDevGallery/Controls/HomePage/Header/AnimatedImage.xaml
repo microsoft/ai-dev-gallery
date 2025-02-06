@@ -10,7 +10,13 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Image x:Name="BottomImage" Stretch="UniformToFill" />
-        <Image x:Name="TopImage" Stretch="UniformToFill" />
+        <Image
+            x:Name="BottomImage"
+            Opacity="1"
+            Stretch="UniformToFill" />
+        <Image
+            x:Name="TopImage"
+            Opacity="0"
+            Stretch="UniformToFill" />
     </Grid>
 </UserControl>
