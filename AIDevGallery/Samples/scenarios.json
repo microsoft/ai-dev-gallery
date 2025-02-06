@@ -18,6 +18,11 @@
         "Description": "Chat with a local language model. Send messages to a Chat Completion service that responds while keeping track of chat context and history.",
         "Id": "chat"
       },
+      "SemanticKernelChat": {
+        "Name": "Semantic Kernel Chat",
+        "Description": "Chat with a local language model via the semantic kernel. Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history. Note: this sample may take longer than others to load.",
+        "Id": "semantic-kernel-chat"
+      },
       "TranslateText": {
         "Name": "Translate Text",
         "Description": "Translate text with a local language model. Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
