@@ -63,8 +63,6 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Onnx" GeneratePathProperty="true" ExcludeAssets="all" />
-    <PackageReference Include="FastBertTokenizer" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" />
@@ -85,10 +83,6 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="$(PKGMicrosoft_SemanticKernel_Connectors_Onnx)\lib\net8.0\Microsoft.SemanticKernel.Connectors.Onnx.dll"/>
-  </ItemGroup>
-	
   <ItemGroup Condition="$(Platform) == 'ARM64'">
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" GeneratePathProperty="true" ExcludeAssets="all" />

@@ -16,7 +16,6 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
-    xmlns:wuc="using:WinUICommunity"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
     <Grid>

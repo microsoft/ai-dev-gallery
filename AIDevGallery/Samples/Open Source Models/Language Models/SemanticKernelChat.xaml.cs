@@ -26,10 +26,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextSemanticKernelChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.SemanticKernel.Connectors.Onnx",
+        "Microsoft.SemanticKernel.Core"
     ],
     SharedCode = [
-        SharedCodeEnum.ChatCompletionServiceFactory,
         SharedCodeEnum.ChatTemplateSelector,
         SharedCodeEnum.Message,
     ])]
@@ -58,15 +57,23 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
-        sampleParams.NotifyCompletion();
-    }
+        var model = await sampleParams.GetIChatClientAsync();
+        if (model == null)
+        {
+            return;
+        }
 
-    private async Task InitModel(string modelPath, CancellationToken token)
-    {
-        (_chatCompletionService, _semanticKernel) = ChatCompletionServiceFactory.GetSemanticKernelChatCompletionService(modelPath);
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        _chatCompletionService = model.AsChatCompletionService();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+        IKernelBuilder builder = Kernel.CreateBuilder();
+        _semanticKernel = builder.Build();
+
         InputBox.IsEnabled = true;
         _modelReady = true;
+
+        sampleParams.NotifyCompletion();
     }
 
     // <exclude>
