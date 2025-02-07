@@ -15,7 +15,7 @@
       },
       "TextRecognitionOCR": {
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
-        "Name": "Text Recognition (OCR)",
+        "Name": "Optical character recognition (OCR)",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7A8",
         "Description": "Recognize and extract text from an image.",
@@ -24,7 +24,7 @@
       },
       "ImageScaler": {
         "Id": "97ed0b95-3f14-415c-bb1f-9a6c59b78c3d",
-        "Name": "ImageScaler",
+        "Name": "Image super resolution",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uED61",
         "Description": "Scales an image to a specified size.",
@@ -33,7 +33,7 @@
       },
       "BackgroundRemover": {
         "Id": "9d445930-b353-429a-9674-777eef771ccf",
-        "Name": "BackgroundRemover",
+        "Name": "Image segmentation",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7C5",
         "Description": "Remove the background from an image.",
@@ -42,7 +42,7 @@
       },
       "ImageDescription": {
         "Id": "bdab049c-9b01-48f4-b12d-acb911b0a61c",
-        "Name": "ImageDescription",
+        "Name": "Image description",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE799",
         "Description": "Generate a description of an image.",
