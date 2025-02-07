@@ -60,7 +60,7 @@ internal sealed partial class MainWindow : WindowEx
 
     private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
-        Navigate(args.InvokedItem.ToString()!);
+        Navigate(args.InvokedItemContainer.Tag.ToString()!);
     }
 
     public void Navigate(string Tag, object? obj = null)
@@ -78,6 +78,9 @@ internal sealed partial class MainWindow : WindowEx
             case "models":
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
+            case "apis":
+                Navigate(typeof(APISelectionPage), obj);
+                break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
                 break;
@@ -91,7 +94,15 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            NavFrame.Navigate(page, param);
+            if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
+            {
+                // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
+                apiPage.SetSelectedAPIInMenu((ModelType)param);
+            }
+            else
+            {
+                NavFrame.Navigate(page, param);
+            }
         });
     }
 
@@ -183,6 +194,10 @@ internal sealed partial class MainWindow : WindowEx
         else if (e.SourcePageType == typeof(ModelSelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[2];
+        }
+        else if (e.SourcePageType == typeof(APISelectionPage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[3];
         }
         else if (e.SourcePageType == typeof(SettingsPage))
         {

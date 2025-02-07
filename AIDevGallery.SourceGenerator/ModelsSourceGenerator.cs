@@ -322,6 +322,8 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 Id = "{{apiDefinition.Id}}",
                                 Name = "{{apiDefinition.Name}}",
                                 Icon = "{{apiDefinition.Icon}}",
+                                IconGlyph = "{{apiDefinition.IconGlyph}}",
+                                Description = "{{apiDefinition.Description}}",
                                 ReadmeUrl = "{{apiDefinition.ReadmeUrl}}",
                                 License = "{{apiDefinition.License}}",
                             }
