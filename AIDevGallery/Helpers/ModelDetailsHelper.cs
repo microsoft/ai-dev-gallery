@@ -34,7 +34,7 @@ internal static class ModelDetailsHelper
             Id = apiDefinition.Id,
             Icon = apiDefinition.Icon,
             Name = apiDefinition.Name,
-            HardwareAccelerators = [HardwareAccelerator.DML], // Switch to QNN(?) once PR #41 merges
+            HardwareAccelerators = [HardwareAccelerator.QNN],
             IsUserAdded = false,
             SupportedOnQualcomm = true,
             ReadmeUrl = apiDefinition.ReadmeUrl,

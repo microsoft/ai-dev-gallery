@@ -6,7 +6,6 @@ using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using System;
 using System.Collections.Generic;
 
 namespace AIDevGallery.Pages;
