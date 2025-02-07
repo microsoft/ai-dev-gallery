@@ -78,7 +78,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
-        IsPhiSilica = model is PhiSilicaClient;
+        IsPhiSilica = model?.Metadata.ProviderName == "PhiSilica";
         InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
