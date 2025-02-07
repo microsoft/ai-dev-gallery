@@ -19,7 +19,7 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "ImageScaler",
+    Name = "ImageDescription",
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImageWcr,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
