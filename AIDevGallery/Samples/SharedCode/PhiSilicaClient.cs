@@ -256,14 +256,21 @@ internal class PhiSilicaClient : IChatClient
 
     public static bool IsAvailable()
     {
-        return LanguageModel.IsAvailable();
+        try
+        {
+            return LanguageModel.IsAvailable();
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!LanguageModel.IsAvailable())
+        if (!IsAvailable())
         {
             await LanguageModel.MakeAvailableAsync();
         }
