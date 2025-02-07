@@ -7,7 +7,6 @@
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
-    xmlns:wuc="using:WinUICommunity"
     Loaded="UserControl_Loaded"
     Unloaded="UserControl_Unloaded"
     mc:Ignorable="d">
@@ -61,23 +60,21 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="RootGrid" CornerRadius="8,0,0,0">
-        <wuc:OpacityMaskView
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            OpacityMask="{ThemeResource OverlayRadialGradient}">
-            <Grid>
-                <local:AnimatedImage
-                    x:Name="BackDropImage"
-                    ImageUrl="ms-appx:///Assets/TileImages/BackgroundBlur.png"
-                    Visibility="Visible">
-                    <media:UIElementExtensions.VisualFactory>
-                        <media:PipelineVisualFactory>
-                            <media:BlurEffect Amount="100.0" />
-                        </media:PipelineVisualFactory>
-                    </media:UIElementExtensions.VisualFactory>
-                </local:AnimatedImage>
-            </Grid>
-        </wuc:OpacityMaskView>
+        <local:OpacityMaskView HorizontalAlignment="Stretch">
+            <local:OpacityMaskView.OpacityMask>
+                <Rectangle Fill="{ThemeResource OverlayRadialGradient}" />
+            </local:OpacityMaskView.OpacityMask>
+            <local:AnimatedImage
+                x:Name="BackDropImage"
+                ImageUrl="ms-appx:///Assets/TileImages/BackgroundBlur.png"
+                Visibility="Visible">
+                <media:UIElementExtensions.VisualFactory>
+                    <media:PipelineVisualFactory>
+                        <media:BlurEffect Amount="100.0" />
+                    </media:PipelineVisualFactory>
+                </media:UIElementExtensions.VisualFactory>
+            </local:AnimatedImage>
+        </local:OpacityMaskView>
         <StackPanel
             Padding="24"
             HorizontalAlignment="Center"
