@@ -10,7 +10,6 @@
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
     <Grid ColumnSpacing="24" RowSpacing="48">
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -110,6 +109,7 @@
             Grid.Row="1"
             Grid.Column="1"
             Width="48"
+            Height="48"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             IsActive="True"

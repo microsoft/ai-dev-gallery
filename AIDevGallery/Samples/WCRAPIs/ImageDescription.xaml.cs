@@ -88,9 +88,9 @@ internal sealed partial class ImageDescription : BaseSamplePage
     private async Task SetImage(IRandomAccessStream stream)
     {
         var decoder = await BitmapDecoder.CreateAsync(stream);
-        SoftwareBitmap _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        SoftwareBitmap inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        if (_inputBitmap == null)
+        if (inputBitmap == null)
         {
             return;
         }
@@ -98,10 +98,10 @@ internal sealed partial class ImageDescription : BaseSamplePage
         var bitmapSource = new SoftwareBitmapSource();
 
         // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(_inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         ImageSrc.Source = bitmapSource;
-        DescribeImage(_inputBitmap);
+        DescribeImage(inputBitmap);
     }
 
     private async void DescribeImage(SoftwareBitmap bitmap)
