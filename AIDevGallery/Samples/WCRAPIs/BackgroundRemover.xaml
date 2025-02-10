@@ -59,7 +59,7 @@
             Margin="0,0,0,24"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{StaticResource CaptionTextBlockStyle}"
-            Text="Click on the parts of image that should be extracted, then click 'Remove background'. A maximum of 32 points can be selected."
+            Text="Click on the parts of image that should be extracted, then click 'Remove background'. A maximum of 31 points can be selected."
             TextWrapping="Wrap"
             Visibility="Collapsed" />
 
