@@ -49,18 +49,15 @@
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto"
             Visibility="Collapsed">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <StackPanel Orientation="Vertical">
                 <TextBlock FontWeight="SemiBold" Text="Recognized text" />
                 <TextBlock
                     x:Name="OcrTextBlock"
                     Grid.Row="1"
                     IsTextSelectionEnabled="True"
                     TextWrapping="WrapWholeWords" />
-            </Grid>
+            </StackPanel>
+
         </ScrollViewer>
         <ProgressRing
             x:Name="Loader"
