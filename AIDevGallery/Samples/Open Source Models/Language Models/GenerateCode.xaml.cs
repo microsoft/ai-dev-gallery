@@ -120,6 +120,10 @@ internal sealed partial class GenerateCode : BaseSamplePage
                     {
                         (_leadingMarkdownParsed, generatedCode) = ParseOutLeadingMarkdown(generatedCode);
                     }
+                    else if (generatedCode.Contains("```\n"))
+                    {
+                        break;
+                    }
                     else
                     {
                         _currentCode = generatedCode;
