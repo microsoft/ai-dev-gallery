@@ -162,7 +162,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private void Canvas_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (_inputBitmap == null || _selectionPoints.Count >= 32)
+        if (_inputBitmap == null || _selectionPoints.Count >= 31)
         {
             return;
         }
