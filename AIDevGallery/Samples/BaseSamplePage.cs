@@ -38,7 +38,7 @@ internal partial class BaseSamplePage : Page
         return Task.CompletedTask;
     }
 
-    internal void SampleInteractedEvent(string? customInfo = null)
+    internal void SendSampleInteractedEvent(string? customInfo = null)
     {
         SampleParams?.SendSampleInteractionEvent(customInfo);
     }
