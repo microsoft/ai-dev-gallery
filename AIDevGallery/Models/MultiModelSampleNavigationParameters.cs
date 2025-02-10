@@ -2,12 +2,15 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Telemetry.Events;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Models;
 
 internal class MultiModelSampleNavigationParameters(
+        string sampleId,
+        string[] modelIds,
         string[] modelPaths,
         HardwareAccelerator[] hardwareAccelerators,
         LlmPromptTemplate?[] promptTemplates,
@@ -20,4 +23,9 @@ internal class MultiModelSampleNavigationParameters(
 
     protected override string ChatClientModelPath => ModelPaths[0];
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplates[0];
+
+    internal override void SendSampleInteractionEvent(string? customInfo = null)
+    {
+        SampleInteractionEvent.Log(sampleId, model1Id: modelIds[0], hardwareAccelerator1: HardwareAccelerators[0], model2Id: ModelPaths[1], hardwareAccelerator2: HardwareAccelerators[1], customInfo);
+    }
 }
