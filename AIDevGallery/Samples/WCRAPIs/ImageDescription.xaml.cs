@@ -94,6 +94,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             return;
         }
+
         ResponseTxt.Text = string.Empty;
         var bitmapSource = new SoftwareBitmapSource();
 
@@ -108,7 +109,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
     {
         DispatcherQueue?.TryEnqueue(() =>
         {
-            LoadImageProgressRing.Visibility = Visibility.Visible;
+            Loader.Visibility = Visibility.Visible;
             OutputTxt.Visibility = Visibility.Collapsed;
         });
 
@@ -125,7 +126,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                 {
                     if (isFirstWord)
                     {
-                        LoadImageProgressRing.Visibility = Visibility.Collapsed;
+                        Loader.Visibility = Visibility.Collapsed;
                         OutputTxt.Visibility = Visibility.Visible;
                         isFirstWord = false;
                     }
@@ -136,6 +137,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
             await describeTask;
         }
 
-        LoadImageProgressRing.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Collapsed;
     }
 }

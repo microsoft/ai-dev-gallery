@@ -32,7 +32,7 @@
             </DropDownButton.Flyout>
         </DropDownButton>
         <ProgressRing
-            x:Name="LoadImageProgressRing"
+            x:Name="Loader"
             Grid.Row="1"
             Grid.Column="1"
             Width="48"

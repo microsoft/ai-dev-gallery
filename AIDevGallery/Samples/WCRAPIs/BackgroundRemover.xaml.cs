@@ -73,22 +73,9 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ClearSelectionPoints();
+            using var stream = await file.OpenReadAsync();
+            await SetImage(stream);
         }
-    }
-
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
-    {
-        var bitmapSource = new SoftwareBitmapSource();
-
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        image.Source = bitmapSource;
     }
 
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
@@ -99,12 +86,35 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             using IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync();
-
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ClearSelectionPoints();
+            await SetImage(stream);
         }
+    }
+
+    private async Task SetImage(IRandomAccessStream stream)
+    {
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
+        if (_inputBitmap == null)
+        {
+            return;
+        }
+
+        await SetImageSource(ImageSrc, _inputBitmap);
+
+        InstructionTxt.Visibility = Visibility.Visible;
+        ActionsButtonPanel.Visibility = Visibility.Visible;
+        ClearSelectionPoints();
+    }
+
+    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
+    {
+        var bitmapSource = new SoftwareBitmapSource();
+
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        image.Source = bitmapSource;
     }
 
     private async Task<SoftwareBitmap?> ExtractBackground(SoftwareBitmap bitmap, IList<PointInt32> includePoints)
@@ -157,6 +167,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
+        CleanSelectionBtn.IsEnabled = true;
         var currentPoint = e.GetCurrentPoint(InputImageCanvas);
         var ratioX = ImageSrc.ActualWidth / _inputBitmap.PixelWidth;
         var ratioY = ImageSrc.ActualHeight / _inputBitmap.PixelHeight;
@@ -177,6 +188,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         _selectionPoints.Clear();
         InputImageCanvas.Children.Clear();
+        CleanSelectionBtn.IsEnabled = false;
     }
 
     private void Canvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -196,10 +208,16 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
+        Loader.Visibility = Visibility.Visible;
+        ImageDst.Visibility = Visibility.Collapsed;
+
         var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
         if (outputBitmap != null)
         {
             await SetImageSource(ImageDst, outputBitmap);
         }
+
+        Loader.Visibility = Visibility.Collapsed;
+        ImageDst.Visibility = Visibility.Visible;
     }
 }
