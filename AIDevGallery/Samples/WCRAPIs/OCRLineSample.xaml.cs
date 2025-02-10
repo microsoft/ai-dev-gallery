@@ -3,7 +3,6 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using Microsoft.Extensions.Logging;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;

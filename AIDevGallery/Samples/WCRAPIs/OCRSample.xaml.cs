@@ -73,6 +73,7 @@ internal sealed partial class OCRSample : BaseSamplePage
             await SetImage(stream);
         }
     }
+
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
     {
         var package = Clipboard.GetContent();

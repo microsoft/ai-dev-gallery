@@ -5,7 +5,6 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
