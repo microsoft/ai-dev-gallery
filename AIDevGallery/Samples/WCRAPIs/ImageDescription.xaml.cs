@@ -23,12 +23,10 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImageWcr,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
-    NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
 {
-    private SoftwareBitmap? _inputBitmap;
     private ImageDescriptionGenerator? _imageDescriptor;
 
     public ImageDescription()
@@ -70,23 +68,9 @@ internal sealed partial class ImageDescription : BaseSamplePage
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ResponseTxt.Text = string.Empty;
-            DescribeImage(_inputBitmap);
+            using var stream = await file.OpenReadAsync();
+            await SetImage(stream);
         }
-    }
-
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
-    {
-        var bitmapSource = new SoftwareBitmapSource();
-
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        image.Source = bitmapSource;
     }
 
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
@@ -97,23 +81,37 @@ internal sealed partial class ImageDescription : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync();
-
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ResponseTxt.Text = string.Empty;
-            DescribeImage(_inputBitmap);
+            await SetImage(stream);
         }
     }
 
-    private async void DescribeImage(SoftwareBitmap bitmap)
+    private async Task SetImage(IRandomAccessStream stream)
     {
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        SoftwareBitmap _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
         if (_inputBitmap == null)
         {
             return;
         }
+        ResponseTxt.Text = string.Empty;
+        var bitmapSource = new SoftwareBitmapSource();
 
-        DispatcherQueue?.TryEnqueue(() => LoadImageProgressRing.Visibility = Visibility.Visible);
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(_inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        ImageSrc.Source = bitmapSource;
+        DescribeImage(_inputBitmap);
+    }
+
+    private async void DescribeImage(SoftwareBitmap bitmap)
+    {
+        DispatcherQueue?.TryEnqueue(() =>
+        {
+            LoadImageProgressRing.Visibility = Visibility.Visible;
+            OutputTxt.Visibility = Visibility.Collapsed;
+        });
+
         var isFirstWord = true;
         using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
         var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
@@ -128,6 +126,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                     if (isFirstWord)
                     {
                         LoadImageProgressRing.Visibility = Visibility.Collapsed;
+                        OutputTxt.Visibility = Visibility.Visible;
                         isFirstWord = false;
                     }
 

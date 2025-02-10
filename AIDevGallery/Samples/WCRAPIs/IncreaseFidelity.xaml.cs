@@ -6,10 +6,10 @@ using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using System;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
@@ -23,24 +23,11 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
-    NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
-internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyPropertyChanged
+internal sealed partial class IncreaseFidelity : BaseSamplePage
 {
     private ImageScaler? _imageScaler;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private double ImageScale
-    {
-        get;
-        set
-        {
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageScale)));
-        }
-    }
-
+    private SoftwareBitmap? _originalImage;
     public IncreaseFidelity()
     {
         this.InitializeComponent();
@@ -59,8 +46,12 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
         }
 
         _imageScaler = await ImageScaler.CreateAsync();
-        ImageScale = 2;
         ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+        if (_imageScaler.MaxSupportedScaleFactor >= 2)
+        {
+            ScaleSlider.Value = 2;
+        }
+
         sampleParams.NotifyCompletion();
     }
 
@@ -68,11 +59,9 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
     {
         var window = new Window();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
         var picker = new FileOpenPicker();
 
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
         picker.FileTypeFilter.Add(".png");
         picker.FileTypeFilter.Add(".jpeg");
         picker.FileTypeFilter.Add(".jpg");
@@ -82,27 +71,9 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            var displayableImage = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, displayableImage);
-
-            var scaledImage = ScaleImage(displayableImage);
-            if (scaledImage != null)
-            {
-                await SetImageSource(ImageDst, scaledImage);
-            }
+            using var stream = await file.OpenReadAsync();
+            SetImage(stream);
         }
-    }
-
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
-    {
-        var bitmapSource = new SoftwareBitmapSource();
-
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        image.Source = bitmapSource;
     }
 
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
@@ -113,30 +84,48 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
             var streamRef = await package.GetBitmapAsync();
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            var bitmap = await decoder.GetSoftwareBitmapAsync();
-
-            await SetImageSource(ImageSrc, bitmap);
-
-            var scaledImage = ScaleImage(bitmap);
-            if (scaledImage != null)
-            {
-                await SetImageSource(ImageDst, scaledImage);
-            }
+            SetImage(stream);
         }
     }
 
-    private SoftwareBitmap? ScaleImage(SoftwareBitmap softwareBitmap)
+    private async void SetImage(IRandomAccessStream stream)
     {
-        if (_imageScaler == null)
+        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+        _originalImage = await decoder.GetSoftwareBitmapAsync();
+        OptionsPanel.Visibility = Visibility.Visible;
+        OriginalPanel.Visibility = Visibility.Visible;
+        await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
+        ScaleImage();
+    }
+
+    private async void ScaleImage()
+    {
+        if (_imageScaler != null && _originalImage != null)
         {
-            return null;
+            ScaledPanel.Visibility = Visibility.Collapsed;
+            Loader.Visibility = Visibility.Visible;
+            var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
+            var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
+            var bitmap = _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+            Loader.Visibility = Visibility.Collapsed;
+            ScaledPanel.Visibility = Visibility.Visible;
+            await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
         }
+    }
 
-        var width = (int)(softwareBitmap.PixelWidth * ImageScale);
-        var height = (int)(softwareBitmap.PixelHeight * ImageScale);
+    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap, Run textBlock)
+    {
+        var bitmapSource = new SoftwareBitmapSource();
 
-        var bitmap = _imageScaler.ScaleSoftwareBitmap(softwareBitmap, width, height);
-        return bitmap;
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        image.Source = bitmapSource;
+        textBlock.Text = softwareBitmap.PixelWidth + " x " + softwareBitmap.PixelHeight;
+    }
+
+    private void ScaleButton_Click(object sender, RoutedEventArgs e)
+    {
+        ScaleImage();
     }
 }
