@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using Microsoft.Graphics.Imaging;
 using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
 
@@ -13,6 +15,18 @@ internal static class WcrCompatibilityChecker
     {
         {
             ModelType.PhiSilica, LanguageModel.IsAvailable
+        },
+        {
+            ModelType.TextRecognitionOCR, TextRecognizer.IsAvailable
+        },
+        {
+            ModelType.ImageScaler, ImageScaler.IsAvailable
+        },
+        {
+            ModelType.BackgroundRemover, ImageObjectExtractor.IsAvailable
+        },
+        {
+            ModelType.ImageDescription, ImageDescriptionGenerator.IsAvailable
         }
     };
 
