@@ -1,37 +1,73 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.WCRAPIs.OCRSample"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:muxc="using:Microsoft.UI.Xaml.Controls" mc:Ignorable="d">
-    <Grid>
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="24" RowSpacing="48">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
-            <Button Click="LoadImage_Click" Margin="10"
-                    Style="{StaticResource AccentButtonStyle}">Load Image</Button>
-            <Button Click="PasteImage_Click" Margin="10"
-                    Style="{StaticResource AccentButtonStyle}">Paste Image</Button>
-        </StackPanel>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Image x:Name="ImageSrc" Grid.Column="0" HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch" Stretch="Uniform" />
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto" Grid.Column="1" Margin="10"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <TextBlock x:Name="OcrTextBlock" IsTextSelectionEnabled="True"
-                        TextWrapping="Wrap" />
-            </ScrollViewer>
-        </Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <DropDownButton AutomationProperties.Name="Select image">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                <TextBlock Text="Select image" />
+            </StackPanel>
+            <DropDownButton.Flyout>
+                <MenuFlyout Placement="Bottom">
+                    <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                    <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                </MenuFlyout>
+            </DropDownButton.Flyout>
+        </DropDownButton>
+
+        <Image
+            x:Name="ImageSrc"
+            Grid.Row="1"
+            MaxHeight="360"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top"
+            Stretch="Uniform" />
+
+        <ScrollViewer
+            x:Name="OutputPanel"
+            Grid.Row="1"
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto"
+            Visibility="Collapsed">
+            <StackPanel Orientation="Vertical">
+                <TextBlock FontWeight="SemiBold" Text="Recognized text" />
+                <TextBlock
+                    x:Name="OcrTextBlock"
+                    Grid.Row="1"
+                    IsTextSelectionEnabled="True"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+
+        </ScrollViewer>
+        <ProgressRing
+            x:Name="Loader"
+            Grid.Row="1"
+            Grid.Column="1"
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="True"
+            Visibility="Collapsed" />
     </Grid>
 </samples:BaseSamplePage>

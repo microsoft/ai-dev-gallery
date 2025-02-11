@@ -1,41 +1,118 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
     x:Class="AIDevGallery.Samples.WCRAPIs.IncreaseFidelity"
-    xmlns:samples="using:AIDevGallery.Samples"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:muxc="using:Microsoft.UI.Xaml.Controls" mc:Ignorable="d">
-    <Grid>
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="24" RowSpacing="48">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
-            <Button Click="LoadImage_Click" Margin="10"
-                    Style="{StaticResource AccentButtonStyle}">Load Image</Button>
-            <Button Click="PasteImage_Click" Margin="10"
-                    Style="{StaticResource AccentButtonStyle}">Paste Image</Button>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Text="Scale" Margin="10,0" VerticalAlignment="Center" />
-                <Slider x:Name="ScaleSlider" Value="{x:Bind ImageScale, Mode=TwoWay}"
-                        Minimum="1" Maximum="8" StepFrequency="1" Width="100"
-                        VerticalAlignment="Center" Margin="5,7" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Grid.ColumnSpan="2"
+            Orientation="Horizontal"
+            Spacing="48">
+            <DropDownButton AutomationProperties.Name="Select image">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                    <TextBlock Text="Select image" />
+                </StackPanel>
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <StackPanel
+                x:Name="OptionsPanel"
+                Grid.Row="1"
+                Orientation="Horizontal"
+                Spacing="16"
+                Visibility="Collapsed">
+                <TextBlock VerticalAlignment="Center" Text="Scale factor" />
+                <Slider
+                    x:Name="ScaleSlider"
+                    Width="164"
+                    AutomationProperties.Name="Scale factor"
+                    Maximum="8"
+                    Minimum="1"
+                    SnapsTo="Ticks"
+                    StepFrequency="1"
+                    TickFrequency="1"
+                    TickPlacement="Outside" />
+                <Button
+                    Click="ScaleButton_Click"
+                    Content="Scale"
+                    Style="{StaticResource AccentButtonStyle}" />
             </StackPanel>
         </StackPanel>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Image x:Name="ImageSrc" Grid.Row="1" Grid.Column="0"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                    Stretch="Uniform" />
-            <Image x:Name="ImageDst" Grid.Row="1" Grid.Column="1"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                    Stretch="Uniform" />
-        </Grid>
+
+        <StackPanel
+            x:Name="OriginalPanel"
+            Grid.Row="1"
+            Orientation="Vertical"
+            Spacing="16"
+            Visibility="Collapsed">
+            <TextBlock
+                Grid.Row="3"
+                HorizontalAlignment="Center"
+                TextAlignment="Center">
+                <Run FontSize="12" Text="Original resolution" /><LineBreak />
+                <Run x:Name="OriginalDimensionsTxt" FontWeight="SemiBold" />
+            </TextBlock>
+            <Image
+                x:Name="OriginalImage"
+                Grid.Row="2"
+                Grid.Column="0"
+                MaxHeight="360"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                AutomationProperties.Name="Original iamge"
+                Stretch="Uniform" />
+        </StackPanel>
+
+        <StackPanel
+            x:Name="ScaledPanel"
+            Grid.Row="1"
+            Grid.Column="1"
+            Orientation="Vertical"
+            Spacing="16"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="UpscaledTxt"
+                HorizontalAlignment="Center"
+                TextAlignment="Center">
+                <Run FontSize="12" Text="Upscaled resolution" /> <LineBreak />
+                <Run x:Name="ScaledDimensionsTxt" FontWeight="SemiBold" />
+            </TextBlock>
+            <Image
+                x:Name="ScaledImage"
+                MaxHeight="360"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                AutomationProperties.Name="Upscaled image"
+                Stretch="Uniform" />
+        </StackPanel>
+        <ProgressRing
+            x:Name="Loader"
+            Grid.Row="1"
+            Grid.Column="1"
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="True"
+            Visibility="Collapsed" />
     </Grid>
 </samples:BaseSamplePage>

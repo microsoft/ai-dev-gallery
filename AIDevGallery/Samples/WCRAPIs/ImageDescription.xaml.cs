@@ -5,7 +5,6 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
@@ -26,12 +25,10 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImageWcr,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
-    NugetPackageReferences = ["CommunityToolkit.Mvvm"],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
 {
-    private SoftwareBitmap? _inputBitmap;
     private ImageDescriptionGenerator? _imageDescriptor;
 
     public ImageDescription()
@@ -74,18 +71,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            await GetBitmapAndDescribeFromStream(stream);
+            await SetImage(stream);
         }
-    }
-
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
-    {
-        var bitmapSource = new SoftwareBitmapSource();
-
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        image.Source = bitmapSource;
     }
 
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
@@ -96,7 +83,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             using var stream = await streamRef.OpenReadAsync();
-            await GetBitmapAndDescribeFromStream(stream);
+            await SetImage(stream);
         }
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
@@ -107,7 +94,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                 {
                     var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
                     using var stream = await storageFile.OpenReadAsync();
-                    await GetBitmapAndDescribeFromStream(stream);
+                    await SetImage(stream);
                 }
                 catch
                 {
@@ -117,24 +104,34 @@ internal sealed partial class ImageDescription : BaseSamplePage
         }
     }
 
-    private async Task GetBitmapAndDescribeFromStream(IRandomAccessStream stream)
+    private async Task SetImage(IRandomAccessStream stream)
     {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        _inputBitmap = await decoder.GetSoftwareBitmapAsync();
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        SoftwareBitmap inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        await SetImageSource(ImageSrc, _inputBitmap);
-        ResponseTxt.Text = string.Empty;
-        DescribeImage(_inputBitmap);
-    }
-
-    private async void DescribeImage(SoftwareBitmap bitmap)
-    {
-        if (_inputBitmap == null)
+        if (inputBitmap == null)
         {
             return;
         }
 
-        DispatcherQueue?.TryEnqueue(() => LoadImageProgressRing.Visibility = Visibility.Visible);
+        ResponseTxt.Text = string.Empty;
+        var bitmapSource = new SoftwareBitmapSource();
+
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        ImageSrc.Source = bitmapSource;
+        DescribeImage(inputBitmap);
+    }
+
+    private async void DescribeImage(SoftwareBitmap bitmap)
+    {
+        DispatcherQueue?.TryEnqueue(() =>
+        {
+            Loader.Visibility = Visibility.Visible;
+            OutputTxt.Visibility = Visibility.Collapsed;
+        });
+
         var isFirstWord = true;
         try
         {
@@ -144,17 +141,16 @@ internal sealed partial class ImageDescription : BaseSamplePage
             {
                 describeTask.Progress += (asyncInfo, delta) =>
                 {
-                    var result = asyncInfo.GetResults().Response;
-
                     DispatcherQueue?.TryEnqueue(() =>
                     {
                         if (isFirstWord)
                         {
-                            LoadImageProgressRing.Visibility = Visibility.Collapsed;
+                            Loader.Visibility = Visibility.Collapsed;
+                            OutputTxt.Visibility = Visibility.Visible;
                             isFirstWord = false;
                         }
 
-                        ResponseTxt.Text = result;
+                        ResponseTxt.Text += delta;
                     });
                 };
 
@@ -166,6 +162,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
             ResponseTxt.Text = ex.Message;
         }
 
-        LoadImageProgressRing.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Collapsed;
     }
 }

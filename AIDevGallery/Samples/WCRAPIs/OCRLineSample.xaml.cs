@@ -77,9 +77,8 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            RectCanvas.Visibility = Visibility.Collapsed;
             using var stream = await file.OpenReadAsync();
-            await GetBitmapAndExtractTextFromStream(stream);
+            await SetImage(stream);
         }
     }
 
@@ -92,7 +91,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            await GetBitmapAndExtractTextFromStream(stream);
+            await SetImage(stream);
         }
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
@@ -103,7 +102,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
                 {
                     var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
                     using var stream = await storageFile.OpenReadAsync();
-                    await GetBitmapAndExtractTextFromStream(stream);
+                    await SetImage(stream);
                 }
                 catch
                 {
@@ -113,50 +112,33 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         }
     }
 
-    private async Task GetBitmapAndExtractTextFromStream(IRandomAccessStream stream)
+    private async Task SetImage(IRandomAccessStream stream)
     {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        var bitmap = await decoder.GetSoftwareBitmapAsync();
-        var source = new SoftwareBitmapSource();
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        SoftwareBitmap inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        // This conversion is a workaround for an error if we get the raw image from the clipboard
-        SoftwareBitmap displayableImage = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await source.SetBitmapAsync(displayableImage);
-        ImageSrc.Source = source;
-        RecognizeAndAddText(displayableImage);
-
-        RectCanvas.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        RectCanvas.Arrange(new Rect(new Point(0, 0), RectCanvas.DesiredSize));
-    }
-
-    public async Task<SoftwareBitmap?> LoadImageBufferFromClipboardAsync()
-    {
-        var package = Clipboard.GetContent();
-        SoftwareBitmap? bitmap = null;
-        if (package.Contains(StandardDataFormats.Bitmap))
+        if (inputBitmap == null)
         {
-            var streamRef = await package.GetBitmapAsync();
-
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            bitmap = await decoder.GetSoftwareBitmapAsync();
+            return;
         }
 
-        return bitmap;
+        RectCanvas.Visibility = Visibility.Collapsed;
+        RectCanvas.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        RectCanvas.Arrange(new Rect(new Point(0, 0), RectCanvas.DesiredSize));
+
+        var bitmapSource = new SoftwareBitmapSource();
+
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        ImageSrc.Source = bitmapSource;
+        await RecognizeAndAddTextAsync(convertedImage);
     }
 
-    public async Task<SoftwareBitmap?> LoadImageBufferFromFileAsync(string filePath)
+    private async Task RecognizeAndAddTextAsync(SoftwareBitmap bitmap)
     {
-        StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
-        IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        SoftwareBitmap? bitmap = await decoder.GetSoftwareBitmapAsync();
-
-        return bitmap;
-    }
-
-    public async void RecognizeAndAddText(SoftwareBitmap bitmap)
-    {
+        CopyTextButton.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Visible;
         using var imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
         if (result == null)
@@ -169,7 +151,6 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         var offSetY = PaneGrid.ActualHeight > ImageSrc.ActualHeight ? (PaneGrid.ActualHeight - ImageSrc.ActualHeight) / 2 : 0;
 
         RectCanvas.Children.Clear();
-
         TextPanel.Children.Clear();
 
         foreach (var line in result.Lines)
@@ -207,19 +188,19 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             }
 
             rect.Fill = await CropSoftwareBitmapToImageBrushAsync(bitmap, new Rect(xRect, yRect, xMaxRect - xRect, yMaxRect - yRect));
-            var textLine = new TextBlock { Text = line.Text, Tag = rect };
+            var textLine = new TextBlock { Text = line.Text, TextWrapping = TextWrapping.Wrap, Tag = rect };
             textLine.PointerEntered += (s, e) =>
             {
                 if (s is TextBlock { Tag: Rectangle rectangle })
                 {
-                    HilightRectangle(rectangle);
+                    SelectRect(rectangle);
                 }
             };
             textLine.PointerExited += (s, e) =>
             {
                 if (s is TextBlock { Tag: Rectangle rectangle })
                 {
-                    DehilightRectangle(rectangle);
+                    DeselectRect(rectangle);
                 }
             };
             TextPanel.Children.Add(textLine);
@@ -228,24 +209,26 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             {
                 if (s is Rectangle rectangle)
                 {
-                    HilightRectangle(rectangle);
+                    SelectRect(rectangle);
                 }
             };
             rect.PointerExited += (s, e) =>
             {
                 if (s is Rectangle rectangle)
                 {
-                    DehilightRectangle(rectangle);
+                    DeselectRect(rectangle);
                 }
             };
             rect.PointerPressed += (s, e) => CopyTextToClipboard(((s as Rectangle)?.Tag as TextBlock)?.Text ?? string.Empty);
             RectCanvas.Children.Add(rect);
         }
 
+        CopyTextButton.Visibility = Visibility.Visible;
+        Loader.Visibility = Visibility.Collapsed;
         RectCanvas.Visibility = Visibility.Visible;
     }
 
-    private static void DehilightRectangle(Rectangle rectangle)
+    private static void DeselectRect(Rectangle rectangle)
     {
         if (rectangle.Tag is TextBlock textLine)
         {
@@ -256,7 +239,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         Canvas.SetZIndex(rectangle, 0);
     }
 
-    private static void HilightRectangle(Rectangle rectangle)
+    private static void SelectRect(Rectangle rectangle)
     {
         if (rectangle.Tag is TextBlock textLine)
         {

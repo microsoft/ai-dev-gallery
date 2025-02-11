@@ -71,7 +71,7 @@ internal sealed partial class OCRSample : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            await GetBitmapAndExtractTextFromStream(stream);
+            await SetImage(stream);
         }
     }
 
@@ -83,7 +83,7 @@ internal sealed partial class OCRSample : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            await GetBitmapAndExtractTextFromStream(stream);
+            await SetImage(stream);
         }
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
@@ -94,7 +94,7 @@ internal sealed partial class OCRSample : BaseSamplePage
                 {
                     var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
                     using var stream = await storageFile.OpenReadAsync();
-                    await GetBitmapAndExtractTextFromStream(stream);
+                    await SetImage(stream);
                 }
                 catch
                 {
@@ -104,18 +104,7 @@ internal sealed partial class OCRSample : BaseSamplePage
         }
     }
 
-    private async Task GetBitmapAndExtractTextFromStream(IRandomAccessStream stream)
-    {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        var bitmap = await decoder.GetSoftwareBitmapAsync();
-        var source = new SoftwareBitmapSource();
-
-        // This conversion is a workaround for an error if we get the raw image from the clipboard
-        SoftwareBitmap displayableImage = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await source.SetBitmapAsync(displayableImage);
-        ImageSrc.Source = source;
-        await RecognizeAndAddTextAsync(displayableImage);
-    }
+    
 
     public async Task RecognizeAndAddTextAsync(SoftwareBitmap bitmap)
     {
@@ -124,14 +113,16 @@ internal sealed partial class OCRSample : BaseSamplePage
             return;
         }
 
+        OutputPanel.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Visible;
         OcrTextBlock.Inlines.Clear();
 
         using ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
         RecognizedText result = await _textRecognizer.RecognizeTextFromImageAsync(imageBuffer, new TextRecognizerOptions());
 
-        SolidColorBrush greenBrush = new(Microsoft.UI.Colors.Green);
-        SolidColorBrush yellowBrush = new(Microsoft.UI.Colors.Orange);
-        SolidColorBrush redBrush = new(Microsoft.UI.Colors.Red);
+        SolidColorBrush greenBrush = (SolidColorBrush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+        SolidColorBrush yellowBrush = (SolidColorBrush)Application.Current.Resources["SystemFillColorCautionBrush"];
+        SolidColorBrush redBrush = (SolidColorBrush)Application.Current.Resources["SystemFillColorCriticalBrush"];
 
         if (result.Lines == null || result.Lines.Length == 0)
         {
@@ -154,5 +145,8 @@ internal sealed partial class OCRSample : BaseSamplePage
 
             OcrTextBlock.Inlines.Add(new Run { Text = "\n" });
         }
+
+        OutputPanel.Visibility = Visibility.Visible;
+        Loader.Visibility = Visibility.Collapsed;
     }
 }

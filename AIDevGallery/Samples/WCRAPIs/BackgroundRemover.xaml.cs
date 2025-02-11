@@ -75,15 +75,53 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            await GetBitmapAndRemoveBackgroundFromStream(stream);
+            await SetImage(stream);
         }
     }
 
-    private async Task GetBitmapAndRemoveBackgroundFromStream(IRandomAccessStream stream)
+    private async void PasteImage_Click(object sender, RoutedEventArgs e)
+    {
+        var package = Clipboard.GetContent();
+        if (package.Contains(StandardDataFormats.Bitmap))
+        {
+            var streamRef = await package.GetBitmapAsync();
+
+            using IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            await SetImage(stream);
+        }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private async Task SetImage(IRandomAccessStream stream)
     {
         var decoder = await BitmapDecoder.CreateAsync(stream);
         _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
+        if (_inputBitmap == null)
+        {
+            return;
+        }
+
         await SetImageSource(ImageSrc, _inputBitmap);
+
+        InstructionTxt.Visibility = Visibility.Visible;
+        ActionsButtonPanel.Visibility = Visibility.Visible;
         ClearSelectionPoints();
     }
 
@@ -95,35 +133,6 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         image.Source = bitmapSource;
-    }
-
-    private async void PasteImage_Click(object sender, RoutedEventArgs e)
-    {
-        var package = Clipboard.GetContent();
-        if (package.Contains(StandardDataFormats.Bitmap))
-        {
-            var streamRef = await package.GetBitmapAsync();
-
-            using IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            await GetBitmapAndRemoveBackgroundFromStream(stream);
-        }
-        else if (package.Contains(StandardDataFormats.StorageItems))
-        {
-            var storageItems = await package.GetStorageItemsAsync();
-            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
-            {
-                try
-                {
-                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
-                    using var stream = await storageFile.OpenReadAsync();
-                    await GetBitmapAndRemoveBackgroundFromStream(stream);
-                }
-                catch
-                {
-                    Console.WriteLine("Invalid Image File");
-                }
-            }
-        }
     }
 
     private async Task<SoftwareBitmap?> ExtractBackground(SoftwareBitmap bitmap, IList<PointInt32> includePoints)
@@ -171,11 +180,12 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private void Canvas_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (_inputBitmap == null || _selectionPoints.Count >= 32)
+        if (_inputBitmap == null || _selectionPoints.Count >= 31)
         {
             return;
         }
 
+        CleanSelectionBtn.IsEnabled = true;
         var currentPoint = e.GetCurrentPoint(InputImageCanvas);
         var ratioX = ImageSrc.ActualWidth / _inputBitmap.PixelWidth;
         var ratioY = ImageSrc.ActualHeight / _inputBitmap.PixelHeight;
@@ -196,6 +206,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         _selectionPoints.Clear();
         InputImageCanvas.Children.Clear();
+        CleanSelectionBtn.IsEnabled = false;
     }
 
     private void Canvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -215,10 +226,16 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
+        Loader.Visibility = Visibility.Visible;
+        ImageDst.Visibility = Visibility.Collapsed;
+
         var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
         if (outputBitmap != null)
         {
             await SetImageSource(ImageDst, outputBitmap);
         }
+
+        Loader.Visibility = Visibility.Collapsed;
+        ImageDst.Visibility = Visibility.Visible;
     }
 }

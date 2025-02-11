@@ -59,7 +59,6 @@
             </StackPanel>
 
             <Grid x:Name="ContentPageHolder" VerticalAlignment="Stretch">
-                <!--  A solidbackground we enable when toggling themes. WinUI uses a lot of translucent brushes and might look weird  -->
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
@@ -79,29 +78,26 @@
                     Visibility="Collapsed" />
                 <StackPanel
                     x:Name="loadingRingContainer"
-                    Orientation="Vertical"
-                    Visibility="Collapsed"
-                    VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    >
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Visibility="Collapsed">
                     <ProgressRing
                         x:Name="sampleLoadingProgressRing"
                         Width="64"
                         Height="64"
-                        Background="LightGray"
                         IsActive="False" />
-                    <RichTextBlock
+                    <TextBlock
                         x:Name="wcrApisLoadingTextBlock"
+                        Margin="24"
                         HorizontalAlignment="Center"
-                        TextWrapping="WrapWholeWords"
-                        Visibility="Collapsed"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         TextAlignment="Center"
-                        Margin="12">
-                        <Paragraph>
-                            <Run Text="Requesting model. Download progress can be tracked in" />
-                            <Hyperlink Click="WindowsUpdateHyperlinkClicked">Windows Update</Hyperlink>.
-                        </Paragraph>
-                    </RichTextBlock>
+                        Visibility="Collapsed">
+                        <Run Text="Requesting model.." /> <LineBreak />
+                        <LineBreak />
+                        <Run FontSize="12" Text="Download progress can be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
+                        .</TextBlock>
                 </StackPanel>
             </Grid>
             <Grid
