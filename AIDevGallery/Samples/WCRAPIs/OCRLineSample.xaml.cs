@@ -139,10 +139,12 @@ internal sealed partial class OCRLineSample : BaseSamplePage
     {
         CopyTextButton.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
+        RectCanvas.Visibility = Visibility.Collapsed;
         using var imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
         if (result == null)
         {
+            Loader.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -152,6 +154,12 @@ internal sealed partial class OCRLineSample : BaseSamplePage
 
         RectCanvas.Children.Clear();
         TextPanel.Children.Clear();
+
+        if (result.Lines == null || result.Lines.Length == 0)
+        {
+            Loader.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         foreach (var line in result.Lines)
         {

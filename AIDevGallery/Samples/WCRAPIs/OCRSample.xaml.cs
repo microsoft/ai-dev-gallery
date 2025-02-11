@@ -104,7 +104,24 @@ internal sealed partial class OCRSample : BaseSamplePage
         }
     }
 
-    
+    private async Task SetImage(IRandomAccessStream stream)
+    {
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        SoftwareBitmap inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
+        if (inputBitmap == null)
+        {
+            return;
+        }
+
+        var bitmapSource = new SoftwareBitmapSource();
+
+        // This conversion ensures that the image is Bgra8 and Premultiplied
+        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await bitmapSource.SetBitmapAsync(convertedImage);
+        ImageSrc.Source = bitmapSource;
+        await RecognizeAndAddTextAsync(convertedImage);
+    }
 
     public async Task RecognizeAndAddTextAsync(SoftwareBitmap bitmap)
     {
@@ -127,8 +144,12 @@ internal sealed partial class OCRSample : BaseSamplePage
         if (result.Lines == null || result.Lines.Length == 0)
         {
             OcrTextBlock.Inlines.Add(new Run { Text = "No text found." });
+            OutputPanel.Visibility = Visibility.Visible;
+            Loader.Visibility = Visibility.Collapsed;
             return;
         }
+
+        InstructionTxt.Visibility = Visibility.Visible;
 
         foreach (var line in result.Lines)
         {

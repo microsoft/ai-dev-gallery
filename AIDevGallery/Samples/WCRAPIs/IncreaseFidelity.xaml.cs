@@ -73,7 +73,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            SetImage(stream);
+            await SetImage(stream);
         }
     }
 
@@ -83,8 +83,8 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (package.Contains(StandardDataFormats.Bitmap))
         {
             var streamRef = await package.GetBitmapAsync();
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            SetImage(stream);
+            using IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            await SetImage(stream);
         }
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
@@ -95,7 +95,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
                 {
                     var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
                     using var stream = await storageFile.OpenReadAsync();
-                    SetImage(stream);
+                    await SetImage(stream);
                 }
                 catch
                 {
@@ -105,14 +105,21 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         }
     }
 
-    private async void SetImage(IRandomAccessStream stream)
+    private async Task SetImage(IRandomAccessStream stream)
     {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        _originalImage = await decoder.GetSoftwareBitmapAsync();
-        OptionsPanel.Visibility = Visibility.Visible;
-        OriginalPanel.Visibility = Visibility.Visible;
-        await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
-        ScaleImage();
+        try
+        {
+            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+            _originalImage = await decoder.GetSoftwareBitmapAsync();
+            OptionsPanel.Visibility = Visibility.Visible;
+            OriginalPanel.Visibility = Visibility.Visible;
+            await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
+            ScaleImage();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async void ScaleImage()
