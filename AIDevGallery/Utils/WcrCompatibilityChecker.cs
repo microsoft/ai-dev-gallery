@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,16 @@ using System.Collections.Generic;
 namespace Utils;
 internal static class WcrCompatibilityChecker
 {
-    private static readonly Dictionary<string, Func<bool>> CompatibilityCheckers = new Dictionary<string, Func<bool>>
+    private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>
     {
         {
-            "phi-silica", LanguageModel.IsAvailable
+            ModelType.PhiSilica, LanguageModel.IsAvailable
         }
     };
 
-    public static WcrApiAvailability GetApiAvailability(string key)
+    public static WcrApiAvailability GetApiAvailability(ModelType type)
     {
-        if (!CompatibilityCheckers.TryGetValue(key, out Func<bool>? isAvailable))
+        if (!CompatibilityCheckers.TryGetValue(type, out Func<bool>? isAvailable))
         {
             return WcrApiAvailability.NotSupported;
         }

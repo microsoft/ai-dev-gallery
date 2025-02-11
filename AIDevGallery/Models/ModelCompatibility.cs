@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using System;
 using Utils;
@@ -27,7 +28,8 @@ internal class ModelCompatibility
         if (modelDetails.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase))
         {
             var apiKey = modelDetails.Url.Substring(7);
-            if (WcrCompatibilityChecker.GetApiAvailability(apiKey) != WcrApiAvailability.NotSupported)
+
+            if (Enum.TryParse(apiKey, out ModelType apiType) && WcrCompatibilityChecker.GetApiAvailability(apiType) != WcrApiAvailability.NotSupported)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
