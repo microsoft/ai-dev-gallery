@@ -10,16 +10,20 @@ namespace AIDevGallery.Samples;
 
 internal partial class BaseSamplePage : Page
 {
+    private BaseSampleNavigationParameters? SampleParams { get; set; }
+
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
 
         if (e.Parameter is SampleNavigationParameters sampleParams)
         {
+            SampleParams = sampleParams;
             await LoadModelAsync(sampleParams);
         }
         else if (e.Parameter is MultiModelSampleNavigationParameters sampleParams2)
         {
+            SampleParams = sampleParams2;
             await LoadModelAsync(sampleParams2);
         }
     }
@@ -32,5 +36,10 @@ internal partial class BaseSamplePage : Page
     protected virtual Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
         return Task.CompletedTask;
+    }
+
+    internal void SendSampleInteractedEvent(string? customInfo = null)
+    {
+        SampleParams?.SendSampleInteractionEvent(customInfo);
     }
 }
