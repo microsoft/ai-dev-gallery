@@ -8,7 +8,7 @@ using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
 
-namespace Utils;
+namespace AIDevGallery.Utils;
 internal static class WcrCompatibilityChecker
 {
     private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>

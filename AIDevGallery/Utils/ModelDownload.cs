@@ -11,7 +11,7 @@ namespace AIDevGallery.Utils;
 internal class ModelDownload : IDisposable
 {
     public ModelDetails Details { get; set; }
-    public DownloadStatus DownloadStatus { get; set; } = DownloadStatus.Waiting;
+    public DownloadStatus DownloadStatus { get; set; } = DownloadStatus.Queued;
     public float DownloadProgress { get; set; }
 
     public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
@@ -40,8 +40,9 @@ internal class ModelDownload : IDisposable
 [JsonConverter(typeof(JsonStringEnumConverter<DownloadStatus>))]
 internal enum DownloadStatus
 {
-    Waiting,
+    Queued,
     InProgress,
     Completed,
-    Canceled
+    Canceled,
+    NotStarted
 }

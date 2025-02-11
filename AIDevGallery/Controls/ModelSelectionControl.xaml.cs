@@ -212,6 +212,29 @@ internal partial class ModelSelectionControl : UserControl
                     AvailableModels.Remove(existingAvailableModel);
                 }
             }
+            else if (model.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
+            {
+                if (Enum.TryParse(model.Url.Substring(7), out ModelType apiType))
+                {
+                    switch(WcrCompatibilityChecker.GetApiAvailability(apiType))
+                    {
+                        case WcrApiAvailability.NotSupported:
+                            UnavailableModels.Add(new BaseModel(model));
+                            break;
+                        case WcrApiAvailability.Available:
+                            AvailableModels.Add(new AvailableModel(model));
+                            break;
+                        case WcrApiAvailability.NotAvailable:
+                            DownloadableModels.Add(new DownloadableModel(model));
+                            break;
+                    }
+                }
+                else
+                {
+                    // need to be in the unavailable list
+                    UnavailableModels.Add(new BaseModel(model));
+                }
+            }
             else
             {
                 // needs to be in the available list
@@ -416,28 +439,35 @@ internal partial class ModelSelectionControl : UserControl
     {
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
-            var downloadSource = downloadableModel.ModelDetails.Url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase) ? "GitHub" : "Hugging Face";
-            var license = LicenseInfo.GetLicenseInfo(downloadableModel.ModelDetails.License);
-
-            ModelNameTxt.Text = downloadableModel.ModelDetails.Name;
-            ModelSourceTxt.Text = downloadSource;
-            ModelLicenseLink.NavigateUri = new Uri(license.LicenseUrl ?? downloadableModel.ModelDetails.Url);
-            ModelLicenseLabel.Text = license.Name;
-
-            if (downloadableModel.Compatibility.CompatibilityState != ModelCompatibilityState.Compatible)
+            if (downloadableModel.ModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
             {
-                WarningInfoBar.Message = downloadableModel.Compatibility.CompatibilityIssueDescription;
-                WarningInfoBar.IsOpen = true;
-            }
-
-            AgreeCheckBox.IsChecked = false;
-
-            var output = await DownloadDialog.ShowAsync();
-
-            if (output == ContentDialogResult.Primary)
-            {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
+            }
+            else
+            {
+                var downloadSource = downloadableModel.ModelDetails.Url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase) ? "GitHub" : "Hugging Face";
+                var license = LicenseInfo.GetLicenseInfo(downloadableModel.ModelDetails.License);
+
+                ModelNameTxt.Text = downloadableModel.ModelDetails.Name;
+                ModelSourceTxt.Text = downloadSource;
+                ModelLicenseLink.NavigateUri = new Uri(license.LicenseUrl ?? downloadableModel.ModelDetails.Url);
+                ModelLicenseLabel.Text = license.Name;
+
+                if (downloadableModel.Compatibility.CompatibilityState != ModelCompatibilityState.Compatible)
+                {
+                    WarningInfoBar.Message = downloadableModel.Compatibility.CompatibilityIssueDescription;
+                    WarningInfoBar.IsOpen = true;
+                }
+
+                AgreeCheckBox.IsChecked = false;
+
+                var output = await DownloadDialog.ShowAsync();
+
+                if (output == ContentDialogResult.Primary)
+                {
+                    App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
+                    downloadableModel.StartDownload();
+                }
             }
         }
     }

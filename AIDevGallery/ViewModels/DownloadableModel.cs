@@ -20,13 +20,17 @@ internal partial class DownloadableModel : BaseModel
     public partial bool CanDownload { get; set; }
 
     [ObservableProperty]
-    public partial DownloadStatus Status { get; set; } = DownloadStatus.Waiting;
+    public partial bool CanCancel { get; private set; } = true;
+
+    [ObservableProperty]
+    public partial DownloadStatus Status { get; set; } = DownloadStatus.Queued;
 
     public bool IsDownloadEnabled => Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible;
 
     private ModelDownload? _modelDownload;
+    private WcrApiDownload? _wcrApiDownload;
 
-    public ModelDownload? ModelDownload
+    private ModelDownload? ModelDownload
     {
         get => _modelDownload;
         set
@@ -51,7 +55,7 @@ internal partial class DownloadableModel : BaseModel
         }
     }
 
-    private DownloadableModel(ModelDetails modelDetails, ModelDownload? modelDownload)
+    public DownloadableModel(ModelDetails modelDetails)
         : base(modelDetails)
     {
         _progressTimer = new DispatcherTimer
@@ -59,22 +63,39 @@ internal partial class DownloadableModel : BaseModel
             Interval = TimeSpan.FromMilliseconds(300)
         };
         _progressTimer.Tick += ProgressTimer_Tick;
-        ModelDownload = modelDownload;
-    }
 
-    public DownloadableModel(ModelDetails modelDetails)
-        : this(modelDetails, App.ModelCache.DownloadQueue.GetDownload(modelDetails.Url))
-    {
+        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
+        {
+            _wcrApiDownload = WcrApiDownload.GetWcrApiDownload(modelDetails);
+            InitaializeWcrApiDownload();
+        }
+        else
+        {
+            ModelDownload = App.ModelCache.DownloadQueue.GetDownload(modelDetails.Url);
+        }
     }
 
     public DownloadableModel(ModelDownload download)
-        : this(download.Details, download)
+        : base(download.Details)
     {
+        _progressTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(300)
+        };
+        _progressTimer.Tick += ProgressTimer_Tick;
+        _modelDownload = download;
     }
 
     public void StartDownload()
     {
-        ModelDownload ??= App.ModelCache.AddModelToDownloadQueue(ModelDetails);
+        if (_wcrApiDownload != null)
+        {
+            var nop = _wcrApiDownload.MakeAvailableAsync();
+        }
+        else
+        {
+            ModelDownload ??= App.ModelCache.AddModelToDownloadQueue(ModelDetails);
+        }
     }
 
     public void CancelDownload()
@@ -83,6 +104,44 @@ internal partial class DownloadableModel : BaseModel
         {
             App.ModelCache.DownloadQueue.CancelModelDownload(ModelDownload);
         }
+    }
+
+    private void InitaializeWcrApiDownload()
+    {
+        if (_wcrApiDownload != null )
+        {
+            _wcrApiDownload.DownloadProgressChanged -= WcrApiDownload_DownloadProgressChanged;
+            _wcrApiDownload.DownloadProgressChanged += WcrApiDownload_DownloadProgressChanged;
+
+            CanCancel = false;
+
+            Status = _wcrApiDownload.DownloadStatus;
+            CanDownload = Status == DownloadStatus.NotStarted;
+            Progress = (float)_wcrApiDownload.DownloadProgress;
+        }
+    }
+
+    private void WcrApiDownload_DownloadProgressChanged(object? sender, WcrApiDownloadProgressEventArgs e)
+    {
+        //if (!_progressTimer.IsEnabled)
+        //{
+        //    _progressTimer.Start();
+        //}
+
+        if (e.Progress == 1 || e.Status == DownloadStatus.Completed)
+        {
+            Status = DownloadStatus.Completed;
+            _wcrApiDownload!.DownloadProgressChanged -= WcrApiDownload_DownloadProgressChanged;
+        }
+
+        if (e.Status == DownloadStatus.Canceled)
+        {
+            Status = DownloadStatus.Canceled;
+            _wcrApiDownload!.DownloadProgressChanged -= WcrApiDownload_DownloadProgressChanged;
+            Progress = 0;
+        }
+
+        CanDownload = Status == DownloadStatus.NotStarted;
     }
 
     private void ModelDownloadQueue_ModelDownloadProgressChanged(object? sender, ModelDownloadProgressEventArgs e)
@@ -118,11 +177,16 @@ internal partial class DownloadableModel : BaseModel
             Progress = ModelDownload.DownloadProgress * 100;
             Status = ModelDownload.DownloadStatus;
         }
+        else if (_wcrApiDownload != null)
+        {
+            Progress = (float)_wcrApiDownload.DownloadProgress * 100;
+            Status = _wcrApiDownload.DownloadStatus;
+        }
     }
 
     public static Visibility DownloadStatusProgressVisibility(DownloadStatus status)
     {
-        if (status is DownloadStatus.InProgress or DownloadStatus.Waiting)
+        if (status is DownloadStatus.InProgress or DownloadStatus.Queued)
         {
             return Visibility.Visible;
         }
@@ -146,7 +210,7 @@ internal partial class DownloadableModel : BaseModel
 
     public static Visibility VisibleWhenDownloading(DownloadStatus status)
     {
-        return status is DownloadStatus.InProgress or DownloadStatus.Waiting ? Visibility.Visible : Visibility.Collapsed;
+        return status is DownloadStatus.InProgress or DownloadStatus.Queued ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public static Visibility VisibleWhenCanceled(DownloadStatus status)
@@ -178,7 +242,7 @@ internal partial class DownloadableModel : BaseModel
     {
         switch (status)
         {
-            case DownloadStatus.Waiting:
+            case DownloadStatus.Queued:
                 return "Waiting..";
             case DownloadStatus.InProgress:
                 return "Downloading..";

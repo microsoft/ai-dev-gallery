@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using System;
-using Utils;
 
 namespace AIDevGallery.Models;
 
