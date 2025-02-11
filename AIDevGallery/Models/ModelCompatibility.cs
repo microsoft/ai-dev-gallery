@@ -3,6 +3,7 @@
 
 using AIDevGallery.Utils;
 using System;
+using Utils;
 
 namespace AIDevGallery.Models;
 
@@ -20,9 +21,23 @@ internal class ModelCompatibility
     public static ModelCompatibility GetModelCompatibility(ModelDetails modelDetails)
     {
         string description = string.Empty;
-
         ModelCompatibilityState compatibility;
-        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
+
+        // check if WCR API
+        if (modelDetails.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var apiKey = modelDetails.Url.Substring(7);
+            if (WcrCompatibilityChecker.GetApiAvailability(apiKey) != WcrApiAvailability.NotSupported)
+            {
+                compatibility = ModelCompatibilityState.Compatible;
+            }
+            else
+            {
+                compatibility = ModelCompatibilityState.NotCompatible;
+                description = "This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels).";
+            }
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
         {
             compatibility = ModelCompatibilityState.Compatible;
