@@ -265,7 +265,22 @@ internal partial class ModelSelectionControl : UserControl
             }
         }
 
+        SortModels(AvailableModels);
+        SortModels(DownloadableModels);
+        SortModels(UnavailableModels);
+
         SetHeaderVisibilityStates();
+    }
+
+    private void SortModels<T>(ObservableCollection<T> models)
+        where T : IModelView
+    {
+        var sortedModels = models.OrderByDescending(m => m.ModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)).ToList();
+        models.Clear();
+        foreach (var model in sortedModels)
+        {
+            models.Add(model);
+        }
     }
 
     private void OpenModelFolder_Click(object sender, RoutedEventArgs e)
