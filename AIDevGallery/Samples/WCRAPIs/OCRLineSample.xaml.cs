@@ -27,7 +27,7 @@ using Windows.UI.Text;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Text Lines Recognition (OCR)",
+    Name = "Locate Detected Text",
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageDetectTextLines,
     Id = "e26ef7bc-d847-4b2e-862a-74d872bb8635",
