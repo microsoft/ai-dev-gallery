@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -73,12 +74,17 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ClearSelectionPoints();
+            using var stream = await file.OpenReadAsync();
+            await GetBitmapAndRemoveBackgroundFromStream(stream);
         }
+    }
+
+    private async Task GetBitmapAndRemoveBackgroundFromStream(IRandomAccessStream stream)
+    {
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await SetImageSource(ImageSrc, _inputBitmap);
+        ClearSelectionPoints();
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
@@ -99,11 +105,24 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             using IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            _inputBitmap = await decoder.GetSoftwareBitmapAsync();
-
-            await SetImageSource(ImageSrc, _inputBitmap);
-            ClearSelectionPoints();
+            await GetBitmapAndRemoveBackgroundFromStream(stream);
+        }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await GetBitmapAndRemoveBackgroundFromStream(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
         }
     }
 

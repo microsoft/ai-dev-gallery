@@ -78,16 +78,8 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         if (file != null)
         {
             RectCanvas.Visibility = Visibility.Collapsed;
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-
-            var displayableImage = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-
-            var source = new SoftwareBitmapSource();
-
-            await source.SetBitmapAsync(displayableImage);
-            ImageSrc.Source = source;
-            RecognizeAndAddText(displayableImage);
+            using var stream = await file.OpenReadAsync();
+            await GetBitmapAndExtractTextFromStream(stream);
         }
     }
 
@@ -100,19 +92,41 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            var bitmap = await decoder.GetSoftwareBitmapAsync();
-            var source = new SoftwareBitmapSource();
-
-            // This conversion is a workaround for an error if we get the raw image from the clipboard
-            SoftwareBitmap displayableImage = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await source.SetBitmapAsync(displayableImage);
-            ImageSrc.Source = source;
-            RecognizeAndAddText(displayableImage);
-
-            RectCanvas.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            RectCanvas.Arrange(new Rect(new Point(0, 0), RectCanvas.DesiredSize));
+            await GetBitmapAndExtractTextFromStream(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await GetBitmapAndExtractTextFromStream(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private async Task GetBitmapAndExtractTextFromStream(IRandomAccessStream stream)
+    {
+        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+        var bitmap = await decoder.GetSoftwareBitmapAsync();
+        var source = new SoftwareBitmapSource();
+
+        // This conversion is a workaround for an error if we get the raw image from the clipboard
+        SoftwareBitmap displayableImage = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        await source.SetBitmapAsync(displayableImage);
+        ImageSrc.Source = source;
+        RecognizeAndAddText(displayableImage);
+
+        RectCanvas.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        RectCanvas.Arrange(new Rect(new Point(0, 0), RectCanvas.DesiredSize));
     }
 
     public async Task<SoftwareBitmap?> LoadImageBufferFromClipboardAsync()

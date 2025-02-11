@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -82,16 +83,8 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            using var randomAccessStream = await file.OpenReadAsync();
-            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-            var displayableImage = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            await SetImageSource(ImageSrc, displayableImage);
-
-            var scaledImage = ScaleImage(displayableImage);
-            if (scaledImage != null)
-            {
-                await SetImageSource(ImageDst, scaledImage);
-            }
+            using var stream = await file.OpenReadAsync();
+            await GetBitmapAndScaleImageFromStream(stream);
         }
     }
 
@@ -111,18 +104,39 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage, INotifyProperty
         if (package.Contains(StandardDataFormats.Bitmap))
         {
             var streamRef = await package.GetBitmapAsync();
-
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-            var bitmap = await decoder.GetSoftwareBitmapAsync();
-
-            await SetImageSource(ImageSrc, bitmap);
-
-            var scaledImage = ScaleImage(bitmap);
-            if (scaledImage != null)
+            await GetBitmapAndScaleImageFromStream(stream);
+        }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
             {
-                await SetImageSource(ImageDst, scaledImage);
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await GetBitmapAndScaleImageFromStream(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
             }
+        }
+    }
+
+    private async Task GetBitmapAndScaleImageFromStream(IRandomAccessStream stream)
+    {
+        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+        var bitmap = await decoder.GetSoftwareBitmapAsync();
+
+        await SetImageSource(ImageSrc, bitmap);
+
+        var scaledImage = ScaleImage(bitmap);
+        if (scaledImage != null)
+        {
+            await SetImageSource(ImageDst, scaledImage);
         }
     }
 
