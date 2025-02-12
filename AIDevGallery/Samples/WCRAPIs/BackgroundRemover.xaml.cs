@@ -26,7 +26,7 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "BackgroundRemover",
+    Name = "Remove Background",
     Model1Types = [ModelType.BackgroundRemover],
     Scenario = ScenarioType.ImageBackgroundRemover,
     Id = "79eca6f0-3092-4b6f-9a81-94a2aff22559",
