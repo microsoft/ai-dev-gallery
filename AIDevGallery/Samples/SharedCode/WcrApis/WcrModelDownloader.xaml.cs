@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
 
-namespace AIDevGallery.Samples.TempSharedCode;
+namespace AIDevGallery.Samples.SharedCode;
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;

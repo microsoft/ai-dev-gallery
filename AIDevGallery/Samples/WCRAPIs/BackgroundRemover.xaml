@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:samples="using:AIDevGallery.Samples"
-    xmlns:controls="using:AIDevGallery.Samples.TempSharedCode"
+    xmlns:controls="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
     <Grid>
         <controls:WcrModelDownloader x:Name="WcrModelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />

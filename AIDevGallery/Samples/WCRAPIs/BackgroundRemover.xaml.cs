@@ -3,7 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using AIDevGallery.Samples.TempSharedCode;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -29,6 +29,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.BackgroundRemover],
     Scenario = ScenarioType.ImageBackgroundRemover,
     Id = "79eca6f0-3092-4b6f-9a81-94a2aff22559",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class BackgroundRemover : BaseSamplePage
 {
