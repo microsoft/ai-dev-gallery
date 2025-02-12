@@ -43,15 +43,9 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageObjectExtractor.IsAvailable())
-        {
-            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            SampleContent.Visibility = Visibility.Collapsed;
-        }
-        else
+        if (ImageObjectExtractor.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
-            SampleContent.Visibility = Visibility.Visible;
         }
 
         sampleParams.NotifyCompletion();
@@ -61,10 +55,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         var operation = ImageObjectExtractor.MakeAvailableAsync();
 
-        if (await WcrModelDownloader.SetDownloadOperation(operation))
-        {
-            SampleContent.Visibility = Visibility.Visible;
-        }
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
