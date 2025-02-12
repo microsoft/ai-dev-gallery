@@ -9,7 +9,7 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <Grid x:Name="SampleContent" ColumnSpacing="24" RowSpacing="12">
+    <Grid ColumnSpacing="24" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />

@@ -3,11 +3,11 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -22,6 +22,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImageWcr,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
@@ -36,17 +37,19 @@ internal sealed partial class ImageDescription : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         sampleParams.ShowWcrModelLoadingMessage = true;
-        if (!ImageDescriptionGenerator.IsAvailable())
+        if (ImageDescriptionGenerator.IsAvailable())
         {
-            var loadResult = await ImageDescriptionGenerator.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
-        _imageDescriptor = await ImageDescriptionGenerator.CreateAsync();
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageDescriptionGenerator.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -114,7 +117,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
         var isFirstWord = true;
         using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
-        var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
+        _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
+        var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer);
         if (describeTask != null)
         {
             describeTask.Progress += (asyncInfo, delta) =>

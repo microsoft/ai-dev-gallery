@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -10,7 +11,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
 using System.Linq;
@@ -31,6 +31,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageDetectTextLines,
     Id = "e26ef7bc-d847-4b2e-862a-74d872bb8635",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class OCRLineSample : BaseSamplePage
 {
@@ -43,19 +44,19 @@ internal sealed partial class OCRLineSample : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!TextRecognizer.IsAvailable())
+        if (TextRecognizer.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await TextRecognizer.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
-        _textRecognizer = await TextRecognizer.CreateAsync();
-
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = TextRecognizer.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -122,6 +123,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         CopyTextButton.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
         using var imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
+        _textRecognizer ??= await TextRecognizer.CreateAsync();
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
         if (result == null)
         {

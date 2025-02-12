@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -23,6 +24,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
 {
@@ -35,24 +37,19 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageScaler.IsAvailable())
+        if (ImageScaler.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await ImageScaler.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
-        }
-
-        _imageScaler = await ImageScaler.CreateAsync();
-        ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
-        if (_imageScaler.MaxSupportedScaleFactor >= 2)
-        {
-            ScaleSlider.Value = 2;
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageScaler.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -100,17 +97,29 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     private async void ScaleImage()
     {
-        if (_imageScaler != null && _originalImage != null)
+        if (_originalImage == null)
         {
-            ScaledPanel.Visibility = Visibility.Collapsed;
-            Loader.Visibility = Visibility.Visible;
-            var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
-            var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-            var bitmap = _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
-            Loader.Visibility = Visibility.Collapsed;
-            ScaledPanel.Visibility = Visibility.Visible;
-            await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+            return;
         }
+
+        if (_imageScaler == null)
+        {
+            _imageScaler = await ImageScaler.CreateAsync();
+            ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+            if (_imageScaler.MaxSupportedScaleFactor >= 2)
+            {
+                ScaleSlider.Value = 2;
+            }
+        }
+
+        ScaledPanel.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Visible;
+        var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
+        var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
+        var bitmap = _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+        Loader.Visibility = Visibility.Collapsed;
+        ScaledPanel.Visibility = Visibility.Visible;
+        await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap, Run textBlock)
