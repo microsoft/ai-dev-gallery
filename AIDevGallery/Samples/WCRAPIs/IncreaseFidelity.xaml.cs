@@ -19,7 +19,7 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Enhance Image",
+    Name = "Enhance Image WCR",
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
