@@ -6,6 +6,7 @@ using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Collections.Generic;
 
 namespace AIDevGallery.Pages;
@@ -25,7 +26,13 @@ internal sealed partial class APISelectionPage : Page
         {
             if (e.Parameter is ModelType type)
             {
-                SetSelectedAPIInMenu(type);
+                SetSelectedApiInMenu(type);
+            }
+            else if (e.Parameter is ModelDetails details &&
+                    details.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase) &&
+                    Enum.TryParse(details.Url.Substring(7), out ModelType apiType))
+            {
+                SetSelectedApiInMenu(apiType);
             }
             else
             {
@@ -63,7 +70,7 @@ internal sealed partial class APISelectionPage : Page
         }
     }
 
-    public void SetSelectedAPIInMenu(ModelType selectedType)
+    public void SetSelectedApiInMenu(ModelType selectedType)
     {
         foreach (var item in NavView.MenuItems)
         {

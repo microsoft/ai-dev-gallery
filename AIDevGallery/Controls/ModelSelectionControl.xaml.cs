@@ -367,6 +367,18 @@ internal partial class ModelSelectionControl : UserControl
         }
     }
 
+    private void ApiDocumentation_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
+        {
+            // we are in the sample view, open in app modelcard
+            if (ModelCardVisibility == Visibility.Visible)
+            {
+                App.MainWindow.Navigate("apis", details);
+            }
+        }
+    }
+
     private void CopyModelPath_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
