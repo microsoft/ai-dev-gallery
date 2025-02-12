@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.TempSharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -11,7 +12,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -44,15 +44,26 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         if (!ImageObjectExtractor.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await ImageObjectExtractor.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
+            SampleContent.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            SampleContent.Visibility = Visibility.Visible;
         }
 
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageObjectExtractor.MakeAvailableAsync();
+
+        if (await WcrModelDownloader.SetDownloadOperation(operation))
+        {
+            SampleContent.Visibility = Visibility.Visible;
+        }
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
