@@ -87,6 +87,7 @@ internal sealed partial class Generate : BaseSamplePage
         InputTextBox.IsEnabled = false;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
         Task.Run(
             async () =>
