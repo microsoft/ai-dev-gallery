@@ -11,9 +11,11 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -84,6 +86,29 @@ internal sealed partial class OCRSample : BaseSamplePage
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
@@ -126,8 +151,12 @@ internal sealed partial class OCRSample : BaseSamplePage
         if (result.Lines == null || result.Lines.Length == 0)
         {
             OcrTextBlock.Inlines.Add(new Run { Text = "No text found." });
+            OutputPanel.Visibility = Visibility.Visible;
+            Loader.Visibility = Visibility.Collapsed;
             return;
         }
+
+        InstructionTxt.Visibility = Visibility.Visible;
 
         foreach (var line in result.Lines)
         {
