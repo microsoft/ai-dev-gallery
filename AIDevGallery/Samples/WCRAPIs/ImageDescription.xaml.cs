@@ -18,9 +18,9 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "WCR Describe Image",
+    Name = "Describe Image WCR",
     Model1Types = [ModelType.ImageDescription],
-    Scenario = ScenarioType.ImageDescribeImageWcr,
+    Scenario = ScenarioType.ImageDescribeImage,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
     Icon = "\uEE6F")]
 

@@ -111,11 +111,6 @@
         "Description": "Describe image with a multimodal language model. Upload an image to get descriptive output based on that image. Note: this may take a while.",
         "Id": "describe-image"
       },
-      "DescribeImageWcr": {
-        "Name": "WCR Describe Image",
-        "Description": "Describe images with the Windows Copilot Runtime Image Description model. Upload an image to see a generated description of the content in that image.",
-        "Id": "describe-image-wcr"
-      },
       "ClassifyImage": {
         "Name": "Classify Image",
         "Description": "Label the main object in a photo with an image classification model. Upload a photo to get potential labels along with a confidence score associated with each label.",
@@ -126,15 +121,15 @@
         "Description": "Label items in a photo with an object detection model. Upload an image and detected object predictions will be drawn on the image, with an included label and confidence score.",
         "Id": "detect-objects"
       },
-      "DetectText": {
-        "Name": "Detect Text",
+      "RecognizeText": {
+        "Name": "Recognize Text",
         "Description": "Detect text in an image. Upload an image to see detected text, color-coded based on confidence score, outputted next to the image.",
-        "Id": "detect-text"
+        "Id": "recognize-text"
       },
-      "DetectTextLines": {
-        "Name": "Locate Detected Text",
+      "SelectRecognizedText": {
+        "Name": "Select Text From Image",
         "Description": "Detect lines of text in an image and then have those lines spotlighted in the image. Upload an image with text it to see detected text output alongside that image. Hover over the image to spotlight detected text.",
-        "Id": "detect-text-lines"
+        "Id": "select-recognized-text"
       },
       "IncreaseFidelity": {
         "Name": "Enhance Image",
