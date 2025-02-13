@@ -49,33 +49,31 @@ internal class PoseHelper
         return keypointCoordinates;
     }
 
-    public static Bitmap RenderPredictions(Bitmap originalImage, List<(float X, float Y)> keypoints, float markerRatio, Bitmap? baseImage = null)
+    public static Bitmap RenderPredictions(Bitmap image, List<(float X, float Y)> keypoints, float markerRatio, Bitmap? baseImage = null)
     {
-        Bitmap outputImage = new(originalImage);
-
-        using (Graphics g = Graphics.FromImage(outputImage))
+        using (Graphics g = Graphics.FromImage(image))
         {
             // If refernce is multipose, use base image not cropped image for scaling
             // If reference is one person pose, use original image as base image isn't used.
-            var imageValue = baseImage != null ? baseImage.Width + baseImage.Height : originalImage.Width + originalImage.Height;
-            int markerSize = (int)(imageValue * markerRatio / 2);
+            var averageOfWidthAndHeight = baseImage != null ? baseImage.Width + baseImage.Height : image.Width + image.Height;
+            int markerSize = (int)(averageOfWidthAndHeight * markerRatio / 2);
             Brush brush = Brushes.Red;
-
             using Pen linePen = new(Color.Blue, markerSize / 2);
+
             List<(int StartIdx, int EndIdx)> connections =
             [
                 (5, 6),   // Left shoulder to right shoulder
-                    (5, 7),   // Left shoulder to left elbow
-                    (7, 9),   // Left elbow to left wrist
-                    (6, 8),   // Right shoulder to right elbow
-                    (8, 10),  // Right elbow to right wrist
-                    (11, 12), // Left hip to right hip
-                    (5, 11),  // Left shoulder to left hip
-                    (6, 12),  // Right shoulder to right hip
-                    (11, 13), // Left hip to left knee
-                    (13, 15), // Left knee to left ankle
-                    (12, 14), // Right hip to right knee
-                    (14, 16) // Right knee to right ankle
+                (5, 7),   // Left shoulder to left elbow
+                (7, 9),   // Left elbow to left wrist
+                (6, 8),   // Right shoulder to right elbow
+                (8, 10),  // Right elbow to right wrist
+                (11, 12), // Left hip to right hip
+                (5, 11),  // Left shoulder to left hip
+                (6, 12),  // Right shoulder to right hip
+                (11, 13), // Left hip to left knee
+                (13, 15), // Left knee to left ankle
+                (12, 14), // Right hip to right knee
+                (14, 16) // Right knee to right ankle
             ];
 
             foreach (var (startIdx, endIdx) in connections)
@@ -92,6 +90,6 @@ internal class PoseHelper
             }
         }
 
-        return outputImage;
+        return image;
     }
 }
