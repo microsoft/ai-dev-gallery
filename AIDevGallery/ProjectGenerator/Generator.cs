@@ -674,10 +674,16 @@ internal partial class Generator
         if (match.Success)
         {
             var oldClassFullName = match.Groups[1].Value;
-            _ = oldClassFullName[..oldClassFullName.LastIndexOf('.')];
             className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
 
-            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            if (oldClassFullName.Contains(".SharedCode."))
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            }
+            else
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            }
         }
         else
         {
@@ -692,24 +698,24 @@ internal partial class Generator
     }
 
     [GeneratedRegex(@"using AIDevGallery\S*;\r?\n", RegexOptions.Multiline)]
-    private static partial Regex UsingAIDevGalleryGNamespace();
+    private static partial Regex UsingAIDevGalleryNamespace();
 
     [GeneratedRegex(@"namespace AIDevGallery(?:[^;\r\n])*(;?)\r\n", RegexOptions.Multiline)]
-    private static partial Regex AIDevGalleryGNamespace();
+    private static partial Regex AIDevGalleryNamespace();
 
     private static string CleanCsSource(string source, string newNamespace, bool addSharedSourceNamespace)
     {
         // Remove the using statements for the AIDevGallery.* namespaces
-        source = UsingAIDevGalleryGNamespace().Replace(source, string.Empty);
+        source = UsingAIDevGalleryNamespace().Replace(source, string.Empty);
 
         source = source.Replace("\r\r", "\r");
 
         // Replace the AIDevGallery namespace with the namespace of the new project
         // consider the 1st capture group to add the ; or not
-        var match = AIDevGalleryGNamespace().Match(source);
+        var match = AIDevGalleryNamespace().Match(source);
         if (match.Success)
         {
-            source = AIDevGalleryGNamespace().Replace(source, $"namespace {newNamespace}{match.Groups[1].Value}{Environment.NewLine}");
+            source = AIDevGalleryNamespace().Replace(source, $"namespace {newNamespace}{match.Groups[1].Value}{Environment.NewLine}");
         }
 
         if (addSharedSourceNamespace)

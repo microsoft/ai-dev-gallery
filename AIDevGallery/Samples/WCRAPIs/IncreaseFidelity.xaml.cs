@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,19 +11,22 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "ImageScaler",
+    Name = "Enhance Image WCR",
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
 {
@@ -35,24 +39,19 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageScaler.IsAvailable())
+        if (ImageScaler.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await ImageScaler.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
-        }
-
-        _imageScaler = await ImageScaler.CreateAsync();
-        ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
-        if (_imageScaler.MaxSupportedScaleFactor >= 2)
-        {
-            ScaleSlider.Value = 2;
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageScaler.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -73,7 +72,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            SetImage(stream);
+            await SetImage(stream);
         }
     }
 
@@ -84,35 +83,82 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (package.Contains(StandardDataFormats.Bitmap))
         {
             var streamRef = await package.GetBitmapAsync();
-
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            SetImage(stream);
+            using IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            await SetImage(stream);
+        }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
         }
     }
 
-    private async void SetImage(IRandomAccessStream stream)
+    private static bool IsImageFile(string fileName)
     {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        _originalImage = await decoder.GetSoftwareBitmapAsync();
-        OptionsPanel.Visibility = Visibility.Visible;
-        OriginalPanel.Visibility = Visibility.Visible;
-        await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
-        ScaleImage();
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
+    }
+
+    private async Task SetImage(IRandomAccessStream stream)
+    {
+        try
+        {
+            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+            _originalImage = await decoder.GetSoftwareBitmapAsync();
+            OptionsPanel.Visibility = Visibility.Visible;
+            OriginalPanel.Visibility = Visibility.Visible;
+            await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
+            ScaleImage();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async void ScaleImage()
     {
-        if (_imageScaler != null && _originalImage != null)
+        if (_originalImage == null)
         {
-            ScaledPanel.Visibility = Visibility.Collapsed;
-            Loader.Visibility = Visibility.Visible;
-            var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
-            var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-            var bitmap = _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
-            Loader.Visibility = Visibility.Collapsed;
-            ScaledPanel.Visibility = Visibility.Visible;
-            await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+            return;
         }
+
+        if (_imageScaler == null)
+        {
+            _imageScaler = await ImageScaler.CreateAsync();
+            ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+            if (_imageScaler.MaxSupportedScaleFactor >= 2)
+            {
+                ScaleSlider.Value = 2;
+            }
+        }
+
+        ScaledPanel.Visibility = Visibility.Collapsed;
+        Loader.Visibility = Visibility.Visible;
+
+        var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
+        var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
+
+        var bitmap = await Task.Run(() =>
+        {
+            return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+        });
+
+        Loader.Visibility = Visibility.Collapsed;
+        ScaledPanel.Visibility = Visibility.Visible;
+        await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap, Run textBlock)

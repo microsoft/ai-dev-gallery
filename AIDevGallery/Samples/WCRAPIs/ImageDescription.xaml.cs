@@ -3,25 +3,29 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "ImageDescription",
+    Name = "WCR Describe Image",
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImageWcr,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
@@ -36,17 +40,19 @@ internal sealed partial class ImageDescription : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         sampleParams.ShowWcrModelLoadingMessage = true;
-        if (!ImageDescriptionGenerator.IsAvailable())
+        if (ImageDescriptionGenerator.IsAvailable())
         {
-            var loadResult = await ImageDescriptionGenerator.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
-        _imageDescriptor = await ImageDescriptionGenerator.CreateAsync();
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageDescriptionGenerator.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -81,9 +87,32 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             var streamRef = await package.GetBitmapAsync();
 
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            using var stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
@@ -115,27 +144,34 @@ internal sealed partial class ImageDescription : BaseSamplePage
         });
 
         var isFirstWord = true;
-        using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
-        var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
-        if (describeTask != null)
+        try
         {
-            describeTask.Progress += (asyncInfo, delta) =>
+            using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+            _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
+            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer);
+            if (describeTask != null)
             {
-                var result = asyncInfo.GetResults().Response;
-
-                DispatcherQueue?.TryEnqueue(() =>
+                describeTask.Progress += (asyncInfo, delta) =>
                 {
-                    if (isFirstWord)
+                    DispatcherQueue?.TryEnqueue(() =>
                     {
-                        Loader.Visibility = Visibility.Collapsed;
-                        OutputTxt.Visibility = Visibility.Visible;
-                        isFirstWord = false;
-                    }
+                        if (isFirstWord)
+                        {
+                            Loader.Visibility = Visibility.Collapsed;
+                            OutputTxt.Visibility = Visibility.Visible;
+                            isFirstWord = false;
+                        }
 
-                    ResponseTxt.Text = result;
-                });
-            };
-            await describeTask;
+                        ResponseTxt.Text = delta;
+                    });
+                };
+
+                await describeTask;
+            }
+        }
+        catch (Exception ex)
+        {
+            ResponseTxt.Text = ex.Message;
         }
 
         Loader.Visibility = Visibility.Collapsed;

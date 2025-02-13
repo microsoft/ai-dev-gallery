@@ -113,7 +113,7 @@
       },
       "DescribeImageWcr": {
         "Name": "WCR Describe Image",
-        "Description": "Describe image with the WCR model",
+        "Description": "Describe images with the Windows Copilot Runtime Image Description model. Upload an image to see a generated description of the content in that image.",
         "Id": "describe-image-wcr"
       },
       "ClassifyImage": {
@@ -128,22 +128,22 @@
       },
       "DetectText": {
         "Name": "Detect Text",
-        "Description": "Detect text in an image.",
+        "Description": "Detect text in an image. Upload an image to see detected text, color-coded based on confidence score, outputted next to the image.",
         "Id": "detect-text"
       },
       "DetectTextLines": {
-        "Name": "Detect Text Lines",
-        "Description": "Detect lines of text in an image.",
+        "Name": "Locate Detected Text",
+        "Description": "Detect lines of text in an image and then have those lines spotlighted in the image. Upload an image with text it to see detected text output alongside that image. Hover over the image to spotlight detected text.",
         "Id": "detect-text-lines"
       },
       "IncreaseFidelity": {
-        "Name": "Increase image fidelity",
-        "Description": "Increase image fidelity.",
+        "Name": "Enhance Image",
+        "Description": "Increase image fidelity with super resolution models. Upload an image from the file system to increase its resolution.",
         "Id": "increase-fidelity"
       },
       "BackgroundRemover": {
-        "Name": "Remove background",
-        "Description": "Remove image background.",
+        "Name": "Remove Background",
+        "Description": "Remove image backgrounds with an image segmentation model. Upload an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
       },
       "DetectPose": {
@@ -155,11 +155,6 @@
         "Name": "Detect Multiple Human Poses",
         "Description": "Model multiple humans' posture with a pose detection model. Upload an image including multiple clearly visible persons to see pose estimates drawn onto the image.",
         "Id": "detect-poses"
-      },
-      "EnhanceImage": {
-        "Name": "Enhance Image",
-        "Description": "Improve image quality with an image enhancement model. Upload a low resolution image and a higher resolution version of the same image will be output.",
-        "Id": "enhance-image"
       },
       "SegmentStreet": {
         "Name": "Segment Street",

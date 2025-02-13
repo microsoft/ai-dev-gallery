@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Documents;
@@ -11,19 +12,22 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Text Recognition (OCR)",
+    Name = "Detect Text",
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageDetectText,
     Id = "8f072b64-74fc-4511-b84f-e09d56394f07",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class OCRSample : BaseSamplePage
 {
@@ -36,19 +40,20 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!TextRecognizer.IsAvailable())
+        if (TextRecognizer.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await TextRecognizer.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+
         }
 
-        _textRecognizer = await TextRecognizer.CreateAsync();
-
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = TextRecognizer.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -86,6 +91,29 @@ internal sealed partial class OCRSample : BaseSamplePage
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
@@ -109,10 +137,7 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     public async Task RecognizeAndAddTextAsync(SoftwareBitmap bitmap)
     {
-        if (_textRecognizer == null)
-        {
-            return;
-        }
+        _textRecognizer ??= await TextRecognizer.CreateAsync();
 
         OutputPanel.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
@@ -128,8 +153,12 @@ internal sealed partial class OCRSample : BaseSamplePage
         if (result.Lines == null || result.Lines.Length == 0)
         {
             OcrTextBlock.Inlines.Add(new Run { Text = "No text found." });
+            OutputPanel.Visibility = Visibility.Visible;
+            Loader.Visibility = Visibility.Collapsed;
             return;
         }
+
+        InstructionTxt.Visibility = Visibility.Visible;
 
         foreach (var line in result.Lines)
         {

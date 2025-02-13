@@ -52,7 +52,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         {
             var filePath = type!.Locations[0].SourceTree?.FilePath;
 
-            if (filePath != null)
+            if (filePath != null && !filePath.Contains(@"\obj\"))
             {
                 if (!filePaths.Contains(filePath))
                 {
@@ -66,7 +66,15 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         foreach (var filePath in filePaths)
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
-            if (File.Exists(Path.ChangeExtension(filePath, ".xaml")))
+            var extension = Path.GetExtension(filePath);
+            var filePathWithoutExtension = filePath.Substring(0, filePath.Length - extension.Length);
+            if (fileName.EndsWith(".xaml", StringComparison.InvariantCultureIgnoreCase) && File.Exists(filePathWithoutExtension))
+            {
+                fileName = Path.GetFileNameWithoutExtension(filePathWithoutExtension);
+                sourceBuilder.AppendLine($"        {fileName}Cs,");
+                sourceBuilder.AppendLine($"        {fileName}Xaml,");
+            }
+            else if (File.Exists(Path.ChangeExtension(filePath, ".xaml")))
             {
                 sourceBuilder.AppendLine($"        {fileName}Cs,");
                 sourceBuilder.AppendLine($"        {fileName}Xaml,");
@@ -89,14 +97,22 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var filePathXaml = Path.ChangeExtension(filePath, ".xaml");
-            if (File.Exists(filePathXaml))
+            var extension = Path.GetExtension(filePath);
+            var filePathWithoutExtension = filePath.Substring(0, filePath.Length - extension.Length);
+            if (fileName.EndsWith(".xaml", StringComparison.InvariantCultureIgnoreCase) && File.Exists(filePathWithoutExtension))
             {
-                sourceBuilder.AppendLine($"                 SharedCodeEnum.{Path.GetFileNameWithoutExtension(filePath)}Xaml => \"{Path.GetFileName(filePathXaml)}\",");
-                sourceBuilder.AppendLine($"                 SharedCodeEnum.{Path.GetFileNameWithoutExtension(filePath)}Cs => \"{Path.GetFileName(filePath)}\",");
+                fileName = Path.GetFileNameWithoutExtension(fileName);
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName}Cs => \"{fileName}.xaml.cs\",");
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName}Xaml => \"{fileName}.xaml\",");
+            }
+            else if (File.Exists(filePathXaml))
+            {
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName}Xaml => \"{Path.GetFileName(filePathXaml)}\",");
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName}Cs => \"{Path.GetFileName(filePath)}\",");
             }
             else
             {
-                sourceBuilder.AppendLine($"                 SharedCodeEnum.{Path.GetFileNameWithoutExtension(filePath)} => \"{Path.GetFileName(filePath)}\",");
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName} => \"{Path.GetFileName(filePath)}\",");
             }
         }
 
@@ -111,6 +127,16 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var filePathXaml = Path.ChangeExtension(filePath, ".xaml");
+            var extension = Path.GetExtension(filePath);
+            var filePathWithoutExtension = filePath.Substring(0, filePath.Length - extension.Length);
+
+            // handle .xaml.cs files
+            if (File.Exists(filePathWithoutExtension))
+            {
+                filePathXaml = filePathWithoutExtension;
+                fileName = Path.GetFileNameWithoutExtension(fileName);
+            }
+
             if (File.Exists(filePathXaml))
             {
                 var fileContentXaml = XamlSourceCleanUp(File.ReadAllText(filePathXaml));
@@ -161,6 +187,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         context.AddSource("SharedCodeEnum.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
     }
 
+    private static readonly Regex UsingAIDevGalleryTelemetryNamespace = new(@"using AIDevGallery.Telemetry\S*;\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex GallerySampleAttributeRemovalRegex = new(@"\n(\s)*\[GallerySample\((?>[^()]+|\((?<DEPTH>)|\)(?<-DEPTH>))*(?(DEPTH)(?!))\)\]", RegexOptions.Compiled);
     private static readonly Regex ExcludedElementXamlRemovalRegex = new(@"<EXCLUDE:(([^<]*\/>)|(.*<\/EXCLUDE:[a-zA-Z]*>))", RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex ExcludedAttrbitueXamlRemovalRegex = new(@"EXCLUDE:[^""]*""[^""]*""", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -176,6 +203,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                 .TrimStart();
         }
 
+        input = UsingAIDevGalleryTelemetryNamespace.Replace(input, string.Empty);
         input = GallerySampleAttributeRemovalRegex.Replace(input, string.Empty);
         input = RemoveExcludedLinesCs(input, filePath);
 
@@ -221,7 +249,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
 
                 lines.RemoveAt(i);
             }
-            else if (lines[i].Contains("// <exclude-line>") || lines[i].Contains("//<exclude-line>"))
+            else if (lines[i].Contains("// <exclude-line>") || lines[i].Contains("//<exclude-line>") || lines[i].Contains("SendSampleInteractedEvent"))
             {
                 lines.RemoveAt(i);
             }
