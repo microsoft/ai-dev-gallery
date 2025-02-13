@@ -22,7 +22,7 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Text Recognition (OCR)",
+    Name = "Detect Text",
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageDetectText,
     Id = "8f072b64-74fc-4511-b84f-e09d56394f07",
