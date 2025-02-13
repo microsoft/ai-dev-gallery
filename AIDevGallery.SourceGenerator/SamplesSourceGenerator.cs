@@ -137,7 +137,6 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                 fileName = Path.GetFileNameWithoutExtension(fileName);
             }
 
-
             if (File.Exists(filePathXaml))
             {
                 var fileContentXaml = XamlSourceCleanUp(File.ReadAllText(filePathXaml));
