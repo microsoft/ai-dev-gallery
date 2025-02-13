@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class ModelPage : Page
 {
+    private const string DocsBaseUrl = "https://learn.microsoft.com/en-us/";
+    private const string WcrDocsRelativePath = "/windows/ai/apis/";
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
     public bool IsNotApi => !modelFamilyType.HasValue || !ModelTypeHelpers.ApiDefinitionDetails.ContainsKey(modelFamilyType.Value);
@@ -203,10 +206,17 @@ internal sealed partial class ModelPage : Page
 
     private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
     {
-        ModelDetailsLinkClickedEvent.Log(e.Link);
+        string link = e.Link;
+
+        if(!IsNotApi && !IsValidUrl(link))
+        {
+            link = FixWcrReadmeLink(link);
+        }
+
+        ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()
         {
-            FileName = e.Link,
+            FileName = link,
             UseShellExecute = true
         });
     }
@@ -218,5 +228,28 @@ internal sealed partial class ModelPage : Page
             var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
             App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
         }
+    }
+
+    private bool IsValidUrl(string url)
+    {
+        Uri uri;
+        return Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    }
+
+    private string FixWcrReadmeLink(string link)
+    {
+        string fixedLink;
+
+        if(link.StartsWith('/'))
+        {
+            fixedLink = Path.Join(DocsBaseUrl, link);
+        }
+        else
+        {
+            fixedLink = Path.Join(DocsBaseUrl, WcrDocsRelativePath, link.Replace(".md", string.Empty));
+        }
+
+        System.Diagnostics.Debug.WriteLine(fixedLink);
+        return fixedLink;
     }
 }
