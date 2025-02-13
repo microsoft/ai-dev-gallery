@@ -30,6 +30,6 @@ internal class ModelDetailsLinkClickedEvent : EventBase
 
     public static void Log(string link)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelDetailsLinkClicked_Event", LogLevel.Measure, new ModelDetailsLinkClickedEvent(link));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDetailsLinkClicked_Event", LogLevel.Critical, new ModelDetailsLinkClickedEvent(link));
     }
 }

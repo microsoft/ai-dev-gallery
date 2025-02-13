@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet;
 
 [GallerySample(
     Model1Types = [ModelType.FFNet],
-    Scenario = ScenarioType.ImageSegmentImage,
+    Scenario = ScenarioType.ImageSegmentStreet,
     Name = "Segment Streetscapes",
     SharedCode = [
         SharedCodeEnum.Prediction,
@@ -113,6 +113,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         if (file != null)
         {
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await Segment(file.Path);
         }
     }

@@ -30,6 +30,6 @@ internal class OpenModelFolderEvent : EventBase
 
     public static void Log(string modelUrl)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("OpenModelFolder_Event", LogLevel.Measure, new OpenModelFolderEvent(modelUrl));
+        TelemetryFactory.Get<ITelemetry>().Log("OpenModelFolder_Event", LogLevel.Critical, new OpenModelFolderEvent(modelUrl));
     }
 }

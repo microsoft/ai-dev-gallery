@@ -117,7 +117,7 @@
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="About" />
                     <toolkit:SettingsExpander
                         AutomationProperties.AccessibilityView="Raw"
-                        Description="© 2024. All rights reserved."
+                        Description="© 2025. All rights reserved."
                         Header="AI Dev Gallery"
                         HeaderIcon="{ui:BitmapIcon Source=ms-appx:///Assets/AppIcon/Icon.ico}"
                         IsExpanded="True">

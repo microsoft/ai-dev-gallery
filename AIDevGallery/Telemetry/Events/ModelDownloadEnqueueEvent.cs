@@ -29,6 +29,6 @@ internal class ModelDownloadEnqueueEvent : EventBase
 
     public static void Log(string modelUrl)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadEnqueue_Event", LogLevel.Measure, new ModelDownloadEnqueueEvent(modelUrl, DateTime.Now));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadEnqueue_Event", LogLevel.Critical, new ModelDownloadEnqueueEvent(modelUrl, DateTime.Now));
     }
 }

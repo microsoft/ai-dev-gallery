@@ -150,6 +150,8 @@ internal sealed partial class SampleContainer : UserControl
         if (cachedModelsPaths.Count == 1)
         {
             sampleNavigationParameters = new SampleNavigationParameters(
+                sample.Id,
+                models.First().Id,
                 modelPath,
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
@@ -167,6 +169,8 @@ internal sealed partial class SampleContainer : UserControl
             }
 
             sampleNavigationParameters = new MultiModelSampleNavigationParameters(
+                sample.Id,
+                models.Select(m => m.Id).ToArray(),
                 [.. cachedModelsPaths],
                 [.. hardwareAccelerators],
                 [.. promptTemplates],

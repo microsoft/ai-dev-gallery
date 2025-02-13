@@ -29,6 +29,6 @@ internal class ModelDownloadCompleteEvent : EventBase
 
     public static void Log(string modelUrl)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadComplete_Event", LogLevel.Measure, new ModelDownloadCompleteEvent(modelUrl, DateTime.Now));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadComplete_Event", LogLevel.Critical, new ModelDownloadCompleteEvent(modelUrl, DateTime.Now));
     }
 }
