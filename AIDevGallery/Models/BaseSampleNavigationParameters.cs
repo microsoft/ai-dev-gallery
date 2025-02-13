@@ -36,4 +36,6 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
 
         return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
     }
+
+    internal abstract void SendSampleInteractionEvent(string? customInfo = null);
 }

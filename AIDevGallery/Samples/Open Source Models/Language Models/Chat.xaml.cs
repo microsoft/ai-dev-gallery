@@ -122,6 +122,7 @@ internal sealed partial class Chat : BaseSamplePage
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
+        SendSampleInteractedEvent("AddMessage"); // <exclude-line>
 
         Task.Run(async () =>
         {
