@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AIDevGallery.Pages;
 
@@ -30,9 +31,9 @@ internal sealed partial class APISelectionPage : Page
             }
             else if (e.Parameter is ModelDetails details &&
                     details.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase) &&
-                    Enum.TryParse(details.Url.Substring(7), out ModelType apiType))
+                    ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == details.Id))
             {
-                SetSelectedApiInMenu(apiType);
+                SetSelectedApiInMenu(ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == details.Id).Key);
             }
             else
             {

@@ -3,6 +3,7 @@
 
 using AIDevGallery.Utils;
 using System;
+using System.Linq;
 
 namespace AIDevGallery.Models;
 
@@ -25,9 +26,8 @@ internal class ModelCompatibility
         // check if WCR API
         if (modelDetails.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase))
         {
-            var apiKey = modelDetails.Url.Substring(7);
-
-            if (Enum.TryParse(apiKey, out ModelType apiType) && WcrCompatibilityChecker.GetApiAvailability(apiType) != WcrApiAvailability.NotSupported)
+            if (Samples.ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id) &&
+                WcrCompatibilityChecker.GetApiAvailability(Samples.ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key) != WcrApiAvailability.NotSupported)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
