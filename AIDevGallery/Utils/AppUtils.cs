@@ -85,6 +85,8 @@ internal static class AppUtils
                 return "GPU";
             case HardwareAccelerator.QNN:
                 return "NPU";
+            case HardwareAccelerator.WCRAPI:
+                return "WCR";
             default:
                 return hardwareAccelerator.ToString();
         }
@@ -101,6 +103,8 @@ internal static class AppUtils
                 return "This model will run on supported GPUs with DirectML";
             case HardwareAccelerator.QNN:
                 return "This model will run on Qualcomm NPUs";
+            case HardwareAccelerator.WCRAPI:
+                return "The model used by this Windows Copilot Runtime API will run on NPU";
         }
     }
 

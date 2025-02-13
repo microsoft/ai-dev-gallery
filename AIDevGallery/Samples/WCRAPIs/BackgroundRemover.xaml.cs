@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -11,7 +12,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +31,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.BackgroundRemover],
     Scenario = ScenarioType.ImageBackgroundRemover,
     Id = "79eca6f0-3092-4b6f-9a81-94a2aff22559",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class BackgroundRemover : BaseSamplePage
 {
@@ -44,17 +45,19 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageObjectExtractor.IsAvailable())
+        if (ImageObjectExtractor.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await ImageObjectExtractor.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
         }
 
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = ImageObjectExtractor.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Documents;
@@ -26,6 +27,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageDetectText,
     Id = "8f072b64-74fc-4511-b84f-e09d56394f07",
+    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
 internal sealed partial class OCRSample : BaseSamplePage
 {
@@ -38,19 +40,20 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!TextRecognizer.IsAvailable())
+        if (TextRecognizer.IsAvailable())
         {
-            sampleParams.ShowWcrModelLoadingMessage = true;
-            var loadResult = await TextRecognizer.MakeAvailableAsync();
-            if (loadResult.Status != PackageDeploymentStatus.CompletedSuccess)
-            {
-                throw new InvalidOperationException(loadResult.ExtendedError.Message);
-            }
+            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+
         }
 
-        _textRecognizer = await TextRecognizer.CreateAsync();
-
         sampleParams.NotifyCompletion();
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        var operation = TextRecognizer.MakeAvailableAsync();
+
+        await WcrModelDownloader.SetDownloadOperation(operation);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -132,10 +135,7 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     public async Task RecognizeAndAddTextAsync(SoftwareBitmap bitmap)
     {
-        if (_textRecognizer == null)
-        {
-            return;
-        }
+        _textRecognizer ??= await TextRecognizer.CreateAsync();
 
         OutputPanel.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;

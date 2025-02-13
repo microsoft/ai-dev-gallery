@@ -674,10 +674,16 @@ internal partial class Generator
         if (match.Success)
         {
             var oldClassFullName = match.Groups[1].Value;
-            _ = oldClassFullName[..oldClassFullName.LastIndexOf('.')];
             className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
 
-            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            if (oldClassFullName.Contains(".SharedCode."))
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            }
+            else
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            }
         }
         else
         {
