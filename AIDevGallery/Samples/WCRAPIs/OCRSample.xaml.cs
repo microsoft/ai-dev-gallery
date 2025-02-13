@@ -53,6 +53,7 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
     {
+        SendSampleInteractedEvent("LoadImageClicked");
         var window = new Window();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
 
@@ -76,6 +77,7 @@ internal sealed partial class OCRSample : BaseSamplePage
 
     private async void PasteImage_Click(object sender, RoutedEventArgs e)
     {
+        SendSampleInteractedEvent("PasteImageClick");
         var package = Clipboard.GetContent();
         if (package.Contains(StandardDataFormats.Bitmap))
         {
