@@ -11,9 +11,11 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -69,7 +71,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            SetImage(stream);
+            await SetImage(stream);
         }
     }
 
@@ -79,20 +81,49 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (package.Contains(StandardDataFormats.Bitmap))
         {
             var streamRef = await package.GetBitmapAsync();
-
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            SetImage(stream);
+            using IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            await SetImage(stream);
+        }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
         }
     }
 
-    private async void SetImage(IRandomAccessStream stream)
+    private static bool IsImageFile(string fileName)
     {
-        BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-        _originalImage = await decoder.GetSoftwareBitmapAsync();
-        OptionsPanel.Visibility = Visibility.Visible;
-        OriginalPanel.Visibility = Visibility.Visible;
-        await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
-        ScaleImage();
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
+    }
+
+    private async Task SetImage(IRandomAccessStream stream)
+    {
+        try
+        {
+            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+            _originalImage = await decoder.GetSoftwareBitmapAsync();
+            OptionsPanel.Visibility = Visibility.Visible;
+            OriginalPanel.Visibility = Visibility.Visible;
+            await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
+            ScaleImage();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async void ScaleImage()

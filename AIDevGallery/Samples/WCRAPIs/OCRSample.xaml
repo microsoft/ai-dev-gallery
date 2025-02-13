@@ -9,16 +9,16 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <Grid ColumnSpacing="24" RowSpacing="48">
+    <Grid ColumnSpacing="24" RowSpacing="24">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
         <DropDownButton AutomationProperties.Name="Select image">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <FontIcon FontSize="16" Glyph="&#xEE71;" />
@@ -31,37 +31,48 @@
                 </MenuFlyout>
             </DropDownButton.Flyout>
         </DropDownButton>
-
+        <TextBlock
+            x:Name="InstructionTxt"
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="The colors of the recognized text show the confidence of recognition: Green - good recognition  Brown - medium recognition  Red - bad recognition"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
         <Image
             x:Name="ImageSrc"
-            Grid.Row="1"
+            Grid.Row="2"
             MaxHeight="360"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Top"
             Stretch="Uniform" />
-
-        <ScrollViewer
-            x:Name="OutputPanel"
-            Grid.Row="1"
+        <Grid x:Name="OutputPanel" Grid.Row="2"
             Grid.Column="1"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto"
-            Visibility="Collapsed">
-            <StackPanel Orientation="Vertical">
-                <TextBlock FontWeight="SemiBold" Text="Recognized text" />
+            HorizontalAlignment="Stretch" RowSpacing="10"
+            VerticalAlignment="Stretch" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock FontWeight="SemiBold" Text="Recognized text" />
+            <ScrollViewer
+                Grid.Row="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto" >
                 <TextBlock
                     x:Name="OcrTextBlock"
                     Grid.Row="1"
                     IsTextSelectionEnabled="True"
                     TextWrapping="WrapWholeWords" />
-            </StackPanel>
-
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
         <ProgressRing
             x:Name="Loader"
             Grid.Row="1"
+            Grid.RowSpan="2"
             Grid.Column="1"
             Width="48"
             Height="48"

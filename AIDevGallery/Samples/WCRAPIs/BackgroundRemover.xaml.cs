@@ -14,11 +14,13 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -91,6 +93,29 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             using IRandomAccessStream stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
