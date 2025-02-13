@@ -84,6 +84,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
         SentimentTextBlock.Text = string.Empty;
         SentimentButton.Visibility = Visibility.Collapsed;
         NarratorHelper.Announce(InputTextBox, "Checking sentiment, please wait.", "SentimentCheckWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("AnalyzeSentiment"); // <exclude-line>
 
         Task.Run(
             async () =>

@@ -89,6 +89,7 @@ internal sealed partial class ExplainCode : BaseSamplePage
         ExplainButton.Visibility = Visibility.Collapsed;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Analyzing code, please wait.", "ExplainCodeWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("Explain"); // <exclude-line>
 
         Task.Run(
             async () =>

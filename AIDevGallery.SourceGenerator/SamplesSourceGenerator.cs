@@ -188,6 +188,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         context.AddSource("SharedCodeEnum.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
     }
 
+    private static readonly Regex UsingAIDevGalleryTelemetryNamespace = new(@"using AIDevGallery.Telemetry\S*;\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex GallerySampleAttributeRemovalRegex = new(@"\n(\s)*\[GallerySample\((?>[^()]+|\((?<DEPTH>)|\)(?<-DEPTH>))*(?(DEPTH)(?!))\)\]", RegexOptions.Compiled);
     private static readonly Regex ExcludedElementXamlRemovalRegex = new(@"<EXCLUDE:(([^<]*\/>)|(.*<\/EXCLUDE:[a-zA-Z]*>))", RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex ExcludedAttrbitueXamlRemovalRegex = new(@"EXCLUDE:[^""]*""[^""]*""", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -203,6 +204,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                 .TrimStart();
         }
 
+        input = UsingAIDevGalleryTelemetryNamespace.Replace(input, string.Empty);
         input = GallerySampleAttributeRemovalRegex.Replace(input, string.Empty);
         input = RemoveExcludedLinesCs(input, filePath);
 
@@ -248,7 +250,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
 
                 lines.RemoveAt(i);
             }
-            else if (lines[i].Contains("// <exclude-line>") || lines[i].Contains("//<exclude-line>"))
+            else if (lines[i].Contains("// <exclude-line>") || lines[i].Contains("//<exclude-line>") || lines[i].Contains("SendSampleInteractedEvent"))
             {
                 lines.RemoveAt(i);
             }
