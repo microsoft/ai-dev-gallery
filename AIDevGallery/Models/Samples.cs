@@ -156,7 +156,8 @@ internal enum HardwareAccelerator
 {
     CPU,
     DML,
-    QNN
+    QNN,
+    WCRAPI
 }
 
 #pragma warning restore SA1402 // File may only contain a single type
