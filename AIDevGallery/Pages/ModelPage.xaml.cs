@@ -249,7 +249,6 @@ internal sealed partial class ModelPage : Page
             fixedLink = Path.Join(DocsBaseUrl, WcrDocsRelativePath, link.Replace(".md", string.Empty));
         }
 
-        System.Diagnostics.Debug.WriteLine(fixedLink);
         return fixedLink;
     }
 }
