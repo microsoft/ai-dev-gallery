@@ -165,6 +165,7 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
             return "Invalid language selected";
         }
 
+        SendSampleInteractedEvent("TranscribeAudio"); // <exclude-line>
         cts = new CancellationTokenSource();
 
         var transcribedChunks = await whisper.TranscribeAsync(audioData, sourceLanguage, WhisperWrapper.TaskType.Transcribe, (bool)TimeStampsToggle.IsChecked!, cts.Token);

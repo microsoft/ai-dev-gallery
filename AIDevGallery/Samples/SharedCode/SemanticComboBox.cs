@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Telemetry.Events;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Connectors.InMemory;
@@ -74,6 +75,7 @@ internal sealed partial class SemanticComboBox : Control
             return [];
         }
 
+        SampleInteractionEvent.SendSampleInteractedEvent(EmbeddingGenerator.Metadata, Models.ScenarioType.SmartControlsSemanticComboBox, "Search"); // <exclude-line>
         GeneratedEmbeddings<Embedding<float>> results = [];
 
         var searchVectors = await EmbeddingGenerator.GenerateAsync([searchTerm]);

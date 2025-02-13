@@ -91,6 +91,8 @@ internal sealed partial class GenerateCode : BaseSamplePage
             return;
         }
 
+        SendSampleInteractedEvent("GenerateSolution"); // <exclude-line>
+
         string generatedCode = string.Empty;
         this.GenerateRichTextBlock.Blocks.Clear();
         GenerateButton.Visibility = Visibility.Collapsed;

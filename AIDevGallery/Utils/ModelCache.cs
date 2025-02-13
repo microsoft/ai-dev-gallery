@@ -88,6 +88,11 @@ internal class ModelCache
         return CacheStore.Models.FirstOrDefault(m => m.Url == url);
     }
 
+    public CachedModel? GetCachedModelByPath(string path)
+    {
+        return CacheStore.Models.FirstOrDefault(m => m.Path == path);
+    }
+
     public bool IsModelCached(string url)
     {
         url = UrlHelpers.GetFullUrl(url);

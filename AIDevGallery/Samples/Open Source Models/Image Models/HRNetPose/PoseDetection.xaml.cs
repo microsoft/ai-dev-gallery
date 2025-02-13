@@ -111,6 +111,7 @@ internal sealed partial class PoseDetection : BaseSamplePage
         if (file != null)
         {
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await DetectPose(file.Path);
         }
     }

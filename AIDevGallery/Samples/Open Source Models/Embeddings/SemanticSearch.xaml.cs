@@ -129,6 +129,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             return;
         }
 
+        SendSampleInteractedEvent("Search"); // <exclude-line>
+
         Task.Run(
             async () =>
             {

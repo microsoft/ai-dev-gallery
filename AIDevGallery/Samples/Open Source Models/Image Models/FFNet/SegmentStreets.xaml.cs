@@ -113,6 +113,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         if (file != null)
         {
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await Segment(file.Path);
         }
     }

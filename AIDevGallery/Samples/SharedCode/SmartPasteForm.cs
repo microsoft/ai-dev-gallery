@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Telemetry.Events;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
@@ -99,6 +100,7 @@ Rules:
             return [];
         }
 
+        SampleInteractionEvent.SendSampleInteractedEvent(model, Models.ScenarioType.SmartControlsSmartPaste, "InferPasteValues"); // <exclude-line>
         string outputMessage = string.Empty;
         PromptInput input = new()
         {

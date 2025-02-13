@@ -72,6 +72,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
         InputTextBox.IsEnabled = false;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Moderating content, please wait.", "ContentModerationWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
         Task.Run(
             async () =>

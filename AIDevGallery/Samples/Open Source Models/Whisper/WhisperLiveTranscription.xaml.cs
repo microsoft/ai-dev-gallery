@@ -72,6 +72,7 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
         {
             audioRecorder.StopRecording();
             StartStopButton.Content = "Start Recording";
+            SendSampleInteractedEvent("StartRecording"); // <exclude-line>
         }
         else
         {

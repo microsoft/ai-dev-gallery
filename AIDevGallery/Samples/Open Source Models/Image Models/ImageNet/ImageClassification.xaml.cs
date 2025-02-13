@@ -115,6 +115,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
         if (file != null)
         {
             UploadImageButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await ClassifyImage(file.Path);
         }
     }

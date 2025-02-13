@@ -113,6 +113,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
         {
             // Call function to run inference and classify image
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await EnhanceImage(file.Path);
         }
     }

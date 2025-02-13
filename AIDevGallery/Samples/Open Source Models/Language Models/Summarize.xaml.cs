@@ -81,6 +81,7 @@ internal sealed partial class Summarize : BaseSamplePage
         SummarizeButton.Visibility = Visibility.Collapsed;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Summarizing content, please wait.", "SummarizeTextWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("SummarizeText"); // <exclude-line>
 
         Task.Run(
             async () =>
