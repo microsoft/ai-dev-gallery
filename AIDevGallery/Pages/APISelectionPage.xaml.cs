@@ -30,10 +30,10 @@ internal sealed partial class APISelectionPage : Page
                 SetSelectedApiInMenu(type);
             }
             else if (e.Parameter is ModelDetails details &&
-                    details.Url.StartsWith("file://", StringComparison.InvariantCultureIgnoreCase) &&
                     ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == details.Id))
             {
-                SetSelectedApiInMenu(ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == details.Id).Key);
+                var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == details.Id).Key;
+                SetSelectedApiInMenu(apiType);
             }
             else
             {
