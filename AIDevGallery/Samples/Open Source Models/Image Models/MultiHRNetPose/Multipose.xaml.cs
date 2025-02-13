@@ -138,6 +138,7 @@ internal sealed partial class Multipose : BaseSamplePage
         {
             // Call function to run inference and classify image
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await RunPipeline(file.Path);
         }
     }
