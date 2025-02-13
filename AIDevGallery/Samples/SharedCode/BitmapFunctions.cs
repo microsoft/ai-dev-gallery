@@ -362,7 +362,7 @@ internal class BitmapFunctions
     {
         float adjustedFontSize = 12;
 
-        if(predictions.Count > 0)
+        if (predictions.Count > 0)
         {
             int maxPredictionTextLength = predictions.Select(p => p.Label.Length).ToList().Max() + 5;
             float minPredictionBoxWidth = predictions.Select(p => p.Box!.Xmax - p.Box!.Xmin).ToList().Min();

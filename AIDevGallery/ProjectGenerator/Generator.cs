@@ -120,7 +120,7 @@ internal partial class Generator
         Directory.CreateDirectory(outputPath);
 
         bool addLllmTypes = false;
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos = [];
+        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos = [];
         string model1Id = string.Empty;
         string model2Id = string.Empty;
         foreach (var modelType in modelTypes)
@@ -193,7 +193,13 @@ internal partial class Generator
                 modelPathStr = $"@\"{modelInfo.CachedModelDirectoryPath}\"";
             }
 
-            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate));
+            bool isPhiSilica = modelPathStr.Contains($"file://{ModelType.PhiSilica}");
+            if (isPhiSilica)
+            {
+                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
+            }
+
+            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate, isPhiSilica));
 
             if (modelTypes.First() == modelType)
             {
@@ -413,11 +419,16 @@ internal partial class Generator
         return outputPath;
     }
 
-    private string GetChatClientLoaderString(Sample sample, string modelPath, string promptTemplate)
+    private string GetChatClientLoaderString(Sample sample, string modelPath, string promptTemplate, bool isPhiSilica)
     {
-        if (!sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
+        if (!sample.SharedCode.Contains(SharedCodeEnum.GenAIModel) && !isPhiSilica)
         {
             return string.Empty;
+        }
+
+        if (isPhiSilica)
+        {
+            return "PhiSilicaClient.CreateAsync()";
         }
 
         return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
@@ -511,7 +522,7 @@ internal partial class Generator
         string baseNamespace,
         string outputPath,
         bool addLllmTypes,
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos,
+        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos,
         CancellationToken cancellationToken)
     {
         var sharedCode = sample.SharedCode.ToList();
@@ -520,6 +531,14 @@ internal partial class Generator
         {
             // Always used inside GenAIModel.cs
             sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
+        }
+
+        if (modelInfos.Values.Any(mi => mi.IsPhiSilica))
+        {
+            if (!sharedCode.Contains(SharedCodeEnum.PhiSilicaClient))
+            {
+                sharedCode.Add(SharedCodeEnum.PhiSilicaClient);
+            }
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils) && !sharedCode.Contains(SharedCodeEnum.NativeMethods))
@@ -575,6 +594,7 @@ internal partial class Generator
         {
             var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
             cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+            cleanCsSource = cleanCsSource.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
             cleanCsSource = cleanCsSource.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
             cleanCsSource = cleanCsSource.Replace($"public {className}()", "public Sample()");
             cleanCsSource = cleanCsSource.Replace(
@@ -616,8 +636,9 @@ internal partial class Generator
                 var subStr = cleanCsSource[(newLineIndex + Environment.NewLine.Length)..];
                 var subStrWithoutSpaces = subStr.TrimStart();
                 var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
-                var promptTemplate = GetPromptTemplateString(modelInfos.Values.First().ModelPromptTemplate, spaceCount);
-                var chatClientLoader = GetChatClientLoaderString(sample, modelPath, promptTemplate);
+                var modelInfo = modelInfos.Values.First();
+                var promptTemplate = GetPromptTemplateString(modelInfo.ModelPromptTemplate, spaceCount);
+                var chatClientLoader = GetChatClientLoaderString(sample, modelPath, promptTemplate, modelInfo.IsPhiSilica);
                 if (chatClientLoader != null)
                 {
                     cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);

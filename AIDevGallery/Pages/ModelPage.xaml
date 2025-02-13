@@ -9,9 +9,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:AIDevGallery.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:toolkit2="using:CommunityToolkit.WinUI.UI.Controls"
-    xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
     xmlns:types="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
@@ -26,6 +26,34 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutVisualStates">
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1200" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="MainRow.Height" Value="Auto" />
+                        <Setter Target="SideColumn.Width" Value="Auto" />
+                        <Setter Target="ModelsPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="ModelsPanel.(Grid.Row)" Value="2" />
+                        <Setter Target="SamplesPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="SamplesPanel.(Grid.Row)" Value="3" />
+                        <Setter Target="SamplesPanel.MaxWidth" Value="5000" />
+                        <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
+                        <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
+                        <Setter Target="Scroller.VerticalScrollBarVisibility" Value="Auto" />
+                        <Setter Target="TopButtons.(Grid.Row)" Value="1" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ModelFamily.Name}" />
         <StackPanel
             x:Name="TopButtons"
@@ -33,11 +61,8 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Orientation="Horizontal"
-            Spacing="12">
-            <HyperlinkButton
-                AutomationProperties.Name="View model card in the browser"
-                NavigateUri="{x:Bind ModelFamily.DocsUrl}"
-                ToolTipService.ToolTip="View model card in the browser">
+            Spacing="8">
+            <Button AutomationProperties.Name="View model card in the browser" ToolTipService.ToolTip="View model card in the browser">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Margin="0,-1,0,0" Text="View model card on" />
                     <Image
@@ -45,7 +70,7 @@
                         AutomationProperties.AccessibilityView="Raw"
                         Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelFamily.DocsUrl)}" />
                 </StackPanel>
-            </HyperlinkButton>
+            </Button>
 
             <controls:CopyButton
                 Height="34"
@@ -59,7 +84,7 @@
         <ScrollViewer
             x:Name="Scroller"
             Grid.Row="2"
-            Margin="-24,-4,-24,-16"
+            Margin="-24,12,-24,-16"
             Padding="24,0,24,16"
             VerticalAlignment="Stretch"
             VerticalScrollBarVisibility="Disabled">
@@ -204,33 +229,5 @@
                 </Grid>
             </Grid>
         </ScrollViewer>
-
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="LayoutVisualStates">
-                <VisualState x:Name="WideLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="1200" />
-                    </VisualState.StateTriggers>
-                </VisualState>
-                <VisualState x:Name="NarrowLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="0" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="MainRow.Height" Value="Auto" />
-                        <Setter Target="SideColumn.Width" Value="Auto" />
-                        <Setter Target="ModelsPanel.(Grid.Column)" Value="0" />
-                        <Setter Target="ModelsPanel.(Grid.Row)" Value="2" />
-                        <Setter Target="SamplesPanel.(Grid.Column)" Value="0" />
-                        <Setter Target="SamplesPanel.(Grid.Row)" Value="3" />
-                        <Setter Target="SamplesPanel.MaxWidth" Value="5000" />
-                        <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
-                        <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
-                        <Setter Target="Scroller.VerticalScrollBarVisibility" Value="Auto" />
-                        <Setter Target="TopButtons.(Grid.Row)" Value="1" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>

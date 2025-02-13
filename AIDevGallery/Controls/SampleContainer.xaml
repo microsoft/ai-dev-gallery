@@ -59,7 +59,6 @@
             </StackPanel>
 
             <Grid x:Name="ContentPageHolder" VerticalAlignment="Stretch">
-                <!--  A solidbackground we enable when toggling themes. WinUI uses a lot of translucent brushes and might look weird  -->
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
@@ -77,12 +76,29 @@
                     Message="To enable this sample, download the required models."
                     Severity="Informational"
                     Visibility="Collapsed" />
-                <ProgressRing
-                    x:Name="sampleLoadingProgressRing"
-                    Width="64"
-                    Height="64"
-                    Background="LightGray"
-                    IsActive="False" />
+                <StackPanel
+                    x:Name="loadingRingContainer"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Visibility="Collapsed">
+                    <ProgressRing
+                        x:Name="sampleLoadingProgressRing"
+                        Width="64"
+                        Height="64"
+                        IsActive="False" />
+                    <TextBlock
+                        x:Name="wcrApisLoadingTextBlock"
+                        Margin="24"
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextAlignment="Center"
+                        Visibility="Collapsed">
+                        <Run Text="Requesting model.." /> <LineBreak />
+                        <LineBreak />
+                        <Run FontSize="12" Text="Download progress can be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
+                        .</TextBlock>
+                </StackPanel>
             </Grid>
             <Grid
                 x:Name="CodeGrid"
@@ -163,6 +179,7 @@
                 </VisualState>
                 <VisualState x:Name="SampleLoading">
                     <VisualState.Setters>
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
                         <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
                     </VisualState.Setters>
                 </VisualState>

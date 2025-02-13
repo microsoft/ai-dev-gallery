@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.CodeExplainCode,
     SharedCode = [
         SharedCodeEnum.GenAIModel

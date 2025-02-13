@@ -169,6 +169,7 @@ internal static class AppUtils
     {
         if (theme == ElementTheme.Dark)
         {
+            // Adjust DefaultDark Theme to meet contrast accessibility requirements
             StyleDictionary darkStyles = StyleDictionary.DefaultDark;
             darkStyles[ScopeName.Comment].Foreground = StyleDictionary.BrightGreen;
             darkStyles[ScopeName.XmlDocComment].Foreground = StyleDictionary.BrightGreen;

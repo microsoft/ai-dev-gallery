@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
@@ -130,11 +130,22 @@ internal sealed partial class ModelPage : Page
 
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
-            readmeContents = Regex.Replace(readmeContents, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
+            readmeContents = PreprocessMarkdown(readmeContents);
+
             markdownTextBlock.Text = readmeContents;
         }
 
         readmeProgressRing.IsActive = false;
+    }
+
+    private string PreprocessMarkdown(string markdown)
+    {
+        markdown = Regex.Replace(markdown, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
+        markdown = Regex.Replace(markdown, @"^>\s*\[!IMPORTANT\]", "> **ℹ️ Important:**", RegexOptions.Multiline);
+        markdown = Regex.Replace(markdown, @"^>\s*\[!NOTE\]", "> **❗ Note:**", RegexOptions.Multiline);
+        markdown = Regex.Replace(markdown, @"^>\s*\[!TIP\]", "> **💡 Tip:**", RegexOptions.Multiline);
+
+        return markdown;
     }
 
     private IEnumerable<ModelDetails> GetAllSampleDetails()

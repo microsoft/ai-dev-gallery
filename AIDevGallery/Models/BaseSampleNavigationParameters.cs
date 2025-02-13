@@ -15,6 +15,8 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
     protected abstract string ChatClientModelPath { get; }
     protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
+    public bool ShowWcrModelLoadingMessage { get; set; }
+
     public void NotifyCompletion()
     {
         sampleLoadedCompletionSource.SetResult();
@@ -22,6 +24,16 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
 
     public async Task<IChatClient?> GetIChatClientAsync()
     {
+        if (ChatClientModelPath == $"file://{ModelType.PhiSilica}")
+        {
+            if (!PhiSilicaClient.IsAvailable())
+            {
+                this.ShowWcrModelLoadingMessage = true;
+            }
+
+            return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
+        }
+
         return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
     }
 

@@ -15,6 +15,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.System;
 
 namespace AIDevGallery.Controls;
 
@@ -181,6 +182,11 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
         SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
+        if (sampleNavigationParameters.ShowWcrModelLoadingMessage)
+        {
+            this.wcrApisLoadingTextBlock.Visibility = Visibility.Visible;
+        }
+
         await _sampleLoadedCompletionSource.Task;
 
         _sampleLoadedCompletionSource = null;
@@ -188,6 +194,7 @@ internal sealed partial class SampleContainer : UserControl
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
+        this.wcrApisLoadingTextBlock.Visibility = Visibility.Collapsed;
         VisualStateManager.GoToState(this, "SampleLoaded", true);
 
         CodePivot.Items.Clear();
@@ -329,5 +336,11 @@ internal sealed partial class SampleContainer : UserControl
         {
             await Windows.System.Launcher.LaunchUriAsync(new Uri("https://www.nuget.org/packages/" + url));
         }
+    }
+
+    private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    {
+        var uri = new Uri("ms-settings:windowsupdate");
+        await Launcher.LaunchUriAsync(uri);
     }
 }
