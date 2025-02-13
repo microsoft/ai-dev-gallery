@@ -22,7 +22,7 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class ModelPage : Page
 {
-    private const string DocsBaseUrl = "https://learn.microsoft.com/en-us/";
+    private const string DocsBaseUrl = "https://learn.microsoft.com/";
     private const string WcrDocsRelativePath = "/windows/ai/apis/";
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
