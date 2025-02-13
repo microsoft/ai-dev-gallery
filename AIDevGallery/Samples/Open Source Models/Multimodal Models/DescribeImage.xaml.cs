@@ -216,6 +216,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
             Loader.Visibility = Visibility.Visible;
 
             _cts.Token.ThrowIfCancellationRequested();
+            SendSampleInteractedEvent("DescribeTheImage"); // <exclude-line>
 
             await Task.Run(async () =>
             {

@@ -82,6 +82,7 @@ internal sealed partial class Translate : BaseSamplePage
         // <exclude>
         var contentStartedBeingGenerated = false;
         NarratorHelper.Announce(InputTextBox, "Translating content, please wait.", "TranslateTextWaitAnnouncementActivityId");
+        SendSampleInteractedEvent("TranslateText"); // <exclude-line>
 
         // </exclude>
         if (LanguageBox.SelectedItem is string language)
