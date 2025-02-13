@@ -135,9 +135,15 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         {
             ScaledPanel.Visibility = Visibility.Collapsed;
             Loader.Visibility = Visibility.Visible;
+
             var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
             var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-            var bitmap = _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+
+            var bitmap = await Task.Run(() =>
+            {
+                return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+            });
+
             Loader.Visibility = Visibility.Collapsed;
             ScaledPanel.Visibility = Visibility.Visible;
             await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
