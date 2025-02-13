@@ -80,7 +80,7 @@
         "Id": "smart-text"
       },
       "SmartPaste": {
-        "Name": "Smart Paste"
+        "Name": "Smart Paste",
         "Description": "Smart paste text with a local language model. Copy some address data to your clipboard, and click 'Paste' to have a language model semantically parse your clipboard into the proper fields.",
         "Id": "smart-paste",
         "Icon": "\uE77F"
@@ -133,7 +133,7 @@
       "DetectObjects": {
         "Name": "Detect Objects",
         "Description": "Label items in a photo with an object detection model. Upload an image and detected object predictions will be drawn on the image, with an included label and confidence score.",
-        "Id": "detect-objects"
+        "Id": "detect-objects",
         "Icon": "\uE7C5"
       },
       "DetectPose": {
