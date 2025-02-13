@@ -9,9 +9,12 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
@@ -79,9 +82,32 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             var streamRef = await package.GetBitmapAsync();
 
-            IRandomAccessStream stream = await streamRef.OpenReadAsync();
+            using var stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
@@ -113,27 +139,33 @@ internal sealed partial class ImageDescription : BaseSamplePage
         });
 
         var isFirstWord = true;
-        using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
-        var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
-        if (describeTask != null)
+        try
         {
-            describeTask.Progress += (asyncInfo, delta) =>
+            using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+            var describeTask = _imageDescriptor?.DescribeAsync(bitmapBuffer);
+            if (describeTask != null)
             {
-                var result = asyncInfo.GetResults().Response;
-
-                DispatcherQueue?.TryEnqueue(() =>
+                describeTask.Progress += (asyncInfo, delta) =>
                 {
-                    if (isFirstWord)
+                    DispatcherQueue?.TryEnqueue(() =>
                     {
-                        Loader.Visibility = Visibility.Collapsed;
-                        OutputTxt.Visibility = Visibility.Visible;
-                        isFirstWord = false;
-                    }
+                        if (isFirstWord)
+                        {
+                            Loader.Visibility = Visibility.Collapsed;
+                            OutputTxt.Visibility = Visibility.Visible;
+                            isFirstWord = false;
+                        }
 
-                    ResponseTxt.Text = result;
-                });
-            };
-            await describeTask;
+                        ResponseTxt.Text = delta;
+                    });
+                };
+
+                await describeTask;
+            }
+        }
+        catch (Exception ex)
+        {
+            ResponseTxt.Text = ex.Message;
         }
 
         Loader.Visibility = Visibility.Collapsed;

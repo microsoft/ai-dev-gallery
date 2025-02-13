@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Text;
@@ -92,6 +93,29 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             IRandomAccessStream stream = await streamRef.OpenReadAsync();
             await SetImage(stream);
         }
+        else if (package.Contains(StandardDataFormats.StorageItems))
+        {
+            var storageItems = await package.GetStorageItemsAsync();
+            if (IsImageFile(storageItems[0].Path))
+            {
+                try
+                {
+                    var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
+                    using var stream = await storageFile.OpenReadAsync();
+                    await SetImage(stream);
+                }
+                catch
+                {
+                    Console.WriteLine("Invalid Image File");
+                }
+            }
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
@@ -121,10 +145,12 @@ internal sealed partial class OCRLineSample : BaseSamplePage
     {
         CopyTextButton.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
+        RectCanvas.Visibility = Visibility.Collapsed;
         using var imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
         if (result == null)
         {
+            Loader.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -134,6 +160,12 @@ internal sealed partial class OCRLineSample : BaseSamplePage
 
         RectCanvas.Children.Clear();
         TextPanel.Children.Clear();
+
+        if (result.Lines == null || result.Lines.Length == 0)
+        {
+            Loader.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         foreach (var line in result.Lines)
         {
