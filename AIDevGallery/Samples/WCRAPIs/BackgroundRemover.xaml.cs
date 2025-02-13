@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -92,7 +93,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
             var storageItems = await package.GetStorageItemsAsync();
-            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            if (IsImageFile(storageItems[0].Path))
             {
                 try
                 {
@@ -106,6 +107,12 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
                 }
             }
         }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)

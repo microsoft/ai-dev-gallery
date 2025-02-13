@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
@@ -88,7 +89,7 @@ internal sealed partial class OCRSample : BaseSamplePage
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
             var storageItems = await package.GetStorageItemsAsync();
-            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            if (IsImageFile(storageItems[0].Path))
             {
                 try
                 {
@@ -102,6 +103,12 @@ internal sealed partial class OCRSample : BaseSamplePage
                 }
             }
         }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)

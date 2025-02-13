@@ -96,7 +96,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
             var storageItems = await package.GetStorageItemsAsync();
-            if (SharedCode.Utils.IsImageFile(storageItems[0].Path))
+            if (IsImageFile(storageItems[0].Path))
             {
                 try
                 {
@@ -110,6 +110,12 @@ internal sealed partial class OCRLineSample : BaseSamplePage
                 }
             }
         }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
     private async Task SetImage(IRandomAccessStream stream)
