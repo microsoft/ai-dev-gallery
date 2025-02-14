@@ -213,7 +213,7 @@ internal partial class Generator
 
         SampleProjectGeneratedEvent.Log(sample.Id, model1Id, model2Id, copyModelLocally);
 
-        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln"];
+        string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln", ".vsconfig"];
 
         // Get all files from the template directory with the allowed extensions
         var files = Directory.GetFiles(templatePath, "*.*", SearchOption.AllDirectories).Where(file => extensions.Any(file.EndsWith));
