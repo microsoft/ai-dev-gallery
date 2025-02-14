@@ -91,7 +91,31 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            NavFrame.Navigate(page, param);
+            if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
+            {
+                // No need to navigate to the ScenarioSelectionPage again, we just want to navigate to the right subpage
+                scenarioPage.HandleNavigation(param);
+            }
+            else
+            {
+                if (param == null && NavFrame.Content != null && NavFrame.Content.GetType() == page)
+                {
+                    if (NavFrame.Content is ScenarioSelectionPage page)
+                    {
+                        page.ShowHideNavPane();
+                    }
+                    else if (NavFrame.Content is ModelSelectionPage modelPage)
+                    {
+                        modelPage.ShowHideNavPane();
+                    }
+
+                    return;
+                }
+                else
+                {
+                    NavFrame.Navigate(page, param);
+                }
+            }
         });
     }
 
