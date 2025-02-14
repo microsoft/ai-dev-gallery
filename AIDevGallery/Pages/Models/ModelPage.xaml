@@ -20,13 +20,12 @@
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
-    <Grid x:Name="RootGrid" Padding="24,16,24,16">
+    <Grid x:Name="RootGrid" Padding="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout">
@@ -54,7 +53,7 @@
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ModelFamily.Name}" />
+        <TextBlock Margin="4,0,0,0" Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ModelFamily.Name}" />
         <StackPanel
             x:Name="TopButtons"
             Grid.ColumnSpan="2"
@@ -84,8 +83,8 @@
         <ScrollViewer
             x:Name="Scroller"
             Grid.Row="2"
-            Margin="-24,12,-24,-16"
-            Padding="24,0,24,16"
+            Margin="-16,-4,-16,-16"
+            Padding="16,0,16,16"
             VerticalAlignment="Stretch"
             VerticalScrollBarVisibility="Disabled">
             <Grid x:Name="ContentGrid" ColumnSpacing="16">
@@ -105,7 +104,7 @@
                     Grid.RowSpan="2"
                     Margin="0,8,0,0"
                     Padding="0"
-                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                     Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -143,7 +142,7 @@
                     x:Name="ModelsPanel"
                     Grid.Column="1"
                     Margin="0,8,0,0"
-                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                     Style="{StaticResource CardGridStyle}"
                     Visibility="{x:Bind IsNotApi, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.RowDefinitions>
@@ -169,7 +168,7 @@
                     Margin="0,16,0,0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
-                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                     Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

@@ -104,6 +104,18 @@ internal sealed partial class ModelSelectionPage : Page
         base.OnNavigatedTo(e);
     }
 
+    public void ShowHideNavPane()
+    {
+        if (NavView.OpenPaneLength == 0)
+        {
+            NavView.OpenPaneLength = 248;
+        }
+        else
+        {
+            NavView.OpenPaneLength = 0;
+        }
+    }
+
     private void SetUpModels()
     {
         List<ModelType> rootModels = [.. ModelTypeHelpers.ModelGroupDetails.Keys];

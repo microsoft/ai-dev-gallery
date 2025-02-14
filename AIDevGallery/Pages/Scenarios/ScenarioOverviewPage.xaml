@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.ScenarioOverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:CommunityToolkit.WinUI.Media"
+    xmlns:models="using:AIDevGallery.Models"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:util="using:AIDevGallery.Utils"
+    mc:Ignorable="d">
+
+    <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
+        <ScrollViewer>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <controls:OverviewPageHeader Title="Overview" Description="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience.">
+                    <controls:OverviewPageHeader.Background>
+                        <LinearGradientBrush Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
+                            <GradientStop Offset="0" Color="#3286EE" />
+                            <GradientStop Offset="0.5" Color="#C8AEC4" />
+                            <GradientStop Offset="1" Color="Transparent" />
+                        </LinearGradientBrush>
+                    </controls:OverviewPageHeader.Background>
+                    <controls:OverviewPageHeader.ImageContent>
+                        <Grid Margin="24,8,24,16">
+                            <Grid
+                                Width="208"
+                                Margin="36,0,0,0"
+                                Padding="4"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CardGridStyle}">
+                                <ui:Effects.Shadow>
+                                    <media:AttachedCardShadow
+                                        BlurRadius="12"
+                                        CornerRadius="8"
+                                        Opacity="0.2"
+                                        Offset="0"
+                                        Color="#000000" />
+                                </ui:Effects.Shadow>
+                                <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
+                            </Grid>
+                            <Grid
+                                Margin="160,140,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                                Style="{StaticResource CardGridStyle}">
+                                <SymbolIcon
+                                    Width="28"
+                                    Height="28"
+                                    Symbol="Permissions" />
+                            </Grid>
+                            <Grid
+                                Margin="0,4,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                                Style="{StaticResource CardGridStyle}">
+                                <SymbolIcon
+                                    Width="28"
+                                    Height="28"
+                                    Symbol="Setting" />
+                            </Grid>
+
+                        </Grid>
+                    </controls:OverviewPageHeader.ImageContent>
+                </controls:OverviewPageHeader>
+                <ItemsRepeater
+                    x:Name="allView"
+                    Grid.Row="1"
+                    Margin="24,36,24,24"
+                    ItemsSource="{x:Bind allScenarioCategories, Mode=OneWay}"
+                    TabFocusNavigation="Local">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Vertical" Spacing="36" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:ScenarioCategory">
+                            <Grid RowSpacing="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Margin="2,0,0,0"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind Name}"
+                                    TextWrapping="Wrap" />
+                                <!--<TextBlock
+                                Grid.Row="1"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind Description}"
+                                TextWrapping="Wrap" />-->
+                                <ItemsView
+                                    Grid.Row="2"
+                                    IsItemInvokedEnabled="True"
+                                    ItemInvoked="ScenarioItemsView_ItemInvoked"
+                                    ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
+                                    SelectionMode="None">
+                                    <ItemsView.Layout>
+                                        <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
+                                    </ItemsView.Layout>
+                                    <ItemsView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Scenario">
+                                            <ItemContainer AutomationProperties.Name="{x:Bind Name}">
+                                                <Grid
+                                                    Width="274"
+                                                    Height="96"
+                                                    Padding="16"
+                                                    RowSpacing="8"
+                                                    Style="{StaticResource CardGridStyle}">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                                        <FontIcon
+                                                            AutomationProperties.AccessibilityView="Raw"
+                                                            FontSize="20"
+                                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                            Glyph="{x:Bind Icon}" />
+                                                        <TextBlock
+                                                            VerticalAlignment="Center"
+                                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                            Text="{x:Bind Name}" />
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        Text="{x:Bind Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        TextWrapping="Wrap" />
+                                                </Grid>
+                                            </ItemContainer>
+                                        </DataTemplate>
+                                    </ItemsView.ItemTemplate>
+                                </ItemsView>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </Grid>
+        </ScrollViewer>
+
+    </Grid>
+</Page>
