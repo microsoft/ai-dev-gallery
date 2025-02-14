@@ -10,10 +10,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -21,12 +19,8 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class APIPage : Page
 {
-
-    private const string DocsBaseUrl = "https://learn.microsoft.com/";
-    private const string WcrDocsRelativePath = "/windows/ai/apis/";
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
-    public bool IsNotApi => !modelFamilyType.HasValue || !ModelTypeHelpers.ApiDefinitionDetails.ContainsKey(modelFamilyType.Value);
 
     public APIPage()
     {
@@ -76,70 +70,42 @@ internal sealed partial class APIPage : Page
         if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
             var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
+
+            CodeSampleTextBlock.Text = "```csharp\r\nusing Microsoft.Windows.AI.Generative; \r\n \r\nif (!LanguageModel.IsAvailable()) \r\n{ \r\n   var op = await LanguageModel.MakeAvailableAsync(); \r\n} \r\n \r\nusing LanguageModel languageModel = await LanguageModel.CreateAsync(); \r\n \r\nstring prompt = \"Provide the molecular formula for glucose.\"; \r\n \r\nvar result = await languageModel.GenerateResponseAsync(prompt); \r\n \r\nConsole.WriteLine(result.Response); \r\n```";
         }
         else
         {
             summaryGrid.Visibility = Visibility.Collapsed;
         }
+
+        GetSamples();
+    }
+
+    private void GetSamples()
+    {
+        // if we don't have a modelType, we are in a user added language model, use same samples as Phi
+        var modelType = modelFamilyType ?? ModelType.Phi3Mini;
+
+        var samples = SampleDetails.Samples.Where(s => s.Model1Types.Contains(modelType) || s.Model2Types?.Contains(modelType) == true).ToList();
+        if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelType)))
+        {
+            var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
+            samples.AddRange(SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true));
+        }
+        SampleList.ItemsSource = samples;
     }
 
     private async Task LoadReadme(string url)
     {
-        string readmeContents = string.Empty;
-
-        if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
-        {
-            readmeContents = await GithubApi.GetContentsOfTextFile(url);
-        }
-        else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
-        {
-            readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
-        }
-
+        string readmeContents = await GithubApi.GetContentsOfTextFile(url);
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
-            readmeContents = PreprocessMarkdown(readmeContents);
+            readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
             markdownTextBlock.Text = readmeContents;
         }
 
         readmeProgressRing.IsActive = false;
-    }
-
-    private string PreprocessMarkdown(string markdown)
-    {
-        markdown = Regex.Replace(markdown, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
-        markdown = Regex.Replace(markdown, @"^>\s*\[!IMPORTANT\]", "> **ℹ️ Important:**", RegexOptions.Multiline);
-        markdown = Regex.Replace(markdown, @"^>\s*\[!NOTE\]", "> **❗ Note:**", RegexOptions.Multiline);
-        markdown = Regex.Replace(markdown, @"^>\s*\[!TIP\]", "> **💡 Tip:**", RegexOptions.Multiline);
-
-        return markdown;
-    }
-
-    private IEnumerable<ModelDetails> GetAllSampleDetails()
-    {
-        if (!modelFamilyType.HasValue || !ModelTypeHelpers.ParentMapping.TryGetValue(modelFamilyType.Value, out List<ModelType>? modelTypes))
-        {
-            yield break;
-        }
-
-        if (modelTypes.Count == 0)
-        {
-            // Its an API
-            modelTypes = [modelFamilyType.Value];
-        }
-
-        foreach (var modelType in modelTypes)
-        {
-            if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
-            {
-                yield return modelDetails;
-            }
-            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinition))
-            {
-                yield return ModelDetailsHelper.GetModelDetailsFromApiDefinition(modelType, apiDefinition);
-            }
-        }
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -158,9 +124,9 @@ internal sealed partial class APIPage : Page
     {
         string link = e.Link;
 
-        if (!IsNotApi && !IsValidUrl(link))
+        if (!URLHelper.IsValidUrl(link))
         {
-            link = FixWcrReadmeLink(link);
+            link = URLHelper.FixWcrReadmeLink(link);
         }
 
         ModelDetailsLinkClickedEvent.Log(link);
@@ -175,30 +141,7 @@ internal sealed partial class APIPage : Page
     {
         if (args.InvokedItem is Sample sample)
         {
-            //var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
-           // App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
+            App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample));
         }
-    }
-
-    private bool IsValidUrl(string url)
-    {
-        Uri uri;
-        return Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-    }
-
-    private string FixWcrReadmeLink(string link)
-    {
-        string fixedLink;
-
-        if (link.StartsWith('/'))
-        {
-            fixedLink = Path.Join(DocsBaseUrl, link);
-        }
-        else
-        {
-            fixedLink = Path.Join(DocsBaseUrl, WcrDocsRelativePath, link.Replace(".md", string.Empty));
-        }
-
-        return fixedLink;
     }
 }

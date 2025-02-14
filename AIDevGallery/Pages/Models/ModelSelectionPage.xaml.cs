@@ -106,7 +106,7 @@ internal sealed partial class ModelSelectionPage : Page
 
     public void ShowHideNavPane()
     {
-        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 224 : 0;
     }
 
     private void SetUpModels()

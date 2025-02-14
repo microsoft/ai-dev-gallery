@@ -20,7 +20,7 @@
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
-    <Grid x:Name="RootGrid" Padding="16">
+    <Grid x:Name="RootGrid" Padding="16,16,16,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -123,8 +123,7 @@
                     x:Name="ModelsPanel"
                     Grid.Column="1"
                     Margin="0,8,0,0"
-                    Style="{StaticResource CardGridStyle}"
-                    Visibility="{x:Bind IsNotApi, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />

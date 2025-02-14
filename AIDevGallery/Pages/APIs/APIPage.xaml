@@ -41,7 +41,6 @@
                 FontSize="12"
                 Style="{StaticResource SubtleButtonStyle}"
                 ToolTipService.ToolTip="View documentation in the browser" />
-
             <controls:CopyButton
                 Height="34"
                 AutomationProperties.Name="Copy link to page"
@@ -50,15 +49,22 @@
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
         </StackPanel>
-
+        <Grid
+            Grid.Row="1"
+            Height="320"
+            Style="{StaticResource CardGridStyle}">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="Sample goes here" />
+        </Grid>
         <ScrollViewer
             x:Name="Scroller"
             Grid.Row="2"
-            Margin="-16,4,-16,-16"
-            Padding="16,0,16,16"
+            Margin="0,0,-16,-16"
             VerticalAlignment="Stretch">
             <Grid
-                x:Name="ContentGrid"
+                Margin="0,16,16,16"
                 ColumnSpacing="16"
                 RowSpacing="16">
                 <Grid.ColumnDefinitions>
@@ -67,24 +73,13 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="MainRow" Height="*" />
                 </Grid.RowDefinitions>
-                <Grid
-                    Grid.ColumnSpan="2"
-                    Height="280"
-                    Style="{StaticResource CardGridStyle}">
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Text="Sample goes here" />
-                </Grid>
+
                 <Grid
                     x:Name="summaryGrid"
-                    Grid.Row="1"
                     Grid.RowSpan="2"
                     Padding="0"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                     Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -119,10 +114,8 @@
                         IsActive="True" />
                 </Grid>
 
-                <Grid
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Style="{StaticResource CardGridStyle}">
+                <!--  API CODE GOES HERE  -->
+                <Grid Grid.Column="1" Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -131,11 +124,13 @@
                         Margin="4,4,0,16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="API code" />
-                    <toolkit2:MarkdownTextBlock Grid.Row="1" />
+                    <toolkit2:MarkdownTextBlock x:Name="CodeSampleTextBlock" Grid.Row="1" />
                 </Grid>
+
+                <!--  SAMPLE LINKS  -->
                 <Grid
                     x:Name="SamplesPanel"
-                    Grid.Row="2"
+                    Grid.Row="1"
                     Grid.Column="1"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
@@ -147,14 +142,13 @@
                     <TextBlock
                         Margin="4,4,0,16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
-                        Text="Samples" />
+                        Text="Other samples" />
                     <ItemsView
                         x:Name="SampleList"
                         Grid.Row="1"
                         Padding="4,0,4,4"
                         HorizontalAlignment="Stretch"
                         AutomationProperties.Name="Samples"
-                        IsEnabled="False"
                         IsItemInvokedEnabled="True"
                         ItemInvoked="SampleList_ItemInvoked"
                         SelectionMode="None">
