@@ -3,11 +3,11 @@
     x:Class="AIDevGallery.Samples.WCRAPIs.BackgroundRemover"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:samples="using:AIDevGallery.Samples"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
     <Grid ColumnSpacing="24" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <StackPanel
@@ -99,5 +99,10 @@
             VerticalAlignment="Center"
             IsActive="True"
             Visibility="Collapsed" />
+        <shared:WcrModelDownloader 
+            x:Name="WcrModelDownloader" 
+            DownloadClicked="WcrModelDownloader_DownloadClicked"
+            Grid.RowSpan="3"
+            Grid.ColumnSpan="2"/>
     </Grid>
 </samples:BaseSamplePage>

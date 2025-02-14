@@ -84,6 +84,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
         CheckGrammarButton.Visibility = Visibility.Collapsed;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Checking grammar, please wait.", "GrammarCheckWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("GrammarCheckText"); // <exclude-line>
 
         Task.Run(
             async () =>

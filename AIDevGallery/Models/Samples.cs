@@ -138,6 +138,7 @@ internal class ScenarioCategory
 {
     public required string Name { get; init; }
     public required string Icon { get; init; }
+    public required string Description { get; init; }
     public required List<Scenario> Scenarios { get; init; }
 }
 
@@ -156,7 +157,8 @@ internal enum HardwareAccelerator
 {
     CPU,
     DML,
-    QNN
+    QNN,
+    WCRAPI
 }
 
 #pragma warning restore SA1402 // File may only contain a single type

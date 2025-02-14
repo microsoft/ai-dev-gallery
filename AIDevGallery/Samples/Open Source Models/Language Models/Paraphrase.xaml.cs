@@ -83,6 +83,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
         ParaphraseButton.Visibility = Visibility.Collapsed;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Paraphrasing text, please wait.", "ParaphraseWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("ParaphraseText"); // <exclude-line>
 
         Task.Run(
             async () =>

@@ -6,7 +6,9 @@ using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AIDevGallery.Pages;
 
@@ -25,7 +27,13 @@ internal sealed partial class APISelectionPage : Page
         {
             if (e.Parameter is ModelType type)
             {
-                SetSelectedAPIInMenu(type);
+                SetSelectedApiInMenu(type);
+            }
+            else if (e.Parameter is ModelDetails details &&
+                    ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == details.Id))
+            {
+                var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == details.Id).Key;
+                SetSelectedApiInMenu(apiType);
             }
             else
             {
@@ -58,12 +66,12 @@ internal sealed partial class APISelectionPage : Page
             }
             else
             {
-                NavFrame.Navigate(typeof(WCROverview));
+                NavFrame.Navigate(typeof(APIOverview));
             }
         }
     }
 
-    public void SetSelectedAPIInMenu(ModelType selectedType)
+    public void SetSelectedApiInMenu(ModelType selectedType)
     {
         foreach (var item in NavView.MenuItems)
         {
@@ -73,5 +81,10 @@ internal sealed partial class APISelectionPage : Page
                 return;
             }
         }
+    }
+
+    public void ShowHideNavPane()
+    {
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
     }
 }
