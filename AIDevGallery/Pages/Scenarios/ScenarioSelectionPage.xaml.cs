@@ -99,14 +99,7 @@ internal sealed partial class ScenarioSelectionPage : Page
 
     public void ShowHideNavPane()
     {
-        if (NavView.OpenPaneLength == 0)
-        {
-            NavView.OpenPaneLength = 248;
-        }
-        else
-        {
-            NavView.OpenPaneLength = 0;
-        }
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
     }
 
     private void SetUpScenarios(string? filter = null)

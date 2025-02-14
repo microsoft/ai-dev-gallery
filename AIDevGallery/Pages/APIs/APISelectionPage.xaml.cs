@@ -66,7 +66,7 @@ internal sealed partial class APISelectionPage : Page
             }
             else
             {
-                NavFrame.Navigate(typeof(WCROverview));
+                NavFrame.Navigate(typeof(APIOverview));
             }
         }
     }
@@ -81,5 +81,10 @@ internal sealed partial class APISelectionPage : Page
                 return;
             }
         }
+    }
+
+    public void ShowHideNavPane()
+    {
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
     }
 }

@@ -108,18 +108,19 @@ internal sealed partial class MainWindow : WindowEx
             {
                 if (param == null && NavFrame.Content != null && NavFrame.Content.GetType() == page)
                 {
-                    if (NavFrame.Content is ScenarioSelectionPage scenarioPage)
+                    if (NavFrame.Content is ScenarioSelectionPage scenario)
                     {
-                        scenarioPage.ShowHideNavPane();
+                        scenario.ShowHideNavPane();
                     }
-                    else if (NavFrame.Content is ModelSelectionPage modelPage)
+                    else if (NavFrame.Content is ModelSelectionPage model)
                     {
-                        modelPage.ShowHideNavPane();
+                        model.ShowHideNavPane();
                     }
-                    else if (NavFrame.Content is APISelectionPage apiPage)
+                    else if (NavFrame.Content is APISelectionPage api)
                     {
-                        //apiPage.ShowHideNavPane();
+                        api.ShowHideNavPane();
                     }
+
                     return;
                 }
                 else

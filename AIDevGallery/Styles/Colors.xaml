@@ -8,20 +8,31 @@
     <ResourceDictionary.ThemeDictionaries>
         <!--  ControlFillColorQuarternaryBrush does not exist (yet) in WinUI, only in Windows Visual Library (Figma)  -->
         <ResourceDictionary x:Key="Default">
-            <LinearGradientBrush x:Key="APIBackgroundBrush" StartPoint="0,0" EndPoint="0.5, 1">
+            <LinearGradientBrush x:Key="APIHeaderBackgroundBrush" StartPoint="0,0" EndPoint="0.5, 1">
                 <GradientStop Offset="0" Color="#38C8AEC4" />
                 <GradientStop Offset="1" Color="#383286EE" />
             </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ScenarioHeaderBackgroundBrush" Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
+                <GradientStop Offset="0" Color="#3286EE" />
+                <GradientStop Offset="0.5" Color="#C8AEC4" />
+                <GradientStop Offset="1" Color="Transparent" />
+            </LinearGradientBrush>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-            <LinearGradientBrush x:Key="APIBackgroundBrush" StartPoint="0.5,0" EndPoint="1, 1">
+            <LinearGradientBrush x:Key="APIHeaderBackgroundBrush" StartPoint="0.5,0" EndPoint="1, 1">
                 <GradientStop Offset="0" Color="#40D9E8F9" />
                 <GradientStop Offset="0.5" Color="#402D87F1" />
                 <GradientStop Offset="1" Color="Transparent" />
             </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ScenarioHeaderBackgroundBrush" Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
+                <GradientStop Offset="0" Color="#3286EE" />
+                <GradientStop Offset="0.5" Color="#C8AEC4" />
+                <GradientStop Offset="1" Color="Transparent" />
+            </LinearGradientBrush>
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
-            <SolidColorBrush x:Key="APIBackgroundBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="APIHeaderBackgroundBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="ScenarioHeaderBackgroundBrush" Color="Transparent" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>
