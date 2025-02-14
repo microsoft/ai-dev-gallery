@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
-    x:Class="AIDevGallery.Pages.ModelPage"
+    x:Class="AIDevGallery.Pages.APIPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:Chat="using:AIDevGallery.Samples.OpenSourceModels.LanguageModels"
     xmlns:animations="using:CommunityToolkit.WinUI.Animations"
     xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -38,20 +37,10 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button
-                AutomationProperties.Name="View model card in the browser"
+                Content="View documentation"
+                FontSize="12"
                 Style="{StaticResource SubtleButtonStyle}"
-                ToolTipService.ToolTip="View model card in the browser">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock
-                        Margin="0,-1,0,0"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="View model card on" />
-                    <Image
-                        Width="16"
-                        AutomationProperties.AccessibilityView="Raw"
-                        Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelFamily.DocsUrl)}" />
-                </StackPanel>
-            </Button>
+                ToolTipService.ToolTip="View documentation in the browser" />
 
             <controls:CopyButton
                 Height="34"
@@ -65,27 +54,37 @@
         <ScrollViewer
             x:Name="Scroller"
             Grid.Row="2"
-            Margin="-16,-4,-16,-16"
+            Margin="-16,4,-16,-16"
             Padding="16,0,16,16"
-            VerticalAlignment="Stretch"
-            VerticalScrollBarVisibility="Disabled">
-            <Grid x:Name="ContentGrid" ColumnSpacing="16">
+            VerticalAlignment="Stretch">
+            <Grid
+                x:Name="ContentGrid"
+                ColumnSpacing="16"
+                RowSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition x:Name="SideColumn" Width="380" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="MainRow" Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-
+                <Grid
+                    Grid.ColumnSpan="2"
+                    Height="280"
+                    Style="{StaticResource CardGridStyle}">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="Sample goes here" />
+                </Grid>
                 <Grid
                     x:Name="summaryGrid"
+                    Grid.Row="1"
                     Grid.RowSpan="2"
-                    Margin="0,8,0,0"
                     Padding="0"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                     Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -93,7 +92,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <ScrollViewer Grid.Row="2" Padding="16,0,16,0">
+                    <ScrollViewer Grid.Row="3" Padding="16,0,16,0">
                         <toolkit2:MarkdownTextBlock
                             x:Name="markdownTextBlock"
                             Margin="0,16,0,16"
@@ -116,36 +115,28 @@
                     </ScrollViewer>
                     <ProgressRing
                         x:Name="readmeProgressRing"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         IsActive="True" />
                 </Grid>
+
                 <Grid
-                    x:Name="ModelsPanel"
+                    Grid.Row="1"
                     Grid.Column="1"
-                    Margin="0,8,0,0"
-                    Style="{StaticResource CardGridStyle}"
-                    Visibility="{x:Bind IsNotApi, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Margin="4,4,0,12"
+                        Margin="4,4,0,16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
-                        Text="Versions" />
-                    <controls:ModelSelectionControl
-                        x:Name="modelSelectionControl"
-                        Grid.Row="1"
-                        Margin="4,0,4,4"
-                        ModelCardVisibility="Collapsed"
-                        SelectedModelChanged="ModelSelectionControl_SelectedModelChanged" />
+                        Text="API code" />
+                    <toolkit2:MarkdownTextBlock Grid.Row="1" />
                 </Grid>
-
                 <Grid
                     x:Name="SamplesPanel"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Grid.Column="1"
-                    Margin="0,16,0,0"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
                     Style="{StaticResource CardGridStyle}">
@@ -157,7 +148,6 @@
                         Margin="4,4,0,16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="Samples" />
-
                     <ItemsView
                         x:Name="SampleList"
                         Grid.Row="1"
@@ -207,32 +197,5 @@
                 </Grid>
             </Grid>
         </ScrollViewer>
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="LayoutVisualStates">
-                <VisualState x:Name="WideLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="1200" />
-                    </VisualState.StateTriggers>
-                </VisualState>
-                <VisualState x:Name="NarrowLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="0" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="MainRow.Height" Value="Auto" />
-                        <Setter Target="SideColumn.Width" Value="Auto" />
-                        <Setter Target="ModelsPanel.(Grid.Column)" Value="0" />
-                        <Setter Target="ModelsPanel.(Grid.Row)" Value="2" />
-                        <Setter Target="SamplesPanel.(Grid.Column)" Value="0" />
-                        <Setter Target="SamplesPanel.(Grid.Row)" Value="3" />
-                        <Setter Target="SamplesPanel.MaxWidth" Value="5000" />
-                        <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
-                        <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
-                        <Setter Target="Scroller.VerticalScrollBarVisibility" Value="Auto" />
-                        <Setter Target="TopButtons.(Grid.Row)" Value="1" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>

@@ -23,6 +23,8 @@
         <NavigationView.Resources>
             <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
         </NavigationView.Resources>
         <NavigationView.PaneHeader>
             <StackPanel Orientation="Vertical">
@@ -37,8 +39,7 @@
                 Content="Overview"
                 Icon="{ui:FontIcon Glyph=&#xE81E;}"
                 Tag="Overview" />
-            <NavigationViewItemSeparator />
-            <NavigationViewItemHeader Content="Available APIs" />
+            <NavigationViewItemHeader Content="Documentation" />
         </NavigationView.MenuItems>
         <NavigationView.Content>
             <Frame x:Name="NavFrame" />

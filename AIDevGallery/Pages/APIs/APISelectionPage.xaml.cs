@@ -62,7 +62,7 @@ internal sealed partial class APISelectionPage : Page
         {
             if (item.Tag is ModelType type)
             {
-                NavFrame.Navigate(typeof(ModelPage), type);
+                NavFrame.Navigate(typeof(APIPage), type);
             }
             else
             {

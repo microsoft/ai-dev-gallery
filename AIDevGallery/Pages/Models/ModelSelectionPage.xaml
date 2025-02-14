@@ -25,9 +25,6 @@
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
             <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
             <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
-            <!--<NavigationView.Resources>
-
-  </NavigationView.Resources>-->
         </NavigationView.Resources>
         <NavigationView.PaneHeader>
             <StackPanel Orientation="Vertical">

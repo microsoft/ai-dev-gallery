@@ -14,7 +14,7 @@
     xmlns:models="using:AIDevGallery.Models"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
         <ScrollViewer>
             <Grid>
                 <Grid.RowDefinitions>
