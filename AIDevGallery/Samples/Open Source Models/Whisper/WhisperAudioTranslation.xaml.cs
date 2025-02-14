@@ -113,6 +113,7 @@ internal sealed partial class WhisperAudioTranslation : BaseSamplePage
             return;
         }
 
+        SendSampleInteractedEvent("TranslateAudio"); // <exclude-line>
         try
         {
             var audioData = audioStream.ToArray();

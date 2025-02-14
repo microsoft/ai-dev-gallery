@@ -137,6 +137,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
         InputBox.IsEnabled = false;
 
         CancellationToken token = CancelGenerationAndGetNewToken();
+        SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
         inferenceTask = Task.Run(
             () =>
@@ -217,6 +218,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
         if(file != null && DefaultImage.Source != null)
         {
+            SendSampleInteractedEvent("SaveFile"); // <exclude-line>
             RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap();
             await renderTargetBitmap.RenderAsync(DefaultImage);
 

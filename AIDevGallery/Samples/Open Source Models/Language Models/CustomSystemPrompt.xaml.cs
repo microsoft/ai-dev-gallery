@@ -126,6 +126,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         InputTextBox.IsEnabled = false;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "CustomPromptWaitAnnouncementActivityId"); // <exclude-line>
+        SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
         Task.Run(
             async () =>
