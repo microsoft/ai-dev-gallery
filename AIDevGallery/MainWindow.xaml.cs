@@ -108,6 +108,7 @@ internal sealed partial class MainWindow : WindowEx
                     {
                         modelPage.ShowHideNavPane();
                     }
+
                     return;
                 }
                 else

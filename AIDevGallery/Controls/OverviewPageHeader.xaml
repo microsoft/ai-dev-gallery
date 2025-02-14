@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="AIDevGallery.Controls.OverviewPageHeader"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    SizeChanged="Control_SizeChanged"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="{x:Bind Background}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            x:Name="TextPanel"
+            Padding="24,16,24,16"
+            Orientation="Vertical">
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind Title, Mode=OneWay}" />
+            <TextBlock
+                MaxWidth="386"
+                Margin="0,12,0,12"
+                HorizontalAlignment="Left"
+                Text="{x:Bind Description, Mode=OneWay}"
+                TextWrapping="Wrap" />
+            <ContentPresenter Content="{x:Bind ActionContent, Mode=OneWay}" />
+        </StackPanel>
+        <ContentPresenter
+            x:Name="ImageContentHolder"
+            Grid.Row="0"
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            Content="{x:Bind ImageContent, Mode=OneWay}" />
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutVisualStates">
+                <VisualState x:Name="WideLayout" />
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.Setters>
+                        <Setter Target="ImageContentHolder.(Grid.Row)" Value="1" />
+                        <Setter Target="ImageContentHolder.(Grid.Column)" Value="0" />
+                        <Setter Target="ImageContentHolder.HorizontalAlignment" Value="Left" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</UserControl>

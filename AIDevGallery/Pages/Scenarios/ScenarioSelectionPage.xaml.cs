@@ -25,7 +25,6 @@ internal sealed partial class ScenarioSelectionPage : Page
         // new("wcr-api", "WCR API" )
     ];
 
-    private static LastInternalNavigation? lastInternalNavigation;
     private Scenario? selectedScenario;
 
     public ScenarioSelectionPage()
@@ -50,11 +49,6 @@ internal sealed partial class ScenarioSelectionPage : Page
     {
         Scenario? scenario = null;
         object? parameter = obj;
-
-        if (obj == null && lastInternalNavigation?.Parameter != null)
-        {
-            parameter = lastInternalNavigation.Parameter;
-        }
 
         if (parameter is Scenario sc)
         {
@@ -199,7 +193,7 @@ internal sealed partial class ScenarioSelectionPage : Page
     private void NavigateToScenario(Scenario scenario, SampleNavigationArgs? sampleArgs = null)
     {
         selectedScenario = scenario;
-        lastInternalNavigation = new LastInternalNavigation(typeof(ScenarioPage), scenario);
+
         if (sampleArgs != null)
         {
             NavFrame.Navigate(typeof(ScenarioPage), sampleArgs);

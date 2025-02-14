@@ -10,138 +10,67 @@
     xmlns:models="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:util="using:AIDevGallery.Utils"
-    xmlns:wuc="using:WinUICommunity"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.05" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.35" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.55" Color="#FFFFFFFF" />
-                        <GradientStop Offset="0.95" Color="#00FFFFFF" />
-                        <GradientStop Offset="1" Color="#00FFFFFF" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FF000000" />
-                        <GradientStop Offset="0.05" Color="#FF000000" />
-                        <GradientStop Offset="0.35" Color="#FF000000" />
-                        <GradientStop Offset="0.55" Color="#FF000000" />
-                        <GradientStop Offset="0.95" Color="#00000000" />
-                        <GradientStop Offset="1" Color="#00000000" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="HighContrast">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
-                        <GradientStop Offset="0" Color="#FF000000" />
-                        <GradientStop Offset="0.05" Color="#FF000000" />
-                        <GradientStop Offset="0.35" Color="#FF000000" />
-                        <GradientStop Offset="0.55" Color="#FF000000" />
-                        <GradientStop Offset="0.95" Color="#00000000" />
-                        <GradientStop Offset="1" Color="#00000000" />
-                    </RadialGradientBrush>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-
-            <LinearGradientBrush x:Key="LightTextGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Offset="0.1" Color="#FFFFFF" />
-                <GradientStop Offset="0.3" Color="#E9E9E9" />
-                <GradientStop Offset="0.6" Color="#FDFDFD" />
-                <GradientStop Offset="0.9" Color="#FFFFFF" />
-            </LinearGradientBrush>
-            <LinearGradientBrush x:Key="DarkTextGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Offset="0.1" Color="#303030" />
-                <GradientStop Offset="0.3" Color="#4A4A4A" />
-                <GradientStop Offset="0.6" Color="#161515" />
-                <GradientStop Offset="0.9" Color="#303030" />
-            </LinearGradientBrush>
-        </ResourceDictionary>
-    </Page.Resources>
     <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
-
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid Height="240" CornerRadius="0">
-                    <Grid Opacity="0.15">
-                        <Grid.Background>
-                            <LinearGradientBrush StartPoint="-0.2,0" EndPoint="1, 1">
-                                <GradientStop Offset="0" Color="#3286EE" />
-                                <GradientStop Offset="0.5" Color="#C8AEC4" />
-                                <GradientStop Offset="1" Color="Transparent" />
-                            </LinearGradientBrush>
-                        </Grid.Background>
-                    </Grid>
-                    <StackPanel Margin="24,16,24,16" Orientation="Vertical">
-                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Overview" />
-                        <TextBlock
-                            Width="386"
-                            Margin="0,12,0,12"
-                            HorizontalAlignment="Left"
-                            Text="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience."
-                            TextWrapping="Wrap" />
-                    </StackPanel>
+                <controls:OverviewPageHeader Title="Overview" Description="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience.">
+                    <controls:OverviewPageHeader.Background>
+                        <LinearGradientBrush Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
+                            <GradientStop Offset="0" Color="#3286EE" />
+                            <GradientStop Offset="0.5" Color="#C8AEC4" />
+                            <GradientStop Offset="1" Color="Transparent" />
+                        </LinearGradientBrush>
+                    </controls:OverviewPageHeader.Background>
+                    <controls:OverviewPageHeader.ImageContent>
+                        <Grid Margin="24,8,24,16">
+                            <Grid
+                                Width="208"
+                                Margin="36,0,0,0"
+                                Padding="4"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CardGridStyle}">
+                                <ui:Effects.Shadow>
+                                    <media:AttachedCardShadow
+                                        BlurRadius="12"
+                                        CornerRadius="8"
+                                        Opacity="0.2"
+                                        Offset="0"
+                                        Color="#000000" />
+                                </ui:Effects.Shadow>
+                                <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
+                            </Grid>
+                            <Grid
+                                Margin="160,140,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                                Style="{StaticResource CardGridStyle}">
+                                <SymbolIcon
+                                    Width="28"
+                                    Height="28"
+                                    Symbol="Permissions" />
+                            </Grid>
+                            <Grid
+                                Margin="0,4,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                                Style="{StaticResource CardGridStyle}">
+                                <SymbolIcon
+                                    Width="28"
+                                    Height="28"
+                                    Symbol="Setting" />
+                            </Grid>
 
-                    <Canvas
-                        Width="260"
-                        Margin="0,-16,36,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top">
-
-
-                        <Grid
-                            Canvas.Left="36"
-                            Canvas.Top="86"
-                            Width="208"
-                            Padding="4"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CardGridStyle}">
-                            <ui:Effects.Shadow>
-                                <media:AttachedCardShadow
-                                    BlurRadius="12"
-                                    CornerRadius="8"
-                                    Opacity="0.2"
-                                    Offset="0"
-                                    Color="#000000" />
-                            </ui:Effects.Shadow>
-                            <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
                         </Grid>
-                        <Grid
-                            Canvas.Left="0"
-                            Canvas.Top="56"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
-                            Style="{StaticResource CardGridStyle}">
-                            <SymbolIcon
-                                Width="28"
-                                Height="28"
-                                Symbol="Permissions" />
-                        </Grid>
-                        <Grid
-                            Canvas.Left="208"
-                            Canvas.Top="148"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
-                            Style="{StaticResource CardGridStyle}">
-                            <SymbolIcon
-                                Width="28"
-                                Height="28"
-                                Symbol="Setting" />
-                        </Grid>
-                    </Canvas>
-
-
-                </Grid>
+                    </controls:OverviewPageHeader.ImageContent>
+                </controls:OverviewPageHeader>
                 <ItemsRepeater
                     x:Name="allView"
                     Grid.Row="1"
