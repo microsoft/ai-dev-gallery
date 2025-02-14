@@ -88,7 +88,6 @@
                             HorizontalAlignment="Left"
                             Text="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience."
                             TextWrapping="Wrap" />
-                        <Button Content="Action button" />
                     </StackPanel>
 
                     <Canvas
