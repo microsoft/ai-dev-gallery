@@ -33,28 +33,28 @@ internal sealed partial class ScenarioOverviewPage : Page
             allScenarioCategories.Add(category);
         }
 
-        //List<Scenario> recentScenarios = new List<Scenario>();
+        /* List<Scenario> recentScenarios = new List<Scenario>();
 
-        //foreach (var mru in App.AppData.MostRecentlyUsedItems)
-        //{
-        //    if (mru.Type == Utils.MostRecentlyUsedItemType.Scenario)
-        //    {
-        //        recentScenarios.Add(App.FindScenarioById(mru.ItemId));
-        //    }
-        //}
+        foreach (var mru in App.AppData.MostRecentlyUsedItems)
+        {
+            if (mru.Type == Utils.MostRecentlyUsedItemType.Scenario)
+            {
+                recentScenarios.Add(App.FindScenarioById(mru.ItemId));
+            }
+        }
 
-        //ScenarioCategory recentCategory = new ScenarioCategory
-        //{
-        //    Name = "Recent",
-        //    Description = "Recently used scenarios",
-        //    Icon = "\uE81C",
-        //    Scenarios = recentScenarios
-        //};
+        ScenarioCategory recentCategory = new ScenarioCategory
+        {
+            Name = "Recent",
+            Description = "Recently used scenarios",
+            Icon = "\uE81C",
+            Scenarios = recentScenarios
+        };
 
-        //if (recentScenarios.Count > 0)
-        //{
-        //    allScenarioCategories.Insert(0, recentCategory);
-        //}
+        if (recentScenarios.Count > 0)
+        {
+            allScenarioCategories.Insert(0, recentCategory);
+        } */
     }
 
     private void ScenarioItemsView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
