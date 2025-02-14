@@ -59,84 +59,43 @@ internal sealed partial class ScenarioPage : Page
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
-        List<Dictionary<ModelType, List<ModelDetails>>>? modelsDetailsDict = null;
 
         if (samples.Count == 0)
         {
             return;
         }
-        else if (samples.Count == 1)
+
+        List<ModelDetails> modelDetailsList = new();
+        List<ModelDetails> modelDetailsList2 = new();
+
+        foreach (var s in samples)
         {
-            modelsDetailsDict = ModelDetailsHelper.GetModelDetails(samples.First());
-        }
-        else
-        {
-            var sample = samples.First();
-            var modelKey = sample.Model1Types.First(); // First only?
+            var models = ModelDetailsHelper.GetModelDetails(s);
 
-            if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey)))
+            if (models.Count > 0) // Model1Types
             {
-                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey)).Key;
+                modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
 
-                var listModelDetails = new List<ModelDetails>();
-
-                foreach (var s in samples)
+                if (models.Count > 1) // Model2Types
                 {
-                    listModelDetails.AddRange(ModelDetailsHelper.GetModelDetails(s).First().First().Value);
-                }
-
-                modelsDetailsDict =
-                [
-                    new Dictionary<ModelType, List<ModelDetails>>
-                    {
-                        [parentKey] = listModelDetails
-                    }
-                ];
-            }
-
-            if (sample.Model2Types != null)
-            {
-                var modelKey2 = sample.Model2Types.First(); // First only?
-
-                if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey2)))
-                {
-                    var parentKey2 = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey2)).Key;
-
-                    var listModelDetails2 = new List<ModelDetails>();
-
-                    foreach (var s in samples)
-                    {
-                        listModelDetails2.AddRange(ModelDetailsHelper.GetModelDetails(s).ElementAt(1).First().Value);
-                    }
-
-                    modelsDetailsDict ??= [];
-
-                    modelsDetailsDict.Add(
-                        new Dictionary<ModelType, List<ModelDetails>>
-                        {
-                            [parentKey2] = listModelDetails2
-                        });
+                    modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
                 }
             }
         }
 
-        if (modelsDetailsDict == null)
+        if (modelDetailsList.Count == 0)
         {
             return;
         }
 
-        var models = modelsDetailsDict.First().SelectMany(g => g.Value).ToList();
-
-        selectedModelDetails = SelectLatestOrDefault(models);
-
-        if (modelsDetailsDict.Count > 1)
+        if (modelDetailsList2.Count > 1)
         {
-            var models2 = modelsDetailsDict.ElementAt(1).SelectMany(g => g.Value).ToList();
-            selectedModelDetails2 = SelectLatestOrDefault(models2);
-            modelSelectionControl2.SetModels(models2, initialModelToLoad);
+            selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
+            modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
         }
 
-        modelSelectionControl.SetModels(models, initialModelToLoad);
+        selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
+        modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
         UpdateModelSelectionPlaceholderControl();
     }
 
