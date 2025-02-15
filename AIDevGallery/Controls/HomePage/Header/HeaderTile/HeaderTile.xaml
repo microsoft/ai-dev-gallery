@@ -6,8 +6,6 @@
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:interactions="using:Microsoft.Xaml.Interactions.Core"
-    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:CommunityToolkit.WinUI.Media"
