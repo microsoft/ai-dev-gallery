@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,6 +41,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (ImageScaler.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            await LoadDefaultImage(); // <exclude-line>
         }
 
         sampleParams.NotifyCompletion();
@@ -51,7 +51,22 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
     {
         var operation = ImageScaler.MakeAvailableAsync();
 
-        await WcrModelDownloader.SetDownloadOperation(operation);
+        var success = await WcrModelDownloader.SetDownloadOperation(operation);
+
+        // <exclude>
+        if (success)
+        {
+            await LoadDefaultImage();
+        }
+    }
+
+    private async Task LoadDefaultImage()
+    {
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        using var stream = await file.OpenReadAsync();
+        await SetImage(stream);
+
+        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

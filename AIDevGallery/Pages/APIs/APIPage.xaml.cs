@@ -61,6 +61,29 @@ internal sealed partial class APIPage : Page
                 DocsUrl = apiDefinition.ReadmeUrl,
                 Name = apiDefinition.Name,
             };
+
+            if (!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs))
+            {
+                var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == apiDefinition.SampleIdToShowInDocs);
+                if (sample != null)
+                {
+                    sampleContainer.LoadSampleAsync(sample, [ModelDetailsHelper.GetModelDetailsFromApiDefinition(apiType, apiDefinition)]);
+                }
+            }
+            else
+            {
+                sampleContainerRoot.Visibility = Visibility.Collapsed;
+            }
+
+            WcrApiCodeSnippet.Snippets.TryGetValue(apiType, out var snippet);
+            if (snippet != null)
+            {
+                CodeSampleTextBlock.Text = $"```csharp\r\n{snippet}\r\n```";
+            }
+            else
+            {
+                codeSampleRoot.Visibility = Visibility.Collapsed;
+            }
         }
         else
         {
@@ -70,8 +93,7 @@ internal sealed partial class APIPage : Page
         if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
             var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
-
-            CodeSampleTextBlock.Text = "```csharp\r\nusing Microsoft.Windows.AI.Generative; \r\n \r\nif (!LanguageModel.IsAvailable()) \r\n{ \r\n   var op = await LanguageModel.MakeAvailableAsync(); \r\n} \r\n \r\nusing LanguageModel languageModel = await LanguageModel.CreateAsync(); \r\n \r\nstring prompt = \"Provide the molecular formula for glucose.\"; \r\n \r\nvar result = await languageModel.GenerateResponseAsync(prompt); \r\n \r\nConsole.WriteLine(result.Response); \r\n```";
+            //CodeSampleTextBlock.Text = "```csharp\r\nusing Microsoft.Windows.AI.Generative; \r\n \r\nif (!LanguageModel.IsAvailable()) \r\n{ \r\n   var op = await LanguageModel.MakeAvailableAsync(); \r\n} \r\n \r\nusing LanguageModel languageModel = await LanguageModel.CreateAsync(); \r\n \r\nstring prompt = \"Provide the molecular formula for glucose.\"; \r\n \r\nvar result = await languageModel.GenerateResponseAsync(prompt); \r\n \r\nConsole.WriteLine(result.Response); \r\n```";
         }
         else
         {

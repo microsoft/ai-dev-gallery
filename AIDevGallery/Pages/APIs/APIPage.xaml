@@ -49,15 +49,6 @@
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
         </StackPanel>
-        <Grid
-            Grid.Row="1"
-            Height="320"
-            Style="{StaticResource CardGridStyle}">
-            <TextBlock
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Text="Sample goes here" />
-        </Grid>
         <ScrollViewer
             x:Name="Scroller"
             Grid.Row="2"
@@ -72,12 +63,22 @@
                     <ColumnDefinition x:Name="SideColumn" Width="380" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="MainRow" Height="*" />
                 </Grid.RowDefinitions>
 
                 <Grid
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    x:Name="sampleContainerRoot"
+                    Style="{StaticResource CardGridStyle}">
+                    <controls:SampleContainer x:Name="sampleContainer" Height="320"/>
+                </Grid>
+
+                <Grid
                     x:Name="summaryGrid"
+                    Grid.Row="1"
                     Grid.RowSpan="2"
                     Padding="0"
                     Style="{StaticResource CardGridStyle}">
@@ -115,7 +116,7 @@
                 </Grid>
 
                 <!--  API CODE GOES HERE  -->
-                <Grid Grid.Column="1" Style="{StaticResource CardGridStyle}">
+                <Grid x:Name="codeSampleRoot" Grid.Column="1" Grid.Row="1" Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -130,7 +131,7 @@
                 <!--  SAMPLE LINKS  -->
                 <Grid
                     x:Name="SamplesPanel"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Grid.Column="1"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"

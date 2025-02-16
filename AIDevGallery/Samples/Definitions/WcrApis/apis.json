@@ -11,7 +11,8 @@
         "IconGlyph": "\uE8F2",
         "Description": "Generate text.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
-        "License": "ms-pl"
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d"
       },
       "TextRecognitionOCR": {
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
@@ -20,7 +21,8 @@
         "IconGlyph": "\uE7A8",
         "Description": "Recognize and extract text from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
-        "License": "ms-pl"
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "8f072b64-74fc-4511-b84f-e09d56394f07"
       },
       "ImageScaler": {
         "Id": "97ed0b95-3f14-415c-bb1f-9a6c59b78c3d",
@@ -29,7 +31,8 @@
         "IconGlyph": "\uED61",
         "Description": "Scales an image to a specified size.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
-        "License": "ms-pl"
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "f1e235d1-f1c9-41c7-b489-7e4f95e54668"
       },
       "BackgroundRemover": {
         "Id": "9d445930-b353-429a-9674-777eef771ccf",
@@ -38,7 +41,8 @@
         "IconGlyph": "\uE7C5",
         "Description": "Remove the background from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
-        "License": "ms-pl"
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559"
       },
       "ImageDescription": {
         "Id": "bdab049c-9b01-48f4-b12d-acb911b0a61c",
@@ -47,7 +51,8 @@
         "IconGlyph": "\uE799",
         "Description": "Generate a description of an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
-        "License": "ms-pl"
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757"
       }
     }
   }

@@ -48,6 +48,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         if (ImageObjectExtractor.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            await LoadDefaultImage(); // <exclude-line>
         }
 
         sampleParams.NotifyCompletion();
@@ -57,7 +58,22 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         var operation = ImageObjectExtractor.MakeAvailableAsync();
 
-        await WcrModelDownloader.SetDownloadOperation(operation);
+        var success = await WcrModelDownloader.SetDownloadOperation(operation);
+
+        // <exclude>
+        if (success)
+        {
+            await LoadDefaultImage();
+        }
+    }
+
+    private async Task LoadDefaultImage()
+    {
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\pose_default.png");
+        using var stream = await file.OpenReadAsync();
+        await SetImage(stream);
+
+        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
