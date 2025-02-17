@@ -63,17 +63,21 @@
                     <ColumnDefinition x:Name="SideColumn" Width="380" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="MainRow" Height="*" />
                 </Grid.RowDefinitions>
 
                 <Grid
+                    x:Name="sampleContainerRoot"
                     Grid.Row="0"
                     Grid.ColumnSpan="2"
-                    x:Name="sampleContainerRoot"
+                    Padding="0"
                     Style="{StaticResource CardGridStyle}">
-                    <controls:SampleContainer x:Name="sampleContainer" Height="320"/>
+                    <controls:SampleContainer
+                        x:Name="sampleContainer"
+                        Height="320"
+                        CornerRadius="{StaticResource OverlayCornerRadius}" />
                 </Grid>
 
                 <Grid
@@ -116,7 +120,11 @@
                 </Grid>
 
                 <!--  API CODE GOES HERE  -->
-                <Grid x:Name="codeSampleRoot" Grid.Column="1" Grid.Row="1" Style="{StaticResource CardGridStyle}">
+                <Grid
+                    x:Name="codeSampleRoot"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Style="{StaticResource CardGridStyle}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
