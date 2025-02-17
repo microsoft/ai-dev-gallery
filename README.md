@@ -5,51 +5,54 @@
 </h1>
 
 > [!IMPORTANT]  
-> This app is currently in public preview. We are looking for feedback. Please let us know what you think by creating an [issue](https://github.com/microsoft/ai-dev-gallery/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
+> The AI Dev Gallery is currently in public preview, and we’d love your feedback! Share your thoughts by creating an [issue](https://github.com/microsoft/ai-dev-gallery/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
-The AI Dev Gallery is an app designed to help Windows developers integrate AI capabilities within their own apps and projects. The app contains the following:
+Designed for Windows developers, the AI Dev Gallery helps integrate AI capabilities into apps and projects. It includes:
 
-- **Over 25 interactive samples powered by local AI models**
-- **Easily explore, download, and run models from Hugging Face and GitHub**
-- **The ability to view the C# source code and simply export a standalone Visual Studio project for each sample**
+- **Explore over 25 interactive samples powered by local AI models**
+- **Easily browse, download, and run models from Hugging Face and GitHub**
+- **View the C# source code and export standalone Visual Studio projects with a single click**
 
 <p align="center">
-<br/>
 <img src="docs/images/HeroImage1.png" alt="AI Dev Gallery" width="600"/>
+</p>
+<p align="center">
+<a href="http://aka.ms/ai-dev-gallery-store">
+	<img alt="Store badge" src="docs/images/storeBadge.png" width="200"/>
+</a>
+</p>
 
-## 🚀 Getting Started
-Follow the following guide to install the AI Dev Gallery locally:
+## 🚀 Getting started
+Download [AI Dev Gallery from the Microsoft Store](http://aka.ms/ai-dev-gallery-store) or follow these steps to install it manually:
 
-### 1. Set up the Environment
+### 1. Set up the environment
 
->**⚠️ Note**: The AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later to build and Windows 10 or later to execute.
-If you're building an app with WinUI and Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here)).
-
+>**⚠️ Note**: AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later for building and Windows 10 or newer to run.
+If you're new to building apps with WinUI and the Windows App SDK, follow the [installation instructions](https://learn.microsoft.com/windows/apps/get-started/start-here).
 **Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here?tabs=vs-2022-17-10#required-workloads-and-components):**
 - Windows application development
 
-### 2. Clone the Repository
+### 2. Clone the repository
 
 ```shell
 git clone https://github.com/microsoft/AI-Dev-Gallery.git
 ```
 
-### 3. Open .sln with Visual Studio and Build!
-```shell
-.\AIDevGallery.sln
-```
+### 3. Open AIDevGallery.sln with Visual Studio!
+
+Ensure that the `AIDevGallery` project is set as the startup project in Visual Studio.
 
 Press <kbd>F5</kbd> to run AI Dev Gallery!
 
->**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help you.
+>**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help!
 
 <br/>
 
-## 💻 Device Requirements
-- **Minimum OS Version**: Windows 10, version 1809 (10.0; Build 17763)
+## 💻 Device requirements
+- **Minimum OS version**: Windows 10, version 1809 (10.0; Build 17763)
 - **Architecture**: x64, ARM64
 - **Memory**: At least 16 GB is recommended
-- **Disk Space**: At least 20GB free space is recommended
+- **Disk space**: At least 20GB free space is recommended
 - **GPU**: 8GB of VRAM is recommended for running samples on the GPU
 
 ## 👏 Contribute to AI Dev Gallery
