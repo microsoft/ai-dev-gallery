@@ -17,32 +17,31 @@ The AI Dev Gallery is an app designed to help Windows developers integrate AI ca
 <img src="docs/images/HeroImage1.png" alt="AI Dev Gallery" width="600"/>
 </p>
 <p align="center">
-<a href="https://aka.ms/">
+<a href="http://aka.ms/ai-dev-gallery-store">
 	<img alt="Store badge" src="docs/images/storeBadge.png" width="200"/>
 </a>
 </p>
 
-## 🚀 Getting Started
-You can download [AI Dev Gallery from the Microsoft Store](https://aka.ms/), or follow the following guide to install it locally:
+## 🚀 Getting started
+You can download [AI Dev Gallery from the Microsoft Store](http://aka.ms/ai-dev-gallery-store), or follow the following steps to install it manually:
 
-### 1. Set up the Environment
+### 1. Set up the environment
 
 >**⚠️ Note**: The AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later to build and Windows 10 or later to execute.
-If you're building an app with WinUI and Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here)).
+If you're building an app with WinUI and Windows App SDK for the first time, follow the [installation instructions here](https://learn.microsoft.com/windows/apps/get-started/start-here)).
 
 **Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here?tabs=vs-2022-17-10#required-workloads-and-components):**
 - Windows application development
 
-### 2. Clone the Repository
+### 2. Clone the repository
 
 ```shell
 git clone https://github.com/microsoft/AI-Dev-Gallery.git
 ```
 
-### 3. Open .sln with Visual Studio and Build!
-```shell
-.\AIDevGallery.sln
-```
+### 3. Open AIDevGallery.sln with Visual Studio!
+
+Ensure that the `AIDevGallery` project is set as the startup project in Visual Studio.
 
 Press <kbd>F5</kbd> to run AI Dev Gallery!
 
@@ -50,11 +49,11 @@ Press <kbd>F5</kbd> to run AI Dev Gallery!
 
 <br/>
 
-## 💻 Device Requirements
-- **Minimum OS Version**: Windows 10, version 1809 (10.0; Build 17763)
+## 💻 Device requirements
+- **Minimum OS version**: Windows 10, version 1809 (10.0; Build 17763)
 - **Architecture**: x64, ARM64
 - **Memory**: At least 16 GB is recommended
-- **Disk Space**: At least 20GB free space is recommended
+- **Disk space**: At least 20GB free space is recommended
 - **GPU**: 8GB of VRAM is recommended for running samples on the GPU
 
 ## 👏 Contribute to AI Dev Gallery
