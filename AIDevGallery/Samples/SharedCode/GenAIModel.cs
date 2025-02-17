@@ -26,6 +26,7 @@ internal class GenAIModel : IChatClient, IDisposable
     public const int DefaultMaxLength = 1024;
     private const bool DefaultDoSample = false;
 
+    private readonly ChatClientMetadata _metadata;
     private Model? _model;
     private Tokenizer? _tokenizer;
     private LlmPromptTemplate? _template;
@@ -50,7 +51,7 @@ internal class GenAIModel : IChatClient, IDisposable
 
     private GenAIModel(string modelDir)
     {
-        Metadata = new ChatClientMetadata("GenAIChatClient", new Uri($"file:///{modelDir}"));
+        _metadata = new ChatClientMetadata("GenAIChatClient", new Uri($"file:///{modelDir}"));
     }
 
     public static async Task<GenAIModel?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, CancellationToken cancellationToken = default)
@@ -93,8 +94,6 @@ internal class GenAIModel : IChatClient, IDisposable
     [MemberNotNullWhen(true, nameof(_model), nameof(_tokenizer))]
     public bool IsReady => _model != null && _tokenizer != null;
 
-    public ChatClientMetadata Metadata { get; }
-
     public void Dispose()
     {
         _model?.Dispose();
@@ -102,7 +101,7 @@ internal class GenAIModel : IChatClient, IDisposable
         _ogaHandle?.Dispose();
     }
 
-    private string GetPrompt(IEnumerable<ChatMessage> history)
+    private string GetPrompt(IList<ChatMessage> history)
     {
         if (!history.Any())
         {
@@ -111,30 +110,28 @@ internal class GenAIModel : IChatClient, IDisposable
 
         if (_template == null)
         {
-            return string.Join(". ", history.Select(h => h.Text));
+            return string.Join(". ", history);
         }
 
         StringBuilder prompt = new();
 
         string systemMsgWithoutSystemTemplate = string.Empty;
 
-        for (var i = 0; i < history.Count(); i++)
+        for (var i = 0; i < history.Count; i++)
         {
-            var message = history.ElementAt(i);
+            var message = history[i];
             if (message.Role == ChatRole.System)
             {
-                if (i > 0)
+                if (i == 0) // ignore system prompts that aren't at the beginning
                 {
-                    throw new ArgumentException("Only first message can be a system message");
-                }
-
-                if (string.IsNullOrWhiteSpace(_template.System))
-                {
-                    systemMsgWithoutSystemTemplate = message.Text ?? string.Empty;
-                }
-                else
-                {
-                    prompt.Append(_template.System.Replace(TEMPLATE_PLACEHOLDER, message.Text));
+                    if (string.IsNullOrWhiteSpace(_template.System))
+                    {
+                        systemMsgWithoutSystemTemplate = message.Text ?? string.Empty;
+                    }
+                    else
+                    {
+                        prompt.Append(_template.System.Replace(TEMPLATE_PLACEHOLDER, message.Text));
+                    }
                 }
             }
             else if (message.Role == ChatRole.User)
@@ -145,25 +142,15 @@ internal class GenAIModel : IChatClient, IDisposable
                     msgText = $"{systemMsgWithoutSystemTemplate} {msgText}";
                 }
 
-                if (string.IsNullOrWhiteSpace(_template.User))
-                {
-                    prompt.Append(msgText);
-                }
-                else
-                {
-                    prompt.Append(_template.User.Replace(TEMPLATE_PLACEHOLDER, msgText));
-                }
+                prompt.Append(string.IsNullOrWhiteSpace(_template.User) ?
+                    msgText :
+                    _template.User.Replace(TEMPLATE_PLACEHOLDER, msgText));
             }
             else if (message.Role == ChatRole.Assistant)
             {
-                if (string.IsNullOrWhiteSpace(_template.Assistant))
-                {
-                    prompt.Append(message.Text);
-                }
-                else
-                {
-                    prompt.Append(_template.Assistant.Replace(TEMPLATE_PLACEHOLDER, message.Text));
-                }
+                prompt.Append(string.IsNullOrWhiteSpace(_template.Assistant) ?
+                    message.Text :
+                    _template.Assistant.Replace(TEMPLATE_PLACEHOLDER, message.Text));
             }
         }
 
@@ -176,18 +163,11 @@ internal class GenAIModel : IChatClient, IDisposable
         return prompt.ToString();
     }
 
-    public async Task<ChatCompletion> CompleteAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken ct = default)
-    {
-        var result = string.Empty;
-        await foreach (var part in CompleteStreamingAsync(chatMessages, options, ct))
-        {
-            result += part.Text;
-        }
+    public Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+        GetStreamingResponseAsync(chatMessages, options, cancellationToken).ToChatResponseAsync(cancellationToken: cancellationToken);
 
-        return new ChatCompletion(new ChatMessage(ChatRole.Assistant, result));
-    }
-
-    public async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var prompt = GetPrompt(chatMessages);
 
@@ -195,6 +175,8 @@ internal class GenAIModel : IChatClient, IDisposable
         {
             throw new InvalidOperationException("Model is not ready");
         }
+
+        await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 
         using var generatorParams = new GeneratorParams(_model);
 
@@ -243,17 +225,15 @@ internal class GenAIModel : IChatClient, IDisposable
             string part;
             try
             {
-                if (ct.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                await Task.Delay(0, ct).ConfigureAwait(false);
-
                 generator.GenerateNextToken();
                 part = tokenizerStream.Decode(generator.GetSequence(0)[^1]);
 
-                if (ct.IsCancellationRequested && stopTokensAvailable)
+                if (cancellationToken.IsCancellationRequested && stopTokensAvailable)
                 {
                     part = _template!.Stop!.Last();
                 }
@@ -274,7 +254,7 @@ internal class GenAIModel : IChatClient, IDisposable
                 break;
             }
 
-            yield return new StreamingChatCompletionUpdate
+            yield return new()
             {
                 Role = ChatRole.Assistant,
                 Text = part,
@@ -298,6 +278,7 @@ internal class GenAIModel : IChatClient, IDisposable
     {
         return
             serviceKey is not null ? null :
+            serviceType == typeof(ChatClientMetadata) ? _metadata :
             _model is not null && serviceType?.IsInstanceOfType(_model) is true ? _model :
             _tokenizer is not null && serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :
