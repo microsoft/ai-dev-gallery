@@ -57,8 +57,7 @@ internal sealed partial class PoseDetection : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
-        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+        await InitModel(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
         sampleParams.NotifyCompletion();
 
         await DetectPose(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
@@ -111,8 +110,8 @@ internal sealed partial class PoseDetection : BaseSamplePage
         var file = await picker.PickSingleFileAsync();
         if (file != null)
         {
-            // Call function to run inference and classify image
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await DetectPose(file.Path);
         }
     }
@@ -127,37 +126,29 @@ internal sealed partial class PoseDetection : BaseSamplePage
         Loader.IsActive = true;
         Loader.Visibility = Visibility.Visible;
         UploadButton.Visibility = Visibility.Collapsed;
-
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
 
-        using Bitmap image = new(filePath);
-
-        var originalImageWidth = image.Width;
-        var originalImageHeight = image.Height;
+        using Bitmap originalImage = new(filePath);
 
         int modelInputWidth = 256;
         int modelInputHeight = 192;
 
-        // Resize Bitmap
-        using Bitmap resizedImage = BitmapFunctions.ResizeBitmap(image, modelInputWidth, modelInputHeight);
+        using Bitmap resizedImage = BitmapFunctions.ResizeBitmap(originalImage, modelInputWidth, modelInputHeight);
 
         var predictions = await Task.Run(() =>
         {
-            // Preprocessing
             Tensor<float> input = new DenseTensor<float>([1, 3, modelInputWidth, modelInputHeight]);
             input = BitmapFunctions.PreprocessBitmapWithStdDev(resizedImage, input);
 
             var inputMetadataName = _inferenceSession!.InputNames[0];
 
-            // Setup inputs
-            var inputs = new List<NamedOnnxValue>
+            var onnxInputs = new List<NamedOnnxValue>
             {
                 NamedOnnxValue.CreateFromTensor(inputMetadataName, input)
             };
 
-            // Run inference
-            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
+            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(onnxInputs);
             var heatmaps = results[0].AsTensor<float>();
 
             var outputName = _inferenceSession!.OutputNames[0];
@@ -166,12 +157,11 @@ internal sealed partial class PoseDetection : BaseSamplePage
             float outputWidth = outputDimensions[2];
             float outputHeight = outputDimensions[3];
 
-            List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessResults(heatmaps, originalImageWidth, originalImageHeight, outputWidth, outputHeight);
+            List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessResults(heatmaps, originalImage.Width, originalImage.Height, outputWidth, outputHeight);
             return keypointCoordinates;
         });
 
-        // Render predictions and create output bitmap
-        using Bitmap output = PoseHelper.RenderPredictions(image, predictions, .02f);
+        using Bitmap output = PoseHelper.RenderPredictions(originalImage, predictions, .02f);
         BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(output);
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: key points rendered."); // <exclude-line>
 

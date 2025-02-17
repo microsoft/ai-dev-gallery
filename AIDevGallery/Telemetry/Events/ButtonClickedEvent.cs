@@ -30,6 +30,6 @@ internal class ButtonClickedEvent : EventBase
 
     public static void Log(string buttonName)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ButtonClicked_Event", LogLevel.Measure, new ButtonClickedEvent(buttonName));
+        TelemetryFactory.Get<ITelemetry>().Log("ButtonClicked_Event", LogLevel.Critical, new ButtonClickedEvent(buttonName));
     }
 }

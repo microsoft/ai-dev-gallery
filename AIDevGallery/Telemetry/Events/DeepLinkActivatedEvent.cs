@@ -30,6 +30,6 @@ internal class DeepLinkActivatedEvent : EventBase
 
     public static void Log(string uri)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("DeepLinkActivated_Event", LogLevel.Measure, new DeepLinkActivatedEvent(uri));
+        TelemetryFactory.Get<ITelemetry>().Log("DeepLinkActivated_Event", LogLevel.Critical, new DeepLinkActivatedEvent(uri));
     }
 }

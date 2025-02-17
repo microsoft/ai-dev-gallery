@@ -28,20 +28,36 @@ internal sealed partial class HeaderCarousel : UserControl
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        SubscribeToEvents();
         ResetAndShuffle();
         SelectNextTile();
-        selectionTimer.Tick += SelectionTimer_Tick;
-        selectionTimer.Start();
+        SubscribeToEvents();
     }
 
     private void SubscribeToEvents()
     {
+        selectionTimer.Tick += SelectionTimer_Tick;
+        selectionTimer.Start();
         foreach (HeaderTile tile in TilePanel.Children)
         {
             tile.PointerEntered += Tile_PointerEntered;
             tile.PointerExited += Tile_PointerExited;
+            tile.GotFocus += Tile_GotFocus;
+            tile.LostFocus += Tile_LostFocus;
             tile.Click += Tile_Click;
+        }
+    }
+
+    private void UnsubscribeToEvents()
+    {
+        selectionTimer.Tick -= SelectionTimer_Tick;
+        selectionTimer.Stop();
+        foreach (HeaderTile tile in TilePanel.Children)
+        {
+            tile.PointerEntered -= Tile_PointerEntered;
+            tile.PointerExited -= Tile_PointerExited;
+            tile.GotFocus -= Tile_GotFocus;
+            tile.LostFocus -= Tile_LostFocus;
+            tile.Click -= Tile_Click;
         }
     }
 
@@ -113,31 +129,6 @@ internal sealed partial class HeaderCarousel : UserControl
         return numbers[currentIndex++];
     }
 
-    private void Tile_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        ((HeaderTile)sender).IsSelected = false;
-        selectionTimer.Start();
-    }
-
-    private async void Tile_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        selectedTile = (HeaderTile)sender;
-        selectionTimer.Stop();
-        deselectionTimer.Stop();
-
-        foreach (HeaderTile t in TilePanel.Children)
-        {
-            if (t != selectedTile && t.IsSelected)
-            {
-                t.IsSelected = false;
-            }
-        }
-
-        // Wait for the animation of a potential other tile to finish
-        await Task.Delay(360);
-        SetTileVisuals();
-    }
-
     private void SetTileVisuals()
     {
         if (selectedTile != null)
@@ -173,5 +164,50 @@ internal sealed partial class HeaderCarousel : UserControl
         }
 
         storyboard.Begin();
+    }
+
+    private void Tile_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        ((HeaderTile)sender).IsSelected = false;
+        selectionTimer.Start();
+    }
+
+    private void Tile_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        selectedTile = (HeaderTile)sender;
+        SelectTile();
+    }
+
+    private async void SelectTile()
+    {
+        await Task.Delay(100);
+        selectionTimer.Stop();
+        deselectionTimer.Stop();
+
+        foreach (HeaderTile t in TilePanel.Children)
+        {
+            t.IsSelected = false;
+        }
+
+        // Wait for the animation of a potential other tile to finish
+        await Task.Delay(360);
+        SetTileVisuals();
+    }
+
+    private void Tile_GotFocus(object sender, RoutedEventArgs e)
+    {
+        selectedTile = (HeaderTile)sender;
+        SelectTile();
+    }
+
+    private void Tile_LostFocus(object sender, RoutedEventArgs e)
+    {
+        ((HeaderTile)sender).IsSelected = false;
+        selectionTimer.Start();
+    }
+
+    private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+    {
+        UnsubscribeToEvents();
     }
 }

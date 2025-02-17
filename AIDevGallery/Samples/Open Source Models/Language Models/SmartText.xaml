@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<samples:BaseSamplePage
+    xmlns:samples="using:AIDevGallery.Samples"
+    x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.SmartText"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Samples.OpenSourceModels.LanguageModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    mc:Ignorable="d">
+
+    <Grid>
+        <shared:SmartTextBox 
+            x:Name="SmartTextBox" 
+            Text="This is the Smart Text Box control. It exposes generative AI actions through a selection flyout menu. Try it out by highlighting some text to display the menu."
+            Margin="0,32,0,0"/>
+    </Grid>
+</samples:BaseSamplePage>

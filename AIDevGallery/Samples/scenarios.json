@@ -2,76 +2,92 @@
   "Text": {
     "Name": "Text",
     "Icon": "\uE8BD",
+    "Description": "Text scenarios are designed to help you generate, summarize, chat, translate, grammar check, paraphrase, analyze sentiment, and more with local language models.",
     "Scenarios": {
       "GenerateText": {
         "Name": "Generate Text",
-        "Description": "Generate text with local language model.",
-        "Id": "generate-text"
+        "Description": "Generate text with a local language model. Enter a topic in the textbox and click 'Generate' to generate text on that topic.",
+        "Id": "generate-text",
+        "Icon": "\uEB9F"
       },
       "SummarizeText": {
         "Name": "Summarize Text",
-        "Description": "Summarize text with local language model.",
-        "Id": "summarize-text"
+        "Description": "Summarize text with a local language model. Enter long-form text into the textbox and click 'Summarize' to summarize the entered text.",
+        "Id": "summarize-text",
+        "Icon": "\uE8BC"
       },
       "Chat": {
         "Name": "Chat",
-        "Description": "Chat with local language model.",
-        "Id": "chat"
+        "Description": "Chat with a local language model. Send messages to a Chat Completion service that responds while keeping track of chat context and history.",
+        "Id": "chat",
+        "Icon": "\uE8F2"
       },
       "TranslateText": {
         "Name": "Translate Text",
-        "Description": "Translate text with local language model.",
-        "Id": "translate-text"
+        "Description": "Translate text with a local language model. Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
+        "Id": "translate-text",
+        "Icon": "\uF2B7"
       },
       "GrammarCheckText": {
         "Name": "Grammar Check",
-        "Description": "Grammar check text with local language model.",
-        "Id": "grammar-check-text"
+        "Description": "Grammar check text with a local language model. Enter some text into the textbox and click 'Check' to get output correct for grammar, spelling, and punctuation.",
+        "Id": "grammar-check-text",
+        "Icon": "\uF87B"
       },
       "ParaphraseText": {
         "Name": "Paraphrase Text",
-        "Description": "Paraphrase text with local language model.",
+        "Description": "Paraphrase text with a local language model. Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
         "Id": "paraphrase-text"
       },
       "AnalyzeSentimentText": {
         "Name": "Analyze Text Sentiment",
-        "Description": "Analyze text sentiment with local language model.",
-        "Id": "analyze-sentiment-text"
+        "Description": "Analyze text sentiment with a local language model. Enter some text into the textbox and click 'Analyze' to the analyze the sentiment of the text. The output will contain an integer sentiment score in the range of -2 to 2, and an associated sentiment string.",
+        "Id": "analyze-sentiment-text",
+        "Icon": "\uE9D5"
       },
       "CustomParameters": {
         "Name": "Custom Parameters",
-        "Description": "Generate text with a local language model with custom parameters",
+        "Description": "Generate text with a local language model with custom parameters. Enter a system prompt, a query, and manipulate parameters related to token selection to fine-tune language model output. Hover over any field on this page to see a tooltip containing more info on the parameter.",
         "Id": "custom-parameters"
       },
       "ContentModeration": {
         "Name": "Content Moderation",
-        "Description": "Prompt a local language model with safety checks in place",
+        "Description": "Prompt a local language model with safety checks in place. Enter a prompt into the textbox and click 'Generate' to get a content-moderated response. This sample does two rounds of inference, one to check if the request is safe, and a second based on the outcome of that result.",
         "Id": "content-moderation"
       },
       "SemanticSearch": {
         "Name": "Semantic Search",
-        "Description": "Semantically search text with a local embeddings model.",
-        "Id": "semantic-search"
+        "Description": "Semantically search text with a local embeddings model. Enter source material into the top textbox, search string into the bottom textbox, and then click 'Search' to perform a semantic search on the source material.",
+        "Id": "semantic-search",
+        "Icon": "\uE773"
       },
       "RetrievalAugmentedGeneration": {
         "Name": "Retrieval Augmented Generation",
-        "Description": "Use existing data to improve responses given by a local language model.",
-        "Id": "retrieval-augmented-generation"
+        "Description": "Use existing data to improve responses given by a local language model. Select a PDF to use as reference material, and wait for a local embeddings model to index it. Once indexed, query a local language model about the source material to recieve answers that reference that material.",
+        "Id": "retrieval-augmented-generation",
+        "Icon": "\uF571"
       }
     }
   },
   "SmartControls": {
     "Name": "Smart Controls",
     "Icon": "\uE74C",
+    "Description": "Smart controls scenarios are designed to help you perform common language model actions within a text box control, smart paste text with local language model, and suggest ComboBox options semantically with an embeddings model.",
     "Scenarios": {
+      "SmartTextBox": {
+        "Name": "Smart TextBox",
+        "Description": "Perform common language model actions within a text box control. Select some text in the textbox to reveal an AI flyout, and then select predefined actions to edit that text to your liking. You can also describe custom changes to make to the text.",
+        "Id": "smart-text"
+      },
       "SmartPaste": {
         "Name": "Smart Paste",
-        "Description": "Smart paste text with local language model.",
-        "Id": "smart-paste"
+        "Description": "Smart paste text with a local language model. Copy some address data to your clipboard, and click 'Paste' to have a language model semantically parse your clipboard into the proper fields.",
+        "Id": "smart-paste",
+        "Icon": "\uE77F"
       },
       "SemanticComboBox": {
-        "Name": "Semantic Combo Box",
-        "Description": "Suggest ComboBox options semantically with an embeddings model.",
+        "Name": "Semantic ComboBox",
+        "Description": "Suggest ComboBox options semantically with an embeddings model. Enter some text into the combo box to get a category reccommendation based on the semantic meaning of your input.",
         "Id": "semantic-combo-box"
       }
     }
@@ -79,15 +95,16 @@
   "Code": {
     "Name": "Code",
     "Icon": "\uE943",
+    "Description": "Code scenarios are designed to help you generate, explain, and analyze code with local language models.",
     "Scenarios": {
       "GenerateCode": {
         "Name": "Generate Code",
-        "Description": "Generate code with a local language model.",
+        "Description": "Generate code with a local language model. Select a programming language with the drop down, enter a scenario to generate code for into the textbox, and then click 'Generate' to generate a code solution for that scenario.",
         "Id": "generate-code"
       },
       "ExplainCode": {
         "Name": "Explain Code",
-        "Description": "Explain code with a local language model.",
+        "Description": "Explain code with a local language model. Enter some code in any programming language into the textbox and click 'Explain' to output a explanation of the provided code.",
         "Id": "explain-code"
       }
     }
@@ -95,67 +112,75 @@
   "Image": {
     "Name": "Image",
     "Icon": "\uEB9F",
+    "Description": "Image scenarios are designed to help you generate, describe, classify, detect objects, detect human poses, enhance, and segment images with local models.",
     "Scenarios": {
       "GenerateImage": {
         "Name": "Generate Image",
-        "Description": "Generate high quality images from text.",
+        "Description": "Generate high quality images from text. Enter a description of an image to generate into the textbox and then click 'Generate' to generate that image. Note: this may take a while.",
         "Id": "generate-image"
       },
       "DescribeImage": {
         "Name": "Describe Image",
-        "Description": "Describe image with a multimodal language model",
-        "Id": "describe-image"
+        "Description": "Describe image with a multimodal language model. Upload an image to get descriptive output based on that image. Note: this may take a while.",
+        "Id": "describe-image",
+        "Icon": "\uE8BA"
       },
       "ClassifyImage": {
         "Name": "Classify Image",
-        "Description": "Image classification models give their best guess at the main object of a given photo.",
+        "Description": "Label the main object in a photo with an image classification model. Upload a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
-        "Description": "Object detection models detect items in a photo and give you their locations and associated confidence.",
-        "Id": "detect-objects"
+        "Description": "Label items in a photo with an object detection model. Upload an image and detected object predictions will be drawn on the image, with an included label and confidence score.",
+        "Id": "detect-objects",
+        "Icon": "\uE7C5"
       },
       "DetectPose": {
         "Name": "Detect Human Pose",
-        "Description": "Models in this scenario will detect human poses and posture.",
+        "Description": "Model human posture with a pose detection model. Upload an image including a clearly visible person to see pose estimate drawn onto the image.",
         "Id": "detect-pose"
       },
       "DetectPoses": {
         "Name": "Detect Multiple Human Poses",
-        "Description": "Models in this scenario will detect human poses and posture.",
+        "Description": "Model multiple humans' posture with a pose detection model. Upload an image including multiple clearly visible persons to see pose estimates drawn onto the image.",
         "Id": "detect-poses"
       },
       "EnhanceImage": {
         "Name": "Enhance Image",
-        "Description": "Image enhancing models will upscale low resolution images improving their clarity.",
-        "Id": "enhance-image"
+        "Description": "Improve image quality with an image enhancement model. Upload a low resolution image and a higher resolution version of the same image will be output.",
+        "Id": "enhance-image",
+        "Icon": "\uEE71"
       },
-      "SegmentImage": {
-        "Name": "Segment Image",
-        "Description": "Models in this scenario will segment images into different regions.",
-        "Id": "segment-image"
+      "SegmentStreet": {
+        "Name": "Segment Street",
+        "Description": "Segment photos of streets into detectable zones with a street segmentation model. Upload a photo of a clearly visible street to have it segmented into color-coded regions.",
+        "Id": "segment-street"
       }
     }
   },
   "AudioAndVideo": {
     "Name": "Audio and Video",
     "Icon": "\uEA69",
+    "Description": "Audio and video scenarios are designed to help you transcribe, translate, and summarize audio and video with local models.",
     "Scenarios": {
       "TranscribeAudio": {
         "Name": "Transcribe Audio or Video",
-        "Description": "Simple audio transcription with Whisper.",
-        "Id": "transcribe-audio"
+        "Description": "Simple audio transcription with Whisper. Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio transcribed.",
+        "Id": "transcribe-audio",
+        "Icon": "\uED1E"
       },
       "TranscribeLiveAudio": {
         "Name": "Transcribe Audio or Video Live",
-        "Description": "Live audio transcription with Whisper.",
-        "Id": "transcribe-live-audio"
+        "Description": "Live audio transcription with Whisper. Click 'Start Recording' to have live audio transcription generated as you go.",
+        "Id": "transcribe-live-audio",
+        "Icon": "\uED1E"
       },
       "TranslateAudio": {
         "Name": "Translate Audio or Video",
-        "Description": "Simple audio translation to English with Whisper.",
-        "Id": "translate-audio"
+        "Description": "Simple audio translation to English with Whisper. Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio translated to English and transcribed.",
+        "Id": "translate-audio",
+        "Icon": "\uF2B7"
       }
     }
   }

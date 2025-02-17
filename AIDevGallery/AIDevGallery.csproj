@@ -78,7 +78,6 @@
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
-    <PackageReference Include="WinUICommunity.Components" />
     <PackageReference Include="WinUIEx" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
@@ -279,6 +278,9 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Assets\TileBrush.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="Assets\VSIcon.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -302,6 +304,8 @@
   
   <ItemGroup>
     <Folder Include="Controls\HomePage\Header\HeaderTile\" />
+    <Folder Include="Pages\Models\" />
+    <Folder Include="Pages\Scenarios\" />
   </ItemGroup>
 
   <!-- 
