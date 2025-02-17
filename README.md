@@ -27,7 +27,7 @@ Download [AI Dev Gallery from the Microsoft Store](http://aka.ms/ai-dev-gallery-
 
 ### 1. Set up the environment
 
->**⚠️ Note** AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later for building and Windows 10 or newer to run.
+>**⚠️ Note**: AI Dev Gallery requires [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or later for building and Windows 10 or newer to run.
 If you're new to building apps with WinUI and the Windows App SDK, follow the [installation instructions](https://learn.microsoft.com/windows/apps/get-started/start-here)).
 
 **Required [Visual Studio components](https://learn.microsoft.com/en-us/windows/apps/get-started/start-here?tabs=vs-2022-17-10#required-workloads-and-components):**
