@@ -53,7 +53,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         ((WcrModelDownloader)d).UpdateState((WcrApiDownloadState)e.NewValue);
     }
 
-    private void UpdateState(WcrApiDownloadState state)
+    private void UpdateState(WcrApiDownloadState state = WcrApiDownloadState.Downloaded)
     {
         switch (state)
         {
@@ -89,6 +89,7 @@ internal sealed partial class WcrModelDownloader : UserControl
     public WcrModelDownloader()
     {
         this.InitializeComponent();
+        UpdateState();
     }
 
     public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress> operation)
