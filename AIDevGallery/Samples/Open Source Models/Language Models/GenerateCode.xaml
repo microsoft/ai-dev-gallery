@@ -7,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:AIDevGallery.Samples.OpenSourceModels.LanguageModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
     <Grid RowSpacing="8">
         <Grid.RowDefinitions>

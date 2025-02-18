@@ -58,7 +58,6 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" />
     <PackageReference Include="MathNet.Numerics" />
-    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
@@ -79,12 +78,23 @@
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
-    <PackageReference Include="WinUICommunity.Components" />
     <PackageReference Include="WinUIEx" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(Platform) == 'ARM64'">
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" GeneratePathProperty="true" ExcludeAssets="all" />
+    <None Include="$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\runtimes\win-arm64\native\onnxruntime-genai.dll">
+	    <Link>onnxruntime-genai.dll</Link>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <Visible>false</Visible>
+    </None>
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+  </ItemGroup>
+	
+  <ItemGroup Condition="$(Platform) == 'x64'">
+    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
   </ItemGroup>
@@ -268,6 +278,9 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Assets\TileBrush.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="Assets\VSIcon.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -291,6 +304,8 @@
   
   <ItemGroup>
     <Folder Include="Controls\HomePage\Header\HeaderTile\" />
+    <Folder Include="Pages\Models\" />
+    <Folder Include="Pages\Scenarios\" />
   </ItemGroup>
 
   <!-- 

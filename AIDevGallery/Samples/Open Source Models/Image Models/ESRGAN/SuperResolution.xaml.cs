@@ -74,6 +74,16 @@ internal sealed partial class SuperResolution : BaseSamplePage
             {
                 sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
             }
+            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            {
+                Dictionary<string, string> options = new()
+                    {
+                        { "backend_path", "QnnHtp.dll" },
+                        { "htp_performance_mode", "high_performance" },
+                        { "htp_graph_finalization_optimization_mode", "3" }
+                    };
+                sessionOptions.AppendExecutionProvider("QNN", options);
+            }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
@@ -103,6 +113,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
         {
             // Call function to run inference and classify image
             UploadButton.Focus(FocusState.Programmatic);
+            SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await EnhanceImage(file.Path);
         }
     }

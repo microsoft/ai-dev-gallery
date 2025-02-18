@@ -29,6 +29,6 @@ internal class ModelDownloadCancelEvent : EventBase
 
     public static void Log(string modelUrl)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadCancel_Event", LogLevel.Measure, new ModelDownloadCancelEvent(modelUrl, DateTime.Now));
+        TelemetryFactory.Get<ITelemetry>().Log("ModelDownloadCancel_Event", LogLevel.Critical, new ModelDownloadCancelEvent(modelUrl, DateTime.Now));
     }
 }

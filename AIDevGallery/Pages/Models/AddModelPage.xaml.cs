@@ -231,6 +231,8 @@ internal sealed partial class AddModelPage : Page
         {
             case string p when p.Contains("phi"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
+            case string d when d.Contains("deepseek"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.DeepSeekR1];
             case string l when l.Contains("llama") || l.Contains("nemotron"):
                 return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
             case string m when m.Contains("mistral"):

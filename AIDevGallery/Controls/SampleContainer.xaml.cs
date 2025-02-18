@@ -6,8 +6,6 @@ using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
-using ColorCode.Common;
-using ColorCode.Styling;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -152,6 +150,8 @@ internal sealed partial class SampleContainer : UserControl
         if (cachedModelsPaths.Count == 1)
         {
             sampleNavigationParameters = new SampleNavigationParameters(
+                sample.Id,
+                models.First().Id,
                 modelPath,
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
@@ -169,6 +169,8 @@ internal sealed partial class SampleContainer : UserControl
             }
 
             sampleNavigationParameters = new MultiModelSampleNavigationParameters(
+                sample.Id,
+                models.Select(m => m.Id).ToArray(),
                 [.. cachedModelsPaths],
                 [.. hardwareAccelerators],
                 [.. promptTemplates],
@@ -237,7 +239,7 @@ internal sealed partial class SampleContainer : UserControl
 
     private void RenderCode(bool force = false)
     {
-        var codeFormatter = new RichTextBlockFormatter(GetStylesFromTheme(ActualTheme));
+        var codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
 
         if (_sampleCache == null)
         {
@@ -330,35 +332,6 @@ internal sealed partial class SampleContainer : UserControl
         if (sender is HyperlinkButton button && button.Tag is string url)
         {
             await Windows.System.Launcher.LaunchUriAsync(new Uri("https://www.nuget.org/packages/" + url));
-        }
-    }
-
-    private StyleDictionary GetStylesFromTheme(ElementTheme theme)
-    {
-        if (theme == ElementTheme.Dark)
-        {
-            // Adjust DefaultDark Theme to meet contrast accessibility requirements
-            StyleDictionary darkStyles = StyleDictionary.DefaultDark;
-            darkStyles[ScopeName.Comment].Foreground = StyleDictionary.BrightGreen;
-            darkStyles[ScopeName.XmlDocComment].Foreground = StyleDictionary.BrightGreen;
-            darkStyles[ScopeName.XmlDocTag].Foreground = StyleDictionary.BrightGreen;
-            darkStyles[ScopeName.XmlComment].Foreground = StyleDictionary.BrightGreen;
-            darkStyles[ScopeName.XmlDelimiter].Foreground = StyleDictionary.White;
-            darkStyles[ScopeName.Keyword].Foreground = "#FF41D6FF";
-            darkStyles[ScopeName.String].Foreground = "#FFFFB100";
-            darkStyles[ScopeName.XmlAttributeValue].Foreground = "#FF41D6FF";
-            darkStyles[ScopeName.XmlAttributeQuotes].Foreground = "#FF41D6FF";
-            return darkStyles;
-        }
-        else
-        {
-            StyleDictionary lightStyles = StyleDictionary.DefaultLight;
-            lightStyles[ScopeName.XmlDocComment].Foreground = "#FF006828";
-            lightStyles[ScopeName.XmlDocTag].Foreground = "#FF006828";
-            lightStyles[ScopeName.Comment].Foreground = "#FF006828";
-            lightStyles[ScopeName.XmlAttribute].Foreground = "#FFB5004D";
-            lightStyles[ScopeName.XmlName].Foreground = "#FF400000";
-            return lightStyles;
         }
     }
 }

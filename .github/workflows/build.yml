@@ -42,11 +42,11 @@ jobs:
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build
       run: |
         dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true
     - name: Upload Artifact - MSIX
       uses: actions/upload-artifact@v4
       with:

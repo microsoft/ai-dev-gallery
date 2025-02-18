@@ -30,6 +30,6 @@ internal class NavigatedToSampleLoadedEvent : EventBase
 
     public static void Log(string name)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("NavigatedToSampleLoaded_Event", LogLevel.Measure, new NavigatedToSampleLoadedEvent(name, DateTime.Now));
+        TelemetryFactory.Get<ITelemetry>().Log("NavigatedToSampleLoaded_Event", LogLevel.Critical, new NavigatedToSampleLoadedEvent(name, DateTime.Now));
     }
 }

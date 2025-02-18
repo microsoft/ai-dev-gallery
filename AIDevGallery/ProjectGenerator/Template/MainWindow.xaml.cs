@@ -9,7 +9,7 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
         this.RootFrame.Loaded += (sender, args) =>
         {
-            RootFrame.Navigate(typeof($MainSamplePage$));
+            RootFrame.Navigate(typeof(Sample));
         };
     }
 
