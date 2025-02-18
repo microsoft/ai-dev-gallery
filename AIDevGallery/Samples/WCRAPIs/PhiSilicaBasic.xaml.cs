@@ -34,7 +34,6 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        sampleParams.ShowWcrModelLoadingMessage = true;
         if (LanguageModel.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
@@ -46,7 +45,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
     {
-        var operation = ImageDescriptionGenerator.MakeAvailableAsync();
+        var operation = LanguageModel.MakeAvailableAsync();
 
         if (await WcrModelDownloader.SetDownloadOperation(operation))
         {

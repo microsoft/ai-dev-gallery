@@ -1,33 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AIDevGallery.Helpers
+namespace AIDevGallery.Helpers;
+
+internal static class URLHelper
 {
-    internal static class URLHelper
+    private const string DocsBaseUrl = "https://learn.microsoft.com/";
+    private const string WcrDocsRelativePath = "/windows/ai/apis/";
+
+    public static bool IsValidUrl(string url)
     {
-        private const string DocsBaseUrl = "https://learn.microsoft.com/";
-        private const string WcrDocsRelativePath = "/windows/ai/apis/";
+        Uri uri;
+        return Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    }
 
-        public static bool IsValidUrl(string url)
+    public static string FixWcrReadmeLink(string link)
+    {
+        if (link.StartsWith('/'))
         {
-            Uri uri;
-            return Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+            return Path.Join(DocsBaseUrl, link);
         }
-
-        public static string FixWcrReadmeLink(string link)
+        else
         {
-            if (link.StartsWith('/'))
-            {
-                return Path.Join(DocsBaseUrl, link);
-            }
-            else
-            {
-                return Path.Join(DocsBaseUrl, WcrDocsRelativePath, link.Replace(".md", string.Empty));
-            }
+            return Path.Join(DocsBaseUrl, WcrDocsRelativePath, link.Replace(".md", string.Empty));
         }
     }
 }

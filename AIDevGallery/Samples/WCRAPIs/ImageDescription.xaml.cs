@@ -39,7 +39,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        sampleParams.ShowWcrModelLoadingMessage = true;
         if (ImageDescriptionGenerator.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
