@@ -18,7 +18,6 @@
     <Page.Resources>
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
-
     <Grid x:Name="RootGrid" Padding="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -133,7 +132,13 @@
                         Margin="4,4,0,16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="API code" />
-                    <toolkit2:MarkdownTextBlock x:Name="CodeSampleTextBlock" Grid.Row="1" />
+                    <toolkit2:MarkdownTextBlock
+                        x:Name="CodeSampleTextBlock"
+                        Grid.Row="1"
+                        Margin="-4,0,0,0"
+                        Background="Transparent"
+                        CodeBackground="Transparent"
+                        FontSize="12" />
                 </Grid>
 
                 <!--  SAMPLE LINKS  -->
@@ -173,6 +178,7 @@
                                     CornerRadius="16">
                                     <Grid
                                         Padding="12,6,12,6"
+                                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                         BorderThickness="1"
                                         ColumnSpacing="8"
                                         CornerRadius="16"

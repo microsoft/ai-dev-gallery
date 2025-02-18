@@ -94,8 +94,7 @@
                         Visibility="Collapsed">
                         <Run Text="Requesting model.." /> <LineBreak />
                         <LineBreak />
-                        <Run FontSize="12" Text="Download progress can be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
-                        .</TextBlock>
+                        <Run FontSize="12" Text="Download progress can be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>.</TextBlock>
                 </StackPanel>
             </Grid>
             <Grid
