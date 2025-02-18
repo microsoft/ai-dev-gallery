@@ -316,14 +316,14 @@ internal sealed partial class SampleContainer : UserControl
             RenderCode();
         }
 
-        SidePaneColumn.Width = _sidePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_sidePaneWidth);
+        //SidePaneColumn.Width = _sidePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_sidePaneWidth);
         VisualStateManager.GoToState(this, state, true);
         VisualStateManager.GoToState(this, "ShowSidePaneState", true);
     }
 
     public void HideSidePane()
     {
-        _sidePaneWidth = SidePaneColumn.ActualWidth;
+        //_sidePaneWidth = SidePaneColumn.ActualWidth;
         VisualStateManager.GoToState(this, "HideSidePaneState", true);
     }
 

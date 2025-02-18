@@ -8,6 +8,7 @@
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ui="using:CommunityToolkit.WinUI"
     VerticalAlignment="Stretch"
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
@@ -27,7 +28,7 @@
             BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="100" />
-                <ColumnDefinition x:Name="SidePaneColumn" Width="0" />
+                <ColumnDefinition x:Name="SidePaneColumn" Width="360" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -81,8 +82,9 @@
                     Height="64"
                     IsActive="False" />
             </Grid>
+
             <Grid
-                x:Name="CodeGrid"
+                x:Name="SidePaneGrid"
                 Grid.RowSpan="2"
                 Grid.Column="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -100,7 +102,7 @@
                     <TextBlock
                         Margin="16,12,12,12"
                         Style="{StaticResource SubtitleTextBlockStyle}"
-                        Text="Model info" />
+                        Text="Sample info" />
                     <StackPanel
                         Grid.Row="1"
                         Margin="16,0,16,0"
@@ -172,9 +174,11 @@
                             Source="/Assets/Devices.png" />
                     </ScrollViewer>
                 </Grid>
-                <Grid x:Name="CodeGrid">
+                <Grid
+                    x:Name="CodeGrid"
+                    RowSpacing="0"
+                    Visibility="Collapsed">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -183,18 +187,11 @@
                         Style="{StaticResource SubtitleTextBlockStyle}"
                         Text="Source code" />
                     <StackPanel
+                        Grid.Row="0"
                         Margin="0,0,16,0"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal"
                         Spacing="8">
-                        <HyperlinkButton Padding="0">
-                            <HyperlinkButton>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Image Width="14" Source="/Assets/VSIcon.svg" />
-                                    <TextBlock Text="Export" />
-                                </StackPanel>
-                            </HyperlinkButton>
-                        </HyperlinkButton>
                         <HyperlinkButton Padding="0" Content="Packages">
                             <!--<HyperlinkButton.Flyout>
                                 <Flyout>
@@ -226,14 +223,38 @@
                             </HyperlinkButton.Flyout>-->
                         </HyperlinkButton>
                     </StackPanel>
-                
-                    <Grid Grid.Row="2">
-                        <Pivot x:Name="CodePivot" Margin="4,16,-12,-12">
-                            <Pivot.Resources>
-                                <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
-                            </Pivot.Resources>
-                        </Pivot>
-                    </Grid>
+                    <Pivot
+                        x:Name="CodePivot"
+                        Grid.Row="1"
+                        Margin="4,16,-12,-12">
+                        <Pivot.Resources>
+                            <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
+                        </Pivot.Resources>
+                    </Pivot>
+                </Grid>
+
+                <Grid x:Name="ModelSelectionGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Margin="16,12,12,12"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Model selection" />
+                    <SelectorBar Grid.Row="1" HorizontalAlignment="Left">
+                        <SelectorBarItem Icon="{ui:FontIcon Glyph=&#xF158;}" Text="Models" />
+                        <SelectorBarItem Icon="{ui:BitmapIcon Source=ms-appx:///Assets/ModelIcons/wcrapi.png}" Text="WCR" />
+                        <SelectorBarItem Icon="{ui:BitmapIcon Source=ms-appx:///Assets/ModelIcons/ollama.png}" Text="Ollama" />
+                        <SelectorBarItem Icon="{ui:BitmapIcon Source=ms-appx:///Assets/ModelIcons/azure.png}" Text="Azure" />
+                    </SelectorBar>
+                    <TextBlock
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Model selection goes here" />
                 </Grid>
             </Grid>
             <toolkitcontrols:GridSplitter
@@ -289,6 +310,7 @@
                         <Setter Target="CodeGrid.Visibility" Value="Visible" />
                         <Setter Target="InfoGrid.Visibility" Value="Collapsed" />
                         <Setter Target="PerfGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelSelectionGrid.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="InfoState">
@@ -296,6 +318,7 @@
                         <Setter Target="CodeGrid.Visibility" Value="Collapsed" />
                         <Setter Target="InfoGrid.Visibility" Value="Visible" />
                         <Setter Target="PerfGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelSelectionGrid.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="PerfState">
@@ -303,6 +326,15 @@
                         <Setter Target="CodeGrid.Visibility" Value="Collapsed" />
                         <Setter Target="InfoGrid.Visibility" Value="Collapsed" />
                         <Setter Target="PerfGrid.Visibility" Value="Visible" />
+                        <Setter Target="ModelSelectionGrid.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ModelState">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="InfoGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="PerfGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelSelectionGrid.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

@@ -46,21 +46,21 @@
             x:Name="FilterBar"
             HorizontalAlignment="Center"
             Style="{StaticResource TokenViewSelectorBarStyle}">
-            <SelectorBarItem
-                x:Name="RecentItem"
+            <SelectorBarItem Style="{StaticResource TokenViewSelectorBarItemStyle}"
+                x:Name="RecentItem" 
                 Icon="Clock"
                 Tag="Recent"
                 Text="Recent"
                 Visibility="Collapsed" />
-            <SelectorBarItem
+            <SelectorBarItem Style="{StaticResource TokenViewSelectorBarItemStyle}"
                 Icon="{ui:FontIcon Glyph=&#xF2B7;}"
                 Tag="Language"
                 Text="Language" />
-            <SelectorBarItem
+            <SelectorBarItem Style="{StaticResource TokenViewSelectorBarItemStyle}"
                 Icon="{ui:FontIcon Glyph=&#xE91B;}"
                 Tag="Image"
                 Text="Image" />
-            <SelectorBarItem
+            <SelectorBarItem Style="{StaticResource TokenViewSelectorBarItemStyle}"
                 Icon="{ui:FontIcon Glyph=&#xEC4F;}"
                 Tag="Speech"
                 Text="Speech" />

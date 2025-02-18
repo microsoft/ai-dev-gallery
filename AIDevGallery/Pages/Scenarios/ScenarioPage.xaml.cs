@@ -257,41 +257,6 @@ internal sealed partial class ScenarioPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void CodeToggle_Click(object sender, RoutedEventArgs args)
-    {
-        if (sender is ToggleButton btn)
-        {
-            foreach (ToggleButton toggle in ButtonsPanel.Children.OfType<ToggleButton>())
-            {
-                if (btn != toggle)
-                {
-                    // Reset other buttons
-                    toggle.IsChecked = false;
-                }
-            }
-
-            if (sample != null)
-            {
-                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
-            }
-
-            if (btn.IsChecked == true)
-            {
-                SampleContainer.OpenSidePane("CodeState");
-            }
-            else
-            {
-                SampleContainer.HideSidePane();
-            }
-        }
-    }
-
-    private void HideSidePane()
-    {
-       
-        SampleContainer.HideSidePane();
-    }
-
     private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button ||
@@ -482,11 +447,40 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
+
+    private void CodeToggle_Click(object sender, RoutedEventArgs args)
+    {
+        if (sender is ToggleButton btn)
+        {
+            foreach (ToggleButton toggle in ButtonBar.Children.OfType<ToggleButton>())
+            {
+                if (btn != toggle)
+                {
+                    // Reset other buttons
+                    toggle.IsChecked = false;
+                }
+            }
+
+            if (sample != null)
+            {
+                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
+            }
+
+            if (btn.IsChecked == true)
+            {
+                SampleContainer.OpenSidePane("CodeState");
+            }
+            else
+            {
+                SampleContainer.HideSidePane();
+            }
+        }
+    }
     private void PerformanceBtn_Click(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleButton btn)
         {
-            foreach (ToggleButton toggle in ButtonsPanel.Children.OfType<ToggleButton>())
+            foreach (ToggleButton toggle in ButtonBar.Children.OfType<ToggleButton>())
             {
                 if (btn != toggle)
                 {
@@ -515,7 +509,7 @@ internal sealed partial class ScenarioPage : Page
     {
         if (sender is ToggleButton btn)
         {
-            foreach (ToggleButton toggle in ButtonsPanel.Children.OfType<ToggleButton>())
+            foreach (ToggleButton toggle in ButtonBar.Children.OfType<ToggleButton>())
             {
                 if (btn != toggle)
                 {
@@ -532,6 +526,35 @@ internal sealed partial class ScenarioPage : Page
             if (btn.IsChecked == true)
             {
                 SampleContainer.OpenSidePane("InfoState");
+            }
+            else
+            {
+                SampleContainer.HideSidePane();
+            }
+        }
+    }
+
+    private void ModelBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleButton btn)
+        {
+            foreach (ToggleButton toggle in ButtonBar.Children.OfType<ToggleButton>())
+            {
+                if (btn != toggle)
+                {
+                    // Reset other buttons
+                    toggle.IsChecked = false;
+                }
+            }
+
+            if (sample != null)
+            {
+                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
+            }
+
+            if (btn.IsChecked == true)
+            {
+                SampleContainer.OpenSidePane("ModelState");
             }
             else
             {

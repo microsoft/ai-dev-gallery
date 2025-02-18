@@ -239,12 +239,15 @@
     <None Remove="Assets\AppIcon\WideTile.scale-200_altform-colorful_theme-light.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400_altform-colorful_theme-light.png" />
+    <None Remove="Assets\ModelIcons\azure.png" />
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
+    <None Remove="Assets\ModelIcons\ollama.png" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
+    <None Remove="Assets\ModelIcons\wcrapi.png" />
     <None Remove="Assets\TileImages\Chat.png" />
     <None Remove="Assets\TileImages\ClassifyImage.png" />
     <None Remove="Assets\TileImages\DetectObjects.png" />
