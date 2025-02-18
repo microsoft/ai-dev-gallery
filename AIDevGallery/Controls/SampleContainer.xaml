@@ -90,6 +90,17 @@
                 <Grid x:Name="wcrModelDownloaderHost" Visibility="Collapsed">
                     <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked"/>
                 </Grid>
+                <Grid x:Name="wcrModelUnavailable" Visibility="Collapsed">
+                    <InfoBar
+                        Margin="12"
+                        MaxWidth="560"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        IsClosable="False"
+                        IsOpen="True"
+                        Message="This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels). You can still view the code and export the sample."
+                        Severity="Error" />
+                </Grid>
             </Grid>
             <Grid
                 x:Name="CodeGrid"
@@ -173,6 +184,11 @@
                     <VisualState.Setters>
                         <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
                         <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrApiNotCompatible">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="WcrModelNeedsDownload">

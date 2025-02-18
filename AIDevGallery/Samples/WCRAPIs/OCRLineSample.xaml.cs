@@ -43,18 +43,16 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (TextRecognizer.IsAvailable())
+        if (!TextRecognizer.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, TextRecognizer.MakeAvailableAsync); // <exclude-line>
         }
-        else // <exclude-line>
-        { // <exclude-line>
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR); // <exclude-line>
-        } // <exclude-line>
 
         sampleParams.NotifyCompletion();
+        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)

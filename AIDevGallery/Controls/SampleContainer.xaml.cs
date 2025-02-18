@@ -138,6 +138,14 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        // show that models are not compatible with this device
+        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
+        {
+            VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+            SampleFrame.Content = null;
+            return;
+        }
+
         // if PhiSilica, only show model loader and reload sample once loaded
         if (cachedModelsPaths.Any(m => m == $"file://{ModelType.PhiSilica}"))
         {
@@ -151,7 +159,7 @@ internal sealed partial class SampleContainer : UserControl
                     SampleFrame.Content = null;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica))
+                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, LanguageModel.MakeAvailableAsync))
                     {
                         return;
                     }
@@ -159,8 +167,8 @@ internal sealed partial class SampleContainer : UserControl
             }
             catch
             {
-                modelDownloader.ErrorMessage = "This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels).";
-                modelDownloader.State = WcrApiDownloadState.Error;
+                VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                SampleFrame.Content = null;
                 return;
             }
         }

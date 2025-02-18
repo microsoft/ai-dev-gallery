@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
 using System.Linq;
@@ -38,18 +37,16 @@ internal sealed partial class OCRSample : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (TextRecognizer.IsAvailable())
+        if (!TextRecognizer.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, TextRecognizer.MakeAvailableAsync); // <exclude-line>
         }
-        else // <exclude-line>
-        { // <exclude-line>
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR); // <exclude-line>
-        } // <exclude-line>
 
         sampleParams.NotifyCompletion();
+        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)

@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
@@ -45,7 +46,7 @@ internal sealed partial class WcrModelDownloader : UserControl
 
     // Using a DependencyProperty as the backing store for State.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty StateProperty =
-        DependencyProperty.Register("State", typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.NotStarted, OnStateChanged));
+        DependencyProperty.Register("State", typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.Downloaded, OnStateChanged));
 
     private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -139,7 +140,7 @@ internal sealed partial class WcrModelDownloader : UserControl
     }
 
     // <exclude>
-    public Task<bool> SetDownloadOperation(ModelType modelType)
+    public Task<bool> SetDownloadOperation(ModelType modelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> makeAvailable)
     {
         IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>? exisitingOperation;
 
@@ -148,7 +149,8 @@ internal sealed partial class WcrModelDownloader : UserControl
 
         if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
         {
-            return SetDownloadOperation(exisitingOperation);
+            // don't reuse same one because we can only have one Progress delegate
+            return SetDownloadOperation(makeAvailable());
         }
 
         return Task.FromResult(false);
@@ -164,6 +166,11 @@ internal sealed partial class WcrModelDownloader : UserControl
     {
         var uri = new Uri("ms-settings:windowsupdate");
         await Launcher.LaunchUriAsync(uri);
+    }
+
+    private string ToFirstLine(string text)
+    {
+        return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).FirstOrDefault() ?? string.Empty;
     }
 }
 

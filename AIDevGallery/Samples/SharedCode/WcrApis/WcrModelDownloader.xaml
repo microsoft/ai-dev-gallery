@@ -9,6 +9,10 @@
     mc:Ignorable="d">
 
     <Grid Background="{StaticResource SolidBackgroundFillColorBaseBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <StackPanel x:Name="NotDownloadedContent"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -24,26 +28,26 @@
             </TextBlock>
             <Button HorizontalAlignment="Center" Click="DownloadModelClicked">Make Available</Button>
         </StackPanel>
-        <StackPanel
-            x:Name="loadingRingContainer"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Visibility="Collapsed">
+        <StackPanel x:Name="loadingRingContainer"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Visibility="Collapsed">
             <ProgressRing
                 Width="64"
                 Height="64"
-                IsIndeterminate="False"
+                IsIndeterminate="True"
                 Value="{x:Bind DownloadProgress, Mode=OneWay}"
                 />
             <TextBlock
                 Margin="24"
                 HorizontalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="WrapWholeWords"
                 TextAlignment="Center">
                 <Run Text="Requesting model.." /> <LineBreak />
                 <LineBreak />
-                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
+                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink><LineBreak />
             </TextBlock>
         </StackPanel>
         <StackPanel x:Name="errorContent"
@@ -58,13 +62,25 @@
                 TextWrapping="WrapWholeWords"
                 TextAlignment="Center">
                 <Run Text="Error downloading model: " /> 
-                <LineBreak />
-                <LineBreak />
-                <Run Text="{x:Bind ErrorMessage, Mode=OneWay}" />
-                <LineBreak />
-                <LineBreak />
-                <Run Text="Note: This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels)." />
+                <Run Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}" />
             </TextBlock>
         </StackPanel>
+        <InfoBar
+            IsOpen="True"
+            Grid.Row="1"
+            Severity="Informational"
+            MaxWidth="560"
+            Margin="20, 20, 20, 40">
+            <TextBlock
+                TextWrapping="WrapWholeWords"
+                Margin="12">
+                <Run Text="The Windows Copilot Runtime APIs are experimental and require a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels)." />
+                <LineBreak />
+                <LineBreak />
+                <Run Text="See " />
+                <Hyperlink FontSize="12" NavigateUri="https://learn.microsoft.com/windows/ai/apis/">documentation</Hyperlink>
+                <Run Text=" for more details." />
+            </TextBlock>
+        </InfoBar>
     </Grid>
 </UserControl>
