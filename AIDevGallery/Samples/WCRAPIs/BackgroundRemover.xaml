@@ -23,7 +23,7 @@
             MaxHeight="400">
             <Border 
                 BorderThickness="3" 
-                BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
                 CornerRadius="3">
                 <Grid>
                     <Image 
