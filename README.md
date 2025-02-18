@@ -41,6 +41,8 @@ git clone https://github.com/microsoft/AI-Dev-Gallery.git
 
 Press <kbd>F5</kbd> to run AI Dev Gallery!
 
+>**⚠️ Note**: On ARM64-based Copilot+ PCs, make sure to build and run the solution as `ARM64` (and not as `x64`). This is required especially when running the samples that invoke the Windows Copilot Runtime to communicate with models such as Phi Silica.
+
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help you.
 
 <br/>
