@@ -43,8 +43,11 @@ internal sealed partial class OCRSample : BaseSamplePage
         if (TextRecognizer.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
-
         }
+        else // <exclude-line>
+        { // <exclude-line>
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR); // <exclude-line>
+        } // <exclude-line>
 
         sampleParams.NotifyCompletion();
     }

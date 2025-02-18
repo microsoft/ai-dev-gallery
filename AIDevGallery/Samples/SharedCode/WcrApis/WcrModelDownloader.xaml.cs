@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models; // <exclude-line>
+using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Management.Deployment;
@@ -13,6 +15,7 @@ namespace AIDevGallery.Samples.SharedCode;
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
+    private ModelType? modelTypeHint; // <exclude-line>
 
     public int DownloadProgress
     {
@@ -94,6 +97,13 @@ internal sealed partial class WcrModelDownloader : UserControl
             return false;
         }
 
+        // <exclude>
+        if (this.modelTypeHint.HasValue)
+        {
+            WcrDownloadOperationTracker.Operations[this.modelTypeHint.Value] = operation;
+        }
+
+        // </exclude>
         operation.Progress = (result, progress) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -128,6 +138,23 @@ internal sealed partial class WcrModelDownloader : UserControl
         return false;
     }
 
+    // <exclude>
+    public Task<bool> SetDownloadOperation(ModelType modelType)
+    {
+        IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>? exisitingOperation;
+
+        WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
+        this.modelTypeHint = modelType;
+
+        if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
+        {
+            return SetDownloadOperation(exisitingOperation);
+        }
+
+        return Task.FromResult(false);
+    }
+
+    // </exclude>
     private void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         DownloadClicked?.Invoke(this, EventArgs.Empty);

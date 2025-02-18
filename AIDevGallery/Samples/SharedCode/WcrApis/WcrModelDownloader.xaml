@@ -61,6 +61,9 @@
                 <LineBreak />
                 <LineBreak />
                 <Run Text="{x:Bind ErrorMessage, Mode=OneWay}" />
+                <LineBreak />
+                <LineBreak />
+                <Run Text="Note: This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels)." />
             </TextBlock>
         </StackPanel>
     </Grid>

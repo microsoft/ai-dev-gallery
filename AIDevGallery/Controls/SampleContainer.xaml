@@ -8,6 +8,7 @@
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     VerticalAlignment="Stretch"
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
@@ -85,18 +86,10 @@
                         Width="64"
                         Height="64"
                         IsActive="False" />
-                    <TextBlock
-                        x:Name="wcrApisLoadingTextBlock"
-                        Margin="24"
-                        HorizontalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        TextAlignment="Center"
-                        Visibility="Collapsed">
-                        <Run Text="Requesting model.." /> <LineBreak />
-                        <LineBreak />
-                        <Run FontSize="12" Text="Download progress can be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
-                        .</TextBlock>
                 </StackPanel>
+                <Grid x:Name="wcrModelDownloaderHost" Visibility="Collapsed">
+                    <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked"/>
+                </Grid>
             </Grid>
             <Grid
                 x:Name="CodeGrid"
@@ -180,6 +173,11 @@
                     <VisualState.Setters>
                         <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
                         <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrModelNeedsDownload">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="SampleLoaded">
