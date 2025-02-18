@@ -9,100 +9,72 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <Grid ColumnSpacing="24" RowSpacing="12">
+    <Grid RowSpacing="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Viewbox 
+            x:Name="ImageViewbox" 
+            Grid.Row="0"
+            Stretch="Uniform"
+            MaxWidth="600"
+            MaxHeight="400">
+            <Border 
+                BorderThickness="3" 
+                BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+                CornerRadius="3">
+                <Grid>
+                    <Image 
+                        x:Name="CanvasImage"
+                        PointerPressed="CanvasImage_PointerPressed"/>
+                    <Canvas 
+                        x:Name="PointsCanvas" 
+                        IsHitTestVisible="False"/>
+                </Grid>
+            </Border>
+        </Viewbox>
         <StackPanel
-            Grid.ColumnSpan="2"
             Orientation="Horizontal"
-            Spacing="36">
+            HorizontalAlignment="Center"
+            Spacing="8"
+            Grid.Row="1">
+            <Button
+                x:Name="RevertButton"
+                Content="Revert"
+                Style="{ThemeResource AccentButtonStyle}"
+                Click="RevertButton_Click"
+                Visibility="Collapsed"/>
+            <Button 
+                x:Name="RemoveBackgroundButton"
+                Content="Remove Background"
+                Style="{ThemeResource AccentButtonStyle}"
+                Click="RemoveBackground_Click"/>
+            <Button
+                x:Name="ClearSelectionButton"
+                Content="Clear Selected Points"
+                Click="CleanSelection_Click"/>
             <DropDownButton AutomationProperties.Name="Select image">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
-                    <TextBlock Text="Select image" />
-                </StackPanel>
+                <TextBlock Text="Select Image" />
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
-                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                        <MenuFlyoutItem Click="PasteImage_Click" Text="From Clipboard" />
+                        <MenuFlyoutItem Click="LoadImage_Click" Text="From File" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
             </DropDownButton>
-            <StackPanel
-                x:Name="ActionsButtonPanel"
-                Orientation="Horizontal"
-                Spacing="12"
-                Visibility="Collapsed">
-                <Button
-                    Click="RemoveBackground_Click"
-                    Content="Remove background"
-                    Style="{StaticResource AccentButtonStyle}" />
-                <Button
-                    x:Name="CleanSelectionBtn"
-                    Click="CleanSelection_Click"
-                    Content="Clean selection"
-                    IsEnabled="False" />
-            </StackPanel>
         </StackPanel>
-
-        <TextBlock
-            x:Name="InstructionTxt"
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="0,0,0,24"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="Click on the parts of image that should be extracted, then click 'Remove background'. A maximum of 31 points can be selected."
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
-
-        <Grid
+        <TextBlock 
+            x:Name="InstructionText"
             Grid.Row="2"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top">
-            <Image
-                x:Name="ImageSrc"
-                MaxHeight="360"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Stretch="Uniform" />
-            <Canvas
-                x:Name="InputImageCanvas"
-                Width="{Binding Width, ElementName=ImageSrc}"
-                Height="{Binding Height, ElementName=ImageSrc}"
-                Background="Transparent"
-                PointerReleased="Canvas_PointerReleased"
-                SizeChanged="Canvas_SizeChanged" />
-        </Grid>
-        <Image
-            x:Name="ImageDst"
-            Grid.Row="2"
-            Grid.Column="1"
-            MaxHeight="360"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Stretch="Uniform" />
-        <ProgressRing
-            x:Name="Loader"
-            Grid.Row="2"
-            Grid.Column="1"
-            Width="48"
-            Height="48"
+            TextWrapping="WrapWholeWords"
+            FontSize="10"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            IsActive="True"
-            Visibility="Collapsed" />
+            Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."/>
         <shared:WcrModelDownloader 
             x:Name="WcrModelDownloader" 
             DownloadClicked="WcrModelDownloader_DownloadClicked"
-            Grid.RowSpan="3"
-            Grid.ColumnSpan="2"/>
+            Grid.RowSpan="2"/>
     </Grid>
 </samples:BaseSamplePage>
