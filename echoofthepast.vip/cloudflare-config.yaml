@@ -1,0 +1,62 @@
+zone: echoofthepast.vip
+account:
+  id: your-cloudflare-account-id
+  name: your-cloudflare-account-name
+plan: pro
+settings:
+  minify:
+    css: true
+    html: true
+    js: true
+  image_resizing: true
+  brotli: true
+  rocket_loader: true
+  security_level: high
+  ssl: full
+  cache_level: aggressive
+  always_online: true
+  development_mode: false
+  ip_geolocation: true
+  webp: true
+  http2: true
+  http3: true
+  zero_rtt: true
+  automatic_https_rewrites: true
+  opportunistic_encryption: true
+  hotlink_protection: true
+  email_obfuscation: true
+  server_side_exclude: true
+  browser_cache_ttl: 1 hour
+  edge_cache_ttl: 1 day
+  cache_everything: true
+  cache_ttl_by_status:
+    200-299: 1 day
+    300-399: 1 day
+    400-499: 1 hour
+    500-599: 1 minute
+  page_rules:
+    - targets:
+        - url: https://echoofthepast.vip/*
+          settings:
+            cache_level: cache_everything
+            edge_cache_ttl: 1 day
+            browser_cache_ttl: 1 hour
+            always_online: true
+            security_level: high
+            ssl: full
+            rocket_loader: true
+            minify:
+              css: true
+              html: true
+              js: true
+            image_resizing: true
+            brotli: true
+            webp: true
+            http2: true
+            http3: true
+            zero_rtt: true
+            automatic_https_rewrites: true
+            opportunistic_encryption: true
+            hotlink_protection: true
+            email_obfuscation: true
+            server_side_exclude: true
