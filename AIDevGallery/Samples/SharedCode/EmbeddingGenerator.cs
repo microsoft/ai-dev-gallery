@@ -29,15 +29,15 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     [GeneratedRegex(@"[\u0000-\u001F\u007F-\uFFFF]")]
     private static partial Regex MyRegex();
 
+    private readonly EmbeddingGeneratorMetadata _metadata;
     private readonly SessionOptions _sessionOptions;
     private readonly InferenceSession _inferenceSession;
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public EmbeddingGeneratorMetadata Metadata { get; }
     public EmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
     {
-        Metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
+        _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
 
         _sessionOptions = new SessionOptions();
 
@@ -301,6 +301,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     {
         return
             serviceKey is not null ? null :
+            serviceType == typeof(EmbeddingGeneratorMetadata) ? _metadata :
             serviceType?.IsInstanceOfType(_inferenceSession) is true ? _inferenceSession :
             serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :

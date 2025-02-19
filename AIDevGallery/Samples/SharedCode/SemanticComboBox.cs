@@ -75,7 +75,7 @@ internal sealed partial class SemanticComboBox : Control
             return [];
         }
 
-        SampleInteractionEvent.SendSampleInteractedEvent(EmbeddingGenerator.Metadata, Models.ScenarioType.SmartControlsSemanticComboBox, "Search"); // <exclude-line>
+        SampleInteractionEvent.SendSampleInteractedEvent(EmbeddingGenerator.GetService<EmbeddingGeneratorMetadata>(), Models.ScenarioType.SmartControlsSemanticComboBox, "Search"); // <exclude-line>
         GeneratedEmbeddings<Embedding<float>> results = [];
 
         var searchVectors = await EmbeddingGenerator.GenerateAsync([searchTerm]);

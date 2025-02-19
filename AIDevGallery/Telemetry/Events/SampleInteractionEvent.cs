@@ -45,12 +45,12 @@ internal class SampleInteractionEvent : EventBase
 
     public static void SendSampleInteractedEvent(IChatClient? chatClient, ScenarioType scenario, string? customInfo = null)
     {
-        SendSampleInteractedEvent(chatClient?.Metadata.ProviderUri, scenario, customInfo);
+        SendSampleInteractedEvent(chatClient?.GetService<ChatClientMetadata>()?.ProviderUri, scenario, customInfo);
     }
 
-    public static void SendSampleInteractedEvent(EmbeddingGeneratorMetadata embeddingGeneratorMetadata, ScenarioType scenario, string? customInfo = null)
+    public static void SendSampleInteractedEvent(EmbeddingGeneratorMetadata? embeddingGeneratorMetadata, ScenarioType scenario, string? customInfo = null)
     {
-        SendSampleInteractedEvent(embeddingGeneratorMetadata.ProviderUri, scenario, customInfo);
+        SendSampleInteractedEvent(embeddingGeneratorMetadata?.ProviderUri, scenario, customInfo);
     }
 
     private static void SendSampleInteractedEvent(Uri? providerUri, ScenarioType scenario, string? customInfo = null)
