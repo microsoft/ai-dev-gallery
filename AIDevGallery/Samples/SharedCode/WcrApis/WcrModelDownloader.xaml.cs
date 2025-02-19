@@ -26,9 +26,9 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(DownloadProgressProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for DownloadProgress.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for DownloadProgress. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty DownloadProgressProperty =
-        DependencyProperty.Register("DownloadProgress", typeof(int), typeof(WcrModelDownloader), new PropertyMetadata(0));
+        DependencyProperty.Register(nameof(DownloadProgress), typeof(int), typeof(WcrModelDownloader), new PropertyMetadata(0));
 
     public string ErrorMessage
     {
@@ -36,9 +36,9 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(ErrorMessageProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for ErrorMessage.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for ErrorMessage. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty ErrorMessageProperty =
-        DependencyProperty.Register("ErrorMessage", typeof(string), typeof(WcrModelDownloader), new PropertyMetadata("Error downloading model"));
+        DependencyProperty.Register(nameof(ErrorMessage), typeof(string), typeof(WcrModelDownloader), new PropertyMetadata("Error downloading model"));
 
     public WcrApiDownloadState State
     {
@@ -46,9 +46,9 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(StateProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for State.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for State. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty StateProperty =
-        DependencyProperty.Register("State", typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.Downloaded, OnStateChanged));
+        DependencyProperty.Register(nameof(State), typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.Downloaded, OnStateChanged));
 
     private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -60,27 +60,19 @@ internal sealed partial class WcrModelDownloader : UserControl
         switch (state)
         {
             case WcrApiDownloadState.NotStarted:
-                NotDownloadedContent.Visibility = Visibility.Visible;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "NotDownloaded", true);
                 this.Visibility = Visibility.Visible;
                 break;
             case WcrApiDownloadState.Downloading:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Visible;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "Downloading", true);
                 this.Visibility = Visibility.Visible;
                 break;
             case WcrApiDownloadState.Downloaded:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "Downloaded", true);
                 this.Visibility = Visibility.Collapsed;
                 break;
             case WcrApiDownloadState.Error:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Visible;
+                VisualStateManager.GoToState(this, "Error", true);
                 this.Visibility = Visibility.Visible;
                 break;
             default:
