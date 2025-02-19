@@ -159,7 +159,7 @@ internal sealed partial class SampleContainer : UserControl
                     SampleFrame.Content = null;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, LanguageModel.MakeAvailableAsync))
+                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync))
                     {
                         return;
                     }

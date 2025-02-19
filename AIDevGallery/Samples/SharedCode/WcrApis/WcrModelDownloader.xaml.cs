@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models; // <exclude-line>
+using AIDevGallery.Telemetry.Events; // <exclude-line>
 using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -17,6 +18,7 @@ internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
     private ModelType? modelTypeHint; // <exclude-line>
+    private string? sampleId; // <exclude-line>
 
     public int DownloadProgress
     {
@@ -129,24 +131,41 @@ internal sealed partial class WcrModelDownloader : UserControl
             {
                 State = WcrApiDownloadState.Error;
                 ErrorMessage = result.ExtendedError.Message;
+
+                // <exclude>
+                if (this.modelTypeHint.HasValue)
+                {
+                    WcrApiDownloadFailedEvent.Log(this.modelTypeHint.Value, result.ExtendedError.Message);
+                }
+
+                // </exclude>
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
             State = WcrApiDownloadState.Error;
+
+            // <exclude>
+            if (this.modelTypeHint.HasValue)
+            {
+                WcrApiDownloadFailedEvent.Log(this.modelTypeHint.Value, ex);
+            }
+
+            // </exclude>
         }
 
         return false;
     }
 
     // <exclude>
-    public Task<bool> SetDownloadOperation(ModelType modelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> makeAvailable)
+    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> makeAvailable)
     {
         IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>? exisitingOperation;
 
         WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
         this.modelTypeHint = modelType;
+        this.sampleId = sampleId;
 
         if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
         {
@@ -161,6 +180,14 @@ internal sealed partial class WcrModelDownloader : UserControl
     private void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         DownloadClicked?.Invoke(this, EventArgs.Empty);
+
+        // <exclude>
+        if (modelTypeHint != null)
+        {
+            WcrApiDownloadRequestedEvent.Log(modelTypeHint.Value, sampleId);
+        }
+
+        // </exclude>
     }
 
     private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)

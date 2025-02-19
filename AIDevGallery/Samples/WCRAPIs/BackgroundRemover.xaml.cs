@@ -48,7 +48,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         if (!ImageObjectExtractor.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.BackgroundRemover, ImageObjectExtractor.MakeAvailableAsync); // <exclude-line>
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.BackgroundRemover, sampleParams.SampleId, ImageObjectExtractor.MakeAvailableAsync); // <exclude-line>
         }
 
         sampleParams.NotifyCompletion();

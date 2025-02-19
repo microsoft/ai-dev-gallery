@@ -41,7 +41,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         if (!ImageScaler.IsAvailable())
         {
             WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageScaler, ImageScaler.MakeAvailableAsync); // <exclude-line>
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageScaler, sampleParams.SampleId, ImageScaler.MakeAvailableAsync); // <exclude-line>
         }
 
         sampleParams.NotifyCompletion();

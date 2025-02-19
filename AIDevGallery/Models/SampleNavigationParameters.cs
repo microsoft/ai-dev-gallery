@@ -20,6 +20,7 @@ internal class SampleNavigationParameters(
 {
     public string ModelPath { get; } = modelPath;
     public HardwareAccelerator HardwareAccelerator { get; } = hardwareAccelerator;
+    public string SampleId => sampleId;
 
     protected override string ChatClientModelPath => ModelPath;
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
