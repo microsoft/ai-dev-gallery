@@ -122,7 +122,8 @@ internal class GenAIModel : IChatClient, IDisposable
             var message = history[i];
             if (message.Role == ChatRole.System)
             {
-                if (i == 0) // ignore system prompts that aren't at the beginning
+                // ignore system prompts that aren't at the beginning
+                if (i == 0)
                 {
                     if (string.IsNullOrWhiteSpace(_template.System))
                     {
