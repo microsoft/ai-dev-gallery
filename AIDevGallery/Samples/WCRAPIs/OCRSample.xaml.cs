@@ -23,9 +23,9 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Detect Text",
+    Name = "Recognize Text",
     Model1Types = [ModelType.TextRecognitionOCR],
-    Scenario = ScenarioType.ImageDetectText,
+    Scenario = ScenarioType.ImageRecognizeText,
     Id = "8f072b64-74fc-4511-b84f-e09d56394f07",
     SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     Icon = "\uEE6F")]
