@@ -25,13 +25,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     SharedCode = [
-        SharedCodeEnum.GenAIModel,
         SharedCodeEnum.Message,
-        SharedCodeEnum.LlmPromptTemplate,
         SharedCodeEnum.ChatTemplateSelector,
         SharedCodeEnum.Utils
     ])]

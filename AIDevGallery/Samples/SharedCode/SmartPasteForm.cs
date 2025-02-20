@@ -105,8 +105,8 @@ Rules:
         PromptInput input = new()
         {
             Labels = fieldLabels,
-            Text = clipboardText.Length > GenAIModel.DefaultMaxLength ?
-                clipboardText[..GenAIModel.DefaultMaxLength] :
+            Text = clipboardText.Length > ChatOptionsHelper.DefaultMaxLength ?
+                clipboardText[..ChatOptionsHelper.DefaultMaxLength] :
                 clipboardText
         };
 

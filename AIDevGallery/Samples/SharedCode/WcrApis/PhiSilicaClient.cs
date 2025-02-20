@@ -19,9 +19,6 @@ internal class PhiSilicaClient : IChatClient
     private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
 
     // Search Options
-    private const int DefaultTopK = 50;
-    private const float DefaultTopP = 0.9f;
-    private const float DefaultTemperature = 1;
     private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
     private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
     private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
@@ -44,7 +41,7 @@ internal class PhiSilicaClient : IChatClient
         };
     }
 
-    public static ChatOptions GetDefaultChatOptions()
+    private static ChatOptions GetDefaultChatOptions()
     {
         return new ChatOptions
         {
@@ -54,9 +51,9 @@ internal class PhiSilicaClient : IChatClient
                 { "input_moderation", DefaultInputModeration },
                 { "output_moderation", DefaultOutputModeration },
             },
-            Temperature = DefaultTemperature,
-            TopP = DefaultTopP,
-            TopK = DefaultTopK,
+            Temperature = ChatOptionsHelper.DefaultTemperature,
+            TopP = ChatOptionsHelper.DefaultTopP,
+            TopK = ChatOptionsHelper.DefaultTopK,
         };
     }
 
@@ -138,9 +135,9 @@ internal class PhiSilicaClient : IChatClient
         var languageModelOptions = new LanguageModelOptions
         {
             Skill = options.AdditionalProperties?.TryGetValue("skill", out LanguageModelSkill skill) == true ? skill : DefaultLanguageModelSkill,
-            Temp = options.Temperature ?? DefaultTemperature,
-            Top_k = (uint)(options.TopK ?? DefaultTopK),
-            Top_p = (uint)(options.TopP ?? DefaultTopP),
+            Temp = options.Temperature ?? ChatOptionsHelper.DefaultTemperature,
+            Top_k = (uint)(options.TopK ?? ChatOptionsHelper.DefaultTopK),
+            Top_p = (uint)(options.TopP ?? ChatOptionsHelper.DefaultTopP),
         };
 
         var contentFilterOptions = new ContentFilterOptions();
@@ -251,6 +248,7 @@ internal class PhiSilicaClient : IChatClient
             serviceKey is not null ? null :
             _languageModel is not null && serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
             serviceType?.IsInstanceOfType(this) is true ? this :
+            serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
             null;
     }
 
