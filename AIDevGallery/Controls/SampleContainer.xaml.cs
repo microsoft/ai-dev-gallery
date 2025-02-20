@@ -9,6 +9,7 @@ using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -137,6 +138,41 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        // show that models are not compatible with this device
+        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
+        {
+            VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+            SampleFrame.Content = null;
+            return;
+        }
+
+        // if PhiSilica, only show model loader and reload sample once loaded
+        if (cachedModelsPaths.Any(m => m == $"file://{ModelType.PhiSilica}"))
+        {
+            try
+            {
+                if (!LanguageModel.IsAvailable())
+                {
+                    modelDownloader.State = WcrApiDownloadState.NotStarted;
+                    modelDownloader.ErrorMessage = string.Empty;
+                    modelDownloader.DownloadProgress = 0;
+                    SampleFrame.Content = null;
+
+                    VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
+                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync))
+                    {
+                        return;
+                    }
+                }
+            }
+            catch
+            {
+                VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                SampleFrame.Content = null;
+                return;
+            }
+        }
+
         // model available
         VisualStateManager.GoToState(this, "SampleLoading", true);
         SampleFrame.Content = null;
@@ -182,11 +218,6 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
         SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
-        if (sampleNavigationParameters.ShowWcrModelLoadingMessage)
-        {
-            this.wcrApisLoadingTextBlock.Visibility = Visibility.Visible;
-        }
-
         await _sampleLoadedCompletionSource.Task;
 
         _sampleLoadedCompletionSource = null;
@@ -194,7 +225,6 @@ internal sealed partial class SampleContainer : UserControl
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
-        this.wcrApisLoadingTextBlock.Visibility = Visibility.Collapsed;
         VisualStateManager.GoToState(this, "SampleLoaded", true);
 
         CodePivot.Items.Clear();
@@ -342,5 +372,22 @@ internal sealed partial class SampleContainer : UserControl
     {
         var uri = new Uri("ms-settings:windowsupdate");
         await Launcher.LaunchUriAsync(uri);
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        if (!LanguageModel.IsAvailable())
+        {
+            var op = LanguageModel.MakeAvailableAsync();
+            if (await modelDownloader.SetDownloadOperation(op))
+            {
+                // reload sample
+                _ = this.LoadSampleAsync(_sampleCache, _modelsCache);
+            }
+        }
+        else
+        {
+            modelDownloader.State = WcrApiDownloadState.Downloaded;
+        }
     }
 }

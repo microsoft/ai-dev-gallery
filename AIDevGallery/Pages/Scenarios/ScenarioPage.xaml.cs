@@ -72,11 +72,13 @@ internal sealed partial class ScenarioPage : Page
         {
             var models = ModelDetailsHelper.GetModelDetails(s);
 
-            if (models.Count > 0) // Model1Types
+            // Model1Types
+            if (models.Count > 0)
             {
                 modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
 
-                if (models.Count > 1) // Model2Types
+                // Model2Types
+                if (models.Count > 1)
                 {
                     modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
                 }
