@@ -125,8 +125,6 @@
                                        FontSize=16}">
                     <controls:ModelSelectionControl
                         x:Name="modelSelectionControl"
-                        Grid.Row="1"
-                        Margin="4,0,4,4"
                         ModelCardVisibility="Collapsed"
                         SelectedModelChanged="ModelSelectionControl_SelectedModelChanged" />
                 </controls:Card>
@@ -140,8 +138,6 @@
                                        FontSize=16}">
                     <ItemsView
                         x:Name="SampleList"
-                        Grid.Row="1"
-                        Padding="4,0,4,4"
                         HorizontalAlignment="Stretch"
                         AutomationProperties.Name="Samples"
                         IsEnabled="False"
@@ -170,10 +166,11 @@
                                         </Grid.ColumnDefinitions>
                                         <FontIcon
                                             FontSize="14"
-                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Glyph="{x:Bind Icon}" />
                                         <TextBlock
                                             Grid.Column="1"
+                                            Margin="0,-1,0,0"
                                             VerticalAlignment="Center"
                                             Text="{x:Bind Name}"
                                             TextTrimming="CharacterEllipsis" />

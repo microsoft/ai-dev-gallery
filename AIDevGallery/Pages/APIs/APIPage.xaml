@@ -21,9 +21,12 @@
     <Grid x:Name="RootGrid" Padding="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Spacing="12">
             <Image Width="24" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
             <TextBlock
@@ -33,6 +36,7 @@
         </StackPanel>
 
         <controls:CopyButton
+            Grid.Column="1"
             Height="34"
             HorizontalAlignment="Right"
             AutomationProperties.Name="Copy link to page"
@@ -42,11 +46,12 @@
             ToolTipService.ToolTip="Copy link to page" />
         <ScrollViewer
             x:Name="Scroller"
-            Grid.Row="2"
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
             Margin="0,0,-16,-16"
             VerticalAlignment="Stretch">
             <Grid
-                Margin="0,0,16,16"
+                Margin="0,16,16,16"
                 ColumnSpacing="16"
                 RowSpacing="8">
                 <Grid.ColumnDefinitions>
@@ -56,21 +61,14 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition x:Name="MainRow" Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-
-                <!--<Button
-                Content="View documentation"
-                FontSize="12"
-                Style="{StaticResource SubtleButtonStyle}"
-                ToolTipService.ToolTip="View documentation in the browser" />-->
-
 
                 <Grid
                     x:Name="sampleContainerRoot"
                     Grid.ColumnSpan="2"
-                    Padding="0"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    Background="{ThemeResource APIHeaderBackgroundBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource OverlayCornerRadius}">
@@ -79,122 +77,142 @@
                         MinHeight="240"
                         DisclaimerHorizontalAlignment="Right" />
                 </Grid>
-                <StackPanel
+
+                <controls:Card
+                    x:Name="SamplesCard"
+                    Title="Other samples"
                     Grid.Row="1"
                     Grid.ColumnSpan="2"
-                    Margin="0,16,0,16"
-                    Orientation="Vertical"
-                    Spacing="8">
-                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Other samples" />
-                    <Grid Style="{StaticResource CardGridStyle}">
-                        <ItemsView
-                            x:Name="SampleList"
-                            HorizontalAlignment="Stretch"
-                            AutomationProperties.Name="Samples"
-                            IsItemInvokedEnabled="True"
-                            ItemInvoked="SampleList_ItemInvoked"
-                            SelectionMode="None">
-                            <ItemsView.Layout>
-                                <LinedFlowLayout LineSpacing="12" MinItemSpacing="12" />
-                            </ItemsView.Layout>
-                            <ItemsView.ItemTemplate>
-                                <DataTemplate x:DataType="types:Sample">
-                                    <ItemContainer
-                                        HorizontalAlignment="Left"
-                                        AutomationProperties.Name="{x:Bind Name}"
-                                        CornerRadius="16">
-                                        <Grid
-                                            Padding="12,6,12,6"
-                                            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                                            BorderThickness="1"
-                                            ColumnSpacing="8"
-                                            CornerRadius="16"
-                                            Style="{StaticResource CardGridStyle}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
+                    Margin="0,36,0,0"
+                    Icon="{ui:FontIcon Glyph=&#xE754;,
+                                       FontSize=16}">
+                    <ItemsView
+                        x:Name="SampleList"
+                        Grid.Row="1"
+                        Padding="4,0,4,4"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Samples"
+                        IsItemInvokedEnabled="True"
+                        ItemInvoked="SampleList_ItemInvoked"
+                        SelectionMode="None">
+                        <ItemsView.Layout>
+                            <LinedFlowLayout LineSpacing="12" MinItemSpacing="12" />
+                        </ItemsView.Layout>
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="types:Sample">
+                                <ItemContainer
+                                    HorizontalAlignment="Left"
+                                    AutomationProperties.Name="{x:Bind Name}"
+                                    CornerRadius="16">
+                                    <Grid
+                                        Padding="12,6,12,6"
+                                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        BorderThickness="1"
+                                        ColumnSpacing="8"
+                                        CornerRadius="16"
+                                        Style="{StaticResource CardGridStyle}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon
+                                            FontSize="14"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="{x:Bind Icon}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Name}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+                </controls:Card>
 
-                                            <FontIcon
-                                                FontSize="14"
-                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                Glyph="{x:Bind Icon}" />
-
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                Text="{x:Bind Name}"
-                                                TextTrimming="CharacterEllipsis" />
-                                        </Grid>
-                                    </ItemContainer>
-                                </DataTemplate>
-                            </ItemsView.ItemTemplate>
-                        </ItemsView>
-                    </Grid>
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="2"
-                    Orientation="Vertical"
-                    Spacing="8">
-                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Documentation" />
-                    <Grid
-                        x:Name="DocumentationCard"
-                        Padding="0"
-                        Style="{StaticResource CardGridStyle}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <ScrollViewer Grid.Row="3" Padding="16,0,16,0">
-                            <toolkit2:MarkdownTextBlock
-                                x:Name="markdownTextBlock"
-                                Margin="0,16,0,16"
-                                Background="Transparent"
-                                FontSize="14"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Header1FontSize="14"
-                                Header1FontWeight="SemiBold"
-                                Header1Margin="0,0,0,16"
-                                Header2FontSize="14"
-                                Header2FontWeight="SemiBold"
-                                Header2Margin="0,32,0,8"
-                                Header3FontSize="14"
-                                Header3FontWeight="SemiBold"
-                                Header3Margin="0,16,0,8"
-                                LinkClicked="MarkdownTextBlock_LinkClicked"
-                                QuoteBackground="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}">
-                                <toolkit2:MarkdownTextBlock.Resources>
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
-                                </toolkit2:MarkdownTextBlock.Resources>
-                            </toolkit2:MarkdownTextBlock>
-                        </ScrollViewer>
+                <controls:Card
+                    x:Name="DocumentationCard"
+                    Title="Documentation"
+                    Grid.Row="3"
+                    Icon="{ui:FontIcon Glyph=&#xE7C3;,
+                                       FontSize=16}">
+                    <controls:Card.TitleContent>
+                        <HyperlinkButton
+                            Padding="4,2,4,2"
+                            AutomationProperties.Name="Open documentation in browser"
+                            Content="Open in browser" />
+                    </controls:Card.TitleContent>
+                    <Grid>
+                        <toolkit2:MarkdownTextBlock
+                            x:Name="markdownTextBlock"
+                            Margin="0,16,0,16"
+                            Background="Transparent"
+                            FontSize="14"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Header1FontSize="14"
+                            Header1FontWeight="SemiBold"
+                            Header1Margin="0,0,0,16"
+                            Header2FontSize="14"
+                            Header2FontWeight="SemiBold"
+                            Header2Margin="0,32,0,8"
+                            Header3FontSize="14"
+                            Header3FontWeight="SemiBold"
+                            Header3Margin="0,16,0,8"
+                            LinkClicked="MarkdownTextBlock_LinkClicked">
+                            <toolkit2:MarkdownTextBlock.Resources>
+                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
+                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
+                            </toolkit2:MarkdownTextBlock.Resources>
+                        </toolkit2:MarkdownTextBlock>
                         <ProgressRing
                             x:Name="readmeProgressRing"
-                            Grid.Row="3"
+                            Grid.Row="2"
                             IsActive="True" />
                     </Grid>
-                </StackPanel>
+                </controls:Card>
 
-                <StackPanel
-                    Grid.Row="2"
+                <controls:Card
+                    x:Name="CodeCard"
+                    Title="API"
+                    Grid.Row="3"
                     Grid.Column="1"
-                    Orientation="Vertical"
-                    Spacing="8">
-                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="API" />
-                    <Grid x:Name="codeSampleRoot" Style="{StaticResource CardGridStyle}">
-                        <toolkit2:MarkdownTextBlock
-                            x:Name="CodeSampleTextBlock"
-                            Grid.Row="1"
-                            Margin="-4,0,0,0"
-                            Background="Transparent"
-                            CodeBackground="Transparent"
-                            FontSize="12" />
-                    </Grid>
-                </StackPanel>
+                    VerticalContentAlignment="Top">
+                    <controls:Card.Icon>
+                        <PathIcon Data="M8.06562 18.9434L14.5656 4.44339C14.7351 4.06542 15.1788 3.89637 15.5568 4.0658C15.9033 4.22112 16.0742 4.60695 15.9698 4.96131L15.9344 5.05698L9.43438 19.557C9.26495 19.935 8.82118 20.104 8.44321 19.9346C8.09673 19.7793 7.92581 19.3934 8.03024 19.0391L8.06562 18.9434L14.5656 4.44339L8.06562 18.9434ZM2.21967 11.4699L6.46967 7.21986C6.76256 6.92696 7.23744 6.92696 7.53033 7.21986C7.7966 7.48612 7.8208 7.90279 7.60295 8.1964L7.53033 8.28052L3.81066 12.0002L7.53033 15.7199C7.82322 16.0127 7.82322 16.4876 7.53033 16.7805C7.26406 17.0468 6.8474 17.071 6.55379 16.8531L6.46967 16.7805L2.21967 12.5305C1.9534 12.2642 1.9292 11.8476 2.14705 11.554L2.21967 11.4699L6.46967 7.21986L2.21967 11.4699ZM16.4697 7.21986C16.7359 6.95359 17.1526 6.92938 17.4462 7.14724L17.5303 7.21986L21.7803 11.4699C22.0466 11.7361 22.0708 12.1528 21.8529 12.4464L21.7803 12.5305L17.5303 16.7805C17.2374 17.0734 16.7626 17.0734 16.4697 16.7805C16.2034 16.5143 16.1792 16.0976 16.3971 15.804L16.4697 15.7199L20.1893 12.0002L16.4697 8.28052C16.1768 7.98762 16.1768 7.51275 16.4697 7.21986Z" />
+                    </controls:Card.Icon>
+                    <toolkit2:MarkdownTextBlock
+                        x:Name="CodeSampleTextBlock"
+                        Grid.Row="1"
+                        Margin="-4,0,0,0"
+                        Background="Transparent"
+                        CodeBackground="Transparent"
+                        FontSize="12" />
+                </controls:Card>
+
+
             </Grid>
         </ScrollViewer>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutVisualStates">
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1200" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SideColumn.Width" Value="Auto" />
+                        <Setter Target="CodeCard.(Grid.Column)" Value="0" />
+                        <Setter Target="CodeCard.(Grid.Row)" Value="2" />
+                        <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
+                        <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>

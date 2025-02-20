@@ -82,7 +82,7 @@ internal sealed partial class APIPage : Page
             }
             else
             {
-                codeSampleRoot.Visibility = Visibility.Collapsed;
+                CodeCard.Visibility = Visibility.Collapsed;
             }
         }
         else
@@ -113,6 +113,7 @@ internal sealed partial class APIPage : Page
             var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
             samples.AddRange(SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true));
         }
+
         SampleList.ItemsSource = samples;
     }
 

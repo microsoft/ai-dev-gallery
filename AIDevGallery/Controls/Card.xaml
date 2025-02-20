@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Padding="12"
+    Padding="8"
     HorizontalContentAlignment="Stretch"
     VerticalContentAlignment="Stretch"
     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -32,18 +32,23 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ContentPresenter
+            <Viewbox
                 x:Name="IconHolder"
-                Margin="0,0,12,0"
-                VerticalAlignment="Center"
-                AutomationProperties.AccessibilityView="Raw"
-                Content="{x:Bind Icon, Mode=OneWay}"
-                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                Width="16"
+                Height="16"
+                Margin="0,0,12,0">
+                <ContentPresenter
+                    VerticalAlignment="Center"
+                    AutomationProperties.AccessibilityView="Raw"
+                    Content="{x:Bind Icon, Mode=OneWay}"
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+            </Viewbox>
+
             <TextBlock
                 Grid.Column="1"
                 Margin="0,-1,0,0"
                 VerticalAlignment="Center"
-                FontSize="16"
+                FontSize="14"
                 FontWeight="SemiBold"
                 Text="{x:Bind Title, Mode=OneWay}" />
             <ContentPresenter
