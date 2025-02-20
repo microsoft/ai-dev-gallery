@@ -12,7 +12,10 @@
     <Grid RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="16" />
-            <RowDefinition Height="*" MaxHeight="400" />
+            <RowDefinition
+                Height="*"
+                MinHeight="160"
+                MaxHeight="400" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock
@@ -28,6 +31,7 @@
             VerticalAlignment="Center">
             <Viewbox
                 x:Name="ImageViewbox"
+                MinWidth="240"
                 MaxWidth="600"
                 VerticalAlignment="Stretch"
                 Stretch="Uniform">
