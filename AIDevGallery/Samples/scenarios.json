@@ -166,12 +166,6 @@
         "Description": "Model multiple humans' posture with a pose detection model. Upload an image including multiple clearly visible persons to see pose estimates drawn onto the image.",
         "Id": "detect-poses"
       },
-      "EnhanceImage": {
-        "Name": "Enhance Image",
-        "Description": "Improve image quality with an image enhancement model. Upload a low resolution image and a higher resolution version of the same image will be output.",
-        "Id": "enhance-image",
-        "Icon": "\uEE71"
-      },
       "SegmentStreet": {
         "Name": "Segment Street",
         "Description": "Segment photos of streets into detectable zones with a street segmentation model. Upload a photo of a clearly visible street to have it segmented into color-coded regions.",

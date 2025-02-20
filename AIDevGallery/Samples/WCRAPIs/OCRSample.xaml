@@ -83,7 +83,7 @@
         <shared:WcrModelDownloader 
             x:Name="WcrModelDownloader" 
             DownloadClicked="WcrModelDownloader_DownloadClicked"
-            Grid.RowSpan="2"
+            Grid.RowSpan="3"
             Grid.ColumnSpan="2"/>
     </Grid>
 </samples:BaseSamplePage>

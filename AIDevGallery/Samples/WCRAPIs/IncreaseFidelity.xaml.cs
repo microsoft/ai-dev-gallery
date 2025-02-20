@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,14 +36,16 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (ImageScaler.IsAvailable())
+        if (!ImageScaler.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageScaler, sampleParams.SampleId, ImageScaler.MakeAvailableAsync); // <exclude-line>
         }
 
         sampleParams.NotifyCompletion();
+        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
