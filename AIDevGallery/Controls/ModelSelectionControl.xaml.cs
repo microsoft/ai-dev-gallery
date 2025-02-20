@@ -137,7 +137,7 @@ internal partial class ModelSelectionControl : UserControl
     {
         if (modelDetails != null)
         {
-            if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+            if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible && !modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
             {
                 if (Selected != null)
                 {
@@ -238,29 +238,25 @@ internal partial class ModelSelectionControl : UserControl
                             FileFilters = model.FileFilters
                         };
 
-                        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
+                        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
                         {
-                            if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
-                            {
-                                // insert APIs on top
-                                AvailableModels.Insert(0, new AvailableModel(modelDetails));
-                            }
-                            else
+                            if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
                             {
                                 AvailableModels.Add(new AvailableModel(modelDetails));
                             }
+                            else
+                            {
+                                // insert available APIs on top
+                                AvailableModels.Insert(0, new AvailableModel(modelDetails));
+                            }
+                        }
+                        else if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
+                        {
+                            AvailableModels.Add(new AvailableModel(modelDetails));
                         }
                         else
                         {
-                            if (model.Size == 0)
-                            {
-                                // insert APIs on top
-                                UnavailableModels.Insert(0, new BaseModel(modelDetails));
-                            }
-                            else
-                            {
-                                UnavailableModels.Add(new DownloadableModel(modelDetails));
-                            }
+                            UnavailableModels.Add(new DownloadableModel(modelDetails));
                         }
                     }
                 }
