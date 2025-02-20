@@ -95,7 +95,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in model.CompleteStreamingAsync(
+                await foreach (var messagePart in model.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)

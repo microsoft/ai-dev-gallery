@@ -89,7 +89,7 @@ internal sealed partial class SmartTextBox : Control
 
         ChatOptions chatOptions = options ?? _chatClient.GetDefaultChatOptions();
 
-        return (await _chatClient.CompleteAsync(
+        return (await _chatClient.GetResponseAsync(
             [
                 new ChatMessage(ChatRole.System, systemPrompt),
                     new ChatMessage(ChatRole.User, query)

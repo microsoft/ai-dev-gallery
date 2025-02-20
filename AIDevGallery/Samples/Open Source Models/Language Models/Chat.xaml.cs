@@ -139,7 +139,7 @@ internal sealed partial class Chat : BaseSamplePage
 
             history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));
 
-            await foreach (var messagePart in model.CompleteStreamingAsync(history, null, cts.Token))
+            await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
             {
                 var part = messagePart;
                 DispatcherQueue.TryEnqueue(() =>
