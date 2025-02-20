@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
@@ -31,12 +32,20 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.BackgroundRemover],
     Scenario = ScenarioType.ImageBackgroundRemover,
     Id = "79eca6f0-3092-4b6f-9a81-94a2aff22559",
-    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
+    SharedCode = [
+        SharedCodeEnum.WcrModelDownloaderCs,
+        SharedCodeEnum.WcrModelDownloaderXaml
+    ],
+    AssetFilenames = [
+        "pose_default.png"
+    ],
     Icon = "\uEE6F")]
 internal sealed partial class BackgroundRemover : BaseSamplePage
 {
-    private readonly List<PointInt32> _selectionPoints = [];
+    private readonly List<PointInt32> _selectionPoints = new();
     private SoftwareBitmap? _inputBitmap;
+    private SoftwareBitmap? _originalBitmap;
+    private bool _isSelectionEnabled = true;
 
     public BackgroundRemover()
     {
@@ -51,13 +60,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.BackgroundRemover, sampleParams.SampleId, ImageObjectExtractor.MakeAvailableAsync); // <exclude-line>
         }
 
-        // <exclude>
-        else
-        {
-            _ = LoadDefaultImage();
-        }
-
-        // </exclude>
+        await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
         sampleParams.NotifyCompletion();
         return Task.CompletedTask;
     }
@@ -154,11 +157,18 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
-        await SetImageSource(ImageSrc, _inputBitmap);
+        await SetImageSource(CanvasImage, _inputBitmap);
+        SwitchInputOutputView(true);
+    }
 
-        InstructionTxt.Visibility = Visibility.Visible;
-        ActionsButtonPanel.Visibility = Visibility.Visible;
-        ClearSelectionPoints();
+    private async Task SetImage(string filePath)
+    {
+        if(File.Exists(filePath))
+        {
+            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
+            using IRandomAccessStream stream = await file.OpenReadAsync();
+            await SetImage(stream);
+        }
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
@@ -168,7 +178,9 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         // This conversion ensures that the image is Bgra8 and Premultiplied
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
-        image.Source = bitmapSource;
+        CanvasImage.Source = bitmapSource;
+        CanvasImage.Width = _inputBitmap!.PixelWidth;
+        CanvasImage.Height = _inputBitmap.PixelHeight;
     }
 
     private async Task<SoftwareBitmap?> ExtractBackground(SoftwareBitmap bitmap, IList<PointInt32> includePoints)
@@ -214,40 +226,12 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         return segmentedBitmap;
     }
 
-    private void Canvas_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        if (_inputBitmap == null || _selectionPoints.Count >= 31)
-        {
-            return;
-        }
-
-        CleanSelectionBtn.IsEnabled = true;
-        var currentPoint = e.GetCurrentPoint(InputImageCanvas);
-        var ratioX = ImageSrc.ActualWidth / _inputBitmap.PixelWidth;
-        var ratioY = ImageSrc.ActualHeight / _inputBitmap.PixelHeight;
-
-        // Get the offset between the canvas and the image
-        var offSetX = InputImageCanvas.ActualWidth > ImageSrc.ActualWidth ? (InputImageCanvas.ActualWidth - ImageSrc.ActualWidth) / 2 : 0;
-        var offSetY = InputImageCanvas.ActualHeight > ImageSrc.ActualHeight ? (InputImageCanvas.ActualHeight - ImageSrc.ActualHeight) / 2 : 0;
-        var x = (int)((currentPoint.Position.X - offSetX) / ratioX);
-        var y = (int)((currentPoint.Position.Y - offSetY) / ratioY);
-        _selectionPoints.Add(new PointInt32(x, y));
-        var ellipse = new Ellipse() { Width = 8, Height = 8, Stroke = new SolidColorBrush(Colors.Red), Fill = new SolidColorBrush(Colors.Red) };
-        Canvas.SetLeft(ellipse, currentPoint.Position.X - 4);
-        Canvas.SetTop(ellipse, currentPoint.Position.Y - 4);
-        InputImageCanvas.Children.Add(ellipse);
-    }
-
     private void ClearSelectionPoints()
     {
         _selectionPoints.Clear();
-        InputImageCanvas.Children.Clear();
-        CleanSelectionBtn.IsEnabled = false;
-    }
-
-    private void Canvas_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        ClearSelectionPoints();
+        InstructionText.Text = "Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected.";
+        PointsCanvas.Children.Clear();
+        ClearSelectionButton.IsEnabled = false;
     }
 
     private void CleanSelection_Click(object sender, RoutedEventArgs e)
@@ -257,21 +241,64 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private async void RemoveBackground_Click(object sender, RoutedEventArgs e)
     {
-        if (_inputBitmap == null)
+        if (_inputBitmap == null || _selectionPoints.Count == 0)
         {
             return;
         }
 
-        Loader.Visibility = Visibility.Visible;
-        ImageDst.Visibility = Visibility.Collapsed;
-
         var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
         if (outputBitmap != null)
         {
-            await SetImageSource(ImageDst, outputBitmap);
+            _originalBitmap = _inputBitmap;
+            await SetImageSource(CanvasImage, outputBitmap);
+            SwitchInputOutputView(false);
+        }
+    }
+
+    private void CanvasImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (_inputBitmap == null || _selectionPoints.Count >= 31 || !_isSelectionEnabled)
+        {
+            RemoveBackgroundButton.IsEnabled = false;
+            return;
         }
 
-        Loader.Visibility = Visibility.Collapsed;
-        ImageDst.Visibility = Visibility.Visible;
+        RemoveBackgroundButton.IsEnabled = true;
+        var pointerPosition = e.GetCurrentPoint(CanvasImage).Position;
+
+        var circle = new Ellipse
+        {
+            Width = 12,
+            Height = 12,
+            Fill = new SolidColorBrush(Colors.Red)
+        };
+
+        Canvas.SetLeft(circle, pointerPosition.X - circle.Width / 2);
+        Canvas.SetTop(circle, pointerPosition.Y - circle.Height / 2);
+        PointsCanvas.Children.Add(circle);
+        _selectionPoints.Add(new PointInt32((int)pointerPosition.X, (int)pointerPosition.Y));
+        InstructionText.Text = $"Click on the image to select objects you wish to be included after background removal. {_selectionPoints.Count} of 31 maximum points currently selected.";
+        ClearSelectionButton.IsEnabled = true;
+    }
+
+    private void SwitchInputOutputView(bool isInputEnabled)
+    {
+        _isSelectionEnabled = isInputEnabled;
+        ClearSelectionPoints();
+        RevertButton.Visibility = isInputEnabled ? Visibility.Collapsed : Visibility.Visible;
+        RemoveBackgroundButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+        ClearSelectionButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+        InstructionText.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async void RevertButton_Click(object sender, RoutedEventArgs e)
+    {
+        if(_originalBitmap != null)
+        {
+            _inputBitmap = _originalBitmap;
+            await SetImageSource(CanvasImage, _inputBitmap);
+        }
+
+        SwitchInputOutputView(true);
     }
 }
