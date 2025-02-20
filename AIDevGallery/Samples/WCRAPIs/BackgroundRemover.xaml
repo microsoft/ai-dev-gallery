@@ -9,58 +9,53 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <Grid RowSpacing="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" MinHeight="16" />
-            <RowDefinition
-                Height="*"
-                MinHeight="160"
-                MaxHeight="400" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <TextBlock
-            x:Name="InstructionText"
-            HorizontalAlignment="Center"
-            FontSize="10"
-            Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
-            TextWrapping="WrapWholeWords" />
+    <Grid ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MaxWidth="600" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
         <Grid
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
+            MinWidth="240"
+            MaxWidth="600"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+            BorderThickness="3"
+            CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox
                 x:Name="ImageViewbox"
-                MinWidth="240"
-                MaxWidth="600"
+                Margin="-1"
                 VerticalAlignment="Stretch"
                 Stretch="Uniform">
-                <Grid
-                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-                    BorderThickness="4"
-                    CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Grid>
                     <Image x:Name="CanvasImage" PointerPressed="CanvasImage_PointerPressed" />
                     <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
                 </Grid>
             </Viewbox>
             <DropDownButton
                 Margin="12"
+                Padding="8"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Content="Select image">
+                AutomationProperties.Name="Select image"
+                ToolTipService.ToolTip="Select image">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
                         <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
                         <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
+                <FontIcon Glyph="&#xEE71;" />
             </DropDownButton>
         </Grid>
         <StackPanel
-            Grid.Row="2"
-            HorizontalAlignment="Center"
+            Grid.Column="1"
+            MaxWidth="240"
+            HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Orientation="Horizontal"
+            Orientation="Vertical"
             Spacing="8">
             <Button
                 x:Name="RevertButton"
@@ -78,7 +73,13 @@
                 x:Name="ClearSelectionButton"
                 Click="CleanSelection_Click"
                 Content="Clear selected points" />
-
+            <TextBlock
+                x:Name="InstructionText"
+                Margin="0,12,0,0"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
+                TextWrapping="Wrap" />
         </StackPanel>
         <shared:WcrModelDownloader
             x:Name="WcrModelDownloader"

@@ -22,6 +22,14 @@ namespace AIDevGallery.Controls;
 
 internal sealed partial class SampleContainer : UserControl
 {
+    public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Center));
+
+    public HorizontalAlignment DisclaimerHorizontalAlignment
+    {
+        get => (HorizontalAlignment)GetValue(DisclaimerHorizontalAlignmentProperty);
+        set => SetValue(DisclaimerHorizontalAlignmentProperty, value);
+    }
+
     private Sample? _sampleCache;
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
