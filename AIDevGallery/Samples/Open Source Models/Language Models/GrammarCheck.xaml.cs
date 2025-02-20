@@ -41,6 +41,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
+        chatOptions = model.GetDefaultChatOptions();
         InputTextBox.MaxLength = chatOptions?.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
