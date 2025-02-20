@@ -25,7 +25,13 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImage,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
-    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
+    SharedCode = [
+        SharedCodeEnum.WcrModelDownloaderCs,
+        SharedCodeEnum.WcrModelDownloaderXaml
+    ],
+    AssetFilenames = [
+        "team.jpg"
+    ],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
@@ -37,7 +43,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageDescriptionGenerator.IsAvailable())
         {
@@ -45,8 +51,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageDescription, sampleParams.SampleId, ImageDescriptionGenerator.MakeAvailableAsync); // <exclude-line>
         }
 
+        await SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
         sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
@@ -114,6 +120,16 @@ internal sealed partial class ImageDescription : BaseSamplePage
     {
         string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
         return imageExtensions.Contains(Path.GetExtension(fileName)?.ToLowerInvariant());
+    }
+
+    private async Task SetImage(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
+            using IRandomAccessStream stream = await file.OpenReadAsync();
+            await SetImage(stream);
+        }
     }
 
     private async Task SetImage(IRandomAccessStream stream)
