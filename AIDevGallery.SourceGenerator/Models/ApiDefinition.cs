@@ -12,4 +12,5 @@ internal class ApiDefinition
     public required string Description { get; init; }
     public required string ReadmeUrl { get; init; }
     public required string License { get; init; }
+    public required string SampleIdToShowInDocs { get; init; }
 }

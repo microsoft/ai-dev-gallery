@@ -138,7 +138,7 @@
                 </StackPanel>
             </StackPanel>
             <TextBlock Grid.Row="1" Margin="0,16,0,0"
-                    Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Output:" />
+                    Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Output" />
             <TextBlock x:Name="OutputTextBlock" Grid.Row="2"
                     AutomationProperties.Name="Output"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"

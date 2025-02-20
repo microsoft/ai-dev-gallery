@@ -44,6 +44,13 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageScaler, sampleParams.SampleId, ImageScaler.MakeAvailableAsync); // <exclude-line>
         }
 
+        // <exclude>
+        else
+        {
+            _ = LoadDefaultImage();
+        }
+
+        // </exclude>
         sampleParams.NotifyCompletion();
         return Task.CompletedTask;
     }
@@ -52,7 +59,22 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
     {
         var operation = ImageScaler.MakeAvailableAsync();
 
-        await WcrModelDownloader.SetDownloadOperation(operation);
+        var success = await WcrModelDownloader.SetDownloadOperation(operation);
+
+        // <exclude>
+        if (success)
+        {
+            await LoadDefaultImage();
+        }
+    }
+
+    private async Task LoadDefaultImage()
+    {
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        using var stream = await file.OpenReadAsync();
+        await SetImage(stream);
+
+        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

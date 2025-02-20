@@ -45,6 +45,13 @@ internal sealed partial class OCRSample : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, sampleParams.SampleId, TextRecognizer.MakeAvailableAsync); // <exclude-line>
         }
 
+        // <exclude>
+        else
+        {
+            _ = LoadDefaultImage();
+        }
+
+        // </exclude>
         sampleParams.NotifyCompletion();
         return Task.CompletedTask;
     }
@@ -53,7 +60,22 @@ internal sealed partial class OCRSample : BaseSamplePage
     {
         var operation = TextRecognizer.MakeAvailableAsync();
 
-        await WcrModelDownloader.SetDownloadOperation(operation);
+        var success = await WcrModelDownloader.SetDownloadOperation(operation);
+
+        // <exclude>
+        if (success)
+        {
+            await LoadDefaultImage();
+        }
+    }
+
+    private async Task LoadDefaultImage()
+    {
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\ocr.png");
+        using var stream = await file.OpenReadAsync();
+        await SetImage(stream);
+
+        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
