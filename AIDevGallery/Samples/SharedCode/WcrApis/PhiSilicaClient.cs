@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using WinUIEx.Messaging;
 
 namespace AIDevGallery.Samples.SharedCode;
 
