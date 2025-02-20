@@ -113,7 +113,7 @@ Rules:
         CancellationTokenSource cts = new();
         string output = string.Empty;
 
-        await foreach (var messagePart in model.CompleteStreamingAsync(
+        await foreach (var messagePart in model.GetStreamingResponseAsync(
             [
                 new ChatMessage(ChatRole.System, _systemPrompt),
                 new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))

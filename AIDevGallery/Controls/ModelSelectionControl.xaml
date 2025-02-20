@@ -102,7 +102,7 @@
                                         </Grid>
                                     </toolkit:SettingsCard.Header>
                                     <toolkit:SettingsCard.HeaderIcon>
-                                        <ImageIcon AutomationProperties.AccessibilityView="Raw" Source="{x:Bind ModelDetails.Icon}" />
+                                        <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind ModelDetails.Icon}" />
                                     </toolkit:SettingsCard.HeaderIcon>
                                     <toolkit:SettingsCard.Description>
                                         <StackPanel>
@@ -283,7 +283,7 @@
                                     </Grid>
                                 </toolkit:SettingsCard.Header>
                                 <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon AutomationProperties.AccessibilityView="Raw" Source="{x:Bind ModelDetails.Icon}" />
+                                    <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind ModelDetails.Icon}" />
                                 </toolkit:SettingsCard.HeaderIcon>
                                 <toolkit:SettingsCard.Description>
                                     <StackPanel>
@@ -460,7 +460,8 @@
                                 </toolkit:SettingsCard.Resources>
                                 <toolkit:SettingsCard.HeaderIcon>
                                     <ImageIcon
-                                        AutomationProperties.AccessibilityView="Raw"
+                                        AutomationProperties.AccessibilityView="Control"
+                                        AutomationProperties.Name="Model source icon"
                                         Opacity="0.4"
                                         Source="{x:Bind ModelDetails.Icon}" />
                                 </toolkit:SettingsCard.HeaderIcon>
