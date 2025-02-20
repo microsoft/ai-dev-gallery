@@ -12,10 +12,7 @@
     <Grid RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="16" />
-            <RowDefinition
-                Height="*"
-                MinHeight="160"
-                MaxHeight="400" />
+            <RowDefinition Height="*" MinHeight="160" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock

@@ -89,7 +89,10 @@
                                                             ToolTipService.ToolTip="More info">
                                                             <Button.Flyout>
                                                                 <Flyout ShouldConstrainToRootBounds="False">
-                                                                    <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
+                                                                    <TextBlock
+                                                                        MaxWidth="360"
+                                                                        Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                                        TextWrapping="Wrap" />
                                                                 </Flyout>
                                                             </Button.Flyout>
                                                         </Button>
@@ -106,8 +109,8 @@
                                             <toolkit:WrapPanel
                                                 HorizontalSpacing="6"
                                                 Orientation="Horizontal"
-                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                VerticalSpacing="2">
+                                                VerticalSpacing="2"
+                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}">
                                                 <TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
                                                     <Run Text="{x:Bind ModelDetails.ParameterSize}" />
                                                     <Run Text="params" />
@@ -139,9 +142,7 @@
                                                     </ToolTipService.ToolTip>
                                                 </TextBlock>
                                             </toolkit:WrapPanel>
-                                            <TextBlock
-                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
-                                                Text="Windows Copilot Runtime APIs" />
+                                            <TextBlock Text="Windows Copilot Runtime APIs" Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
                                         </StackPanel>
 
                                     </toolkit:SettingsCard.Description>
@@ -168,42 +169,40 @@
                                                         Click="ModelCard_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="View model card" />
+                                                        Text="View model card"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="ApiDocumentation_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
-                                                        Text="View API documentation" />
+                                                        Text="View API documentation"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="View license" />
-                                                    <MenuFlyoutSeparator 
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"/>
+                                                        Text="View license"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="CopyModelPath_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8C8;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="Copy as path" />
+                                                        Text="Copy as path"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="OpenModelFolder_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE838;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="Open containing folder" />
-                                                    <MenuFlyoutSeparator 
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"/>
+                                                        Text="Open containing folder"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="DeleteModel_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE74D;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="Delete" />
+                                                        Text="Delete"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>
@@ -271,7 +270,10 @@
                                                         ToolTipService.ToolTip="More info">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
-                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
+                                                                <TextBlock
+                                                                    MaxWidth="360"
+                                                                    Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                                    TextWrapping="Wrap" />
                                                             </Flyout>
                                                         </Button.Flyout>
                                                     </Button>
@@ -440,7 +442,10 @@
                                                         ToolTipService.ToolTip="More info">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
-                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
+                                                                <TextBlock
+                                                                    MaxWidth="360"
+                                                                    Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                                    TextWrapping="Wrap" />
                                                             </Flyout>
                                                         </Button.Flyout>
                                                     </Button>
@@ -464,8 +469,8 @@
                                         <toolkit:WrapPanel
                                             HorizontalSpacing="6"
                                             Orientation="Horizontal"
-                                            Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                            VerticalSpacing="2">
+                                            VerticalSpacing="2"
+                                            Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}">
                                             <TextBlock
                                                 MaxWidth="268"
                                                 Foreground="{ThemeResource TextFillColorDisabledBrush}"
@@ -505,9 +510,10 @@
                                                 </ToolTipService.ToolTip>
                                             </TextBlock>
                                         </toolkit:WrapPanel>
-                                        <TextBlock Foreground="{ThemeResource TextFillColorDisabledBrush}"
-                                            Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
-                                            Text="Windows Copilot Runtime APIs" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                            Text="Windows Copilot Runtime APIs"
+                                            Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
                                     </StackPanel>
                                 </toolkit:SettingsCard.Description>
 
@@ -534,20 +540,20 @@
                                                         Click="ModelCard_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="View model card" />
+                                                        Text="View model card"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="ApiDocumentation_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
-                                                        Text="View API documentation" />
+                                                        Text="View API documentation"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
-                                                        Text="View license" />
+                                                        Text="View license"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>

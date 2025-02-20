@@ -133,10 +133,10 @@
                                 VerticalAlignment="Center"
                                 AutomationProperties.Name="View model page"
                                 Click="GoToModelPageClicked"
-                                Tag="{x:Bind}"
                                 Content="{ui:FontIcon Glyph=&#xE736;,
                                                       FontSize=14}"
                                 Style="{StaticResource SubtleButtonStyle}"
+                                Tag="{x:Bind}"
                                 ToolTipService.ToolTip="View model page"
                                 Visibility="{x:Bind vm:DownloadableModel.VisibleWhenDownloaded(Status), Mode=OneWay}" />
                             <Button

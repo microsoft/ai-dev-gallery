@@ -52,11 +52,11 @@
             VerticalAlignment="Stretch">
             <Grid
                 Margin="0,16,16,16"
-                ColumnSpacing="16"
+                ColumnSpacing="12"
                 RowSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition x:Name="SideColumn" Width="380" />
+                    <ColumnDefinition x:Name="SideColumn" Width="320" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -67,11 +67,13 @@
 
                 <Grid
                     x:Name="sampleContainerRoot"
-                    Grid.ColumnSpan="2"
                     Background="{ThemeResource APIHeaderBackgroundBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
                     CornerRadius="{StaticResource OverlayCornerRadius}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <controls:SampleContainer
                         x:Name="sampleContainer"
                         MinHeight="240"
@@ -81,14 +83,11 @@
                 <controls:Card
                     x:Name="SamplesCard"
                     Title="Other samples"
-                    Grid.Row="1"
-                    Grid.ColumnSpan="2"
-                    Margin="0,36,0,0"
+                    Grid.Column="1"
                     Icon="{ui:FontIcon Glyph=&#xE754;,
                                        FontSize=16}">
                     <ItemsView
                         x:Name="SampleList"
-                        Grid.Row="1"
                         Padding="4,0,4,4"
                         HorizontalAlignment="Stretch"
                         AutomationProperties.Name="Samples"
@@ -117,7 +116,7 @@
                                         </Grid.ColumnDefinitions>
                                         <FontIcon
                                             FontSize="14"
-                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Glyph="{x:Bind Icon}" />
                                         <TextBlock
                                             Grid.Column="1"
@@ -130,7 +129,6 @@
                         </ItemsView.ItemTemplate>
                     </ItemsView>
                 </controls:Card>
-
                 <controls:Card
                     x:Name="DocumentationCard"
                     Title="Documentation"
@@ -139,14 +137,13 @@
                                        FontSize=16}">
                     <controls:Card.TitleContent>
                         <HyperlinkButton
-                            Padding="4,2,4,2"
+                            Padding="4,0,4,0"
                             AutomationProperties.Name="Open documentation in browser"
                             Content="Open in browser" />
                     </controls:Card.TitleContent>
-                    <Grid>
+                    <Grid Padding="8,16,8,16">
                         <toolkit2:MarkdownTextBlock
                             x:Name="markdownTextBlock"
-                            Margin="0,16,0,16"
                             Background="Transparent"
                             FontSize="14"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -189,11 +186,9 @@
                         CodeBackground="Transparent"
                         FontSize="12" />
                 </controls:Card>
-
-
             </Grid>
         </ScrollViewer>
-        <VisualStateManager.VisualStateGroups>
+        <!--<VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout">
                     <VisualState.StateTriggers>
@@ -213,6 +208,6 @@
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
+        </VisualStateManager.VisualStateGroups>-->
     </Grid>
 </Page>

@@ -14,32 +14,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="DownloadStates">
-                <VisualState x:Name="NotDownloaded" />
-                <VisualState x:Name="Downloading">
-                    <VisualState.Setters>
-                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
-                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
-                        <Setter Target="errorContent.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Downloaded">
-                    <VisualState.Setters>
-                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
-                        <Setter Target="loadingRingContainer.Visibility" Value="Collapsed" />
-                        <Setter Target="errorContent.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Error">
-                    <VisualState.Setters>
-                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
-                        <Setter Target="loadingRingContainer.Visibility" Value="Collapsed" />
-                        <Setter Target="errorContent.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
         <StackPanel
             x:Name="NotDownloadedContent"
             HorizontalAlignment="Center"
@@ -106,5 +80,31 @@
                 <HyperlinkButton Content="Learn more about Windows Copilot Runtime API requirements" NavigateUri="https://learn.microsoft.com/windows/ai/apis" />
             </InfoBar.ActionButton>
         </InfoBar>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="DownloadStates">
+                <VisualState x:Name="NotDownloaded" />
+                <VisualState x:Name="Downloading">
+                    <VisualState.Setters>
+                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
+                        <Setter Target="errorContent.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Downloaded">
+                    <VisualState.Setters>
+                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
+                        <Setter Target="loadingRingContainer.Visibility" Value="Collapsed" />
+                        <Setter Target="errorContent.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Error">
+                    <VisualState.Setters>
+                        <Setter Target="NotDownloadedContent.Visibility" Value="Collapsed" />
+                        <Setter Target="loadingRingContainer.Visibility" Value="Collapsed" />
+                        <Setter Target="errorContent.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>
