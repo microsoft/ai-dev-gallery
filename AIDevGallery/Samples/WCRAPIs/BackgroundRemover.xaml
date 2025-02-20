@@ -9,11 +9,11 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <Grid RowSpacing="12">
+    <Grid RowSpacing="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" MinHeight="16" />
             <RowDefinition Height="*" MaxHeight="400" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock
             x:Name="InstructionText"
