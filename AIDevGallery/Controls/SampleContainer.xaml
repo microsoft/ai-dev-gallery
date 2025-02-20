@@ -39,7 +39,7 @@
             <StackPanel
                 x:Name="AIContentWarningPanel"
                 Grid.Row="1"
-                Margin="0,8,0,12"
+                Margin="16"
                 HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
                 Orientation="Horizontal"
                 Spacing="4"

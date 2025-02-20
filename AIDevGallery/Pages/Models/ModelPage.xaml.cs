@@ -67,7 +67,7 @@ internal sealed partial class ModelPage : Page
         }
         else
         {
-            summaryGrid.Visibility = Visibility.Collapsed;
+            DocumentationCard.Visibility = Visibility.Collapsed;
         }
 
         EnableSampleListIfModelIsDownloaded();

@@ -93,11 +93,10 @@ internal sealed partial class APIPage : Page
         if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
             var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
-            //CodeSampleTextBlock.Text = "```csharp\r\nusing Microsoft.Windows.AI.Generative; \r\n \r\nif (!LanguageModel.IsAvailable()) \r\n{ \r\n   var op = await LanguageModel.MakeAvailableAsync(); \r\n} \r\n \r\nusing LanguageModel languageModel = await LanguageModel.CreateAsync(); \r\n \r\nstring prompt = \"Provide the molecular formula for glucose.\"; \r\n \r\nvar result = await languageModel.GenerateResponseAsync(prompt); \r\n \r\nConsole.WriteLine(result.Response); \r\n```";
         }
         else
         {
-            summaryGrid.Visibility = Visibility.Collapsed;
+            DocumentationCard.Visibility = Visibility.Collapsed;
         }
 
         GetSamples();
