@@ -48,7 +48,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         // <exclude>
         else
         {
-            await LoadDefaultImage();
+            _ = LoadDefaultImage();
         }
 
         // </exclude>

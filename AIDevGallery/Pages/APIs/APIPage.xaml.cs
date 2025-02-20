@@ -67,7 +67,7 @@ internal sealed partial class APIPage : Page
                 var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == apiDefinition.SampleIdToShowInDocs);
                 if (sample != null)
                 {
-                    sampleContainer.LoadSampleAsync(sample, [ModelDetailsHelper.GetModelDetailsFromApiDefinition(apiType, apiDefinition)]);
+                    _ = sampleContainer.LoadSampleAsync(sample, [ModelDetailsHelper.GetModelDetailsFromApiDefinition(apiType, apiDefinition)]);
                 }
             }
             else

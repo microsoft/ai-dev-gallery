@@ -48,7 +48,7 @@ internal sealed partial class OCRSample : BaseSamplePage
         // <exclude>
         else
         {
-            await LoadDefaultImage();
+            _ = LoadDefaultImage();
         }
 
         // </exclude>

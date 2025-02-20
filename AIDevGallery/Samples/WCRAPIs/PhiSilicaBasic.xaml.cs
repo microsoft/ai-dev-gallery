@@ -32,25 +32,38 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (LanguageModel.IsAvailable())
+        if (!LanguageModel.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.Downloaded;
+            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
+            _ = WcrModelDownloader.SetDownloadOperation(ModelType.PhiSilica, sampleParams.SampleId, LanguageModel.MakeAvailableAsync); // <exclude-line>
+        }
+
+        // <exclude>
+        else
+        {
             _ = GenerateText(InputTextBox.Text);
         }
 
+        // </exclude>
         sampleParams.NotifyCompletion();
+        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
     {
         var operation = LanguageModel.MakeAvailableAsync();
 
-        if (await WcrModelDownloader.SetDownloadOperation(operation))
+        var success = await WcrModelDownloader.SetDownloadOperation(operation);
+
+        // <exclude>
+        if (success)
         {
             _ = GenerateText(InputTextBox.Text);
         }
+
+        // </exclude>
     }
 
     // <exclude>
