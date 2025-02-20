@@ -18,7 +18,7 @@ internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
     private ModelType modelTypeHint; // <exclude-line>
-    private string sampleId; // <exclude-line>
+    private string sampleId = string.Empty; // <exclude-line>
 
     public int DownloadProgress
     {
