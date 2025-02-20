@@ -19,7 +19,7 @@
             MinWidth="240"
             MaxWidth="600"
             HorizontalAlignment="Left"
-            VerticalAlignment="Center"
+            VerticalAlignment="Top"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
             BorderThickness="3"
