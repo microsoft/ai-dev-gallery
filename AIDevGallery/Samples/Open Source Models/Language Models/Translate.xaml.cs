@@ -93,7 +93,7 @@ internal sealed partial class Translate : BaseSamplePage
                 {
                     string targetLanguage = language.ToString();
                     string systemPrompt = "You translate user provided text. Do not reply with any extraneous content besides the translated text itself.";
-                    string userPrompt = $@"Translate '{text}' to {targetLanguage}.";
+                    string userPrompt = $@"Translate the following text to {targetLanguage}: '{text}'";
 
                     cts = new CancellationTokenSource();
 
