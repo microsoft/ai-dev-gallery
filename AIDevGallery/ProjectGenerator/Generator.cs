@@ -558,6 +558,11 @@ internal partial class Generator
                 sharedCode.Add(SharedCodeEnum.PhiSilicaClient);
             }
 
+            if (!sharedCode.Contains(SharedCodeEnum.ChatOptionsHelper))
+            {
+                sharedCode.Add(SharedCodeEnum.ChatOptionsHelper);
+            }
+
             if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate))
             {
                 sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
