@@ -242,15 +242,17 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
     {
         if (_inputBitmap == null || _selectionPoints.Count >= 31 || !_isSelectionEnabled)
         {
+            RemoveBackgroundButton.IsEnabled = false;
             return;
         }
 
+        RemoveBackgroundButton.IsEnabled = true;
         var pointerPosition = e.GetCurrentPoint(CanvasImage).Position;
 
         var circle = new Ellipse
         {
-            Width = 8,
-            Height = 8,
+            Width = 12,
+            Height = 12,
             Fill = new SolidColorBrush(Colors.Red)
         };
 
