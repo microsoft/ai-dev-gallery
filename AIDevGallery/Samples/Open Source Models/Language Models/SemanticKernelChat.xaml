@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    xmlns:samples="using:AIDevGallery.Samples"
+    x:Class="AIDevGallery.Samples.OpenSourceModels.LanguageModels.SemanticKernelChat"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <shared:ChatTemplateSelector
+            x:Key="ChatTemplateSelector"
+            AssistantTemplate="{StaticResource AssistantDataTemplate}"
+            UserTemplate="{StaticResource UserDataTemplate}" />
+        <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
+            <StackPanel
+                MaxWidth="486"
+                Padding="12"
+                HorizontalAlignment="Right"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource OverlayCornerRadius}"
+                Spacing="8">
+                <TextBlock
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind Content, Mode=OneWay}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind MsgDateTime}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
+            <Grid Margin="0,4" HorizontalAlignment="Left">
+                <StackPanel
+                    MaxWidth="486"
+                    Padding="12"
+                    HorizontalAlignment="Right"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource OverlayCornerRadius}"
+                    Spacing="8">
+                    <TextBlock
+                        HorizontalAlignment="Right"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind Content, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind MsgDateTime}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+    <Grid MaxWidth="1000">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListView
+            x:Name="InvertedListView"
+            Padding="-12,0,-12,24"
+            ItemTemplateSelector="{StaticResource ChatTemplateSelector}"
+            ItemsSource="{x:Bind Messages}"
+            SelectionMode="None"
+            Loaded="InvertedListView_Loaded">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        <Grid Grid.Row="1" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                x:Name="InputBox"
+                Grid.Row="1"
+                AutomationProperties.Name="Prompt input"
+                KeyUp="TextBox_KeyUp"
+                PlaceholderText="Enter your prompt (Press Shift + Enter to insert a newline)"
+                TextChanged="InputBox_TextChanged"
+                TextWrapping="Wrap" 
+                AcceptsReturn="True"
+                MaxHeight="148"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                IsEnabled="False"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="SendBtn"
+                        AutomationProperties.Name="Send Message"
+                        Click="SendBtn_Click"
+                        Style="{StaticResource AccentButtonStyle}"
+                        IsEnabled="False">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <FontIcon FontSize="16"
+                                  Glyph="&#xE725;" />
+                        <TextBlock Text="Send" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="StopBtn"
+                        AutomationProperties.Name="Stop"
+                        Click="StopBtn_Click"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <FontIcon FontSize="16"
+                                  Glyph="&#xE73B;" />
+                        <TextBlock Text="Stop" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+        </Grid>
+    </Grid>
+</samples:BaseSamplePage>
