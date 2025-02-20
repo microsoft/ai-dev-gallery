@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using WinUIEx.Messaging;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -171,7 +172,11 @@ internal class PhiSilicaClient : IChatClient
 
         string prompt = string.Empty;
 
-        _languageModelContext = _languageModel?.CreateContext();
+        var firstMessage = history.FirstOrDefault();
+
+        _languageModelContext = firstMessage?.Role == ChatRole.System ?
+            _languageModel?.CreateContext(firstMessage.Text, new ContentFilterOptions()) :
+            _languageModel?.CreateContext();
 
         for (var i = 0; i < history.Count(); i++)
         {
@@ -182,8 +187,6 @@ internal class PhiSilicaClient : IChatClient
                 {
                     throw new ArgumentException("Only first message can be a system message");
                 }
-
-                _languageModelContext = _languageModel?.CreateContext(message.Text, new ContentFilterOptions());
             }
             else if (message.Role == ChatRole.User)
             {
@@ -255,15 +258,14 @@ internal class PhiSilicaClient : IChatClient
         if (!_languageModel.IsPromptLargerThanContext(prompt))
         {
             IAsyncOperationWithProgress<LanguageModelResponse, string>? progress;
-            LanguageModelContext context = _languageModelContext ?? _languageModel.CreateContext();
             if (options == null)
             {
-                progress = _languageModel.GenerateResponseWithProgressAsync(new LanguageModelOptions(), prompt, new ContentFilterOptions(), context);
+                progress = _languageModel.GenerateResponseWithProgressAsync(new LanguageModelOptions(), prompt, new ContentFilterOptions(), _languageModelContext);
             }
             else
             {
                 var (modelOptions, filterOptions) = GetModelOptions(options);
-                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions, context);
+                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions, _languageModelContext);
             }
 
             progress.Progress = (result, value) =>
@@ -288,8 +290,6 @@ internal class PhiSilicaClient : IChatClient
             }
 
             var response = await progress;
-
-            _languageModelContext = null;
 
             yield return response?.Status switch
             {
