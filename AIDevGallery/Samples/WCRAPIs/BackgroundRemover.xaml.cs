@@ -52,7 +52,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageObjectExtractor.IsAvailable())
         {
@@ -62,7 +62,6 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
         await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
         sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
