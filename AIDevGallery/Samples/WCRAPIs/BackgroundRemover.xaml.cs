@@ -52,7 +52,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageObjectExtractor.IsAvailable())
         {
