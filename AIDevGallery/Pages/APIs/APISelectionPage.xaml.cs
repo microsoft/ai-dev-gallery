@@ -61,7 +61,7 @@ internal sealed partial class APISelectionPage : Page
         {
             if (item.Tag is ModelType type)
             {
-                NavFrame.Navigate(typeof(ModelPage), type);
+                NavFrame.Navigate(typeof(APIPage), type);
             }
             else
             {
@@ -84,6 +84,6 @@ internal sealed partial class APISelectionPage : Page
 
     public void ShowHideNavPane()
     {
-        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 224 : 0;
     }
 }
