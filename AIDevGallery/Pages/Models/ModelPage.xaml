@@ -73,6 +73,7 @@
                         <HyperlinkButton
                             Padding="4,2,4,2"
                             AutomationProperties.Name="View model card in the browser"
+                            NavigateUri="{x:Bind ModelFamily.DocsUrl}"
                             ToolTipService.ToolTip="View model card in the browser">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock

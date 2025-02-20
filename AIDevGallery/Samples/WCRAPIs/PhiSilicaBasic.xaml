@@ -25,7 +25,7 @@
             Description=" "
             KeyUp="TextBox_KeyUp"
             PlaceholderText="Enter a topic to generate text on.."
-            Text="Introduce yourself!"
+            Text="Introduce yourself in detail!"
             TextChanged="InputBox_Changed" />
         <StackPanel
             Grid.Column="1"

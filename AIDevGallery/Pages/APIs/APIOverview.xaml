@@ -108,7 +108,11 @@
                     Margin="24"
                     Orientation="Vertical"
                     Spacing="16">
-                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Explore Windows Copilot Runtime APIs" />
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        FontSize="18"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Explore Windows Copilot Runtime APIs" />
 
                     <ItemsView
                         x:Name="APIViewer"

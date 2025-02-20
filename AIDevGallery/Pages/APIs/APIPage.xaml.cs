@@ -166,4 +166,9 @@ internal sealed partial class APIPage : Page
             App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample));
         }
     }
+
+    private void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        BackgroundShadow.Receivers.Add(ShadowCastGrid);
+    }
 }
