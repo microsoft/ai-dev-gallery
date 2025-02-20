@@ -26,22 +26,14 @@ internal class PhiSilicaClient : IChatClient
     private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
     private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
 
-    private readonly LlmPromptTemplate _promptTemplate;
-
     private LanguageModel? _languageModel;
+    private LanguageModelContext? _languageModelContext;
 
     public ChatClientMetadata Metadata { get; }
 
     private PhiSilicaClient()
     {
         Metadata = new ChatClientMetadata("PhiSilica", new Uri($"file:///PhiSilica"));
-        _promptTemplate = new LlmPromptTemplate
-        {
-            System = "<|system|>\n{{CONTENT}}<|end|>\n",
-            User = "<|user|>\n{{CONTENT}}<|end|>\n",
-            Assistant = "<|assistant|>\n{{CONTENT}}<|end|>\n",
-            Stop = ["<|system|>", "<|user|>", "<|assistant|>", "<|end|>"]
-        };
     }
 
     public static ChatOptions GetDefaultChatOptions()
@@ -179,7 +171,7 @@ internal class PhiSilicaClient : IChatClient
 
         string prompt = string.Empty;
 
-        string systemMsgWithoutSystemTemplate = string.Empty;
+        _languageModelContext = _languageModel?.CreateContext();
 
         for (var i = 0; i < history.Count(); i++)
         {
@@ -191,49 +183,17 @@ internal class PhiSilicaClient : IChatClient
                     throw new ArgumentException("Only first message can be a system message");
                 }
 
-                if (string.IsNullOrWhiteSpace(_promptTemplate.System))
-                {
-                    systemMsgWithoutSystemTemplate = message.Text ?? string.Empty;
-                }
-                else
-                {
-                    prompt += _promptTemplate.System.Replace(TEMPLATE_PLACEHOLDER, message.Text);
-                }
+                _languageModelContext = _languageModel?.CreateContext(message.Text, new ContentFilterOptions());
             }
             else if (message.Role == ChatRole.User)
             {
                 string msgText = message.Text ?? string.Empty;
-                if (i == 1 && !string.IsNullOrWhiteSpace(systemMsgWithoutSystemTemplate))
-                {
-                    msgText = $"{systemMsgWithoutSystemTemplate} {msgText}";
-                }
-
-                if (string.IsNullOrWhiteSpace(_promptTemplate.User))
-                {
-                    prompt += msgText;
-                }
-                else
-                {
-                    prompt += _promptTemplate.User.Replace(TEMPLATE_PLACEHOLDER, msgText);
-                }
+                prompt += msgText;
             }
             else if (message.Role == ChatRole.Assistant)
             {
-                if (string.IsNullOrWhiteSpace(_promptTemplate.Assistant))
-                {
-                    prompt += message.Text;
-                }
-                else
-                {
-                    prompt += _promptTemplate.Assistant.Replace(TEMPLATE_PLACEHOLDER, message.Text);
-                }
+                prompt += message.Text;
             }
-        }
-
-        if (!string.IsNullOrWhiteSpace(_promptTemplate.Assistant))
-        {
-            var substringIndex = _promptTemplate.Assistant.IndexOf(TEMPLATE_PLACEHOLDER, StringComparison.InvariantCulture);
-            prompt += _promptTemplate.Assistant[..substringIndex];
         }
 
         return prompt;
@@ -295,14 +255,15 @@ internal class PhiSilicaClient : IChatClient
         if (!_languageModel.IsPromptLargerThanContext(prompt))
         {
             IAsyncOperationWithProgress<LanguageModelResponse, string>? progress;
+            LanguageModelContext context = _languageModelContext ?? _languageModel.CreateContext();
             if (options == null)
             {
-                progress = _languageModel.GenerateResponseWithProgressAsync(prompt);
+                progress = _languageModel.GenerateResponseWithProgressAsync(new LanguageModelOptions(), prompt, new ContentFilterOptions(), context);
             }
             else
             {
                 var (modelOptions, filterOptions) = GetModelOptions(options);
-                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions);
+                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions, context);
             }
 
             progress.Progress = (result, value) =>
@@ -327,6 +288,8 @@ internal class PhiSilicaClient : IChatClient
             }
 
             var response = await progress;
+
+            _languageModelContext = null;
 
             yield return response?.Status switch
             {

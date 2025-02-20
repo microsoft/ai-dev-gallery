@@ -237,6 +237,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             ChatGrid.Visibility = Visibility.Visible;
             SelectNewPDFButton.Visibility = Visibility.Visible;
         });
+        _cts?.Dispose();
+        _cts = null;
     }
 
     private async Task DoRAG()
@@ -259,8 +261,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         SearchTextBox.IsEnabled = false;
         _cts = new CancellationTokenSource();
 
-        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from specific PDF pages provided by the user. " +
-            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.";
+        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from the following pages. " +
+            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.\n";
 
         var searchPrompt = this.SearchTextBox.Text;
 
@@ -296,8 +298,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             {
                 await foreach (var partialResult in _chatClient.CompleteStreamingAsync(
                     [
-                        new ChatMessage(ChatRole.System, systemPrompt),
-                        .. pagesChunks.Select(c => new ChatMessage(ChatRole.User, c)),
+                        new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
                         new ChatMessage(ChatRole.User, searchPrompt),
                     ],
                     _chatOptions,
