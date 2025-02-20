@@ -19,10 +19,10 @@
             </LinearGradientBrush>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-            <LinearGradientBrush x:Key="APIHeaderBackgroundBrush" StartPoint="0.5,0" EndPoint="1, 1">
-                <GradientStop Offset="0" Color="#40D9E8F9" />
-                <GradientStop Offset="0.5" Color="#402D87F1" />
-                <GradientStop Offset="1" Color="Transparent" />
+            <LinearGradientBrush x:Key="APIHeaderBackgroundBrush" StartPoint="0,1" EndPoint="1, 0">
+                <GradientStop Offset="0" Color="#E6F0FC" />
+                <GradientStop Offset="0.4" Color="#E6F0FC" />
+                <GradientStop Offset="1" Color="#F0F0F7" />
             </LinearGradientBrush>
             <LinearGradientBrush x:Key="ScenarioHeaderBackgroundBrush" Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
                 <GradientStop Offset="0" Color="#3286EE" />

@@ -125,7 +125,12 @@
             x:Name="contentHost"
             Grid.Row="1"
             HorizontalAlignment="Stretch">
-            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed" />
+            <controls:SampleContainer
+                x:Name="SampleContainer"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Visibility="Collapsed" />
             <Grid
                 x:Name="NoModelSelectedGrid"
                 MaxWidth="480"
