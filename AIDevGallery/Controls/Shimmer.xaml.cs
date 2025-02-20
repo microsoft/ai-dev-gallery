@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Animations;
 using CommunityToolkit.WinUI.Animations.Expressions;
@@ -16,7 +19,7 @@ namespace AIDevGallery.Controls;
 /// A generic shimmer control that can be used to construct a beautiful loading effect.
 /// </summary>
 [TemplatePart(Name = PART_Shape, Type = typeof(Rectangle))]
-public partial class Shimmer : Control
+internal partial class Shimmer : Control
 {
     /// <summary>
     /// Identifies the <see cref="Duration"/> dependency property.
@@ -36,7 +39,6 @@ public partial class Shimmer : Control
       typeof(Shimmer),
       new PropertyMetadata(defaultValue: true, PropertyChanged));
 
-
     /// <summary>
     /// Gets or sets the animation duration
     /// </summary>
@@ -46,9 +48,6 @@ public partial class Shimmer : Control
         set => SetValue(DurationProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets if the animation is playing
-    /// </summary>
     public bool IsActive
     {
         get => (bool)GetValue(IsActiveProperty);
@@ -168,7 +167,7 @@ public partial class Shimmer : Control
     private void SetGradientAndStops()
     {
         _shimmerMaskGradient!.StartPoint = new Vector2(InitialStartPointX, 0.0f);
-        _shimmerMaskGradient.EndPoint = new Vector2(0.0f, 1.0f); //Vector2.One
+        _shimmerMaskGradient.EndPoint = new Vector2(0.0f, 1.0f);
 
         _gradientStop1!.Offset = 0.273f;
         _gradientStop2!.Offset = 0.436f;
@@ -223,7 +222,7 @@ public partial class Shimmer : Control
         _gradientEndPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
         _gradientEndPointAnimation.Duration = Duration;
         _gradientEndPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-        _gradientEndPointAnimation.InsertKeyFrame(0.0f, new Vector2(1.0f, 0.0f)); //Vector2.One
+        _gradientEndPointAnimation.InsertKeyFrame(0.0f, new Vector2(1.0f, 0.0f));
         _gradientEndPointAnimation.InsertKeyFrame(1.0f, new Vector2(-InitialStartPointX, 1.0f));
         _shimmerMaskGradient.StartAnimation(nameof(CompositionLinearGradientBrush.EndPoint), _gradientEndPointAnimation);
 
