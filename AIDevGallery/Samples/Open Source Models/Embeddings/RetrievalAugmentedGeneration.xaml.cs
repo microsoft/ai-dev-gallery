@@ -296,7 +296,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         await Task.Run(
             async () =>
             {
-                await foreach (var partialResult in _chatClient.CompleteStreamingAsync(
+                await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
                         new ChatMessage(ChatRole.User, searchPrompt),
