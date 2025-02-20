@@ -44,7 +44,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
             WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageDescription, sampleParams.SampleId, ImageDescriptionGenerator.MakeAvailableAsync); // <exclude-line>
         }
-        
+
         // <exclude>
         else
         {
