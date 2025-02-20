@@ -7,8 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
     VerticalAlignment="Stretch"
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
@@ -22,10 +22,12 @@
         <Grid
             x:Name="SampleCard"
             Grid.Row="1"
-            VerticalAlignment="Stretch"
-            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
+            HorizontalAlignment="{x:Bind HorizontalAlignment, Mode=OneWay}"
+            VerticalAlignment="{x:Bind VerticalAlignment, Mode=OneWay}"
+            Background="{x:Bind Background, Mode=OneWay}"
+            BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+            BorderThickness="{x:Bind BorderThickness, Mode=OneWay}"
+            CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="100" />
                 <ColumnDefinition x:Name="CodeColumn" Width="0" />
@@ -38,7 +40,7 @@
                 x:Name="AIContentWarningPanel"
                 Grid.Row="1"
                 Margin="0,8,0,12"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
                 Orientation="Horizontal"
                 Spacing="4"
                 Visibility="Collapsed">
@@ -88,12 +90,12 @@
                         IsActive="False" />
                 </StackPanel>
                 <Grid x:Name="wcrModelDownloaderHost" Visibility="Collapsed">
-                    <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked"/>
+                    <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />
                 </Grid>
                 <Grid x:Name="wcrModelUnavailable" Visibility="Collapsed">
                     <InfoBar
-                        Margin="12"
                         MaxWidth="560"
+                        Margin="12"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         IsClosable="False"

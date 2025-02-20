@@ -75,7 +75,7 @@
             Grid.Row="3"
             Margin="0,8,0,0"
             Style="{StaticResource BodyStrongTextBlockStyle}"
-            Text="Output:" />
+            Text="Output" />
         <ScrollViewer
             Grid.Row="4"
             AutomationProperties.Name="Generated Text Scroll Area"

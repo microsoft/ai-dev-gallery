@@ -36,7 +36,7 @@
       },
       "BackgroundRemover": {
         "Id": "9d445930-b353-429a-9674-777eef771ccf",
-        "Name": "Image Segmetation",
+        "Name": "Image Segmentation",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7C5",
         "Description": "Remove the background from an image.",

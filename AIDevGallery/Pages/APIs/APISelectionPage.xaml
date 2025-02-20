@@ -39,7 +39,7 @@
                 Content="Overview"
                 Icon="{ui:FontIcon Glyph=&#xE81E;}"
                 Tag="Overview" />
-            <NavigationViewItemHeader Content="Documentation" />
+            <NavigationViewItemSeparator />
         </NavigationView.MenuItems>
         <NavigationView.Content>
             <Frame x:Name="NavFrame" />
