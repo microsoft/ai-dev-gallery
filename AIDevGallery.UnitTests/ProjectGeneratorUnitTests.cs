@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -117,7 +118,7 @@ public class ProjectGenerator
 
         // write test count
         TestContext.WriteLine($"Running {source.Count} tests");
-
+        int currentId = 0;
         await Parallel.ForEachAsync(source, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (item, ct) =>
         {
             listView.DispatcherQueue.TryEnqueue(() =>
@@ -125,7 +126,9 @@ public class ProjectGenerator
                 item.StatusColor = yellow;
             });
 
-            var success = await GenerateForSample(item, ct);
+            Interlocked.Increment(ref currentId);
+
+            var success = await GenerateForSample(currentId, item, ct);
 
             TestContext.WriteLine($"Built {item.SampleName} with status {success}");
             Debug.WriteLine($"Built {item.SampleName} with status {success}");
@@ -191,13 +194,13 @@ public class ProjectGenerator
         }
     }
 
-    private async Task<bool> GenerateForSample(SampleUIData sampleUIData, CancellationToken cancellationToken)
+    private async Task<bool> GenerateForSample(int id, SampleUIData sampleUIData, CancellationToken cancellationToken)
     {
-        var outputPath = Path.Join(TmpPathProjectGenerator, sampleUIData.SampleName);
+        var outputPath = Path.Join(TmpPathProjectGenerator, id.ToString(CultureInfo.InvariantCulture));
         var projectPath = await generator.GenerateAsync(sampleUIData.Sample, sampleUIData.CachedModelsToGenerator, false, outputPath, cancellationToken);
 
         var safeProjectName = Path.GetFileName(projectPath);
-        string logFileName = $"build_{safeProjectName}.log";
+        string logFileName = $"build_{id}_{sampleUIData.SampleName.Replace(' ', '_')}.log";
 
         var arch = DeviceUtils.IsArm64() ? "arm64" : "x64";
 
