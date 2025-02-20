@@ -16,10 +16,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextGrammarCheckText,
     SharedCode = [
-        SharedCodeEnum.GenAIModel
+        SharedCodeEnum.ChatOptionsHelper
     ],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Name = "Grammar Check",
@@ -27,7 +26,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class GrammarCheck : BaseSamplePage
 {
-    private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
+    private ChatOptions? chatOptions;
     private IChatClient? model;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
@@ -42,7 +41,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+        InputTextBox.MaxLength = chatOptions?.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
 
@@ -167,7 +166,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
     private void InputBox_Changed(object sender, TextChangedEventArgs e)
     {
         var inputLength = InputTextBox.Text.Length;
-        if (inputLength > 0)
+        if (inputLength > 0 && chatOptions != null)
         {
             if (inputLength >= chatOptions.MaxOutputTokens)
             {

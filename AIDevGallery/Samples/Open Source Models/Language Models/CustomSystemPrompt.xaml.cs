@@ -24,15 +24,13 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     SharedCode = [
-        SharedCodeEnum.GenAIModel
+        SharedCodeEnum.ChatOptionsHelper
     ])]
 internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
-    private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
     private readonly int defaultTopK = 50;
     private readonly float defaultTopP = 0.9f;
     private readonly float defaultTemperature = 1;
@@ -41,6 +39,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private readonly LanguageModelSkill defaultSkill = LanguageModelSkill.General;
     private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.None;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
+    private ChatOptions? chatOptions;
     private IChatClient? model;
     private CancellationTokenSource? cts;
 
@@ -78,6 +77,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
+        chatOptions = model.GetDefaultChatOptions();
         IsPhiSilica = model?.Metadata.ProviderName == "PhiSilica";
         InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
@@ -238,6 +238,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             MaxLengthSlider.Value = MinLengthSlider.Value;
         }
 
+        if (chatOptions == null)
+        {
+            return;
+        }
+
         chatOptions.AdditionalProperties!["min_length"] = (int)MinLengthSlider.Value;
         chatOptions.MaxOutputTokens = (int)MaxLengthSlider.Value;
         chatOptions.Temperature = (float)TemperatureSlider.Value;
@@ -257,7 +262,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private void InputBox_Changed(object sender, TextChangedEventArgs e)
     {
         var inputLength = InputTextBox.Text.Length;
-        if (inputLength > 0)
+        if (inputLength > 0 && chatOptions != null)
         {
             if (inputLength >= chatOptions.MaxOutputTokens)
             {

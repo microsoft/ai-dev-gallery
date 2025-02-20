@@ -10,21 +10,23 @@ namespace AIDevGallery.Helpers;
 
 internal static class ModelDetailsHelper
 {
-    public static ModelFamily? GetFamily(this ModelDetails modelDetails)
+    public static bool EqualOrParent(ModelType modelType, ModelType searchModelType)
     {
-        if (ModelTypeHelpers.ModelDetails.Any(md => md.Value.Url == modelDetails.Url))
+        if (modelType == searchModelType)
         {
-            var myKey = ModelTypeHelpers.ModelDetails.FirstOrDefault(md => md.Value.Url == modelDetails.Url).Key;
+            return true;
+        }
 
-            if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(myKey)))
+        while (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelType)))
+        {
+            modelType = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
+            if (modelType == searchModelType)
             {
-                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(myKey)).Key;
-                var parent = ModelTypeHelpers.ModelFamilyDetails[parentKey];
-                return parent;
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
     public static ModelDetails GetModelDetailsFromApiDefinition(ModelType modelType, ApiDefinition apiDefinition)

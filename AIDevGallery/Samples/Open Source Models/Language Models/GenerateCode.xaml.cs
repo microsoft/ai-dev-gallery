@@ -21,11 +21,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.CodeGenerateCode,
     SharedCode = [
-        SharedCodeEnum.GenAIModel
+        SharedCodeEnum.ChatOptionsHelper
     ],
     NugetPackageReferences = [
         "ColorCode.WinUI",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Name = "Generate Code",
@@ -53,7 +52,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        InputTextBox.MaxLength = ChatOptionsHelper.DefaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -183,16 +182,16 @@ internal sealed partial class GenerateCode : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= GenAIModel.DefaultMaxLength)
+            if (inputLength >= ChatOptionsHelper.DefaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}";
             }
 
-            GenerateButton.IsEnabled = inputLength <= GenAIModel.DefaultMaxLength;
+            GenerateButton.IsEnabled = inputLength <= ChatOptionsHelper.DefaultMaxLength;
         }
         else
         {

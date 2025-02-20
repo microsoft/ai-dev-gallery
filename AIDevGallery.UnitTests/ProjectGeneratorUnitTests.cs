@@ -62,7 +62,9 @@ public class ProjectGenerator
     {
         private Brush? statusColor;
 
+        public required string SampleName { get; init; }
         public required Sample Sample { get; init; }
+        public required Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> CachedModelsToGenerator { get; init; }
         public Brush? StatusColor
         {
             get => statusColor;
@@ -93,11 +95,7 @@ public class ProjectGenerator
 
         UITestMethodAttribute.DispatcherQueue?.TryEnqueue(() =>
         {
-            source = SampleDetails.Samples.Select(s => new SampleUIData
-            {
-                Sample = s,
-                StatusColor = new SolidColorBrush(Colors.LightGray)
-            }).ToList();
+            source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
 
             green = new SolidColorBrush(Colors.Green);
             red = new SolidColorBrush(Colors.Red);
@@ -127,38 +125,76 @@ public class ProjectGenerator
                 item.StatusColor = yellow;
             });
 
-            var success = await GenerateForSample(item.Sample, ct);
+            var success = await GenerateForSample(item, ct);
 
-            TestContext.WriteLine($"Built {item.Sample.Name} with status {success}");
-            Debug.WriteLine($"Built {item.Sample.Name} with status {success}");
+            TestContext.WriteLine($"Built {item.SampleName} with status {success}");
+            Debug.WriteLine($"Built {item.SampleName} with status {success}");
 
             listView.DispatcherQueue.TryEnqueue(() =>
             {
                 item.StatusColor = success ? green : red;
             });
-            successDict.Add(item.Sample.Name, success);
+            successDict.Add(item.SampleName, success);
         });
 
         successDict.Should().AllSatisfy(kvp => kvp.Value.Should().BeTrue($"{kvp.Key} should build successfully"));
     }
 
-    private async Task<bool> GenerateForSample(Sample sample, CancellationToken cancellationToken)
+    private static IEnumerable<SampleUIData> GetAllForSample(Sample s)
     {
-        var modelsDetails = ModelDetailsHelper.GetModelDetails(sample);
+        var modelsDetails = ModelDetailsHelper.GetModelDetails(s);
 
-        ModelDetails modelDetails1 = modelsDetails[0].Values.First().First();
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = new()
+        if (modelsDetails[0].ContainsKey(ModelType.LanguageModels) &&
+            modelsDetails[0].ContainsKey(ModelType.PhiSilica))
         {
-            [sample.Model1Types.First()] = ("FakePath", modelsDetails[0].Values.First().First().Url, modelDetails1.HardwareAccelerators.First())
-        };
+            yield return new SampleUIData
+            {
+                Sample = s,
+                SampleName = $"{s.Name} GenAI",
+                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.LanguageModels)),
+                StatusColor = new SolidColorBrush(Colors.LightGray)
+            };
 
-        if (sample.Model2Types != null && modelsDetails.Count > 1)
+            yield return new SampleUIData
+            {
+                Sample = s,
+                SampleName = $"{s.Name} PhiSilica",
+                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.PhiSilica)),
+                StatusColor = new SolidColorBrush(Colors.LightGray)
+            };
+        }
+        else
         {
-            ModelDetails modelDetails2 = modelsDetails[1].Values.First().First();
-            cachedModelsToGenerator[sample.Model2Types.First()] = ("FakePath", modelDetails2.Url, modelDetails2.HardwareAccelerators.First());
+            yield return new SampleUIData
+            {
+                Sample = s,
+                SampleName = s.Name,
+                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First()),
+                StatusColor = new SolidColorBrush(Colors.LightGray)
+            };
         }
 
-        var projectPath = await generator.GenerateAsync(sample, cachedModelsToGenerator, false, TmpPathProjectGenerator, cancellationToken);
+        static Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> GetModelsToGenerator(Sample s, List<Dictionary<ModelType, List<ModelDetails>>> modelsDetails, KeyValuePair<ModelType, List<ModelDetails>> keyValuePair)
+        {
+            Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = new();
+
+            ModelDetails modelDetails1 = keyValuePair.Value.First();
+            cachedModelsToGenerator[keyValuePair.Key] = (modelDetails1.Url, modelDetails1.Url, modelDetails1.HardwareAccelerators.First());
+
+            if (s.Model2Types != null && modelsDetails.Count > 1)
+            {
+                ModelDetails modelDetails2 = modelsDetails[1].Values.First().First();
+                cachedModelsToGenerator[s.Model2Types.First()] = (modelDetails2.Url, modelDetails2.Url, modelDetails2.HardwareAccelerators.First());
+            }
+
+            return cachedModelsToGenerator;
+        }
+    }
+
+    private async Task<bool> GenerateForSample(SampleUIData sampleUIData, CancellationToken cancellationToken)
+    {
+        var outputPath = Path.Join(TmpPathProjectGenerator, sampleUIData.SampleName);
+        var projectPath = await generator.GenerateAsync(sampleUIData.Sample, sampleUIData.CachedModelsToGenerator, false, outputPath, cancellationToken);
 
         var safeProjectName = Path.GetFileName(projectPath);
         string logFileName = $"build_{safeProjectName}.log";
