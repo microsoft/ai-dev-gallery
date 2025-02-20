@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models; // <exclude-line>
+using AIDevGallery.Telemetry.Events; // <exclude-line>
+using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
@@ -13,6 +17,8 @@ namespace AIDevGallery.Samples.SharedCode;
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
+    private ModelType modelTypeHint; // <exclude-line>
+    private string sampleId; // <exclude-line>
 
     public int DownloadProgress
     {
@@ -20,9 +26,9 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(DownloadProgressProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for DownloadProgress.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for DownloadProgress. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty DownloadProgressProperty =
-        DependencyProperty.Register("DownloadProgress", typeof(int), typeof(WcrModelDownloader), new PropertyMetadata(0));
+        DependencyProperty.Register(nameof(DownloadProgress), typeof(int), typeof(WcrModelDownloader), new PropertyMetadata(0));
 
     public string ErrorMessage
     {
@@ -30,9 +36,9 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(ErrorMessageProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for ErrorMessage.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for ErrorMessage. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty ErrorMessageProperty =
-        DependencyProperty.Register("ErrorMessage", typeof(string), typeof(WcrModelDownloader), new PropertyMetadata("Error downloading model"));
+        DependencyProperty.Register(nameof(ErrorMessage), typeof(string), typeof(WcrModelDownloader), new PropertyMetadata("Error downloading model"));
 
     public WcrApiDownloadState State
     {
@@ -40,41 +46,33 @@ internal sealed partial class WcrModelDownloader : UserControl
         set { SetValue(StateProperty, value); }
     }
 
-    // Using a DependencyProperty as the backing store for State.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for State. This enables animation, styling, binding, etc...
     public static readonly DependencyProperty StateProperty =
-        DependencyProperty.Register("State", typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.NotStarted, OnStateChanged));
+        DependencyProperty.Register(nameof(State), typeof(WcrApiDownloadState), typeof(WcrModelDownloader), new PropertyMetadata(WcrApiDownloadState.Downloaded, OnStateChanged));
 
     private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         ((WcrModelDownloader)d).UpdateState((WcrApiDownloadState)e.NewValue);
     }
 
-    private void UpdateState(WcrApiDownloadState state)
+    private void UpdateState(WcrApiDownloadState state = WcrApiDownloadState.Downloaded)
     {
         switch (state)
         {
             case WcrApiDownloadState.NotStarted:
-                NotDownloadedContent.Visibility = Visibility.Visible;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "NotDownloaded", true);
                 this.Visibility = Visibility.Visible;
                 break;
             case WcrApiDownloadState.Downloading:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Visible;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "Downloading", true);
                 this.Visibility = Visibility.Visible;
                 break;
             case WcrApiDownloadState.Downloaded:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Collapsed;
+                VisualStateManager.GoToState(this, "Downloaded", true);
                 this.Visibility = Visibility.Collapsed;
                 break;
             case WcrApiDownloadState.Error:
-                NotDownloadedContent.Visibility = Visibility.Collapsed;
-                loadingRingContainer.Visibility = Visibility.Collapsed;
-                errorContent.Visibility = Visibility.Visible;
+                VisualStateManager.GoToState(this, "Error", true);
                 this.Visibility = Visibility.Visible;
                 break;
             default:
@@ -85,6 +83,7 @@ internal sealed partial class WcrModelDownloader : UserControl
     public WcrModelDownloader()
     {
         this.InitializeComponent();
+        UpdateState();
     }
 
     public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress> operation)
@@ -94,6 +93,7 @@ internal sealed partial class WcrModelDownloader : UserControl
             return false;
         }
 
+        WcrDownloadOperationTracker.Operations[this.modelTypeHint] = operation; // <exclude-line>
         operation.Progress = (result, progress) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -117,26 +117,53 @@ internal sealed partial class WcrModelDownloader : UserControl
             {
                 State = WcrApiDownloadState.Error;
                 ErrorMessage = result.ExtendedError.Message;
+                WcrApiDownloadFailedEvent.Log(this.modelTypeHint, result.ExtendedError.Message); // <exclude-line>
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
             State = WcrApiDownloadState.Error;
+            WcrApiDownloadFailedEvent.Log(this.modelTypeHint, ex); // <exclude-line>
         }
 
         return false;
     }
 
+    // <exclude>
+    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> makeAvailable)
+    {
+        IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>? exisitingOperation;
+
+        WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
+        this.modelTypeHint = modelType;
+        this.sampleId = sampleId;
+
+        if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
+        {
+            // don't reuse same one because we can only have one Progress delegate
+            return SetDownloadOperation(makeAvailable());
+        }
+
+        return Task.FromResult(false);
+    }
+
+    // </exclude>
     private void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         DownloadClicked?.Invoke(this, EventArgs.Empty);
+        WcrApiDownloadRequestedEvent.Log(modelTypeHint, sampleId); // <exclude-line>
     }
 
     private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
         var uri = new Uri("ms-settings:windowsupdate");
         await Launcher.LaunchUriAsync(uri);
+    }
+
+    private string ToFirstLine(string text)
+    {
+        return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).FirstOrDefault() ?? string.Empty;
     }
 }
 
