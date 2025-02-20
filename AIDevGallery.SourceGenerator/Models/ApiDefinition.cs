@@ -8,6 +8,8 @@ internal class ApiDefinition
     public required string Id { get; init; }
     public required string Name { get; init; }
     public required string Icon { get; init; }
+    public required string IconGlyph { get; init; }
+    public required string Description { get; init; }
     public required string ReadmeUrl { get; init; }
     public required string License { get; init; }
 }

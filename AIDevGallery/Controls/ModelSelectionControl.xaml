@@ -5,9 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     xmlns:converters="using:AIDevGallery.Converters"
-    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:AIDevGallery.Models"
@@ -91,7 +89,7 @@
                                                             ToolTipService.ToolTip="More info">
                                                             <Button.Flyout>
                                                                 <Flyout ShouldConstrainToRootBounds="False">
-                                                                    <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" />
+                                                                    <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
                                                                 </Flyout>
                                                             </Button.Flyout>
                                                         </Button>
@@ -170,11 +168,19 @@
                                                         Click="ModelCard_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                                         Text="View model card" />
+                                                    <MenuFlyoutItem
+                                                        Click="ApiDocumentation_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                                        Text="View API documentation" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                                         Text="View license" />
                                                     <MenuFlyoutSeparator 
                                                         Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"/>
@@ -265,7 +271,7 @@
                                                         ToolTipService.ToolTip="More info">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
-                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" />
+                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
                                                             </Flyout>
                                                         </Button.Flyout>
                                                     </Button>
@@ -434,7 +440,7 @@
                                                         ToolTipService.ToolTip="More info">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
-                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" />
+                                                                <TextBlock Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}" TextWrapping="Wrap" MaxWidth="360" />
                                                             </Flyout>
                                                         </Button.Flyout>
                                                     </Button>
@@ -528,11 +534,19 @@
                                                         Click="ModelCard_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                                         Text="View model card" />
+                                                    <MenuFlyoutItem
+                                                        Click="ApiDocumentation_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                                        Text="View API documentation" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
+                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}"
                                                         Text="View license" />
                                                 </MenuFlyout>
                                             </Button.Flyout>

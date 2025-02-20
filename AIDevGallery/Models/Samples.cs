@@ -49,6 +49,8 @@ internal class ApiDefinition
     public string Id { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string Icon { get; init; } = null!;
+    public string IconGlyph { get; init; } = null!;
+    public string Description { get; init; } = null!;
     public string ReadmeUrl { get; init; } = null!;
     public string License { get; init; } = null!;
 }
@@ -155,7 +157,8 @@ internal enum HardwareAccelerator
 {
     CPU,
     DML,
-    QNN
+    QNN,
+    WCRAPI
 }
 
 #pragma warning restore SA1402 // File may only contain a single type

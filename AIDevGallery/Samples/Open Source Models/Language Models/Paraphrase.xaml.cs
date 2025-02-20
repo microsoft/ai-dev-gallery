@@ -14,7 +14,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Paraphrase",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextParaphraseText,
     SharedCode = [
         SharedCodeEnum.GenAIModel

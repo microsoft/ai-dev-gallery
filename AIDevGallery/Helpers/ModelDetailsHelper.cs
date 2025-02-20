@@ -34,7 +34,7 @@ internal static class ModelDetailsHelper
             Id = apiDefinition.Id,
             Icon = apiDefinition.Icon,
             Name = apiDefinition.Name,
-            HardwareAccelerators = [HardwareAccelerator.DML],
+            HardwareAccelerators = [HardwareAccelerator.WCRAPI],
             IsUserAdded = false,
             SupportedOnQualcomm = true,
             ReadmeUrl = apiDefinition.ReadmeUrl,

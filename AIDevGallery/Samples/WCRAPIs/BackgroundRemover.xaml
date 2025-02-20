@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.BackgroundRemover"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:samples="using:AIDevGallery.Samples"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    mc:Ignorable="d">
+    <Grid RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="16" />
+            <RowDefinition
+                Height="*"
+                MinHeight="160"
+                MaxHeight="400" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock
+            x:Name="InstructionText"
+            HorizontalAlignment="Center"
+            FontSize="10"
+            Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
+            TextWrapping="WrapWholeWords" />
+
+        <Grid
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+            <Viewbox
+                x:Name="ImageViewbox"
+                MinWidth="240"
+                MaxWidth="600"
+                VerticalAlignment="Stretch"
+                Stretch="Uniform">
+                <Grid
+                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderThickness="4"
+                    CornerRadius="{StaticResource OverlayCornerRadius}">
+                    <Image x:Name="CanvasImage" PointerPressed="CanvasImage_PointerPressed" />
+                    <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
+                </Grid>
+            </Viewbox>
+            <DropDownButton
+                Margin="12"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Content="Select image">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+        </Grid>
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                x:Name="RevertButton"
+                Click="RevertButton_Click"
+                Content="Revert"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="Collapsed" />
+            <Button
+                x:Name="RemoveBackgroundButton"
+                Click="RemoveBackground_Click"
+                Content="Remove background"
+                IsEnabled="False"
+                Style="{ThemeResource AccentButtonStyle}" />
+            <Button
+                x:Name="ClearSelectionButton"
+                Click="CleanSelection_Click"
+                Content="Clear selected points" />
+
+        </StackPanel>
+        <shared:WcrModelDownloader
+            x:Name="WcrModelDownloader"
+            Grid.RowSpan="2"
+            DownloadClicked="WcrModelDownloader_DownloadClicked" />
+    </Grid>
+</samples:BaseSamplePage>
