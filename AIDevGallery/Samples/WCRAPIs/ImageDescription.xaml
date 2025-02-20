@@ -12,7 +12,7 @@
         <Grid RowSpacing="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
     
             <Grid 
@@ -64,7 +64,7 @@
             <shared:WcrModelDownloader 
                 x:Name="WcrModelDownloader" 
                 DownloadClicked="WcrModelDownloader_DownloadClicked"
-                Grid.ColumnSpan="2"/>
+                Grid.RowSpan="2"/>
         </Grid>
     </ScrollViewer>
 </samples:BaseSamplePage>
