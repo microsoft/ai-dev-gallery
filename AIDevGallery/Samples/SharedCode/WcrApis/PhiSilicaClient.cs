@@ -78,38 +78,10 @@ internal class PhiSilicaClient : IChatClient
         return phiSilicaClient;
     }
 
-    public async Task<ChatCompletion> CompleteAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
+    public Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+        GetStreamingResponseAsync(chatMessages, options, cancellationToken).ToChatResponseAsync(cancellationToken: cancellationToken);
 
-        var prompt = GetPrompt(chatMessages);
-
-        LanguageModelResponse? response;
-        if (options == null)
-        {
-            response = await _languageModel.GenerateResponseWithProgressAsync(prompt).AsTask(cancellationToken);
-        }
-        else
-        {
-            var (modelOptions, filterOptions) = GetModelOptions(options);
-            response = await _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions).AsTask(cancellationToken);
-        }
-
-        if (response?.Status == LanguageModelResponseStatus.Complete)
-        {
-            return new ChatCompletion(new ChatMessage(ChatRole.Assistant, response.Response));
-        }
-        else
-        {
-            var message = response?.Status == LanguageModelResponseStatus.BlockedByPolicy ? "Response blocked by policy" : string.Empty;
-            return new ChatCompletion(new ChatMessage(ChatRole.Assistant, message));
-        }
-    }
-
-    public async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_languageModel == null)
         {
@@ -120,7 +92,7 @@ internal class PhiSilicaClient : IChatClient
 
         await foreach (var part in GenerateStreamResponseAsync(prompt, options, cancellationToken))
         {
-            yield return new StreamingChatCompletionUpdate
+            yield return new ChatResponseUpdate
             {
                 Role = ChatRole.Assistant,
                 Text = part,
@@ -317,7 +289,7 @@ internal class PhiSilicaClient : IChatClient
 
             while (progress.Status != AsyncStatus.Completed)
             {
-                await Task.Delay(0, cancellationToken).ConfigureAwait(false);
+                await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 
                 if (newPartEvent.Wait(10, cancellationToken))
                 {

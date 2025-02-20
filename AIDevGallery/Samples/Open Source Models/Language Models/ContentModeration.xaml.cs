@@ -96,7 +96,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
                         NarratorHelper.Announce(InputTextBox, "Prompt is safe, generating response", "ContentModerationWaitAnnouncementActivityId"); // <exclude-line>
                     });
 
-                    await foreach (var messagePart in model.CompleteStreamingAsync(
+                    await foreach (var messagePart in model.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, prompt)
@@ -172,7 +172,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
 
         string safetyDecision = string.Empty;
 
-        await foreach (var messagePart in model.CompleteStreamingAsync(
+        await foreach (var messagePart in model.GetStreamingResponseAsync(
             [
                 new ChatMessage(ChatRole.System, promptSafetyPromptSystemInstructions),
                 new ChatMessage(ChatRole.User, promptSafetyPromptUserInstructions)
