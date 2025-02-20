@@ -66,10 +66,15 @@ internal class TextProcessing : IDisposable
 
         var modelMaxLength = 77;
 
+        if (inputIds.Length > modelMaxLength)
+        {
+            throw new ArgumentException($"Input text is too long. Maximum allowed tokens: {modelMaxLength}, but received: {inputIds.Length}.");
+        }
+
         // Pad array with 49407 until length is modelMaxLength
         if (inputIds.Length < modelMaxLength)
         {
-            var pad = Enumerable.Repeat(49407, 77 - inputIds.Length);
+            var pad = Enumerable.Repeat(49407, modelMaxLength - inputIds.Length);
             inputIds = [.. inputIds.Concat(pad)];
         }
 
