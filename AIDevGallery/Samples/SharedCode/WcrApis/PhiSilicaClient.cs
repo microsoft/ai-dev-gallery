@@ -16,8 +16,6 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal class PhiSilicaClient : IChatClient
 {
-    private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
-
     // Search Options
     private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
     private const SeverityLevel DefaultInputModeration = SeverityLevel.None;

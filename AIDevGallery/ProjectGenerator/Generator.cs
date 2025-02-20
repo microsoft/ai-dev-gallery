@@ -562,11 +562,6 @@ internal partial class Generator
             {
                 sharedCode.Add(SharedCodeEnum.ChatOptionsHelper);
             }
-
-            if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate))
-            {
-                sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
-            }
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils) && !sharedCode.Contains(SharedCodeEnum.NativeMethods))
