@@ -33,14 +33,11 @@ internal class WcrApiDownloadFailedEvent : EventBase
 
     public static void Log(ModelType apiType, string errorMessage)
     {
-        var relatedActivityId = Guid.NewGuid();
-        TelemetryFactory.Get<ITelemetry>().LogError("WcrApiDownloadFailed_Event", LogLevel.Critical, new WcrApiDownloadFailedEvent(apiType, errorMessage, DateTime.Now), relatedActivityId);
+        TelemetryFactory.Get<ITelemetry>().LogError("WcrApiDownloadFailed_Event", LogLevel.Critical, new WcrApiDownloadFailedEvent(apiType, errorMessage, DateTime.Now));
     }
 
     public static void Log(ModelType apiType, Exception ex)
     {
-        var relatedActivityId = Guid.NewGuid();
-        TelemetryFactory.Get<ITelemetry>().LogError("WcrApiDownloadFailed_Event", LogLevel.Critical, new WcrApiDownloadFailedEvent(apiType, ex.Message, DateTime.Now), relatedActivityId);
-        TelemetryFactory.Get<ITelemetry>().LogException("WcrApiDownloadFailed_Event", ex, relatedActivityId);
+        TelemetryFactory.Get<ITelemetry>().LogError("WcrApiDownloadFailed_Event", LogLevel.Critical, new WcrApiDownloadFailedEvent(apiType, ex.Message, DateTime.Now));
     }
 }
