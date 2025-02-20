@@ -12,18 +12,18 @@ namespace AIDevGallery.Telemetry.Events;
 [EventData]
 internal class WcrApiDownloadRequestedEvent : EventBase
 {
-    internal WcrApiDownloadRequestedEvent(ModelType apiType, string? sampleId, DateTime startTime)
+    internal WcrApiDownloadRequestedEvent(ModelType apiType, string sampleId, DateTime startTime)
     {
-        ApiType = apiType;
+        ApiType = apiType.ToString();
         SampleId = sampleId;
         StartTime = startTime;
     }
 
-    public ModelType ApiType { get; private set; }
+    public string ApiType { get; }
 
-    public DateTime StartTime { get; private set; }
+    public DateTime StartTime { get; }
 
-    public string? SampleId { get; set; }
+    public string SampleId { get; }
 
     public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
 
@@ -31,7 +31,7 @@ internal class WcrApiDownloadRequestedEvent : EventBase
     {
     }
 
-    public static void Log(ModelType apiType, string? sampleId = null)
+    public static void Log(ModelType apiType, string sampleId)
     {
         TelemetryFactory.Get<ITelemetry>().Log("WcrApiDownloadRequested_Event", LogLevel.Critical, new WcrApiDownloadRequestedEvent(apiType, sampleId, DateTime.Now));
     }

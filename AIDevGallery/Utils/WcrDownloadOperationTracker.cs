@@ -10,5 +10,5 @@ namespace AIDevGallery.Utils;
 
 internal class WcrDownloadOperationTracker
 {
-    public static Dictionary<ModelType, IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> Operations { get; private set; } = new();
+    public static Dictionary<ModelType, IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> Operations { get; } = new();
 }

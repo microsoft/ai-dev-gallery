@@ -14,16 +14,16 @@ internal class WcrApiDownloadFailedEvent : EventBase
 {
     internal WcrApiDownloadFailedEvent(ModelType apiType, string errorMessage, DateTime errorTime)
     {
-        ApiType = apiType;
+        ApiType = apiType.ToString();
         ErrorMessage = errorMessage;
         ErrorTime = errorTime;
     }
 
-    public ModelType ApiType { get; private set; }
+    public string ApiType { get; }
 
-    public DateTime ErrorTime { get; private set; }
+    public DateTime ErrorTime { get; }
 
-    public string ErrorMessage { get; set; }
+    public string ErrorMessage { get; }
 
     public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
 

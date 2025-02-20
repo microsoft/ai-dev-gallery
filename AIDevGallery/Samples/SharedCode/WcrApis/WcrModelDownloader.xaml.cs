@@ -17,8 +17,8 @@ namespace AIDevGallery.Samples.SharedCode;
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
-    private ModelType? modelTypeHint; // <exclude-line>
-    private string? sampleId; // <exclude-line>
+    private ModelType modelTypeHint; // <exclude-line>
+    private string sampleId; // <exclude-line>
 
     public int DownloadProgress
     {
@@ -93,13 +93,7 @@ internal sealed partial class WcrModelDownloader : UserControl
             return false;
         }
 
-        // <exclude>
-        if (this.modelTypeHint.HasValue)
-        {
-            WcrDownloadOperationTracker.Operations[this.modelTypeHint.Value] = operation;
-        }
-
-        // </exclude>
+        WcrDownloadOperationTracker.Operations[this.modelTypeHint] = operation; // <exclude-line>
         operation.Progress = (result, progress) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -123,28 +117,14 @@ internal sealed partial class WcrModelDownloader : UserControl
             {
                 State = WcrApiDownloadState.Error;
                 ErrorMessage = result.ExtendedError.Message;
-
-                // <exclude>
-                if (this.modelTypeHint.HasValue)
-                {
-                    WcrApiDownloadFailedEvent.Log(this.modelTypeHint.Value, result.ExtendedError.Message);
-                }
-
-                // </exclude>
+                WcrApiDownloadFailedEvent.Log(this.modelTypeHint, result.ExtendedError.Message); // <exclude-line>
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
             State = WcrApiDownloadState.Error;
-
-            // <exclude>
-            if (this.modelTypeHint.HasValue)
-            {
-                WcrApiDownloadFailedEvent.Log(this.modelTypeHint.Value, ex);
-            }
-
-            // </exclude>
+            WcrApiDownloadFailedEvent.Log(this.modelTypeHint, ex); // <exclude-line>
         }
 
         return false;
@@ -172,14 +152,7 @@ internal sealed partial class WcrModelDownloader : UserControl
     private void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         DownloadClicked?.Invoke(this, EventArgs.Empty);
-
-        // <exclude>
-        if (modelTypeHint != null)
-        {
-            WcrApiDownloadRequestedEvent.Log(modelTypeHint.Value, sampleId);
-        }
-
-        // </exclude>
+        WcrApiDownloadRequestedEvent.Log(modelTypeHint, sampleId); // <exclude-line>
     }
 
     private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
