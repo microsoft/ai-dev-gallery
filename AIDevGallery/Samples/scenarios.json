@@ -138,13 +138,8 @@
       },
       "RecognizeText": {
         "Name": "Recognize Text",
-        "Description": "Detect text in an image. Upload an image to see detected text, color-coded based on confidence score, outputted next to the image.",
+        "Description": "Detect text in an image. Upload an image to see recognized text overlaid on the original image.",
         "Id": "recognize-text"
-      },
-      "SelectRecognizedText": {
-        "Name": "Select Text From Image",
-        "Description": "Detect lines of text in an image and then have those lines spotlighted in the image. Upload an image with text it to see detected text output alongside that image. Hover over the image to spotlight detected text.",
-        "Id": "select-recognized-text"
       },
       "IncreaseFidelity": {
         "Name": "Enhance Image",
