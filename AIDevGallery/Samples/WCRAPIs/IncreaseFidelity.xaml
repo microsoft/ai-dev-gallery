@@ -20,7 +20,6 @@
             <ColumnDefinition Width="*" MaxWidth="600" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-
         <Grid
             MinWidth="240"
             MaxWidth="600"
@@ -159,7 +158,6 @@
         </StackPanel>
         <shared:WcrModelDownloader
             x:Name="WcrModelDownloader"
-            Grid.RowSpan="2"
             Grid.ColumnSpan="2"
             DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>

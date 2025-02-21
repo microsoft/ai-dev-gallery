@@ -8,85 +8,78 @@
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
-    <ScrollViewer>
-        <Grid RowSpacing="24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid
+            MinWidth="240"
+            MaxWidth="600"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+            BorderThickness="3"
+            CornerRadius="{StaticResource OverlayCornerRadius}">
+            <Viewbox
+                x:Name="ImageViewbox"
+                Margin="-1"
+                VerticalAlignment="Stretch"
+                Stretch="Uniform">
+                <Image x:Name="ImageSrc" />
+            </Viewbox>
 
             <Grid
-                MinWidth="240"
-                MaxWidth="600"
-                HorizontalAlignment="Left"
+                Margin="8"
+                HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-                BorderThickness="3"
-                CornerRadius="{StaticResource OverlayCornerRadius}">
-                <Viewbox
-                    x:Name="ImageViewbox"
-                    Margin="-1"
-                    VerticalAlignment="Stretch"
-                    Stretch="Uniform">
-                    <Image x:Name="ImageSrc" />
-                </Viewbox>
-
-                <Grid
-                    Margin="8"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <DropDownButton
+                    Padding="8"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top"
-                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                    CornerRadius="{StaticResource ControlCornerRadius}">
-                    <DropDownButton
-                        Padding="8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Select image"
-                        ToolTipService.ToolTip="Select image">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
-                                <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                        <FontIcon Glyph="&#xEE71;" />
-                    </DropDownButton>
-                </Grid>
-                <Grid
-                    Margin="8"
-                    Padding="8"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Bottom"
-                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                    CornerRadius="{StaticResource ControlCornerRadius}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <ProgressRing
-                        x:Name="Loader"
-                        Width="32"
-                        Height="32"
-                        Margin="0,0,8,0"
-                        VerticalAlignment="Top"
-                        IsActive="True"
-                        Visibility="Visible" />
-                    <TextBlock
-                        x:Name="ResponseTxt"
-                        Grid.Column="1"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        TextWrapping="Wrap"
-                        Visibility="Collapsed" />
-                </Grid>
+                    AutomationProperties.Name="Select image"
+                    ToolTipService.ToolTip="Select image">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <FontIcon Glyph="&#xEE71;" />
+                </DropDownButton>
             </Grid>
-            <shared:WcrModelDownloader
-                x:Name="WcrModelDownloader"
-                Grid.RowSpan="2"
-                DownloadClicked="WcrModelDownloader_DownloadClicked" />
+            <Grid
+                Margin="8"
+                Padding="8"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Bottom"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ProgressRing
+                    x:Name="Loader"
+                    Width="32"
+                    Height="32"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Top"
+                    IsActive="True"
+                    Visibility="Visible" />
+                <TextBlock
+                    x:Name="ResponseTxt"
+                    Grid.Column="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed" />
+            </Grid>
         </Grid>
-    </ScrollViewer>
+        <shared:WcrModelDownloader
+            x:Name="WcrModelDownloader"
+            Grid.RowSpan="2"
+            DownloadClicked="WcrModelDownloader_DownloadClicked" />
+    </Grid>
 </samples:BaseSamplePage>
