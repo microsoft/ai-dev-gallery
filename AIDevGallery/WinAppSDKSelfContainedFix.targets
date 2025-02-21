@@ -1,0 +1,128 @@
+<Project>
+  <UsingTask TaskName="GenerateAppManifestFromAppx" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <RedirectDlls ParameterType="System.Boolean" Required="true" />
+      <MsixContentDir ParameterType="System.String" Required="true" />
+      <InAppxManifest ParameterType="System.String" Required="true" />
+      <OutAppManifest ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Xml" />
+      <Code Type="Fragment" Language="cs">
+          <![CDATA[
+            var headerF = @"<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<assembly manifestVersion='1.0'
+    xmlns:asmv3='urn:schemas-microsoft-com:asm.v3'
+    xmlns:winrtv1='urn:schemas-microsoft-com:winrt.v1'
+    xmlns='urn:schemas-microsoft-com:asm.v1'>";
+            var sb = new StringBuilder();
+            sb.AppendLine(headerF);
+            
+            var dllFileFormat = RedirectDlls ? 
+                @"    <asmv3:file name='{0}' loadFrom='%MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY%{0}'>" :
+                @"    <asmv3:file name='{0}'>";
+
+            if (!string.IsNullOrEmpty(InAppxManifest))
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(InAppxManifest);
+                var nsmgr = new XmlNamespaceManager(doc.NameTable);
+                nsmgr.AddNamespace("m", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
+
+                // Add InProcessServer elements to the generated appxmanifest
+                var xQuery = "./m:Package/m:Extensions/m:Extension/m:InProcessServer";
+                var dllFiles = (from di in (new DirectoryInfo(MsixContentDir).EnumerateFiles("*.dll")) select di.Name).ToList();
+                foreach (XmlNode winRTFactory in doc.SelectNodes(xQuery, nsmgr))
+                {
+                    var dllFileNode = winRTFactory.SelectSingleNode("./m:Path", nsmgr);
+                    var dllFile = dllFileNode.InnerText;
+                    var typesNames = winRTFactory.SelectNodes("./m:ActivatableClass", nsmgr).OfType<XmlNode>();
+                    sb.AppendFormat(dllFileFormat, dllFile);
+                    sb.AppendLine();
+                    foreach (var typeNode in typesNames)
+                    {
+                        var attribs = typeNode.Attributes.OfType<XmlAttribute>().ToArray();
+                        var typeName = attribs
+                            .OfType<XmlAttribute>()
+                            .SingleOrDefault(x => x.Name == "ActivatableClassId")
+                            .InnerText;
+                        var xmlEntryFormat =
+@"        <winrtv1:activatableClass name='{0}' threadingModel='both'/>";
+                        sb.AppendFormat(xmlEntryFormat, typeName);
+                        sb.AppendLine();
+                        dllFiles.RemoveAll(e => e.Equals(dllFile, StringComparison.OrdinalIgnoreCase));
+                    }
+                    sb.AppendLine(@"    </asmv3:file>");
+                }
+                if(RedirectDlls)
+                {
+                    foreach (var dllFile in dllFiles)
+                    {
+                        sb.AppendFormat(dllFileFormat, dllFile);
+                        sb.AppendLine(@"</asmv3:file>");
+                    }
+                }
+                // Add ProxyStub elements to the generated appxmanifest
+                xQuery = "./m:Package/m:Extensions/m:Extension/m:ProxyStub";
+                dllFiles = (from di in (new DirectoryInfo(MsixContentDir).EnumerateFiles("*.dll")) select di.Name).ToList();
+                foreach (XmlNode winRTFactory in doc.SelectNodes(xQuery, nsmgr))
+                {
+                    var classIDAdded = false;
+                    
+                    var dllFileNode = winRTFactory.SelectSingleNode("./m:Path", nsmgr);
+                    var dllFile = dllFileNode.InnerText;
+                    var typesNamesForProxy = winRTFactory.SelectNodes("./m:Interface", nsmgr).OfType<XmlNode>();
+                    sb.AppendFormat(dllFileFormat, dllFile);
+                    sb.AppendLine();
+                    foreach (var typeNode in typesNamesForProxy)
+                    {
+                        if(!classIDAdded)
+                        {
+                            var classIdAttribute = winRTFactory.Attributes.OfType<XmlAttribute>().ToArray();
+                            var classID = classIdAttribute
+                                .OfType<XmlAttribute>()
+                                .SingleOrDefault(x => x.Name == "ClassId")
+                                .InnerText;
+
+                            var xmlEntryFormat = @"        <asmv3:comClass clsid='{{{0}}}'/>";
+                            sb.AppendFormat(xmlEntryFormat, classID);
+                            classIDAdded = true;
+                        }
+                        var attribs = typeNode.Attributes.OfType<XmlAttribute>().ToArray();
+                        var typeID = attribs
+                            .OfType<XmlAttribute>()
+                            .SingleOrDefault(x => x.Name == "InterfaceId")
+                            .InnerText;
+                        var typeNames = attribs
+                            .OfType<XmlAttribute>()
+                            .SingleOrDefault(x => x.Name == "Name")
+                            .InnerText;
+                        var xmlEntryFormatForStubs =
+    @"        <asmv3:comInterfaceProxyStub name='{0}' iid='{{{1}}}'/>";
+                        sb.AppendFormat(xmlEntryFormatForStubs, typeNames, typeID);
+                        sb.AppendLine();
+                        dllFiles.RemoveAll(e => e.Equals(dllFile, StringComparison.OrdinalIgnoreCase));
+                    }
+                    sb.AppendLine(@"    </asmv3:file>");
+                }
+                if(RedirectDlls)
+                {
+                    foreach (var dllFile in dllFiles)
+                    {
+                        sb.AppendFormat(dllFileFormat, dllFile);
+                        sb.AppendLine(@"</asmv3:file>");
+                    }
+                }
+            }
+            sb.AppendLine(@"</assembly>");
+            var manifestContent = sb.ToString();
+            File.WriteAllText(OutAppManifest, manifestContent, Encoding.UTF8);
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>
