@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.APIPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
+    xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:toolkit2="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:types="using:AIDevGallery.Models"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:utils="using:AIDevGallery.Utils"
+    Loaded="Page_Loaded"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Page.Resources>
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel
+            Margin="16,16,16,0"
+            Orientation="Horizontal"
+            Spacing="12">
+            <Image Width="24" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+            <TextBlock
+                Margin="0,-4,0,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="{x:Bind ModelFamily.Name}" />
+        </StackPanel>
+        <Grid
+            x:Name="ShadowCastGrid"
+            Grid.RowSpan="5"
+            Grid.ColumnSpan="5" />
+        <controls:CopyButton
+            Grid.Column="1"
+            Height="34"
+            HorizontalAlignment="Right"
+            AutomationProperties.Name="Copy link to page"
+            Click="CopyButton_Click"
+            Content="{ui:FontIcon Glyph=&#xE71B;,
+                                  FontSize=16}"
+            ToolTipService.ToolTip="Copy link to page" />
+        <ScrollViewer
+            x:Name="RootScroller"
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            VerticalAlignment="Stretch">
+            <Grid
+                x:Name="ContentGrid"
+                Margin="0,16,16,16"
+                ColumnSpacing="12"
+                RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="SideColumn" Width="320" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    x:Name="sampleContainerRoot"
+                    Grid.Column="1"
+                    Background="{ThemeResource APIHeaderBackgroundBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource OverlayCornerRadius}"
+                    Translation="0,0,24">
+                    <Grid.Shadow>
+                        <ThemeShadow x:Name="BackgroundShadow" />
+                    </Grid.Shadow>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <controls:SampleContainer
+                        x:Name="sampleContainer"
+                        MinHeight="240"
+                        DisclaimerHorizontalAlignment="Left" />
+                </Grid>
+
+                <controls:Card
+                    x:Name="SamplesCard"
+                    Title="Other samples"
+                    Grid.Column="2"
+                    Icon="{ui:FontIcon Glyph=&#xE754;,
+                                       FontSize=16}">
+                    <ItemsView
+                        x:Name="SampleList"
+                        Padding="4,0,4,4"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Samples"
+                        IsItemInvokedEnabled="True"
+                        ItemInvoked="SampleList_ItemInvoked"
+                        SelectionMode="None">
+                        <ItemsView.Layout>
+                            <LinedFlowLayout LineSpacing="12" MinItemSpacing="12" />
+                        </ItemsView.Layout>
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="types:Sample">
+                                <ItemContainer
+                                    HorizontalAlignment="Left"
+                                    AutomationProperties.Name="{x:Bind Name}"
+                                    CornerRadius="16">
+                                    <Grid
+                                        Padding="12,6,12,6"
+                                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        BorderThickness="1"
+                                        ColumnSpacing="8"
+                                        CornerRadius="16"
+                                        Style="{StaticResource CardGridStyle}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon
+                                            FontSize="14"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Glyph="{x:Bind Icon}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Name}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+                </controls:Card>
+
+                <controls:Card
+                    x:Name="DocumentationCard"
+                    Title="Documentation"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Icon="{ui:FontIcon Glyph=&#xE7C3;,
+                                       FontSize=16}">
+                    <controls:Card.TitleContent>
+                        <HyperlinkButton
+                            Padding="0"
+                            AutomationProperties.Name="View documentation"
+                            NavigateUri="{x:Bind ModelFamily.DocsUrl}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="View documentation" />
+                                <FontIcon FontSize="12" Glyph="&#xE8A7;" />
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </controls:Card.TitleContent>
+                    <Grid Padding="8,16,8,16">
+                        <toolkit2:MarkdownTextBlock
+                            x:Name="markdownTextBlock"
+                            Background="Transparent"
+                            FontSize="14"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Header1FontSize="14"
+                            Header1FontWeight="SemiBold"
+                            Header1Margin="0,0,0,16"
+                            Header2FontSize="14"
+                            Header2FontWeight="SemiBold"
+                            Header2Margin="0,32,0,8"
+                            Header3FontSize="14"
+                            Header3FontWeight="SemiBold"
+                            Header3Margin="0,16,0,8"
+                            LinkClicked="MarkdownTextBlock_LinkClicked">
+                            <toolkit2:MarkdownTextBlock.Resources>
+                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
+                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
+                            </toolkit2:MarkdownTextBlock.Resources>
+                        </toolkit2:MarkdownTextBlock>
+                        <ProgressRing
+                            x:Name="readmeProgressRing"
+                            Grid.Row="2"
+                            IsActive="True" />
+                    </Grid>
+                </controls:Card>
+
+                <controls:Card
+                    x:Name="CodeCard"
+                    Title="API"
+                    Grid.Row="3"
+                    Grid.Column="2"
+                    VerticalContentAlignment="Top">
+                    <controls:Card.Icon>
+                        <PathIcon Data="M8.06562 18.9434L14.5656 4.44339C14.7351 4.06542 15.1788 3.89637 15.5568 4.0658C15.9033 4.22112 16.0742 4.60695 15.9698 4.96131L15.9344 5.05698L9.43438 19.557C9.26495 19.935 8.82118 20.104 8.44321 19.9346C8.09673 19.7793 7.92581 19.3934 8.03024 19.0391L8.06562 18.9434L14.5656 4.44339L8.06562 18.9434ZM2.21967 11.4699L6.46967 7.21986C6.76256 6.92696 7.23744 6.92696 7.53033 7.21986C7.7966 7.48612 7.8208 7.90279 7.60295 8.1964L7.53033 8.28052L3.81066 12.0002L7.53033 15.7199C7.82322 16.0127 7.82322 16.4876 7.53033 16.7805C7.26406 17.0468 6.8474 17.071 6.55379 16.8531L6.46967 16.7805L2.21967 12.5305C1.9534 12.2642 1.9292 11.8476 2.14705 11.554L2.21967 11.4699L6.46967 7.21986L2.21967 11.4699ZM16.4697 7.21986C16.7359 6.95359 17.1526 6.92938 17.4462 7.14724L17.5303 7.21986L21.7803 11.4699C22.0466 11.7361 22.0708 12.1528 21.8529 12.4464L21.7803 12.5305L17.5303 16.7805C17.2374 17.0734 16.7626 17.0734 16.4697 16.7805C16.2034 16.5143 16.1792 16.0976 16.3971 15.804L16.4697 15.7199L20.1893 12.0002L16.4697 8.28052C16.1768 7.98762 16.1768 7.51275 16.4697 7.21986Z" />
+                    </controls:Card.Icon>
+                    <toolkit2:MarkdownTextBlock
+                        x:Name="CodeSampleTextBlock"
+                        Grid.Row="1"
+                        Margin="-4,0,0,0"
+                        Background="Transparent"
+                        CodeBackground="Transparent"
+                        FontSize="12" />
+                </controls:Card>
+            </Grid>
+        </ScrollViewer>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutVisualStates">
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1200" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SideColumn.Width" Value="Auto" />
+                        <Setter Target="CodeCard.(Grid.Column)" Value="1" />
+                        <Setter Target="SamplesCard.(Grid.Row)" Value="1" />
+                        <Setter Target="SamplesCard.(Grid.Column)" Value="1" />
+                        <Setter Target="CodeCard.(Grid.Row)" Value="2" />
+                        <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
+                        <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</Page>

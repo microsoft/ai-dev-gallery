@@ -37,7 +37,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         SharedCodeEnum.WcrModelDownloaderXaml
     ],
     AssetFilenames = [
-        "ocr.png"
+        "ocr2.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class OCRLineSample : BaseSamplePage
@@ -58,7 +58,7 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, sampleParams.SampleId, TextRecognizer.MakeAvailableAsync); // <exclude-line>
         }
 
-        await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "ocr.png"));
+        await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "ocr2.png"));
         sampleParams.NotifyCompletion();
     }
 

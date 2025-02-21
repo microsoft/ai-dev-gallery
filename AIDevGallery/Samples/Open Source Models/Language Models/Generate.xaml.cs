@@ -17,18 +17,15 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Generate",
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextGenerateText,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Id = "25bb4e58-d909-4377-b59c-975cd6baff19",
     Icon = "\uE8D4")]
 internal sealed partial class Generate : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _maxTokenLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
 
@@ -41,8 +38,8 @@ internal sealed partial class Generate : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _maxTokenLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -56,7 +53,7 @@ internal sealed partial class Generate : BaseSamplePage
     private void CleanUp()
     {
         CancelGeneration();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -75,7 +72,7 @@ internal sealed partial class Generate : BaseSamplePage
 
     public void GenerateText(string topic)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -99,7 +96,7 @@ internal sealed partial class Generate : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
@@ -181,16 +178,16 @@ internal sealed partial class Generate : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= GenAIModel.DefaultMaxLength)
+            if (inputLength > _maxTokenLength)
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_maxTokenLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_maxTokenLength}";
             }
 
-            GenerateButton.IsEnabled = inputLength <= GenAIModel.DefaultMaxLength;
+            GenerateButton.IsEnabled = inputLength <= _maxTokenLength;
         }
         else
         {

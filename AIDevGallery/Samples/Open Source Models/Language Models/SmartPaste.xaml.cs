@@ -18,13 +18,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.SmartControlsSmartPaste,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     SharedCode = [
         SharedCodeEnum.SmartPasteFormCs,
-        SharedCodeEnum.SmartPasteFormXaml,
-        SharedCodeEnum.GenAIModel
+        SharedCodeEnum.SmartPasteFormXaml
     ])]
 internal sealed partial class SmartPaste : BaseSamplePage
 {

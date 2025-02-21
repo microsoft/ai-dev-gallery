@@ -3,7 +3,8 @@
     x:Class="AIDevGallery.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:AIDevGallery">
+    xmlns:local="using:AIDevGallery"
+    xmlns:models="using:AIDevGallery.Models">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -15,11 +16,12 @@
                 <ResourceDictionary Source="/Styles/NavigationView.xaml" />
                 <ResourceDictionary Source="/Styles/SelectorBar.xaml" />
                 <ResourceDictionary Source="/Controls/CopyButton.xaml" />
+                <ResourceDictionary Source="/Controls/Shimmer.xaml" />
                 <ResourceDictionary Source="/Controls/OpacityMask.xaml" />
                 <ResourceDictionary Source="/Controls/HomePage/Header/HeaderTile/HeaderTile.xaml" />
-                <ResourceDictionary Source="/Samples/SharedCode/SemanticComboBox.xaml" />
-                <ResourceDictionary Source="/Samples/SharedCode/SmartPasteForm.xaml" />
-                <ResourceDictionary Source="/Samples/SharedCode/SmartTextBox.xaml" />
+                <ResourceDictionary Source="/Samples/SharedCode/Controls/SemanticComboBox.xaml" />
+                <ResourceDictionary Source="/Samples/SharedCode/Controls/SmartPasteForm.xaml" />
+                <ResourceDictionary Source="/Samples/SharedCode/Controls/SmartTextBox.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!--  Other app resources here  -->
 
