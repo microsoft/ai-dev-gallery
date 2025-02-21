@@ -21,6 +21,7 @@ internal sealed partial class APIPage : Page
 {
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
+    private ModelDetails? modelDetails;
 
     public APIPage()
     {
@@ -38,6 +39,7 @@ internal sealed partial class APIPage : Page
         {
             modelFamilyType = modelType;
             ModelFamily = modelFamilyDetails;
+            ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out modelDetails);
         }
         else if (e.Parameter is ModelDetails details)
         {
@@ -48,11 +50,13 @@ internal sealed partial class APIPage : Page
                 ReadmeUrl = details.ReadmeUrl ?? string.Empty,
                 Name = details.Name
             };
+            modelDetails = details;
         }
         else if (e.Parameter is ModelType apiType && ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(apiType, out var apiDefinition))
         {
             // API
             modelFamilyType = apiType;
+            modelDetails = ModelDetailsHelper.GetModelDetailsFromApiDefinition(apiType, apiDefinition);
 
             ModelFamily = new ModelFamily
             {
@@ -67,7 +71,7 @@ internal sealed partial class APIPage : Page
                 var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == apiDefinition.SampleIdToShowInDocs);
                 if (sample != null)
                 {
-                    _ = sampleContainer.LoadSampleAsync(sample, [ModelDetailsHelper.GetModelDetailsFromApiDefinition(apiType, apiDefinition)]);
+                    _ = sampleContainer.LoadSampleAsync(sample, [modelDetails]);
                 }
             }
             else
@@ -163,7 +167,7 @@ internal sealed partial class APIPage : Page
     {
         if (args.InvokedItem is Sample sample)
         {
-            App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample));
+            App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, modelDetails));
         }
     }
 
