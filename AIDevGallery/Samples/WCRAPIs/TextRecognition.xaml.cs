@@ -40,12 +40,12 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "ocr2.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class OCRLineSample : BaseSamplePage
+internal sealed partial class TextRecognition : BaseSamplePage
 {
     private TextRecognizer? _textRecognizer;
     private string _recognizedTextString = string.Empty;
 
-    public OCRLineSample()
+    public TextRecognition()
     {
         this.InitializeComponent();
     }
