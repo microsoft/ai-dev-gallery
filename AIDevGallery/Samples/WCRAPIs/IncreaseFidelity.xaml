@@ -82,6 +82,7 @@
                 IsActive="True"
                 Visibility="Collapsed" />
             <Grid
+                x:Name="ScaledDimensionsPanel"
                 Margin="8"
                 Padding="8"
                 HorizontalAlignment="Left"
@@ -94,6 +95,7 @@
                 </TextBlock>
             </Grid>
             <Grid
+                x:Name="OriginalPanel"
                 Margin="8"
                 Padding="8"
                 HorizontalAlignment="Right"

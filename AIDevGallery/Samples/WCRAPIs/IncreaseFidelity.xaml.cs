@@ -70,7 +70,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Enhance.png");
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
 
@@ -162,12 +162,13 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         {
             _imageScaler = await ImageScaler.CreateAsync();
             ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
-            if (_imageScaler.MaxSupportedScaleFactor >= 2)
+            if (_imageScaler.MaxSupportedScaleFactor >= 4)
             {
-                ScaleSlider.Value = 2;
+                ScaleSlider.Value = 4;
             }
         }
 
+        ScaledDimensionsPanel.Visibility = Visibility.Collapsed;
         ScaledImage.Visibility = Visibility.Collapsed;
         GridSplitter.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
@@ -183,6 +184,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         Loader.Visibility = Visibility.Collapsed;
         ScaledImage.Visibility = Visibility.Visible;
         GridSplitter.Visibility = Visibility.Visible;
+        ScaledDimensionsPanel.Visibility = Visibility.Visible;
         await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
     }
 
