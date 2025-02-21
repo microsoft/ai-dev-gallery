@@ -200,7 +200,6 @@ internal sealed partial class OCRLineSample : BaseSamplePage
     {
         RectCanvas.Visibility = Visibility.Visible;
         ViewToggle.Visibility = Visibility.Visible;
-        ViewToggle.IsChecked = true;
 
         List<string> lines = new List<string>();
 
@@ -211,14 +210,14 @@ internal sealed partial class OCRLineSample : BaseSamplePage
             SolidColorBrush backgroundBrush = new SolidColorBrush
             {
                 Color = Colors.Black,
-                Opacity = .7
+                Opacity = .6
             };
 
             Grid grid = new Grid
             {
                 Background = backgroundBrush,
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(4)
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(4, 3, 4, 4)
             };
 
             TextBlock block = new TextBlock
@@ -238,11 +237,17 @@ internal sealed partial class OCRLineSample : BaseSamplePage
         _recognizedTextString = string.Join('\n', lines);
     }
 
-    private void ToggleButton_Click(object sender, RoutedEventArgs e)
+
+    private void ViewToggle_Click(object sender, RoutedEventArgs e)
     {
-        if(sender is ToggleButton button)
+        if (RectCanvas.Visibility == Visibility.Visible)
         {
-            RectCanvas.Visibility = (bool)button.IsChecked! ? Visibility.Visible : Visibility.Collapsed;
+            RectCanvas.Visibility = Visibility.Collapsed;
         }
+        else
+        {
+            RectCanvas.Visibility = Visibility.Visible;
+        }
+
     }
 }

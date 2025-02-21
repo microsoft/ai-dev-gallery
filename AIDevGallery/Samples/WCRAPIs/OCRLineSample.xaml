@@ -9,54 +9,79 @@
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
 
-    <Grid RowSpacing="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12" Grid.Row="1" VerticalAlignment="Top">
-            <DropDownButton AutomationProperties.Name="Select image">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
-                    <TextBlock Text="Select image" />
-                </StackPanel>
-                <DropDownButton.Flyout>
-                    <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
-                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
-                    </MenuFlyout>
-                </DropDownButton.Flyout>
-            </DropDownButton>
-            <Button
-                x:Name="CopyTextButton"
-                Click="CopyText_Click"
-                Content="Copy all text"
-                ToolTipService.ToolTip="Click on the text to copy that line to your clipboard"
-                Visibility="Collapsed" />
-        </StackPanel>
-
-        <Viewbox
-            x:Name="ImageViewbox"
-            MaxHeight="600">
+    <Grid>
+        <Grid
+            MinWidth="240"
+            MaxWidth="600"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+            BorderThickness="3"
+            CornerRadius="{StaticResource OverlayCornerRadius}"
+            Visibility="Collapsed">
+            <Viewbox x:Name="ImageViewbox" MaxHeight="600">
+                <Grid
+                    x:Name="PaneGrid"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch">
+                    <Image x:Name="ImageSrc" Stretch="Uniform" />
+                    <Canvas
+                        x:Name="RectCanvas"
+                        Background="{ThemeResource SmokeFillColorDefaultBrush}"
+                        Visibility="Collapsed" />
+                </Grid>
+            </Viewbox>
             <Grid
-                x:Name="PaneGrid"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch">
-                <Image x:Name="ImageSrc" Stretch="Uniform" />
-                <Canvas x:Name="RectCanvas" Visibility="Collapsed">
-                    <Canvas.Background>
-                        <SolidColorBrush Color="Black" Opacity="0.6"/>
-                    </Canvas.Background>
-                </Canvas>
-                <ToggleButton x:Name="ViewToggle" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="12" Visibility="Collapsed" Content="Toggle OCR View" IsChecked="True" Click="ToggleButton_Click"/>
+                Margin="8"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <DropDownButton
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="Select image"
+                    ToolTipService.ToolTip="Select image">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <FontIcon Glyph="&#xEE71;" />
+                </DropDownButton>
             </Grid>
-        </Viewbox>
-        
-        <shared:WcrModelDownloader 
-            x:Name="WcrModelDownloader" 
-            DownloadClicked="WcrModelDownloader_DownloadClicked"
-            Grid.RowSpan="2"
-            Grid.ColumnSpan="2"/>
+
+
+            <StackPanel
+                Margin="8"
+                Padding="8"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    x:Name="ViewToggle"
+                    AutomationProperties.Name="Show or hide extracted text"
+                    Click="ViewToggle_Click"
+                    ToolTipService.ToolTip="Show or hide extracted text"
+                    Visibility="Collapsed">
+                    <FontIcon FontSize="16" Glyph="&#xE890;" />
+                </Button>
+
+                <Button
+                    x:Name="CopyTextButton"
+                    Click="CopyText_Click"
+                    ToolTipService.ToolTip="Click on the text to copy that line to your clipboard"
+                    Visibility="Collapsed">
+                    <FontIcon FontSize="16" Glyph="&#xE8E2;" />
+                </Button>
+            </StackPanel>
+        </Grid>
+        <shared:WcrModelDownloader x:Name="WcrModelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>
