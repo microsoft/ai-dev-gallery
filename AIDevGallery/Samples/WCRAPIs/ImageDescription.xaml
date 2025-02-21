@@ -16,16 +16,22 @@
             </Grid.RowDefinitions>
 
             <Grid
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                CornerRadius="8">
-                <Image
-                    x:Name="ImageSrc"
-                    MinHeight="320"
-                    MaxHeight="400"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Top"
-                    Stretch="Uniform" />
+                MinWidth="240"
+                MaxWidth="600"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                BorderThickness="3"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Viewbox
+                    x:Name="ImageViewbox"
+                    Margin="-1"
+                    VerticalAlignment="Stretch"
+                    Stretch="Uniform">
+                    <Image x:Name="ImageSrc" />
+                </Viewbox>
+
                 <Grid
                     Margin="8"
                     HorizontalAlignment="Right"
@@ -49,20 +55,20 @@
                 </Grid>
                 <Grid
                     Margin="8"
-                    Padding="4"
+                    Padding="8"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Bottom"
                     Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                    ColumnSpacing="8"
-                    CornerRadius="{StaticResource OverlayCornerRadius}">
+                    CornerRadius="{StaticResource ControlCornerRadius}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <ProgressRing
                         x:Name="Loader"
                         Width="32"
                         Height="32"
+                        Margin="0,0,8,0"
                         VerticalAlignment="Top"
                         IsActive="True"
                         Visibility="Visible" />
@@ -71,6 +77,8 @@
                         Grid.Column="1"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        IsTextSelectionEnabled="True"
                         TextWrapping="Wrap"
                         Visibility="Collapsed" />
                 </Grid>
