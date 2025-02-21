@@ -5,9 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:AIDevGallery.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
     <Page.Resources>
@@ -125,7 +123,12 @@
             x:Name="contentHost"
             Grid.Row="1"
             HorizontalAlignment="Stretch">
-            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed" />
+            <controls:SampleContainer
+                x:Name="SampleContainer"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Visibility="Collapsed" />
             <Grid
                 x:Name="NoModelSelectedGrid"
                 MaxWidth="480"

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
@@ -119,8 +120,7 @@ internal partial class Generator
 
         Directory.CreateDirectory(outputPath);
 
-        bool addLllmTypes = false;
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos = [];
+        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos = [];
         string model1Id = string.Empty;
         string model2Id = string.Empty;
         foreach (var modelType in modelTypes)
@@ -133,6 +133,7 @@ internal partial class Generator
             PromptTemplate? modelPromptTemplate = null;
             string modelId = string.Empty;
             bool isSingleFile = false;
+            bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
 
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
@@ -142,11 +143,6 @@ internal partial class Generator
             else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.ModelUrl) is var modelDetails2 && modelDetails2.Value != null)
             {
                 modelPromptTemplate = modelDetails2.Value.PromptTemplate;
-                if (modelPromptTemplate != null)
-                {
-                    addLllmTypes = true;
-                }
-
                 modelId = modelDetails2.Value.Id;
             }
             else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinitionDetails))
@@ -193,7 +189,13 @@ internal partial class Generator
                 modelPathStr = $"@\"{modelInfo.CachedModelDirectoryPath}\"";
             }
 
-            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate));
+            bool isPhiSilica = ModelDetailsHelper.EqualOrParent(modelType, ModelType.PhiSilica);
+            if (isPhiSilica)
+            {
+                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
+            }
+
+            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate, isPhiSilica));
 
             if (modelTypes.First() == modelType)
             {
@@ -202,6 +204,15 @@ internal partial class Generator
             else
             {
                 model2Id = modelId;
+            }
+
+            if (isLanguageModel)
+            {
+                var genAiPackage = "Microsoft.ML.OnnxRuntimeGenAI.DirectML";
+                if (!packageReferences.Any(packageReferences => packageReferences.PackageName == genAiPackage))
+                {
+                    packageReferences.Add((genAiPackage, null));
+                }
             }
         }
 
@@ -221,7 +232,7 @@ internal partial class Generator
 
         var baseNamespace = "AIDevGallery.Sample";
 
-        var className = await AddFilesFromSampleAsync(sample, packageReferences, baseNamespace, outputPath, addLllmTypes, modelInfos, cancellationToken);
+        var className = await AddFilesFromSampleAsync(sample, packageReferences, baseNamespace, outputPath, modelInfos, cancellationToken);
 
         foreach (var file in files)
         {
@@ -389,7 +400,7 @@ internal partial class Generator
 
         // Styles
         List<string> styles = [];
-        foreach (var file in Directory.GetFiles(outputPath, "*.xaml", SearchOption.TopDirectoryOnly))
+        foreach (var file in Directory.GetFiles(Path.Join(outputPath, "Utils"), "*.xaml", SearchOption.TopDirectoryOnly))
         {
             var content = await File.ReadAllTextAsync(file, cancellationToken);
             if (!content.StartsWith("<ResourceDictionary", StringComparison.OrdinalIgnoreCase))
@@ -405,19 +416,25 @@ internal partial class Generator
             var appXamlPath = Path.Join(outputPath, "App.xaml");
             var appXaml = await File.ReadAllTextAsync(appXamlPath, cancellationToken);
             appXaml = appXaml.Replace(
-                "                <!-- Other merged dictionaries here -->",
-                string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.GetFileName(s)}\" />")));
+                "                <!--  Other merged dictionaries here  -->",
+                string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.Join("Utils", Path.GetFileName(s))}\" />")));
             await File.WriteAllTextAsync(appXamlPath, appXaml, cancellationToken);
         }
 
         return outputPath;
     }
 
-    private string GetChatClientLoaderString(Sample sample, string modelPath, string promptTemplate)
+    private string? GetChatClientLoaderString(List<Samples.SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
-        if (!sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
+        bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
+        if (!sharedCode.Contains(SharedCodeEnum.GenAIModel) && !isPhiSilica && !isLanguageModel)
         {
-            return string.Empty;
+            return null;
+        }
+
+        if (isPhiSilica)
+        {
+            return "PhiSilicaClient.CreateAsync()";
         }
 
         return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
@@ -510,16 +527,31 @@ internal partial class Generator
         List<(string PackageName, string? Version)> packageReferences,
         string baseNamespace,
         string outputPath,
-        bool addLllmTypes,
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate)> modelInfos,
+        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos,
         CancellationToken cancellationToken)
     {
-        var sharedCode = sample.SharedCode.ToList();
-        if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate) &&
-            (addLllmTypes || sample.SharedCode.Contains(SharedCodeEnum.GenAIModel)))
+        List<Samples.SharedCodeEnum> sharedCode = sample.SharedCode.ToList();
+        bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelInfos.Keys.First(), ModelType.LanguageModels);
+
+        if (isLanguageModel && !sharedCode.Contains(SharedCodeEnum.GenAIModel))
         {
-            // Always used inside GenAIModel.cs
-            sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
+            sharedCode.Add(SharedCodeEnum.GenAIModel);
+        }
+
+        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+        {
+            if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate))
+            {
+                sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
+            }
+        }
+
+        if (modelInfos.Values.Any(mi => mi.IsPhiSilica))
+        {
+            if (!sharedCode.Contains(SharedCodeEnum.PhiSilicaClient))
+            {
+                sharedCode.Add(SharedCodeEnum.PhiSilicaClient);
+            }
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils) && !sharedCode.Contains(SharedCodeEnum.NativeMethods))
@@ -575,6 +607,7 @@ internal partial class Generator
         {
             var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
             cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+            cleanCsSource = cleanCsSource.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
             cleanCsSource = cleanCsSource.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
             cleanCsSource = cleanCsSource.Replace($"public {className}()", "public Sample()");
             cleanCsSource = cleanCsSource.Replace(
@@ -616,15 +649,16 @@ internal partial class Generator
                 var subStr = cleanCsSource[(newLineIndex + Environment.NewLine.Length)..];
                 var subStrWithoutSpaces = subStr.TrimStart();
                 var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
-                var promptTemplate = GetPromptTemplateString(modelInfos.Values.First().ModelPromptTemplate, spaceCount);
-                var chatClientLoader = GetChatClientLoaderString(sample, modelPath, promptTemplate);
+                var modelInfo = modelInfos.Values.First();
+                var promptTemplate = GetPromptTemplateString(modelInfo.ModelPromptTemplate, spaceCount);
+                var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPath, promptTemplate, modelInfo.IsPhiSilica, modelInfos.Keys.First());
                 if (chatClientLoader != null)
                 {
                     cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
                 }
             }
 
-            if (sample.SharedCode.Contains(SharedCodeEnum.GenAIModel))
+            if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
             {
                 cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
             }
@@ -653,10 +687,16 @@ internal partial class Generator
         if (match.Success)
         {
             var oldClassFullName = match.Groups[1].Value;
-            _ = oldClassFullName[..oldClassFullName.LastIndexOf('.')];
             className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
 
-            xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            if (oldClassFullName.Contains(".SharedCode."))
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            }
+            else
+            {
+                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            }
         }
         else
         {

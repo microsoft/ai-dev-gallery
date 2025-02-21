@@ -14,7 +14,7 @@
             <DataTemplate x:Key="SampleItemTemplate">
                 <Grid>
                     <Border Background="{Binding StatusColor}">
-                        <TextBlock Text="{Binding Sample.Name}" FontSize="16"/>
+                        <TextBlock Text="{Binding SampleName}" FontSize="16"/>
                     </Border>
                 </Grid>
             </DataTemplate>

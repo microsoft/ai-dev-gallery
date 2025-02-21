@@ -8,6 +8,10 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI.ContentModeration;
+using Microsoft.Windows.AI.Generative;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,29 +19,48 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Custom Parameters",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Id = "0d884b79-26ab-47a3-a752-1b8a7fa5737d",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
-    ],
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
     ])]
-internal sealed partial class CustomSystemPrompt : BaseSamplePage
+internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
-    private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
     private readonly int defaultTopK = 50;
     private readonly float defaultTopP = 0.9f;
     private readonly float defaultTemperature = 1;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
+    private readonly LanguageModelSkill defaultSkill = LanguageModelSkill.General;
+    private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.None;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
-    private IChatClient? model;
+    private ChatOptions? chatOptions;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
-    private bool isProgressVisible;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public LanguageModelSkill LanguageModelSkill { get; set; } = LanguageModelSkill.General;
+
+    public List<LanguageModelSkill> LanguageModelSkills { get; } = [LanguageModelSkill.General, LanguageModelSkill.TextToTable, LanguageModelSkill.Summarize, LanguageModelSkill.Rewrite];
+
+    public SeverityLevel InputModerationLevel { get; set; } = SeverityLevel.None;
+
+    public SeverityLevel OutputModerationLevel { get; set; } = SeverityLevel.None;
+
+    public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.None, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
+
+    public bool IsPhiSilica
+    {
+        get;
+        private set
+        {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPhiSilica)));
+        }
+    }
 
     public CustomSystemPrompt()
     {
@@ -50,7 +73,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
+        chatClient = await sampleParams.GetIChatClientAsync();
+        chatOptions = GetDefaultChatOptions(chatClient);
+        IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
         InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
@@ -70,6 +95,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             TopPSlider.Value = lastState.TopP ?? defaultTopP;
             SystemPromptInputTextBox.Text = lastState.SystemPrompt ?? defaultSystemPrompt;
             InputTextBox.Text = lastState.UserPrompt ?? string.Empty;
+            SkillCombo.SelectedItem = lastState.ModelSkill ?? LanguageModelSkill.General;
+            InputModerationCombo.SelectedItem = lastState.InputContentModeration ?? SeverityLevel.None;
+            OutputModerationCombo.SelectedItem = lastState.OutputContentModeration ?? SeverityLevel.None;
         }
     }
 
@@ -84,7 +112,10 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             TopP = (float)TopPSlider.Value,
             Temperature = (float)TemperatureSlider.Value,
             SystemPrompt = SystemPromptInputTextBox.Text,
-            UserPrompt = InputTextBox.Text
+            UserPrompt = InputTextBox.Text,
+            ModelSkill = LanguageModelSkill,
+            InputContentModeration = InputModerationLevel,
+            OutputContentModeration = OutputModerationLevel
         };
 
         App.AppData.LastCustomParamtersState = lastState;
@@ -95,15 +126,32 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private void CleanUp()
     {
         CancelGeneration();
-        model?.Dispose();
+        chatClient?.Dispose();
+    }
+
+    public ChatOptions GetDefaultChatOptions(IChatClient? chatClient)
+    {
+        var chatOptions = chatClient?.GetService<ChatOptions>();
+        return chatOptions ?? new ChatOptions
+        {
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "min_length", 0 },
+                { "do_sample", defaultDoSample },
+            },
+            MaxOutputTokens = defaultMaxLength,
+            Temperature = defaultTemperature,
+            TopP = defaultTopP,
+            TopK = defaultTopK,
+        };
     }
 
     public bool IsProgressVisible
     {
-        get => isProgressVisible;
+        get;
         set
         {
-            isProgressVisible = value;
+            field = value;
             DispatcherQueue.TryEnqueue(() =>
             {
                 OutputProgressBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
@@ -114,7 +162,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
     public void GenerateText(string query, string systemPrompt)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -135,7 +183,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, query)
@@ -145,7 +193,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        if (isProgressVisible)
+                        if (IsProgressVisible)
                         {
                             StopBtn.Visibility = Visibility.Visible;
                             IsProgressVisible = false;
@@ -204,12 +252,20 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
             MaxLengthSlider.Value = MinLengthSlider.Value;
         }
 
+        if (chatOptions == null)
+        {
+            return;
+        }
+
         chatOptions.AdditionalProperties!["min_length"] = (int)MinLengthSlider.Value;
         chatOptions.MaxOutputTokens = (int)MaxLengthSlider.Value;
         chatOptions.Temperature = (float)TemperatureSlider.Value;
         chatOptions.TopK = (int)TopKSlider.Value;
         chatOptions.TopP = (float)TopPSlider.Value;
         chatOptions.AdditionalProperties!["do_sample"] = DoSampleToggle.IsOn;
+        chatOptions.AdditionalProperties!["skill"] = LanguageModelSkill;
+        chatOptions.AdditionalProperties!["input_moderation"] = InputModerationLevel;
+        chatOptions.AdditionalProperties!["output_moderation"] = OutputModerationLevel;
     }
 
     private void StopBtn_Click(object sender, RoutedEventArgs e)
@@ -220,7 +276,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
     private void InputBox_Changed(object sender, TextChangedEventArgs e)
     {
         var inputLength = InputTextBox.Text.Length;
-        if (inputLength > 0)
+        if (inputLength > 0 && chatOptions != null)
         {
             if (inputLength >= chatOptions.MaxOutputTokens)
             {
@@ -269,5 +325,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage
         TopKSlider.Value = defaultTopK;
         TemperatureSlider.Value = defaultTemperature;
         DoSampleToggle.IsOn = defaultDoSample;
+        LanguageModelSkill = defaultSkill;
+        InputModerationLevel = defaultSeverityLevel;
+        OutputModerationLevel = defaultSeverityLevel;
     }
 }

@@ -16,13 +16,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4",
     Scenario = ScenarioType.SmartControlsSmartTextBox,
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     SharedCode = [
         SharedCodeEnum.SmartTextBoxCs,
-        SharedCodeEnum.SmartTextBoxXaml,
-        SharedCodeEnum.GenAIModel
+        SharedCodeEnum.SmartTextBoxXaml
     ])]
 internal sealed partial class SmartText : BaseSamplePage
 {

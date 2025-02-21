@@ -15,20 +15,17 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Translate",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextTranslateText,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Id = "f045fca2-c657-4894-99f2-d0a1115176bc",
     Icon = "\uE8D4")]
 internal sealed partial class Translate : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _defaultMaxLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
 
     public Translate()
@@ -40,8 +37,8 @@ internal sealed partial class Translate : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -55,7 +52,7 @@ internal sealed partial class Translate : BaseSamplePage
     private void CleanUp()
     {
         CancelTranslation();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -74,7 +71,7 @@ internal sealed partial class Translate : BaseSamplePage
 
     public void TranslateText(string text)
     {
-        if (model == null || LanguageBox.SelectedItem == null)
+        if (chatClient == null || LanguageBox.SelectedItem == null)
         {
             return;
         }
@@ -93,13 +90,13 @@ internal sealed partial class Translate : BaseSamplePage
                 {
                     string targetLanguage = language.ToString();
                     string systemPrompt = "You translate user provided text. Do not reply with any extraneous content besides the translated text itself.";
-                    string userPrompt = $@"Translate '{text}' to {targetLanguage}.";
+                    string userPrompt = $@"Translate the following text to {targetLanguage}: '{text}'";
 
                     cts = new CancellationTokenSource();
 
                     IsProgressVisible = true;
 
-                    await foreach (var messagePart in model.GetStreamingResponseAsync(
+                    await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, userPrompt)
@@ -203,16 +200,16 @@ internal sealed partial class Translate : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= GenAIModel.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            TranslateButton.IsEnabled = inputLength <= GenAIModel.DefaultMaxLength;
+            TranslateButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {

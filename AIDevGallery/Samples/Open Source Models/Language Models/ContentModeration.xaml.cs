@@ -15,15 +15,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Content Moderation",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextContentModeration,
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
+    SharedCode = [],
     Id = "language-content-moderation",
     Icon = "\uE8D4")]
 internal sealed partial class ContentModeration : BaseSamplePage

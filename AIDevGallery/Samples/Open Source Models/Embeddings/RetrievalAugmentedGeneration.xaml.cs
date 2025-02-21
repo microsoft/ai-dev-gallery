@@ -27,13 +27,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
 
 [GallerySample(
     Name = "Retrieval Augmented Generation",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Model2Types = [ModelType.EmbeddingModel],
     Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
     SharedCode = [
         SharedCodeEnum.EmbeddingGenerator,
         SharedCodeEnum.EmbeddingModelInput,
-        SharedCodeEnum.GenAIModel,
         SharedCodeEnum.TokenizerExtensions,
         SharedCodeEnum.DeviceUtils,
         SharedCodeEnum.StringData
@@ -42,7 +41,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "PdfPig",
         "Microsoft.ML.Tokenizers",
         "System.Numerics.Tensors",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI.Abstractions",
         "Microsoft.SemanticKernel.Connectors.InMemory"
@@ -51,8 +49,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Icon = "\uE8D4")]
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
-    private readonly ChatOptions _chatOptions = GenAIModel.GetDefaultChatOptions();
     private EmbeddingGenerator? _embeddings;
+    private int _maxTokens = 2048;
     private IChatClient? _chatClient;
     private IVectorStore? _vectorStore;
     private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
@@ -88,7 +86,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
         _chatClient = await sampleParams.GetIChatClientAsync();
-        _chatOptions.MaxOutputTokens = 2048;
 
         sampleParams.NotifyCompletion();
 
@@ -237,6 +234,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             ChatGrid.Visibility = Visibility.Visible;
             SelectNewPDFButton.Visibility = Visibility.Visible;
         });
+        _cts?.Dispose();
+        _cts = null;
     }
 
     private async Task DoRAG()
@@ -259,8 +258,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         SearchTextBox.IsEnabled = false;
         _cts = new CancellationTokenSource();
 
-        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from specific PDF pages provided by the user. " +
-            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.";
+        const string systemPrompt = "You are a knowledgeable assistant specialized in answering questions based solely on information from the following pages. " +
+            "When responding, focus on delivering clear, accurate answers drawn only from the content in these pages, avoiding outside information or assumptions.\n";
 
         var searchPrompt = this.SearchTextBox.Text;
 
@@ -296,11 +295,10 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             {
                 await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
                     [
-                        new ChatMessage(ChatRole.System, systemPrompt),
-                        .. pagesChunks.Select(c => new ChatMessage(ChatRole.User, c)),
+                        new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
                         new ChatMessage(ChatRole.User, searchPrompt),
                     ],
-                    _chatOptions,
+                    new() { MaxOutputTokens = _maxTokens },
                     _cts.Token))
                 {
                     fullResult += partialResult;

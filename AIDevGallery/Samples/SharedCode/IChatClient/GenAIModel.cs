@@ -14,16 +14,15 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal class GenAIModel : IChatClient, IDisposable
+internal class GenAIModel : IChatClient
 {
     private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
 
-    // Search Options
     private const int DefaultTopK = 50;
     private const float DefaultTopP = 0.9f;
     private const float DefaultTemperature = 1;
     private const int DefaultMinLength = 0;
-    public const int DefaultMaxLength = 1024;
+    private const int DefaultMaxLength = 1024;
     private const bool DefaultDoSample = false;
 
     private readonly ChatClientMetadata _metadata;
@@ -33,7 +32,7 @@ internal class GenAIModel : IChatClient, IDisposable
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
     private static OgaHandle? _ogaHandle;
 
-    public static ChatOptions GetDefaultChatOptions()
+    private static ChatOptions GetDefaultChatOptions()
     {
         return new ChatOptions
         {
@@ -283,6 +282,7 @@ internal class GenAIModel : IChatClient, IDisposable
             _model is not null && serviceType?.IsInstanceOfType(_model) is true ? _model :
             _tokenizer is not null && serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :
+            serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
             null;
     }
 }

@@ -14,20 +14,17 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Summarize",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextSummarizeText,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Id = "21bf3574-aaa5-42fd-9f6c-3bfbbca00876",
     Icon = "\uE8D4")]
 internal sealed partial class Summarize : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _defaultMaxLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
 
@@ -40,8 +37,8 @@ internal sealed partial class Summarize : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -53,7 +50,7 @@ internal sealed partial class Summarize : BaseSamplePage
     private void CleanUp()
     {
         CancelSummary();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -72,7 +69,7 @@ internal sealed partial class Summarize : BaseSamplePage
 
     public void SummarizeText(string text)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -93,7 +90,7 @@ internal sealed partial class Summarize : BaseSamplePage
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
@@ -163,16 +160,16 @@ internal sealed partial class Summarize : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= GenAIModel.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            SummarizeButton.IsEnabled = inputLength <= GenAIModel.DefaultMaxLength;
+            SummarizeButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {

@@ -4,5 +4,6 @@ internal enum HardwareAccelerator
 {
     CPU,
     DML,
-    QNN
+    QNN,
+    WCRAPI
 }

@@ -5,7 +5,6 @@ using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -60,7 +59,7 @@ internal sealed partial class MainWindow : WindowEx
 
     private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
-        Navigate(args.InvokedItem.ToString()!);
+        Navigate(args.InvokedItemContainer.Tag.ToString()!);
     }
 
     public void Navigate(string Tag, object? obj = null)
@@ -78,6 +77,9 @@ internal sealed partial class MainWindow : WindowEx
             case "models":
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
+            case "apis":
+                Navigate(typeof(APISelectionPage), obj);
+                break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
                 break;
@@ -91,7 +93,12 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
+            if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
+            {
+                // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
+                apiPage.SetSelectedApiInMenu((ModelType)param);
+            }
+            else if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
             {
                 // No need to navigate to the ScenarioSelectionPage again, we just want to navigate to the right subpage
                 scenarioPage.HandleNavigation(param);
@@ -100,13 +107,17 @@ internal sealed partial class MainWindow : WindowEx
             {
                 if (param == null && NavFrame.Content != null && NavFrame.Content.GetType() == page)
                 {
-                    if (NavFrame.Content is ScenarioSelectionPage page)
+                    if (NavFrame.Content is ScenarioSelectionPage scenario)
                     {
-                        page.ShowHideNavPane();
+                        scenario.ShowHideNavPane();
                     }
-                    else if (NavFrame.Content is ModelSelectionPage modelPage)
+                    else if (NavFrame.Content is ModelSelectionPage model)
                     {
-                        modelPage.ShowHideNavPane();
+                        model.ShowHideNavPane();
+                    }
+                    else if (NavFrame.Content is APISelectionPage api)
+                    {
+                        api.ShowHideNavPane();
                     }
 
                     return;
@@ -152,7 +163,7 @@ internal sealed partial class MainWindow : WindowEx
     {
         this.ExtendsContentIntoTitleBar = true;
         this.SetTitleBar(titleBar);
-        this.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+        titleBar.Window = this;
         this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
 
         this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
@@ -198,6 +209,14 @@ internal sealed partial class MainWindow : WindowEx
         SearchBox.Text = string.Empty;
     }
 
+    private void TitleBar_BackButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (NavFrame.CanGoBack)
+        {
+            NavFrame.GoBack();
+        }
+    }
+
     private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
     {
         if (e.SourcePageType == typeof(ScenarioSelectionPage))
@@ -208,6 +227,10 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavView.SelectedItem = NavView.MenuItems[2];
         }
+        else if (e.SourcePageType == typeof(APISelectionPage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[3];
+        }
         else if (e.SourcePageType == typeof(SettingsPage))
         {
             NavView.SelectedItem = NavView.FooterMenuItems[1];
@@ -215,14 +238,6 @@ internal sealed partial class MainWindow : WindowEx
         else
         {
             NavView.SelectedItem = NavView.MenuItems[0];
-        }
-    }
-
-    private void TitleBar_BackRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
-    {
-        if (NavFrame.CanGoBack)
-        {
-            NavFrame.GoBack();
         }
     }
 }

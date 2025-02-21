@@ -9,7 +9,6 @@
     xmlns:media="using:CommunityToolkit.WinUI.Media"
     xmlns:models="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
-    xmlns:util="using:AIDevGallery.Utils"
     mc:Ignorable="d">
 
     <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
@@ -19,14 +18,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <controls:OverviewPageHeader Title="Overview" Description="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience.">
-                    <controls:OverviewPageHeader.Background>
-                        <LinearGradientBrush Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
-                            <GradientStop Offset="0" Color="#3286EE" />
-                            <GradientStop Offset="0.5" Color="#C8AEC4" />
-                            <GradientStop Offset="1" Color="Transparent" />
-                        </LinearGradientBrush>
-                    </controls:OverviewPageHeader.Background>
+                <controls:OverviewPageHeader
+                    Title="Overview"
+                    Background="{ThemeResource ScenarioHeaderBackgroundBrush}"
+                    Description="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience.">
                     <controls:OverviewPageHeader.ImageContent>
                         <Grid Margin="24,8,24,16">
                             <Grid
@@ -51,10 +46,7 @@
                                 VerticalAlignment="Top"
                                 Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
                                 Style="{StaticResource CardGridStyle}">
-                                <SymbolIcon
-                                    Width="28"
-                                    Height="28"
-                                    Symbol="Permissions" />
+                                <FontIcon FontSize="28" Glyph="&#xE754;" />
                             </Grid>
                             <Grid
                                 Margin="0,4,0,0"
@@ -62,12 +54,8 @@
                                 VerticalAlignment="Top"
                                 Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
                                 Style="{StaticResource CardGridStyle}">
-                                <SymbolIcon
-                                    Width="28"
-                                    Height="28"
-                                    Symbol="Setting" />
+                                <FontIcon FontSize="28" Glyph="&#xF4A5;" />
                             </Grid>
-
                         </Grid>
                     </controls:OverviewPageHeader.ImageContent>
                 </controls:OverviewPageHeader>
@@ -103,7 +91,7 @@
                                     Grid.Row="2"
                                     IsItemInvokedEnabled="True"
                                     ItemInvoked="ScenarioItemsView_ItemInvoked"
-                                    ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
+                                    ItemsSource="{x:Bind Scenarios}"
                                     SelectionMode="None">
                                     <ItemsView.Layout>
                                         <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
