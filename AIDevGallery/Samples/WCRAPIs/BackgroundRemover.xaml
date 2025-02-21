@@ -88,7 +88,7 @@
         </StackPanel>
         <shared:WcrModelDownloader
             x:Name="WcrModelDownloader"
-            Grid.RowSpan="2"
+            Grid.ColumnSpan="2"
             DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>

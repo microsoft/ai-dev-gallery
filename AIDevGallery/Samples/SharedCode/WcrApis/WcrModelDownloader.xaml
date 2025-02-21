@@ -5,86 +5,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Margin="-24"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel
-            x:Name="NotDownloadedContent"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="24">
-            <TextBlock
-                MaxWidth="450"
-                Margin="24"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="This Windows Copilot Runtime API requires a model download. Click 'Make Available' to request the model download via Windows Update."
-                TextAlignment="Center"
-                TextWrapping="WrapWholeWords" />
-            <Button HorizontalAlignment="Center" Click="DownloadModelClicked">Make Available</Button>
-        </StackPanel>
-        <StackPanel
-            x:Name="loadingRingContainer"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Visibility="Collapsed">
-            <ProgressRing
-                Width="64"
-                Height="64"
-                IsIndeterminate="True"
-                Value="{x:Bind DownloadProgress, Mode=OneWay}" />
-            <TextBlock
-                Margin="24"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                TextAlignment="Center"
-                TextWrapping="WrapWholeWords">
-                <Run Text="Requesting model.." /> <LineBreak />
-                <LineBreak />
-                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink><LineBreak />
-            </TextBlock>
-        </StackPanel>
-        <StackPanel
-            x:Name="errorContent"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Visibility="Collapsed">
-            <TextBlock
-                MaxWidth="500"
-                Margin="24"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                TextAlignment="Center"
-                TextWrapping="WrapWholeWords">
-                <Run Text="Error downloading model: " />
-                <Run Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}" />
-            </TextBlock>
-        </StackPanel>
-
-        <InfoBar
-            Title="Experimental Windows Copilot Runtime APIs"
-            HorizontalAlignment="Stretch"
-            BorderThickness="0,0,0,1"
-            CornerRadius="36"
-            IsOpen="True"
-            Message="These APIs are in preview and require a Copilot+ PC with Windows 11 Insider Preview Build 26120.3073 or higher (Dev and Beta channels)."
-            Severity="Warning">
-            <InfoBar.ActionButton>
-                <HyperlinkButton Content="Learn more about Windows Copilot Runtime API requirements" NavigateUri="https://learn.microsoft.com/windows/ai/apis" />
-            </InfoBar.ActionButton>
-        </InfoBar>
-        <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Vertical">
-            <TextBlock Text="Copilot+ PC required" />
-        </StackPanel>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="DownloadStates">
                 <VisualState x:Name="NotDownloaded" />
@@ -111,5 +38,89 @@
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
+
+        <StackPanel
+            x:Name="NotDownloadedContent"
+            Margin="48,-4,48,48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="8"
+            Visibility="Collapsed">
+            <Image Width="36" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="Model download required"
+                TextAlignment="Center" />
+            <TextBlock
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <Run Text="This Windows Copilot Runtime API requires an one-time model download via Windows Update." />
+            </TextBlock>
+            <Button
+                Margin="0,16,0,0"
+                HorizontalAlignment="Center"
+                Click="DownloadModelClicked"
+                Content="Request model"
+                Style="{StaticResource AccentButtonStyle}" />
+        </StackPanel>
+        <StackPanel
+            x:Name="loadingRingContainer"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Visibility="Collapsed">
+            <ProgressRing
+                Width="64"
+                Height="64"
+                IsIndeterminate="True"
+                Value="{x:Bind DownloadProgress, Mode=OneWay}" />
+            <TextBlock
+                Margin="24"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextAlignment="Center"
+                TextWrapping="WrapWholeWords">
+                <Run Text="Requesting model.." /> <LineBreak />
+                <LineBreak />
+                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink><LineBreak />
+            </TextBlock>
+        </StackPanel>
+
+        <StackPanel
+            x:Name="errorContent"
+            Margin="48,-4,48,48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="8"
+            Visibility="Collapsed">
+            <FontIcon FontSize="36" Glyph="&#xE783;" />
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="Model download error"
+                TextAlignment="Center" />
+            <TextBlock
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <InfoBar
+            Title="Experimental Windows Copilot Runtime APIs"
+            HorizontalAlignment="Stretch"
+            IsOpen="True"
+            Message="These APIs are in preview and require a Copilot+ PC with Windows 11 Insider Preview Build 26120.3073 or higher (Dev and Beta channels)."
+            Severity="Warning">
+            <InfoBar.ActionButton>
+                <HyperlinkButton Content="Learn more about Windows Copilot Runtime API requirements" NavigateUri="https://learn.microsoft.com/windows/ai/apis" />
+            </InfoBar.ActionButton>
+        </InfoBar>
     </Grid>
 </UserControl>

@@ -16,6 +16,51 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ModelEnabledStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="Disabled">
+                    <VisualState.Setters>
+                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoading">
+                    <VisualState.Setters>
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
+                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrApiNotCompatible">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrModelNeedsDownload">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoaded">
+                    <VisualState.Setters>
+                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
+                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="CodeStates">
+                <VisualState x:Name="HideCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeColumn.Width" Value="0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ShowCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
+                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <!--<TextBlock x:Name="descriptionTextBlock" TextWrapping="WrapWholeWords" />-->
         <Grid
             x:Name="SampleCard"
@@ -109,7 +154,7 @@
                         IsTextSelectionEnabled="True"
                         TextAlignment="Center"
                         TextWrapping="Wrap">
-                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak />  <LineBreak />
+                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
                         <Run Text="You can still view the code and export the sample." />
                     </TextBlock>
                 </StackPanel>
@@ -184,50 +229,5 @@
                 </toolkitcontrols:GridSplitter.RenderTransform>
             </toolkitcontrols:GridSplitter>
         </Grid>
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="ModelEnabledStates">
-                <VisualState x:Name="Default" />
-                <VisualState x:Name="Disabled">
-                    <VisualState.Setters>
-                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoading">
-                    <VisualState.Setters>
-                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
-                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="WcrApiNotCompatible">
-                    <VisualState.Setters>
-                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="WcrModelNeedsDownload">
-                    <VisualState.Setters>
-                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoaded">
-                    <VisualState.Setters>
-                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
-                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup x:Name="CodeStates">
-                <VisualState x:Name="HideCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeColumn.Width" Value="0" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="ShowCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
-                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>

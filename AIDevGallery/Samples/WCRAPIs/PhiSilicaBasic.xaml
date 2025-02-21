@@ -11,8 +11,6 @@
     <Grid ColumnSpacing="8" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -80,7 +78,7 @@
         </ScrollViewer>
         <shared:WcrModelDownloader
             x:Name="WcrModelDownloader"
-            Grid.RowSpan="4"
+            Grid.RowSpan="2"
             DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>
