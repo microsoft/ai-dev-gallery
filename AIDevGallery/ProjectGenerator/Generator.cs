@@ -400,7 +400,7 @@ internal partial class Generator
 
         // Styles
         List<string> styles = [];
-        foreach (var file in Directory.GetFiles(outputPath, "*.xaml", SearchOption.TopDirectoryOnly))
+        foreach (var file in Directory.GetFiles(Path.Join(outputPath, "Utils"), "*.xaml", SearchOption.TopDirectoryOnly))
         {
             var content = await File.ReadAllTextAsync(file, cancellationToken);
             if (!content.StartsWith("<ResourceDictionary", StringComparison.OrdinalIgnoreCase))
@@ -416,8 +416,8 @@ internal partial class Generator
             var appXamlPath = Path.Join(outputPath, "App.xaml");
             var appXaml = await File.ReadAllTextAsync(appXamlPath, cancellationToken);
             appXaml = appXaml.Replace(
-                "                <!-- Other merged dictionaries here -->",
-                string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.GetFileName(s)}\" />")));
+                "                <!--  Other merged dictionaries here  -->",
+                string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.Join("Utils", Path.GetFileName(s))}\" />")));
             await File.WriteAllTextAsync(appXamlPath, appXaml, cancellationToken);
         }
 
