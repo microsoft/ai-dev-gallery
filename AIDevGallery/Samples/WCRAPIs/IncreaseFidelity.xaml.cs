@@ -141,7 +141,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
             _originalImage = await decoder.GetSoftwareBitmapAsync();
             OptionsPanel.Visibility = Visibility.Visible;
-            OriginalPanel.Visibility = Visibility.Visible;
+            OriginalImage.Visibility = Visibility.Visible;
             await SetImageSource(OriginalImage, _originalImage, OriginalDimensionsTxt);
             ScaleImage();
         }
@@ -168,7 +168,8 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             }
         }
 
-        ScaledPanel.Visibility = Visibility.Collapsed;
+        ScaledImage.Visibility = Visibility.Collapsed;
+        GridSplitter.Visibility = Visibility.Collapsed;
         Loader.Visibility = Visibility.Visible;
 
         var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
@@ -180,7 +181,8 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         });
 
         Loader.Visibility = Visibility.Collapsed;
-        ScaledPanel.Visibility = Visibility.Visible;
+        ScaledImage.Visibility = Visibility.Visible;
+        GridSplitter.Visibility = Visibility.Visible;
         await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
     }
 

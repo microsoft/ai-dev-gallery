@@ -19,6 +19,7 @@
                 <ResourceDictionary Source="/Controls/Shimmer.xaml" />
                 <ResourceDictionary Source="/Controls/OpacityMask.xaml" />
                 <ResourceDictionary Source="/Controls/HomePage/Header/HeaderTile/HeaderTile.xaml" />
+                <ResourceDictionary Source="/Controls/TitleBar/TitleBar.xaml" />
                 <ResourceDictionary Source="/Samples/SharedCode/Controls/SemanticComboBox.xaml" />
                 <ResourceDictionary Source="/Samples/SharedCode/Controls/SmartPasteForm.xaml" />
                 <ResourceDictionary Source="/Samples/SharedCode/Controls/SmartTextBox.xaml" />

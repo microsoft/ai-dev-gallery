@@ -66,6 +66,10 @@ extends:
               displayName: Replace Stubbed Files
               inputs:
                 filePath: '.pipelines/Unstub.ps1'
+            - task: PowerShell@2
+              displayName: ExpFix
+              inputs:
+                filePath: '.pipelines/ExpFix.ps1'
             - task: DotNetCoreCLI@2
               inputs:
                 command: custom

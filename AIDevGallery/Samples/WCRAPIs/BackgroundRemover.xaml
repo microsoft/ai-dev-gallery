@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:samples="using:AIDevGallery.Samples"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
@@ -34,25 +33,31 @@
                     <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
                 </Grid>
             </Viewbox>
-            <DropDownButton
-                Margin="12"
-                Padding="8"
+            <Grid
+                Margin="8"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                AutomationProperties.Name="Select image"
-                ToolTipService.ToolTip="Select image">
-                <DropDownButton.Flyout>
-                    <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
-                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
-                    </MenuFlyout>
-                </DropDownButton.Flyout>
-                <FontIcon Glyph="&#xEE71;" />
-            </DropDownButton>
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <DropDownButton
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="Select image"
+                    ToolTipService.ToolTip="Select image">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <FontIcon Glyph="&#xEE71;" />
+                </DropDownButton>
+            </Grid>
         </Grid>
         <StackPanel
             Grid.Column="1"
-            MaxWidth="240"
+            MaxWidth="168"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Orientation="Vertical"
@@ -83,7 +88,7 @@
         </StackPanel>
         <shared:WcrModelDownloader
             x:Name="WcrModelDownloader"
-            Grid.RowSpan="2"
+            Grid.ColumnSpan="2"
             DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>
