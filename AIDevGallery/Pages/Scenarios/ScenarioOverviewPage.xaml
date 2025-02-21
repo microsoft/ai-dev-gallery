@@ -9,7 +9,6 @@
     xmlns:media="using:CommunityToolkit.WinUI.Media"
     xmlns:models="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
-    xmlns:util="using:AIDevGallery.Utils"
     mc:Ignorable="d">
 
     <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
@@ -92,7 +91,7 @@
                                     Grid.Row="2"
                                     IsItemInvokedEnabled="True"
                                     ItemInvoked="ScenarioItemsView_ItemInvoked"
-                                    ItemsSource="{x:Bind Scenarios, Mode=OneWay}"
+                                    ItemsSource="{x:Bind Scenarios}"
                                     SelectionMode="None">
                                     <ItemsView.Layout>
                                         <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
