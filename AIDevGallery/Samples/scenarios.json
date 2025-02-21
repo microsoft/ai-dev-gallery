@@ -87,7 +87,7 @@
       },
       "SemanticComboBox": {
         "Name": "Semantic ComboBox",
-        "Description": "Suggest ComboBox options semantically with an embeddings model. Enter some text into the combo box to get a category reccommendation based on the semantic meaning of your input.",
+        "Description": "Suggest ComboBox options semantically with an embeddings model. Enter some text into the combo box to get a category recommendation based on the semantic meaning of your input.",
         "Id": "semantic-combo-box"
       }
     }
