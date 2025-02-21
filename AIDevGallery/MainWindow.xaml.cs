@@ -5,6 +5,7 @@ using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -163,7 +164,7 @@ internal sealed partial class MainWindow : WindowEx
     {
         this.ExtendsContentIntoTitleBar = true;
         this.SetTitleBar(titleBar);
-        titleBar.Window = this;
+        this.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
         this.AppWindow.SetIcon("Assets/AppIcon/Icon.ico");
 
         this.Title = Windows.ApplicationModel.Package.Current.DisplayName;
@@ -209,14 +210,6 @@ internal sealed partial class MainWindow : WindowEx
         SearchBox.Text = string.Empty;
     }
 
-    private void TitleBar_BackButtonClick(object sender, RoutedEventArgs e)
-    {
-        if (NavFrame.CanGoBack)
-        {
-            NavFrame.GoBack();
-        }
-    }
-
     private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
     {
         if (e.SourcePageType == typeof(ScenarioSelectionPage))
@@ -238,6 +231,14 @@ internal sealed partial class MainWindow : WindowEx
         else
         {
             NavView.SelectedItem = NavView.MenuItems[0];
+        }
+    }
+
+    private void TitleBar_BackRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
+    {
+        if (NavFrame.CanGoBack)
+        {
+            NavFrame.GoBack();
         }
     }
 }

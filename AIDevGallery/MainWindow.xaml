@@ -122,20 +122,20 @@
                 <Frame x:Name="NavFrame" Navigating="NavFrame_Navigating" />
             </NavigationView.Content>
         </NavigationView>
-        <controls:TitleBar
+        <TitleBar
             x:Name="titleBar"
             Title="AI Dev Gallery"
-            BackButtonClick="TitleBar_BackButtonClick"
-            DisplayMode="Tall"
+            Height="48"
+            BackRequested="TitleBar_BackRequested"
             IsBackButtonVisible="{x:Bind NavFrame.CanGoBack, Mode=OneWay}"
             IsTabStop="False">
-            <controls:TitleBar.Icon>
-                <ImageIcon AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/AppIcon/Icon.ico" />
-            </controls:TitleBar.Icon>
+            <TitleBar.IconSource>
+                <ImageIconSource AutomationProperties.AccessibilityView="Raw" ImageSource="ms-appx:///Assets/AppIcon/Icon.ico" />
+            </TitleBar.IconSource>
             <!--<TitleBar.IconSource>
                 <PathIconSource Data="M14.853 6.54857C15.216 5.45907 15.091 4.26557 14.5105 3.27457C13.6375 1.75457 11.8825 0.972574 10.1685 1.34057C9.40596 0.481574 8.31046 -0.00692579 7.16196 7.42116e-05C5.40996 -0.00392579 3.85546 1.12407 3.31646 2.79107C2.19096 3.02157 1.21946 3.72607 0.650955 4.72457C-0.228545 6.24057 -0.0280446 8.15157 1.14696 9.45157C0.783955 10.5411 0.908955 11.7346 1.48946 12.7256C2.36246 14.2456 4.11746 15.0276 5.83146 14.6596C6.59346 15.5186 7.68946 16.0071 8.83796 15.9996C10.591 16.0041 12.146 14.8751 12.685 13.2066C13.8105 12.9761 14.782 12.2716 15.3505 11.2731C16.229 9.75707 16.028 7.84757 14.8535 6.54757L14.853 6.54857ZM8.83896 14.9541C8.13746 14.9551 7.45796 14.7096 6.91946 14.2601C6.94396 14.2471 6.98646 14.2236 7.01396 14.2066L10.2 12.3666C10.363 12.2741 10.463 12.1006 10.462 11.9131V7.42157L11.8085 8.19907C11.823 8.20607 11.8325 8.22007 11.8345 8.23607V11.9556C11.8325 13.6096 10.493 14.9506 8.83896 14.9541ZM2.39696 12.2026C2.04546 11.5956 1.91896 10.8841 2.03946 10.1936C2.06296 10.2076 2.10446 10.2331 2.13396 10.2501L5.31996 12.0901C5.48146 12.1846 5.68146 12.1846 5.84346 12.0901L9.73296 9.84407V11.3991C9.73396 11.4151 9.72646 11.4306 9.71396 11.4406L6.49346 13.3001C5.05896 14.1261 3.22696 13.6351 2.39746 12.2026H2.39696ZM1.55846 5.24807C1.90846 4.64007 2.46096 4.17507 3.11896 3.93357C3.11896 3.96107 3.11746 4.00957 3.11746 4.04357V7.72407C3.11646 7.91107 3.21646 8.08457 3.37896 8.17707L7.26846 10.4226L5.92196 11.2001C5.90846 11.2091 5.89146 11.2106 5.87646 11.2041L2.65546 9.34307C1.22396 8.51407 0.732955 6.68257 1.55796 5.24857L1.55846 5.24807ZM12.6215 7.82257L8.73196 5.57657L10.0785 4.79957C10.092 4.79057 10.109 4.78907 10.124 4.79557L13.345 6.65507C14.779 7.48357 15.2705 9.31807 14.442 10.7521C14.0915 11.3591 13.5395 11.8241 12.882 12.0661V8.27557C12.8835 8.08857 12.784 7.91557 12.622 7.82257H12.6215ZM13.9615 5.80557C13.938 5.79107 13.8965 5.76607 13.867 5.74907L10.681 3.90907C10.5195 3.81457 10.3195 3.81457 10.1575 3.90907L6.26796 6.15507V4.60007C6.26696 4.58407 6.27446 4.56857 6.28696 4.55857L9.50746 2.70057C10.942 1.87307 12.776 2.36557 13.603 3.80057C13.9525 4.40657 14.079 5.11607 13.9605 5.80557H13.9615ZM5.53596 8.57707L4.18896 7.79957C4.17446 7.79257 4.16496 7.77857 4.16296 7.76257V4.04307C4.16396 2.38707 5.50746 1.04507 7.16346 1.04607C7.86396 1.04607 8.54196 1.29207 9.08046 1.74007C9.05596 1.75307 9.01396 1.77657 8.98596 1.79357L5.79996 3.63357C5.63696 3.72607 5.53696 3.89907 5.53796 4.08657L5.53596 8.57607V8.57707ZM6.26746 7.00007L7.99996 5.99957L9.73246 6.99957V9.00007L7.99996 10.0001L6.26746 9.00007V7.00007Z" />
             </TitleBar.IconSource>-->
-            <controls:TitleBar.Content>
+            <TitleBar.Content>
                 <AutoSuggestBox
                     x:Name="SearchBox"
                     MinWidth="364"
@@ -147,8 +147,8 @@
                     QuerySubmitted="SearchBox_QuerySubmitted"
                     TextChanged="SearchBox_TextChanged"
                     UpdateTextOnSelect="False" />
-            </controls:TitleBar.Content>
-            <controls:TitleBar.Footer>
+            </TitleBar.Content>
+            <TitleBar.Footer>
                 <StackPanel
                     x:Name="DownloadProgressPanel"
                     VerticalAlignment="Center"
@@ -196,7 +196,7 @@
                         </Button.Flyout>
                     </Button>
                 </StackPanel>
-            </controls:TitleBar.Footer>
-        </controls:TitleBar>
+            </TitleBar.Footer>
+        </TitleBar>
     </Grid>
 </winuiex:WindowEx>
