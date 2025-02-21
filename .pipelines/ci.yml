@@ -68,10 +68,6 @@ extends:
               - script: move /Y $(Build.SourcesDirectory)\.pipelines\release-nuget.config $(Build.SourcesDirectory)\nuget.config
                 displayName: Add release package source
               - task: NuGetAuthenticate@1
-              - task: PowerShell@2
-                displayName: ExpFix
-                inputs:
-                  filePath: '.pipelines/ExpFix.ps1'
               - task: DotNetCoreCLI@2
                 inputs:
                   command: custom
