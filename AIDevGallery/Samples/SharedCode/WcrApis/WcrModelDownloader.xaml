@@ -39,6 +39,9 @@
                 Click="DownloadModelClicked"
                 Content="Request model"
                 Style="{StaticResource AccentButtonStyle}" />
+            <TextBlock TextAlignment="Center">
+                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
+            </TextBlock>
         </StackPanel>
         <StackPanel
             x:Name="loadingRingContainer"
@@ -76,25 +79,17 @@
                 FontWeight="SemiBold"
                 Text="Model download error"
                 TextAlignment="Center" />
+            <TextBlock TextAlignment="Center">
+                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
+            </TextBlock>
             <TextBlock
+                FontFamily="Consolas"
                 FontSize="12"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 IsTextSelectionEnabled="True"
                 Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
         </StackPanel>
-
-        <InfoBar
-            Title="Experimental Windows Copilot Runtime APIs"
-            HorizontalAlignment="Stretch"
-            IsOpen="True"
-            Message="These APIs are in preview and require a Copilot+ PC with Windows 11 Insider Preview Build 26120.3073 or higher (Dev and Beta channels)."
-            Severity="Warning">
-            <InfoBar.ActionButton>
-                <HyperlinkButton Content="Learn more about Windows Copilot Runtime API requirements" NavigateUri="https://learn.microsoft.com/windows/ai/apis" />
-            </InfoBar.ActionButton>
-        </InfoBar>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="DownloadStates">
                 <VisualState x:Name="NotDownloaded" />
