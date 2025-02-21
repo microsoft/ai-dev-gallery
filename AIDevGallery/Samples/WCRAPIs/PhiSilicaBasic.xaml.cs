@@ -18,6 +18,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Id = "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
     Scenario = ScenarioType.TextGenerateText,
     SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
+    NugetPackageReferences = [
+        "Microsoft.Extensions.AI.Abstractions"
+    ],
     Icon = "\uEE6F")]
 internal sealed partial class PhiSilicaBasic : BaseSamplePage
 {
