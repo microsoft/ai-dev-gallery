@@ -89,17 +89,30 @@
                 <Grid x:Name="wcrModelDownloaderHost" Visibility="Collapsed">
                     <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />
                 </Grid>
-                <Grid x:Name="wcrModelUnavailable" Visibility="Collapsed">
-                    <InfoBar
-                        MaxWidth="560"
-                        Margin="12"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        IsClosable="False"
-                        IsOpen="True"
-                        Message="This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels). You can still view the code and export the sample."
-                        Severity="Error" />
-                </Grid>
+
+                <StackPanel
+                    x:Name="wcrModelUnavailable"
+                    Margin="48,-4,48,48"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Spacing="8"
+                    Visibility="Collapsed">
+                    <Image Width="36" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="Copilot+ PC required"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        IsTextSelectionEnabled="True"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap">
+                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak />  <LineBreak />
+                        <Run Text="You can still view the code and export the sample." />
+                    </TextBlock>
+                </StackPanel>
             </Grid>
             <Grid
                 x:Name="CodeGrid"

@@ -59,7 +59,7 @@ internal class ModelCompatibility
             else if (modelDetails.Size + BytesInGB < vram)
             {
                 compatibility = ModelCompatibilityState.NotRecomended;
-                description = $"This model is not recomended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
+                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
             }
             else
             {

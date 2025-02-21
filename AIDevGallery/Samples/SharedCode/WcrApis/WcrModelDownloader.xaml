@@ -23,10 +23,9 @@
                 Margin="24"
                 HorizontalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="This Windows Copilot Runtime API requires a model download. Click 'Make Available' to request the model download via Windows Update."
                 TextAlignment="Center"
-                TextWrapping="WrapWholeWords">
-                This Windows Copilot Runtime API requires a model download. Click "Make Available" to request the model download via Windows Update.
-            </TextBlock>
+                TextWrapping="WrapWholeWords" />
             <Button HorizontalAlignment="Center" Click="DownloadModelClicked">Make Available</Button>
         </StackPanel>
         <StackPanel
@@ -67,11 +66,12 @@
                 <Run Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}" />
             </TextBlock>
         </StackPanel>
+
         <InfoBar
             Title="Experimental Windows Copilot Runtime APIs"
             HorizontalAlignment="Stretch"
             BorderThickness="0,0,0,1"
-            CornerRadius="0"
+            CornerRadius="36"
             IsOpen="True"
             Message="These APIs are in preview and require a Copilot+ PC with Windows 11 Insider Preview Build 26120.3073 or higher (Dev and Beta channels)."
             Severity="Warning">
@@ -79,6 +79,12 @@
                 <HyperlinkButton Content="Learn more about Windows Copilot Runtime API requirements" NavigateUri="https://learn.microsoft.com/windows/ai/apis" />
             </InfoBar.ActionButton>
         </InfoBar>
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical">
+            <TextBlock Text="Copilot+ PC required" />
+        </StackPanel>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="DownloadStates">
                 <VisualState x:Name="NotDownloaded" />

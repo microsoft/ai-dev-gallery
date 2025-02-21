@@ -15,7 +15,7 @@
     <Page.Resources>
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="RootGrid" MaxWidth="1600">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
