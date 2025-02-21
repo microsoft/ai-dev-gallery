@@ -26,6 +26,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
     SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
+    NugetPackageReferences = [
+        "CommunityToolkit.WinUI.Controls.Sizers"
+    ],
     Icon = "\uEE6F")]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
 {
