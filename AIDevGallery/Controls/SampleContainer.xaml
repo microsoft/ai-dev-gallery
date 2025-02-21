@@ -3,10 +3,9 @@
     x:Class="AIDevGallery.Controls.SampleContainer"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:AIDevGallery.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:AIDevGallery.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
     VerticalAlignment="Stretch"
     VerticalContentAlignment="Stretch"
@@ -17,14 +16,61 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ModelEnabledStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="Disabled">
+                    <VisualState.Setters>
+                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoading">
+                    <VisualState.Setters>
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
+                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrApiNotCompatible">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrModelNeedsDownload">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoaded">
+                    <VisualState.Setters>
+                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
+                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="CodeStates">
+                <VisualState x:Name="HideCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeColumn.Width" Value="0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ShowCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
+                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <!--<TextBlock x:Name="descriptionTextBlock" TextWrapping="WrapWholeWords" />-->
         <Grid
             x:Name="SampleCard"
             Grid.Row="1"
-            VerticalAlignment="Stretch"
-            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
+            HorizontalAlignment="{x:Bind HorizontalAlignment, Mode=OneWay}"
+            VerticalAlignment="{x:Bind VerticalAlignment, Mode=OneWay}"
+            Background="{x:Bind Background, Mode=OneWay}"
+            BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
+            BorderThickness="{x:Bind BorderThickness, Mode=OneWay}"
+            CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="100" />
                 <ColumnDefinition x:Name="CodeColumn" Width="0" />
@@ -36,34 +82,32 @@
             <StackPanel
                 x:Name="AIContentWarningPanel"
                 Grid.Row="1"
-                Margin="0,8,0,12"
-                HorizontalAlignment="Center"
+                Margin="24,16,24,16"
+                HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
                 Orientation="Horizontal"
                 Spacing="4"
                 Visibility="Collapsed">
                 <FontIcon
                     AutomationProperties.AccessibilityView="Raw"
                     FontSize="11"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                     Glyph="&#xE946;" />
                 <TextBlock
                     Margin="0,-1,0,0"
                     VerticalAlignment="Center"
                     FontSize="10"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                     Text="AI-generated content might be incorrect, offensive, or biased."
                     TextAlignment="Center"
                     Visibility="Visible" />
             </StackPanel>
 
             <Grid x:Name="ContentPageHolder" VerticalAlignment="Stretch">
-                <!--  A solidbackground we enable when toggling themes. WinUI uses a lot of translucent brushes and might look weird  -->
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
                     Padding="24,24,24,0"
                     Visibility="Collapsed" />
-
                 <InfoBar
                     x:Name="warningInfoBar"
                     Margin="12"
@@ -75,11 +119,45 @@
                     Message="To enable this sample, download the required models."
                     Severity="Informational"
                     Visibility="Collapsed" />
-                <ProgressRing
-                    x:Name="sampleLoadingProgressRing"
-                    Width="64"
-                    Height="64"
-                    IsActive="False" />
+                <StackPanel
+                    x:Name="loadingRingContainer"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Visibility="Collapsed">
+                    <ProgressRing
+                        x:Name="sampleLoadingProgressRing"
+                        Width="64"
+                        Height="64"
+                        IsActive="False" />
+                </StackPanel>
+                <Grid x:Name="wcrModelDownloaderHost" Visibility="Collapsed">
+                    <shared:WcrModelDownloader x:Name="modelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />
+                </Grid>
+
+                <StackPanel
+                    x:Name="wcrModelUnavailable"
+                    Margin="48,-4,48,48"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Spacing="8"
+                    Visibility="Collapsed">
+                    <Image Width="36" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="Copilot+ PC required"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        IsTextSelectionEnabled="True"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap">
+                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
+                        <Run Text="You can still view the code and export the sample." />
+                    </TextBlock>
+                </StackPanel>
             </Grid>
             <Grid
                 x:Name="CodeGrid"
@@ -151,39 +229,5 @@
                 </toolkitcontrols:GridSplitter.RenderTransform>
             </toolkitcontrols:GridSplitter>
         </Grid>
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="ModelEnabledStates">
-                <VisualState x:Name="Default" />
-                <VisualState x:Name="Disabled">
-                    <VisualState.Setters>
-                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoading">
-                    <VisualState.Setters>
-                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoaded">
-                    <VisualState.Setters>
-                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
-                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup x:Name="CodeStates">
-                <VisualState x:Name="HideCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeColumn.Width" Value="0" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="ShowCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
-                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>

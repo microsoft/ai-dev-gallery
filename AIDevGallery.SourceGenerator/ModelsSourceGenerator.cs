@@ -24,8 +24,7 @@ internal class ModelSourceGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValuesProvider<AdditionalText> modelJsons = context.AdditionalTextsProvider.Where(
-                static file => file.Path.EndsWith(".json") &&
-                    Path.GetFileName(Path.GetDirectoryName(file.Path)).Equals("ModelsDefinitions", StringComparison.OrdinalIgnoreCase));
+                static file => file.Path.EndsWith(".json") && file.Path.Contains(@"\Samples\Definitions\"));
 
         var pathsAndContents = modelJsons.Select((text, cancellationToken) =>
                 (text.Path, Content: text.GetText(cancellationToken)!.ToString(), CancellationToken: cancellationToken))
@@ -322,8 +321,11 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 Id = "{{apiDefinition.Id}}",
                                 Name = "{{apiDefinition.Name}}",
                                 Icon = "{{apiDefinition.Icon}}",
+                                IconGlyph = "{{apiDefinition.IconGlyph}}",
+                                Description = "{{apiDefinition.Description}}",
                                 ReadmeUrl = "{{apiDefinition.ReadmeUrl}}",
                                 License = "{{apiDefinition.License}}",
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $"SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
                             }
                         },
                 """");
