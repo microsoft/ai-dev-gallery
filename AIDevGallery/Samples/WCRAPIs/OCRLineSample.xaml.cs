@@ -31,7 +31,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Select Text From Image",
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageRecognizeText,
-    Id = "e26ef7bc-d847-4b2e-862a-74d872bb8635",
+    Id = "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
     SharedCode = [
         SharedCodeEnum.WcrModelDownloaderCs,
         SharedCodeEnum.WcrModelDownloaderXaml

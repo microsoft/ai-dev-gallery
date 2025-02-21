@@ -22,7 +22,7 @@
         "Description": "Recognize and extract text from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "8f072b64-74fc-4511-b84f-e09d56394f07"
+        "SampleIdToShowInDocs": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b"
       },
       "ImageScaler": {
         "Id": "97ed0b95-3f14-415c-bb1f-9a6c59b78c3d",
