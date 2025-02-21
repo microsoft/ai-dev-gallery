@@ -10,17 +10,13 @@
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
 
-    <Grid ColumnSpacing="24" RowSpacing="48">
+    <Grid RowSpacing="24">
         <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal" Spacing="12">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12" Grid.Row="1" VerticalAlignment="Top">
             <DropDownButton AutomationProperties.Name="Select image">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon FontSize="16" Glyph="&#xEE71;" />
@@ -43,42 +39,21 @@
 
         <Viewbox
             x:Name="ImageViewbox"
-            Grid.Row="1"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Top">
+            MaxHeight="600">
             <Grid
                 x:Name="PaneGrid"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
                 <Image x:Name="ImageSrc" Stretch="Uniform" />
-                <Canvas x:Name="RectCanvas" Visibility="Collapsed" />
+                <Canvas x:Name="RectCanvas" Visibility="Collapsed">
+                    <Canvas.Background>
+                        <SolidColorBrush Color="Black" Opacity="0.6"/>
+                    </Canvas.Background>
+                </Canvas>
+                <ToggleButton x:Name="ViewToggle" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="12" Visibility="Collapsed" Content="Toggle OCR View" IsChecked="True" Click="ToggleButton_Click"/>
             </Grid>
         </Viewbox>
-        <ScrollViewer
-            Grid.Row="1"
-            Grid.Column="1"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="TextPanel">
-                <StackPanel.ContextFlyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem Click="CopyText_Click" Text="Copy All" />
-                    </MenuFlyout>
-                </StackPanel.ContextFlyout>
-            </StackPanel>
-        </ScrollViewer>
-        <ProgressRing
-            x:Name="Loader"
-            Grid.Row="1"
-            Grid.Column="1"
-            Width="48"
-            Height="48"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            IsActive="True"
-            Visibility="Collapsed" />
+        
         <shared:WcrModelDownloader 
             x:Name="WcrModelDownloader" 
             DownloadClicked="WcrModelDownloader_DownloadClicked"
