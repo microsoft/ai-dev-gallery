@@ -22,8 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     SharedCode = [
         SharedCodeEnum.SmartPasteFormCs,
-        SharedCodeEnum.SmartPasteFormXaml,
-        SharedCodeEnum.ChatOptionsHelper
+        SharedCodeEnum.SmartPasteFormXaml
     ])]
 internal sealed partial class SmartPaste : BaseSamplePage
 {

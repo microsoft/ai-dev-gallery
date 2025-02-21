@@ -20,8 +20,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     SharedCode = [
         SharedCodeEnum.SmartTextBoxCs,
-        SharedCodeEnum.SmartTextBoxXaml,
-        SharedCodeEnum.ChatOptionsHelper
+        SharedCodeEnum.SmartTextBoxXaml
     ])]
 internal sealed partial class SmartText : BaseSamplePage
 {

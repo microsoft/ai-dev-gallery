@@ -30,7 +30,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     SharedCode = [
         SharedCodeEnum.Message,
         SharedCodeEnum.ChatTemplateSelector,
-        SharedCodeEnum.Utils
     ])]
 internal sealed partial class Chat : BaseSamplePage
 {

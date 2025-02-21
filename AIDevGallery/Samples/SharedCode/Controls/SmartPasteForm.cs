@@ -20,9 +20,11 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal sealed partial class SmartPasteForm : Control
 {
+    private const int _defaultMaxLength = 1024;
     private IChatClient? model;
     private List<string>? fieldLabels;
     private ProgressRing pasteProgressRing;
+
     public ObservableCollection<FormField> Fields { get; } = [];
     public List<string>? FieldLabels
     {
@@ -105,8 +107,8 @@ Rules:
         PromptInput input = new()
         {
             Labels = fieldLabels,
-            Text = clipboardText.Length > ChatOptionsHelper.DefaultMaxLength ?
-                clipboardText[..ChatOptionsHelper.DefaultMaxLength] :
+            Text = clipboardText.Length > _defaultMaxLength ?
+                clipboardText[.._defaultMaxLength] :
                 clipboardText
         };
 

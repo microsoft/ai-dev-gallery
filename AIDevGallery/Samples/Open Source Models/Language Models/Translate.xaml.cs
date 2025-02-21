@@ -17,9 +17,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Translate",
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextTranslateText,
-    SharedCode = [
-        SharedCodeEnum.ChatOptionsHelper
-    ],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI.Abstractions"
     ],
@@ -27,7 +24,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class Translate : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _defaultMaxLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
 
     public Translate()
@@ -39,8 +37,8 @@ internal sealed partial class Translate : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = ChatOptionsHelper.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -54,7 +52,7 @@ internal sealed partial class Translate : BaseSamplePage
     private void CleanUp()
     {
         CancelTranslation();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -73,7 +71,7 @@ internal sealed partial class Translate : BaseSamplePage
 
     public void TranslateText(string text)
     {
-        if (model == null || LanguageBox.SelectedItem == null)
+        if (chatClient == null || LanguageBox.SelectedItem == null)
         {
             return;
         }
@@ -98,7 +96,7 @@ internal sealed partial class Translate : BaseSamplePage
 
                     IsProgressVisible = true;
 
-                    await foreach (var messagePart in model.GetStreamingResponseAsync(
+                    await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, userPrompt)
@@ -202,16 +200,16 @@ internal sealed partial class Translate : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= ChatOptionsHelper.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            TranslateButton.IsEnabled = inputLength <= ChatOptionsHelper.DefaultMaxLength;
+            TranslateButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {

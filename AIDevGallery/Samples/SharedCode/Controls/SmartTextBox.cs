@@ -87,14 +87,12 @@ internal sealed partial class SmartTextBox : Control
 
         _cts = new CancellationTokenSource();
 
-        ChatOptions chatOptions = options ?? _chatClient.GetDefaultChatOptions();
-
         return (await _chatClient.GetResponseAsync(
             [
                 new ChatMessage(ChatRole.System, systemPrompt),
                     new ChatMessage(ChatRole.User, query)
             ],
-            chatOptions,
+            options,
             _cts.Token)).Message.Text ?? string.Empty;
     }
 
@@ -102,54 +100,42 @@ internal sealed partial class SmartTextBox : Control
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "ChangeToneProfessional"); // <exclude-line>
         string systemPrompt = "You rewrite user-provided writing to adjust the tone of the text. In this case, you will rewrite whatever is provided to sound more \"professional\". When provided with text, respond with only the tone-adjusted version of the text and nothing else. Keep the underlying meaning of the text the same and of around the same length as the source material. Do NOT be overly formal but be polite, succinct, and you MUST USE command MODERN American English. Respond with ONLY the tone-adjusted text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private async Task<string> ChangeToneCasual(string textToChange)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "ChangeToneCasual"); // <exclude-line>
         string systemPrompt = "You rewrite user-provided writing to adjust the tone of the text. In this case, you will rewrite whatever is provided to sound more \"casual\". When provided with text, respond with only the tone-adjusted version of the text and nothing else. Keep the underlying meaning of the text the same and of around the same length as the source material. Do not be inappropriate but be friendly, succinct, and use every day American English. Respond with ONLY the tone-adjusted text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private async Task<string> Shorten(string textToChange)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "Shorten"); // <exclude-line>
         string systemPrompt = "You change the length of user-provided text to be shorter. When provided with text, respond with only shortened version of the text and nothing else. Maintain the original meaning as much as possible. Respond with ONLY the shortened text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private async Task<string> Lengthen(string textToChange)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "Lengthen"); // <exclude-line>
         string systemPrompt = "You change the length of user-provided text to be longer. When provided with text, respond with only lengthened version of the text and nothing else. Maintain the original meaning as much as possible. Respond with ONLY the lengthened text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + 2 * textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private async Task<string> Proofread(string textToChange)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "Proofread"); // <exclude-line>
         string systemPrompt = "You proofread user-provided text to remove spelling mistakes and grammar mistakes. When provided with text, respond with only spelling and grammar corrected text and nothing else. Maintain the original meaning as much as possible. Respond with ONLY the corrected text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private async Task<string> DescribeChanges(string textToChange, string changes)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "DescribeChanges"); // <exclude-line>
         string systemPrompt = "You apply user-defined changes to text. When provided with text, apply the described changes to the text. Respond with only the changed text. Respond with ONLY the changed text and DO NOT provide an explanation, note, any sort of justification of your changes. The changes are: " + changes + ". The provided text is: " + textToChange;
-        ChatOptions chatOptions = _chatClient.GetDefaultChatOptions();
-        chatOptions.MaxOutputTokens = systemPrompt.Length + textToChange.Length;
-        return await Infer(systemPrompt, textToChange, chatOptions);
+        return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 
     private void CleanUp()

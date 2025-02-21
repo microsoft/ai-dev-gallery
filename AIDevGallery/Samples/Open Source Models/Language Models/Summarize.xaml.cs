@@ -16,9 +16,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Summarize",
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextSummarizeText,
-    SharedCode = [
-        SharedCodeEnum.ChatOptionsHelper
-    ],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI.Abstractions"
     ],
@@ -26,7 +23,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class Summarize : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _defaultMaxLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
 
@@ -39,8 +37,8 @@ internal sealed partial class Summarize : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = ChatOptionsHelper.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -52,7 +50,7 @@ internal sealed partial class Summarize : BaseSamplePage
     private void CleanUp()
     {
         CancelSummary();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -71,7 +69,7 @@ internal sealed partial class Summarize : BaseSamplePage
 
     public void SummarizeText(string text)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -92,7 +90,7 @@ internal sealed partial class Summarize : BaseSamplePage
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
@@ -162,16 +160,16 @@ internal sealed partial class Summarize : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= ChatOptionsHelper.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            SummarizeButton.IsEnabled = inputLength <= ChatOptionsHelper.DefaultMaxLength;
+            SummarizeButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {

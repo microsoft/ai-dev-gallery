@@ -33,7 +33,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     SharedCode = [
         SharedCodeEnum.EmbeddingGenerator,
         SharedCodeEnum.EmbeddingModelInput,
-        SharedCodeEnum.ChatOptionsHelper,
         SharedCodeEnum.TokenizerExtensions,
         SharedCodeEnum.DeviceUtils,
         SharedCodeEnum.StringData
@@ -50,8 +49,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Icon = "\uE8D4")]
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
-    private ChatOptions? _chatOptions;
     private EmbeddingGenerator? _embeddings;
+    private int _maxTokens = 2048;
     private IChatClient? _chatClient;
     private IVectorStore? _vectorStore;
     private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
@@ -87,8 +86,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
         _chatClient = await sampleParams.GetIChatClientAsync();
-        _chatOptions = _chatClient.GetDefaultChatOptions();
-        _chatOptions.MaxOutputTokens = 2048;
 
         sampleParams.NotifyCompletion();
 
@@ -301,7 +298,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                         new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
                         new ChatMessage(ChatRole.User, searchPrompt),
                     ],
-                    _chatOptions,
+                    new() { MaxOutputTokens = _maxTokens },
                     _cts.Token))
                 {
                     fullResult += partialResult;

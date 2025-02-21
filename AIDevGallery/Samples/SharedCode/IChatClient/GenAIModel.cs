@@ -18,6 +18,13 @@ internal class GenAIModel : IChatClient
 {
     private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
 
+    private const int DefaultTopK = 50;
+    private const float DefaultTopP = 0.9f;
+    private const float DefaultTemperature = 1;
+    private const int DefaultMinLength = 0;
+    private const int DefaultMaxLength = 1024;
+    private const bool DefaultDoSample = false;
+
     private readonly ChatClientMetadata _metadata;
     private Model? _model;
     private Tokenizer? _tokenizer;
@@ -31,13 +38,13 @@ internal class GenAIModel : IChatClient
         {
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
-                { "min_length", ChatOptionsHelper.DefaultMinLength },
-                { "do_sample", ChatOptionsHelper.DefaultDoSample },
+                { "min_length", DefaultMinLength },
+                { "do_sample", DefaultDoSample },
             },
-            MaxOutputTokens = ChatOptionsHelper.DefaultMaxLength,
-            Temperature = ChatOptionsHelper.DefaultTemperature,
-            TopP = ChatOptionsHelper.DefaultTopP,
-            TopK = ChatOptionsHelper.DefaultTopK,
+            MaxOutputTokens = DefaultMaxLength,
+            Temperature = DefaultTemperature,
+            TopP = DefaultTopP,
+            TopK = DefaultTopK,
         };
     }
 
@@ -198,14 +205,14 @@ internal class GenAIModel : IChatClient
 
         if (options != null)
         {
-            TransferMetadataValue("min_length", ChatOptionsHelper.DefaultMinLength);
-            TransferMetadataValue("do_sample", ChatOptionsHelper.DefaultDoSample);
-            generatorParams.SetSearchOption("temperature", (double)(options?.Temperature ?? ChatOptionsHelper.DefaultTemperature));
-            generatorParams.SetSearchOption("top_p", (double)(options?.TopP ?? ChatOptionsHelper.DefaultTopP));
-            generatorParams.SetSearchOption("top_k", options?.TopK ?? ChatOptionsHelper.DefaultTopK);
+            TransferMetadataValue("min_length", DefaultMinLength);
+            TransferMetadataValue("do_sample", DefaultDoSample);
+            generatorParams.SetSearchOption("temperature", (double)(options?.Temperature ?? DefaultTemperature));
+            generatorParams.SetSearchOption("top_p", (double)(options?.TopP ?? DefaultTopP));
+            generatorParams.SetSearchOption("top_k", options?.TopK ?? DefaultTopK);
         }
 
-        generatorParams.SetSearchOption("max_length", (options?.MaxOutputTokens ?? ChatOptionsHelper.DefaultMaxLength) + sequences[0].Length);
+        generatorParams.SetSearchOption("max_length", (options?.MaxOutputTokens ?? DefaultMaxLength) + sequences[0].Length);
         generatorParams.TryGraphCaptureWithMaxBatchSize(1);
 
         using var tokenizerStream = _tokenizer.CreateStream();

@@ -25,9 +25,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextCustomParameters,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI.Abstractions"
-    ],
-    SharedCode = [
-        SharedCodeEnum.ChatOptionsHelper
     ])]
 internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
@@ -40,7 +37,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.None;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
     private ChatOptions? chatOptions;
-    private IChatClient? model;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -76,9 +73,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        chatOptions = model.GetDefaultChatOptions();
-        IsPhiSilica = model?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
+        chatClient = await sampleParams.GetIChatClientAsync();
+        chatOptions = GetDefaultChatOptions(chatClient);
+        IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
         InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         sampleParams.NotifyCompletion();
     }
@@ -129,7 +126,24 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private void CleanUp()
     {
         CancelGeneration();
-        model?.Dispose();
+        chatClient?.Dispose();
+    }
+
+    public ChatOptions GetDefaultChatOptions(IChatClient? chatClient)
+    {
+        var chatOptions = chatClient?.GetService<ChatOptions>();
+        return chatOptions ?? new ChatOptions
+        {
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "min_length", 0 },
+                { "do_sample", defaultDoSample },
+            },
+            MaxOutputTokens = defaultMaxLength,
+            Temperature = defaultTemperature,
+            TopP = defaultTopP,
+            TopK = defaultTopK,
+        };
     }
 
     public bool IsProgressVisible
@@ -148,7 +162,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     public void GenerateText(string query, string systemPrompt)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -169,7 +183,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, query)

@@ -20,6 +20,9 @@ internal class PhiSilicaClient : IChatClient
     private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
     private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
     private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
+    private const int DefaultTopK = 50;
+    private const float DefaultTopP = 0.9f;
+    private const float DefaultTemperature = 1;
 
     private LanguageModel? _languageModel;
     private LanguageModelContext? _languageModelContext;
@@ -41,9 +44,9 @@ internal class PhiSilicaClient : IChatClient
                 { "input_moderation", DefaultInputModeration },
                 { "output_moderation", DefaultOutputModeration },
             },
-            Temperature = ChatOptionsHelper.DefaultTemperature,
-            TopP = ChatOptionsHelper.DefaultTopP,
-            TopK = ChatOptionsHelper.DefaultTopK,
+            Temperature = DefaultTemperature,
+            TopP = DefaultTopP,
+            TopK = DefaultTopK,
         };
     }
 
@@ -97,9 +100,9 @@ internal class PhiSilicaClient : IChatClient
         var languageModelOptions = new LanguageModelOptions
         {
             Skill = options.AdditionalProperties?.TryGetValue("skill", out LanguageModelSkill skill) == true ? skill : DefaultLanguageModelSkill,
-            Temp = options.Temperature ?? ChatOptionsHelper.DefaultTemperature,
-            Top_k = (uint)(options.TopK ?? ChatOptionsHelper.DefaultTopK),
-            Top_p = (uint)(options.TopP ?? ChatOptionsHelper.DefaultTopP),
+            Temp = options.Temperature ?? DefaultTemperature,
+            Top_k = (uint)(options.TopK ?? DefaultTopK),
+            Top_p = (uint)(options.TopP ?? DefaultTopP),
         };
 
         var contentFilterOptions = new ContentFilterOptions();

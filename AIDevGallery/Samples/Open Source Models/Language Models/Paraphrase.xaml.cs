@@ -16,9 +16,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Paraphrase",
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextParaphraseText,
-    SharedCode = [
-        SharedCodeEnum.ChatOptionsHelper
-    ],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI.Abstractions"
     ],
@@ -26,7 +23,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class Paraphrase : BaseSamplePage
 {
-    private IChatClient? model;
+    private const int _defaultMaxLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
 
@@ -39,8 +37,8 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = ChatOptionsHelper.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -54,7 +52,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
     private void CleanUp()
     {
         CancelParaphrase();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -73,7 +71,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
     public void ParaphraseText(string text)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -95,7 +93,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
@@ -167,16 +165,16 @@ internal sealed partial class Paraphrase : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= ChatOptionsHelper.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {ChatOptionsHelper.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            ParaphraseButton.IsEnabled = inputLength <= ChatOptionsHelper.DefaultMaxLength;
+            ParaphraseButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {
