@@ -52,7 +52,7 @@
         </Grid>
         <StackPanel
             Grid.Column="1"
-            MaxWidth="240"
+            MaxWidth="168"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Orientation="Vertical"

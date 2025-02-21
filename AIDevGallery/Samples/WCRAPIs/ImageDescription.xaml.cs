@@ -30,7 +30,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         SharedCodeEnum.WcrModelDownloaderXaml
     ],
     AssetFilenames = [
-        "team.jpg"
+        "Road.png"
     ],
     Icon = "\uEE6F")]
 
@@ -76,7 +76,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Road.png");
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
 
@@ -178,7 +178,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         DispatcherQueue?.TryEnqueue(() =>
         {
             Loader.Visibility = Visibility.Visible;
-            OutputTxt.Visibility = Visibility.Collapsed;
+            ResponseTxt.Visibility = Visibility.Collapsed;
         });
 
         var isFirstWord = true;
@@ -196,7 +196,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                         if (isFirstWord)
                         {
                             Loader.Visibility = Visibility.Collapsed;
-                            OutputTxt.Visibility = Visibility.Visible;
+                            ResponseTxt.Visibility = Visibility.Visible;
                             isFirstWord = false;
                         }
 
