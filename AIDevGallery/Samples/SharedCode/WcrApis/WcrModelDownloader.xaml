@@ -31,7 +31,8 @@
                 IsTextSelectionEnabled="True"
                 TextAlignment="Center"
                 TextWrapping="Wrap">
-                <Run Text="This Windows Copilot Runtime API requires an one-time model download via Windows Update." />
+                <Run Text="This Windows Copilot Runtime API requires an one-time model download via Windows Update." /><LineBreak /> <LineBreak />
+                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
             </TextBlock>
             <Button
                 Margin="0,16,0,0"
@@ -39,9 +40,6 @@
                 Click="DownloadModelClicked"
                 Content="Request model"
                 Style="{StaticResource AccentButtonStyle}" />
-            <TextBlock TextAlignment="Center">
-                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
-            </TextBlock>
         </StackPanel>
         <StackPanel
             x:Name="loadingRingContainer"
@@ -79,7 +77,7 @@
                 FontWeight="SemiBold"
                 Text="Model download error"
                 TextAlignment="Center" />
-            <TextBlock TextAlignment="Center">
+            <TextBlock FontSize="12" TextAlignment="Center">
                 <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
             </TextBlock>
             <TextBlock
