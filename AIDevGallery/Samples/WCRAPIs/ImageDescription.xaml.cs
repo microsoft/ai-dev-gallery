@@ -43,7 +43,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageDescriptionGenerator.IsAvailable())
         {
@@ -59,6 +59,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
         // </exclude>
         sampleParams.NotifyCompletion();
+
+        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
