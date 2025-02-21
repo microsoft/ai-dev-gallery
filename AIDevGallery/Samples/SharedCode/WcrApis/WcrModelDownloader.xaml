@@ -45,7 +45,8 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
-            Spacing="8">
+            Spacing="8"
+            Visibility="Collapsed">
             <Image Width="36" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
             <TextBlock
                 FontWeight="SemiBold"
@@ -88,21 +89,27 @@
                 <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink><LineBreak />
             </TextBlock>
         </StackPanel>
+
         <StackPanel
             x:Name="errorContent"
+            Margin="48,-4,48,48"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="8"
             Visibility="Collapsed">
+            <FontIcon FontSize="36" Glyph="&#xE783;" />
             <TextBlock
-                MaxWidth="500"
-                Margin="24"
-                HorizontalAlignment="Center"
+                FontWeight="SemiBold"
+                Text="Model download error"
+                TextAlignment="Center" />
+            <TextBlock
+                FontSize="12"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}"
                 TextAlignment="Center"
-                TextWrapping="WrapWholeWords">
-                <Run Text="Error downloading model: " />
-                <Run Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}" />
-            </TextBlock>
+                TextWrapping="Wrap" />
         </StackPanel>
 
         <InfoBar
