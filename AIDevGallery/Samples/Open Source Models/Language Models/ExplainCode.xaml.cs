@@ -5,9 +5,9 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
-using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,11 +16,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 [GallerySample(
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.CodeExplainCode,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
+    SharedCode = [],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Name = "Explain Code",
@@ -130,7 +127,7 @@ internal sealed partial class ExplainCode : BaseSamplePage
                         });
                     }
                 }
-                catch (OnnxRuntimeGenAIException)
+                catch (Exception)
                 {
                     CancelExplain();
                 }

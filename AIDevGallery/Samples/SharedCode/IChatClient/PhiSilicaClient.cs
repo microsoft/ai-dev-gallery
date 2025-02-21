@@ -16,15 +16,13 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal class PhiSilicaClient : IChatClient
 {
-    private const string TEMPLATE_PLACEHOLDER = "{{CONTENT}}";
-
     // Search Options
-    private const int DefaultTopK = 50;
-    private const float DefaultTopP = 0.9f;
-    private const float DefaultTemperature = 1;
     private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
     private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
     private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
+    private const int DefaultTopK = 50;
+    private const float DefaultTopP = 0.9f;
+    private const float DefaultTemperature = 1;
 
     private LanguageModel? _languageModel;
     private LanguageModelContext? _languageModelContext;
@@ -36,7 +34,7 @@ internal class PhiSilicaClient : IChatClient
         Metadata = new ChatClientMetadata("PhiSilica", new Uri($"file:///PhiSilica"));
     }
 
-    public static ChatOptions GetDefaultChatOptions()
+    private static ChatOptions GetDefaultChatOptions()
     {
         return new ChatOptions
         {
@@ -185,6 +183,7 @@ internal class PhiSilicaClient : IChatClient
             serviceKey is not null ? null :
             _languageModel is not null && serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
             serviceType?.IsInstanceOfType(this) is true ? this :
+            serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
             null;
     }
 
