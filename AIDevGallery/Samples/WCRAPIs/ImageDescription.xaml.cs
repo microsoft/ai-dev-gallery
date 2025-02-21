@@ -25,7 +25,13 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImage,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
-    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
+    SharedCode = [
+        SharedCodeEnum.WcrModelDownloaderCs,
+        SharedCodeEnum.WcrModelDownloaderXaml
+    ],
+    AssetFilenames = [
+        "Road.png"
+    ],
     Icon = "\uEE6F")]
 
 internal sealed partial class ImageDescription : BaseSamplePage
@@ -37,7 +43,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageDescriptionGenerator.IsAvailable())
         {
@@ -53,7 +59,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
         // </exclude>
         sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
@@ -71,7 +76,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Road.png");
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
 
@@ -138,6 +143,16 @@ internal sealed partial class ImageDescription : BaseSamplePage
         return imageExtensions.Contains(Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
+    private async Task SetImage(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
+            using IRandomAccessStream stream = await file.OpenReadAsync();
+            await SetImage(stream);
+        }
+    }
+
     private async Task SetImage(IRandomAccessStream stream)
     {
         var decoder = await BitmapDecoder.CreateAsync(stream);
@@ -163,7 +178,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         DispatcherQueue?.TryEnqueue(() =>
         {
             Loader.Visibility = Visibility.Visible;
-            OutputTxt.Visibility = Visibility.Collapsed;
+            ResponseTxt.Visibility = Visibility.Collapsed;
         });
 
         var isFirstWord = true;
@@ -181,7 +196,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                         if (isFirstWord)
                         {
                             Loader.Visibility = Visibility.Collapsed;
-                            OutputTxt.Visibility = Visibility.Visible;
+                            ResponseTxt.Visibility = Visibility.Visible;
                             isFirstWord = false;
                         }
 
