@@ -18,8 +18,7 @@
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
             BorderThickness="3"
-            CornerRadius="{StaticResource OverlayCornerRadius}"
-            Visibility="Collapsed">
+            CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox x:Name="ImageViewbox" MaxHeight="600">
                 <Grid
                     x:Name="PaneGrid"
@@ -78,7 +77,7 @@
                     Click="CopyText_Click"
                     ToolTipService.ToolTip="Click on the text to copy that line to your clipboard"
                     Visibility="Collapsed">
-                    <FontIcon FontSize="16" Glyph="&#xE8E2;" />
+                    <FontIcon FontSize="16" Glyph="&#xF0E3;" />
                 </Button>
             </StackPanel>
         </Grid>

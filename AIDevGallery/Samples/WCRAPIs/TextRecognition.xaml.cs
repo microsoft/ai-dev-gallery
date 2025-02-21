@@ -6,10 +6,8 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
-using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Vision;
@@ -37,7 +35,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         SharedCodeEnum.WcrModelDownloaderXaml
     ],
     AssetFilenames = [
-        "ocr2.png"
+        "OCR.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class TextRecognition : BaseSamplePage
@@ -58,7 +56,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
             _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, sampleParams.SampleId, TextRecognizer.MakeAvailableAsync); // <exclude-line>
         }
 
-        await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "ocr2.png"));
+        await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
         sampleParams.NotifyCompletion();
     }
 
@@ -237,17 +235,8 @@ internal sealed partial class TextRecognition : BaseSamplePage
         _recognizedTextString = string.Join('\n', lines);
     }
 
-
     private void ViewToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (RectCanvas.Visibility == Visibility.Visible)
-        {
-            RectCanvas.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            RectCanvas.Visibility = Visibility.Visible;
-        }
-
+        RectCanvas.Visibility = RectCanvas.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
     }
 }
