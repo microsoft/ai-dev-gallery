@@ -65,7 +65,7 @@ public class ProjectGenerator
 
         public required string SampleName { get; init; }
         public required Sample Sample { get; init; }
-        public required Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> CachedModelsToGenerator { get; init; }
+        public required Dictionary<ModelType, ExpandedModelDetails> CachedModelsToGenerator { get; init; }
         public Brush? StatusColor
         {
             get => statusColor;
@@ -177,17 +177,17 @@ public class ProjectGenerator
             };
         }
 
-        static Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> GetModelsToGenerator(Sample s, List<Dictionary<ModelType, List<ModelDetails>>> modelsDetails, KeyValuePair<ModelType, List<ModelDetails>> keyValuePair)
+        static Dictionary<ModelType, ExpandedModelDetails> GetModelsToGenerator(Sample s, List<Dictionary<ModelType, List<ModelDetails>>> modelsDetails, KeyValuePair<ModelType, List<ModelDetails>> keyValuePair)
         {
-            Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = new();
+            Dictionary<ModelType, ExpandedModelDetails> cachedModelsToGenerator = new();
 
             ModelDetails modelDetails1 = keyValuePair.Value.First();
-            cachedModelsToGenerator[keyValuePair.Key] = (modelDetails1.Url, modelDetails1.Url, modelDetails1.HardwareAccelerators.First());
+            cachedModelsToGenerator[keyValuePair.Key] = new(modelDetails1.Id, modelDetails1.Url, modelDetails1.Url, 0, modelDetails1.HardwareAccelerators.First());
 
             if (s.Model2Types != null && modelsDetails.Count > 1)
             {
                 ModelDetails modelDetails2 = modelsDetails[1].Values.First().First();
-                cachedModelsToGenerator[s.Model2Types.First()] = (modelDetails2.Url, modelDetails2.Url, modelDetails2.HardwareAccelerators.First());
+                cachedModelsToGenerator[s.Model2Types.First()] = new(modelDetails2.Id, modelDetails2.Url, modelDetails2.Url, 0, modelDetails2.HardwareAccelerators.First());
             }
 
             return cachedModelsToGenerator;

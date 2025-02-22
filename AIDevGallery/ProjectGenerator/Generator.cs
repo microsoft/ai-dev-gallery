@@ -46,25 +46,9 @@ internal partial class Generator
         return safeName;
     }
 
-    internal Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
-    {
-        var packageReferences = new List<(string PackageName, string? Version)>
-        {
-            ("Microsoft.WindowsAppSDK", null),
-            ("Microsoft.Windows.SDK.BuildTools", null),
-        };
-
-        foreach (var nugetPackageReference in sample.NugetPackageReferences)
-        {
-            packageReferences.Add(new(nugetPackageReference, null));
-        }
-
-        return GenerateAsyncInternal(sample, models, copyModelLocally, packageReferences, outputPath, cancellationToken);
-    }
-
     internal const string DotNetVersion = "net9.0";
 
-    private async Task<string> GenerateAsyncInternal(Sample sample, Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> models, bool copyModelLocally, List<(string PackageName, string? Version)> packageReferences, string outputPath, CancellationToken cancellationToken)
+    internal async Task<string> GenerateAsync(Sample sample, Dictionary<ModelType, ExpandedModelDetails> models, bool copyModelLocally, string outputPath, CancellationToken cancellationToken)
     {
         var projectName = $"{sample.Name}Sample";
         string safeProjectName = ToSafeVariableName(projectName);
@@ -94,20 +78,20 @@ internal partial class Generator
                     throw new ArgumentException($"Model type {modelType} not found in the models dictionary", nameof(models));
                 }
 
-                if (modelInfo.CachedModelDirectoryPath.Contains("file://", StringComparison.OrdinalIgnoreCase))
+                if (modelInfo.Path.Contains("file://", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.CachedModelDirectoryPath);
+                var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.Path);
 
                 if (cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                 {
-                    sumTotalSize += Directory.GetFiles(modelInfo.CachedModelDirectoryPath, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+                    sumTotalSize += Directory.GetFiles(modelInfo.Path, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
                 }
                 else
                 {
-                    sumTotalSize += new FileInfo(modelInfo.CachedModelDirectoryPath).Length;
+                    sumTotalSize += new FileInfo(modelInfo.Path).Length;
                 }
             }
 
@@ -120,7 +104,7 @@ internal partial class Generator
 
         Directory.CreateDirectory(outputPath);
 
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos = [];
+        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, bool IsSingleFile, string ModelPathStr, PromptTemplate? ModelPromptTemplate)> modelInfos = [];
         string model1Id = string.Empty;
         string model2Id = string.Empty;
         foreach (var modelType in modelTypes)
@@ -133,14 +117,13 @@ internal partial class Generator
             PromptTemplate? modelPromptTemplate = null;
             string modelId = string.Empty;
             bool isSingleFile = false;
-            bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
 
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
                 modelPromptTemplate = modelDetails.PromptTemplate;
                 modelId = modelDetails.Id;
             }
-            else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.ModelUrl) is var modelDetails2 && modelDetails2.Value != null)
+            else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.Url) is var modelDetails2 && modelDetails2.Value != null)
             {
                 modelPromptTemplate = modelDetails2.Value.PromptTemplate;
                 modelId = modelDetails2.Value.Id;
@@ -152,19 +135,19 @@ internal partial class Generator
 
             string modelPathStr;
 
-            if (copyModelLocally && !modelInfo.CachedModelDirectoryPath.Contains("file://", StringComparison.OrdinalIgnoreCase))
+            if (copyModelLocally && !modelInfo.Path.Contains("file://", StringComparison.OrdinalIgnoreCase))
             {
-                var modelPath = Path.GetFileName(modelInfo.CachedModelDirectoryPath);
-                var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.CachedModelDirectoryPath);
+                var modelPath = Path.GetFileName(modelInfo.Path);
+                var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.Path);
 
                 if (cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                 {
                     isSingleFile = false;
                     var modelDirectory = Directory.CreateDirectory(Path.Join(outputPath, "Models", modelPath));
-                    foreach (var file in Directory.GetFiles(modelInfo.CachedModelDirectoryPath, "*", SearchOption.AllDirectories))
+                    foreach (var file in Directory.GetFiles(modelInfo.Path, "*", SearchOption.AllDirectories))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        var filePath = Path.Join(modelDirectory.FullName, Path.GetRelativePath(modelInfo.CachedModelDirectoryPath, file));
+                        var filePath = Path.Join(modelDirectory.FullName, Path.GetRelativePath(modelInfo.Path, file));
                         var directory = Path.GetDirectoryName(filePath);
                         if (directory != null && !Directory.Exists(directory))
                         {
@@ -178,15 +161,15 @@ internal partial class Generator
                 {
                     isSingleFile = true;
                     var modelDirectory = Directory.CreateDirectory(Path.Join(outputPath, "Models"));
-                    await CopyFileAsync(modelInfo.CachedModelDirectoryPath, Path.Join(modelDirectory.FullName, modelPath), cancellationToken).ConfigureAwait(false);
+                    await CopyFileAsync(modelInfo.Path, Path.Join(modelDirectory.FullName, modelPath), cancellationToken).ConfigureAwait(false);
                 }
 
                 modelPathStr = $"System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, \"Models\", @\"{modelPath}\")";
-                modelInfo.CachedModelDirectoryPath = modelPath;
+                modelInfo = modelInfo with { Path = modelPath };
             }
             else
             {
-                modelPathStr = $"@\"{modelInfo.CachedModelDirectoryPath}\"";
+                modelPathStr = $"@\"{modelInfo.Path}\"";
             }
 
             bool isPhiSilica = ModelDetailsHelper.EqualOrParent(modelType, ModelType.PhiSilica);
@@ -195,7 +178,7 @@ internal partial class Generator
                 modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
             }
 
-            modelInfos.Add(modelType, new(modelInfo.CachedModelDirectoryPath, modelInfo.ModelUrl, isSingleFile, modelPathStr, modelInfo.HardwareAccelerator, modelPromptTemplate, isPhiSilica));
+            modelInfos.Add(modelType, new(modelInfo, isSingleFile, modelPathStr, modelPromptTemplate));
 
             if (modelTypes.First() == modelType)
             {
@@ -204,15 +187,6 @@ internal partial class Generator
             else
             {
                 model2Id = modelId;
-            }
-
-            if (isLanguageModel)
-            {
-                var genAiPackage = "Microsoft.ML.OnnxRuntimeGenAI.DirectML";
-                if (!packageReferences.Any(packageReferences => packageReferences.PackageName == genAiPackage))
-                {
-                    packageReferences.Add((genAiPackage, null));
-                }
             }
         }
 
@@ -232,7 +206,7 @@ internal partial class Generator
 
         var baseNamespace = "AIDevGallery.Sample";
 
-        var className = await AddFilesFromSampleAsync(sample, packageReferences, baseNamespace, outputPath, modelInfos, cancellationToken);
+        var className = await AddFilesFromSampleAsync(sample, baseNamespace, outputPath, modelInfos, cancellationToken);
 
         foreach (var file in files)
         {
@@ -292,13 +266,17 @@ internal partial class Generator
 
         var csproj = Path.Join(outputPath, $"{safeProjectName}.csproj");
 
+        List<string> packageReferences = sample.GetAllNugetPackageReferences(models);
+        packageReferences.Add("Microsoft.WindowsAppSDK");
+        packageReferences.Add("Microsoft.Windows.SDK.BuildTools");
+
         // Add NuGet references
         if (packageReferences.Count > 0 || copyModelLocally)
         {
             var project = ProjectRootElement.Open(csproj);
             var itemGroup = project.AddItemGroup();
 
-            static void AddPackageReference(ProjectItemGroupElement itemGroup, string packageName, string? version)
+            static void AddPackageReference(ProjectItemGroupElement itemGroup, string packageName)
             {
                 if (itemGroup.Items.Any(i => i.ItemType == "PackageReference" && i.Include == packageName))
                 {
@@ -324,7 +302,7 @@ internal partial class Generator
                     packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
                 }
 
-                var versionStr = version ?? PackageVersionHelpers.PackageVersions[packageName];
+                var versionStr = PackageVersionHelpers.PackageVersions[packageName];
                 packageReferenceItem.AddMetadata("Version", versionStr, true);
 
                 if (packageName == "Microsoft.ML.OnnxRuntimeGenAI")
@@ -340,22 +318,20 @@ internal partial class Generator
                 }
             }
 
-            foreach (var packageReference in packageReferences)
+            foreach (var packageName in packageReferences)
             {
-                var packageName = packageReference.PackageName;
-                var version = packageReference.Version;
                 if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
                 {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn", null);
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn", null);
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI", null);
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed", null);
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 }
 
-                AddPackageReference(itemGroup, packageName, version);
+                AddPackageReference(itemGroup, packageName);
             }
 
             if (copyModelLocally)
@@ -363,18 +339,18 @@ internal partial class Generator
                 var modelContentItemGroup = project.AddItemGroup();
                 foreach (var modelInfo in modelInfos)
                 {
-                    if (modelInfo.Value.CachedModelDirectoryPath.Contains("file://", StringComparison.OrdinalIgnoreCase))
+                    if (modelInfo.Value.ExpandedModelDetails.Path.Contains("file://", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
                     if (modelInfo.Value.IsSingleFile)
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.CachedModelDirectoryPath}");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}");
                     }
                     else
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.CachedModelDirectoryPath}\**");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}\**");
                     }
                 }
             }
@@ -524,45 +500,12 @@ internal partial class Generator
 
     private async Task<string> AddFilesFromSampleAsync(
         Sample sample,
-        List<(string PackageName, string? Version)> packageReferences,
         string baseNamespace,
         string outputPath,
-        Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, bool IsSingleFile, string ModelPathStr, HardwareAccelerator HardwareAccelerator, PromptTemplate? ModelPromptTemplate, bool IsPhiSilica)> modelInfos,
+        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, bool IsSingleFile, string ModelPathStr, PromptTemplate? ModelPromptTemplate)> modelInfos,
         CancellationToken cancellationToken)
     {
-        List<Samples.SharedCodeEnum> sharedCode = sample.SharedCode.ToList();
-        bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelInfos.Keys.First(), ModelType.LanguageModels);
-
-        if (isLanguageModel && !sharedCode.Contains(SharedCodeEnum.GenAIModel))
-        {
-            sharedCode.Add(SharedCodeEnum.GenAIModel);
-        }
-
-        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
-        {
-            if (!sharedCode.Contains(SharedCodeEnum.LlmPromptTemplate))
-            {
-                sharedCode.Add(SharedCodeEnum.LlmPromptTemplate);
-            }
-        }
-
-        if (modelInfos.Values.Any(mi => mi.IsPhiSilica))
-        {
-            if (!sharedCode.Contains(SharedCodeEnum.PhiSilicaClient))
-            {
-                sharedCode.Add(SharedCodeEnum.PhiSilicaClient);
-            }
-        }
-
-        if (sharedCode.Contains(SharedCodeEnum.DeviceUtils) && !sharedCode.Contains(SharedCodeEnum.NativeMethods))
-        {
-            sharedCode.Add(SharedCodeEnum.NativeMethods);
-            var csWin32 = "Microsoft.Windows.CsWin32";
-            if (!packageReferences.Any(packageReferences => packageReferences.PackageName == csWin32))
-            {
-                packageReferences.Add((csWin32, null));
-            }
-        }
+        List<SharedCodeEnum> sharedCode = sample.GetAllSharedCode(modelInfos.ToDictionary(m => m.Key, m => m.Value.ExpandedModelDetails));
 
         foreach (var sharedCodeEnum in sharedCode)
         {
@@ -624,7 +567,7 @@ internal partial class Generator
                 int i = 0;
                 foreach (var modelInfo in modelInfos)
                 {
-                    cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.HardwareAccelerator}");
+                    cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
                     cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
                     i++;
                 }
@@ -634,7 +577,7 @@ internal partial class Generator
             else
             {
                 var modelInfo = modelInfos.Values.First();
-                cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.HardwareAccelerator}");
+                cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
                 cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
                 modelPath = modelInfo.ModelPathStr;
             }
@@ -651,7 +594,7 @@ internal partial class Generator
                 var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
                 var modelInfo = modelInfos.Values.First();
                 var promptTemplate = GetPromptTemplateString(modelInfo.ModelPromptTemplate, spaceCount);
-                var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPath, promptTemplate, modelInfo.IsPhiSilica, modelInfos.Keys.First());
+                var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPath, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfos.Keys.First());
                 if (chatClientLoader != null)
                 {
                     cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);

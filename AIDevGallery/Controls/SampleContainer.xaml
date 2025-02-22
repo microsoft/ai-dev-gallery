@@ -201,7 +201,7 @@
                             Text="Required NuGet packages" />
                     </Expander.Header>
                     <Expander.Content>
-                        <ItemsRepeater Margin="-12,-8,-12,-8" ItemsSource="{x:Bind _sampleCache.NugetPackageReferences}">
+                        <ItemsRepeater Margin="-12,-8,-12,-8" ItemsSource="{x:Bind NugetPackageReferences, Mode=OneWay}">
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
                                     <HyperlinkButton
