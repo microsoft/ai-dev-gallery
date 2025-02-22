@@ -38,11 +38,11 @@ internal static class WcrApiCodeSnippet
                 var op = await TextRecognizer.MakeAvailableAsync();
             }
             
-            TextRecognizer textRecognizer = await EnsureModelIsReady();
+            TextRecognizer textRecognizer = await TextRecognizer.CreateAsync();
             ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
-            RecognizedText recognizedText = textRecognizer.RecognizeTextFromImage(imageBuffer);
+            RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-            Console.WriteLine(string.Join("\n", recognizedText.Lines.Select(l => l.Text)));
+            Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
             """"
         },
         {
