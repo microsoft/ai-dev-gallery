@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
@@ -30,7 +31,17 @@ internal sealed partial class SampleContainer : UserControl
         set => SetValue(DisclaimerHorizontalAlignmentProperty, value);
     }
 
+    public List<string> NugetPackageReferences
+    {
+        get { return (List<string>)GetValue(NugetPackageReferencesProperty); }
+        set { SetValue(NugetPackageReferencesProperty, value); }
+    }
+
+    public static readonly DependencyProperty NugetPackageReferencesProperty =
+        DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
+
     private Sample? _sampleCache;
+    private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
@@ -272,7 +283,17 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
-        _modelsCache = models;
+
+        if (models != null)
+        {
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+
+            if (_cachedModels != null)
+            {
+                NugetPackageReferences = sample.GetAllNugetPackageReferences(_cachedModels);
+                _modelsCache = models;
+            }
+        }
 
         if (sample == null)
         {
@@ -308,9 +329,9 @@ internal sealed partial class SampleContainer : UserControl
             CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml", _sampleCache.XAMLCode, Languages.FindById("xaml")));
         }
 
-        if (_sampleCache.SharedCode != null && _sampleCache.SharedCode.Count != 0)
+        if (_cachedModels != null)
         {
-            foreach (var sharedCodeEnum in _sampleCache.SharedCode)
+            foreach (var sharedCodeEnum in _sampleCache.GetAllSharedCode(_cachedModels))
             {
                 string sharedCodeName = Samples.SharedCodeHelpers.GetName(sharedCodeEnum);
                 string sharedCodeContent = Samples.SharedCodeHelpers.GetSource(sharedCodeEnum);
