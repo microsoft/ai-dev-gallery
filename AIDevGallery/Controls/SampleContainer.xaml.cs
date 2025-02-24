@@ -165,6 +165,9 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        _sampleLoadingCts = new CancellationTokenSource();
+        var token = _sampleLoadingCts.Token;
+
         // if WCR API, check if model is downloaded
         foreach (var wcrApi in models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
         {
@@ -181,11 +184,15 @@ internal sealed partial class SampleContainer : UserControl
                     _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]))
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]).WaitAsync(token))
                     {
                         return;
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch
             {
@@ -199,12 +206,9 @@ internal sealed partial class SampleContainer : UserControl
         VisualStateManager.GoToState(this, "SampleLoading", true);
         SampleFrame.Content = null;
 
-        _sampleLoadingCts = new CancellationTokenSource();
         _sampleLoadedCompletionSource = new TaskCompletionSource();
         BaseSampleNavigationParameters sampleNavigationParameters;
-
         var modelPath = cachedModelsPaths.First();
-        var token = _sampleLoadingCts.Token;
 
         if (cachedModelsPaths.Count == 1)
         {
@@ -240,7 +244,19 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
         SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
-        await _sampleLoadedCompletionSource.Task;
+        try
+        {
+            await _sampleLoadedCompletionSource.Task.WaitAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts = null;
+        }
 
         _sampleLoadedCompletionSource = null;
         _sampleLoadingCts = null;
