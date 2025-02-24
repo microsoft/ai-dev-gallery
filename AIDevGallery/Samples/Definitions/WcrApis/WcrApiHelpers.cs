@@ -4,12 +4,14 @@
 using AIDevGallery.Models;
 using Microsoft.Graphics.Imaging;
 using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
+using Windows.Foundation;
 
 namespace AIDevGallery.Samples;
-internal static class WcrCompatibilityChecker
+internal static class WcrApiHelpers
 {
     private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>
     {
@@ -27,6 +29,25 @@ internal static class WcrCompatibilityChecker
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.IsAvailable
+        }
+    };
+
+    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>>> MakeAvailables = new Dictionary<ModelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>>>
+    {
+        {
+            ModelType.PhiSilica, LanguageModel.MakeAvailableAsync
+        },
+        {
+            ModelType.TextRecognitionOCR, TextRecognizer.MakeAvailableAsync
+        },
+        {
+            ModelType.ImageScaler, ImageScaler.MakeAvailableAsync
+        },
+        {
+            ModelType.BackgroundRemover, ImageObjectExtractor.MakeAvailableAsync
+        },
+        {
+            ModelType.ImageDescription, ImageDescriptionGenerator.MakeAvailableAsync
         }
     };
 

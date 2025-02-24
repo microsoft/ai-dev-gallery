@@ -3,6 +3,7 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Samples;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -165,31 +166,43 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
-        // if PhiSilica, only show model loader and reload sample once loaded
-        if (cachedModelsPaths.Any(m => m == $"file://{ModelType.PhiSilica}"))
+        // if WCR API, check if model is downloaded
+        var wcrApis = models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)).ToList();
+        if (wcrApis.Count > 0)
         {
-            try
-            {
-                if (!LanguageModel.IsAvailable())
-                {
-                    modelDownloader.State = WcrApiDownloadState.NotStarted;
-                    modelDownloader.ErrorMessage = string.Empty;
-                    modelDownloader.DownloadProgress = 0;
-                    SampleFrame.Content = null;
+            var index = 0;
 
-                    VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync))
+            do
+            {
+                var wcrApi = wcrApis[index];
+                var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == wcrApi.Id).Key;
+
+                try
+                {
+                    if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
                     {
-                        return;
+                        modelDownloader.State = WcrApiDownloadState.NotStarted;
+                        modelDownloader.ErrorMessage = string.Empty;
+                        modelDownloader.DownloadProgress = 0;
+                        SampleFrame.Content = null;
+
+                        VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
+                        if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]))
+                        {
+                            return;
+                        }
                     }
                 }
+                catch
+                {
+                    VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                    SampleFrame.Content = null;
+                    return;
+                }
+
+                ++index;
             }
-            catch
-            {
-                VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
-                SampleFrame.Content = null;
-                return;
-            }
+            while (index < wcrApis.Count);
         }
 
         // model available
