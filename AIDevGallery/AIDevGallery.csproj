@@ -303,7 +303,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Controls\HomePage\Header\HeaderTile\" />
     <Folder Include="Pages\Models\" />
     <Folder Include="Pages\Scenarios\" />
   </ItemGroup>

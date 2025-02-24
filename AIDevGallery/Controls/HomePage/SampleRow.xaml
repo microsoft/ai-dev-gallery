@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <StackPanel Height="260" Orientation="Horizontal">
+        <StackPanel Height="120" Orientation="Horizontal">
             <Grid
                 Padding="0"
                 BorderThickness="1,1,0,1"

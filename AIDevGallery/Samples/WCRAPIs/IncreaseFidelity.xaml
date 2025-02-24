@@ -49,7 +49,6 @@
                     <Image
                         x:Name="ScaledImage"
                         Width="400"
-                        MaxHeight="360"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         AutomationProperties.Name="Upscaled image"
