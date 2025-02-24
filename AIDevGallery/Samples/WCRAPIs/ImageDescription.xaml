@@ -15,8 +15,8 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-            BorderThickness="3"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="2"
             CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox
                 x:Name="ImageViewbox"

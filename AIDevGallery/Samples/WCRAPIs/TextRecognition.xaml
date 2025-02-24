@@ -16,14 +16,15 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-            BorderThickness="3"
+            BorderBrush="{ThemeResource ControlStrongStrokeColorDefaultBrush}"
+            BorderThickness="2"
             CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox x:Name="ImageViewbox" MaxHeight="600">
                 <Grid
                     x:Name="PaneGrid"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch">
+                    VerticalAlignment="Stretch"
+                    CornerRadius="{ThemeResource OverlayCornerRadius}">
                     <Image x:Name="ImageSrc" Stretch="Uniform" />
                     <Canvas
                         x:Name="RectCanvas"
@@ -75,7 +76,7 @@
                 <Button
                     x:Name="CopyTextButton"
                     Click="CopyText_Click"
-                    ToolTipService.ToolTip="Click on the text to copy that line to your clipboard"
+                    ToolTipService.ToolTip="Copy all text to clipboard"
                     Visibility="Collapsed">
                     <FontIcon FontSize="16" Glyph="&#xF0E3;" />
                 </Button>
