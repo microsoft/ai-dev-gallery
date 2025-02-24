@@ -138,6 +138,5 @@
                 </ItemsRepeater>
             </Grid>
         </ScrollViewer>
-
     </Grid>
 </Page>

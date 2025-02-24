@@ -48,16 +48,16 @@
                                 Padding="16"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                Style="{StaticResource CardGridStyle}">
+                                Style="{StaticResource GlassAcrylicGridStyle}">
                                 <Image Width="56" Source="/Assets/ModelIcons/WCRAPI.svg" />
                             </Grid>
 
                             <Grid
-                                Margin="46,162,0,0"
+                                Margin="48,166,0,0"
                                 Padding="8"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                Style="{StaticResource CardGridStyle}">
+                                Style="{StaticResource GlassAcrylicGridStyle}">
                                 <FontIcon
                                     FontSize="24"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
@@ -69,7 +69,7 @@
                                 Padding="16"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                Style="{StaticResource CardGridStyle}">
+                                Style="{StaticResource GlassAcrylicGridStyle}">
                                 <FontIcon
                                     FontSize="48"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
@@ -80,20 +80,20 @@
                                 Padding="16"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                Style="{StaticResource CardGridStyle}">
+                                Style="{StaticResource GlassAcrylicGridStyle}">
                                 <FontIcon
                                     FontSize="36"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Glyph="&#xE799;" />
                             </Grid>
                             <Grid
-                                Margin="46,12,0,0"
+                                Margin="54,14,0,0"
                                 Padding="8"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                Style="{StaticResource CardGridStyle}">
+                                Style="{StaticResource GlassAcrylicGridStyle}">
                                 <FontIcon
-                                    FontSize="24"
+                                    FontSize="18"
                                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                     Glyph="&#xE7A8;" />
                             </Grid>
