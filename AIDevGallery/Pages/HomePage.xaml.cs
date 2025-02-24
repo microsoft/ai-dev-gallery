@@ -70,21 +70,13 @@ internal sealed partial class HomePage : Page
 
     private string GetFirstSentenceFromDescription(string? description)
     {
-        if (description == null)
+        if (string.IsNullOrEmpty(description))
         {
             return string.Empty;
         }
 
-        int i;
-        for (i = 0; i < description.Length; i++)
-        {
-            if (description[i] == '.')
-            {
-                break;
-            }
-        }
-
-        return i == description.Length ? description : description.Substring(0, i + 1);
+        int i = description.IndexOf('.');
+        return i == -1 ? description : description.Substring(0, i + 1);
     }
 
     private void MRUView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
