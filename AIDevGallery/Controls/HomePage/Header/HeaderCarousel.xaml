@@ -14,7 +14,7 @@
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
+                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.5,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
                         <GradientStop Offset="0" Color="#FFFFFFFF" />
                         <GradientStop Offset="0.05" Color="#FFFFFFFF" />
                         <GradientStop Offset="0.35" Color="#FFFFFFFF" />
@@ -24,17 +24,18 @@
                     </RadialGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
+                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.5,0.0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
                         <GradientStop Offset="0" Color="#FF000000" />
                         <GradientStop Offset="0.05" Color="#FF000000" />
                         <GradientStop Offset="0.35" Color="#FF000000" />
                         <GradientStop Offset="0.55" Color="#FF000000" />
+                        <GradientStop Offset="0.85" Color="#00000000" />
                         <GradientStop Offset="0.95" Color="#00000000" />
                         <GradientStop Offset="1" Color="#00000000" />
                     </RadialGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
-                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.52,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
+                    <RadialGradientBrush x:Key="OverlayRadialGradient" Center="0.5,0.22" GradientOrigin="0.5,0" MappingMode="RelativeToBoundingBox" RadiusX="0.92" RadiusY="0.8200000000000001" SpreadMethod="Pad">
                         <GradientStop Offset="0" Color="#FF000000" />
                         <GradientStop Offset="0.05" Color="#FF000000" />
                         <GradientStop Offset="0.35" Color="#FF000000" />
@@ -44,7 +45,6 @@
                     </RadialGradientBrush>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-
             <LinearGradientBrush x:Key="LightTextGradient" StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Offset="0.1" Color="#FFFFFF" />
                 <GradientStop Offset="0.3" Color="#E9E9E9" />
@@ -60,12 +60,13 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="RootGrid" CornerRadius="8,0,0,0">
-        <local:OpacityMaskView HorizontalAlignment="Stretch">
+        <local:OpacityMaskView HorizontalAlignment="Stretch" VerticalAlignment="Top">
             <local:OpacityMaskView.OpacityMask>
                 <Rectangle Fill="{ThemeResource OverlayRadialGradient}" />
             </local:OpacityMaskView.OpacityMask>
             <local:AnimatedImage
                 x:Name="BackDropImage"
+                Height="400"
                 ImageUrl="ms-appx:///Assets/TileImages/BackgroundBlur.png"
                 Visibility="Visible">
                 <media:UIElementExtensions.VisualFactory>
@@ -76,7 +77,7 @@
             </local:AnimatedImage>
         </local:OpacityMaskView>
         <StackPanel
-            Padding="24"
+            Padding="24,12,24,24"
             HorizontalAlignment="Center"
             Orientation="Vertical"
             Spacing="12">
@@ -101,12 +102,12 @@
             <Grid RequestedTheme="Light">
                 <Grid
                     Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
-                    CornerRadius="8"
+                    CornerRadius="12"
                     Opacity="0.6" />
                 <TextBlock
                     Margin="10,4,10,4"
                     HorizontalAlignment="Center"
-                    FontSize="14"
+                    FontSize="12"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
@@ -115,12 +116,11 @@
                     <Hyperlink NavigateUri="https://aka.ms/ai-dev-gallery">preview</Hyperlink><Run Text="." />
                 </TextBlock>
             </Grid>
-
         </StackPanel>
         <ScrollViewer
             x:Name="scrollViewer"
             Grid.Row="1"
-            Margin="0,96,0,0"
+            Margin="0,24,0,0"
             HorizontalScrollBarVisibility="Hidden"
             VerticalScrollBarVisibility="Disabled"
             VerticalScrollMode="Disabled">
