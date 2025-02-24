@@ -40,7 +40,7 @@
                                 x:Name="MRUView"
                                 IsItemInvokedEnabled="True"
                                 ItemInvoked="MRUView_ItemInvoked"
-                                ItemsSource="{x:Bind mostRecentlyUsedItems, Mode=OneWay}"
+                                ItemsSource="{x:Bind mostRecentlyUsedItems}"
                                 SelectionMode="None">
                                 <ItemsView.Layout>
                                     <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
