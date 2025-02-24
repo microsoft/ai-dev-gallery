@@ -83,7 +83,7 @@
                 RequestedTheme="Light"
                 Style="{StaticResource GlassAcrylicGridStyle}">
                 <Border CornerRadius="8">
-                    <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
                 </Border>
             </Grid>
 
@@ -142,6 +142,7 @@
                 Width="96"
                 Margin="0,-24,-28,-28"
                 HorizontalAlignment="Right"
+                AutomationProperties.AccessibilityView="Raw"
                 Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
         </Grid>
         <Grid
@@ -182,53 +183,53 @@
                 HorizontalAlignment="Center">
                 <Grid
                     Width="64"
-                    Margin="8,56,0,0"
+                    Margin="0,56,0,0"
                     Padding="12"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     Style="{StaticResource GlassAcrylicGridStyle}">
-                    <Image Source="ms-appx:///Assets/ModelIcons/Microsoft.svg" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/ModelIcons/Microsoft.svg" />
                 </Grid>
                 <Grid
                     Width="42"
-                    Margin="38,0,0,0"
+                    Margin="22,0,0,0"
                     Padding="8"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     Style="{StaticResource GlassAcrylicGridStyle}">
-                    <Image Source="ms-appx:///Assets/ModelIcons/OpenAI.png" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/ModelIcons/OpenAI.png" />
                 </Grid>
                 <Grid
                     Width="64"
-                    Margin="96,0,0,0"
+                    Margin="76,0,0,0"
                     Padding="16"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     Style="{StaticResource GlassAcrylicGridStyle}">
-                    <Image Source="ms-appx:///Assets/ModelIcons/Mistral.svg" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/ModelIcons/Mistral.svg" />
                 </Grid>
                 <Grid
                     Width="48"
-                    Margin="96,76,0,0"
+                    Margin="76,76,0,0"
                     Padding="8"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     Style="{StaticResource GlassAcrylicGridStyle}">
-                    <Image Source="ms-appx:///Assets/ModelIcons/HuggingFace.svg" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="ms-appx:///Assets/ModelIcons/HuggingFace.svg" />
                 </Grid>
                 <Grid
-                    Width="48"
-                    Margin="156,76,0,0"
-                    Padding="8"
+                    Width="36"
+                    Margin="136,76,0,0"
+                    Padding="6"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     Style="{StaticResource GlassAcrylicGridStyle}">
-                    <Image Source="{ThemeResource GitHubIconImage}" />
+                    <Image AutomationProperties.AccessibilityView="Raw" Source="{ThemeResource GitHubIconImage}" />
                 </Grid>
 
             </Grid>
@@ -258,6 +259,7 @@
                     Width="520"
                     Height="168"
                     Margin="52,24,-24,-24"
+                    AutomationProperties.AccessibilityView="Raw"
                     Source="ms-appx:///Assets/Code.svg"
                     Stretch="UniformToFill" />
             </StackPanel>
