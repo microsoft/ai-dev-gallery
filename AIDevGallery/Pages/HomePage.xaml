@@ -86,7 +86,7 @@
                 </StackPanel>
                 <controls:GettingStartedSection
                     Grid.Row="2"
-                    Width="820"
+                    MaxWidth="800"
                     Margin="0,0,0,48" />
             </Grid>
         </ScrollViewer>

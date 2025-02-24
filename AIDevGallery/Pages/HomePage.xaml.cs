@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
