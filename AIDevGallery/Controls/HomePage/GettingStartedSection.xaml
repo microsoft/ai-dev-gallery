@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="AIDevGallery.Controls.GettingStartedSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ThemeShadow x:Name="BackgroundShadow" />
+        <Style
+            x:Key="HeroCardGridStyle"
+            BasedOn="{StaticResource CardGridStyle}"
+            TargetType="Grid">
+            <Style.Setters>
+                <!--<Setter Property="Translation" Value="0,0,12" />-->
+                <!--<Setter Property="Shadow" Value="{StaticResource BackgroundShadow}" />-->
+                <Setter Property="Padding" Value="16,12,16,16" />
+                <Setter Property="Background" Value="{ThemeResource APIHeaderBackgroundBrush}" />
+            </Style.Setters>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <!--<Grid
+            x:Name="ShadowCastGrid"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch" />-->
+        <Grid
+            x:Name="ContentGrid"
+            Margin="24,0,24,24"
+            ColumnSpacing="16"
+            RowSpacing="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Center"
+                Orientation="Vertical">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    Text="Features" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="See how AI Dev Gallery can help you bring on-device AI to your app" />
+            </StackPanel>
+
+            <Grid
+                Grid.Row="1"
+                MinHeight="176"
+                ColumnSpacing="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <Grid Style="{StaticResource HeroCardGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        HorizontalAlignment="Left"
+                        Orientation="Vertical"
+                        Spacing="8">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Interactive samples"
+                            TextWrapping="Wrap" />
+                        <TextBlock Text="Explore over 25+ interactive samples running locally on your NPU, GPU or CPU." TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Grid
+                        Grid.Column="1"
+                        Height="160"
+                        Margin="0,0,-120,-76"
+                        VerticalAlignment="Stretch"
+                        CornerRadius="16"
+                        RequestedTheme="Light"
+                        Style="{StaticResource GlassAcrylicGridStyle}">
+                        <Border CornerRadius="8">
+                            <Image Source="ms-appx:///Assets/TileImages/TextGeneration.png" />
+                        </Border>
+                    </Grid>
+
+                    <HyperlinkButton
+                        x:Name="SamplesBtn"
+                        Grid.Row="1"
+                        Padding="0"
+                        AutomationProperties.Name="Explore samples"
+                        Click="SamplesBtn_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Explore samples" />
+                            <FontIcon FontSize="12" Glyph="&#xE76C;" />
+                        </StackPanel>
+                    </HyperlinkButton>
+                </Grid>
+
+                <Grid
+                    Grid.Column="1"
+                    MinHeight="176"
+                    Background="{ThemeResource ScenarioHeaderBackgroundBrush}"
+                    Style="{StaticResource HeroCardGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        HorizontalAlignment="Left"
+                        Orientation="Vertical"
+                        Spacing="8">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Windows Copilot Runtime"
+                            TextWrapping="Wrap" />
+                        <TextBlock Text="Experience the full potential of the Windows Copilot Runtime APIs" TextWrapping="Wrap" />
+                        <HyperlinkButton
+                            x:Name="APIButton"
+                            Grid.Row="1"
+                            Padding="0"
+                            AutomationProperties.Name="Explore APIs"
+                            Click="APIButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="Explore APIs" />
+                                <FontIcon FontSize="12" Glyph="&#xE76C;" />
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </StackPanel>
+                    <Image
+                        Grid.Row="1"
+                        Width="96"
+                        Margin="0,-24,-28,-28"
+                        HorizontalAlignment="Right"
+                        Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+                </Grid>
+            </Grid>
+
+            <Grid
+                Grid.Row="2"
+                ColumnSpacing="24"
+                RowSpacing="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Grid Background="{ThemeResource ScenarioHeaderBackgroundBrush}" Style="{StaticResource HeroCardGridStyle}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        HorizontalAlignment="Left"
+                        Orientation="Vertical"
+                        Spacing="8">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Bring your own model"
+                            TextWrapping="Wrap" />
+                        <TextBlock Text="Just download and start exploring the different models." TextWrapping="Wrap" />
+                        <HyperlinkButton
+                            x:Name="ModelsBtn"
+                            Padding="0"
+                            AutomationProperties.Name="Explore all models"
+                            Click="ModelsBtn_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="Explore all models" />
+                                <FontIcon FontSize="12" Glyph="&#xE76C;" />
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </StackPanel>
+
+                    <Grid
+                        Grid.Row="1"
+                        Margin="0,24,0,0"
+                        HorizontalAlignment="Center">
+                        <Grid
+                            Width="64"
+                            Margin="8,56,0,0"
+                            Padding="12"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Style="{StaticResource GlassAcrylicGridStyle}">
+                            <Image Source="ms-appx:///Assets/ModelIcons/Microsoft.svg" />
+                        </Grid>
+                        <Grid
+                            Width="42"
+                            Margin="38,0,0,0"
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Style="{StaticResource GlassAcrylicGridStyle}">
+                            <Image Source="ms-appx:///Assets/ModelIcons/OpenAI.png" />
+                        </Grid>
+                        <Grid
+                            Width="64"
+                            Margin="96,0,0,0"
+                            Padding="16"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Style="{StaticResource GlassAcrylicGridStyle}">
+                            <Image Source="ms-appx:///Assets/ModelIcons/Mistral.svg" />
+                        </Grid>
+                        <Grid
+                            Width="48"
+                            Margin="96,76,0,0"
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Style="{StaticResource GlassAcrylicGridStyle}">
+                            <Image Source="ms-appx:///Assets/ModelIcons/HuggingFace.svg" />
+                        </Grid>
+                        <Grid
+                            Width="48"
+                            Margin="156,76,0,0"
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            Style="{StaticResource GlassAcrylicGridStyle}">
+                            <Image Source="{ThemeResource GitHubIconImage}" />
+                        </Grid>
+
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Column="1" Style="{StaticResource HeroCardGridStyle}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        HorizontalAlignment="Left"
+                        Orientation="Vertical"
+                        Spacing="8">
+                        <TextBlock
+                            FontWeight="SemiBold"
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="View &amp; export code"
+                            TextWrapping="Wrap" />
+                        <TextBlock Text="View code for any sample, or export to a standalone Visual Studio project!" TextWrapping="Wrap" />
+                        <Image
+                            Grid.Row="1"
+                            Width="520"
+                            Height="168"
+                            Margin="52,24,-24,-24"
+                            Source="ms-appx:///Assets/Code.svg"
+                            Stretch="UniformToFill" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
