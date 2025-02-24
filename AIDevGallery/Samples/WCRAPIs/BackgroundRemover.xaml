@@ -20,15 +20,15 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-            BorderThickness="3"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="2"
             CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox
                 x:Name="ImageViewbox"
                 Margin="-1"
                 VerticalAlignment="Stretch"
                 Stretch="Uniform">
-                <Grid>
+                <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
                     <Image x:Name="CanvasImage" PointerPressed="CanvasImage_PointerPressed" />
                     <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
                 </Grid>

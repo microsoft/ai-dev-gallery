@@ -5,9 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Margin="-24,-24,-24,-44"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" CornerRadius="4">
+    <Grid Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" CornerRadius="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -15,7 +16,7 @@
 
         <StackPanel
             x:Name="NotDownloadedContent"
-            Margin="48,-4,48,48"
+            Margin="24"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
@@ -66,7 +67,7 @@
 
         <StackPanel
             x:Name="errorContent"
-            Margin="48,-4,48,48"
+            Margin="24"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
