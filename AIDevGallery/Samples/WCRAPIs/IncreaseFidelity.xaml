@@ -59,7 +59,7 @@
                     <controls:GridSplitter
                         x:Name="GridSplitter"
                         Grid.Column="1"
-                        Width="12"
+                        Width="16"
                         Padding="0"
                         HorizontalAlignment="Left"
                         BorderBrush="{ThemeResource SurfaceStrokeColorFlyoutBrush}"
