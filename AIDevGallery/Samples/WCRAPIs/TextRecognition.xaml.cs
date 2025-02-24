@@ -56,7 +56,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
             }
         }
 
-        _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png")); // <exclude-line>
+        _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
         sampleParams.NotifyCompletion();
     }
 

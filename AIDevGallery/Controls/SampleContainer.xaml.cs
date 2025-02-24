@@ -45,7 +45,7 @@ internal sealed partial class SampleContainer : UserControl
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
-    private ModelType _wcrApi;
+    private ModelType? _wcrApi;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -166,43 +166,33 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         // if WCR API, check if model is downloaded
-        var wcrApis = models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)).ToList();
-        if (wcrApis.Count > 0)
+        foreach (var wcrApi in models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
         {
-            var index = 0;
+            var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == wcrApi.Id).Key;
 
-            do
+            try
             {
-                var wcrApi = wcrApis[index];
-                var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == wcrApi.Id).Key;
-
-                try
+                if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
                 {
-                    if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
-                    {
-                        modelDownloader.State = WcrApiDownloadState.NotStarted;
-                        modelDownloader.ErrorMessage = string.Empty;
-                        modelDownloader.DownloadProgress = 0;
-                        SampleFrame.Content = null;
-                        _wcrApi = apiType;
+                    modelDownloader.State = WcrApiDownloadState.NotStarted;
+                    modelDownloader.ErrorMessage = string.Empty;
+                    modelDownloader.DownloadProgress = 0;
+                    SampleFrame.Content = null;
+                    _wcrApi = apiType;
 
-                        VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                        if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]))
-                        {
-                            return;
-                        }
+                    VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]))
+                    {
+                        return;
                     }
                 }
-                catch
-                {
-                    VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
-                    SampleFrame.Content = null;
-                    return;
-                }
-
-                ++index;
             }
-            while (index < wcrApis.Count);
+            catch
+            {
+                VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                SampleFrame.Content = null;
+                return;
+            }
         }
 
         // model available
@@ -422,19 +412,24 @@ internal sealed partial class SampleContainer : UserControl
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
     {
-        if (WcrApiHelpers.GetApiAvailability(_wcrApi) != WcrApiAvailability.Available)
+        if (_wcrApi == null)
         {
-            var op = WcrApiHelpers.MakeAvailables[_wcrApi]();
+            return;
+        }
+
+        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != WcrApiAvailability.Available)
+        {
+            var op = WcrApiHelpers.MakeAvailables[_wcrApi.Value]();
             if (await modelDownloader.SetDownloadOperation(op))
             {
                 // reload sample
-                _ = ReloadSampleAsync();
+                await ReloadSampleAsync();
             }
         }
         else
         {
             modelDownloader.State = WcrApiDownloadState.Downloaded;
-            _ = ReloadSampleAsync();
+            await ReloadSampleAsync();
         }
     }
 }

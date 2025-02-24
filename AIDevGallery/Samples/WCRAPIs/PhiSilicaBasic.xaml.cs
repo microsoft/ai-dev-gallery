@@ -47,7 +47,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
             }
         }
 
-        _ = GenerateText(InputTextBox.Text); // <exclude-line>
+        _ = GenerateText(InputTextBox.Text);
         sampleParams.NotifyCompletion();
     }
 

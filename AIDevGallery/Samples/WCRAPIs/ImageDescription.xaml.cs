@@ -51,11 +51,10 @@ internal sealed partial class ImageDescription : BaseSamplePage
             }
         }
 
-        _ = LoadDefaultImage(); // <exclude-line>
+        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
     }
 
-    // <exclude>
     private async Task LoadDefaultImage()
     {
         var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Road.png");
@@ -63,7 +62,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
         await SetImage(stream);
     }
 
-    // </exclude>
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
     {
         SendSampleInteractedEvent("LoadImageClicked");

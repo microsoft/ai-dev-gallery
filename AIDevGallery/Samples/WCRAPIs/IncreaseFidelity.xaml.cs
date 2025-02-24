@@ -28,6 +28,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     NugetPackageReferences = [
         "CommunityToolkit.WinUI.Controls.Sizers"
     ],
+    AssetFilenames = [
+        "Enhance.png"
+    ],
     Icon = "\uEE6F")]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
 {
@@ -50,11 +53,10 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
             }
         }
 
-        _ = LoadDefaultImage(); // <exclude-line>
+        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
     }
 
-    // <exclude>
     private async Task LoadDefaultImage()
     {
         var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Enhance.png");
@@ -62,7 +64,6 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         await SetImage(stream);
     }
 
-    // </exclude>
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
     {
         SendSampleInteractedEvent("LoadImageClicked");
