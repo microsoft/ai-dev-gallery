@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:samples="using:AIDevGallery.Samples"
-    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
 
     <Grid>
@@ -82,6 +81,5 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <shared:WcrModelDownloader x:Name="WcrModelDownloader" DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>
