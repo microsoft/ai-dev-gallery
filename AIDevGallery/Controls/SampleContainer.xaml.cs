@@ -107,6 +107,10 @@ internal sealed partial class SampleContainer : UserControl
 
     public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models)
     {
+        CancelCTS();
+        _sampleLoadingCts = new CancellationTokenSource();
+        var currentLoadingCts = _sampleLoadingCts;
+
         if (sample == null)
         {
             this.Visibility = Visibility.Collapsed;
@@ -118,8 +122,6 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
-
-        CancelCTS();
 
         if (models == null)
         {
@@ -178,7 +180,9 @@ internal sealed partial class SampleContainer : UserControl
                     SampleFrame.Content = null;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync))
+                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync) ||
+                        currentLoadingCts != _sampleLoadingCts ||
+                        currentLoadingCts.IsCancellationRequested)
                     {
                         return;
                     }
@@ -196,7 +200,6 @@ internal sealed partial class SampleContainer : UserControl
         VisualStateManager.GoToState(this, "SampleLoading", true);
         SampleFrame.Content = null;
 
-        _sampleLoadingCts = new CancellationTokenSource();
         _sampleLoadedCompletionSource = new TaskCompletionSource();
         BaseSampleNavigationParameters sampleNavigationParameters;
 
@@ -239,8 +242,11 @@ internal sealed partial class SampleContainer : UserControl
 
         await _sampleLoadedCompletionSource.Task;
 
-        _sampleLoadedCompletionSource = null;
-        _sampleLoadingCts = null;
+        if (currentLoadingCts != _sampleLoadingCts || currentLoadingCts.IsCancellationRequested)
+        {
+            // we are no longer in the same sample
+            return;
+        }
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
@@ -407,11 +413,15 @@ internal sealed partial class SampleContainer : UserControl
     {
         if (!LanguageModel.IsAvailable())
         {
+            var sample = _sampleCache;
+            var model = _modelsCache;
+            var currentCts = _sampleLoadingCts;
+
             var op = LanguageModel.MakeAvailableAsync();
-            if (await modelDownloader.SetDownloadOperation(op))
+            if (await modelDownloader.SetDownloadOperation(op) && currentCts == _sampleLoadingCts)
             {
                 // reload sample
-                _ = this.LoadSampleAsync(_sampleCache, _modelsCache);
+                _ = this.LoadSampleAsync(sample, model);
             }
         }
         else
