@@ -224,6 +224,28 @@
           }
         },
         "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/yolov4/README.md"
+      },
+      "MediaPipeHandLandmarkDetector": {
+        "Id": "mediapipehandlandmarkdetector",
+        "Name": "MediaPipe Hand Landmark Detector",
+        "Description": "The MediaPipe Hand Landmark Detector is a machine learning pipeline that predicts bounding boxes and pose skeletons of hands in an image.",
+        "DocsUrl": "https://huggingface.co/qualcomm/MediaPipe-Hand-Detection/blob/main/README.md",
+        "Models": {
+          "MediaPipeHandLandmarkDetector": {
+            "Id": "b7cae3a2-478f-1117-9519-709df5dfe713",
+            "Name": "MediaPipeHandLandmarkDetector",
+            "Url": "https://huggingface.co/qualcomm/MediaPipe-Hand-Detection/blob/main/MediaPipeHandLandmarkDetector.onnx",
+            "Description": "The MediaPipe Hand Landmark Detector is a machine learning pipeline that predicts bounding boxes and pose skeletons of hands in an image.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML"
+            ],
+            "SupportedOnQualcomm": true,
+            "Size": 8093916,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/MediaPipe-Hand-Detection/blob/main/README.md"
       }
     }
   }
