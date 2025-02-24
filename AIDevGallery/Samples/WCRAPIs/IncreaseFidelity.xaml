@@ -12,13 +12,13 @@
 
     <Grid ColumnSpacing="24">
         <Grid.Resources>
-            <SolidColorBrush x:Key="SizerBaseBackground" Color="{StaticResource ControlFillColorDefault}" />
-            <SolidColorBrush x:Key="SizerBaseBackgroundPointerOver" Color="{StaticResource ControlFillColorSecondary}" />
-            <SolidColorBrush x:Key="SizerBaseBackgroundPressed" Color="{StaticResource ControlFillColorTertiary}" />
+            <SolidColorBrush x:Key="SizerBaseBackground" Color="{StaticResource ControlOnImageFillColorDefault}" />
+            <SolidColorBrush x:Key="SizerBaseBackgroundPointerOver" Color="{StaticResource ControlOnImageFillColorSecondary}" />
+            <SolidColorBrush x:Key="SizerBaseBackgroundPressed" Color="{StaticResource ControlOnImageFillColorTertiary}" />
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MaxWidth="600" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" MinWidth="160" />
         </Grid.ColumnDefinitions>
         <Grid
             MinWidth="240"
@@ -26,8 +26,8 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
-            BorderThickness="3"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="2"
             CornerRadius="{StaticResource OverlayCornerRadius}">
             <Viewbox
                 x:Name="ImageViewbox"
@@ -59,9 +59,11 @@
                     <controls:GridSplitter
                         x:Name="GridSplitter"
                         Grid.Column="1"
-                        Width="8"
+                        Width="12"
                         Padding="0"
                         HorizontalAlignment="Left"
+                        BorderBrush="{ThemeResource SurfaceStrokeColorFlyoutBrush}"
+                        BorderThickness="1,0,1,0"
                         ResizeBehavior="BasedOnAlignment"
                         ResizeDirection="Auto">
                         <controls:GridSplitter.RenderTransform>
@@ -90,7 +92,10 @@
                 Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
                 CornerRadius="{StaticResource ControlCornerRadius}">
                 <TextBlock>
-                    <Run FontSize="12" Text="New" /><LineBreak />
+                    <Run
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="New" /><LineBreak />
                     <Run x:Name="ScaledDimensionsTxt" FontWeight="SemiBold" />
                 </TextBlock>
             </Grid>
@@ -102,8 +107,8 @@
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
                 CornerRadius="{StaticResource ControlCornerRadius}">
-                <TextBlock TextAlignment="Right">
-                    <Run FontSize="12" Text="Original" /><LineBreak />
+                <TextBlock FontSize="12" TextAlignment="Right">
+                    <Run Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Original" /><LineBreak />
                     <Run x:Name="OriginalDimensionsTxt" FontWeight="SemiBold" />
                 </TextBlock>
             </Grid>
@@ -133,6 +138,7 @@
         <StackPanel
             x:Name="OptionsPanel"
             Grid.Column="1"
+            HorizontalAlignment="Stretch"
             Orientation="Vertical"
             Spacing="8">
             <TextBlock>
@@ -141,7 +147,6 @@
             </TextBlock>
             <Slider
                 x:Name="ScaleSlider"
-                Width="164"
                 AutomationProperties.Name="Scale factor"
                 IsThumbToolTipEnabled="False"
                 Maximum="8"

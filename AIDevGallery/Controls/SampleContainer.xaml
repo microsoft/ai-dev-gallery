@@ -16,51 +16,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="ModelEnabledStates">
-                <VisualState x:Name="Default" />
-                <VisualState x:Name="Disabled">
-                    <VisualState.Setters>
-                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoading">
-                    <VisualState.Setters>
-                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
-                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="WcrApiNotCompatible">
-                    <VisualState.Setters>
-                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="WcrModelNeedsDownload">
-                    <VisualState.Setters>
-                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="SampleLoaded">
-                    <VisualState.Setters>
-                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
-                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup x:Name="CodeStates">
-                <VisualState x:Name="HideCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeColumn.Width" Value="0" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="ShowCodePane">
-                    <VisualState.Setters>
-                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
-                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
         <!--<TextBlock x:Name="descriptionTextBlock" TextWrapping="WrapWholeWords" />-->
         <Grid
             x:Name="SampleCard"
@@ -137,7 +92,7 @@
 
                 <StackPanel
                     x:Name="wcrModelUnavailable"
-                    Margin="48,-4,48,48"
+                    Margin="48,0,48,48"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Orientation="Vertical"
@@ -229,5 +184,50 @@
                 </toolkitcontrols:GridSplitter.RenderTransform>
             </toolkitcontrols:GridSplitter>
         </Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ModelEnabledStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="Disabled">
+                    <VisualState.Setters>
+                        <Setter Target="warningInfoBar.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoading">
+                    <VisualState.Setters>
+                        <Setter Target="loadingRingContainer.Visibility" Value="Visible" />
+                        <Setter Target="sampleLoadingProgressRing.IsActive" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrApiNotCompatible">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelUnavailable.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WcrModelNeedsDownload">
+                    <VisualState.Setters>
+                        <Setter Target="wcrModelDownloaderHost.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SampleLoaded">
+                    <VisualState.Setters>
+                        <Setter Target="SampleFrame.Visibility" Value="Visible" />
+                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="CodeStates">
+                <VisualState x:Name="HideCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeColumn.Width" Value="0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ShowCodePane">
+                    <VisualState.Setters>
+                        <Setter Target="CodeGrid.Visibility" Value="Visible" />
+                        <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </UserControl>
