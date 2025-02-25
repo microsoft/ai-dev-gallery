@@ -20,7 +20,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Semantic Kernel Chat",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Id = "0d20e41d-d2d4-4e49-b55a-2a38a02db482",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextSemanticKernelChat,
