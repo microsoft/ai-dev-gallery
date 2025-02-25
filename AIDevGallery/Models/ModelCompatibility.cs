@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using System;
+using System.Linq;
 
 namespace AIDevGallery.Models;
 
@@ -20,9 +22,23 @@ internal class ModelCompatibility
     public static ModelCompatibility GetModelCompatibility(ModelDetails modelDetails)
     {
         string description = string.Empty;
-
         ModelCompatibilityState compatibility;
-        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
+
+        // check if WCR API
+        if (ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id))
+        {
+            var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
+            if (AppUtils.HasNpu() && WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.NotSupported)
+            {
+                compatibility = ModelCompatibilityState.Compatible;
+            }
+            else
+            {
+                compatibility = ModelCompatibilityState.NotCompatible;
+                description = "This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels).";
+            }
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
         {
             compatibility = ModelCompatibilityState.Compatible;
@@ -43,7 +59,7 @@ internal class ModelCompatibility
             else if (modelDetails.Size + BytesInGB < vram)
             {
                 compatibility = ModelCompatibilityState.NotRecomended;
-                description = $"This model is not recomended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
+                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
             }
             else
             {

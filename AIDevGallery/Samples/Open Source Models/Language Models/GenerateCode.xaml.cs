@@ -20,14 +20,10 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.CodeGenerateCode,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
     NugetPackageReferences = [
         "ColorCode.WinUI",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Name = "Generate Code",
@@ -35,8 +31,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class GenerateCode : BaseSamplePage
 {
+    private const int _defaultMaxLength = 1024;
     private RichTextBlockFormatter formatter;
-    private IChatClient? model;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
 
     public ObservableCollection<string> LanguageStrings { get; } = ["C#", "C++", "Java", "Python", "JavaScript", "TypeScript"];
@@ -55,8 +52,8 @@ internal sealed partial class GenerateCode : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = GenAIModel.DefaultMaxLength;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _defaultMaxLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -70,7 +67,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
     private void CleanUp()
     {
         CancelGenerate();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -89,7 +86,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
 
     public void GenerateSolution(string problem, string currentLanguage)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -108,7 +105,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, problem)
@@ -202,16 +199,16 @@ internal sealed partial class GenerateCode : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= GenAIModel.DefaultMaxLength)
+            if (inputLength >= _defaultMaxLength)
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {GenAIModel.DefaultMaxLength}";
+                InputTextBox.Description = $"{inputLength} of {_defaultMaxLength}";
             }
 
-            GenerateButton.IsEnabled = inputLength <= GenAIModel.DefaultMaxLength;
+            GenerateButton.IsEnabled = inputLength <= _defaultMaxLength;
         }
         else
         {

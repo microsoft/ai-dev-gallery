@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.BackgroundRemover"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MaxWidth="600" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid
+            MinWidth="240"
+            MaxWidth="600"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="2"
+            CornerRadius="{StaticResource OverlayCornerRadius}">
+            <Viewbox
+                x:Name="ImageViewbox"
+                Margin="-1"
+                VerticalAlignment="Stretch"
+                Stretch="Uniform">
+                <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
+                    <Image x:Name="CanvasImage" PointerPressed="CanvasImage_PointerPressed" />
+                    <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
+                </Grid>
+            </Viewbox>
+            <Grid
+                Margin="8"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <DropDownButton
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="Select image"
+                    ToolTipService.ToolTip="Select image">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <FontIcon Glyph="&#xEE71;" />
+                </DropDownButton>
+            </Grid>
+        </Grid>
+        <StackPanel
+            Grid.Column="1"
+            MaxWidth="168"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Orientation="Vertical"
+            Spacing="8">
+            <Button
+                x:Name="RevertButton"
+                Click="RevertButton_Click"
+                Content="Revert"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="Collapsed" />
+            <Button
+                x:Name="RemoveBackgroundButton"
+                Click="RemoveBackground_Click"
+                Content="Remove background"
+                IsEnabled="False"
+                Style="{ThemeResource AccentButtonStyle}" />
+            <Button
+                x:Name="ClearSelectionButton"
+                Click="CleanSelection_Click"
+                Content="Clear selected points" />
+            <TextBlock
+                x:Name="InstructionText"
+                Margin="0,12,0,0"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</samples:BaseSamplePage>

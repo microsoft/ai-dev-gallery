@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -23,7 +22,6 @@ internal sealed partial class ModelPage : Page
 {
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
-    public bool IsNotApi => !modelFamilyType.HasValue || !ModelTypeHelpers.ApiDefinitionDetails.ContainsKey(modelFamilyType.Value);
 
     public ModelPage()
     {
@@ -58,21 +56,6 @@ internal sealed partial class ModelPage : Page
                 Name = details.Name
             };
         }
-        else if (e.Parameter is ModelType apiType && ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(apiType, out var apiDefinition))
-        {
-            // API
-            modelFamilyType = apiType;
-
-            ModelFamily = new ModelFamily
-            {
-                Id = apiDefinition.Id,
-                ReadmeUrl = apiDefinition.ReadmeUrl,
-                DocsUrl = apiDefinition.ReadmeUrl,
-                Name = apiDefinition.Name,
-            };
-
-            modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
-        }
         else
         {
             throw new InvalidOperationException("Invalid navigation parameter");
@@ -84,7 +67,7 @@ internal sealed partial class ModelPage : Page
         }
         else
         {
-            summaryGrid.Visibility = Visibility.Collapsed;
+            DocumentationCard.Visibility = Visibility.Collapsed;
         }
 
         EnableSampleListIfModelIsDownloaded();
@@ -130,7 +113,8 @@ internal sealed partial class ModelPage : Page
 
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
-            readmeContents = Regex.Replace(readmeContents, @"\A---\n[\s\S]*?---\n", string.Empty, RegexOptions.Multiline);
+            readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
+
             markdownTextBlock.Text = readmeContents;
         }
 
@@ -144,21 +128,11 @@ internal sealed partial class ModelPage : Page
             yield break;
         }
 
-        if (modelTypes.Count == 0)
-        {
-            // Its an API
-            modelTypes = [modelFamilyType.Value];
-        }
-
         foreach (var modelType in modelTypes)
         {
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
                 yield return modelDetails;
-            }
-            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinition))
-            {
-                yield return ModelDetailsHelper.GetModelDetailsFromApiDefinition(modelType, apiDefinition);
             }
         }
     }
@@ -192,10 +166,12 @@ internal sealed partial class ModelPage : Page
 
     private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
     {
-        ModelDetailsLinkClickedEvent.Log(e.Link);
+        string link = e.Link;
+
+        ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()
         {
-            FileName = e.Link,
+            FileName = link,
             UseShellExecute = true
         });
     }

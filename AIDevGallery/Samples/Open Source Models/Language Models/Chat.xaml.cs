@@ -19,21 +19,17 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Chat",
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Id = "feb39ede-cb55-4e36-9ec6-cf7c5333254f",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     SharedCode = [
-        SharedCodeEnum.GenAIModel,
         SharedCodeEnum.Message,
-        SharedCodeEnum.LlmPromptTemplate,
         SharedCodeEnum.ChatTemplateSelector,
-        SharedCodeEnum.Utils
     ])]
 internal sealed partial class Chat : BaseSamplePage
 {

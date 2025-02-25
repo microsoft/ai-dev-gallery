@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Samples;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -20,11 +22,30 @@ namespace AIDevGallery.Controls;
 
 internal sealed partial class SampleContainer : UserControl
 {
+    public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Center));
+
+    public HorizontalAlignment DisclaimerHorizontalAlignment
+    {
+        get => (HorizontalAlignment)GetValue(DisclaimerHorizontalAlignmentProperty);
+        set => SetValue(DisclaimerHorizontalAlignmentProperty, value);
+    }
+
+    public List<string> NugetPackageReferences
+    {
+        get { return (List<string>)GetValue(NugetPackageReferencesProperty); }
+        set { SetValue(NugetPackageReferencesProperty, value); }
+    }
+
+    public static readonly DependencyProperty NugetPackageReferencesProperty =
+        DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
+
     private Sample? _sampleCache;
+    private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
+    private ModelType? _wcrApi;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -136,16 +157,58 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        // show that models are not compatible with this device
+        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
+        {
+            VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+            SampleFrame.Content = null;
+            return;
+        }
+
+        _sampleLoadingCts = new CancellationTokenSource();
+        var token = _sampleLoadingCts.Token;
+
+        // if WCR API, check if model is downloaded
+        foreach (var wcrApi in models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
+        {
+            var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == wcrApi.Id).Key;
+
+            try
+            {
+                if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
+                {
+                    modelDownloader.State = WcrApiDownloadState.NotStarted;
+                    modelDownloader.ErrorMessage = string.Empty;
+                    modelDownloader.DownloadProgress = 0;
+                    SampleFrame.Content = null;
+                    _wcrApi = apiType;
+
+                    VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]).WaitAsync(token))
+                    {
+                        return;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                SampleFrame.Content = null;
+                return;
+            }
+        }
+
         // model available
         VisualStateManager.GoToState(this, "SampleLoading", true);
         SampleFrame.Content = null;
 
-        _sampleLoadingCts = new CancellationTokenSource();
         _sampleLoadedCompletionSource = new TaskCompletionSource();
         BaseSampleNavigationParameters sampleNavigationParameters;
-
         var modelPath = cachedModelsPaths.First();
-        var token = _sampleLoadingCts.Token;
 
         if (cachedModelsPaths.Count == 1)
         {
@@ -181,7 +244,19 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
         SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
-        await _sampleLoadedCompletionSource.Task;
+        try
+        {
+            await _sampleLoadedCompletionSource.Task.WaitAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts = null;
+        }
 
         _sampleLoadedCompletionSource = null;
         _sampleLoadingCts = null;
@@ -227,7 +302,17 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
-        _modelsCache = models;
+
+        if (models != null)
+        {
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+
+            if (_cachedModels != null)
+            {
+                NugetPackageReferences = sample.GetAllNugetPackageReferences(_cachedModels);
+                _modelsCache = models;
+            }
+        }
 
         if (sample == null)
         {
@@ -263,9 +348,9 @@ internal sealed partial class SampleContainer : UserControl
             CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml", _sampleCache.XAMLCode, Languages.FindById("xaml")));
         }
 
-        if (_sampleCache.SharedCode != null && _sampleCache.SharedCode.Count != 0)
+        if (_cachedModels != null)
         {
-            foreach (var sharedCodeEnum in _sampleCache.SharedCode)
+            foreach (var sharedCodeEnum in _sampleCache.GetAllSharedCode(_cachedModels))
             {
                 string sharedCodeName = Samples.SharedCodeHelpers.GetName(sharedCodeEnum);
                 string sharedCodeContent = Samples.SharedCodeHelpers.GetSource(sharedCodeEnum);
@@ -328,6 +413,39 @@ internal sealed partial class SampleContainer : UserControl
         if (sender is HyperlinkButton button && button.Tag is string url)
         {
             await Windows.System.Launcher.LaunchUriAsync(new Uri("https://www.nuget.org/packages/" + url));
+        }
+    }
+
+    private Task ReloadSampleAsync()
+    {
+        var models = _modelsCache;
+        var sample = _sampleCache;
+        _modelsCache = null;
+        _sampleCache = null;
+
+        return LoadSampleAsync(sample, models);
+    }
+
+    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
+    {
+        if (_wcrApi == null)
+        {
+            return;
+        }
+
+        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != WcrApiAvailability.Available)
+        {
+            var op = WcrApiHelpers.MakeAvailables[_wcrApi.Value]();
+            if (await modelDownloader.SetDownloadOperation(op))
+            {
+                // reload sample
+                await ReloadSampleAsync();
+            }
+        }
+        else
+        {
+            modelDownloader.State = WcrApiDownloadState.Downloaded;
+            await ReloadSampleAsync();
         }
     }
 }

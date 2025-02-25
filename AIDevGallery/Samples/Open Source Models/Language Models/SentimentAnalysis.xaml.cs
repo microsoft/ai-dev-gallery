@@ -14,13 +14,9 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
-    Model1Types = [ModelType.LanguageModels],
+    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextAnalyzeSentimentText,
-    SharedCode = [
-        SharedCodeEnum.GenAIModel
-    ],
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.Extensions.AI.Abstractions"
     ],
     Name = "Sentiment Analysis",
@@ -28,8 +24,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4")]
 internal sealed partial class SentimentAnalysis : BaseSamplePage
 {
-    private readonly ChatOptions chatOptions = GenAIModel.GetDefaultChatOptions();
-    private IChatClient? model;
+    private const int _maxTokenLength = 1024;
+    private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
 
@@ -42,8 +38,8 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+        chatClient = await sampleParams.GetIChatClientAsync();
+        InputTextBox.MaxLength = _maxTokenLength;
         sampleParams.NotifyCompletion();
     }
 
@@ -57,7 +53,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
     private void CleanUp()
     {
         CancelSentiment();
-        model?.Dispose();
+        chatClient?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -76,7 +72,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
 
     public void AnalyzeSentiment(string text)
     {
-        if (model == null)
+        if (chatClient == null)
         {
             return;
         }
@@ -103,12 +99,12 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
 
                 var matchFound = false;
 
-                await foreach (var messagePart in model.GetStreamingResponseAsync(
+                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
                     ],
-                    chatOptions,
+                    new() { MaxOutputTokens = _maxTokenLength },
                     cts.Token))
                 {
                     response += messagePart;
@@ -175,16 +171,16 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= chatOptions.MaxOutputTokens)
+            if (inputLength >= _maxTokenLength)
             {
-                InputTextBox.Description = $"{inputLength} of {chatOptions.MaxOutputTokens}. Max characters reached.";
+                InputTextBox.Description = $"{inputLength} of {_maxTokenLength}. Max characters reached.";
             }
             else
             {
-                InputTextBox.Description = $"{inputLength} of {chatOptions.MaxOutputTokens}";
+                InputTextBox.Description = $"{inputLength} of {_maxTokenLength}";
             }
 
-            SentimentButton.IsEnabled = inputLength <= chatOptions.MaxOutputTokens;
+            SentimentButton.IsEnabled = inputLength <= _maxTokenLength;
         }
         else
         {

@@ -106,14 +106,7 @@ internal sealed partial class ModelSelectionPage : Page
 
     public void ShowHideNavPane()
     {
-        if (NavView.OpenPaneLength == 0)
-        {
-            NavView.OpenPaneLength = 248;
-        }
-        else
-        {
-            NavView.OpenPaneLength = 0;
-        }
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 224 : 0;
     }
 
     private void SetUpModels()
@@ -138,12 +131,15 @@ internal sealed partial class ModelSelectionPage : Page
 
         foreach (var key in rootModels.OrderBy(ModelTypeHelpers.GetModelOrder))
         {
-            var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
-            NavView.MenuItems.Add(navItem);
-
-            if (key == ModelType.LanguageModels)
+            if (key != ModelType.WCRAPIs)
             {
-                languageModelsNavItem = navItem;
+                var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
+                NavView.MenuItems.Add(navItem);
+
+                if (key == ModelType.LanguageModels)
+                {
+                    languageModelsNavItem = navItem;
+                }
             }
         }
 

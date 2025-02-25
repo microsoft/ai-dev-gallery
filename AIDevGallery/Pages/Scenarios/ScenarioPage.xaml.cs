@@ -59,84 +59,45 @@ internal sealed partial class ScenarioPage : Page
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
-        List<Dictionary<ModelType, List<ModelDetails>>>? modelsDetailsDict = null;
 
         if (samples.Count == 0)
         {
             return;
         }
-        else if (samples.Count == 1)
+
+        List<ModelDetails> modelDetailsList = new();
+        List<ModelDetails> modelDetailsList2 = new();
+
+        foreach (var s in samples)
         {
-            modelsDetailsDict = ModelDetailsHelper.GetModelDetails(samples.First());
-        }
-        else
-        {
-            var sample = samples.First();
-            var modelKey = sample.Model1Types.First(); // First only?
+            var models = ModelDetailsHelper.GetModelDetails(s);
 
-            if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey)))
+            // Model1Types
+            if (models.Count > 0)
             {
-                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey)).Key;
+                modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
 
-                var listModelDetails = new List<ModelDetails>();
-
-                foreach (var s in samples)
+                // Model2Types
+                if (models.Count > 1)
                 {
-                    listModelDetails.AddRange(ModelDetailsHelper.GetModelDetails(s).First().First().Value);
-                }
-
-                modelsDetailsDict =
-                [
-                    new Dictionary<ModelType, List<ModelDetails>>
-                    {
-                        [parentKey] = listModelDetails
-                    }
-                ];
-            }
-
-            if (sample.Model2Types != null)
-            {
-                var modelKey2 = sample.Model2Types.First(); // First only?
-
-                if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelKey2)))
-                {
-                    var parentKey2 = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelKey2)).Key;
-
-                    var listModelDetails2 = new List<ModelDetails>();
-
-                    foreach (var s in samples)
-                    {
-                        listModelDetails2.AddRange(ModelDetailsHelper.GetModelDetails(s).ElementAt(1).First().Value);
-                    }
-
-                    modelsDetailsDict ??= [];
-
-                    modelsDetailsDict.Add(
-                        new Dictionary<ModelType, List<ModelDetails>>
-                        {
-                            [parentKey2] = listModelDetails2
-                        });
+                    modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
                 }
             }
         }
 
-        if (modelsDetailsDict == null)
+        if (modelDetailsList.Count == 0)
         {
             return;
         }
 
-        var models = modelsDetailsDict.First().SelectMany(g => g.Value).ToList();
-
-        selectedModelDetails = SelectLatestOrDefault(models);
-
-        if (modelsDetailsDict.Count > 1)
+        if (modelDetailsList2.Count > 1)
         {
-            var models2 = modelsDetailsDict.ElementAt(1).SelectMany(g => g.Value).ToList();
-            selectedModelDetails2 = SelectLatestOrDefault(models2);
-            modelSelectionControl2.SetModels(models2, initialModelToLoad);
+            selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
+            modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
         }
 
-        modelSelectionControl.SetModels(models, initialModelToLoad);
+        selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
+        modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
         UpdateModelSelectionPlaceholderControl();
     }
 
@@ -287,59 +248,11 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        Dictionary<ModelType, (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator)> cachedModels = [];
+        var cachedModels = sample.GetCacheModelDetailsDictionary([selectedModelDetails, selectedModelDetails2]);
 
-        (string Id, string Path, string Url, long ModelSize, HardwareAccelerator HardwareAccelerator) cachedModel;
-
-        if (selectedModelDetails.Size == 0)
+        if (cachedModels == null)
         {
-            cachedModel = (selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
-        }
-        else
-        {
-            var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails.Url);
-            if (realCachedModel == null)
-            {
-                return;
-            }
-
-            cachedModel = (selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
-        }
-
-        var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
-
-        var model1Type = sample.Model1Types.Any(cachedSampleItem.Contains)
-            ? sample.Model1Types.First(cachedSampleItem.Contains)
-            : sample.Model1Types.First();
-        cachedModels.Add(model1Type, cachedModel);
-
-        if (sample.Model2Types != null)
-        {
-            if (selectedModelDetails2 == null)
-            {
-                return;
-            }
-
-            if (selectedModelDetails2.Size == 0)
-            {
-                cachedModel = (selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
-            }
-            else
-            {
-                var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails2.Url);
-                if (realCachedModel == null)
-                {
-                    return;
-                }
-
-                cachedModel = (selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
-            }
-
-            var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
-                ? sample.Model2Types.First(cachedSampleItem.Contains)
-                : sample.Model2Types.First();
-
-            cachedModels.Add(model2Type, cachedModel);
+            return;
         }
 
         ContentDialog? dialog = null;
@@ -377,13 +290,9 @@ internal sealed partial class ScenarioPage : Page
                     };
                     _ = dialog.ShowAsync();
 
-                    Dictionary<ModelType, (string CachedModelDirectoryPath, string ModelUrl, HardwareAccelerator HardwareAccelerator)> cachedModelsToGenerator = cachedModels
-                        .Select(cm => (cm.Key, (cm.Value.Path, cm.Value.Url, cm.Value.HardwareAccelerator)))
-                        .ToDictionary(x => x.Key, x => (x.Item2.Path, x.Item2.Url, x.Item2.HardwareAccelerator));
-
                     var projectPath = await generator.GenerateAsync(
                         sample,
-                        cachedModelsToGenerator,
+                        cachedModels,
                         copyRadioButton.IsChecked == true && copyRadioButtons.Visibility == Visibility.Visible,
                         folder.Path,
                         CancellationToken.None);
