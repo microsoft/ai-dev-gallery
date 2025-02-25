@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.WCRAPIs;
@@ -27,6 +28,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
     private LanguageModel? _languageModel;
+    private CancellationTokenSource? _cts;
 
     public PhiSilicaBasic()
     {
@@ -92,6 +94,8 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         IsProgressVisible = true;
 
         _languageModel ??= await LanguageModel.CreateAsync();
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
 
         var operation = _languageModel.GenerateResponseWithProgressAsync(prompt);
         operation.Progress = (asyncInfo, delta) =>
@@ -113,6 +117,10 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
                 }
 
                 GenerateTextBlock.Text = asyncInfo.GetResults().Response;
+                if (_cts?.IsCancellationRequested == true)
+                {
+                    operation.Cancel();
+                }
             });
         };
 
@@ -122,6 +130,8 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         StopBtn.Visibility = Visibility.Collapsed;
         GenerateButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
+        _cts?.Dispose();
+        _cts = null;
     }
 
     private void GenerateButton_Click(object sender, RoutedEventArgs e)
@@ -149,6 +159,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         IsProgressVisible = false;
         GenerateButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
+        _cts?.Cancel();
     }
 
     private void StopBtn_Click(object sender, RoutedEventArgs e)
