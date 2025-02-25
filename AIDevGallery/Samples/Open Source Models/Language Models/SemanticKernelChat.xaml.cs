@@ -26,11 +26,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextSemanticKernelChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
         "Microsoft.SemanticKernel.Core"
     ],
     SharedCode = [
-        SharedCodeEnum.GenAIModel,
         SharedCodeEnum.ChatTemplateSelector,
         SharedCodeEnum.Message,
     ])]
