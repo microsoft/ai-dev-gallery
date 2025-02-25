@@ -13,11 +13,13 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
 
@@ -330,6 +332,94 @@ internal sealed partial class AddModelPage : Page
     private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
     {
         this.Focus(FocusState.Programmatic);
+    }
+
+    private async void AddLocalClicked(object sender, RoutedEventArgs e)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            var files = Directory.GetFiles(folder.Path);
+            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
+            {
+                var message = string.IsNullOrEmpty(config) ?
+                    "The folder does not contain a model you can add. Ensure \"genai_config.json\" is present in the selected directory" :
+                    "This model is already added";
+
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't add model",
+                    Content = message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+            string configContents = string.Empty;
+            GenAIConfig? genAIConfig;
+            try
+            {
+                configContents = await File.ReadAllTextAsync(config);
+
+                genAIConfig = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+                if (genAIConfig == null)
+                {
+                    throw new FileLoadException("genai_config.json is not valid");
+                }
+            }
+            catch (Exception ex)
+            {
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't read genai_config.json",
+                    Content = ex.Message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.InvariantCultureIgnoreCase))
+            {
+                accelerator = HardwareAccelerator.QNN;
+            }
+            else if (genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+            {
+                accelerator = HardwareAccelerator.DML;
+            }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
+            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
+
+            var details = new ModelDetails()
+            {
+                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
+                Name = Path.GetFileNameWithoutExtension(folder.Path),
+                Url = $"local-file:///{folder.Path}",
+                Description = "Localy added GenAI Model",
+                HardwareAccelerators = [accelerator],
+                IsUserAdded = true,
+                PromptTemplate = GetTemplateFromName(folder.Path),
+                Size = dirSize,
+                ReadmeUrl = null,
+                License = "unknown"
+            };
+
+            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+        }
     }
 }
 

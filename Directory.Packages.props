@@ -19,10 +19,11 @@
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Build" Version="17.12.6" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.20.1" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime.Qnn" Version="1.20.2" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime.QNN" Version="1.22.0-dev-20250224-0542-e46c0d8" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.13.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.7.250127003-experimental3" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI" Version="0.6.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" Version="0.6.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.6.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.6.0" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.1.240916" />

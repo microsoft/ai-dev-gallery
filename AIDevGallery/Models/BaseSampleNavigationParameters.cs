@@ -13,6 +13,7 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
     public CancellationToken CancellationToken { get; private set; } = loadingCanceledToken;
 
     protected abstract string ChatClientModelPath { get; }
+    protected abstract HardwareAccelerator ChatClientHardwareAccelerator { get; }
     protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
     public void NotifyCompletion()
@@ -27,7 +28,11 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
             return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
         }
 
-        return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
+        return await GenAIModel.CreateAsync(
+            ChatClientModelPath,
+            ChatClientPromptTemplate,
+            ChatClientHardwareAccelerator == HardwareAccelerator.QNN ? "qnn" : null,
+            CancellationToken).ConfigureAwait(false);
     }
 
     internal abstract void SendSampleInteractionEvent(string? customInfo = null);

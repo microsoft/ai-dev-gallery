@@ -83,13 +83,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="$(Platform) == 'ARM64'">
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" GeneratePathProperty="true" ExcludeAssets="all" />
-    <None Include="$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\runtimes\win-arm64\native\onnxruntime-genai.dll">
-	    <Link>onnxruntime-genai.dll</Link>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Visible>false</Visible>
-    </None>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.QNN" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
   </ItemGroup>
 	

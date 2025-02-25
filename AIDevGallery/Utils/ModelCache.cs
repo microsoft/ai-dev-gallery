@@ -82,6 +82,13 @@ internal class ModelCache
         return download;
     }
 
+    public async Task<CachedModel> AddLocalModelToCache(ModelDetails modelDetails, string modelPath, bool isFile = false)
+    {
+        var cachedModel = new CachedModel(modelDetails, modelPath, isFile, modelDetails.Size);
+        await CacheStore.AddModel(cachedModel);
+        return cachedModel;
+    }
+
     public CachedModel? GetCachedModel(string url)
     {
         url = UrlHelpers.GetFullUrl(url);
