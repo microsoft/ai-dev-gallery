@@ -56,6 +56,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ProgressRing
                     x:Name="Loader"
@@ -74,6 +75,22 @@
                     IsTextSelectionEnabled="True"
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
+                <Button
+                    Grid.Column="2"
+                    x:Name="StopBtn"
+                    MinWidth="86"
+                    AutomationProperties.Name="Stop"
+                    Click="StopBtn_Click"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Visibility="Visible">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon
+                            x:Name="StopIcon"
+                            FontSize="16"
+                            Glyph="&#xE73B;" />
+                        <TextBlock Text="Stop" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </Grid>
