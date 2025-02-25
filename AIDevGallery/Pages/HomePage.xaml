@@ -2,19 +2,9 @@
     x:Class="AIDevGallery.Pages.HomePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
-    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     xmlns:controls="using:AIDevGallery.Controls"
-    xmlns:converters="using:AIDevGallery.Converters"
-    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:interactions="using:Microsoft.Xaml.Interactions.Core"
-    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-    xmlns:local="using:AIDevGallery.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:AIDevGallery.Models"
-    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
-    xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
@@ -27,20 +17,77 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <controls:HeaderCarousel Height="436" />
+                <controls:HeaderCarousel Margin="0,0,0,-12" />
+
                 <StackPanel
+                    x:Name="RecentPanel"
                     Grid.Row="1"
-                    Margin="0,0,0,76"
-                    Orientation="Vertical">
+                    Margin="0,0,0,48"
+                    Orientation="Vertical"
+                    Spacing="16"
+                    Visibility="Collapsed">
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontWeight="SemiBold"
-                        Style="{StaticResource SubtitleTextBlockStyle}"
-                        Text="Get started with these samples" />
-                    <controls:SamplesCarousel Margin="0,32,0,48" />
+                        Style="{StaticResource TitleTextBlockStyle}"
+                        Text="Recent samples" />
+                    <controls:TileGallery>
+                        <controls:TileGallery.Source>
+                            <ItemsView
+                                x:Name="MRUView"
+                                IsItemInvokedEnabled="True"
+                                ItemInvoked="MRUView_ItemInvoked"
+                                ItemsSource="{x:Bind mostRecentlyUsedItems}"
+                                SelectionMode="None">
+                                <ItemsView.Layout>
+                                    <UniformGridLayout MinColumnSpacing="8" MinRowSpacing="8" />
+                                </ItemsView.Layout>
+                                <ItemsView.ItemTemplate>
+                                    <DataTemplate x:DataType="utils:MostRecentlyUsedItem">
+                                        <ItemContainer AutomationProperties.Name="{x:Bind DisplayName}">
+                                            <Grid
+                                                Width="274"
+                                                Height="96"
+                                                Padding="16"
+                                                RowSpacing="8"
+                                                Style="{StaticResource CardGridStyle}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <FontIcon
+                                                        AutomationProperties.AccessibilityView="Raw"
+                                                        FontSize="20"
+                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                        Glyph="{x:Bind Icon}" />
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                        Text="{x:Bind DisplayName}" />
+                                                </StackPanel>
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="{x:Bind Description}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </ItemContainer>
+                                    </DataTemplate>
+                                </ItemsView.ItemTemplate>
+                            </ItemsView>
+                        </controls:TileGallery.Source>
+                    </controls:TileGallery>
                 </StackPanel>
+                <controls:GettingStartedSection
+                    Grid.Row="2"
+                    MaxWidth="800"
+                    Margin="0,0,0,48" />
             </Grid>
         </ScrollViewer>
         <InfoBar

@@ -27,4 +27,13 @@
             <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
         </Style.Setters>
     </Style>
+    <Style x:Key="GlassAcrylicGridStyle" TargetType="Grid">
+        <Style.Setters>
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="{ThemeResource AcrylicInAppFillColorBaseBrush}" />
+            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="BorderBrush" Value="{ThemeResource GlassAcrylicBorderBrush}" />
+            <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
+        </Style.Setters>
+    </Style>
 </ResourceDictionary>

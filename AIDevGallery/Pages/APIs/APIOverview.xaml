@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.APIOverview"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+    xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AIDevGallery.Models"
+    mc:Ignorable="d">
+
+    <Grid BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
+        <ScrollViewer>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <controls:OverviewPageHeader
+                    Title="Overview"
+                    Background="{ThemeResource APIHeaderBackgroundBrush}"
+                    Description="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models.">
+                    <controls:OverviewPageHeader.ActionContent>
+                        <Button AutomationProperties.Name="Learn more about WCR">
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon
+                                        FontSize="16"
+                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Glyph="&#xE7C3;" />
+                                    <TextBlock Text="Learn more about WCR" />
+                                </StackPanel>
+                            </Button.Content>
+                            <interactivity:Interaction.Behaviors>
+                                <core:EventTriggerBehavior EventName="Click">
+                                    <behaviors:NavigateToUriAction NavigateUri="https://learn.microsoft.com/windows/ai/apis/" />
+                                </core:EventTriggerBehavior>
+                            </interactivity:Interaction.Behaviors>
+                        </Button>
+                    </controls:OverviewPageHeader.ActionContent>
+                    <controls:OverviewPageHeader.ImageContent>
+                        <Grid Margin="24,8,24,16">
+                            <Grid
+                                Margin="0,62,0,0"
+                                Padding="16"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource GlassAcrylicGridStyle}">
+                                <Image Width="56" Source="/Assets/ModelIcons/WCRAPI.svg" />
+                            </Grid>
+
+                            <Grid
+                                Margin="48,166,0,0"
+                                Padding="8"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource GlassAcrylicGridStyle}">
+                                <FontIcon
+                                    FontSize="24"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE8F2;" />
+                            </Grid>
+
+                            <Grid
+                                Margin="104,96,0,0"
+                                Padding="16"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource GlassAcrylicGridStyle}">
+                                <FontIcon
+                                    FontSize="48"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE7C5;" />
+                            </Grid>
+                            <Grid
+                                Margin="104,12,0,0"
+                                Padding="16"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource GlassAcrylicGridStyle}">
+                                <FontIcon
+                                    FontSize="36"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE799;" />
+                            </Grid>
+                            <Grid
+                                Margin="54,14,0,0"
+                                Padding="8"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource GlassAcrylicGridStyle}">
+                                <FontIcon
+                                    FontSize="18"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE7A8;" />
+                            </Grid>
+                        </Grid>
+                    </controls:OverviewPageHeader.ImageContent>
+                </controls:OverviewPageHeader>
+
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="24"
+                    Orientation="Vertical"
+                    Spacing="16">
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        FontSize="18"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Explore Windows Copilot Runtime APIs" />
+
+                    <ItemsView
+                        x:Name="APIViewer"
+                        IsItemInvokedEnabled="True"
+                        ItemInvoked="APIViewer_ItemInvoked"
+                        ItemsSource="{x:Bind wcrAPIs, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ItemsView.Layout>
+                            <UniformGridLayout MinColumnSpacing="12" MinRowSpacing="12" />
+                        </ItemsView.Layout>
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ApiDefinition">
+                                <ItemContainer
+                                    VerticalAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    AutomationProperties.Name="{x:Bind Name}"
+                                    CornerRadius="8">
+                                    <Grid
+                                        Width="260"
+                                        Height="186"
+                                        Padding="20,6,12,6"
+                                        VerticalAlignment="Stretch"
+                                        ColumnSpacing="20"
+                                        CornerRadius="8"
+                                        RowSpacing="2"
+                                        Style="{StaticResource CardGridStyle}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <FontIcon
+                                            Margin="0,24,0,8"
+                                            HorizontalAlignment="Left"
+                                            FontSize="36"
+                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                            Glyph="{x:Bind IconGlyph}" />
+
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                            Text="{x:Bind Name}" />
+                                        <TextBlock
+                                            Grid.Row="2"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Top"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind Description}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="Wrap" />
+                                    </Grid>
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>

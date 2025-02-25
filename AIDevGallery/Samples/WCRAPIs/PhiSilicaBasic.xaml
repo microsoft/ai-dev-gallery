@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.PhiSilicaBasic"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="8" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBox
+            x:Name="InputTextBox"
+            AutomationProperties.Name="Prompt input"
+            Description=" "
+            KeyUp="TextBox_KeyUp"
+            PlaceholderText="Enter a topic to generate text on.."
+            Text="Introduce yourself in detail!"
+            TextChanged="InputBox_Changed" />
+        <StackPanel
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                x:Name="GenerateButton"
+                MinWidth="86"
+                Click="GenerateButton_Click"
+                Content="Generate"
+                Style="{ThemeResource AccentButtonStyle}" />
+            <Button
+                x:Name="StopBtn"
+                MinWidth="86"
+                AutomationProperties.Name="Stop"
+                Click="StopBtn_Click"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon
+                        x:Name="StopIcon"
+                        FontSize="16"
+                        Glyph="&#xE73B;" />
+                    <ProgressRing
+                        x:Name="OutputProgressBar"
+                        Width="16"
+                        Height="16"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        IsIndeterminate="True"
+                        Visibility="Collapsed" />
+                    <TextBlock Text="Stop" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+        <ScrollViewer
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            AutomationProperties.Name="Generated Text Scroll Area"
+            HorizontalScrollBarVisibility="Disabled"
+            IsTabStop="True"
+            TabNavigation="Once"
+            VerticalScrollBarVisibility="Auto">
+            <TextBlock
+                x:Name="GenerateTextBlock"
+                AutomationProperties.LiveSetting="Assertive"
+                AutomationProperties.Name="Output"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                TextWrapping="WrapWholeWords" />
+        </ScrollViewer>
+    </Grid>
+</samples:BaseSamplePage>
