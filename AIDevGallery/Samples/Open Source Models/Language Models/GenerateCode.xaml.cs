@@ -10,8 +10,10 @@ using ColorCode.Styling;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +39,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
     public ObservableCollection<string> LanguageStrings { get; } = ["C#", "C++", "Java", "Python", "JavaScript", "TypeScript"];
     private string _currentLanguage = "C#";
     private string _currentCode = string.Empty;
+    private bool _leadingMarkdownParsed;
 
     public GenerateCode()
     {
@@ -91,6 +94,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
         SendSampleInteractedEvent("GenerateSolution"); // <exclude-line>
 
         string generatedCode = string.Empty;
+        _leadingMarkdownParsed = false;
         this.GenerateRichTextBlock.Blocks.Clear();
         GenerateButton.Visibility = Visibility.Collapsed;
 
@@ -109,24 +113,39 @@ internal sealed partial class GenerateCode : BaseSamplePage
                     null,
                     cts.Token))
                 {
-                    DispatcherQueue.TryEnqueue(() =>
+                    generatedCode += messagePart;
+
+                    if (!_leadingMarkdownParsed)
                     {
-                        if (isProgressVisible)
-                        {
-                            StopBtn.Visibility = Visibility.Visible;
-                            IsProgressVisible = false;
-                        }
-
-                        generatedCode += messagePart;
-
+                        (_leadingMarkdownParsed, generatedCode) = ParseOutLeadingMarkdown(generatedCode);
+                    }
+                    else if (generatedCode.Contains("```\n"))
+                    {
+                        break;
+                    }
+                    else
+                    {
                         _currentCode = generatedCode;
-                        this.GenerateRichTextBlock.Blocks.Clear();
-                        formatter.FormatRichTextBlock(generatedCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
-                    });
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            if (isProgressVisible)
+                            {
+                                StopBtn.Visibility = Visibility.Visible;
+                                IsProgressVisible = false;
+                            }
+
+                            this.GenerateRichTextBlock.Blocks.Clear();
+                            formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
+                        });
+                    }
                 }
+
+                _currentCode = ParseOutTrailingMarkdown(generatedCode);
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
+                    this.GenerateRichTextBlock.Blocks.Clear();
+                    formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
                     NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateCodeDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.IsEnabled = true;
@@ -234,5 +253,38 @@ internal sealed partial class GenerateCode : BaseSamplePage
             lightStyles[ScopeName.XmlName].Foreground = "#FF400000";
             return lightStyles;
         }
+    }
+
+    private (bool Parsed, string Code) ParseOutLeadingMarkdown(string code)
+    {
+        bool wasParsed = false;
+        string[] lines = code.Split('\n');
+        string outputCode = code;
+
+        if (lines.Length > 1)
+        {
+            wasParsed = true;
+        }
+
+        if (wasParsed && lines[0].Contains("```"))
+        {
+            outputCode = string.Join('\n', lines.Skip(1));
+        }
+
+        return (wasParsed, outputCode);
+    }
+
+    private string ParseOutTrailingMarkdown(string code)
+    {
+        string[] lines = code.Split('\n');
+        string outputCode = code;
+
+        if (lines[lines.Length - 1].Contains("```"))
+        {
+            Array.Resize(ref lines, lines.Length - 1);
+            outputCode = string.Join('\n', lines);
+        }
+
+        return outputCode;
     }
 }
