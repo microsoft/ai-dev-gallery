@@ -320,7 +320,7 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
 
         foreach (var (x, y) in currentPredictions)
         {
-            args.DrawingSession.FillEllipse(x - markerSize / 2, y - markerSize / 2, markerSize, markerSize, Colors.Blue);
+            args.DrawingSession.FillEllipse(x - markerSize / 2, y - markerSize / 2, markerSize, markerSize, Colors.Red);
         }
 
         var currentTime = DateTimeOffset.Now;
