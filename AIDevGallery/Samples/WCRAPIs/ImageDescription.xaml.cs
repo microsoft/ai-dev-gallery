@@ -192,7 +192,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                     }
                 };
 
-                await describeTask;
+                await describeTask.AsTask(_cts.Token);
             }
         }
         catch (TaskCanceledException)

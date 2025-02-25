@@ -47,6 +47,7 @@
                 </DropDownButton>
             </Grid>
             <Grid
+                MinHeight="35"
                 Margin="8"
                 Padding="8"
                 HorizontalAlignment="Stretch"
@@ -76,8 +77,8 @@
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
                 <Button
-                    Grid.Column="2"
                     x:Name="StopBtn"
+                    Grid.Column="2"
                     MinWidth="86"
                     AutomationProperties.Name="Stop"
                     Click="StopBtn_Click"
