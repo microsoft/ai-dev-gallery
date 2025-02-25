@@ -3,11 +3,11 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.Management.Deployment;
 using System;
 using System.IO;
 using System.Linq;
@@ -25,10 +25,6 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageDescription],
     Scenario = ScenarioType.ImageDescribeImage,
     Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757",
-    SharedCode = [
-        SharedCodeEnum.WcrModelDownloaderCs,
-        SharedCodeEnum.WcrModelDownloaderXaml
-    ],
     AssetFilenames = [
         "Road.png"
     ],
@@ -43,37 +39,20 @@ internal sealed partial class ImageDescription : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageDescriptionGenerator.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageDescription, sampleParams.SampleId, ImageDescriptionGenerator.MakeAvailableAsync); // <exclude-line>
+            var operation = await ImageDescriptionGenerator.MakeAvailableAsync();
+
+            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            {
+                // TODO: handle error
+            }
         }
 
-        // <exclude>
-        else
-        {
-            _ = LoadDefaultImage();
-        }
-
-        // </exclude>
+        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
-
-        return Task.CompletedTask;
-    }
-
-    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
-    {
-        var operation = ImageDescriptionGenerator.MakeAvailableAsync();
-
-        var success = await WcrModelDownloader.SetDownloadOperation(operation);
-
-        // <exclude>
-        if (success)
-        {
-            await LoadDefaultImage();
-        }
     }
 
     private async Task LoadDefaultImage()
@@ -81,8 +60,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
         var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Road.png");
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
-
-        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

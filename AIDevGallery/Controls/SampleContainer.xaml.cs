@@ -3,6 +3,7 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Samples;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -10,14 +11,12 @@ using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.System;
 
 namespace AIDevGallery.Controls;
 
@@ -46,6 +45,7 @@ internal sealed partial class SampleContainer : UserControl
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
+    private ModelType? _wcrApi;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -165,24 +165,34 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
-        // if PhiSilica, only show model loader and reload sample once loaded
-        if (cachedModelsPaths.Any(m => m == $"file://{ModelType.PhiSilica}"))
+        _sampleLoadingCts = new CancellationTokenSource();
+        var token = _sampleLoadingCts.Token;
+
+        // if WCR API, check if model is downloaded
+        foreach (var wcrApi in models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
         {
+            var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == wcrApi.Id).Key;
+
             try
             {
-                if (!LanguageModel.IsAvailable())
+                if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
                 {
                     modelDownloader.State = WcrApiDownloadState.NotStarted;
                     modelDownloader.ErrorMessage = string.Empty;
                     modelDownloader.DownloadProgress = 0;
                     SampleFrame.Content = null;
+                    _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(ModelType.PhiSilica, sample.Id, LanguageModel.MakeAvailableAsync))
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]).WaitAsync(token))
                     {
                         return;
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch
             {
@@ -196,12 +206,9 @@ internal sealed partial class SampleContainer : UserControl
         VisualStateManager.GoToState(this, "SampleLoading", true);
         SampleFrame.Content = null;
 
-        _sampleLoadingCts = new CancellationTokenSource();
         _sampleLoadedCompletionSource = new TaskCompletionSource();
         BaseSampleNavigationParameters sampleNavigationParameters;
-
         var modelPath = cachedModelsPaths.First();
-        var token = _sampleLoadingCts.Token;
 
         if (cachedModelsPaths.Count == 1)
         {
@@ -237,7 +244,19 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleEvent.Log(sample.Name ?? string.Empty);
         SampleFrame.Navigate(sample.PageType, sampleNavigationParameters);
 
-        await _sampleLoadedCompletionSource.Task;
+        try
+        {
+            await _sampleLoadedCompletionSource.Task.WaitAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts = null;
+        }
 
         _sampleLoadedCompletionSource = null;
         _sampleLoadingCts = null;
@@ -397,26 +416,36 @@ internal sealed partial class SampleContainer : UserControl
         }
     }
 
-    private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    private Task ReloadSampleAsync()
     {
-        var uri = new Uri("ms-settings:windowsupdate");
-        await Launcher.LaunchUriAsync(uri);
+        var models = _modelsCache;
+        var sample = _sampleCache;
+        _modelsCache = null;
+        _sampleCache = null;
+
+        return LoadSampleAsync(sample, models);
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
     {
-        if (!LanguageModel.IsAvailable())
+        if (_wcrApi == null)
         {
-            var op = LanguageModel.MakeAvailableAsync();
+            return;
+        }
+
+        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != WcrApiAvailability.Available)
+        {
+            var op = WcrApiHelpers.MakeAvailables[_wcrApi.Value]();
             if (await modelDownloader.SetDownloadOperation(op))
             {
                 // reload sample
-                _ = this.LoadSampleAsync(_sampleCache, _modelsCache);
+                await ReloadSampleAsync();
             }
         }
         else
         {
             modelDownloader.State = WcrApiDownloadState.Downloaded;
+            await ReloadSampleAsync();
         }
     }
 }

@@ -3,13 +3,13 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
@@ -30,10 +30,6 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.TextRecognitionOCR],
     Scenario = ScenarioType.ImageRecognizeText,
     Id = "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
-    SharedCode = [
-        SharedCodeEnum.WcrModelDownloaderCs,
-        SharedCodeEnum.WcrModelDownloaderXaml
-    ],
     AssetFilenames = [
         "OCR.png"
     ],
@@ -52,33 +48,16 @@ internal sealed partial class TextRecognition : BaseSamplePage
     {
         if (!TextRecognizer.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.TextRecognitionOCR, sampleParams.SampleId, TextRecognizer.MakeAvailableAsync); // <exclude-line>
+            var operation = await TextRecognizer.MakeAvailableAsync();
+
+            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            {
+                // TODO: handle error
+            }
         }
 
-        // <exclude>
-        else
-        {
-            await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
-        }
-
-        // </exclude>
+        _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
         sampleParams.NotifyCompletion();
-    }
-
-    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
-    {
-        var operation = TextRecognizer.MakeAvailableAsync();
-
-        var success = await WcrModelDownloader.SetDownloadOperation(operation);
-
-        // <exclude>
-        if (success)
-        {
-            await SetImage(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
-        }
-
-        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

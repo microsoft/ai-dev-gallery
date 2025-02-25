@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Threading.Tasks;
 
@@ -17,7 +18,6 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.PhiSilica],
     Id = "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
     Scenario = ScenarioType.TextGenerateText,
-    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI.Abstractions"
     ],
@@ -35,38 +35,20 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!LanguageModel.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.PhiSilica, sampleParams.SampleId, LanguageModel.MakeAvailableAsync); // <exclude-line>
+            var operation = await LanguageModel.MakeAvailableAsync();
+
+            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            {
+                // TODO: handle error
+            }
         }
 
-        // <exclude>
-        else
-        {
-            _ = GenerateText(InputTextBox.Text);
-        }
-
-        // </exclude>
+        _ = GenerateText(InputTextBox.Text);
         sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
-    }
-
-    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
-    {
-        var operation = LanguageModel.MakeAvailableAsync();
-
-        var success = await WcrModelDownloader.SetDownloadOperation(operation);
-
-        // <exclude>
-        if (success)
-        {
-            _ = GenerateText(InputTextBox.Text);
-        }
-
-        // </exclude>
     }
 
     // <exclude>

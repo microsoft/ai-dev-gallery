@@ -3,12 +3,12 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using AIDevGallery.Samples.SharedCode;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,9 +25,11 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.ImageScaler],
     Scenario = ScenarioType.ImageIncreaseFidelity,
     Id = "f1e235d1-f1c9-41c7-b489-7e4f95e54668",
-    SharedCode = [SharedCodeEnum.WcrModelDownloaderCs, SharedCodeEnum.WcrModelDownloaderXaml],
     NugetPackageReferences = [
         "CommunityToolkit.WinUI.Controls.Sizers"
+    ],
+    AssetFilenames = [
+        "Enhance.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class IncreaseFidelity : BaseSamplePage
@@ -39,36 +41,20 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         if (!ImageScaler.IsAvailable())
         {
-            WcrModelDownloader.State = WcrApiDownloadState.NotStarted;
-            _ = WcrModelDownloader.SetDownloadOperation(ModelType.ImageScaler, sampleParams.SampleId, ImageScaler.MakeAvailableAsync); // <exclude-line>
+            var operation = await ImageScaler.MakeAvailableAsync();
+
+            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            {
+                // TODO: handle error
+            }
         }
 
-        // <exclude>
-        else
-        {
-            _ = LoadDefaultImage();
-        }
-
-        // </exclude>
+        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
-    }
-
-    private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
-    {
-        var operation = ImageScaler.MakeAvailableAsync();
-
-        var success = await WcrModelDownloader.SetDownloadOperation(operation);
-
-        // <exclude>
-        if (success)
-        {
-            await LoadDefaultImage();
-        }
     }
 
     private async Task LoadDefaultImage()
@@ -76,8 +62,6 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Enhance.png");
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
-
-        // </exclude>
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)

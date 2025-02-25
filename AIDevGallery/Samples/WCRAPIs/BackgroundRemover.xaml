@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:samples="using:AIDevGallery.Samples"
-    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
     <Grid ColumnSpacing="24">
         <Grid.ColumnDefinitions>
@@ -86,9 +85,5 @@
                 Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
                 TextWrapping="Wrap" />
         </StackPanel>
-        <shared:WcrModelDownloader
-            x:Name="WcrModelDownloader"
-            Grid.ColumnSpan="2"
-            DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>

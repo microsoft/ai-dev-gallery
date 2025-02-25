@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:samples="using:AIDevGallery.Samples"
-    xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
     <Grid ColumnSpacing="8" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -76,9 +75,5 @@
                 IsTextSelectionEnabled="True"
                 TextWrapping="WrapWholeWords" />
         </ScrollViewer>
-        <shared:WcrModelDownloader
-            x:Name="WcrModelDownloader"
-            Grid.RowSpan="2"
-            DownloadClicked="WcrModelDownloader_DownloadClicked" />
     </Grid>
 </samples:BaseSamplePage>
