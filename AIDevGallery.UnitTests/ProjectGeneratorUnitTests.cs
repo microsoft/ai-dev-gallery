@@ -6,6 +6,8 @@ using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
 using AIDevGallery.Utils;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FluentAssertions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
@@ -14,7 +16,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -24,13 +25,72 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.UnitTests;
 
+#pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
+#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
+#pragma warning disable SA1401 // Fields should be private
+internal partial class SampleUIData : ObservableObject
+{
+    internal static SolidColorBrush? graySolidColorBrush;
+    internal static SolidColorBrush? greenSolidColorBrush;
+    internal static SolidColorBrush? redSolidColorBrush;
+    internal static SolidColorBrush? yellowSolidColorBrush;
+
+    public required string SampleName { get; init; }
+    public required Sample Sample { get; init; }
+    public required Dictionary<ModelType, ExpandedModelDetails> CachedModelsToGenerator { get; init; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenBuildFolderCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenLogsFolderCommand))]
+    public Brush? statusColor;
+
+    public int Id { get; internal set; }
+    public string? ProjectPath { get; internal set; }
+
+    public string GetLogFileName()
+    {
+        return $"build_{Id}_{SampleName.Replace(' ', '_')}.log";
+    }
+
+    public bool CompilationStarted => StatusColor == yellowSolidColorBrush
+                || StatusColor == greenSolidColorBrush
+                || StatusColor == redSolidColorBrush;
+
+    [RelayCommand(CanExecute = nameof(CompilationStarted))]
+    private void OpenBuildFolder()
+    {
+        if (ProjectPath == null)
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo("explorer.exe", ProjectPath) { UseShellExecute = true });
+    }
+
+    public bool CompilationDone => StatusColor == greenSolidColorBrush || StatusColor == redSolidColorBrush;
+
+    [RelayCommand(CanExecute = nameof(CompilationDone))]
+    private void OpenLogsFolder()
+    {
+        string logFileName = GetLogFileName();
+        var logFilePath = Path.Combine(ProjectGenerator.TmpPathLogs, logFileName);
+        Process.Start(new ProcessStartInfo("explorer.exe")
+        {
+            Arguments = $"\"{logFilePath}\""
+        });
+    }
+}
+#pragma warning restore SA1401 // Fields should be private
+#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
+#pragma warning restore MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
+
 [TestClass]
 public class ProjectGenerator
 {
     private readonly Generator generator = new();
     private static readonly string TmpPath = Path.Combine(Path.GetTempPath(), "AIDevGalleryTests");
     private static readonly string TmpPathProjectGenerator = Path.Combine(TmpPath, "ProjectGenerator");
-    private static readonly string TmpPathLogs = Path.Combine(TmpPath, "Logs");
+    internal static readonly string TmpPathLogs = Path.Combine(TmpPath, "Logs");
 
     public TestContext TestContext { get; set; } = null!;
 
@@ -59,48 +119,21 @@ public class ProjectGenerator
         Directory.CreateDirectory(TmpPathLogs);
     }
 
-    private class SampleUIData : INotifyPropertyChanged
-    {
-        private Brush? statusColor;
-
-        public required string SampleName { get; init; }
-        public required Sample Sample { get; init; }
-        public required Dictionary<ModelType, ExpandedModelDetails> CachedModelsToGenerator { get; init; }
-        public Brush? StatusColor
-        {
-            get => statusColor;
-            set => SetProperty(ref statusColor, value);
-        }
-
-        private void SetProperty(ref Brush? field, Brush? value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
-        {
-            if (field != value)
-            {
-                field = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-    }
-
     [TestMethod]
     public async Task GenerateForAllSamples()
     {
         List<SampleUIData> source = null!;
         ListView listView = null!;
-        SolidColorBrush green = null!;
-        SolidColorBrush red = null!;
-        SolidColorBrush yellow = null!;
         TaskCompletionSource taskCompletionSource = new();
 
         UITestMethodAttribute.DispatcherQueue?.TryEnqueue(() =>
         {
-            source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
+            SampleUIData.greenSolidColorBrush = new(Colors.Green);
+            SampleUIData.redSolidColorBrush = new(Colors.Red);
+            SampleUIData.yellowSolidColorBrush = new(Colors.Yellow);
+            SampleUIData.graySolidColorBrush = new(Colors.LightGray);
 
-            green = new SolidColorBrush(Colors.Green);
-            red = new SolidColorBrush(Colors.Red);
-            yellow = new SolidColorBrush(Colors.Yellow);
+            source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
 
             listView = new ListView
             {
@@ -123,19 +156,19 @@ public class ProjectGenerator
         {
             listView.DispatcherQueue.TryEnqueue(() =>
             {
-                item.StatusColor = yellow;
+                item.StatusColor = SampleUIData.yellowSolidColorBrush;
             });
 
             Interlocked.Increment(ref currentId);
-
-            var success = await GenerateForSample(currentId, item, ct);
+            item.Id = currentId;
+            var success = await GenerateForSample(item, ct);
 
             TestContext.WriteLine($"Built {item.SampleName} with status {success}");
             Debug.WriteLine($"Built {item.SampleName} with status {success}");
 
             listView.DispatcherQueue.TryEnqueue(() =>
             {
-                item.StatusColor = success ? green : red;
+                item.StatusColor = success ? SampleUIData.greenSolidColorBrush : SampleUIData.redSolidColorBrush;
             });
             successDict.Add(item.SampleName, success);
         });
@@ -155,7 +188,7 @@ public class ProjectGenerator
                 Sample = s,
                 SampleName = $"{s.Name} GenAI",
                 CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.LanguageModels)),
-                StatusColor = new SolidColorBrush(Colors.LightGray)
+                StatusColor = SampleUIData.graySolidColorBrush
             };
 
             yield return new SampleUIData
@@ -163,7 +196,7 @@ public class ProjectGenerator
                 Sample = s,
                 SampleName = $"{s.Name} PhiSilica",
                 CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.PhiSilica)),
-                StatusColor = new SolidColorBrush(Colors.LightGray)
+                StatusColor = SampleUIData.graySolidColorBrush
             };
         }
         else
@@ -173,7 +206,7 @@ public class ProjectGenerator
                 Sample = s,
                 SampleName = s.Name,
                 CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First()),
-                StatusColor = new SolidColorBrush(Colors.LightGray)
+                StatusColor = SampleUIData.graySolidColorBrush
             };
         }
 
@@ -194,13 +227,14 @@ public class ProjectGenerator
         }
     }
 
-    private async Task<bool> GenerateForSample(int id, SampleUIData sampleUIData, CancellationToken cancellationToken)
+    private async Task<bool> GenerateForSample(SampleUIData sampleUIData, CancellationToken cancellationToken)
     {
-        var outputPath = Path.Join(TmpPathProjectGenerator, id.ToString(CultureInfo.InvariantCulture));
+        var outputPath = Path.Join(TmpPathProjectGenerator, sampleUIData.Id.ToString(CultureInfo.InvariantCulture));
         var projectPath = await generator.GenerateAsync(sampleUIData.Sample, sampleUIData.CachedModelsToGenerator, false, outputPath, cancellationToken);
 
         var safeProjectName = Path.GetFileName(projectPath);
-        string logFileName = $"build_{id}_{sampleUIData.SampleName.Replace(' ', '_')}.log";
+        string logFileName = sampleUIData.GetLogFileName();
+        sampleUIData.ProjectPath = projectPath;
 
         var arch = DeviceUtils.IsArm64() ? "arm64" : "x64";
 
