@@ -16,7 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextGrammarCheckText,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     Name = "Grammar Check",
     Id = "9e1b5ac5-3521-4e88-a2ce-60152a6cb44f",

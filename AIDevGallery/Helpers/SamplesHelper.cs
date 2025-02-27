@@ -19,10 +19,10 @@ internal static class SamplesHelper
 
         if (isLanguageModel)
         {
-            AddUnique(SharedCodeEnum.GenAIModel);
+            AddUnique(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory);
         }
 
-        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
         {
             AddUnique(SharedCodeEnum.LlmPromptTemplate);
         }
@@ -59,6 +59,7 @@ internal static class SamplesHelper
 
         if (isLanguageModel)
         {
+            AddUnique("Microsoft.ML.OnnxRuntimeGenAI.Managed");
             AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
         }
 

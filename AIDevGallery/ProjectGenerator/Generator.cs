@@ -296,8 +296,7 @@ internal partial class Generator
                     packageReferenceItem.Condition = "$(Platform) == 'x64'";
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntime.Qnn" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI")
                 {
                     packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
                 }
@@ -403,7 +402,7 @@ internal partial class Generator
     private string? GetChatClientLoaderString(List<Samples.SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
-        if (!sharedCode.Contains(SharedCodeEnum.GenAIModel) && !isPhiSilica && !isLanguageModel)
+        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
         {
             return null;
         }
@@ -413,7 +412,7 @@ internal partial class Generator
             return "PhiSilicaClient.CreateAsync()";
         }
 
-        return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
+        return $"OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
     }
 
     private static async Task CopyFileAsync(string sourceFile, string destinationFile, CancellationToken cancellationToken)
@@ -601,9 +600,9 @@ internal partial class Generator
                 }
             }
 
-            if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+            if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
             {
-                cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
+                cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
             }
 
             await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), cleanCsSource, cancellationToken);
