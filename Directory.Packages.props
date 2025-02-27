@@ -26,6 +26,7 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI" Version="0.7.0-rc1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.7.0-rc1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.6.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" Version="0.6.0" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.1.240916" />
