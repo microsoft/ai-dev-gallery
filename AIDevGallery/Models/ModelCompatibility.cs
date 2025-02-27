@@ -41,7 +41,7 @@ internal class ModelCompatibility
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = "This model is not currently supported on Qualcomm devices.";
+            description = "This model is not currently supported on Arm64 devices.";
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
@@ -83,7 +83,7 @@ internal class ModelCompatibility
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && DeviceUtils.IsArm64())
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = "This model is not currently supported on Qualcomm devices.";
+            description = "This model is not currently supported on Arm64 devices.";
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !DeviceUtils.IsArm64())
         {
