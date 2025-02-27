@@ -38,6 +38,11 @@ internal class ModelCompatibility
                 description = "This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels).";
             }
         }
+        else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
+        {
+            compatibility = ModelCompatibilityState.NotCompatible;
+            description = "This model is not currently supported on Qualcomm devices.";
+        }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
         {
@@ -78,17 +83,17 @@ internal class ModelCompatibility
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && DeviceUtils.IsArm64())
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = $"This model is not currently supported on Qualcomm devices.";
+            description = "This model is not currently supported on Qualcomm devices.";
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !DeviceUtils.IsArm64())
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = $"This model is not supported on your device and requires a Qualcomm NPU.";
+            description = "This model is not supported on your device and requires a Qualcomm NPU.";
         }
         else
         {
             compatibility = ModelCompatibilityState.NotCompatible;
-            description = $"This model is not supported on your device.";
+            description = "This model is not supported on your device.";
         }
 
         return new ModelCompatibility

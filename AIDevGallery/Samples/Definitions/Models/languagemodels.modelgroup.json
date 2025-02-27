@@ -30,6 +30,7 @@
             "Description": "Phi 4 Mini CPU Accuracy Level 4",
             "HardwareAccelerator": "CPU",
             "Size": 4930563630,
+            "SupportedOnQualcomm": false,
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
