@@ -26,7 +26,7 @@ internal static class OnnxRuntimeGenAIChatClientFactory
         var options = new OnnxRuntimeGenAIChatClientOptions
         {
             StopSequences = template?.Stop ?? Array.Empty<string>(),
-            PromptFormatter = (chatMessages, _) => GetPrompt(template, chatMessages)
+            PromptFormatter = (chatMessages, chatOptions) => GetPrompt(template, chatMessages, chatOptions)
         };
 
         var lockAcquired = false;
@@ -74,7 +74,7 @@ internal static class OnnxRuntimeGenAIChatClientFactory
         _ogaHandle = new OgaHandle();
     }
 
-    private static string GetPrompt(LlmPromptTemplate? template, IEnumerable<ChatMessage> history)
+    private static string GetPrompt(LlmPromptTemplate? template, IEnumerable<ChatMessage> history, ChatOptions? chatOptions)
     {
         if (!history.Any())
         {
