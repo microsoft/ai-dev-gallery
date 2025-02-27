@@ -20,7 +20,6 @@
               "CPU",
               "DML"
             ],
-            "SupportedOnQualcomm": true,
             "Size": 90636722,
             "License": "apache-2.0",
             "FileFilter": [
@@ -46,7 +45,6 @@
               "CPU",
               "DML"
             ],
-            "SupportedOnQualcomm": true,
             "Size": 133358075,
             "License": "apache-2.0",
             "FileFilter": [
