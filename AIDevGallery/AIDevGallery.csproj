@@ -85,6 +85,7 @@
 
   <ItemGroup Condition="$(Platform) == 'ARM64'">
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
   </ItemGroup>
