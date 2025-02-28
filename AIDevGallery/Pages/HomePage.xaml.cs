@@ -83,7 +83,7 @@ internal sealed partial class HomePage : Page
     {
         if (args.InvokedItem is MostRecentlyUsedItem mru)
         {
-            App.MainWindow.NavigateToPage(mru);
+            App.MainWindow.Navigate(mru);
         }
     }
 }

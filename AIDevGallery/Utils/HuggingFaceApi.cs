@@ -51,7 +51,7 @@ internal class HuggingFaceApi
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     public static async Task<string> GetContentsOfTextFile(string modelId, string filePath, string commitOrBranch = "main")
     {
-        var url = $"{HFUrl}/{modelId}/raw/{commitOrBranch}/{filePath}";
+        var url = $"{HFUrl}/{modelId}/resolve/{commitOrBranch}/{filePath}";
 
         using var client = new HttpClient();
         var response = await client.GetAsync(url);
@@ -67,7 +67,7 @@ internal class HuggingFaceApi
     {
         var url = new HuggingFaceUrl(fileUrl);
 
-        var requestUrl = $"{HFUrl}/{url.Organization}/{url.Repo}/raw/{url.Ref}/{url.Path}";
+        var requestUrl = $"{HFUrl}/{url.Organization}/{url.Repo}/resolve/{url.Ref}/{url.Path}";
 
         using var client = new HttpClient();
         var response = await client.GetAsync(requestUrl);

@@ -11,6 +11,7 @@ using Microsoft.Windows.Management.Deployment;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
@@ -33,6 +34,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
 internal sealed partial class ImageDescription : BaseSamplePage
 {
     private ImageDescriptionGenerator? _imageDescriptor;
+    private CancellationTokenSource? _cts;
 
     public ImageDescription()
     {
@@ -154,9 +156,12 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     private async void DescribeImage(SoftwareBitmap bitmap)
     {
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
         DispatcherQueue?.TryEnqueue(() =>
         {
             Loader.Visibility = Visibility.Visible;
+            StopBtn.Visibility = Visibility.Visible;
             ResponseTxt.Visibility = Visibility.Collapsed;
         });
 
@@ -181,10 +186,18 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
                         ResponseTxt.Text = delta;
                     });
+                    if (_cts?.IsCancellationRequested == true)
+                    {
+                        describeTask.Cancel();
+                    }
                 };
 
-                await describeTask;
+                await describeTask.AsTask(_cts.Token);
             }
+        }
+        catch (TaskCanceledException)
+        {
+            // Don't do anything
         }
         catch (Exception ex)
         {
@@ -192,5 +205,13 @@ internal sealed partial class ImageDescription : BaseSamplePage
         }
 
         Loader.Visibility = Visibility.Collapsed;
+        StopBtn.Visibility = Visibility.Collapsed;
+        _cts?.Dispose();
+        _cts = null;
+    }
+
+    private void StopBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _cts?.Cancel();
     }
 }
