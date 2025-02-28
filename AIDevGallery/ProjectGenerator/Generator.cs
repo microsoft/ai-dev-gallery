@@ -316,7 +316,7 @@ internal partial class Generator
                 else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.QNN");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 }
 

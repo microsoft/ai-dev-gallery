@@ -80,21 +80,19 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
   <ItemGroup Condition="$(Platform) == 'ARM64'">
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
   </ItemGroup>
 	
   <ItemGroup Condition="$(Platform) == 'x64'">
     <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
   </ItemGroup>
 
   <ItemGroup>
