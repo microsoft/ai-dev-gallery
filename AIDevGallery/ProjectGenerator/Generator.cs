@@ -124,6 +124,13 @@ internal partial class Generator
             {
                 modelIds.Add(apiDefinitionDetails.Id);
             }
+            else if (App.ModelCache.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
+            {
+                if (cachedModel.Details.IsUserAdded)
+                {
+                    modelIds.Add("UserAdded");
+                }
+            }
 
             string modelPathStr;
 
