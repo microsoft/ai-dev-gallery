@@ -5,11 +5,14 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AIDevGallery.Helpers;
 
-internal static class SamplesHelper
+internal static partial class SamplesHelper
 {
     public static List<SharedCodeEnum> GetAllSharedCode(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
     {
@@ -78,6 +81,173 @@ internal static class SamplesHelper
                 packageReferences.Add(packageNameToAdd);
             }
         }
+    }
+
+    [GeneratedRegex(@"(\s*)this.InitializeComponent\(\);")]
+    private static partial Regex RegexInitializeComponent();
+
+    private static string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
+    {
+        static string EscapeNewLines(string str)
+        {
+            str = str
+                .Replace("\r", "\\r")
+                .Replace("\n", "\\n");
+            return str;
+        }
+
+        if (promptTemplate == null)
+        {
+            return "null";
+        }
+
+        StringBuilder modelPromptTemplateSb = new();
+        var spaces = new string(' ', spaceCount);
+        modelPromptTemplateSb.AppendLine("new LlmPromptTemplate");
+        modelPromptTemplateSb.Append(spaces);
+        modelPromptTemplateSb.AppendLine("{");
+        if (!string.IsNullOrEmpty(promptTemplate.System))
+        {
+            modelPromptTemplateSb.Append(spaces);
+            modelPromptTemplateSb.AppendLine(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    """
+                        System = "{0}",
+                    """,
+                    EscapeNewLines(promptTemplate.System)));
+        }
+
+        if (!string.IsNullOrEmpty(promptTemplate.User))
+        {
+            modelPromptTemplateSb.Append(spaces);
+            modelPromptTemplateSb.AppendLine(string.Format(
+                    CultureInfo.InvariantCulture,
+                    """
+                        User = "{0}",
+                    """,
+                    EscapeNewLines(promptTemplate.User)));
+        }
+
+        if (!string.IsNullOrEmpty(promptTemplate.Assistant))
+        {
+            modelPromptTemplateSb.Append(spaces);
+            modelPromptTemplateSb.AppendLine(string.Format(
+                    CultureInfo.InvariantCulture,
+                    """
+                        Assistant = "{0}",
+                    """,
+                    EscapeNewLines(promptTemplate.Assistant)));
+        }
+
+        if (promptTemplate.Stop != null && promptTemplate.Stop.Length > 0)
+        {
+            modelPromptTemplateSb.Append(spaces);
+            var stopStr = string.Join(", ", promptTemplate.Stop.Select(s =>
+                string.Format(
+                        CultureInfo.InvariantCulture,
+                        """
+                        "{0}"
+                        """,
+                        EscapeNewLines(s))));
+            modelPromptTemplateSb.Append("    Stop = [ ");
+            modelPromptTemplateSb.Append(stopStr);
+            modelPromptTemplateSb.AppendLine("]");
+        }
+
+        modelPromptTemplateSb.Append(spaces);
+        modelPromptTemplateSb.Append('}');
+
+        return modelPromptTemplateSb.ToString();
+    }
+
+    private static string? GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
+    {
+        bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
+        if (!sharedCode.Contains(SharedCodeEnum.GenAIModel) && !isPhiSilica && !isLanguageModel)
+        {
+            return null;
+        }
+
+        if (isPhiSilica)
+        {
+            return "PhiSilicaClient.CreateAsync()";
+        }
+
+        return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
+    }
+
+    public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
+    {
+        string cleanCsSource = sample.CSCode;
+
+        string modelPathStr;
+        if (modelInfos.Count > 1)
+        {
+            int i = 0;
+            foreach (var modelInfo in modelInfos)
+            {
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
+                i++;
+            }
+
+            modelPathStr = modelInfos.First().Value.ModelPathStr;
+        }
+        else
+        {
+            var modelInfo = modelInfos.Values.First();
+            cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
+            cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
+            modelPathStr = modelInfo.ModelPathStr;
+        }
+
+        List<SharedCodeEnum> sharedCode = sample.GetAllSharedCode(modelInfos.ToDictionary(m => m.Key, m => m.Value.ExpandedModelDetails));
+
+        var search = "sampleParams.GetIChatClientAsync()";
+        int index = cleanCsSource.IndexOf(search, StringComparison.OrdinalIgnoreCase);
+        if (index > 0)
+        {
+            int newLineIndex = cleanCsSource[..index].LastIndexOf(Environment.NewLine, StringComparison.OrdinalIgnoreCase);
+            var subStr = cleanCsSource[(newLineIndex + Environment.NewLine.Length)..];
+            var subStrWithoutSpaces = subStr.TrimStart();
+            var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
+            var modelInfo = modelInfos.First();
+
+            PromptTemplate? modelPromptTemplate = null;
+            if (ModelTypeHelpers.ModelDetails.TryGetValue(modelInfo.Key, out var modelDetails))
+            {
+                modelPromptTemplate = modelDetails.PromptTemplate;
+            }
+            else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.Value.ExpandedModelDetails.Url) is var modelDetails2 && modelDetails2.Value != null)
+            {
+                modelPromptTemplate = modelDetails2.Value.PromptTemplate;
+            }
+            else if (App.ModelCache != null && App.ModelCache.GetCachedModel(modelInfo.Value.ExpandedModelDetails.Url) is var cachedModel && cachedModel != null)
+            {
+                modelPromptTemplate = cachedModel.Details.PromptTemplate;
+            }
+
+            bool isPhiSilica = ModelDetailsHelper.EqualOrParent(modelInfo.Key, ModelType.PhiSilica);
+            if (isPhiSilica)
+            {
+                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
+            }
+
+            var promptTemplate = GetPromptTemplateString(modelPromptTemplate, spaceCount);
+            var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
+            if (chatClientLoader != null)
+            {
+                cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
+            }
+        }
+
+        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+        {
+            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
+        }
+
+        return cleanCsSource;
     }
 
     public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails)

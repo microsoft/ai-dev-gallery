@@ -3,6 +3,7 @@
 
 using AIDevGallery.SourceGenerator.Diagnostics;
 using AIDevGallery.SourceGenerator.Extensions;
+using AIDevGallery.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -139,7 +140,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
 
             if (File.Exists(filePathXaml))
             {
-                var fileContentXaml = XamlSourceCleanUp(File.ReadAllText(filePathXaml));
+                var fileContentXaml = XamlSourceCleanUp(File.ReadAllText(filePathXaml), $"{SamplesConstants.BaseNamespace}.Utils");
                 sourceBuilder.AppendLine(
                     $$""""""
                                     SharedCodeEnum.{{fileName}}Xaml => 
@@ -165,7 +166,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                fileContent = SampleSourceCleanUp(File.ReadAllText(filePath), filePath);
+                fileContent = SampleSourceCleanUp(File.ReadAllText(filePath), filePath, $"{SamplesConstants.BaseNamespace}.Utils", false, null);
             }
 
             sourceBuilder.AppendLine(
@@ -188,11 +189,16 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
     }
 
     private static readonly Regex UsingAIDevGalleryTelemetryNamespace = new(@"using AIDevGallery.Telemetry\S*;\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly Regex GallerySampleAttributeRemovalRegex = new(@"\n(\s)*\[GallerySample\((?>[^()]+|\((?<DEPTH>)|\)(?<-DEPTH>))*(?(DEPTH)(?!))\)\]", RegexOptions.Compiled);
+    private static readonly Regex GallerySampleAttributeRemovalRegex = new(@"(\s)*\[GallerySample\((?>[^()]+|\((?<DEPTH>)|\)(?<-DEPTH>))*(?(DEPTH)(?!))\)\](\s)*", RegexOptions.Compiled);
     private static readonly Regex ExcludedElementXamlRemovalRegex = new(@"<EXCLUDE:(([^<]*\/>)|(.*<\/EXCLUDE:[a-zA-Z]*>))", RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex ExcludedAttrbitueXamlRemovalRegex = new(@"EXCLUDE:[^""]*""[^""]*""", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static readonly Regex UsingAIDevGalleryNamespace = new(@"using AIDevGallery\S*;\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex RegexReturnTaskCompletedTask = new(@"[\r\n][\s]*return Task.CompletedTask;", RegexOptions.Compiled);
+    private static readonly Regex XClass = new(@"x:Class=""(@?[a-z_A-Z]\w+(?:\.@?[a-z_A-Z]\w+)*)""", RegexOptions.Compiled);
+    private static readonly Regex XamlLocalUsing = new(@"xmlns:local=""using:(\w.+)""", RegexOptions.Compiled);
+    private static readonly Regex AIDevGalleryNamespace = new(@"namespace AIDevGallery(?:[^;\r\n])*(;?)\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);
 
-    private static string SampleSourceCleanUp(string input, string filePath)
+    private static string SampleSourceCleanUp(string input, string filePath, string newNamespace, bool addSharedSourceNamespace, string? className = null)
     {
         var header = @"// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.";
@@ -203,14 +209,53 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                 .TrimStart();
         }
 
+        // Remove the using statements for the AIDevGallery.* namespaces
+        input = UsingAIDevGalleryNamespace.Replace(input, string.Empty);
         input = UsingAIDevGalleryTelemetryNamespace.Replace(input, string.Empty);
-        input = GallerySampleAttributeRemovalRegex.Replace(input, string.Empty);
+        input = GallerySampleAttributeRemovalRegex
+            .Replace(input, Environment.NewLine + Environment.NewLine);
         input = RemoveExcludedLinesCs(input, filePath);
+
+        input = input.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+        input = input.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
+        input = input.Replace("sampleParams.CancellationToken", "CancellationToken.None");
+
+        input = input.Replace(
+                "Task LoadModelAsync(SampleNavigationParameters sampleParams)",
+                "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
+        input = input.Replace(
+            "Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)",
+            "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
+        input = RegexReturnTaskCompletedTask.Replace(input, string.Empty);
+
+        if (!string.IsNullOrEmpty(className))
+        {
+            input = input.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
+            input = input.Replace($"public {className}()", "public Sample()");
+        }
+
+        // Replace the AIDevGallery namespace with the namespace of the new project
+        // consider the 1st capture group to add the ; or not
+        var match = AIDevGalleryNamespace.Match(input);
+
+        if (match.Success)
+        {
+            input = AIDevGalleryNamespace.Replace(input, $"namespace {newNamespace}{match.Groups[1].Value}{Environment.NewLine}");
+        }
+
+        if (addSharedSourceNamespace)
+        {
+            var namespaceLine = $"using {newNamespace}.Utils;";
+            if (!input.Contains(namespaceLine))
+            {
+                input = namespaceLine + Environment.NewLine + input;
+            }
+        }
 
         return input;
     }
 
-    private static string XamlSourceCleanUp(string input)
+    private static string XamlSourceCleanUp(string input, string newNamespace)
     {
         if (input.Contains("xmlns:EXCLUDE"))
         {
@@ -218,6 +263,29 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
             input = ExcludedAttrbitueXamlRemovalRegex.Replace(input, string.Empty);
             input = RemoveEmptyLines(input);
         }
+
+        input = input.Replace($"{Environment.NewLine}    xmlns:samples=\"using:AIDevGallery.Samples\"", string.Empty);
+        input = input.Replace("<samples:BaseSamplePage", "<Page");
+        input = input.Replace("</samples:BaseSamplePage>", "</Page>");
+
+        var match = XClass.Match(input);
+        if (match.Success)
+        {
+            var oldClassFullName = match.Groups[1].Value;
+            var className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
+
+            if (oldClassFullName.Contains(".SharedCode."))
+            {
+                input = input.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
+            }
+            else
+            {
+                input = input.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
+            }
+        }
+
+        input = XamlLocalUsing.Replace(input, $"xmlns:local=\"using:{newNamespace}\"");
+        input = input.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.Utils\"");
 
         return input;
     }
@@ -302,7 +370,6 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
 
                     var filePath = context.TargetSymbol!.Locations[0].SourceTree!.FilePath;
                     var folder = Path.GetDirectoryName(filePath);
-                    var fileName = Path.GetFileName(filePath);
                     var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
                     if (fileNameWithoutExtension.EndsWith(".xaml"))
                     {
@@ -310,12 +377,13 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
                     }
 
                     var sampleXamlFile = Directory.GetFiles(folder).Where(f => f.EndsWith($"\\{fileNameWithoutExtension}.xaml", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                    var sampleXamlFileContent = XamlSourceCleanUp(File.ReadAllText(sampleXamlFile));
+                    var sampleXamlFileContent = XamlSourceCleanUp(File.ReadAllText(sampleXamlFile), SamplesConstants.BaseNamespace);
 
                     var pageType = context.TargetSymbol.GetFullyQualifiedName();
 
                     var sampleXamlCsFile = Directory.GetFiles(folder).Where(f => f.EndsWith($"\\{fileNameWithoutExtension}.xaml.cs", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                    var sampleXamlCsFileContent = SampleSourceCleanUp(File.ReadAllText(sampleXamlCsFile), sampleXamlCsFile);
+
+                    var sampleXamlCsFileContent = SampleSourceCleanUp(File.ReadAllText(sampleXamlCsFile), sampleXamlCsFile, SamplesConstants.BaseNamespace, true, fileNameWithoutExtension);
 
                     if (attributeData == null)
                     {
@@ -337,7 +405,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
 
                         string[]? assetFilenames = null;
                         var assetFilenamesRef = attributeData.NamedArguments.FirstOrDefault(a => a.Key == "AssetFilenames");
-                        if(!assetFilenamesRef.Value.IsNull)
+                        if (!assetFilenamesRef.Value.IsNull)
                         {
                             assetFilenames = assetFilenamesRef.Value.Values.Select(v => (string)v.Value!).ToArray();
                         }
