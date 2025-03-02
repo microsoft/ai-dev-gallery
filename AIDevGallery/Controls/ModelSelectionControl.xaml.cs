@@ -545,4 +545,14 @@ internal partial class ModelSelectionControl : UserControl
     {
         DownloadDialog?.Hide();
     }
+
+    public static Visibility ShowForDownloadedModelsOnly(ModelDetails details)
+    {
+        if (!details.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && !details.IsUserAdded)
+        {
+            return Visibility.Visible;
+        }
+
+        return Visibility.Collapsed;
+    }
 }

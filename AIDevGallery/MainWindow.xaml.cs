@@ -48,7 +48,7 @@ internal sealed partial class MainWindow : WindowEx
         {
             Navigate("Samples", obj);
         }
-        else if (obj is ModelType or List<ModelType>)
+        else if (obj is ModelType or List<ModelType> or ModelDetails)
         {
             Navigate("Models", obj);
         }

@@ -240,6 +240,7 @@
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
+    <None Remove="Assets\ModelIcons\onnx.svg" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
     <None Remove="Assets\TileImages\Chat.png" />
     <None Remove="Assets\TileImages\ClassifyImage.png" />

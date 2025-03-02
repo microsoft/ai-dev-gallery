@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="AIDevGallery.Controls.ModelSelectionControl"
+    xmlns:local="using:AIDevGallery.Controls"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -127,8 +128,11 @@
                                                         </TextBlock>
                                                     </ToolTipService.ToolTip>
                                                 </Image>
-                                                <TextBlock Text="• " />
-                                                <TextBlock VerticalAlignment="Center" Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}">
+                                                <TextBlock Text="• " 
+                                                           Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}" />
+                                                <TextBlock VerticalAlignment="Center" 
+                                                           Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}"
+                                                           Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
                                                             <Run Text="This model is under the" />
@@ -166,7 +170,7 @@
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View model card"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="ApiDocumentation_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
@@ -178,7 +182,7 @@
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View license"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}"  />
                                                     <MenuFlyoutSeparator Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
                                                     <MenuFlyoutItem
                                                         Click="CopyModelPath_Click"

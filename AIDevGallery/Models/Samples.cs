@@ -108,6 +108,10 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
+                else if (Url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    icon = "onnx.svg";
+                }
                 else
                 {
                     icon = "HuggingFace.svg";

@@ -419,6 +419,8 @@ internal sealed partial class AddModelPage : Page
             };
 
             await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+
+            App.MainWindow.NavigateToPage(details);
         }
     }
 }
