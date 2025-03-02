@@ -223,7 +223,7 @@ internal static partial class SamplesHelper
             {
                 modelPromptTemplate = modelDetails2.Value.PromptTemplate;
             }
-            else if (App.ModelCache.GetCachedModel(modelInfo.Value.ExpandedModelDetails.Url) is var cachedModel && cachedModel != null)
+            else if (App.ModelCache != null && App.ModelCache.GetCachedModel(modelInfo.Value.ExpandedModelDetails.Url) is var cachedModel && cachedModel != null)
             {
                 modelPromptTemplate = cachedModel.Details.PromptTemplate;
             }
