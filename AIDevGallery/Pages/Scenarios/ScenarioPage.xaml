@@ -4,11 +4,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
     <Page.Resources>
+        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
         <Style
             x:Key="CustomFlyoutPresenterStyle"
             BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
@@ -96,7 +98,8 @@
                         Padding="8,6,8,6"
                         AutomationProperties.Name="Instructions"
                         Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Instructions">
+                        ToolTipService.ToolTip="Instructions"
+                        Visibility="{x:Bind scenario.Instructions, Converter={StaticResource StringVisibilityConverter}}">
                         <Button.Flyout>
                             <Flyout>
                                 <TextBlock MaxWidth="360" TextWrapping="WrapWholeWords">
