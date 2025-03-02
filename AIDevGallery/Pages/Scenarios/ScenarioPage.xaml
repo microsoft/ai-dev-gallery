@@ -92,6 +92,22 @@
                     Orientation="Horizontal"
                     Spacing="8"
                     Visibility="Collapsed">
+                    <Button
+                        Padding="8,6,8,6"
+                        AutomationProperties.Name="Instructions"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Instructions">
+                        <Button.Flyout>
+                            <Flyout>
+                                <TextBlock MaxWidth="360" TextWrapping="WrapWholeWords">
+                                    <Run FontWeight="SemiBold" Text="Instructions" />
+                                    <LineBreak />
+                                    <Run Text="{x:Bind scenario.Instructions}" />
+                                </TextBlock>
+                            </Flyout>
+                        </Button.Flyout>
+                        <FontIcon FontSize="16" Glyph="&#xE946;" />
+                    </Button>
                     <ToggleButton
                         x:Name="CodeToggle"
                         Padding="8,6,8,6"
