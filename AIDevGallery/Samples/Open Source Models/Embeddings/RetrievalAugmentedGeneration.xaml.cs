@@ -354,7 +354,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
             PdfImage.Source = bitmapImage;
             PdfImageGrid.Visibility = Visibility.Visible;
-          //  SelectNewPDFButton.Visibility = Visibility.Collapsed;
             UpdatePreviousAndNextPageButtonEnabled();
         });
     }
