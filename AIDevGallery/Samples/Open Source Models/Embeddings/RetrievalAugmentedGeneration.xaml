@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="480" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <ScrollViewer x:Name="InformationSV" Visibility="Collapsed">
             <TextBlock
@@ -73,6 +73,7 @@
                 x:Name="SelectNewPDFButton"
                 Grid.Row="1"
                 Grid.Column="1"
+                HorizontalAlignment="Stretch"
                 Click="SelectNewPDF_Click"
                 Content="Select PDF" />
         </Grid>
@@ -80,6 +81,7 @@
             x:Name="PdfImageGrid"
             Grid.RowSpan="3"
             Grid.Column="1"
+            Width="480"
             Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
@@ -111,7 +113,7 @@
                 x:Name="PreviousPageButton"
                 Grid.Row="1"
                 Grid.Column="0"
-                Margin="16"
+                Margin="8"
                 Padding="6"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
@@ -126,7 +128,7 @@
                 x:Name="NextPageButton"
                 Grid.Row="1"
                 Grid.Column="2"
-                Margin="16"
+                Margin="8"
                 Padding="6"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
