@@ -82,7 +82,7 @@ internal sealed partial class MainWindow : WindowEx
                 Navigate(typeof(APISelectionPage), obj);
                 break;
             case "contribute":
-                _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery"));
+                _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery-repo"));
                 break;
             case "settings":
                 Navigate(typeof(SettingsPage), obj);
