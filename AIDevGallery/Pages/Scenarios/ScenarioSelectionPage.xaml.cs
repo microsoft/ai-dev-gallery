@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace AIDevGallery.Pages;
+
 internal sealed partial class ScenarioSelectionPage : Page
 {
     internal record FilterRecord(string? Tag, string Text);
@@ -177,6 +178,7 @@ internal sealed partial class ScenarioSelectionPage : Page
             }
             else if (item.Tag is string tag && tag == "Overview")
             {
+                selectedScenario = null;
                 NavFrame.Navigate(typeof(ScenarioOverviewPage));
             }
         }
@@ -220,15 +222,19 @@ internal sealed partial class ScenarioSelectionPage : Page
     {
         var tag = (e.AddedItems[0] as FilterRecord)!.Tag;
         SetUpScenarios(tag);
-        if (selectedScenario != null)
+
+        if (selectedScenario is not null &&
+            NavView.MenuItems
+                .OfType<NavigationViewItem>()
+                .Flatten()
+                .FirstOrDefault(navItem => navItem.Tag is Scenario modelSample && modelSample.Id.Equals(selectedScenario.Id, System.StringComparison.OrdinalIgnoreCase)) is NavigationViewItem targetItem)
         {
-            foreach (var itemBase in NavView.MenuItems)
-            {
-                if (itemBase is NavigationViewItem item)
-                {
-                    SetSelectedScenarioInMenu(item, selectedScenario);
-                }
-            }
+            _ = NavView.ExpandToItem(targetItem);
+            NavView.SelectedItem = targetItem;
+        }
+        else
+        {
+            NavView.SelectedItem = NavView.MenuItems[0];
         }
     }
 }
