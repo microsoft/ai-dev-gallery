@@ -168,7 +168,13 @@ internal sealed partial class GenerateImage : BaseSamplePage
                         {
                             ErrorDialog.CloseButtonText = "OK";
                             ErrorDialog.Title = "Error";
-                            ErrorDialog.Content = ex.Message;
+                            TextBlock errorTextBlock = new TextBlock()
+                            {
+                                Text = ex.Message,
+                                IsTextSelectionEnabled = true,
+                                TextWrapping = TextWrapping.WrapWholeWords
+                            };
+                            ErrorDialog.Content = errorTextBlock;
                             await ErrorDialog.ShowAsync();
                         });
                     }
