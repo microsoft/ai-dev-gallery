@@ -26,6 +26,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
         SharedCodeEnum.NarratorHelper,
         SharedCodeEnum.DeviceUtils,
       ],
+      AssetFilenames = [
+        "Enhance.png"
+      ],
       NugetPackageReferences = [
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.DirectML",
@@ -56,7 +59,10 @@ internal sealed partial class SuperResolution : BaseSamplePage
     {
         var hardwareAccelerator = sampleParams.HardwareAccelerator;
         await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+
         sampleParams.NotifyCompletion();
+
+        await EnhanceImage(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Enhance.png");
     }
 
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
