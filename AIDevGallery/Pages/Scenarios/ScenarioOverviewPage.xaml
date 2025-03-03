@@ -20,7 +20,7 @@
                 </Grid.RowDefinitions>
                 <controls:OverviewPageHeader
                     Title="Overview"
-                    Background="{ThemeResource ScenarioHeaderBackgroundBrush}"
+                    Background="{ThemeResource CardGradient1Brush}"
                     Description="Explore over 25 interactive samples to spark your creativity. Experiment with various models and easily access the source code—all in one seamless experience.">
                     <controls:OverviewPageHeader.ImageContent>
                         <Grid Margin="24,8,24,16">
