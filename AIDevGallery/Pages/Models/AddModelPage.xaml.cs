@@ -407,7 +407,7 @@ internal sealed partial class AddModelPage : Page
             var details = new ModelDetails()
             {
                 Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
-                Name = Path.GetFileNameWithoutExtension(folder.Path),
+                Name = Path.GetFileName(folder.Path),
                 Url = $"local-file:///{folder.Path}",
                 Description = "Localy added GenAI Model",
                 HardwareAccelerators = [accelerator],

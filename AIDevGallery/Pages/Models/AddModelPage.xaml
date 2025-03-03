@@ -68,7 +68,8 @@
                         IsEnabled="{Binding ElementName=SearchTextBox, Path=Text, Converter={StaticResource EmptyStringToObjectConverter}}"
                         Style="{StaticResource AccentButtonStyle}" />
                 </Grid>
-                <HyperlinkButton Content="add local model instead"
+                <HyperlinkButton Content="or add a local model"
+                                 Margin="0,8,0,0"
                                  HorizontalAlignment="Center"
                                  Click="AddLocalClicked"></HyperlinkButton>
             </StackPanel>

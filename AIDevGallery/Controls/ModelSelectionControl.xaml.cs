@@ -102,7 +102,7 @@ internal partial class ModelSelectionControl : UserControl
         if (AvailableModels.Count > 0)
         {
             var modelIds = AvailableModels.Select(s => s.ModelDetails.Id);
-            var modelOrApiUsageHistory = App.AppData.UsageHistory.Where(id => modelIds.Contains(id));
+            var modelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => modelIds.Contains(u.Id));
 
             ModelDetails? modelToPreselect = null;
 
@@ -111,20 +111,33 @@ internal partial class ModelSelectionControl : UserControl
                 modelToPreselect = AvailableModels.Where(m => m.ModelDetails.Id == selectedModel.Id).FirstOrDefault()?.ModelDetails;
             }
 
-            if (modelToPreselect != null)
+            if (modelToPreselect == null && modelOrApiUsageHistory != default)
             {
-                SetSelectedModel(selectedModel);
+                var models = AvailableModels.Where(am => am.ModelDetails.Id == modelOrApiUsageHistory.Id).ToList();
+                if (models.Count > 0)
+                {
+                    if (modelOrApiUsageHistory.HardwareAccelerator != null)
+                    {
+                        var model = models.FirstOrDefault(m => m.ModelDetails.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
+                        if (model != null)
+                        {
+                            modelToPreselect = model.ModelDetails;
+                        }
+                    }
+
+                    if (modelToPreselect == null)
+                    {
+                        modelToPreselect = models.FirstOrDefault()?.ModelDetails;
+                    }
+                }
             }
-            else if (modelOrApiUsageHistory.Any())
+
+            if (modelToPreselect == null)
             {
-                // select most recently used if there is one
-                var modelId = modelOrApiUsageHistory.First();
-                SetSelectedModel(AvailableModels.Where(s => s.ModelDetails.Id == modelId).First().ModelDetails);
+                modelToPreselect = AvailableModels[0].ModelDetails;
             }
-            else
-            {
-                SetSelectedModel(AvailableModels[0].ModelDetails);
-            }
+
+            SetSelectedModel(modelToPreselect);
         }
         else
         {
@@ -133,7 +146,7 @@ internal partial class ModelSelectionControl : UserControl
         }
     }
 
-    private void SetSelectedModel(ModelDetails? modelDetails)
+    private void SetSelectedModel(ModelDetails? modelDetails, HardwareAccelerator? accelerator = null)
     {
         if (modelDetails != null)
         {
@@ -166,7 +179,13 @@ internal partial class ModelSelectionControl : UserControl
         if (IsSelectionEnabled)
         {
             ModelSelectionItemsView.DeselectAll();
-            ModelSelectionItemsView.Select(AvailableModels.IndexOf(AvailableModels.First(a => a.ModelDetails.Id == modelDetails.Id)));
+
+            var models = AvailableModels.Where(a => a.ModelDetails == modelDetails).ToList();
+
+            if (models.Count != 0)
+            {
+                ModelSelectionItemsView.Select(AvailableModels.IndexOf(models.First()));
+            }
         }
     }
 
