@@ -1,44 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings.RetrievalAugmentedGeneration"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
-    <Grid Loaded="Grid_Loaded">
+    <Grid ColumnSpacing="24" Loaded="Grid_Loaded">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="480" />
         </Grid.ColumnDefinitions>
-        <Button 
-            x:Name="SelectNewPDFButton"
-            Grid.Column="1"
-            Content="Select PDF"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Click="SelectNewPDF_Click"
-            Margin="12" Style="{StaticResource AccentButtonStyle}"
-            Visibility="Collapsed"/>
-        <ScrollViewer x:Name="InformationSV" Padding="16" Visibility="Collapsed">
-            <TextBlock TextWrapping="Wrap" AutomationProperties.Name="PDF Information">
-                <Run x:Name="PagesUsedRun" FontWeight="SemiBold" />
-                <LineBreak />
-                <LineBreak />
-                <Run x:Name="AnswerRun" />
-            </TextBlock>
+        <ScrollViewer x:Name="InformationSV" Visibility="Collapsed">
+            <TextBlock
+                x:Name="AnswerRun"
+                AutomationProperties.Name="PDF Information"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
+
         </ScrollViewer>
         <Grid
             x:Name="ChatGrid"
             Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="12"
-            ColumnSpacing="16"
+            ColumnSpacing="12"
             RowSpacing="8"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
@@ -48,89 +37,105 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Border
-                Grid.RowSpan="3"
-                Grid.ColumnSpan="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                BorderThickness="0,1,0,0" />
             <TextBox
                 x:Name="SearchTextBox"
                 Grid.RowSpan="3"
                 VerticalAlignment="Stretch"
                 GotFocus="SearchTextBox_GotFocus"
-                LostFocus="SearchTextBox_LostFocus"
                 KeyUp="TextBox_KeyUp"
+                LostFocus="SearchTextBox_LostFocus"
                 PlaceholderText="Search PDF..."
                 TextWrapping="Wrap" />
             <Button
-                x:Name="AskSLMButton"
+                x:Name="AnswerButton"
                 Grid.Column="1"
                 HorizontalAlignment="Stretch"
                 Click="AskSLMButton_Click"
-                Content="Answer"
                 IsEnabled="True"
-                Style="{StaticResource AccentButtonStyle}" />
+                Style="{StaticResource AccentButtonStyle}">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <ProgressRing
+                        x:Name="RAGProgressRing"
+                        Width="16"
+                        Height="16"
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        IsActive="false"
+                        Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="AnswerButtonLabel"
+                        VerticalAlignment="Center"
+                        Text="Answer" />
+                </StackPanel>
+            </Button>
             <Button
-                x:Name="ShowPDFPage"
+                x:Name="SelectNewPDFButton"
                 Grid.Row="1"
                 Grid.Column="1"
-                HorizontalAlignment="Stretch"
-                Click="ShowPDFPage_Click"
-                Content="Show Page"
-                IsEnabled="False" />
+                Click="SelectNewPDF_Click"
+                Content="Select PDF" />
         </Grid>
         <Grid
             x:Name="PdfImageGrid"
             Grid.RowSpan="3"
-            Grid.ColumnSpan="2"
-            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Grid.Column="1"
+            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource OverlayCornerRadius}"
             Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="75" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="75" />
-            </Grid.ColumnDefinitions>
-            <Image
-                x:Name="PdfImage"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Margin="12"
+                HorizontalAlignment="Center"
+                TextAlignment="Center">
+                <Run FontWeight="SemiBold" Text="Pages used" /> <LineBreak />
+                <Run x:Name="PagesUsedRun" />
+            </TextBlock>
+            <ScrollView
+                Grid.Row="1"
                 Grid.Column="1"
-                Margin="0,16"
-                Stretch="Uniform"
-                Tapped="PdfImage_Tapped" />
+                MaxZoomFactor="4"
+                MinZoomFactor="1"
+                ZoomMode="Enabled">
+                <Image
+                    x:Name="PdfImage"
+                    Margin="16,0,16,16"
+                    Stretch="Uniform" />
+            </ScrollView>
             <Button
                 x:Name="PreviousPageButton"
-                ToolTipService.ToolTip="Previous page"
-                AutomationProperties.Name="Previous Page"
+                Grid.Row="1"
                 Grid.Column="0"
                 Margin="16"
-                HorizontalAlignment="Right"
+                Padding="6"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Click="PreviousPageButton_Click">
+                AutomationProperties.Name="Previous Page"
+                Click="PreviousPageButton_Click"
+                CornerRadius="48"
+                Style="{StaticResource AccentButtonStyle}"
+                ToolTipService.ToolTip="Previous page">
                 <FontIcon FontSize="16" Glyph="&#xE76B;" />
             </Button>
             <Button
                 x:Name="NextPageButton"
-                ToolTipService.ToolTip="Next page"
-                AutomationProperties.Name="Next Page"
+                Grid.Row="1"
                 Grid.Column="2"
                 Margin="16"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Click="NextPageButton_Click">
-                <FontIcon FontSize="16" Glyph="&#xE76C;" />
-            </Button>
-            <Button
-                x:Name="ClosePdfButton"
-                ToolTipService.ToolTip="Close PDF" 
-                AutomationProperties.Name="Close PDF"
-                Grid.Column="2"
-                Margin="16"
+                Padding="6"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Click="ClosePdfButton_Click">
-                <FontIcon FontSize="16" Glyph="&#xE894;" />
+                VerticalAlignment="Center"
+                AutomationProperties.Name="Next Page"
+                Click="NextPageButton_Click"
+                CornerRadius="48"
+                Style="{StaticResource AccentButtonStyle}"
+                ToolTipService.ToolTip="Next page">
+                <FontIcon FontSize="16" Glyph="&#xE76C;" />
             </Button>
         </Grid>
         <Grid
@@ -146,32 +151,45 @@
             </Grid.RowDefinitions>
             <TextBlock
                 x:Name="PdfProblemTextBlock"
-                HorizontalAlignment="Center"
-                Grid.Row="0" />
+                Grid.Row="0"
+                HorizontalAlignment="Center" />
             <Button
                 x:Name="IndexPDFButton"
-                ToolTipService.ToolTip="Select PDF"
-                AutomationProperties.Name="Select PDF"
                 Grid.Row="1"
                 Margin="24"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                AutomationProperties.Name="Select PDF"
                 Click="IndexPDFButton_Click"
-                IsEnabled="False">
+                IsEnabled="False"
+                Style="{StaticResource AccentButtonStyle}"
+                ToolTipService.ToolTip="Select PDF">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <ProgressRing
                         x:Name="LoadPDFProgressRing"
                         Width="16"
                         Height="16"
-                        IsActive="false"
                         HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        IsActive="false"
                         Visibility="Collapsed" />
-                    <TextBlock x:Name="IndexPDFText" Text="Select a PDF" VerticalAlignment="Center" />
+                    <TextBlock
+                        x:Name="IndexPDFText"
+                        VerticalAlignment="Center"
+                        Text="Select a PDF" />
                 </StackPanel>
             </Button>
-            <StackPanel x:Name="ProgressPanel" HorizontalAlignment="Center" Grid.Row="2" Visibility="Collapsed" Spacing="8">
-                <ProgressBar x:Name="IndexingProgressBar" Width="250" Value="0"/>
-                <TextBlock x:Name="ProgressStatusTextBlock" HorizontalAlignment="Center"/>
+            <StackPanel
+                x:Name="ProgressPanel"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                Spacing="8"
+                Visibility="Collapsed">
+                <ProgressBar
+                    x:Name="IndexingProgressBar"
+                    Width="250"
+                    Value="0" />
+                <TextBlock x:Name="ProgressStatusTextBlock" HorizontalAlignment="Center" />
             </StackPanel>
         </Grid>
     </Grid>
