@@ -73,7 +73,7 @@
                 <Grid
                     x:Name="sampleContainerRoot"
                     Grid.Column="1"
-                    Background="{ThemeResource APIHeaderBackgroundBrush}"
+                    Background="{ThemeResource CardGradient2Brush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource OverlayCornerRadius}"
