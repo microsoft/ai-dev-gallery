@@ -14,7 +14,7 @@
             TargetType="Grid">
             <Style.Setters>
                 <Setter Property="Padding" Value="16,12,16,16" />
-                <Setter Property="Background" Value="{ThemeResource APIHeaderBackgroundBrush}" />
+                <Setter Property="Background" Value="{ThemeResource CardGradient2Brush}" />
             </Style.Setters>
         </Style>
     </UserControl.Resources>
@@ -24,6 +24,7 @@
         ColumnSpacing="24"
         RowSpacing="24">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -48,7 +49,7 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="See how AI Dev Gallery can help you bring on-device AI to your app" />
+                Text="Discover how AI Dev Gallery helps you add on-device AI to your app" />
         </StackPanel>
         <Grid
             x:Name="SamplesFeatureGrid"
@@ -72,7 +73,7 @@
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="Interactive samples"
                     TextWrapping="Wrap" />
-                <TextBlock Text="Explore over 25+ interactive samples running locally on your NPU, GPU or CPU." TextWrapping="Wrap" />
+                <TextBlock Text="Explore over 25+ interactive samples running locally on your NPU, GPU or CPU" TextWrapping="Wrap" />
             </StackPanel>
             <Grid
                 Grid.Column="1"
@@ -105,7 +106,7 @@
             Grid.Column="3"
             Grid.ColumnSpan="2"
             MinHeight="176"
-            Background="{ThemeResource ScenarioHeaderBackgroundBrush}"
+            Background="{ThemeResource CardGradient1Brush}"
             Style="{StaticResource HeroCardGridStyle}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -149,7 +150,7 @@
             x:Name="ModelsFeatureGrid"
             Grid.Row="2"
             Grid.ColumnSpan="2"
-            Background="{ThemeResource ScenarioHeaderBackgroundBrush}"
+            Background="{ThemeResource CardGradient1Brush}"
             Style="{StaticResource HeroCardGridStyle}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -164,7 +165,7 @@
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="Bring your own model"
                     TextWrapping="Wrap" />
-                <TextBlock Text="Just download and start exploring the different models." TextWrapping="Wrap" />
+                <TextBlock Text="Discover, download and experiment with different models at your fingertips" TextWrapping="Wrap" />
                 <HyperlinkButton
                     x:Name="ModelsBtn"
                     Padding="0"
@@ -264,7 +265,51 @@
                     Stretch="UniformToFill" />
             </StackPanel>
         </Grid>
-
+        <Grid
+            x:Name="GitHubGrid"
+            Grid.Row="3"
+            Grid.ColumnSpan="5"
+            HorizontalAlignment="Stretch"
+            Background="{ThemeResource CardGradient1Brush}"
+            ColumnSpacing="12"
+            Style="{StaticResource HeroCardGridStyle}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel
+                HorizontalAlignment="Left"
+                Orientation="Vertical"
+                Spacing="8">
+                <TextBlock
+                    FontWeight="SemiBold"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Open-source"
+                    TextWrapping="Wrap" />
+                <TextBlock Text="This project is open-source, and contributions are always welcome. Check out the repository to learn how it works, report issues, or submit your own improvements and new samples" TextWrapping="Wrap" />
+                <HyperlinkButton
+                    Grid.Row="1"
+                    Padding="0"
+                    AutomationProperties.Name="Explore APIs"
+                    NavigateUri="https://aka.ms/ai-dev-gallery-repo">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="AI Dev Gallery repository" />
+                        <FontIcon FontSize="12" Glyph="&#xE76C;" />
+                    </StackPanel>
+                </HyperlinkButton>
+            </StackPanel>
+            <Image
+                Grid.Column="1"
+                Width="120"
+                Margin="0,-24,-28,-28"
+                HorizontalAlignment="Right"
+                AutomationProperties.AccessibilityView="Raw"
+                Source="{ThemeResource GitHubIconImage}" />
+        </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout">
@@ -286,6 +331,7 @@
                         <Setter Target="WCRFeatureGrid.(Grid.ColumnSpan)" Value="5" />
                         <Setter Target="ModelsFeatureGrid.(Grid.ColumnSpan)" Value="5" />
                         <Setter Target="CodeFeatureGrid.(Grid.ColumnSpan)" Value="5" />
+                        <Setter Target="GitHubGrid.(Grid.Row)" Value="5" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
