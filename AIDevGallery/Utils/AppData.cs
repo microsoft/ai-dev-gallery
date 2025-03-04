@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
 using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
@@ -20,8 +21,7 @@ internal class AppData
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
     public CustomParametersState? LastCustomParamtersState { get; set; }
 
-    // model or api ids
-    public required LinkedList<string> UsageHistory { get; set; }
+    public LinkedList<UsageHistory>? UsageHistoryV2 { get; set; }
 
     public bool IsDiagnosticDataEnabled { get; set; }
 
@@ -73,8 +73,10 @@ internal class AppData
         await File.WriteAllTextAsync(GetConfigFilePath(), str);
     }
 
-    public async Task AddMru(MostRecentlyUsedItem item, string? modelOrApiId = null)
+    public async Task AddMru(MostRecentlyUsedItem item, string? modelOrApiId = null, HardwareAccelerator? hardwareAccelerator = null)
     {
+        UsageHistoryV2 ??= new LinkedList<UsageHistory>();
+
         foreach (var toRemove in MostRecentlyUsedItems.Where(i => i.ItemId == item.ItemId).ToArray())
         {
             MostRecentlyUsedItems.Remove(toRemove);
@@ -87,8 +89,13 @@ internal class AppData
 
         if (!string.IsNullOrWhiteSpace(modelOrApiId))
         {
-            UsageHistory.Remove(modelOrApiId);
-            UsageHistory.AddFirst(modelOrApiId);
+            var existingItem = UsageHistoryV2.Where(u => u.Id == modelOrApiId).FirstOrDefault();
+            if (existingItem != default)
+            {
+                UsageHistoryV2.Remove(existingItem);
+            }
+
+            UsageHistoryV2.AddFirst(new UsageHistory(modelOrApiId, hardwareAccelerator));
         }
 
         MostRecentlyUsedItems.AddFirst(item);
@@ -104,7 +111,7 @@ internal class AppData
         {
             ModelCachePath = cacheDir,
             MostRecentlyUsedItems = new(),
-            UsageHistory = new()
+            UsageHistoryV2 = new()
         };
     }
 }
@@ -123,3 +130,5 @@ internal class CustomParametersState
     public SeverityLevel? InputContentModeration { get; set; }
     public SeverityLevel? OutputContentModeration { get; set; }
 }
+
+internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);

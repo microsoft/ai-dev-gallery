@@ -25,6 +25,11 @@ internal class CachedModel
             Url = details.Url;
             Source = CachedModelSource.GitHub;
         }
+        else if (details.Url.StartsWith("local", StringComparison.InvariantCulture))
+        {
+            Url = details.Url;
+            Source = CachedModelSource.Local;
+        }
         else
         {
             Url = new HuggingFaceUrl(details.Url).FullUrl;
@@ -42,5 +47,6 @@ internal class CachedModel
 internal enum CachedModelSource
 {
     GitHub,
-    HuggingFace
+    HuggingFace,
+    Local
 }

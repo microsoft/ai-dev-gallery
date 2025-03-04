@@ -275,7 +275,7 @@ internal partial class Generator
                 {
                     packageReferenceItem.Condition = "$(Platform) == 'x64'";
                 }
-                else if (packageName == "Microsoft.ML.OnnxRuntime.Qnn" ||
+                else if (packageName == "Microsoft.ML.OnnxRuntime.QNN" ||
                             packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
                             packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
                 {
@@ -302,11 +302,11 @@ internal partial class Generator
             {
                 if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
                 {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.QNN");
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.QNN");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 }
