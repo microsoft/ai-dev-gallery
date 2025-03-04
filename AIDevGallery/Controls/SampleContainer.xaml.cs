@@ -208,14 +208,13 @@ internal sealed partial class SampleContainer : UserControl
 
         _sampleLoadedCompletionSource = new TaskCompletionSource();
         BaseSampleNavigationParameters sampleNavigationParameters;
-        var modelPath = cachedModelsPaths.First();
 
         if (cachedModelsPaths.Count == 1)
         {
             sampleNavigationParameters = new SampleNavigationParameters(
                 sample.Id,
                 models.First().Id,
-                modelPath,
+                cachedModelsPaths.First(),
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
@@ -338,9 +337,12 @@ internal sealed partial class SampleContainer : UserControl
 
         CodePivot.Items.Clear();
 
-        if (!string.IsNullOrEmpty(_sampleCache.CSCode))
+        if (!string.IsNullOrEmpty(_sampleCache.CSCode) && _cachedModels != null)
         {
-            CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml.cs", _sampleCache.CSCode, Languages.CSharp));
+            var modelInfos = _cachedModels.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (kvp.Value, $"@\"{kvp.Value.Path}\""));
+            CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml.cs", _sampleCache.GetCleanCSCode(modelInfos), Languages.CSharp));
         }
 
         if (!string.IsNullOrEmpty(_sampleCache.XAMLCode))
@@ -352,8 +354,8 @@ internal sealed partial class SampleContainer : UserControl
         {
             foreach (var sharedCodeEnum in _sampleCache.GetAllSharedCode(_cachedModels))
             {
-                string sharedCodeName = Samples.SharedCodeHelpers.GetName(sharedCodeEnum);
-                string sharedCodeContent = Samples.SharedCodeHelpers.GetSource(sharedCodeEnum);
+                string sharedCodeName = SharedCodeHelpers.GetName(sharedCodeEnum);
+                string sharedCodeContent = SharedCodeHelpers.GetSource(sharedCodeEnum);
 
                 CodePivot.Items.Add(CreateCodeBlock(codeFormatter, sharedCodeName, sharedCodeContent, Languages.CSharp));
             }

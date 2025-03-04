@@ -5,13 +5,12 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
+using AIDevGallery.Utils;
 using Microsoft.Build.Construction;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,9 +103,8 @@ internal partial class Generator
 
         Directory.CreateDirectory(outputPath);
 
-        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, bool IsSingleFile, string ModelPathStr, PromptTemplate? ModelPromptTemplate)> modelInfos = [];
-        string model1Id = string.Empty;
-        string model2Id = string.Empty;
+        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos = [];
+        List<string> modelIds = [];
         foreach (var modelType in modelTypes)
         {
             if (!models.TryGetValue(modelType, out var modelInfo))
@@ -114,23 +112,24 @@ internal partial class Generator
                 throw new ArgumentException($"Model type {modelType} not found in the models dictionary", nameof(models));
             }
 
-            PromptTemplate? modelPromptTemplate = null;
-            string modelId = string.Empty;
-            bool isSingleFile = false;
-
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
-                modelPromptTemplate = modelDetails.PromptTemplate;
-                modelId = modelDetails.Id;
+                modelIds.Add(modelDetails.Id);
             }
             else if (ModelTypeHelpers.ModelDetails.FirstOrDefault(mf => mf.Value.Url == modelInfo.Url) is var modelDetails2 && modelDetails2.Value != null)
             {
-                modelPromptTemplate = modelDetails2.Value.PromptTemplate;
-                modelId = modelDetails2.Value.Id;
+                modelIds.Add(modelDetails2.Value.Id);
             }
             else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out var apiDefinitionDetails))
             {
-                modelId = apiDefinitionDetails.Id;
+                modelIds.Add(apiDefinitionDetails.Id);
+            }
+            else if (App.ModelCache.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
+            {
+                if (cachedModel.Details.IsUserAdded)
+                {
+                    modelIds.Add("UserAdded");
+                }
             }
 
             string modelPathStr;
@@ -142,7 +141,6 @@ internal partial class Generator
 
                 if (cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                 {
-                    isSingleFile = false;
                     var modelDirectory = Directory.CreateDirectory(Path.Join(outputPath, "Models", modelPath));
                     foreach (var file in Directory.GetFiles(modelInfo.Path, "*", SearchOption.AllDirectories))
                     {
@@ -159,7 +157,6 @@ internal partial class Generator
                 }
                 else
                 {
-                    isSingleFile = true;
                     var modelDirectory = Directory.CreateDirectory(Path.Join(outputPath, "Models"));
                     await CopyFileAsync(modelInfo.Path, Path.Join(modelDirectory.FullName, modelPath), cancellationToken).ConfigureAwait(false);
                 }
@@ -172,25 +169,10 @@ internal partial class Generator
                 modelPathStr = $"@\"{modelInfo.Path}\"";
             }
 
-            bool isPhiSilica = ModelDetailsHelper.EqualOrParent(modelType, ModelType.PhiSilica);
-            if (isPhiSilica)
-            {
-                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
-            }
-
-            modelInfos.Add(modelType, new(modelInfo, isSingleFile, modelPathStr, modelPromptTemplate));
-
-            if (modelTypes.First() == modelType)
-            {
-                model1Id = modelId;
-            }
-            else
-            {
-                model2Id = modelId;
-            }
+            modelInfos.Add(modelType, new(modelInfo, modelPathStr));
         }
 
-        SampleProjectGeneratedEvent.Log(sample.Id, model1Id, model2Id, copyModelLocally);
+        SampleProjectGeneratedEvent.Log(sample.Id, modelIds.First(), modelIds.Count > 1 ? modelIds.Last() : string.Empty, copyModelLocally);
 
         string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln", ".vsconfig"];
 
@@ -204,9 +186,7 @@ internal partial class Generator
             { "SolutionTemplate.sln", $"{safeProjectName}.sln" }
         };
 
-        var baseNamespace = "AIDevGallery.Sample";
-
-        var className = await AddFilesFromSampleAsync(sample, baseNamespace, outputPath, modelInfos, cancellationToken);
+        await AddFilesFromSampleAsync(sample, outputPath, modelInfos, cancellationToken);
 
         foreach (var file in files)
         {
@@ -240,7 +220,7 @@ internal partial class Generator
 
                 // Replace the variables
                 content = content.Replace("$projectname$", projectName);
-                content = content.Replace("$safeprojectname$", baseNamespace);
+                content = content.Replace("$safeprojectname$", SamplesConstants.BaseNamespace);
                 content = content.Replace("$projectFileName$", safeProjectName);
                 content = content.Replace("$projectGuid$", slnProjGuid);
                 content = content.Replace("$guid9$", guid9);
@@ -333,7 +313,8 @@ internal partial class Generator
                         continue;
                     }
 
-                    if (modelInfo.Value.IsSingleFile)
+                    var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.Value.ExpandedModelDetails.Path);
+                    if (!cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                     {
                         modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}");
                     }
@@ -389,22 +370,6 @@ internal partial class Generator
         return outputPath;
     }
 
-    private string? GetChatClientLoaderString(List<Samples.SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
-    {
-        bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
-        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
-        {
-            return null;
-        }
-
-        if (isPhiSilica)
-        {
-            return "PhiSilicaClient.CreateAsync()";
-        }
-
-        return $"OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
-    }
-
     private static async Task CopyFileAsync(string sourceFile, string destinationFile, CancellationToken cancellationToken)
     {
         using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
@@ -412,103 +377,16 @@ internal partial class Generator
         await sourceStream.CopyToAsync(destinationStream, 81920, cancellationToken).ConfigureAwait(false);
     }
 
-    private static string EscapeNewLines(string str)
-    {
-        str = str
-            .Replace("\r", "\\r")
-            .Replace("\n", "\\n");
-        return str;
-    }
-
-    private string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
-    {
-        if (promptTemplate == null)
-        {
-            return "null";
-        }
-
-        StringBuilder modelPromptTemplateSb = new();
-        var spaces = new string(' ', spaceCount);
-        modelPromptTemplateSb.AppendLine("new LlmPromptTemplate");
-        modelPromptTemplateSb.Append(spaces);
-        modelPromptTemplateSb.AppendLine("{");
-        if (!string.IsNullOrEmpty(promptTemplate.System))
-        {
-            modelPromptTemplateSb.Append(spaces);
-            modelPromptTemplateSb.AppendLine(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    """
-                        System = "{0}",
-                    """,
-                    EscapeNewLines(promptTemplate.System)));
-        }
-
-        if (!string.IsNullOrEmpty(promptTemplate.User))
-        {
-            modelPromptTemplateSb.Append(spaces);
-            modelPromptTemplateSb.AppendLine(string.Format(
-                    CultureInfo.InvariantCulture,
-                    """
-                        User = "{0}",
-                    """,
-                    EscapeNewLines(promptTemplate.User)));
-        }
-
-        if (!string.IsNullOrEmpty(promptTemplate.Assistant))
-        {
-            modelPromptTemplateSb.Append(spaces);
-            modelPromptTemplateSb.AppendLine(string.Format(
-                    CultureInfo.InvariantCulture,
-                    """
-                        Assistant = "{0}",
-                    """,
-                    EscapeNewLines(promptTemplate.Assistant)));
-        }
-
-        if (promptTemplate.Stop != null && promptTemplate.Stop.Length > 0)
-        {
-            modelPromptTemplateSb.Append(spaces);
-            var stopStr = string.Join(", ", promptTemplate.Stop.Select(s =>
-                string.Format(
-                        CultureInfo.InvariantCulture,
-                        """
-                        "{0}"
-                        """,
-                        EscapeNewLines(s))));
-            modelPromptTemplateSb.Append("    Stop = [ ");
-            modelPromptTemplateSb.Append(stopStr);
-            modelPromptTemplateSb.AppendLine("]");
-        }
-
-        modelPromptTemplateSb.Append(spaces);
-        modelPromptTemplateSb.Append('}');
-
-        return modelPromptTemplateSb.ToString();
-    }
-
-    private async Task<string> AddFilesFromSampleAsync(
+    private async Task AddFilesFromSampleAsync(
         Sample sample,
-        string baseNamespace,
         string outputPath,
-        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, bool IsSingleFile, string ModelPathStr, PromptTemplate? ModelPromptTemplate)> modelInfos,
+        Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos,
         CancellationToken cancellationToken)
     {
         List<SharedCodeEnum> sharedCode = sample.GetAllSharedCode(modelInfos.ToDictionary(m => m.Key, m => m.Value.ExpandedModelDetails));
 
         foreach (var sharedCodeEnum in sharedCode)
         {
-            var fileName = SharedCodeHelpers.GetName(sharedCodeEnum);
-            var source = SharedCodeHelpers.GetSource(sharedCodeEnum);
-            if (fileName.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-            {
-                source = CleanXamlSource(source, $"{baseNamespace}.Utils", out _);
-            }
-            else
-            {
-                source = CleanCsSource(source, $"{baseNamespace}.Utils", false);
-            }
-
             string directory = outputPath;
 
             if (sharedCodeEnum != SharedCodeEnum.NativeMethods)
@@ -521,157 +399,20 @@ internal partial class Generator
                 directory = Path.Join(outputPath, "Utils");
             }
 
+            var fileName = SharedCodeHelpers.GetName(sharedCodeEnum);
+            var source = SharedCodeHelpers.GetSource(sharedCodeEnum);
+
             await File.WriteAllTextAsync(Path.Join(directory, fileName), source, cancellationToken);
         }
 
-        string className = "Sample";
         if (!string.IsNullOrEmpty(sample.XAMLCode))
         {
-            var xamlSource = CleanXamlSource(sample.XAMLCode, baseNamespace, out className);
-            xamlSource = xamlSource.Replace($"{Environment.NewLine}    xmlns:samples=\"using:AIDevGallery.Samples\"", string.Empty);
-            xamlSource = xamlSource.Replace("<samples:BaseSamplePage", "<Page");
-            xamlSource = xamlSource.Replace("</samples:BaseSamplePage>", "</Page>");
-
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml"), xamlSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml"), sample.XAMLCode, cancellationToken);
         }
 
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
-            var cleanCsSource = CleanCsSource(sample.CSCode, baseNamespace, true);
-            cleanCsSource = cleanCsSource.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
-            cleanCsSource = cleanCsSource.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
-            cleanCsSource = cleanCsSource.Replace($"{className} : BaseSamplePage", "Sample : Microsoft.UI.Xaml.Controls.Page");
-            cleanCsSource = cleanCsSource.Replace($"public {className}()", "public Sample()");
-            cleanCsSource = cleanCsSource.Replace(
-                "Task LoadModelAsync(SampleNavigationParameters sampleParams)",
-                "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
-            cleanCsSource = cleanCsSource.Replace(
-                "Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)",
-                "void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)");
-            cleanCsSource = RegexReturnTaskCompletedTask().Replace(cleanCsSource, string.Empty);
-
-            string modelPath;
-            if (modelInfos.Count > 1)
-            {
-                int i = 0;
-                foreach (var modelInfo in modelInfos)
-                {
-                    cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
-                    cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
-                    i++;
-                }
-
-                modelPath = modelInfos.First().Value.ModelPathStr;
-            }
-            else
-            {
-                var modelInfo = modelInfos.Values.First();
-                cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
-                cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
-                modelPath = modelInfo.ModelPathStr;
-            }
-
-            cleanCsSource = cleanCsSource.Replace("sampleParams.CancellationToken", "CancellationToken.None");
-
-            var search = "sampleParams.GetIChatClientAsync()";
-            int index = cleanCsSource.IndexOf(search, StringComparison.OrdinalIgnoreCase);
-            if (index > 0)
-            {
-                int newLineIndex = cleanCsSource[..index].LastIndexOf(Environment.NewLine, StringComparison.OrdinalIgnoreCase);
-                var subStr = cleanCsSource[(newLineIndex + Environment.NewLine.Length)..];
-                var subStrWithoutSpaces = subStr.TrimStart();
-                var spaceCount = subStr.Length - subStrWithoutSpaces.Length;
-                var modelInfo = modelInfos.Values.First();
-                var promptTemplate = GetPromptTemplateString(modelInfo.ModelPromptTemplate, spaceCount);
-                var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPath, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfos.Keys.First());
-                if (chatClientLoader != null)
-                {
-                    cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
-                }
-            }
-
-            if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
-            {
-                cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
-            }
-
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), cleanCsSource, cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), sample.GetCleanCSCode(modelInfos), cancellationToken);
         }
-
-        return className;
-    }
-
-    [GeneratedRegex(@"x:Class=""(@?[a-z_A-Z]\w+(?:\.@?[a-z_A-Z]\w+)*)""")]
-    private static partial Regex XClass();
-
-    [GeneratedRegex(@"xmlns:local=""using:(\w.+)""")]
-    private static partial Regex XamlLocalUsing();
-
-    [GeneratedRegex(@"[\r\n][\s]*return Task.CompletedTask;")]
-    private static partial Regex RegexReturnTaskCompletedTask();
-
-    [GeneratedRegex(@"(\s*)this.InitializeComponent\(\);")]
-    private static partial Regex RegexInitializeComponent();
-
-    private string CleanXamlSource(string xamlCode, string newNamespace, out string className)
-    {
-        var match = XClass().Match(xamlCode);
-        if (match.Success)
-        {
-            var oldClassFullName = match.Groups[1].Value;
-            className = oldClassFullName[(oldClassFullName.LastIndexOf('.') + 1)..];
-
-            if (oldClassFullName.Contains(".SharedCode."))
-            {
-                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.{className}""");
-            }
-            else
-            {
-                xamlCode = xamlCode.Replace(match.Value, @$"x:Class=""{newNamespace}.Sample""");
-            }
-        }
-        else
-        {
-            className = "Sample";
-        }
-
-        xamlCode = XamlLocalUsing().Replace(xamlCode, $"xmlns:local=\"using:{newNamespace}\"");
-
-        xamlCode = xamlCode.Replace("xmlns:shared=\"using:AIDevGallery.Samples.SharedCode\"", $"xmlns:shared=\"using:{newNamespace}.Utils\"");
-
-        return xamlCode;
-    }
-
-    [GeneratedRegex(@"using AIDevGallery\S*;\r?\n", RegexOptions.Multiline)]
-    private static partial Regex UsingAIDevGalleryNamespace();
-
-    [GeneratedRegex(@"namespace AIDevGallery(?:[^;\r\n])*(;?)\r\n", RegexOptions.Multiline)]
-    private static partial Regex AIDevGalleryNamespace();
-
-    private static string CleanCsSource(string source, string newNamespace, bool addSharedSourceNamespace)
-    {
-        // Remove the using statements for the AIDevGallery.* namespaces
-        source = UsingAIDevGalleryNamespace().Replace(source, string.Empty);
-
-        source = source.Replace("\r\r", "\r");
-
-        // Replace the AIDevGallery namespace with the namespace of the new project
-        // consider the 1st capture group to add the ; or not
-        var match = AIDevGalleryNamespace().Match(source);
-        if (match.Success)
-        {
-            source = AIDevGalleryNamespace().Replace(source, $"namespace {newNamespace}{match.Groups[1].Value}{Environment.NewLine}");
-        }
-
-        if (addSharedSourceNamespace)
-        {
-            var namespaceLine = $"using {newNamespace}.Utils;";
-            if (!source.Contains(namespaceLine))
-            {
-                source = namespaceLine + Environment.NewLine + source;
-            }
-        }
-
-        return source;
     }
 }

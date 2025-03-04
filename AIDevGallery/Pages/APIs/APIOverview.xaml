@@ -21,7 +21,7 @@
                 </Grid.RowDefinitions>
                 <controls:OverviewPageHeader
                     Title="Overview"
-                    Background="{ThemeResource APIHeaderBackgroundBrush}"
+                    Background="{ThemeResource CardGradient2Brush}"
                     Description="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models.">
                     <controls:OverviewPageHeader.ActionContent>
                         <Button AutomationProperties.Name="Learn more about WCR">
