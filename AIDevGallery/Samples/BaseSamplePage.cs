@@ -20,7 +20,7 @@ internal partial class BaseSamplePage : Page
     {
         base.OnNavigatedTo(e);
         App.Current.UnhandledException += Current_UnhandledException;
-        await LoadSample(e.Parameter);
+        await LoadSample(e.Parameter as BaseSampleNavigationParameters);
     }
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -34,7 +34,7 @@ internal partial class BaseSamplePage : Page
         ShowException(e.Exception, null);
     }
 
-    private async Task LoadSample(object? parameter)
+    private async Task LoadSample(BaseSampleNavigationParameters? parameter)
     {
         if (parameter is SampleNavigationParameters sampleParams)
         {

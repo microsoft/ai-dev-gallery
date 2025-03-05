@@ -164,7 +164,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
         _textRecognizer ??= await TextRecognizer.CreateAsync();
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-        if (result == null)
+        if (result?.Lines == null )
         {
             return;
         }
@@ -193,11 +193,6 @@ internal sealed partial class TextRecognition : BaseSamplePage
         ViewToggle.Visibility = Visibility.Visible;
 
         List<string> lines = new List<string>();
-
-        if (recognizedText.Lines == null)
-        {
-            return;
-        }
 
         foreach (var line in recognizedText.Lines)
         {
