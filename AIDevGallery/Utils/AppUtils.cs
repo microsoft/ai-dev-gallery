@@ -127,6 +127,11 @@ internal static class AppUtils
             return "GitHub";
         }
 
+        if (url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return "your local machine";
+        }
+
         return string.Empty;
     }
 
@@ -169,6 +174,10 @@ internal static class AppUtils
             {
                 return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
             }
+        }
+        else if (url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/onnx.svg"));
         }
         else
         {
