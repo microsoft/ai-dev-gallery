@@ -2,11 +2,15 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples;
+
+internal class WCLModelException : System.Exception;
 
 internal partial class BaseSamplePage : Page
 {
@@ -15,13 +19,29 @@ internal partial class BaseSamplePage : Page
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        App.Current.UnhandledException += Current_UnhandledException;
+        await LoadSample(e.Parameter);
+    }
 
-        if (e.Parameter is SampleNavigationParameters sampleParams)
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        App.Current.UnhandledException -= Current_UnhandledException;
+    }
+
+    private void Current_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        ShowException(e.Exception, null);
+    }
+
+    private async Task LoadSample(object? parameter)
+    {
+        if (parameter is SampleNavigationParameters sampleParams)
         {
             SampleParams = sampleParams;
             await LoadModelAsync(sampleParams);
         }
-        else if (e.Parameter is MultiModelSampleNavigationParameters sampleParams2)
+        else if (parameter is MultiModelSampleNavigationParameters sampleParams2)
         {
             SampleParams = sampleParams2;
             await LoadModelAsync(sampleParams2);
@@ -41,5 +61,37 @@ internal partial class BaseSamplePage : Page
     internal void SendSampleInteractedEvent(string? customInfo = null)
     {
         SampleParams?.SendSampleInteractionEvent(customInfo);
+    }
+
+    internal async void ShowException(Exception ex, string? optionalMessage = null)
+    {
+        var msg = optionalMessage ?? ex switch
+        {
+            WCLModelException => "The WCL is in an unstable state.\nRebooting the machine will restart the WCL.",
+            _ => $"Error:\n{ex.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
+        };
+        ContentDialog exceptionDialog = new()
+        {
+            Title = "Error",
+            Content = msg,
+            PrimaryButtonText = "OK",
+            XamlRoot = App.MainWindow.Content.XamlRoot,
+            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+        };
+        if (SampleParams != null)
+        {
+            exceptionDialog.SecondaryButtonText = "Reload Sample";
+        }
+
+        var result = await exceptionDialog.ShowAsync();
+        if (result == ContentDialogResult.Secondary)
+        {
+            if (SampleParams is BaseSampleNavigationParameters sampleParams)
+            {
+                sampleParams.SampleLoadedCompletionSource = new();
+            }
+
+            await LoadSample(SampleParams);
+        }
     }
 }

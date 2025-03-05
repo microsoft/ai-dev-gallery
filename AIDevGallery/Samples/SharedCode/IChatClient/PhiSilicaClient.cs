@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -59,6 +60,10 @@ internal class PhiSilicaClient : IChatClient
         try
         {
             await phiSilicaClient.InitializeAsync(cancellationToken);
+        }
+        catch (COMException ex) when (ex.Message.Contains("the rpc server is unavailable", System.StringComparison.CurrentCultureIgnoreCase))
+        {
+            throw new WCLModelException();
         }
         catch
         {

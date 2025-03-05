@@ -105,7 +105,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, bool forceRefresh = false)
     {
         if (sample == null)
         {
@@ -114,7 +114,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         this.Visibility = Visibility.Visible;
-        if (!LoadSampleMetadata(sample, models))
+        if (!forceRefresh && !LoadSampleMetadata(sample, models))
         {
             return;
         }
