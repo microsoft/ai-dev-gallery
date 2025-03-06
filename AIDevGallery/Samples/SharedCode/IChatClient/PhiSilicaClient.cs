@@ -63,7 +63,7 @@ internal class PhiSilicaClient : IChatClient
         }
         catch (COMException ex) when (ex.Message.Contains("the rpc server is unavailable", System.StringComparison.CurrentCultureIgnoreCase))
         {
-            throw new WCLModelException();
+            throw;
         }
         catch
         {

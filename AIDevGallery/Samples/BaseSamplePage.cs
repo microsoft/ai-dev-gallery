@@ -6,11 +6,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples;
-
-internal class WCLModelException : System.Exception;
 
 internal partial class BaseSamplePage : Page
 {
@@ -67,7 +66,9 @@ internal partial class BaseSamplePage : Page
     {
         var msg = optionalMessage ?? ex switch
         {
-            WCLModelException => "The WCL is in an unstable state.\nRebooting the machine will restart the WCL.",
+            COMException
+                when ex.Message.Contains("the rpc server is unavailable", StringComparison.CurrentCultureIgnoreCase) =>
+                    "The WCL is in an unstable state.\nRebooting the machine will restart the WCL.",
             _ => $"Error:\n{ex.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
         };
         ContentDialog exceptionDialog = new()
