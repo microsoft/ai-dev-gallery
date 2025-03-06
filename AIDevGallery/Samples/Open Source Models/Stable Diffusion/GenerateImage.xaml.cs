@@ -42,6 +42,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         SharedCodeEnum.Prediction,
         SharedCodeEnum.DeviceUtils
     ],
+    AssetFilenames = [
+        "cliptokenizer.onnx"
+    ],
     NugetPackageReferences = [
         "MathNet.Numerics",
         "NumSharp",
