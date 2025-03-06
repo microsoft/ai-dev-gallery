@@ -90,7 +90,7 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        if (modelDetailsList2.Count > 1)
+        if (modelDetailsList2.Count > 0)
         {
             selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
             modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
