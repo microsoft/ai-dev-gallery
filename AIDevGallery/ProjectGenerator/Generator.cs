@@ -241,7 +241,7 @@ internal partial class Generator
         {
             string fullAssetPath = Path.Join(Package.Current.InstalledLocation.Path, "Assets", assetFilename);
             string fullOutputAssetPath = Path.Combine(outputPath, "Assets", assetFilename);
-            if (Path.GetExtension(fullAssetPath) is ".jpg" or ".png")
+            if (File.Exists(fullAssetPath))
             {
                 File.Copy(fullAssetPath, fullOutputAssetPath);
             }
