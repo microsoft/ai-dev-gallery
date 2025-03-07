@@ -176,7 +176,6 @@ internal partial class Generator
             modelInfos.Add(modelType, new(modelInfo, modelPathStr));
         }
 
-        throw new InvalidOperationException("Sup");
         SampleProjectGeneratedEvent.Log(sample.Id, modelIds.First(), modelIds.Count > 1 ? modelIds.Last() : string.Empty, copyModelLocally);
 
         string[] extensions = [".manifest", ".xaml", ".cs", ".appxmanifest", ".csproj", ".ico", ".png", ".json", ".pubxml", ".sln", ".vsconfig"];
