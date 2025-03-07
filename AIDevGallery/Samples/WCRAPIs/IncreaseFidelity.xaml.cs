@@ -107,9 +107,9 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
                     using var stream = await storageFile.OpenReadAsync();
                     await SetImage(stream);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Invalid Image File");
+                    ShowException(ex, "Invalid image file");
                 }
             }
         }
@@ -134,7 +134,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            ShowException(ex);
         }
     }
 
