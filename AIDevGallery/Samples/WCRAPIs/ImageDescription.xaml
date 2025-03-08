@@ -29,8 +29,8 @@
                 Margin="8"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                CornerRadius="{StaticResource ControlCornerRadius}"
-                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}">
                 <DropDownButton
                     Padding="8"
                     AutomationProperties.Name="Select image"
@@ -45,52 +45,47 @@
                 </DropDownButton>
             </Grid>
 
-            <Grid
+            <StackPanel
                 Margin="8"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
                 CornerRadius="{StaticResource ControlCornerRadius}"
-                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+                Orientation="Horizontal"
+                Spacing="8">
                 <DropDownButton
-                        x:Name="ScenarioSelectButton"
-                        Visibility="Collapsed"
-                        Padding="8"
-                        AutomationProperties.Name="Select scenario"
-                        ToolTipService.ToolTip="Select scenario">
+                    x:Name="ScenarioSelectButton"
+                    Padding="8"
+                    AutomationProperties.Name="Select scenario"
+                    ToolTipService.ToolTip="Select scenario"
+                    Visibility="Collapsed">
                     <DropDownButton.Flyout>
-                        <MenuFlyout 
-                            Placement="Bottom">
-                            <MenuFlyoutItem 
-                                Tag="Accessible" 
-                                Click="MenuFlyoutItem_Click" 
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Accessible"
                                 Text="Accessible" />
-                            <MenuFlyoutItem 
-                                Tag="Caption" 
-                                Click="MenuFlyoutItem_Click" 
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Caption"
                                 Text="Caption" />
-                            <MenuFlyoutItem 
-                                Tag="Detailed" 
-                                Click="MenuFlyoutItem_Click" 
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Detailed"
                                 Text="Detailed" />
-                            <MenuFlyoutItem 
-                                Tag="OfficeCharts" 
-                                Click="MenuFlyoutItem_Click" 
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="OfficeCharts"
                                 Text="Office charts" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
-                    <TextBlock 
-                        x:Name="ScenarioSelectTextblock" 
-                        Text="Caption"/>
+                    <TextBlock x:Name="ScenarioSelectTextblock" Text="Caption" />
                 </DropDownButton>
                 <Button
                     x:Name="StopBtn"
                     MinWidth="86"
                     AutomationProperties.Name="Stop"
-                    Click="StopBtn_Click"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    Visibility="Visible"
-                    Margin="4,0,0,0"
-                    VerticalAlignment="Bottom">
+                    Click="StopBtn_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon
                             x:Name="StopIcon"
@@ -99,8 +94,8 @@
                         <TextBlock Text="Stop" />
                     </StackPanel>
                 </Button>
-            </Grid>
-            
+            </StackPanel>
+
             <Grid
                 MinHeight="35"
                 Margin="8"
