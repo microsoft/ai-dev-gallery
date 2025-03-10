@@ -25,8 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SINet;
     SharedCode = [
         SharedCodeEnum.Prediction,
         SharedCodeEnum.BitmapFunctions,
-        SharedCodeEnum.RCNNLabelMap,
-        SharedCodeEnum.YOLOHelpers,
+        SharedCodeEnum.BackgroundHelpers,
         SharedCodeEnum.DeviceUtils
     ],
     NugetPackageReferences = [
@@ -35,10 +34,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.SINet;
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [
-        "team.jpg"
+        "detection_default.png"
     ],
     Name = "Background Detection",
-    Id = "9b74ccc0-15f7-430f-red1-7581fd163508",
+    Id = "9b74ccc0-15f7-430f-red1-7581fd163509",
     Icon = "\uE8B3")]
 
 internal sealed partial class DetectBackground : BaseSamplePage
