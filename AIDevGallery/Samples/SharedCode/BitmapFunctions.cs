@@ -245,23 +245,20 @@ internal class BitmapFunctions
 
         using Graphics g = Graphics.FromImage(image);
 
-        // Semi-transparent red overlay
-        using SolidBrush semiTransparentRedBrush = new SolidBrush(Color.FromArgb(100, 255, 0, 0)); // 100 = opacity
+        using SolidBrush semiTransparentRedBrush = new SolidBrush(Color.FromArgb(100, 255, 0, 0));
 
-        // Apply the red overlay where the mask indicates background
         for (int y = 0; y < originalImageHeight; y++)
         {
             for (int x = 0; x < originalImageWidth; x++)
             {
-                int index = (y * originalImageWidth + x) * 4; // Assuming BGRA format
-                if (backgroundMask[index + 3] > 128) // If alpha channel is sufficiently high
+                int index = (y * originalImageWidth + x) * 4;
+                if (backgroundMask[index + 3] > 128)
                 {
                     g.FillRectangle(semiTransparentRedBrush, x, y, 1, 1);
                 }
             }
         }
 
-        // Convert the result to a BitmapImage
         BitmapImage bitmapImage = new();
         using (MemoryStream memoryStream = new())
         {
