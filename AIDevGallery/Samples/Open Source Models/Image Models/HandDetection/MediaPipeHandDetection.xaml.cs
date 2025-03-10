@@ -7,8 +7,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Utils;
-using CommunityToolkit.WinUI.Helpers;
-using CommunityToolkit.WinUI.UI.Controls;
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -24,7 +23,7 @@ using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Storage.Streams;
-//using FrameEventArgs1 = CommunityToolkit.WinUI.Helpers.FrameEventArgs;
+using FrameEventArgs1 = Feed::CommunityToolkit.WinUI.Helpers.FrameEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -95,7 +94,7 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
     // use semaphore to prevent multiple frames from being processed at the same time
     private readonly SemaphoreSlim _frameProcessingLock = new SemaphoreSlim(1);
 
-    private async void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs e)
+    private async void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs1 e)
     {
         try
         {

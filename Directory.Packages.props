@@ -1,6 +1,7 @@
 <Project>
   <ItemGroup>
     <PackageVersion Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.CameraPreview" Version="8.1.240916" />
     <!--Area I changed for experiment-->
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI" Version="7.1.2" />
