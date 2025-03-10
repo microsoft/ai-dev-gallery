@@ -274,6 +274,9 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Assets\cliptokenizer.onnx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="Assets\TileBrush.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -292,9 +295,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="Samples\Open Source Models\Stable Diffusion\cliptokenizer.onnx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Styles\SelectorBar.xaml" />
   </ItemGroup>
   
