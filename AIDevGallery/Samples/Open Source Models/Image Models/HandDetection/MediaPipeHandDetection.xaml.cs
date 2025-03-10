@@ -1,3 +1,8 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+extern alias Feed;
+
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -88,7 +93,7 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
     // use semaphore to prevent multiple frames from being processed at the same time
     private readonly SemaphoreSlim _frameProcessingLock = new SemaphoreSlim(1);
 
-    private async void CameraPreviewControl_FrameArrived(object sender, CommunityToolkit.WinUI.Helpers.FrameEventArgs e)
+    private async void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs e)
     {
         try
         {

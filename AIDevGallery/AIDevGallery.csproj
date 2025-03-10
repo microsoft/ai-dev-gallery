@@ -49,6 +49,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--Special section for experiment-->
+    <PackageReference Include="CommunityToolkit.WinUI.Helpers" Aliases="Feed"/>
+    <PackageReference Include="CommunityToolkit.WinUI" />
+    <!--Special section ends-->
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
