@@ -51,13 +51,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
 
 internal sealed partial class FaceDetection : BaseSamplePage
 {
-    private const int FramesThreshold = 150;
-    private const double LerpFactor = 0.1;
-
-    private const double CloseThreshold = 0.3;
-    private const double MaxZoom = 2.0;
-    private const double DefaultZoom = 1.0;
-
     private InferenceSession? _inferenceSession;
     private List<Prediction> predictions = [];
 
@@ -69,7 +62,6 @@ internal sealed partial class FaceDetection : BaseSamplePage
     private DateTimeOffset lastFaceDetectionCount = DateTimeOffset.Now;
     private int faceDetectionsCount;
     private int faceDetectionsPerSecond;
-    private int framesSinceLastAdjust;
 
     private int originalImageWidth = 1280;
     private int originalImageHeight = 720;
