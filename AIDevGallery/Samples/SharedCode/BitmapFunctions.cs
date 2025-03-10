@@ -12,6 +12,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
+using Windows.Media;
 using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.SharedCode;
@@ -58,6 +61,90 @@ internal class BitmapFunctions
         }
 
         return paddedBitmap;
+    }
+
+    public static async Task<Bitmap> ResizeVideoFrameWithPadding(VideoFrame videoFrame, int targetWidth, int targetHeight)
+    {
+        // Convert VideoFrame to SoftwareBitmap (RGBA8 for compatibility)
+        var softwareBitmap = SoftwareBitmap.Convert(videoFrame.SoftwareBitmap, BitmapPixelFormat.Rgba8);
+
+        using (IRandomAccessStream stream = new InMemoryRandomAccessStream())
+        {
+            // Create a BitmapEncoder for JPEG or PNG
+            BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+
+            // Set the software bitmap
+            encoder.SetSoftwareBitmap(softwareBitmap);
+
+            // Determine the scaling factor
+            float scale = Math.Min((float)targetWidth / softwareBitmap.PixelWidth, (float)targetHeight / softwareBitmap.PixelHeight);
+
+            // Calculate new scaled dimensions
+            int scaledWidth = (int)(softwareBitmap.PixelWidth * scale);
+            int scaledHeight = (int)(softwareBitmap.PixelHeight * scale);
+
+            // Calculate padding offsets (centering the image)
+            int offsetX = (targetWidth - scaledWidth) / 2;
+            int offsetY = (targetHeight - scaledHeight) / 2;
+
+            // Apply transformations
+            encoder.BitmapTransform.ScaledWidth = (uint)scaledWidth;
+            encoder.BitmapTransform.ScaledHeight = (uint)scaledHeight;
+            encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Fant;
+
+            await encoder.FlushAsync();
+            stream.Seek(0); // Reset stream position
+
+            // Convert to System.Drawing.Bitmap
+            using var tempBitmap = new Bitmap(stream.AsStream());
+            Bitmap paddedBitmap = new(targetWidth, targetHeight);
+
+            using (Graphics graphics = Graphics.FromImage(paddedBitmap))
+            {
+                graphics.Clear(Color.White); // White padding background
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                // Draw the resized image centered
+                graphics.DrawImage(tempBitmap, offsetX, offsetY, scaledWidth, scaledHeight);
+            }
+
+            return paddedBitmap;
+        }
+    }
+
+    public static Tensor<float> PreprocessBitmapForFaceDetection(Bitmap bitmap, Tensor<float> input)
+    {
+        int width = bitmap.Width;
+        int height = bitmap.Height;
+
+        BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+        int stride = bmpData.Stride;
+        IntPtr ptr = bmpData.Scan0;
+        int bytes = Math.Abs(stride) * height;
+        byte[] rgbValues = new byte[bytes];
+
+        Marshal.Copy(ptr, rgbValues, 0, bytes);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = (y * stride) + (x * 3);
+                byte blue = rgbValues[index];
+                byte green = rgbValues[index + 1];
+                byte red = rgbValues[index + 2];
+
+                // Convert to grayscale and normalize to [0,1]
+                float gray = (0.299f * red + 0.587f * green + 0.114f * blue) / 255f;
+
+                input[0, 0, y, x] = (gray - .442f) / .28f;
+            }
+        }
+
+        bitmap.UnlockBits(bmpData);
+
+        return input;
     }
 
     public static Tensor<float> PreprocessBitmapWithStdDev(Bitmap bitmap, Tensor<float> input)
