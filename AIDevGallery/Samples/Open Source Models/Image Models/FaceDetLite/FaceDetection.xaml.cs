@@ -83,7 +83,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
         _frameRateTimer.Start();
     }
 
-    private void FrameRateTimer_Tick(object sender, object e)
+    private void FrameRateTimer_Tick(object? sender, object e)
     {
         if (_latestVideoFrame != null)
         {
