@@ -35,17 +35,14 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
         SharedCodeEnum.Prediction,
         SharedCodeEnum.BitmapFunctions,
         SharedCodeEnum.DeviceUtils,
-        SharedCodeEnum.PoseHelper
+        SharedCodeEnum.FaceHelpers
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
-    AssetFilenames = [
-        "pose_default.png"
-    ],
-    Name = "Pose Detection",
+    Name = "Face Detection",
     Id = "9b74ccc0-f5f7-417f-bed0-712ffc063508",
     Icon = "\uE8B3")]
 
@@ -267,7 +264,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
     private int framesRenderedSinceLastSecond;
     private int fps;
 
-    private void canvasControl_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+    private void CanvasControl_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
     {
         args.DrawingSession.Clear(Colors.Transparent);
 

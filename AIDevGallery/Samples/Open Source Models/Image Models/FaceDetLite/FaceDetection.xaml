@@ -17,7 +17,7 @@
       SizeChanged="CameraPreviewControl_SizeChanged" />
     <canvas:CanvasAnimatedControl
       x:Name="canvasAnimatedControl"
-      Draw="canvasControl_Draw"
+      Draw="CanvasControl_Draw"
       ClearColor="Transparent"
       HorizontalAlignment="Center"
       VerticalAlignment="Center"/>
