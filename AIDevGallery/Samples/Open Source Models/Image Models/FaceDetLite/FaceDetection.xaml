@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<samples:BaseSamplePage
+  xmlns:samples="using:AIDevGallery.Samples"
+  x:Class="AIDevGallery.Samples.OpenSourceModels.FaceDetLite.FaceDetection"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+  xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml">
+
+  <Grid>
+    <controls:CameraPreview x:Name="CameraPreviewControl"
+      HorizontalAlignment="Stretch"
+      VerticalAlignment="Stretch"
+      SizeChanged="CameraPreviewControl_SizeChanged">
+      <controls:CameraPreview.RenderTransform>
+        <TransformGroup>
+          <ScaleTransform x:Name="CameraZoomTransform" ScaleX="1" ScaleY="1" />
+          <TranslateTransform x:Name="CameraPanTransform" X="0" Y="0" />
+        </TransformGroup>
+      </controls:CameraPreview.RenderTransform>
+    </controls:CameraPreview>
+    <canvas:CanvasAnimatedControl
+      x:Name="canvasAnimatedControl"
+      Draw="canvasControl_Draw"
+      ClearColor="Transparent"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center"/>
+    <StackPanel Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Margin="10"
+            Spacing="10">
+      <ToggleButton x:Name="FaceDetectionButton" Click="ToggleModel_Click" IsChecked="True">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+          <FontIcon Glyph="&#xE8B8;" />
+          <TextBlock x:Name="FaceDetText"  Text="Stop Face detection" FontSize="12" TextAlignment="Center"/>
+        </StackPanel>
+      </ToggleButton>
+    </StackPanel>
+  </Grid>
+</samples:BaseSamplePage>
