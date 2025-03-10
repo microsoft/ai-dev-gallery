@@ -14,14 +14,7 @@
     <controls:CameraPreview x:Name="CameraPreviewControl"
       HorizontalAlignment="Stretch"
       VerticalAlignment="Stretch"
-      SizeChanged="CameraPreviewControl_SizeChanged">
-      <controls:CameraPreview.RenderTransform>
-        <TransformGroup>
-          <ScaleTransform x:Name="CameraZoomTransform" ScaleX="1" ScaleY="1" />
-          <TranslateTransform x:Name="CameraPanTransform" X="0" Y="0" />
-        </TransformGroup>
-      </controls:CameraPreview.RenderTransform>
-    </controls:CameraPreview>
+      SizeChanged="CameraPreviewControl_SizeChanged" />
     <canvas:CanvasAnimatedControl
       x:Name="canvasAnimatedControl"
       Draw="canvasControl_Draw"

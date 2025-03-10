@@ -22,7 +22,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using Windows.Media;
 
 using FrameEventArgs1 = Feed::CommunityToolkit.WinUI.Helpers.FrameEventArgs;
@@ -323,66 +322,8 @@ internal sealed partial class FaceDetection : BaseSamplePage
                 drawingSession.DrawRectangle(xMin, yMin, width, height, Colors.Red, 2);
 
                 faceDetectionsCount++;
-
-                framesSinceLastAdjust++;
-                if (framesSinceLastAdjust >= FramesThreshold)
-                {
-                    // AdjustCameraView(new Rect(xMin, yMin, width, height), new System.Drawing.Size((int)canvasWidth, (int)canvasHeight));
-                    framesSinceLastAdjust = 0;
-                }
             }
         }
-
-        UpdateCameraTransform();
-    }
-
-    private double targetZoom = 1.0;
-    private double currentZoom = 1.0;
-    private double targetTranslateX;
-    private double targetTranslateY;
-    private double currentTranslateX;
-    private double currentTranslateY;
-
-    private void AdjustCameraView(Rect boundingBox, System.Drawing.Size cameraSize)
-    {
-        double boundingBoxArea = boundingBox.Width * boundingBox.Height;
-        double screenArea = cameraSize.Width * cameraSize.Height;
-        double boundingBoxRatio = boundingBoxArea / screenArea;
-
-        // Get the center of the detected face
-        double faceCenterX = boundingBox.X + boundingBox.Width / 2;
-        double faceCenterY = boundingBox.Y + boundingBox.Height / 2;
-
-        if (boundingBoxRatio > CloseThreshold)
-        {
-            targetZoom = DefaultZoom;
-        }
-        else
-        {
-            targetZoom = Math.Min(MaxZoom, screenArea / boundingBoxArea);
-        }
-
-        targetTranslateX = (cameraSize.Width / 2) - (faceCenterX * targetZoom);
-        targetTranslateY = (cameraSize.Height / 2) - (faceCenterY * targetZoom);
-    }
-
-    private void UpdateCameraTransform()
-    {
-        // Interpolate zoom smoothly
-        currentZoom += (targetZoom - currentZoom) * LerpFactor;
-
-        // Interpolate translation smoothly
-        currentTranslateX += (targetTranslateX - currentTranslateX) * LerpFactor;
-        currentTranslateY += (targetTranslateY - currentTranslateY) * LerpFactor;
-
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            // Apply interpolated values
-            CameraZoomTransform.ScaleX = currentZoom;
-            CameraZoomTransform.ScaleY = currentZoom;
-            CameraPanTransform.X = currentTranslateX;
-            CameraPanTransform.Y = currentTranslateY;
-        });
     }
 
     private void UpdateFaceDetectionsPerSecond()
