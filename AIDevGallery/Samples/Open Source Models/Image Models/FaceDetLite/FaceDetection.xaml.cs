@@ -46,7 +46,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
         "pose_default.png"
     ],
     Name = "Pose Detection",
-    Id = "9b74ccc0-f5f7-430f-bed0-712ffc063508",
+    Id = "9b74ccc0-f5f7-417f-bed0-712ffc063508",
     Icon = "\uE8B3")]
 
 internal sealed partial class FaceDetection : BaseSamplePage
