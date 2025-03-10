@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Storage.Streams;
+//using FrameEventArgs1 = CommunityToolkit.WinUI.Helpers.FrameEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -82,6 +83,7 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
 
         CameraPreviewControl.PreviewFailed += CameraPreviewControl_PreviewFailed!;
         await CameraPreviewControl.StartAsync(cameraHelper!);
+
         CameraPreviewControl.CameraHelper.FrameArrived += CameraPreviewControl_FrameArrived!;
     }
 
@@ -154,6 +156,11 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
 
     private async Task DetectPose(VideoFrame videoFrame)
     {
+        if(_inferenceSession == null)
+        {
+            return;
+        }
+
         originalImageWidth = videoFrame.SoftwareBitmap.PixelWidth;
         originalImageHeight = videoFrame.SoftwareBitmap.PixelHeight;
 
@@ -232,14 +239,22 @@ internal sealed partial class MediaPipeHandDetection : BaseSamplePage
                     {
                         var heatmaps = results[0].AsTensor<float>();
 
-                        var score = results[0].AsTensor<float>();
+                        var score = results[0].AsTensor<float>()[0];
 
                         // closer to 1 = R
                         var lr = results[1].AsTensor<float>()[0] > .5 ? "R" : "L";
                         var landmarks = results[2].AsTensor<float>();
 
-                        List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessLandmarks(landmarks, originalImageWidth, originalImageHeight, modelInputWidth, modelInputHeight); 
-                        predictions = keypointCoordinates;
+                        List<(float X, float Y)> keypointCoordinates = PoseHelper.PostProcessLandmarks(landmarks, originalImageWidth, originalImageHeight, modelInputWidth, modelInputHeight);
+
+                        if (score > .0001)
+                        {
+                            predictions = keypointCoordinates;
+                        }
+                        else
+                        {
+                            predictions = [];
+                        }
                     }
 
                     poseDetectionsCount++;
