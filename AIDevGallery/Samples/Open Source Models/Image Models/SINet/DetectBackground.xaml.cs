@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -14,7 +17,6 @@ using Windows.Storage.Pickers;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace AIDevGallery.Samples.OpenSourceModels.SINet;
 
 [GallerySample(
@@ -138,7 +140,6 @@ internal sealed partial class DetectBackground : BaseSamplePage
 
         var backgroundMask = await Task.Run(() =>
         {
-
             using var resizedImage = BitmapFunctions.ResizeWithPadding(image, modelInputWidth, modelInputHeight);
 
             Tensor<float> input = new DenseTensor<float>(inputDimensions);
