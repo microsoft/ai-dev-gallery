@@ -4,6 +4,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.1.240916" />
     <PackageVersion Include="Microsoft.AI.DirectML" Version="1.15.4" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25114.11" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25114.11" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.39.0-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.39.0" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />

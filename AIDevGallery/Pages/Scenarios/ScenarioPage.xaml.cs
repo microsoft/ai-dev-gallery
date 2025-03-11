@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Utils;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 
@@ -83,6 +84,27 @@ internal sealed partial class ScenarioPage : Page
                     modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
                 }
             }
+
+            if (s.Model1Types.Contains(ModelType.LanguageModels))
+            {
+                // add ollama models
+                var ollamaModels = Ollama.GetOllamaModels();
+
+                if (ollamaModels != null)
+                {
+                    modelDetailsList.AddRange(ollamaModels.Select(om => new ModelDetails()
+                    {
+                        Id = $"ollama -{om.Id}",
+                        Name = om.Name,
+                        Url = $"ollama://{om.Name}:{om.Tag}",
+                        Description = $"{om.Name}:{om.Tag} running locally via Ollama",
+                        HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
+                        Size = AppUtils.StringToFileSize(om.Size),
+                        SupportedOnQualcomm = true,
+                        ParameterSize = om.Tag.ToUpperInvariant(),
+                    }));
+                }
+            }
         }
 
         if (modelDetailsList.Count == 0)
@@ -137,6 +159,15 @@ internal sealed partial class ScenarioPage : Page
         {
             foreach (var s in samples)
             {
+                if (selectedModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+                {
+                    if (s.Model1Types.Contains(ModelType.LanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
+                    {
+                        sample = s;
+                        break;
+                    }
+                }
+
                 var extDict = ModelDetailsHelper.GetModelDetails(s).FirstOrDefault(dict => dict.Values.Any(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id)))?.Values;
                 if (extDict != null)
                 {
