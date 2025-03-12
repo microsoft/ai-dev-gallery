@@ -93,7 +93,7 @@ internal sealed partial class SmartTextBox : Control
                     new ChatMessage(ChatRole.User, query)
             ],
             options,
-            _cts.Token)).Message.Text ?? string.Empty;
+            _cts.Token)).Text ?? string.Empty;
     }
 
     private async Task<string> ChangeToneProfessional(string textToChange)
