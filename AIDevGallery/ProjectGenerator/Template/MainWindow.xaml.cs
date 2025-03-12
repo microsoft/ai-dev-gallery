@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Runtime.InteropServices;
 using System;
+using Microsoft.UI.Xaml.Media;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace $safeprojectname$;
 
@@ -99,7 +101,7 @@ public sealed partial class MainWindow : Window
     public static void CopyExceptionToClipboard(Exception ex, string optionalMessage)
     {
         string exceptionDetails = (string.IsNullOrWhiteSpace(optionalMessage) ? string.Empty : optionalMessage + "\n") +
-            GetExceptionDetails(ex);
+            GetExceptionDetails(ex, optionalMessage);
 
         DataPackage dataPackage = new DataPackage();
         dataPackage.SetText(exceptionDetails);
@@ -110,7 +112,7 @@ public sealed partial class MainWindow : Window
     private static string GetExceptionDetails(Exception ex, string optionalMessage)
     {
         var innerExceptionData = ex.InnerException == null ? "" :
-            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException)}";
+            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException, optionalMessage)}";
         string details = $@"Message: {ex.Message}
 StackTrace: {ex.StackTrace}
 {innerExceptionData}";
