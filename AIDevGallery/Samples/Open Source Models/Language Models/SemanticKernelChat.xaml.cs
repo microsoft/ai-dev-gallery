@@ -57,7 +57,16 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var model = await sampleParams.GetIChatClientAsync();
+        IChatClient? model = null;
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         if (model == null)
         {
             return;

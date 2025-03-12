@@ -202,12 +202,12 @@ internal sealed partial class ImageDescription : BaseSamplePage
         catch (Exception ex)
         {
             ShowException(ex);
-
-            Loader.Visibility = Visibility.Collapsed;
-            StopBtn.Visibility = Visibility.Collapsed;
-            _cts?.Dispose();
-            _cts = null;
         }
+
+        Loader.Visibility = Visibility.Collapsed;
+        StopBtn.Visibility = Visibility.Collapsed;
+        _cts?.Dispose();
+        _cts = null;
     }
 
     private void StopBtn_Click(object sender, RoutedEventArgs e)

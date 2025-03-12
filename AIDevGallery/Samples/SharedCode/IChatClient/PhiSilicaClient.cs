@@ -57,19 +57,7 @@ internal class PhiSilicaClient : IChatClient
         var phiSilicaClient = new PhiSilicaClient();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        try
-        {
-            await phiSilicaClient.InitializeAsync(cancellationToken);
-        }
-        catch (COMException ex) when (ex.Message.Contains("the rpc server is unavailable", System.StringComparison.CurrentCultureIgnoreCase))
-        {
-            throw;
-        }
-        catch
-        {
-            return null;
-        }
-
+        await phiSilicaClient.InitializeAsync(cancellationToken);
         return phiSilicaClient;
     }
 
