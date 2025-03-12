@@ -236,10 +236,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            ShowPDFPage.IsEnabled = true;
             IndexPDFGrid.Visibility = Visibility.Collapsed;
             ChatGrid.Visibility = Visibility.Visible;
-            SelectNewPDFButton.Visibility = Visibility.Visible;
+            SelectNewPDFButton.IsEnabled = true;
         });
         _cts?.Dispose();
         _cts = null;
@@ -256,12 +255,16 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         {
             _cts.Cancel();
             _cts = null;
-            AskSLMButton.Content = "Answer";
+            RAGProgressRing.IsActive = false;
+            RAGProgressRing.Visibility = Visibility.Collapsed;
+            AnswerButtonLabel.Text = "Answer";
             return;
         }
 
         selectedPageIndex = 0;
-        AskSLMButton.Content = "Cancel";
+        RAGProgressRing.IsActive = true;
+        RAGProgressRing.Visibility = Visibility.Visible;
+        AnswerButtonLabel.Text = "Cancel";
         SearchTextBox.IsEnabled = false;
         _cts = new CancellationTokenSource();
 
@@ -288,8 +291,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         selectedPages = contents.Select(c => c.Page).ToList();
 
-        PagesUsedRun.Text = $"Using page(s) : {string.Join(", ", selectedPages)}";
+        PagesUsedRun.Text = string.Join(", ", selectedPages);
         InformationSV.Visibility = Visibility.Visible;
+        await UpdatePdfImageAsync();
 
         var pagesChunks = contents.GroupBy(c => c.Page)
             .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => c.Text))}");
@@ -319,7 +323,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         _cts = null;
 
-        AskSLMButton.Content = "Answer";
+        RAGProgressRing.Visibility = Visibility.Collapsed;
+        RAGProgressRing.IsActive = false;
+        AnswerButtonLabel.Text = "Answer";
         SearchTextBox.IsEnabled = true;
     }
 
@@ -355,7 +361,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
             PdfImage.Source = bitmapImage;
             PdfImageGrid.Visibility = Visibility.Visible;
-            SelectNewPDFButton.Visibility = Visibility.Collapsed;
             UpdatePreviousAndNextPageButtonEnabled();
         });
     }
@@ -389,17 +394,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         }
     }
 
-    private async void ShowPDFPage_Click(object sender, RoutedEventArgs e)
-    {
-        await UpdatePdfImageAsync().ConfigureAwait(false);
-    }
-
-    private void PdfImage_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-        PdfImageGrid.Visibility = Visibility.Collapsed;
-        SelectNewPDFButton.Visibility = Visibility.Visible;
-    }
-
     private async void PreviousPageButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedPageIndex <= 0)
@@ -420,12 +414,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         selectedPageIndex++;
         await UpdatePdfImageAsync().ConfigureAwait(false);
-    }
-
-    private void ClosePdfButton_Click(object sender, RoutedEventArgs e)
-    {
-        PdfImageGrid.Visibility = Visibility.Collapsed;
-        SelectNewPDFButton.Visibility = Visibility.Visible;
     }
 
     private IEnumerable<(string Text, uint Page)> SplitInChunks((string Text, uint Page) input, int maxLength)
@@ -481,14 +469,14 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         _pdfPages?.DeleteCollectionAsync();
         HideProgress();
         _isCancellable = false;
-        ShowPDFPage.IsEnabled = false;
-        SelectNewPDFButton.Visibility = Visibility.Collapsed;
+        PdfImageGrid.Visibility = Visibility.Collapsed;
+        SelectNewPDFButton.IsEnabled = false;
         IndexPDFGrid.Visibility = Visibility.Visible;
         ChatGrid.Visibility = Visibility.Collapsed;
         IndexPDFButton.IsEnabled = true;
         LoadPDFProgressRing.IsActive = false;
         LoadPDFProgressRing.Visibility = Visibility.Collapsed;
-        IndexPDFText.Text = "Select PDF";
+        IndexPDFText.Text = "Select a PDF";
     }
 
     private void ToSelectingState()

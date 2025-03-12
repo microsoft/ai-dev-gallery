@@ -43,8 +43,7 @@ internal class StableDiffusion : IDisposable
 
         // Tokenizer model isn't built in with the SD code, need to pull it in from local folder.
         // Need to solve this later!
-        string currentDirectory = AppDomain.CurrentDomain.BaseDirectory + "Samples\\Open Source Models\\Stable Diffusion";
-        string tokenizerPath = Path.Combine(currentDirectory, config.TokenizerModelPath);
+        string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
 
         config.DeviceId = DeviceUtils.GetBestDeviceId();
 
