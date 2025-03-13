@@ -7,7 +7,6 @@ using AIDevGallery.Telemetry.Events;
 using Microsoft.Windows.AppLifecycle;
 using System.Linq;
 using Windows.ApplicationModel.Activation;
-using Windows.Data.Xml.Dom;
 
 namespace AIDevGallery.Helpers;
 
