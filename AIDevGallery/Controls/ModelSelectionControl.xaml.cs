@@ -192,7 +192,11 @@ internal partial class ModelSelectionControl : UserControl
 
         foreach (var model in Models)
         {
-            if (model.Size > 0 && model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+            if (model.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+            {
+                AvailableModels.Add(new AvailableModel(model));
+            }
+            else if (model.Size > 0 && model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
             {
                 UnavailableModels.Add(new DownloadableModel(model));
             }

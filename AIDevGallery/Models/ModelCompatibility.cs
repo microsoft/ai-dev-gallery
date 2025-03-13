@@ -24,8 +24,11 @@ internal class ModelCompatibility
         string description = string.Empty;
         ModelCompatibilityState compatibility;
 
-        // check if WCR API
-        if (ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id))
+        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+        {
+            compatibility = ModelCompatibilityState.Compatible;
+        }
+        else if (ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id))
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
             if (AppUtils.HasNpu() && WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.NotSupported)

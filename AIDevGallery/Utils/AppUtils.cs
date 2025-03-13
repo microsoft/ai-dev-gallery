@@ -10,8 +10,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Windows.ApplicationModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -73,6 +75,54 @@ internal static class AppUtils
         }
     }
 
+    public static long StringToFileSize(string fileSizeString)
+    {
+        if (string.IsNullOrWhiteSpace(fileSizeString))
+        {
+            return 0;
+        }
+
+        // Define multipliers for various units (using base-2 for file sizes)
+        var multipliers = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "B", 1L },
+            { "KB", 1024L },
+            { "MB", 1024L * 1024L },
+            { "GB", 1024L * 1024L * 1024L },
+            { "TB", 1024L * 1024L * 1024L * 1024L },
+            { "PB", 1024L * 1024L * 1024L * 1024L * 1024L }
+        };
+
+        // Use regex to extract numeric and unit parts.
+        // The regex expects an optional space between the number and the unit.
+        var match = Regex.Match(fileSizeString.Trim(), @"^(?<number>[\d\.]+)\s*(?<unit>[a-zA-Z]+)$");
+        if (!match.Success)
+        {
+            return 0;
+        }
+
+        string numberPart = match.Groups["number"].Value;
+        string unitPart = match.Groups["unit"].Value;
+
+        if (!double.TryParse(numberPart, NumberStyles.Any, CultureInfo.InvariantCulture, out double number))
+        {
+            return 0;
+        }
+
+        if (!multipliers.TryGetValue(unitPart, out long multiplier))
+        {
+            return 0;
+        }
+
+        double bytes = number * multiplier;
+        if (bytes > long.MaxValue)
+        {
+            return 0;
+        }
+
+        return (long)bytes;
+    }
+
     public static string ToPerc(float perc)
     {
         return $"{Math.Round(perc, 1).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}%";
@@ -94,6 +144,8 @@ internal static class AppUtils
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
                 return "WCR";
+            case HardwareAccelerator.OLLAMA:
+                return "Ollama";
             default:
                 return hardwareAccelerator.ToString();
         }
@@ -112,6 +164,8 @@ internal static class AppUtils
                 return "This model will run on Qualcomm NPUs";
             case HardwareAccelerator.WCRAPI:
                 return "The model used by this Windows Copilot Runtime API will run on NPU";
+            case HardwareAccelerator.OLLAMA:
+                return "The model will run localy via Ollama";
         }
     }
 
@@ -168,6 +222,17 @@ internal static class AppUtils
             else
             {
                 return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
+            }
+        }
+        else if (url.StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
+            {
+                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/ollama.light.svg"));
+            }
+            else
+            {
+                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/ollama.dark.svg"));
             }
         }
         else
