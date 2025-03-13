@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
@@ -73,10 +74,18 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        chatClient = await sampleParams.GetIChatClientAsync();
-        chatOptions = GetDefaultChatOptions(chatClient);
-        IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
-        InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+        try
+        {
+            chatClient = await sampleParams.GetIChatClientAsync();
+            chatOptions = GetDefaultChatOptions(chatClient);
+            IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
+            InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 
