@@ -24,30 +24,38 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel
-            Margin="16,16,16,0"
-            Orientation="Horizontal"
-            Spacing="12">
-            <Image Width="24" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
-            <TextBlock
-                Margin="0,-4,0,0"
-                VerticalAlignment="Center"
-                Style="{StaticResource SubtitleTextBlockStyle}"
-                Text="{x:Bind ModelFamily.Name}" />
-        </StackPanel>
         <Grid
             x:Name="ShadowCastGrid"
             Grid.RowSpan="5"
             Grid.ColumnSpan="5" />
-        <controls:CopyButton
-            Grid.Column="1"
-            Height="34"
-            HorizontalAlignment="Right"
-            AutomationProperties.Name="Copy link to page"
-            Click="CopyButton_Click"
-            Content="{ui:FontIcon Glyph=&#xE71B;,
-                                  FontSize=16}"
-            ToolTipService.ToolTip="Copy link to page" />
+        <Grid
+            Grid.ColumnSpan="2"
+            Margin="16,16,16,0"
+            ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Width="24" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
+            <TextBlock
+                Grid.Column="1"
+                Margin="0,-4,0,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="{x:Bind ModelFamily.Name}" />
+            <controls:CopyButton
+                Grid.Column="2"
+                Height="34"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                AutomationProperties.Name="Copy link to page"
+                Click="CopyButton_Click"
+                Content="{ui:FontIcon Glyph=&#xE71B;,
+                                      FontSize=16}"
+                ToolTipService.ToolTip="Copy link to page" />
+        </Grid>
+
         <ScrollViewer
             x:Name="RootScroller"
             Grid.Row="1"
@@ -55,7 +63,7 @@
             VerticalAlignment="Stretch">
             <Grid
                 x:Name="ContentGrid"
-                Margin="0,16,16,16"
+                Margin="0,12,16,16"
                 ColumnSpacing="12"
                 RowSpacing="8">
                 <Grid.ColumnDefinitions>
