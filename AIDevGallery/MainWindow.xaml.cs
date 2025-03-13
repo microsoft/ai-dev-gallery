@@ -5,7 +5,6 @@ using AIDevGallery.Controls;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
-using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
