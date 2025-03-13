@@ -7,10 +7,10 @@ namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock;
 
 internal class LinkClickedEventArgs : EventArgs
 {
-    public Uri Uri { get; }
+    public string Url { get; }
 
-    public LinkClickedEventArgs(Uri uri)
+    public LinkClickedEventArgs(string url)
     {
-        this.Uri = uri;
+        this.Url = url;
     }
 }

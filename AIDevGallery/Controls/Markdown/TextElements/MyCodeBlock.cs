@@ -1,6 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
 using AIDevGallery.Utils;
 using ColorCode;
@@ -9,7 +8,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -31,13 +29,7 @@ internal class MyCodeBlock : IAddChild
         _codeBlock = codeBlock;
         _config = config;
         _paragraph = new Paragraph();
-        var container = new InlineUIContainer();
-        var border = new Border();
-        border.Background = (Brush)Application.Current.Resources["ExpanderHeaderBackground"];
-        border.Padding = _config.Themes.Padding;
-        border.Margin = _config.Themes.InternalMargin;
-        border.CornerRadius = _config.Themes.CornerRadius;
-        border.HorizontalAlignment = HorizontalAlignment.Stretch;
+
         var richTextBlock = new RichTextBlock()
         {
             FontFamily = new FontFamily("Cascadia Code"),
@@ -91,8 +83,27 @@ internal class MyCodeBlock : IAddChild
             }
         }
 
-        border.Child = richTextBlock;
-        container.Child = border;
+        var container = new InlineUIContainer()
+        {
+            Child = new ScrollViewer()
+            {
+                HorizontalScrollMode = ScrollMode.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Visible,
+                VerticalScrollMode = ScrollMode.Disabled,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Margin = new Thickness(0, 0, 0, 16),
+                Content = new Border()
+                {
+                    Background = (Brush)Application.Current.Resources["SolidBackgroundFillColorBaseAltBrush"],
+                    Padding = _config.Themes.Padding,
+                    Margin = _config.Themes.InternalMargin,
+                    CornerRadius = _config.Themes.CornerRadius,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Child = richTextBlock
+                }
+            }
+        };
+
         _paragraph.Inlines.Add(container);
     }
 

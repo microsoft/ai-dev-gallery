@@ -35,7 +35,8 @@ internal static class MarkdownHelper
                 H2Margin = new Thickness(0, 16, 0, 8),
                 H3FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 H3Margin = new Thickness(0, 16, 0, 8),
-            }
+            },
+            BaseUrl = "https://learn.microsoft.com/"
         };
     }
 }

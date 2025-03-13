@@ -39,10 +39,7 @@ internal class MyHyperlink : IAddChild
         _baseUrl = baseUrl;
         var url = linkInline.GetDynamicUrl != null ? linkInline.GetDynamicUrl() ?? linkInline.Url : linkInline.Url;
         _linkInline = linkInline;
-        _hyperlink = new Hyperlink()
-        {
-            NavigateUri = Extensions.GetUri(url, baseUrl),
-        };
+        _hyperlink = new Hyperlink();
     }
 
     public MyHyperlink(HtmlNode htmlNode, string? baseUrl)
@@ -50,10 +47,7 @@ internal class MyHyperlink : IAddChild
         _baseUrl = baseUrl;
         var url = htmlNode.GetAttribute("href", "#");
         _htmlNode = htmlNode;
-        _hyperlink = new Hyperlink()
-        {
-            NavigateUri = Extensions.GetUri(url, baseUrl),
-        };
+        _hyperlink = new Hyperlink();
     }
 
     public void AddChild(IAddChild child)
@@ -63,7 +57,6 @@ internal class MyHyperlink : IAddChild
             try
             {
                 _hyperlink.Inlines.Add(inlineChild);
-                // TODO: Add support for click handler
             }
             catch
             {

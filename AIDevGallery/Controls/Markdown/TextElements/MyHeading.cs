@@ -47,7 +47,9 @@ internal class MyHeading : IAddChild
             _ => TextAlignment.Left,
         };
 
+#pragma warning disable CA1305 // Specify IFormatProvider
         SetHProperties(int.Parse(htmlNode.Name.Substring(1)));
+#pragma warning restore CA1305 // Specify IFormatProvider
     }
 
     private void SetHProperties(int level)

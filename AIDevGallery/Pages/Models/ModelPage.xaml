@@ -95,24 +95,12 @@
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
-                                >
+                                OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
                                 <toolkit2:MarkdownTextBlock.Resources>
                                     <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
                                     <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
                                 </toolkit2:MarkdownTextBlock.Resources>
                             </toolkit2:MarkdownTextBlock>
-
-                            <!--Header1FontSize="14"
-Header1FontWeight="SemiBold"
-Header1Margin="0,0,0,16"
-Header2FontSize="14"
-Header2FontWeight="SemiBold"
-Header2Margin="0,16,0,8"
-Header3FontSize="14"
-Header3FontWeight="SemiBold"
-Header3Margin="0,16,0,8"
-LinkClicked="MarkdownTextBlock_LinkClicked"-->
-                            
                         </ScrollViewer>
                         <ProgressRing
                             x:Name="readmeProgressRing"

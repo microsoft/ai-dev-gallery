@@ -5,7 +5,6 @@ using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.Renderers;
 using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
 using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements.Html;
 using HtmlAgilityPack;
-using Microsoft.UI.Xaml.Controls;
 using System.Linq;
 
 namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock;
@@ -36,12 +35,13 @@ internal class HtmlWriter
                 else if (inlineTagName == "a")
                 {
                     IAddChild hyperLink;
+                    var url = node.GetAttribute("href", "#");
                     if (node.ChildNodes.Any(n => n.Name != "#text"))
                     {
                         var myHyperlinkButton = new MyHyperlinkButton(node, renderer.Config.BaseUrl);
                         myHyperlinkButton.ClickEvent += (sender, e) =>
                         {
-                            renderer.MarkdownTextBlock.RaiseLinkClickedEvent(((HyperlinkButton)sender).NavigateUri);
+                            renderer.MarkdownTextBlock.RaiseLinkClickedEvent(url);
                         };
                         hyperLink = myHyperlinkButton;
                     }
@@ -50,7 +50,7 @@ internal class HtmlWriter
                         var myHyperlink = new MyHyperlink(node, renderer.Config.BaseUrl);
                         myHyperlink.ClickEvent += (sender, e) =>
                         {
-                            renderer.MarkdownTextBlock.RaiseLinkClickedEvent(sender.NavigateUri);
+                            renderer.MarkdownTextBlock.RaiseLinkClickedEvent(url);
                         };
                         hyperLink = myHyperlink;
                     }

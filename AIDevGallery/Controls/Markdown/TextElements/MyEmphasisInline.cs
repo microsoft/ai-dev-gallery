@@ -39,15 +39,29 @@ internal class MyEmphasisInline : IAddChild
             }
             else if (child is MyEmphasisInline emphasisInline)
             {
-                if (emphasisInline._isBold) { SetBold(); }
-                if (emphasisInline._isItalic) { SetItalic(); }
-                if (emphasisInline._isStrikeThrough) { SetStrikeThrough(); }
+                if (emphasisInline._isBold)
+                {
+                    SetBold();
+                }
+
+                if (emphasisInline._isItalic)
+                {
+                    SetItalic();
+                }
+
+                if (emphasisInline._isStrikeThrough)
+                {
+                    SetStrikeThrough();
+                }
+
                 _span.Inlines.Add(emphasisInline._span);
             }
         }
         catch (Exception ex)
         {
+#pragma warning disable CA2201 // Do not raise reserved exception types
             throw new Exception($"Error in {nameof(MyEmphasisInline)}.{nameof(AddChild)}: {ex.Message}");
+#pragma warning restore CA2201 // Do not raise reserved exception types
         }
     }
 

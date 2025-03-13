@@ -3,7 +3,6 @@
 
 using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
 using Markdig.Syntax.Inlines;
-using Microsoft.UI.Xaml.Controls;
 using System;
 
 namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock.Renderers.ObjectRenderers.Inlines;
@@ -34,7 +33,7 @@ internal class LinkInlineRenderer : UWPObjectRenderer<LinkInline>
                 var myHyperlinkButton = new MyHyperlinkButton(link, renderer.Config.BaseUrl);
                 myHyperlinkButton.ClickEvent += (sender, e) =>
                 {
-                    renderer.MarkdownTextBlock.RaiseLinkClickedEvent(((HyperlinkButton)sender).NavigateUri);
+                    renderer.MarkdownTextBlock.RaiseLinkClickedEvent(url);
                 };
                 renderer.Push(myHyperlinkButton);
             }
@@ -43,7 +42,7 @@ internal class LinkInlineRenderer : UWPObjectRenderer<LinkInline>
                 var hyperlink = new MyHyperlink(link, renderer.Config.BaseUrl);
                 hyperlink.ClickEvent += (sender, e) =>
                 {
-                    renderer.MarkdownTextBlock.RaiseLinkClickedEvent(sender.NavigateUri);
+                    renderer.MarkdownTextBlock.RaiseLinkClickedEvent(url);
                 };
 
                 renderer.Push(hyperlink);

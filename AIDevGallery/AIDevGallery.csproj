@@ -56,7 +56,6 @@
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="CommunityToolkit.WinUI.Converters" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
-    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />

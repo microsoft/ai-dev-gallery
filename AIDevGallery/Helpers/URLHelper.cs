@@ -8,7 +8,7 @@ namespace AIDevGallery.Helpers;
 
 internal static class URLHelper
 {
-    private const string DocsBaseUrl = "https://learn.microsoft.com/";
+    private const string DocsBaseUrl = "https://learn.microsoft.com";
     private const string WcrDocsRelativePath = "/windows/ai/apis/";
 
     public static bool IsValidUrl(string url)

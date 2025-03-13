@@ -31,14 +31,14 @@ internal class MyQuote : IAddChild
 
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
         var bar = new Grid();
-        bar.Width = 4;
+        bar.Width = 2;
         bar.Background = new SolidColorBrush(Colors.Gray);
         bar.SetValue(Grid.ColumnProperty, 0);
         bar.VerticalAlignment = VerticalAlignment.Stretch;
-        bar.Margin = new Thickness(0, 0, 4, 0);
+        bar.Margin = new Thickness(4, 0, 4, 0);
         grid.Children.Add(bar);
 
         var rightGrid = new Grid();

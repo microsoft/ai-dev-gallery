@@ -1,6 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
 using HtmlAgilityPack;
 using Markdig.Syntax;
@@ -28,14 +27,17 @@ internal class MyFlowDocument : IAddChild
 
     public MyFlowDocument()
     {
+        _richTextBlock.LineHeight = 30;
     }
 
     public MyFlowDocument(MarkdownObject markdownObject)
+        : base()
     {
         _markdownObject = markdownObject;
     }
 
     public MyFlowDocument(HtmlNode node)
+        : base()
     {
         _htmlNode = node;
     }

@@ -8,7 +8,6 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -166,9 +165,9 @@ internal sealed partial class ModelPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()

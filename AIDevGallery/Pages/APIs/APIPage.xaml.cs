@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -82,8 +83,8 @@ internal sealed partial class APIPage : Page
             WcrApiCodeSnippet.Snippets.TryGetValue(apiType, out var snippet);
             if (snippet != null)
             {
-                CodeSampleTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
-                CodeSampleTextBlock.Text = $"```csharp\r\n{snippet}\r\n```";
+                var codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+                codeFormatter.FormatRichTextBlock(snippet, Languages.CSharp, CodeSampleTextBlock);
             }
             else
             {
@@ -129,8 +130,8 @@ internal sealed partial class APIPage : Page
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
-            //markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
-            //markdownTextBlock.Text = readmeContents;
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
+            markdownTextBlock.Text = readmeContents;
         }
 
         readmeProgressRing.IsActive = false;
@@ -148,9 +149,9 @@ internal sealed partial class APIPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         if (!URLHelper.IsValidUrl(link))
         {

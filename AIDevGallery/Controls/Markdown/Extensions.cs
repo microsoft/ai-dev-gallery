@@ -357,6 +357,7 @@ internal static class Extensions
                 remainder = 0;
             }
         }
+
         return stringBuilder.ToString();
     }
 
@@ -372,6 +373,7 @@ internal static class Extensions
         {
             // Try to find the next insertion position by moving one symbol forward
             TextPointer next = position.GetPositionAtOffset(1, logicalDirection);
+
             // If there is no next position, return null
             if (next == null)
             {
@@ -389,8 +391,10 @@ internal static class Extensions
     {
         // Get the character rect of the current position
         Rect currentRect = position.GetCharacterRect(logicalDirection);
+
         // Try to get the next position by moving one symbol forward
         TextPointer next = position.GetPositionAtOffset(1, logicalDirection);
+
         // If there is no next position, return false
         if (next == null)
         {
@@ -400,6 +404,7 @@ internal static class Extensions
         {
             // Get the character rect of the next position
             Rect nextRect = next.GetCharacterRect(logicalDirection);
+
             // Compare the two rects and return true if they are different
             return !currentRect.Equals(nextRect);
         }
@@ -428,22 +433,23 @@ internal static class Extensions
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         if (Uri.TryCreate(validUrl, UriKind.Absolute, out result))
         {
-            //the url is already absolute
+            // the url is already absolute
             return result;
         }
         else if (!string.IsNullOrWhiteSpace(@base))
         {
-            //the url is relative, so append the base
-            //trim any trailing "/" from the base and any leading "/" from the url
+            // the url is relative, so append the base
+            // trim any trailing "/" from the base and any leading "/" from the url
             @base = @base?.TrimEnd('/');
             validUrl = validUrl.TrimStart('/');
-            //return the base and the url separated by a single "/"
+
+            // return the base and the url separated by a single "/"
             return new Uri(@base + "/" + validUrl);
         }
         else
         {
-            //the url is relative to the file system
-            //add ms-appx
+            // the url is relative to the file system
+            // add ms-appx
             validUrl = validUrl.TrimStart('/');
             return new Uri("ms-appx:///" + validUrl);
         }
@@ -453,159 +459,150 @@ internal static class Extensions
     public static StyleDictionary GetOneDarkProStyle()
     {
         return new StyleDictionary
-                {
-                    new ColorCode.Styling.Style(ScopeName.PlainText)
-                    {
-                        Foreground = OneDarkPlainText,
-                        Background = OneDarkBackground,
-                        ReferenceName = "plainText"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlServerSideScript)
-                    {
-                        Background = Yellow,
-                        ReferenceName = "htmlServerSideScript"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlComment)
-                    {
-                        Foreground = OneDarkComment,
-                        ReferenceName = "htmlComment"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlTagDelimiter)
-                    {
-                        Foreground = OneDarkKeyword,
-                        ReferenceName = "htmlTagDelimiter"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlElementName)
-                    {
-                        Foreground = DullRed,
-                        ReferenceName = "htmlElementName"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlAttributeName)
-                    {
-                        Foreground = Red,
-                        ReferenceName = "htmlAttributeName"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlAttributeValue)
-                    {
-                        Foreground = OneDarkKeyword,
-                        ReferenceName = "htmlAttributeValue"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.HtmlOperator)
-                    {
-                        Foreground = OneDarkKeyword,
-                        ReferenceName = "htmlOperator"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.Comment)
-                    {
-                        Foreground = OneDarkComment,
-                        ReferenceName = "comment"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.XmlDocTag)
-                    {
-                        Foreground = OneDarkXMLComment,
-                        ReferenceName = "xmlDocTag"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.XmlDocComment)
-                    {
-                        Foreground = OneDarkXMLComment,
-                        ReferenceName = "xmlDocComment"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.String)
-                    {
-                        Foreground = OneDarkString,
-                        ReferenceName = "string"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.StringCSharpVerbatim)
-                    {
-                        Foreground = OneDarkString,
-                        ReferenceName = "stringCSharpVerbatim"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.Keyword)
-                    {
-                        Foreground = OneDarkKeyword,
-                        ReferenceName = "keyword"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.PreprocessorKeyword)
-                    {
-                        Foreground = OneDarkKeyword,
-                        ReferenceName = "preprocessorKeyword"
-                    },
-                    new ColorCode.Styling.Style(ScopeName.Number)
-                     {
-                         Foreground=OneDarkNumber,
-                         ReferenceName="number"
-                     },
+        {
+            new ColorCode.Styling.Style(ScopeName.PlainText)
+            {
+                Foreground = OneDarkPlainText,
+                Background = OneDarkBackground,
+                ReferenceName = "plainText"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlServerSideScript)
+            {
+                Background = Yellow,
+                ReferenceName = "htmlServerSideScript"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlComment)
+            {
+                Foreground = OneDarkComment,
+                ReferenceName = "htmlComment"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlTagDelimiter)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "htmlTagDelimiter"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlElementName)
+            {
+                Foreground = DullRed,
+                ReferenceName = "htmlElementName"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlAttributeName)
+            {
+                Foreground = Red,
+                ReferenceName = "htmlAttributeName"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlAttributeValue)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "htmlAttributeValue"
+            },
+            new ColorCode.Styling.Style(ScopeName.HtmlOperator)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "htmlOperator"
+            },
+            new ColorCode.Styling.Style(ScopeName.Comment)
+            {
+                Foreground = OneDarkComment,
+                ReferenceName = "comment"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlDocTag)
+            {
+                Foreground = OneDarkXMLComment,
+                ReferenceName = "xmlDocTag"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlDocComment)
+            {
+                Foreground = OneDarkXMLComment,
+                ReferenceName = "xmlDocComment"
+            },
+            new ColorCode.Styling.Style(ScopeName.String)
+            {
+                Foreground = OneDarkString,
+                ReferenceName = "string"
+            },
+            new ColorCode.Styling.Style(ScopeName.StringCSharpVerbatim)
+            {
+                Foreground = OneDarkString,
+                ReferenceName = "stringCSharpVerbatim"
+            },
+            new ColorCode.Styling.Style(ScopeName.Keyword)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "keyword"
+            },
+            new ColorCode.Styling.Style(ScopeName.PreprocessorKeyword)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "preprocessorKeyword"
+            },
+            new ColorCode.Styling.Style(ScopeName.Number)
+            {
+                Foreground = OneDarkNumber,
+                ReferenceName = "number"
+            },
+            new ColorCode.Styling.Style(ScopeName.CssPropertyName)
+            {
+                Foreground = OneDarkClass,
+                ReferenceName = "cssPropertyName"
+            },
+            new ColorCode.Styling.Style(ScopeName.CssPropertyValue)
+            {
+                Foreground = OneDarkString,
+                ReferenceName = "cssPropertyValue"
+            },
+            new ColorCode.Styling.Style(ScopeName.CssSelector)
+            {
+                Foreground = OneDarkKeyword,
+                ReferenceName = "cssSelector"
+            },
+            new ColorCode.Styling.Style(ScopeName.SqlSystemFunction)
+            {
+                Foreground = OneDarkClass,
+                ReferenceName = "sqlSystemFunction"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlAttribute)
+            {
+                Foreground = OneDarkXMLAttribute,
+                ReferenceName = "xmlAttribute"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlAttributeQuotes)
+            {
+                Foreground = OneDarkXMLDelimiter,
+                ReferenceName = "xmlAttributeQuotes"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlAttributeValue)
+            {
+                Foreground = OneDarkString,
+                ReferenceName = "xmlAttributeValue"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlCDataSection)
+            {
+                Foreground = OneDarkXAMLCData,
+                ReferenceName = "xmlCDataSection"
+            },
+            new ColorCode.Styling.Style(ScopeName.XmlComment)
+            {
+                Foreground = OneDarkXMLComment,
+                ReferenceName = "xmlComment"
+            },
 
-                     new ColorCode.Styling.Style(ScopeName.CssPropertyName)
-                     {
-                         Foreground=OneDarkClass,
-                         ReferenceName="cssPropertyName"
-                     },
-
-                     new ColorCode.Styling.Style(ScopeName.CssPropertyValue)
-                     {
-                         Foreground=OneDarkString,
-                         ReferenceName="cssPropertyValue"
-                     },
-
-                     new ColorCode.Styling.Style(ScopeName.CssSelector)
-                     {
-                         Foreground=OneDarkKeyword,
-                         ReferenceName="cssSelector"
-                     },
-
-                     new ColorCode.Styling.Style(ScopeName.SqlSystemFunction)
-                     {
-                         Foreground=OneDarkClass,
-                         ReferenceName="sqlSystemFunction"
-                     },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlAttribute)
-                    {
-                        Foreground=OneDarkXMLAttribute,
-                        ReferenceName="xmlAttribute"
-                    },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlAttributeQuotes)
-                    {
-                        Foreground=OneDarkXMLDelimiter,
-                        ReferenceName="xmlAttributeQuotes"
-                    },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlAttributeValue)
-                    {
-                        Foreground=OneDarkString,
-                        ReferenceName="xmlAttributeValue"
-                    },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlCDataSection)
-                    {
-                        Foreground=OneDarkXAMLCData,
-                        ReferenceName="xmlCDataSection"
-                    },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlComment)
-                    {
-                        Foreground=OneDarkXMLComment,
-                        ReferenceName="xmlComment"
-                    },
-
-                    new ColorCode.Styling.Style(ScopeName.XmlDelimiter)
-                    {
-                        Foreground=OneDarkXMLDelimiter,
-                        ReferenceName="xmlDelimiter"
-                    },
+            new ColorCode.Styling.Style(ScopeName.XmlDelimiter)
+            {
+                Foreground = OneDarkXMLDelimiter,
+                ReferenceName = "xmlDelimiter"
+            },
             new ColorCode.Styling.Style(ScopeName.XmlName)
             {
-                Foreground=OneDarkXMLName,
-                ReferenceName="xmlName"
+                Foreground = OneDarkXMLName,
+                ReferenceName = "xmlName"
             }
         };
     }
 
     public static HtmlElementType TagToType(this string tag)
     {
-        switch (tag.ToLower())
+        switch (tag.ToLowerInvariant())
         {
             case "address":
             case "article":
@@ -648,7 +645,7 @@ internal static class Extensions
     public static bool IsHeading(this string tag)
     {
         var headings = new List<string>() { "h1", "h2", "h3", "h4", "h5", "h6" };
-        return headings.Contains(tag.ToLower());
+        return headings.Contains(tag.ToLowerInvariant());
     }
 
     public static Size GetSvgSize(string svgString)
@@ -710,7 +707,7 @@ internal static class Extensions
         //    {
         //        return new(w, h);
         //    }
-        //}
+        // }
 
         // Return default values if no width and height are found
         return new(0, 0);

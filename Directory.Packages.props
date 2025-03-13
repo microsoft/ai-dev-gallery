@@ -17,7 +17,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.1.240916" />
-    <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Build" Version="17.12.6" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.20.1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Qnn" Version="1.20.2" />

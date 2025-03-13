@@ -44,7 +44,9 @@ internal class MyAutolinkInline : IAddChild
         }
         catch (Exception ex)
         {
+#pragma warning disable CA2201 // Do not raise reserved exception types
             throw new Exception("Error adding child to MyAutolinkInline", ex);
+#pragma warning restore CA2201 // Do not raise reserved exception types
         }
     }
 }
