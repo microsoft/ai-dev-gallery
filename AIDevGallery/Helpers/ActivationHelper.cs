@@ -7,6 +7,7 @@ using AIDevGallery.Telemetry.Events;
 using Microsoft.Windows.AppLifecycle;
 using System.Linq;
 using Windows.ApplicationModel.Activation;
+using Windows.Data.Xml.Dom;
 
 namespace AIDevGallery.Helpers;
 
@@ -24,7 +25,7 @@ internal static class ActivationHelper
 
                 DeepLinkActivatedEvent.Log(protocolArgs.Uri.ToString());
 
-                if (protocolArgs.Uri.Host == "models")
+                if (protocolArgs.Uri.Host == "models" || protocolArgs.Uri.Host == "apis")
                 {
                     var sampleModelTypes = App.FindSampleItemById(itemId);
 
