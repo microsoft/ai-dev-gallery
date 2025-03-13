@@ -252,6 +252,10 @@ public static class UrlHelpers
         {
             return url;
         }
+        else if (url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return url;
+        }
         else
         {
             return new HuggingFaceUrl(url).FullUrl;
