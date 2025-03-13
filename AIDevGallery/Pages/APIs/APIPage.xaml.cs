@@ -11,8 +11,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Pages;
@@ -22,10 +24,43 @@ internal sealed partial class APIPage : Page
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
     private ModelDetails? modelDetails;
+    private DispatcherTimer webViewTimer;
 
     public APIPage()
     {
         this.InitializeComponent();
+        this.SizeChanged += APIPage_SizeChanged;
+        webViewTimer = new DispatcherTimer();
+        webViewTimer.Interval = TimeSpan.FromMilliseconds(500);
+        webViewTimer.Tick += (s, e) =>
+        {
+            MyWebView.IsHitTestVisible = true;
+            webViewTimer.Stop();
+        };
+        MyWebView.PointerWheelChanged += MyWebView_PointerWheelChanged;
+    }
+
+    private void MyWebView_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        MyWebView.IsHitTestVisible = false;
+        webViewTimer.Stop();
+        webViewTimer.Start();
+    }
+
+    private async void APIPage_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (MyWebView.CoreWebView2 == null)
+        {
+            return;
+        }
+
+        var script = "document.body.scrollHeight;";
+        var heightString = await MyWebView.ExecuteScriptAsync(script);
+        if (float.TryParse(heightString, out float height))
+        {
+            MyWebView.Height = Math.Round(height, MidpointRounding.AwayFromZero);
+            Debug.WriteLine($"WebView height: {height}");
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -128,7 +163,12 @@ internal sealed partial class APIPage : Page
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
-            markdownTextBlock.Text = readmeContents;
+            var html = File.ReadAllText(Path.Join(Package.Current.InstalledLocation.Path, "Markdown", "index.html"));
+            html = html.Replace("{MARKDOWN}", readmeContents.Replace(@"`", @"\`"));
+            await MyWebView.EnsureCoreWebView2Async();
+            MyWebView.CoreWebView2.NavigateToString(html);
+
+            //markdownTextBlock.Text = readmeContents;
         }
 
         readmeProgressRing.IsActive = false;

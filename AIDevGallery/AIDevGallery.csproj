@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ProjectGenerator\Template\**" />
+    <Content Include="Markdown\index.html" />
     <Content Include="Styles\Button.xaml" />
     <Content Include="Styles\Card.xaml" />
   </ItemGroup>
@@ -262,6 +263,7 @@
     <None Remove="Assets\Wallpaper1.png" />
     <None Remove="Assets\Wallpaper2.png" />
     <None Remove="Assets\Wallpaper3.png" />
+    <None Remove="Markdown\index.html" />
   </ItemGroup>
 
   <ItemGroup>

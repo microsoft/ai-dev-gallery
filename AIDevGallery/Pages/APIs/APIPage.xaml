@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
     xmlns:toolkit2="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     xmlns:types="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
     Loaded="Page_Loaded"
@@ -159,8 +160,8 @@
                             </StackPanel>
                         </HyperlinkButton>
                     </controls:Card.TitleContent>
-                    <Grid Padding="8,16,8,16">
-                        <toolkit2:MarkdownTextBlock
+                    <Grid Padding="8,16,8,16" Background="Red">
+                        <!--<toolkit2:MarkdownTextBlock
                             x:Name="markdownTextBlock"
                             Background="Transparent"
                             FontSize="14"
@@ -179,7 +180,13 @@
                                 <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
                                 <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
                             </toolkit2:MarkdownTextBlock.Resources>
-                        </toolkit2:MarkdownTextBlock>
+                        </toolkit2:MarkdownTextBlock>-->
+
+                        <winui:WebView2 x:Name="MyWebView" 
+                                        DefaultBackgroundColor="Transparent"
+                                        HorizontalAlignment="Stretch" 
+                                        Height="500"
+                                        VerticalAlignment="Stretch"/>
                         <ProgressRing
                             x:Name="readmeProgressRing"
                             Grid.Row="2"
