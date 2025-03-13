@@ -56,15 +56,7 @@ internal class PhiSilicaClient : IChatClient
         var phiSilicaClient = new PhiSilicaClient();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        try
-        {
-            await phiSilicaClient.InitializeAsync(cancellationToken);
-        }
-        catch
-        {
-            return null;
-        }
-
+        await phiSilicaClient.InitializeAsync(cancellationToken);
         return phiSilicaClient;
     }
 
