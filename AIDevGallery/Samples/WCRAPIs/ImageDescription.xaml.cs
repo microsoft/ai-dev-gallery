@@ -205,7 +205,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         }
         catch (Exception ex)
         {
-            ResponseTxt.Text = ex.Message;
+            ShowException(ex);
         }
 
         Loader.Visibility = Visibility.Collapsed;

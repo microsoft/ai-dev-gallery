@@ -217,6 +217,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         input = RemoveExcludedLinesCs(input, filePath);
 
         input = input.Replace("sampleParams.NotifyCompletion();", "App.Window?.ModelLoaded();");
+        input = input.Replace("ShowException(", "App.Window?.ShowException(");
         input = input.Replace("sampleParams.ShowWcrModelLoadingMessage = true;", string.Empty);
         input = input.Replace("sampleParams.CancellationToken", "CancellationToken.None");
 
