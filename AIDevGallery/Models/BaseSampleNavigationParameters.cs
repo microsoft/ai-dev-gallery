@@ -12,13 +12,14 @@ namespace AIDevGallery.Models;
 internal abstract class BaseSampleNavigationParameters(TaskCompletionSource sampleLoadedCompletionSource, CancellationToken loadingCanceledToken)
 {
     public CancellationToken CancellationToken { get; private set; } = loadingCanceledToken;
+    public TaskCompletionSource SampleLoadedCompletionSource { get; set; } = sampleLoadedCompletionSource;
 
     protected abstract string ChatClientModelPath { get; }
     protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
     public void NotifyCompletion()
     {
-        sampleLoadedCompletionSource.SetResult();
+        SampleLoadedCompletionSource.SetResult();
     }
 
     public async Task<IChatClient?> GetIChatClientAsync()
