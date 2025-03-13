@@ -52,5 +52,9 @@
     <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.9" />
+  <!-- for Markdown control-->
+    <PackageVersion Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageVersion Include="Markdig" Version="0.38.0" />
+    <PackageVersion Include="Roman-Numerals" Version="2.0.1" />
   </ItemGroup>
 </Project>

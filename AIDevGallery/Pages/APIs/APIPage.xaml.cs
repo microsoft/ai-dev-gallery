@@ -82,6 +82,7 @@ internal sealed partial class APIPage : Page
             WcrApiCodeSnippet.Snippets.TryGetValue(apiType, out var snippet);
             if (snippet != null)
             {
+                CodeSampleTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
                 CodeSampleTextBlock.Text = $"```csharp\r\n{snippet}\r\n```";
             }
             else
@@ -128,7 +129,8 @@ internal sealed partial class APIPage : Page
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
-            markdownTextBlock.Text = readmeContents;
+            //markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
+            //markdownTextBlock.Text = readmeContents;
         }
 
         readmeProgressRing.IsActive = false;

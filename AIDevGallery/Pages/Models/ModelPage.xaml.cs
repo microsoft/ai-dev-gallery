@@ -8,6 +8,7 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -115,6 +116,7 @@ internal sealed partial class ModelPage : Page
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
             markdownTextBlock.Text = readmeContents;
         }
 

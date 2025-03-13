@@ -80,6 +80,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
+    <PackageReference Include="HtmlAgilityPack"/>
+    <PackageReference Include="Markdig"/>
+    <PackageReference Include="Roman-Numerals"/>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
