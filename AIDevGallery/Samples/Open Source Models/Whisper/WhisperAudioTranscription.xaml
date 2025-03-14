@@ -37,6 +37,12 @@
                 Click="StartStopButton_Click"
                 Content="Start recording"
                 Style="{StaticResource AccentButtonStyle}" />
+            <Button
+                x:Name="TranscribeAudioFileButton"
+                MinWidth="240"
+                Click="TranscribeAudioFileButton_Click"
+                Content="Transcribe Audio File"
+                Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
     </Grid>
 </samples:BaseSamplePage>

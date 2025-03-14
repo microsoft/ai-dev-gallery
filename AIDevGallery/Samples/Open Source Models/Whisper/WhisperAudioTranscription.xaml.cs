@@ -6,10 +6,13 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
 using NAudio.Wave;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
 
@@ -93,8 +96,37 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
         StartStopButton.IsEnabled = true;
     }
 
+    private async void TranscribeAudioFileButton_Click(object sender, RoutedEventArgs e)
+    {
+        StorageFile audioFile = await SelectAudioFileAsync();
+        if (audioFile != null)
+        {
+            using (WaveFileReader reader = new WaveFileReader(await audioFile.OpenStreamForReadAsync()))
+            {
+                audioStream?.Dispose();
+                audioStream = new MemoryStream();
+                await reader.CopyToAsync(audioStream);
+                audioStream.Position = 0;
+            }
+
+            TranscriptionTextBlock.Text = "Processing...";
+            await ProcessAudio();
+        }
+    }
+
+    private async Task<StorageFile> SelectAudioFileAsync()
+    {
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        var picker = new FileOpenPicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.FileTypeFilter.Add(".wav");
+        return await picker.PickSingleFileAsync();
+    }
+
     private void StartRecording()
     {
+        audioStream?.Dispose();
         audioStream = new MemoryStream();
         waveIn = new WaveInEvent
         {
