@@ -107,9 +107,9 @@ internal sealed partial class TextRecognition : BaseSamplePage
                     using var stream = await storageFile.OpenReadAsync();
                     await SetImage(stream);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Invalid Image File");
+                    ShowException(ex, "Invalid image file");
                 }
             }
         }
@@ -164,7 +164,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
         _textRecognizer ??= await TextRecognizer.CreateAsync();
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-        if (result == null)
+        if (result?.Lines == null )
         {
             return;
         }
