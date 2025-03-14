@@ -81,11 +81,11 @@ internal sealed partial class SemanticComboBox : Control
         var searchVectors = await EmbeddingGenerator.GenerateAsync([searchTerm]);
         return (await _stringsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
-                    new VectorSearchOptions
+                    new VectorSearchOptions<StringData>
                     {
                         // Number of results to return
                         Top = 5,
-                        VectorPropertyName = nameof(StringData.Vector)
+                        VectorProperty = (str) => str.Vector
                     }))
                     .Results
                     .ToBlockingEnumerable()
