@@ -158,7 +158,7 @@
       },
       "BackgroundDetector": {
         "Name": "Detect Background",
-        "Description": "Detect image foreground vs background.",
+        "Description": "Detect image foreground vs background. Upload a portrait image and the model will separate the foreground from the background.",
         "Id": "detect-background"
       },
       "DetectPose": {
