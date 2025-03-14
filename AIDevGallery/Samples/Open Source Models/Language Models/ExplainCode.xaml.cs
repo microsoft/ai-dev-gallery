@@ -39,12 +39,20 @@ internal sealed partial class ExplainCode : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
 
-        // Increase the default max length to allow larger pieces of code
-        // More than 7K will crash
-        maxTextLength = 4096;
-        InputTextBox.MaxLength = maxTextLength;
+            // Increase the default max length to allow larger pieces of code
+            // More than 7K will crash
+            maxTextLength = 4096;
+            InputTextBox.MaxLength = maxTextLength;
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 

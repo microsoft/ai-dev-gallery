@@ -37,8 +37,16 @@ internal sealed partial class Summarize : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        chatClient = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = _defaultMaxLength;
+        try
+        {
+            chatClient = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = _defaultMaxLength;
+        }
+        catch (System.Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 

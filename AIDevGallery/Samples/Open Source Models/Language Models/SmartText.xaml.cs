@@ -41,7 +41,15 @@ internal sealed partial class SmartText : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _model = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            _model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         if (_model != null)
         {
             this.SmartTextBox.ChatClient = _model;

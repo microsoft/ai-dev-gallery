@@ -48,7 +48,14 @@ internal sealed partial class Chat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
 
         sampleParams.NotifyCompletion();
     }

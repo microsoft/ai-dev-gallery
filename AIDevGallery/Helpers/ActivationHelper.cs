@@ -24,7 +24,7 @@ internal static class ActivationHelper
 
                 DeepLinkActivatedEvent.Log(protocolArgs.Uri.ToString());
 
-                if (protocolArgs.Uri.Host == "models")
+                if (protocolArgs.Uri.Host == "models" || protocolArgs.Uri.Host == "apis")
                 {
                     var sampleModelTypes = App.FindSampleItemById(itemId);
 

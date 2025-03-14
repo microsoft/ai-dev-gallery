@@ -84,8 +84,15 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
-        _chatClient = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            _chatClient = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
 
         sampleParams.NotifyCompletion();
 
@@ -175,14 +182,14 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                 {
                     string pageText = string.Join(" ", page.GetWords());
 
-                    if(pageText == string.Empty)
+                    if (pageText == string.Empty)
                     {
                         continue;
                     }
 
                     List<(string Text, uint Page)> pageChunks = SplitInChunks((pageText, (uint)page.Number), 512).ToList();
                     int i = 0;
-                    await foreach(var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
+                    await foreach (var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
                     {
                         await _pdfPages.UpsertAsync(
                         new PdfPageData
@@ -220,7 +227,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             return;
         }
 
-        if(chunksProcessedCount == 0)
+        if (chunksProcessedCount == 0)
         {
             ToSelectState();
             PdfProblemTextBlock.Text = "We weren't able to read this PDF. Please try another.";
@@ -519,7 +526,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private async void SelectNewPDF_Click(object sender, RoutedEventArgs e)
     {
         StorageFile pdfFile = await SelectPDFFromFileSystem();
-        if(pdfFile != null)
+        if (pdfFile != null)
         {
             _pdfFile = pdfFile;
             ToSelectState();

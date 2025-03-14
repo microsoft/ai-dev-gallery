@@ -7,6 +7,7 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,8 +38,16 @@ internal sealed partial class Translate : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        chatClient = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = _defaultMaxLength;
+        try
+        {
+            chatClient = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = _defaultMaxLength;
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 

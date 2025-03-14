@@ -45,7 +45,15 @@ internal sealed partial class SmartPaste : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         if (model != null)
         {
             this.SmartForm.Model = model;
