@@ -41,7 +41,7 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                 () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    model = new OnnxRuntimeGenAIChatClient(options, modelDir);
+                    model = new OnnxRuntimeGenAIChatClient(modelDir, options);
                     cancellationToken.ThrowIfCancellationRequested();
                 },
                 cancellationToken);
