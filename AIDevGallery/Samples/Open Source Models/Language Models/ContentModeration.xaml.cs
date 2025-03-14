@@ -19,7 +19,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextContentModeration,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     SharedCode = [],
     Id = "language-content-moderation",

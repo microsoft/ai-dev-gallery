@@ -42,7 +42,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "Microsoft.ML.Tokenizers",
         "System.Numerics.Tensors",
         "Microsoft.ML.OnnxRuntime.DirectML",
-        "Microsoft.Extensions.AI.Abstractions",
+        "Microsoft.Extensions.AI",
         "Microsoft.SemanticKernel.Connectors.InMemory"
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
