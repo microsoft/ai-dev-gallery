@@ -130,6 +130,12 @@
         "Id": "describe-image",
         "Icon": "\uE8BA"
       },
+      "DescribeLiveImage": {
+        "Name": "Describe Live Image",
+        "Description": "Describe live feed with a multimodal language model. Note: this may take a while.",
+        "Id": "describe-live-image",
+        "Icon": "\uE8BA"
+      },
       "ClassifyImage": {
         "Name": "Classify Image",
         "Description": "Label the main object in a photo with an image classification model. Upload a photo to get potential labels along with a confidence score associated with each label.",
