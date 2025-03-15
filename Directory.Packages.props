@@ -17,7 +17,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.1.240916" />
-    <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Qnn" Version="1.20.2" />
@@ -52,5 +51,9 @@
     <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.10" />
+  <!-- for Markdown control-->
+    <PackageVersion Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageVersion Include="Markdig" Version="0.38.0" />
+    <PackageVersion Include="Roman-Numerals" Version="2.0.1" />
   </ItemGroup>
 </Project>

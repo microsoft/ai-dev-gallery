@@ -367,7 +367,7 @@ internal sealed partial class SampleContainer : UserControl
         var textBlock = new RichTextBlock()
         {
             Margin = new Thickness(0, 12, 0, 12),
-            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Cascadia Code"),
             FontSize = 14,
             IsTextSelectionEnabled = true
         };

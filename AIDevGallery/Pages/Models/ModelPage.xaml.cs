@@ -115,6 +115,7 @@ internal sealed partial class ModelPage : Page
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
             markdownTextBlock.Text = readmeContents;
         }
 
@@ -164,9 +165,9 @@ internal sealed partial class ModelPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()
