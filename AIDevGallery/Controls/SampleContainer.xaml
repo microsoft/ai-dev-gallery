@@ -151,12 +151,13 @@
                                       VerticalScrollBarVisibility="Hidden"
                                       HorizontalScrollBarVisibility="Hidden">
                             <TextBlock x:Name="LineNumbersTextBlock" 
-                                        Grid.Column="0"
-                                        IsTextSelectionEnabled="False"
-                                        Margin="8,0,16,0"
-                                        LineHeight="16"
-                                        FontFamily="Consolas"
-                                        FontSize="14">0</TextBlock>
+                                       Grid.Column="0"
+                                       Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                       IsTextSelectionEnabled="False"
+                                       Margin="8,0"
+                                       LineHeight="16"
+                                       FontFamily="Consolas"
+                                       FontSize="14">0</TextBlock>
                         </ScrollViewer>
                         <ScrollViewer Grid.Column="1" 
                                       HorizontalScrollMode="Auto"
@@ -165,6 +166,7 @@
                                       ViewChanging="ScrollViewer_ViewChanging">  
                             <RichTextBlock x:Name="CodeTextBlock" 
                                            Grid.Column="1"
+                                           Padding="8,0"
                                            LineHeight="16"
                                            FontWeight="Light"
                                            TextWrapping="NoWrap"
