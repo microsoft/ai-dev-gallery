@@ -128,11 +128,51 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid>
-                    <Pivot x:Name="CodePivot">
-                        <Pivot.Resources>
-                            <x:Double x:Key="PivotHeaderItemFontSize">14</x:Double>
-                        </Pivot.Resources>
-                    </Pivot>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <TabView
+                        x:Name="CodeTabView"
+                        SelectionChanged="CodeTabView_SelectionChanged"
+                        TabWidthMode="SizeToContent"
+                        IsAddTabButtonVisible="False" />
+                   
+                    <Grid Padding="8"
+                          Grid.Row="1"
+                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer x:Name="LineNumbersScroller"
+                                      VerticalScrollMode="Disabled"
+                                      HorizontalScrollMode="Disabled"
+                                      VerticalScrollBarVisibility="Hidden"
+                                      HorizontalScrollBarVisibility="Hidden">
+                            <TextBlock x:Name="LineNumbersTextBlock" 
+                                        Grid.Column="0"
+                                        IsTextSelectionEnabled="False"
+                                        Margin="8,0,16,0"
+                                        LineHeight="16"
+                                        FontFamily="Consolas"
+                                        FontSize="14">0</TextBlock>
+                        </ScrollViewer>
+                        <ScrollViewer Grid.Column="1" 
+                                      HorizontalScrollMode="Auto"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto"
+                                      ViewChanging="ScrollViewer_ViewChanging">  
+                            <RichTextBlock x:Name="CodeTextBlock" 
+                                           Grid.Column="1"
+                                           LineHeight="16"
+                                           FontWeight="Light"
+                                           TextWrapping="NoWrap"
+                                           IsTextSelectionEnabled="True" 
+                                           FontFamily="Consolas"
+                                           FontSize="14"></RichTextBlock>
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
                 <Rectangle
                     Grid.Row="1"
