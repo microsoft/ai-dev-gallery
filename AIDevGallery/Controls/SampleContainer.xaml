@@ -4,9 +4,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls" 
     xmlns:local="using:AIDevGallery.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkitcontrols="using:CommunityToolkit.WinUI.Controls"
     VerticalAlignment="Stretch"
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
@@ -129,50 +129,54 @@
                 </Grid.RowDefinitions>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TabView
                         x:Name="CodeTabView"
+                        Margin="0,8,0,0"
+                        IsAddTabButtonVisible="False"
                         SelectionChanged="CodeTabView_SelectionChanged"
-                        TabWidthMode="SizeToContent"
-                        IsAddTabButtonVisible="False" />
-                   
-                    <Grid Padding="8"
-                          Grid.Row="1"
-                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
+                        TabWidthMode="SizeToContent" />
+                    <Grid Grid.Row="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <ScrollViewer x:Name="LineNumbersScroller"
-                                      VerticalScrollMode="Disabled"
-                                      HorizontalScrollMode="Disabled"
-                                      VerticalScrollBarVisibility="Hidden"
-                                      HorizontalScrollBarVisibility="Hidden">
-                            <TextBlock x:Name="LineNumbersTextBlock" 
-                                       Grid.Column="0"
-                                       Foreground="{ThemeResource TextFillColorDisabledBrush}"
-                                       IsTextSelectionEnabled="False"
-                                       Margin="8,0"
-                                       LineHeight="16"
-                                       FontFamily="Consolas"
-                                       FontSize="14">0</TextBlock>
+                        <ScrollViewer
+                            x:Name="LineNumbersScroller"
+                            HorizontalScrollBarVisibility="Hidden"
+                            HorizontalScrollMode="Disabled"
+                            VerticalScrollBarVisibility="Hidden"
+                            VerticalScrollMode="Disabled">
+                            <TextBlock
+                                x:Name="LineNumbersTextBlock"
+                                Grid.Column="0"
+                                Margin="8,16"
+                                FontFamily="Consolas"
+                                FontSize="14"
+                                Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                IsTextSelectionEnabled="False"
+                                LineHeight="16">
+                                0
+                            </TextBlock>
                         </ScrollViewer>
-                        <ScrollViewer Grid.Column="1" 
-                                      HorizontalScrollMode="Auto"
-                                      HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Auto"
-                                      ViewChanging="ScrollViewer_ViewChanging">  
-                            <RichTextBlock x:Name="CodeTextBlock" 
-                                           Grid.Column="1"
-                                           Padding="8,0"
-                                           LineHeight="16"
-                                           FontWeight="Light"
-                                           TextWrapping="NoWrap"
-                                           IsTextSelectionEnabled="True" 
-                                           FontFamily="Consolas"
-                                           FontSize="14"></RichTextBlock>
+                        <ScrollViewer
+                            Grid.Column="1"
+                            HorizontalScrollBarVisibility="Auto"
+                            HorizontalScrollMode="Auto"
+                            VerticalScrollBarVisibility="Auto"
+                            ViewChanging="ScrollViewer_ViewChanging">
+                            <RichTextBlock
+                                x:Name="CodeTextBlock"
+                                Grid.Column="1"
+                                Padding="8,16"
+                                FontFamily="Consolas"
+                                FontSize="14"
+                                FontWeight="Light"
+                                IsTextSelectionEnabled="True"
+                                LineHeight="16"
+                                TextWrapping="NoWrap" />
                         </ScrollViewer>
                     </Grid>
                 </Grid>
@@ -184,6 +188,7 @@
                 <Expander
                     Grid.Row="2"
                     HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
                     BorderThickness="0"
                     CornerRadius="0"
                     IsExpanded="True">
@@ -214,10 +219,12 @@
             </Grid>
             <toolkitcontrols:GridSplitter
                 x:Name="CodeGridSplitter"
+                Grid.RowSpan="2"
                 Grid.Column="1"
                 Width="16"
                 HorizontalAlignment="Left"
                 AutomationProperties.Name="Resize"
+                Foreground="Transparent"
                 ResizeBehavior="PreviousAndCurrent"
                 ResizeDirection="Columns"
                 Visibility="Collapsed">
