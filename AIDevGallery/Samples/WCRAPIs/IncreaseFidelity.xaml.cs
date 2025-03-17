@@ -147,11 +147,19 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         if (_imageScaler == null)
         {
-            _imageScaler = await ImageScaler.CreateAsync();
-            ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
-            if (_imageScaler.MaxSupportedScaleFactor >= 4)
+            try
             {
-                ScaleSlider.Value = 4;
+                _imageScaler = await ImageScaler.CreateAsync();
+                ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+                if (_imageScaler.MaxSupportedScaleFactor >= 4)
+                {
+                    ScaleSlider.Value = 4;
+                }
+            }
+            catch(Exception ex)
+            {
+                ShowException(ex, "Failed to create Image Scaler session.");
+                return;
             }
         }
 

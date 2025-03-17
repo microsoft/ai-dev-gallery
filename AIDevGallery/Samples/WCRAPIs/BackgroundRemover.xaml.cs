@@ -174,9 +174,25 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return null;
         }
 
-        var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
-        var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
-        return ApplyMask(bitmap, mask);
+        try
+        {
+            var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
+            try
+            {
+                var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
+                return ApplyMask(bitmap, mask);
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex, "Failed to create get mask.");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to create ImageObjectExtractor.");
+            return null;
+        }
     }
 
     private static SoftwareBitmap ApplyMask(SoftwareBitmap inputBitmap, SoftwareBitmap grayMask)
