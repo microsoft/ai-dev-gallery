@@ -53,10 +53,10 @@ internal sealed class MarkdownThemes : DependencyObject
     public Thickness H5Margin { get; set; } = new(left: 0, top: 8, right: 0, bottom: 0);
     public Thickness H6Margin { get; set; } = new(left: 0, top: 8, right: 0, bottom: 0);
 
-    public Brush InlineCodeBackground { get; set; } = (Brush)Application.Current.Resources["ExpanderHeaderBackground"];
+    public Brush InlineCodeBackground { get; set; } = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"];
     public Brush InlineCodeForeground { get; set; } = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
 
-    public Brush InlineCodeBorderBrush { get; set; } = new SolidColorBrush(Colors.Gray);
+    public Brush InlineCodeBorderBrush { get; set; } = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
 
     public Thickness InlineCodeBorderThickness { get; set; } = new (1);
 

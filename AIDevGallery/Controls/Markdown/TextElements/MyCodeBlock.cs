@@ -33,6 +33,7 @@ internal class MyCodeBlock : IAddChild
         var richTextBlock = new RichTextBlock()
         {
             FontFamily = new FontFamily("Cascadia Code"),
+            FontSize = 12,
             IsTextSelectionEnabled = true
         };
 
@@ -92,12 +93,14 @@ internal class MyCodeBlock : IAddChild
                 VerticalScrollMode = ScrollMode.Disabled,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Margin = new Thickness(0, 0, 0, 16),
+                Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
+                BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                BorderThickness = new Thickness(1),
+                CornerRadius = _config.Themes.CornerRadius,
+                Padding = _config.Themes.Padding,
                 Content = new Border()
                 {
-                    Background = (Brush)Application.Current.Resources["SolidBackgroundFillColorBaseAltBrush"],
-                    Padding = _config.Themes.Padding,
                     Margin = _config.Themes.InternalMargin,
-                    CornerRadius = _config.Themes.CornerRadius,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     Child = richTextBlock
                 }
