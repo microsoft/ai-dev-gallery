@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using CommunityToolkit.Labs.WinUI.MarkdownTextBlock;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using FontWeight = Windows.UI.Text.FontWeight;
