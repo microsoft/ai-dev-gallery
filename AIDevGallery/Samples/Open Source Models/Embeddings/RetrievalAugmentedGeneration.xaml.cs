@@ -199,7 +199,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                             Text = pageChunks[i].Text,
                             Vector = embedding.Vector
                         },
-                        null,
                         ct).ConfigureAwait(false);
                         i++;
                         chunksProcessedCount++;
@@ -277,10 +276,10 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         var searchVector = await _embeddings.GenerateAsync([searchPrompt], null, _cts.Token);
         var vectorSearchResults = await _pdfPages.VectorizedSearchAsync(
                 searchVector[0].Vector,
-                new VectorSearchOptions
+                new VectorSearchOptions<PdfPageData>
                 {
                     Top = 5,
-                    VectorPropertyName = nameof(PdfPageData.Vector)
+                    VectorProperty = (pdfPageData) => pdfPageData.Vector
                 },
                 _cts.Token);
 

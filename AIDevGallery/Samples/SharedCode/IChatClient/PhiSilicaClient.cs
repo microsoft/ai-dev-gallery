@@ -75,7 +75,7 @@ internal class PhiSilicaClient : IChatClient
         string responseId = Guid.NewGuid().ToString("N");
         await foreach (var part in GenerateStreamResponseAsync(prompt, options, cancellationToken))
         {
-            yield return new ChatResponseUpdate(ChatRole.Assistant, part)
+            yield return new(ChatRole.Assistant, part)
             {
                 ResponseId = responseId
             };
