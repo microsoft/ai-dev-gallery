@@ -207,7 +207,7 @@
                         <RichTextBlock
                             Margin="8"
                             x:Name="CodeSampleTextBlock"
-                            FontFamily="Cascadia Code"
+                            FontFamily="Consolas"
                             FontSize="14"
                             IsTextSelectionEnabled="True">
                         </RichTextBlock>

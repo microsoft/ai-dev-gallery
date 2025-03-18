@@ -32,9 +32,9 @@ internal class MyCodeBlock : IAddChild
 
         var richTextBlock = new RichTextBlock()
         {
-            FontFamily = new FontFamily("Cascadia Code"),
+            FontFamily = new FontFamily("Consolas"),
             FontSize = 12,
-            IsTextSelectionEnabled = true
+            IsTextSelectionEnabled = true,
         };
 
         if (codeBlock is FencedCodeBlock fencedCodeBlock)
@@ -86,24 +86,16 @@ internal class MyCodeBlock : IAddChild
 
         var container = new InlineUIContainer()
         {
-            Child = new ScrollViewer()
+            Child = new Border()
             {
-                HorizontalScrollMode = ScrollMode.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Visible,
-                VerticalScrollMode = ScrollMode.Disabled,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Margin = new Thickness(0, 0, 0, 16),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
                 Background = (Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
                 BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
                 BorderThickness = new Thickness(1),
                 CornerRadius = _config.Themes.CornerRadius,
                 Padding = _config.Themes.Padding,
-                Content = new Border()
-                {
-                    Margin = _config.Themes.InternalMargin,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Child = richTextBlock
-                }
+                Child = richTextBlock
             }
         };
 
