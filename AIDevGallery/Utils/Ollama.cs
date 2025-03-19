@@ -12,8 +12,14 @@ internal record OllamaModel(string Name, string Tag, string Id, string Size, str
 
 internal class Ollama
 {
+    private static bool? isOllamaAvailable;
     public static List<OllamaModel>? GetOllamaModels()
     {
+        if (isOllamaAvailable != null && !isOllamaAvailable.Value)
+        {
+            return null;
+        }
+
         try
         {
             using (var p = new Process())
@@ -58,6 +64,12 @@ internal class Ollama
 
                         models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
                     }
+
+                    isOllamaAvailable = true;
+                }
+                else
+                {
+                    isOllamaAvailable = false;
                 }
 
                 return models;
@@ -65,6 +77,7 @@ internal class Ollama
         }
         catch
         {
+            isOllamaAvailable = false;
             return null;
         }
     }
