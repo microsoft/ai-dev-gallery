@@ -36,7 +36,10 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
     NugetPackageReferences = [
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.DirectML",
-        "Microsoft.ML.OnnxRuntime.Extensions"
+        "Microsoft.ML.OnnxRuntime.Extensions",
+        "CommunityToolkit.WinUI.Helpers",
+        "CommunityToolkit.WinUI.Controls.CameraPreview",
+        "Microsoft.Graphics.Win2D"
     ],
     Name = "Face Detection",
     Id = "9b74ccc0-f5f7-417f-bed0-712ffc063508",
