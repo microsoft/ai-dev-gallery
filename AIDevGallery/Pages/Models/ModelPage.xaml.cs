@@ -228,7 +228,6 @@ internal sealed partial class ModelPage : Page
                     UseShellExecute = true
                 });
             }
-
         }
     }
 
