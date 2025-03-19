@@ -19,6 +19,7 @@
             AutomationProperties.Name="Prompt input"
             Description=" "
             KeyUp="TextBox_KeyUp"
+            PreviewKeyDown="TextBox_PreviewKeyDown"
             PlaceholderText="Enter a topic to generate text on..."
             TextChanged="InputBox_Changed" />
         <StackPanel
