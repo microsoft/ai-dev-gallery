@@ -181,7 +181,7 @@ internal class BitmapFunctions
         return input;
     }
 
-    public static Tensor<float> PreprocessBitmapWithoutNormalization(Bitmap bitmap, Tensor<float> input)
+    public static Tensor<float> PreprocessBitmapWithoutStandardization(Bitmap bitmap, Tensor<float> input)
     {
         int width = bitmap.Width;
         int height = bitmap.Height;
@@ -317,6 +317,40 @@ internal class BitmapFunctions
 
             memoryStream.Position = 0;
 
+            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+        }
+
+        return bitmapImage;
+    }
+
+    public static BitmapImage? RenderBackgroundMask(Bitmap image, byte[] backgroundMask, int originalImageWidth, int originalImageHeight)
+    {
+        if (image == null || backgroundMask == null || backgroundMask.Length == 0)
+        {
+            return null;
+        }
+
+        using Graphics g = Graphics.FromImage(image);
+
+        using SolidBrush semiTransparentRedBrush = new SolidBrush(Color.FromArgb(100, 255, 0, 0));
+
+        for (int y = 0; y < originalImageHeight; y++)
+        {
+            for (int x = 0; x < originalImageWidth; x++)
+            {
+                int index = (y * originalImageWidth + x) * 4;
+                if (backgroundMask[index + 3] > 128)
+                {
+                    g.FillRectangle(semiTransparentRedBrush, x, y, 1, 1);
+                }
+            }
+        }
+
+        BitmapImage bitmapImage = new();
+        using (MemoryStream memoryStream = new())
+        {
+            image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            memoryStream.Position = 0;
             bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
         }
 

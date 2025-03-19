@@ -146,7 +146,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
         {
             // Preprocessing
             Tensor<float> input = new DenseTensor<float>([1, 3, modelInputWidth, modelInputHeight]);
-            input = BitmapFunctions.PreprocessBitmapWithoutNormalization(resizedImage, input);
+            input = BitmapFunctions.PreprocessBitmapWithoutStandardization(resizedImage, input);
 
             // Setup inputs
             var inputMetadataName = _inferenceSession!.InputNames[0];

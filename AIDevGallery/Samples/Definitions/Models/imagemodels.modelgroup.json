@@ -214,6 +214,28 @@
         },
         "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/yolov4/README.md"
       },
+      "SINet": {
+        "Id": "sinet",
+        "Name": "SINet",
+        "Description": "Lightweight portrait segmentation for background removal.",
+        "DocsUrl": "https://huggingface.co/qualcomm/SINet",
+        "Models": {
+          "SINet": {
+            "Id": "b7cae321-478f-1177-9559-709df5dfe703",
+            "Name": "SINet",
+            "Url": "https://huggingface.co/qualcomm/SINet/blob/main/SINet.onnx",
+            "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML",
+              "QNN"
+            ],
+            "Size": 414444,
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/SINet/blob/main/README.md"
+      },
       "FaceDetLite": {
         "Id": "FaceDetLite",
         "Name": "FaceDetLite",

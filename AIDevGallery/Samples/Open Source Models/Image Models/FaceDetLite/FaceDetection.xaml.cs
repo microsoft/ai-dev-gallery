@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-extern alias Feed;
-
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Utils;
 using CommunityToolkit.WinUI.Controls;
+using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -23,8 +21,6 @@ using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media;
-
-using FrameEventArgs1 = Feed::CommunityToolkit.WinUI.Helpers.FrameEventArgs;
 
 namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
 
@@ -148,7 +144,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
 
     private readonly SemaphoreSlim _frameProcessingLock = new SemaphoreSlim(1);
 
-    private void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs1 e)
+    private void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs e)
     {
         _latestVideoFrame = e.VideoFrame;
     }
