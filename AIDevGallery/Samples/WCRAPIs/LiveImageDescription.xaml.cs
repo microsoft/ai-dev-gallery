@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Imaging;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
@@ -39,7 +40,20 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
 
     public LiveImageDescription()
     {
+        this.Unloaded += LiveImageDescriptionUnloaded;
         this.InitializeComponent();
+    }
+
+    private async void LiveImageDescriptionUnloaded(object sender, RoutedEventArgs e)
+    {
+        lock (this)
+        {
+            CameraPreviewControl.CameraHelper.FrameArrived -= CameraPreviewControl_FrameArrived!;
+            CameraPreviewControl.PreviewFailed -= CameraPreviewControl_PreviewFailed!;
+            CameraPreviewControl.Stop();
+        }
+
+        await CameraPreviewControl.CameraHelper.CleanUpAsync();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
