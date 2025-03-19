@@ -22,6 +22,7 @@ internal sealed partial class ModelPage : Page
 {
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
+    private List<ModelDetails> models = new();
 
     public ModelPage()
     {
@@ -41,12 +42,14 @@ internal sealed partial class ModelPage : Page
             modelFamilyType = modelType;
             ModelFamily = modelFamilyDetails;
 
-            modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
+            models = GetAllSampleDetails().ToList();
+            modelSelectionControl.SetModels(models);
         }
         else if (e.Parameter is ModelDetails details)
         {
             // this is likely user added model
-            modelSelectionControl.SetModels([details]);
+            models = [details];
+            modelSelectionControl.SetModels(models);
 
             ModelFamily = new ModelFamily
             {
@@ -68,6 +71,11 @@ internal sealed partial class ModelPage : Page
         else
         {
             DocumentationCard.Visibility = Visibility.Collapsed;
+        }
+
+        if(models.Count > 0)
+        {
+            BuildAIToolkitButton();
         }
 
         EnableSampleListIfModelIsDownloaded();
@@ -134,6 +142,75 @@ internal sealed partial class ModelPage : Page
             {
                 yield return modelDetails;
             }
+        }
+    }
+
+    private void BuildAIToolkitButton()
+    {
+        bool isAiToolkitActionAvailable = false;
+        Dictionary<AIToolkitAction, MenuFlyoutSubItem> actionSubmenus = new();
+
+        foreach(ModelDetails modelDetails in models)
+        {
+            foreach(AIToolkitAction action in modelDetails.AIToolkitActions!)
+            {
+                if(!AIToolkitHelper.ValidateAction(modelDetails, action))
+                {
+                    continue;
+                }
+
+                MenuFlyoutSubItem? actionFlyoutItem;
+                if (!actionSubmenus.TryGetValue(action, out actionFlyoutItem))
+                {
+                    actionFlyoutItem = new MenuFlyoutSubItem()
+                    {
+                        Text = AIToolkitHelper.AIToolkitActionInfos[action].DisplayName
+                    };
+                    actionSubmenus.Add(action, actionFlyoutItem);
+                    AIToolkitFlyout.Items.Add(actionFlyoutItem);
+                }
+
+                isAiToolkitActionAvailable = true;
+                MenuFlyoutItem modelFlyoutItem = new MenuFlyoutItem()
+                {
+                    Tag = (action, modelDetails),
+                    Text = modelDetails.Name,
+                };
+
+                modelFlyoutItem.Click += ToolkitActionFlyoutItem_Click;
+                actionFlyoutItem.Items.Add(modelFlyoutItem);
+            }
+        }
+
+        AIToolkitDropdown.Visibility = isAiToolkitActionAvailable ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ToolkitActionFlyoutItem_Click(object sender, RoutedEventArgs e)
+    {
+        if(sender is MenuFlyoutItem actionFlyoutItem)
+        {
+            (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
+
+            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name);
+
+            string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(action, modelDetails);
+            try
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = toolkitDeeplink,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
+                    UseShellExecute = true
+                });
+            }
+
         }
     }
 

@@ -24,4 +24,7 @@ internal class Model
     [JsonConverter(typeof(SingleOrListOfStringConverter))]
     [JsonPropertyName("FileFilter")]
     public List<string>? FileFilters { get; init; }
+    public List<AIToolkitAction>? AIToolkitActions { get; set; }
+    public string? AIToolkitId { get; set; }
+    public string? AIToolkitFinetuningId { get; set; }
 }
