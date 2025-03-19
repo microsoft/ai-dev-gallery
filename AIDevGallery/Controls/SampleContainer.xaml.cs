@@ -144,7 +144,7 @@ internal sealed partial class SampleContainer : UserControl
         var cachedModelsPaths = models.Select(m =>
         {
             // If it is an API, use the URL just to count
-            if (m.Size == 0 || m.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+            if (m.IsApi())
             {
                 return m.Url;
             }

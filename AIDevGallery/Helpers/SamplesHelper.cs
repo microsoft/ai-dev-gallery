@@ -20,19 +20,21 @@ internal static partial class SamplesHelper
 
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(models.Keys.First(), ModelType.LanguageModels);
 
-        if (isLanguageModel && !models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.OLLAMA))
+        if (isLanguageModel)
         {
-            AddUnique(SharedCodeEnum.GenAIModel);
+            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.WCRAPI))
+            {
+                AddUnique(SharedCodeEnum.PhiSilicaClient);
+            }
+            else if (!models.Values.Any(m => m.IsApi()))
+            {
+                AddUnique(SharedCodeEnum.GenAIModel);
+            }
         }
 
         if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
         {
             AddUnique(SharedCodeEnum.LlmPromptTemplate);
-        }
-
-        if (models.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)))
-        {
-            AddUnique(SharedCodeEnum.PhiSilicaClient);
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils))
@@ -183,7 +185,9 @@ internal static partial class SamplesHelper
         else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
         {
             var modelId = modelPath[2..^1].Split('/').LastOrDefault();
-            return $"new OllamaChatClient(\"http://localhost:11434/\", \"{modelId}\")";
+            var ollamaUrl = Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
+
+            return $"new OllamaChatClient(\"{ollamaUrl}\", \"{modelId}\")";
         }
 
         return $"await GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
@@ -281,7 +285,7 @@ internal static partial class SamplesHelper
 
         ExpandedModelDetails cachedModel;
 
-        if (selectedModelDetails.Size == 0 || selectedModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+        if (selectedModelDetails.IsApi())
         {
             cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
         }

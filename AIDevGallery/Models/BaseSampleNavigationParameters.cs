@@ -3,6 +3,7 @@
 
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,9 +31,10 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         }
         else if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
         {
-            // TODO: figure out how to get the url in case it was changed
+            var ollamaUrl = Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
+
             var modelId = ChatClientModelPath.Split('/').LastOrDefault();
-            return new OllamaChatClient("http://localhost:11434/", modelId);
+            return new OllamaChatClient(ollamaUrl, modelId);
         }
 
         return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);

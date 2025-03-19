@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Utils;
 
@@ -24,16 +25,26 @@ internal class Ollama
                 p.StartInfo.CreateNoWindow = true;
 
                 p.Start();
-
                 p.WaitForExit();
-                string output = p.StandardOutput.ReadToEnd();
-                var lines = output.Split('\n');
+
+                var lines = new List<string>();
+
+                Task.WhenAny(
+                    Task.Run(() =>
+                    {
+                        while (p.StandardOutput.Peek() > -1)
+                        {
+                            var line = p.StandardOutput.ReadLine();
+                            lines.Add(line ?? string.Empty);
+                        }
+                    }),
+                    Task.Delay(20)).Wait();
 
                 List<OllamaModel> models = new();
 
-                if (lines.Length > 1)
+                if (lines.Count > 1)
                 {
-                    for (var i = 1; i < lines.Length; ++i)
+                    for (var i = 1; i < lines.Count; ++i)
                     {
                         var line = lines[i];
                         var tokens = line.Split("  ", System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);

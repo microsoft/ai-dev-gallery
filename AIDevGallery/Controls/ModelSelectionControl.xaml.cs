@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -192,15 +193,34 @@ internal partial class ModelSelectionControl : UserControl
 
         foreach (var model in Models)
         {
-            if (model.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+            if (model.IsApi())
             {
-                AvailableModels.Add(new AvailableModel(model));
+                if (model.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
+                {
+                    if (model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+                    {
+                        AvailableModels.Add(new AvailableModel(model));
+                    }
+                    else
+                    {
+                        // insert available APIs on top
+                        AvailableModels.Insert(0, new AvailableModel(model));
+                    }
+                }
+                else if (model.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
+                {
+                    AvailableModels.Add(new AvailableModel(model));
+                }
+                else
+                {
+                    UnavailableModels.Add(new DownloadableModel(model));
+                }
             }
-            else if (model.Size > 0 && model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+            else if (model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
             {
                 UnavailableModels.Add(new DownloadableModel(model));
             }
-            else if (model.Size > 0 && !App.ModelCache.IsModelCached(model.Url))
+            else if (!App.ModelCache.IsModelCached(model.Url))
             {
                 // Needs to be in the downloads list
                 var existingDownloadableModel = DownloadableModels.FirstOrDefault(m => m.ModelDetails.Url == model.Url);
@@ -242,19 +262,7 @@ internal partial class ModelSelectionControl : UserControl
                             FileFilters = model.FileFilters
                         };
 
-                        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
-                        {
-                            if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
-                            {
-                                AvailableModels.Add(new AvailableModel(modelDetails));
-                            }
-                            else
-                            {
-                                // insert available APIs on top
-                                AvailableModels.Insert(0, new AvailableModel(modelDetails));
-                            }
-                        }
-                        else if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
+                        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
                         {
                             AvailableModels.Add(new AvailableModel(modelDetails));
                         }

@@ -114,10 +114,12 @@ internal sealed partial class ScenarioPage : Page
 
         if (modelDetailsList2.Count > 0)
         {
+            modelDetailsList2 = modelDetailsList2.DistinctBy(m => m.Id).ToList();
             selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
             modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
         }
 
+        modelDetailsList = modelDetailsList.DistinctBy(m => m.Id).ToList();
         selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
         modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
         UpdateModelSelectionPlaceholderControl();

@@ -130,4 +130,17 @@ internal static class ModelDetailsHelper
             return allModelDetails;
         }
     }
+
+    public static bool IsApi(this ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ||
+               modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
+               modelDetails.Size == 0;
+    }
+
+    public static bool IsApi(this ExpandedModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerator == HardwareAccelerator.WCRAPI ||
+            modelDetails.HardwareAccelerator == HardwareAccelerator.OLLAMA;
+    }
 }
