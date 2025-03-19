@@ -36,6 +36,8 @@ internal sealed partial class Chat : BaseSamplePage
     private CancellationTokenSource? cts;
     public ObservableCollection<Message> Messages { get; } = [];
 
+    private bool isImeActive = true;
+
     private IChatClient? model;
     public Chat()
     {
@@ -89,7 +91,8 @@ internal sealed partial class Chat : BaseSamplePage
             !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift)
                 .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
             sender is TextBox &&
-            !string.IsNullOrWhiteSpace(InputBox.Text))
+            !string.IsNullOrWhiteSpace(InputBox.Text) &&
+            isImeActive == false)
         {
             var cursorPosition = InputBox.SelectionStart;
             var text = InputBox.Text;
@@ -103,6 +106,15 @@ internal sealed partial class Chat : BaseSamplePage
 
             SendMessage();
         }
+        else
+        {
+            isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void SendMessage()

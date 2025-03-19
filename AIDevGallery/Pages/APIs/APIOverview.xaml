@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     xmlns:controls="using:AIDevGallery.Controls"
-    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -35,9 +34,9 @@
                                 </StackPanel>
                             </Button.Content>
                             <interactivity:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="Click">
+                                <interactivity:EventTriggerBehavior EventName="Click">
                                     <behaviors:NavigateToUriAction NavigateUri="https://learn.microsoft.com/windows/ai/apis/" />
-                                </core:EventTriggerBehavior>
+                                </interactivity:EventTriggerBehavior>
                             </interactivity:Interaction.Behaviors>
                         </Button>
                     </controls:OverviewPageHeader.ActionContent>
