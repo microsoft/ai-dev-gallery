@@ -29,7 +29,8 @@
             Spacing="10">
             <TextBox 
                 x:Name="InputBox" 
-                KeyUp="TextBox_KeyUp" 
+                KeyUp="TextBox_KeyUp"
+                PreviewKeyDown="TextBox_PreviewKeyDown"
                 AutomationProperties.Name="Prompt input" 
                 PlaceholderText="Enter prompt to generate image" 
                 HorizontalAlignment="Center" 

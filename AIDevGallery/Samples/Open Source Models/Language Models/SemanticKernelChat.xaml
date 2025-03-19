@@ -93,6 +93,7 @@
                 Grid.Row="1"
                 AutomationProperties.Name="Prompt input"
                 KeyUp="TextBox_KeyUp"
+                PreviewKeyDown="TextBox_PreviewKeyDown"
                 PlaceholderText="Enter your prompt (Press Shift + Enter to insert a newline)"
                 TextChanged="InputBox_TextChanged"
                 TextWrapping="Wrap" 
