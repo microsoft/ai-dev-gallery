@@ -29,6 +29,8 @@ internal sealed partial class ContentModeration : BaseSamplePage
     private IChatClient? model;
     private CancellationTokenSource? cts;
 
+    private bool isImeActive = true;
+
     public ContentModeration()
     {
         this.Unloaded += (s, e) => CleanUp();
@@ -202,13 +204,19 @@ internal sealed partial class ContentModeration : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && isImeActive == false)
         {
             if (InputTextBox.Text.Length > 0)
             {
                 GenerateText(InputTextBox.Text);
             }
         }
+        isImeActive = true;
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void CancelGeneration()

@@ -8,8 +8,10 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Graphics.Printing.PrintTicket;
 
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
@@ -28,6 +30,7 @@ internal sealed partial class Generate : BaseSamplePage
     private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
+    private bool isImeActive = true;
 
     public Generate()
     {
@@ -156,13 +159,22 @@ internal sealed partial class Generate : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && isImeActive == false)
         {
             if (InputTextBox.Text.Length > 0)
             {
                 GenerateText(InputTextBox.Text);
             }
         }
+        else
+        {
+            isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void CancelGeneration()
