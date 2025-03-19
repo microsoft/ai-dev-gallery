@@ -557,4 +557,23 @@ internal partial class ModelSelectionControl : UserControl
     {
         DownloadDialog?.Hide();
     }
+
+    private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
+    {
+        var dataPackage = new DataPackage();
+        dataPackage.SetText(Ollama.GetOllamaUrl());
+        Clipboard.SetContentWithOptions(dataPackage, null);
+    }
+
+    private void OllamaViewModelDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = $"https://ollama.com/library/{details.Name}",
+                UseShellExecute = true
+            });
+        }
+    }
 }

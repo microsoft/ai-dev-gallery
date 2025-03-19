@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Utils;
+namespace AIDevGallery.Utils;
 
 internal record OllamaModel(string Name, string Tag, string Id, string Size, string Modified);
 
@@ -66,5 +67,10 @@ internal class Ollama
         {
             return null;
         }
+    }
+
+    public static string GetOllamaUrl()
+    {
+        return Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
     }
 }

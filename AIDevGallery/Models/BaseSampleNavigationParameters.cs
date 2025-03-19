@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,10 +31,8 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         }
         else if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
         {
-            var ollamaUrl = Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
-
             var modelId = ChatClientModelPath.Split('/').LastOrDefault();
-            return new OllamaChatClient(ollamaUrl, modelId);
+            return new OllamaChatClient(Ollama.GetOllamaUrl(), modelId);
         }
 
         return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);

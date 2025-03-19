@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -185,9 +186,8 @@ internal static partial class SamplesHelper
         else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
         {
             var modelId = modelPath[2..^1].Split('/').LastOrDefault();
-            var ollamaUrl = Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
-            return $"new OllamaChatClient(\"{ollamaUrl}\", \"{modelId}\")";
+            return $"new OllamaChatClient(\"{Ollama.GetOllamaUrl()}\", \"{modelId}\")";
         }
 
         return $"await GenAIModel.CreateAsync({modelPath}, {promptTemplate})";

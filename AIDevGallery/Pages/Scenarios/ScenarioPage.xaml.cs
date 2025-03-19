@@ -18,7 +18,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Utils;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 
@@ -94,7 +93,7 @@ internal sealed partial class ScenarioPage : Page
                 {
                     modelDetailsList.AddRange(ollamaModels.Select(om => new ModelDetails()
                     {
-                        Id = $"ollama -{om.Id}",
+                        Id = $"ollama-{om.Id}",
                         Name = om.Name,
                         Url = $"ollama://{om.Name}:{om.Tag}",
                         Description = $"{om.Name}:{om.Tag} running locally via Ollama",
