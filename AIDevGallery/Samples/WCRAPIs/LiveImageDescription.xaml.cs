@@ -6,7 +6,6 @@ using AIDevGallery.Samples.Attributes;
 using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Imaging;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
