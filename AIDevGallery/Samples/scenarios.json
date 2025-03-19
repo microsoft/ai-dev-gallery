@@ -175,6 +175,11 @@
         "Name": "Segment Street",
         "Description": "Segment photos of streets into detectable zones with a street segmentation model. Upload a photo of a clearly visible street to have it segmented into color-coded regions.",
         "Id": "segment-street"
+      },
+      "DetectFace": {
+        "Name": "Detect Face",
+        "Description": "Models in this scenario detect human faces from a specified image or video.",
+        "Id": "detect-face"
       }
     }
   },

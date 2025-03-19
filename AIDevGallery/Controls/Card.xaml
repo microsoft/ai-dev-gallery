@@ -20,7 +20,7 @@
         BorderThickness="{x:Bind BorderThickness, Mode=OneWay}"
         CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" MinHeight="44" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -60,7 +60,7 @@
             Grid.Row="1"
             Height="1"
             HorizontalAlignment="Stretch"
-            Fill="{ThemeResource DividerStrokeColorDefault}"
+            Fill="{ThemeResource DividerStrokeColorDefaultBrush}"
             Visibility="{x:Bind DividerVisibility, Mode=OneWay}" />
 
         <ContentPresenter

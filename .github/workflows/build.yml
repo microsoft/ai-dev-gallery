@@ -93,7 +93,7 @@ jobs:
     - name: Build Tests
       run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.22621.0 /p:Configuration=Release /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Tests
-      run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\Release\net9.0-windows10.0.22621.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.6.4\build\net8.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+      run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\Release\net9.0-windows10.0.22621.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.8.2\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
     - name: Publish Test Results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
