@@ -22,6 +22,12 @@ namespace AIDevGallery.Samples.WCRAPIs;
 Name = "Describe Live Image WCR",
 Model1Types = [ModelType.ImageDescription],
 Scenario = ScenarioType.ImageDescribeLiveImage,
+NugetPackageReferences =
+[
+    "CommunityToolkit.WinUI.Helpers",
+    "CommunityToolkit.WinUI.Controls.CameraPreview",
+    "Microsoft.Graphics.Win2D"
+],
 Id = "a1b1f64f-bc57-41a3-8fb3-ac8f1536d799",
 Icon = "\uEE6F")]
 
