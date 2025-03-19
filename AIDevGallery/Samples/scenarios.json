@@ -162,6 +162,11 @@
         "Description": "Remove image backgrounds with an image segmentation model. Upload an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
       },
+      "BackgroundDetector": {
+        "Name": "Detect Background",
+        "Description": "Detect image foreground vs background. Upload a portrait image and the model will separate the foreground from the background.",
+        "Id": "detect-background"
+      },
       "DetectPose": {
         "Name": "Detect Human Pose",
         "Description": "Model human posture with a pose detection model. Upload an image including a clearly visible person to see pose estimate drawn onto the image.",

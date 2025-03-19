@@ -56,22 +56,14 @@ internal class PhiSilicaClient : IChatClient
         var phiSilicaClient = new PhiSilicaClient();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        try
-        {
-            await phiSilicaClient.InitializeAsync(cancellationToken);
-        }
-        catch
-        {
-            return null;
-        }
-
+        await phiSilicaClient.InitializeAsync(cancellationToken);
         return phiSilicaClient;
     }
 
-    public Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+    public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
         GetStreamingResponseAsync(chatMessages, options, cancellationToken).ToChatResponseAsync(cancellationToken: cancellationToken);
 
-    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_languageModel == null)
         {
@@ -80,12 +72,12 @@ internal class PhiSilicaClient : IChatClient
 
         var prompt = GetPrompt(chatMessages);
 
+        string responseId = Guid.NewGuid().ToString("N");
         await foreach (var part in GenerateStreamResponseAsync(prompt, options, cancellationToken))
         {
-            yield return new ChatResponseUpdate
+            yield return new(ChatRole.Assistant, part)
             {
-                Role = ChatRole.Assistant,
-                Text = part,
+                ResponseId = responseId,
             };
         }
     }
