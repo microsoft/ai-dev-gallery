@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-extern alias Feed;
-
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using CommunityToolkit.WinUI.Controls;
+using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AI.Generative;
@@ -14,7 +13,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
-using FrameEventArgs1 = Feed::CommunityToolkit.WinUI.Helpers.FrameEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -72,7 +70,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    private async void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs1 e)
+    private async void CameraPreviewControl_FrameArrived(object sender, FrameEventArgs e)
     {
         if (e.VideoFrame?.SoftwareBitmap == null || stopped)
         {
