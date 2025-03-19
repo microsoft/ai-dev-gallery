@@ -133,6 +133,7 @@
                         AutomationProperties.Name="Samples"
                         IsEnabled="False"
                         IsItemInvokedEnabled="True"
+                        ItemsSource="{x:Bind samples}"
                         ItemInvoked="SampleList_ItemInvoked"
                         SelectionMode="None">
                         <ItemsView.Layout>

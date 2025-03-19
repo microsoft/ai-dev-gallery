@@ -111,6 +111,7 @@
                         HorizontalAlignment="Stretch"
                         AutomationProperties.Name="Samples"
                         IsItemInvokedEnabled="True"
+                        ItemsSource="{x:Bind samples}"
                         ItemInvoked="SampleList_ItemInvoked"
                         SelectionMode="None">
                         <ItemsView.Layout>

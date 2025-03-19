@@ -139,6 +139,7 @@
                 <AutoSuggestBox
                     x:Name="SearchBox"
                     MinWidth="364"
+                    ItemsSource="{x:Bind searchResults}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
                     ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"

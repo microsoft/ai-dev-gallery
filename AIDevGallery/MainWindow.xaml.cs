@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using Windows.System;
@@ -20,6 +21,8 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
+    private ObservableCollection<SearchResult> searchResults = [];
+
     public MainWindow(object? obj = null)
     {
         this.InitializeComponent();
@@ -213,7 +216,11 @@ internal sealed partial class MainWindow : WindowEx
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
         {
             var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(sender.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-            SearchBox.ItemsSource = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label);
+            searchResults.Clear();
+            foreach (var result in filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label))
+            {
+                searchResults.Add(result);
+            }
         }
     }
 

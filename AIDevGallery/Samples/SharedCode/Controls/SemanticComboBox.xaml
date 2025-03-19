@@ -12,6 +12,7 @@
                             x:Name="SemanticSuggestBox"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Top"
+                            ItemsSource="{Binding SearchResults, RelativeSource={RelativeSource TemplatedParent}}"
                             PlaceholderText="Start typing to semantically search categories..." />
                     </Grid>
                 </ControlTemplate>

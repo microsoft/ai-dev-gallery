@@ -205,41 +205,41 @@ internal static class AppUtils
         }
     }
 
-    public static bool HasNpu()
+    public static unsafe bool HasNpu()
     {
         if (_hasNpu.HasValue)
         {
             return _hasNpu.Value;
         }
 
-        IDXCoreAdapterFactory adapterFactory;
-        if (PInvoke.DXCoreCreateAdapterFactory(typeof(IDXCoreAdapterFactory).GUID, out var adapterFactoryObj) != HRESULT.S_OK)
+        IDXCoreAdapterFactory* adapterFactory;
+        if (PInvoke.DXCoreCreateAdapterFactory(typeof(IDXCoreAdapterFactory).GUID, out void* adapterFactoryObj) != HRESULT.S_OK)
         {
             throw new InvalidOperationException("Failed to create adapter factory");
         }
 
-        adapterFactory = (IDXCoreAdapterFactory)adapterFactoryObj;
+        adapterFactory = (IDXCoreAdapterFactory*)adapterFactoryObj;
 
         // First try getting all GENERIC_ML devices, which is the broadest set of adapters
         // and includes both GPUs and NPUs; however, running this sample on an older build of
         // Windows may not have drivers that report GENERIC_ML.
-        IDXCoreAdapterList adapterList;
+        IDXCoreAdapterList* adapterList;
 
-        adapterFactory.CreateAdapterList([DXCORE_ADAPTER_ATTRIBUTE_D3D12_GENERIC_ML], typeof(IDXCoreAdapterList).GUID, out var adapterListObj);
-        adapterList = (IDXCoreAdapterList)adapterListObj;
+        adapterFactory->CreateAdapterList([DXCORE_ADAPTER_ATTRIBUTE_D3D12_GENERIC_ML], typeof(IDXCoreAdapterList).GUID, out var adapterListObj);
+        adapterList = (IDXCoreAdapterList*)adapterListObj;
 
         // Fall back to CORE_COMPUTE if GENERIC_ML devices are not available. This is a more restricted
         // set of adapters and may filter out some NPUs.
-        if (adapterList.GetAdapterCount() == 0)
+        if (adapterList->GetAdapterCount() == 0)
         {
-            adapterFactory.CreateAdapterList(
+            adapterFactory->CreateAdapterList(
                 [PInvoke.DXCORE_ADAPTER_ATTRIBUTE_D3D12_CORE_COMPUTE],
                 typeof(IDXCoreAdapterList).GUID,
                 out adapterListObj);
-            adapterList = (IDXCoreAdapterList)adapterListObj;
+            adapterList = (IDXCoreAdapterList*)adapterListObj;
         }
 
-        if (adapterList.GetAdapterCount() == 0)
+        if (adapterList->GetAdapterCount() == 0)
         {
             throw new InvalidOperationException("No compatible adapters found.");
         }
@@ -251,17 +251,15 @@ internal static class AppUtils
                 DXCoreAdapterPreference.HighPerformance
         ];
 
-        adapterList.Sort(preferences);
+        adapterList->Sort(preferences);
 
-        List<IDXCoreAdapter> adapters = [];
-
-        for (uint i = 0; i < adapterList.GetAdapterCount(); i++)
+        for (uint i = 0; i < adapterList->GetAdapterCount(); i++)
         {
-            IDXCoreAdapter adapter;
-            adapterList.GetAdapter(i, typeof(IDXCoreAdapter).GUID, out var adapterObj);
-            adapter = (IDXCoreAdapter)adapterObj;
+            IDXCoreAdapter* adapter;
+            adapterList->GetAdapter(i, typeof(IDXCoreAdapter).GUID, out var adapterObj);
+            adapter = (IDXCoreAdapter*)adapterObj;
 
-            adapter.GetPropertySize(
+            adapter->GetPropertySize(
                 DXCoreAdapterProperty.DriverDescription,
                 out var descriptionSize);
 
@@ -270,13 +268,10 @@ internal static class AppUtils
             try
             {
                 buffer = Marshal.AllocHGlobal((int)descriptionSize);
-                unsafe
-                {
-                    adapter.GetProperty(
-                        DXCoreAdapterProperty.DriverDescription,
-                        descriptionSize,
-                        buffer.ToPointer());
-                }
+                adapter->GetProperty(
+                    DXCoreAdapterProperty.DriverDescription,
+                    descriptionSize,
+                    buffer.ToPointer());
 
                 adapterDescription = Marshal.PtrToStringAnsi(buffer) ?? string.Empty;
             }
@@ -291,7 +286,6 @@ internal static class AppUtils
                 adapterDescription = adapterDescription[..^1];
             }
 
-            adapters.Add(adapter);
             if (adapterDescription.Contains("NPU"))
             {
                 _hasNpu = true;
