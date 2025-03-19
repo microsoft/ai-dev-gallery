@@ -88,14 +88,20 @@ internal sealed partial class FaceDetection : BaseSamplePage
         }
     }
 
-    private void FaceDetectionUnloaded(object sender, RoutedEventArgs e)
+    private async void FaceDetectionUnloaded(object sender, RoutedEventArgs e)
     {
         lock (this)
         {
             _inferenceSession?.Dispose();
             _inferenceSession = null;
             _latestVideoFrame?.Dispose();
+
+            CameraPreviewControl.CameraHelper.FrameArrived -= CameraPreviewControl_FrameArrived!;
+            CameraPreviewControl.PreviewFailed -= CameraPreviewControl_PreviewFailed!;
+            CameraPreviewControl.Stop();
         }
+
+        await CameraPreviewControl.CameraHelper.CleanUpAsync();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
