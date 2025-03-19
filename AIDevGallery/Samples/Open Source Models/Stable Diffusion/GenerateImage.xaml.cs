@@ -112,6 +112,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
         {
             await DoStableDiffusion();
         }
+
         isImeActive = true;
     }
 

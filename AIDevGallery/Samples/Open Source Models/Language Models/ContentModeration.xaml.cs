@@ -211,6 +211,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
                 GenerateText(InputTextBox.Text);
             }
         }
+
         isImeActive = true;
     }
 
