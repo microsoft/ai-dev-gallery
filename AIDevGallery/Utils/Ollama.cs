@@ -39,7 +39,7 @@ internal class Ollama
                             lines.Add(line ?? string.Empty);
                         }
                     }),
-                    Task.Delay(20)).Wait();
+                    Task.Delay(10)).Wait();
 
                 List<OllamaModel> models = new();
 
