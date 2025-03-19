@@ -23,11 +23,7 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.WCRAPI))
-            {
-                AddUnique(SharedCodeEnum.PhiSilicaClient);
-            }
-            else if (!models.Values.Any(m => m.IsApi()))
+            if (!models.Values.Any(m => m.IsApi()))
             {
                 AddUnique(SharedCodeEnum.GenAIModel);
             }
@@ -36,6 +32,11 @@ internal static partial class SamplesHelper
         if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
         {
             AddUnique(SharedCodeEnum.LlmPromptTemplate);
+        }
+
+        if (models.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)))
+        {
+            AddUnique(SharedCodeEnum.PhiSilicaClient);
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils))
