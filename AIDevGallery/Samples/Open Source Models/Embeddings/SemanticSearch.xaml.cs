@@ -209,18 +209,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         Text = sourceContent[i],
                         Vector = x.Vector
                     }),
-                    null,
                     ct).ConfigureAwait(false))
                 {
                 }
 
                 var vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
-                    new VectorSearchOptions
+                    new VectorSearchOptions<StringData>
                     {
                         // Number of results to return
                         Top = 5,
-                        VectorPropertyName = nameof(StringData.Vector)
+                        VectorProperty = (str) => str.Vector
                     },
                     ct).ConfigureAwait(false);
 
