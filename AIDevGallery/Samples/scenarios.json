@@ -80,7 +80,7 @@
       "RetrievalAugmentedGeneration": {
         "Name": "Retrieval Augmented Generation",
         "Description": "Use existing data to improve responses given by a local language model.",
-        "Instructions": "Select a PDF to use as reference material, and wait for a local embeddings model to index it. Once indexed, query a local language model about the source material to recieve answers that reference that material.",
+        "Instructions": "Select a PDF to use as reference material and wait for a local embeddings model to index it. Once indexed, query a local language model about the source material to receive responses augmented with info from the original text.",
         "Id": "retrieval-augmented-generation",
         "Icon": "\uF571"
       }
