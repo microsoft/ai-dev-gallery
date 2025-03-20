@@ -34,7 +34,7 @@
       "TranslateText": {
         "Name": "Translate Text",
         "Description": "Translate text with a local language model.",
-        "Instructions": " Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
+        "Instructions": "Select a target language with the dropdown, enter text in the textbox in a language of your choosing, and then click 'Translate' to translate to the target language. Your source language will be auto-detected by the model.",
         "Id": "translate-text",
         "Icon": "\uF2B7"
       },
