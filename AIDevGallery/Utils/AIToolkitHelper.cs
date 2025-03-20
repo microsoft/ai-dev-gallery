@@ -36,17 +36,17 @@ internal static class AIToolkitHelper
         return deeplink;
     }
 
-    public static bool ValidateForFineTuning(ModelDetails modelDetails)
+    public static bool ValidateForFineTuning(this ModelDetails modelDetails)
     {
-        return modelDetails.AIToolkitActions!.Contains(AIToolkitAction.FineTuning) && !string.IsNullOrEmpty(modelDetails.AIToolkitFinetuningId);
+        return modelDetails.AIToolkitActions != null && modelDetails.AIToolkitActions.Contains(AIToolkitAction.FineTuning) && !string.IsNullOrEmpty(modelDetails.AIToolkitFinetuningId);
     }
 
-    public static bool ValidateForGeneralToolkit(ModelDetails modelDetails)
+    public static bool ValidateForGeneralToolkit(this ModelDetails modelDetails)
     {
-        return modelDetails.AIToolkitActions!.Where(action => action != AIToolkitAction.FineTuning).ToList().Count > 0 && !string.IsNullOrEmpty(modelDetails.AIToolkitId);
+        return modelDetails.AIToolkitActions != null && modelDetails.AIToolkitActions.Where(action => action != AIToolkitAction.FineTuning).ToList().Count > 0 && !string.IsNullOrEmpty(modelDetails.AIToolkitId);
     }
 
-    public static bool ValidateAction(ModelDetails modelDetails, AIToolkitAction action)
+    public static bool ValidateAction(this ModelDetails modelDetails, AIToolkitAction action)
     {
         if(modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
         {
@@ -66,6 +66,6 @@ internal static class AIToolkitHelper
 
 internal class ToolkitActionInfo
 {
-    public required string DisplayName { get; set; }
-    public required string QueryName { get; set; }
+    public required string DisplayName { get; init; }
+    public required string QueryName { get; init; }
 }

@@ -173,7 +173,7 @@ internal sealed partial class ModelPage : Page
         {
             foreach(AIToolkitAction action in modelDetails.AIToolkitActions!)
             {
-                if(!AIToolkitHelper.ValidateAction(modelDetails, action))
+                if(modelDetails.ValidateAction(action))
                 {
                     continue;
                 }
@@ -214,9 +214,8 @@ internal sealed partial class ModelPage : Page
         {
             (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
 
-            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name);
-
             string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(action, modelDetails);
+            bool wasDeeplinkSuccesful = true;
             try
             {
                 Process.Start(new ProcessStartInfo()
@@ -232,6 +231,11 @@ internal sealed partial class ModelPage : Page
                     FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
                     UseShellExecute = true
                 });
+                wasDeeplinkSuccesful = false;
+            }
+            finally
+            {
+                AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
             }
         }
     }
