@@ -102,7 +102,7 @@ internal class GenAIModel : IChatClient
         _config?.Dispose();
     }
 
-    private string GetPrompt(IList<ChatMessage> history)
+    private string GetPrompt(IEnumerable<ChatMessage> history)
     {
         if (!history.Any())
         {
@@ -118,9 +118,10 @@ internal class GenAIModel : IChatClient
 
         string systemMsgWithoutSystemTemplate = string.Empty;
 
-        for (var i = 0; i < history.Count; i++)
+        int i = -1;
+        foreach (var message in history)
         {
-            var message = history[i];
+            i++;
             if (message.Role == ChatRole.System)
             {
                 // ignore system prompts that aren't at the beginning
@@ -165,11 +166,11 @@ internal class GenAIModel : IChatClient
         return prompt.ToString();
     }
 
-    public Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
+    public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
         GetStreamingResponseAsync(chatMessages, options, cancellationToken).ToChatResponseAsync(cancellationToken: cancellationToken);
 
     public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-        IList<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var prompt = GetPrompt(chatMessages);
 
@@ -222,6 +223,7 @@ internal class GenAIModel : IChatClient
         generator.AppendTokenSequences(sequences);
         StringBuilder stringBuilder = new();
         bool stopTokensAvailable = _template != null && _template.Stop != null && _template.Stop.Length > 0;
+        string responseId = Guid.NewGuid().ToString("N");
         while (!generator.IsDone())
         {
             string part;
@@ -256,10 +258,9 @@ internal class GenAIModel : IChatClient
                 break;
             }
 
-            yield return new()
+            yield return new(ChatRole.Assistant, part)
             {
-                Role = ChatRole.Assistant,
-                Text = part,
+                ResponseId = responseId,
             };
         }
     }

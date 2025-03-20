@@ -22,11 +22,21 @@ internal sealed partial class ModelPage : Page
 {
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
+    private string? readme;
 
     public ModelPage()
     {
         this.InitializeComponent();
         this.Unloaded += ModelPage_Unloaded;
+        this.ActualThemeChanged += APIPage_ActualThemeChanged;
+    }
+
+    private void APIPage_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        if (ModelFamily != null)
+        {
+            RenderReadme(readme);
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -120,10 +130,18 @@ internal sealed partial class ModelPage : Page
             readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }
 
+        readme = readmeContents;
+        RenderReadme(readmeContents);
+    }
+
+    private void RenderReadme(string? readmeContents)
+    {
+        markdownTextBlock.Text = string.Empty;
+
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
-
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
             markdownTextBlock.Text = readmeContents;
         }
 
@@ -173,9 +191,9 @@ internal sealed partial class ModelPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()

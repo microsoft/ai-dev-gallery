@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
@@ -48,13 +49,33 @@ internal sealed partial class MainWindow : WindowEx
         {
             Navigate("Samples", obj);
         }
-        else if (obj is ModelType or List<ModelType> or ModelDetails)
+        else if (obj is ModelType modelType)
+        {
+            NavigateToApiOrModelPage(modelType);
+        }
+        else if (obj is List<ModelType> modelTypes && modelTypes.Count > 0)
+        {
+            NavigateToApiOrModelPage(modelTypes[0]);
+        }
+        else if (obj is ModelDetails)
         {
             Navigate("Models", obj);
         }
         else
         {
             Navigate("Home");
+        }
+    }
+
+    private void NavigateToApiOrModelPage(ModelType modelType)
+    {
+        if (ModelDetailsHelper.EqualOrParent(modelType, ModelType.WCRAPIs))
+        {
+            Navigate("APIs", modelType);
+        }
+        else
+        {
+            Navigate("Models", modelType);
         }
     }
 

@@ -3,7 +3,6 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <WindowsSdkPackageVersion>10.0.22621.54</WindowsSdkPackageVersion>
     <RootNamespace>AIDevGallery</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>
@@ -16,6 +15,8 @@
     <NoWarn>CS8305;WMC1501</NoWarn>
     <!-- https://github.com/microsoft/CsWin32/issues/1273 -->
     <NoWarn>$(NoWarn);IL2050</NoWarn>
+    <!-- Microsoft.Xaml.Interactivity.EventTriggerBehavior is not trimmable -->
+    <NoWarn>$(NoWarn);IL2026</NoWarn>
     <IsAotCompatible>true</IsAotCompatible>
     <TrimmerRootDescriptor>SamplesRoots.xml</TrimmerRootDescriptor>
     <!-- The *first* DefineConstants is removed during Official Release Builds (.pipelines/Unstub.ps1)-->
@@ -52,11 +53,12 @@
     <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.CameraPreview" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="CommunityToolkit.WinUI.Converters" />
+    <PackageReference Include="CommunityToolkit.WinUI.Helpers" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
-    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
@@ -80,6 +82,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
+    <PackageReference Include="HtmlAgilityPack"/>
+    <PackageReference Include="Markdig"/>
+    <PackageReference Include="Roman-Numerals"/>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -275,6 +280,9 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Assets\cliptokenizer.onnx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="Assets\TileBrush.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -293,9 +301,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="Samples\Open Source Models\Stable Diffusion\cliptokenizer.onnx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Styles\SelectorBar.xaml" />
   </ItemGroup>
   

@@ -8,6 +8,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +29,8 @@ internal sealed partial class ContentModeration : BaseSamplePage
     private IChatClient? model;
     private CancellationTokenSource? cts;
 
+    private bool isImeActive = true;
+
     public ContentModeration()
     {
         this.Unloaded += (s, e) => CleanUp();
@@ -37,7 +40,15 @@ internal sealed partial class ContentModeration : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        model = await sampleParams.GetIChatClientAsync();
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 
@@ -193,13 +204,20 @@ internal sealed partial class ContentModeration : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && isImeActive == false)
         {
             if (InputTextBox.Text.Length > 0)
             {
                 GenerateText(InputTextBox.Text);
             }
         }
+
+        isImeActive = true;
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void CancelGeneration()

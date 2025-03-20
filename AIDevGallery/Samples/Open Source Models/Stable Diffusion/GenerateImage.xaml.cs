@@ -42,6 +42,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         SharedCodeEnum.Prediction,
         SharedCodeEnum.DeviceUtils
     ],
+    AssetFilenames = [
+        "cliptokenizer.onnx"
+    ],
     NugetPackageReferences = [
         "MathNet.Numerics",
         "NumSharp",
@@ -59,6 +62,8 @@ internal sealed partial class GenerateImage : BaseSamplePage
     private StableDiffusion? stableDiffusion;
     private bool isCanceling;
     private Task? inferenceTask;
+
+    private bool isImeActive = true;
 
     public GenerateImage()
     {
@@ -103,10 +108,17 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
     private async void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && InputBox.Text.Length > 0)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && InputBox.Text.Length > 0 && isImeActive == false)
         {
             await DoStableDiffusion();
         }
+
+        isImeActive = true;
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private async Task DoStableDiffusion()

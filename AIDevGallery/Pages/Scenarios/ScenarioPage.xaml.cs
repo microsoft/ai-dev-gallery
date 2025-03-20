@@ -90,7 +90,7 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        if (modelDetailsList2.Count > 1)
+        if (modelDetailsList2.Count > 0)
         {
             selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
             modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
@@ -257,6 +257,7 @@ internal sealed partial class ScenarioPage : Page
         }
 
         ContentDialog? dialog = null;
+        var generator = new Generator();
         try
         {
             var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
@@ -281,8 +282,6 @@ internal sealed partial class ScenarioPage : Page
                 var folder = await picker.PickSingleFolderAsync();
                 if (folder != null)
                 {
-                    var generator = new Generator();
-
                     dialog = new ContentDialog
                     {
                         XamlRoot = this.XamlRoot,
@@ -328,6 +327,7 @@ internal sealed partial class ScenarioPage : Page
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            generator.CleanUp();
             dialog?.Hide();
 
             var message = "Please try again, or report this issue.";

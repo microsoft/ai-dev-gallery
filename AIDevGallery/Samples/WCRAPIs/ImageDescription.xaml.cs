@@ -5,10 +5,12 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Management.Deployment;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -33,8 +35,18 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class ImageDescription : BaseSamplePage
 {
+    private readonly Dictionary<string, ImageDescriptionScenario> _scenarioDictionary = new Dictionary<string, ImageDescriptionScenario>
+    {
+        { "Accessible", ImageDescriptionScenario.Accessibility },
+        { "Caption", ImageDescriptionScenario.Caption },
+        { "Detailed", ImageDescriptionScenario.DetailedNarration },
+        { "OfficeCharts", ImageDescriptionScenario.OfficeCharts },
+    };
+
     private ImageDescriptionGenerator? _imageDescriptor;
     private CancellationTokenSource? _cts;
+    private SoftwareBitmap? _currentBitmap;
+    private ImageDescriptionScenario _currentScenario = ImageDescriptionScenario.Caption;
 
     public ImageDescription()
     {
@@ -124,16 +136,6 @@ internal sealed partial class ImageDescription : BaseSamplePage
         return imageExtensions.Contains(Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
-    private async Task SetImage(string filePath)
-    {
-        if (File.Exists(filePath))
-        {
-            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
-            using IRandomAccessStream stream = await file.OpenReadAsync();
-            await SetImage(stream);
-        }
-    }
-
     private async Task SetImage(IRandomAccessStream stream)
     {
         var decoder = await BitmapDecoder.CreateAsync(stream);
@@ -145,16 +147,17 @@ internal sealed partial class ImageDescription : BaseSamplePage
         }
 
         ResponseTxt.Text = string.Empty;
+        _currentBitmap = inputBitmap;
         var bitmapSource = new SoftwareBitmapSource();
 
         // This conversion ensures that the image is Bgra8 and Premultiplied
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         ImageSrc.Source = bitmapSource;
-        DescribeImage(inputBitmap);
+        DescribeImage(inputBitmap, _currentScenario);
     }
 
-    private async void DescribeImage(SoftwareBitmap bitmap)
+    private async void DescribeImage(SoftwareBitmap bitmap, ImageDescriptionScenario scenario)
     {
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
@@ -162,6 +165,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             Loader.Visibility = Visibility.Visible;
             StopBtn.Visibility = Visibility.Visible;
+            ScenarioSelectButton.Visibility = Visibility.Collapsed;
             ResponseTxt.Visibility = Visibility.Collapsed;
         });
 
@@ -170,7 +174,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
             _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
-            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer);
+            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, scenario);
             if (describeTask != null)
             {
                 describeTask.Progress += (asyncInfo, delta) =>
@@ -201,11 +205,12 @@ internal sealed partial class ImageDescription : BaseSamplePage
         }
         catch (Exception ex)
         {
-            ResponseTxt.Text = ex.Message;
+            ShowException(ex);
         }
 
         Loader.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Collapsed;
+        ScenarioSelectButton.Visibility = Visibility.Visible;
         _cts?.Dispose();
         _cts = null;
     }
@@ -213,5 +218,19 @@ internal sealed partial class ImageDescription : BaseSamplePage
     private void StopBtn_Click(object sender, RoutedEventArgs e)
     {
         _cts?.Cancel();
+    }
+
+    private void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+    {
+        MenuFlyoutItem flyoutItem = (sender as MenuFlyoutItem)!;
+
+        string? scenarioString = flyoutItem.Tag as string;
+        ImageDescriptionScenario newScenario;
+        if (!string.IsNullOrEmpty(scenarioString) && _scenarioDictionary.TryGetValue(scenarioString, out newScenario) && newScenario != _currentScenario)
+        {
+            _currentScenario = newScenario;
+            ScenarioSelectTextblock.Text = flyoutItem.Text;
+            DescribeImage(_currentBitmap!, _currentScenario);
+        }
     }
 }

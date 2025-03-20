@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -22,10 +23,22 @@ internal sealed partial class APIPage : Page
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
     private ModelDetails? modelDetails;
+    private string? readmeContents;
+    private string? codeSnippet;
 
     public APIPage()
     {
         this.InitializeComponent();
+        this.ActualThemeChanged += APIPage_ActualThemeChanged;
+    }
+
+    private void APIPage_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        if (ModelFamily != null)
+        {
+            _ = LoadReadme(ModelFamily.ReadmeUrl);
+            LoadCodeSnippet(codeSnippet);
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -80,14 +93,8 @@ internal sealed partial class APIPage : Page
             }
 
             WcrApiCodeSnippet.Snippets.TryGetValue(apiType, out var snippet);
-            if (snippet != null)
-            {
-                CodeSampleTextBlock.Text = $"```csharp\r\n{snippet}\r\n```";
-            }
-            else
-            {
-                CodeCard.Visibility = Visibility.Collapsed;
-            }
+            codeSnippet = snippet;
+            LoadCodeSnippet(snippet);
         }
         else
         {
@@ -121,13 +128,32 @@ internal sealed partial class APIPage : Page
         SampleList.ItemsSource = samples;
     }
 
+    private void LoadCodeSnippet(string? snippet)
+    {
+        CodeSampleTextBlock.Blocks.Clear();
+
+        if (snippet != null)
+        {
+            var codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+            codeFormatter.FormatRichTextBlock(snippet, Languages.CSharp, CodeSampleTextBlock);
+        }
+        else
+        {
+            CodeCard.Visibility = Visibility.Collapsed;
+        }
+    }
+
     private async Task LoadReadme(string url)
     {
-        string readmeContents = await GithubApi.GetContentsOfTextFile(url);
+        readmeProgressRing.IsActive = true;
+        markdownTextBlock.Text = string.Empty;
+
+        readmeContents = readmeContents ?? await GithubApi.GetContentsOfTextFile(url);
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
 
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
             markdownTextBlock.Text = readmeContents;
         }
 
@@ -146,9 +172,9 @@ internal sealed partial class APIPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         if (!URLHelper.IsValidUrl(link))
         {

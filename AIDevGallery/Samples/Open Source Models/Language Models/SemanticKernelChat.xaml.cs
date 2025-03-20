@@ -42,6 +42,8 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
     private ChatHistory _chatHistory;
     private bool _modelReady;
 
+    private bool isImeActive = true;
+
     public ObservableCollection<Message> Messages { get; } = [];
 
     public SemanticKernelChat()
@@ -57,7 +59,16 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var model = await sampleParams.GetIChatClientAsync();
+        IChatClient? model = null;
+        try
+        {
+            model = await sampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
         if (model == null)
         {
             return;
@@ -106,7 +117,8 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
             !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift)
                 .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
             sender is TextBox &&
-            !string.IsNullOrWhiteSpace(InputBox.Text))
+            !string.IsNullOrWhiteSpace(InputBox.Text) &&
+            isImeActive == false)
         {
             var cursorPosition = InputBox.SelectionStart;
             var text = InputBox.Text;
@@ -120,6 +132,15 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
             SendMessage();
         }
+        else
+        {
+            isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void SendMessage()

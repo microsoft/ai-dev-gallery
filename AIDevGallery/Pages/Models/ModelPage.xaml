@@ -8,7 +8,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
-    xmlns:toolkit2="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:toolkit2="using:CommunityToolkit.Labs.WinUI.MarkdownTextBlock"
     xmlns:types="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
@@ -98,16 +98,7 @@
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
-                                Header1FontSize="14"
-                                Header1FontWeight="SemiBold"
-                                Header1Margin="0,0,0,16"
-                                Header2FontSize="14"
-                                Header2FontWeight="SemiBold"
-                                Header2Margin="0,16,0,8"
-                                Header3FontSize="14"
-                                Header3FontWeight="SemiBold"
-                                Header3Margin="0,16,0,8"
-                                LinkClicked="MarkdownTextBlock_LinkClicked">
+                                OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
                                 <toolkit2:MarkdownTextBlock.Resources>
                                     <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
                                     <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />

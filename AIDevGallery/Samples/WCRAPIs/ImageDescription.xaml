@@ -33,8 +33,6 @@
                 CornerRadius="{StaticResource ControlCornerRadius}">
                 <DropDownButton
                     Padding="8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
                     AutomationProperties.Name="Select image"
                     ToolTipService.ToolTip="Select image">
                     <DropDownButton.Flyout>
@@ -46,6 +44,58 @@
                     <FontIcon Glyph="&#xEE71;" />
                 </DropDownButton>
             </Grid>
+
+            <StackPanel
+                Margin="8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Orientation="Horizontal"
+                Spacing="8">
+                <DropDownButton
+                    x:Name="ScenarioSelectButton"
+                    Padding="8"
+                    AutomationProperties.Name="Select scenario"
+                    ToolTipService.ToolTip="Select scenario"
+                    Visibility="Collapsed">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Accessible"
+                                Text="Accessible" />
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Caption"
+                                Text="Caption" />
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="Detailed"
+                                Text="Detailed" />
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="OfficeCharts"
+                                Text="Office charts" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <TextBlock x:Name="ScenarioSelectTextblock" Text="Caption" />
+                </DropDownButton>
+                <Button
+                    x:Name="StopBtn"
+                    MinWidth="86"
+                    AutomationProperties.Name="Stop"
+                    Click="StopBtn_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon
+                            x:Name="StopIcon"
+                            FontSize="16"
+                            Glyph="&#xE73B;" />
+                        <TextBlock Text="Stop" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
             <Grid
                 MinHeight="35"
                 Margin="8"
@@ -57,7 +107,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ProgressRing
                     x:Name="Loader"
@@ -76,22 +125,6 @@
                     IsTextSelectionEnabled="True"
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
-                <Button
-                    x:Name="StopBtn"
-                    Grid.Column="2"
-                    MinWidth="86"
-                    AutomationProperties.Name="Stop"
-                    Click="StopBtn_Click"
-                    Style="{ThemeResource AccentButtonStyle}"
-                    Visibility="Visible">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon
-                            x:Name="StopIcon"
-                            FontSize="16"
-                            Glyph="&#xE73B;" />
-                        <TextBlock Text="Stop" />
-                    </StackPanel>
-                </Button>
             </Grid>
         </Grid>
     </Grid>

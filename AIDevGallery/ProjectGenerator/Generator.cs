@@ -21,6 +21,7 @@ namespace AIDevGallery.ProjectGenerator;
 internal partial class Generator
 {
     private readonly string templatePath = Path.Join(Package.Current.InstalledLocation.Path, "ProjectGenerator", "Template");
+    private string generatedProjectPath = string.Empty;
 
     [GeneratedRegex(@"[^a-zA-Z0-9_]")]
     private static partial Regex SafeNameRegex();
@@ -63,6 +64,8 @@ internal partial class Generator
             outputPath = Path.Join(Path.GetDirectoryName(outputPath), $"{safeProjectName}_{dirIndexCount}");
             dirIndexCount++;
         }
+
+        generatedProjectPath = outputPath;
 
         var modelTypes = sample.Model1Types.Concat(sample.Model2Types ?? Enumerable.Empty<ModelType>())
                 .Where(models.ContainsKey);
@@ -238,7 +241,7 @@ internal partial class Generator
         {
             string fullAssetPath = Path.Join(Package.Current.InstalledLocation.Path, "Assets", assetFilename);
             string fullOutputAssetPath = Path.Combine(outputPath, "Assets", assetFilename);
-            if (Path.GetExtension(fullAssetPath) is ".jpg" or ".png")
+            if (File.Exists(fullAssetPath))
             {
                 File.Copy(fullAssetPath, fullOutputAssetPath);
             }
@@ -424,6 +427,15 @@ internal partial class Generator
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
             await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), sample.GetCleanCSCode(modelInfos), cancellationToken);
+        }
+    }
+
+    internal void CleanUp()
+    {
+        if(!string.IsNullOrEmpty(generatedProjectPath) && Directory.Exists(generatedProjectPath))
+        {
+            Directory.Delete(generatedProjectPath, true);
+            generatedProjectPath = string.Empty;
         }
     }
 }

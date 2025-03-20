@@ -28,6 +28,7 @@ internal sealed partial class Generate : BaseSamplePage
     private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private bool isProgressVisible;
+    private bool isImeActive = true;
 
     public Generate()
     {
@@ -38,8 +39,16 @@ internal sealed partial class Generate : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        chatClient = await sampleParams.GetIChatClientAsync();
-        InputTextBox.MaxLength = _maxTokenLength;
+        try
+        {
+            chatClient = await sampleParams.GetIChatClientAsync();
+            InputTextBox.MaxLength = _maxTokenLength;
+        }
+        catch (System.Exception ex)
+        {
+            ShowException(ex);
+        }
+
         sampleParams.NotifyCompletion();
     }
 
@@ -148,13 +157,22 @@ internal sealed partial class Generate : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && isImeActive == false)
         {
             if (InputTextBox.Text.Length > 0)
             {
                 GenerateText(InputTextBox.Text);
             }
         }
+        else
+        {
+            isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private void CancelGeneration()

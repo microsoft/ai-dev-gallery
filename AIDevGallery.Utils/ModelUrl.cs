@@ -138,7 +138,11 @@ public class HuggingFaceUrl : ModelUrl
         }
 
         Path = string.Join("/", urlComponents.Skip(4));
-        PartialUrl = $"{Organization}/{Repo}/{urlComponents[2]}/{Ref}/{Path}";
+        PartialUrl = $"{Organization}/{Repo}/{urlComponents[2]}/{Ref}";
+        if (!string.IsNullOrEmpty(Path))
+        {
+            PartialUrl = $"{PartialUrl}/{Path}";
+        }
     }
 
     /// <summary>

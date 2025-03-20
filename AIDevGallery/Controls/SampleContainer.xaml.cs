@@ -9,12 +9,12 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +23,8 @@ namespace AIDevGallery.Controls;
 internal sealed partial class SampleContainer : UserControl
 {
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Center));
+    private RichTextBlockFormatter codeFormatter;
+    private Dictionary<string, string> codeFiles = new();
 
     public HorizontalAlignment DisclaimerHorizontalAlignment
     {
@@ -93,6 +95,7 @@ internal sealed partial class SampleContainer : UserControl
     public SampleContainer()
     {
         this.InitializeComponent();
+        codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
         References.Add(new WeakReference<SampleContainer>(this));
         this.Unloaded += (sender, args) =>
         {
@@ -118,6 +121,8 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
+
+        RenderCodeTabs(true);
 
         CancelCTS();
 
@@ -263,10 +268,6 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
         VisualStateManager.GoToState(this, "SampleLoaded", true);
-
-        CodePivot.Items.Clear();
-
-        RenderCode();
     }
 
     [MemberNotNull(nameof(_sampleCache))]
@@ -321,33 +322,32 @@ internal sealed partial class SampleContainer : UserControl
         return true;
     }
 
-    private void RenderCode(bool force = false)
+    private void RenderCodeTabs(bool force = false)
     {
-        var codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
-
         if (_sampleCache == null)
         {
             return;
         }
 
-        if (CodePivot.Items.Count > 0 && !force)
+        if (CodeTabView.TabItems.Count > 0 && !force)
         {
             return;
         }
 
-        CodePivot.Items.Clear();
+        codeFiles.Clear();
+        CodeTabView.TabItems.Clear();
 
         if (!string.IsNullOrEmpty(_sampleCache.CSCode) && _cachedModels != null)
         {
             var modelInfos = _cachedModels.ToDictionary(
                 kvp => kvp.Key,
                 kvp => (kvp.Value, $"@\"{kvp.Value.Path}\""));
-            CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml.cs", _sampleCache.GetCleanCSCode(modelInfos), Languages.CSharp));
+            AddCodeTab("Sample.xaml.cs", _sampleCache.GetCleanCSCode(modelInfos));
         }
 
         if (!string.IsNullOrEmpty(_sampleCache.XAMLCode))
         {
-            CodePivot.Items.Add(CreateCodeBlock(codeFormatter, "Sample.xaml", _sampleCache.XAMLCode, Languages.FindById("xaml")));
+            AddCodeTab("Sample.xaml", _sampleCache.XAMLCode);
         }
 
         if (_cachedModels != null)
@@ -357,48 +357,36 @@ internal sealed partial class SampleContainer : UserControl
                 string sharedCodeName = SharedCodeHelpers.GetName(sharedCodeEnum);
                 string sharedCodeContent = SharedCodeHelpers.GetSource(sharedCodeEnum);
 
-                CodePivot.Items.Add(CreateCodeBlock(codeFormatter, sharedCodeName, sharedCodeContent, Languages.CSharp));
+                AddCodeTab(sharedCodeName, sharedCodeContent);
             }
+        }
+
+        if (CodeTabView.TabItems.Count > 0)
+        {
+            CodeTabView.SelectedIndex = 0;
         }
     }
 
-    private PivotItem CreateCodeBlock(RichTextBlockFormatter codeFormatter, string header, string code, ILanguage language)
+    private void AddCodeTab(string header, string code)
     {
-        var textBlock = new RichTextBlock()
-        {
-            Margin = new Thickness(0, 12, 0, 12),
-            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
-            FontSize = 14,
-            IsTextSelectionEnabled = true
-        };
-
-        codeFormatter.FormatRichTextBlock(code, language, textBlock);
-
-        PivotItem item = new()
+        codeFiles.Add(header, code);
+        CodeTabView.TabItems.Add(new TabViewItem()
         {
             Header = header,
-            Content = new ScrollViewer()
-            {
-                HorizontalScrollMode = ScrollMode.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Visible,
-                VerticalScrollMode = ScrollMode.Auto,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
-                Content = textBlock,
-                Padding = new Thickness(0, 0, 16, 16)
-            }
-        };
-        AutomationProperties.SetName(item, header);
-        return item;
+            Tag = header,
+            IsClosable = false,
+        });
     }
 
     private void UserControl_ActualThemeChanged(FrameworkElement sender, object args)
     {
-        RenderCode(true);
+        codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+        RenderCode();
     }
 
     public void ShowCode()
     {
-        RenderCode();
+        RenderCodeTabs();
 
         CodeColumn.Width = _codePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_codePaneWidth);
         VisualStateManager.GoToState(this, "ShowCodePane", true);
@@ -449,5 +437,43 @@ internal sealed partial class SampleContainer : UserControl
             modelDownloader.State = WcrApiDownloadState.Downloaded;
             await ReloadSampleAsync();
         }
+    }
+
+    private void CodeTabView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        RenderCode();
+    }
+
+    private void RenderCode()
+    {
+        var selectedTab = CodeTabView.SelectedItem as TabViewItem;
+
+        if (selectedTab == null)
+        {
+            return;
+        }
+
+        var codeName = selectedTab?.Tag as string;
+        var code = codeFiles[codeName!];
+
+        var extension = codeName!.Split('.').LastOrDefault();
+
+        CodeTextBlock.Blocks.Clear();
+        codeFormatter.FormatRichTextBlock(code, Languages.FindById(extension) ?? Languages.CSharp, CodeTextBlock);
+
+        var linesCount = code.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+        StringBuilder lineNumbers = new StringBuilder();
+        for (int i = 1; i <= linesCount; i++)
+        {
+            lineNumbers.Append(i);
+            lineNumbers.AppendLine();
+        }
+
+        LineNumbersTextBlock.Text = lineNumbers.ToString();
+    }
+
+    private void ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
+    {
+        LineNumbersScroller.ChangeView(null, e.NextView.VerticalOffset, null, true);
     }
 }
