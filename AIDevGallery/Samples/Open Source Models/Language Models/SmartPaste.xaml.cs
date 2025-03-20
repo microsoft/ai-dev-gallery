@@ -18,7 +18,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.SmartControlsSmartPaste,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     SharedCode = [
         SharedCodeEnum.SmartPasteFormCs,

@@ -279,38 +279,28 @@ internal partial class Generator
                     packageReferenceItem.Condition = "$(Platform) == 'x64'";
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntime.Qnn" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.QNN" ||
+                            packageName == "Microsoft.ML.OnnxRuntimeGenAI")
                 {
                     packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
                 }
 
                 var versionStr = PackageVersionHelpers.PackageVersions[packageName];
                 packageReferenceItem.AddMetadata("Version", versionStr, true);
-
-                if (packageName == "Microsoft.ML.OnnxRuntimeGenAI")
-                {
-                    var noneItem = itemGroup.AddItem("None", "$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\\runtimes\\win-arm64\\native\\onnxruntime-genai.dll");
-                    noneItem.Condition = "$(Platform) == 'ARM64'";
-                    noneItem.AddMetadata("Link", "onnxruntime-genai.dll", false);
-                    noneItem.AddMetadata("CopyToOutputDirectory", "PreserveNewest", false);
-                    noneItem.AddMetadata("Visible", "false", false);
-
-                    packageReferenceItem.AddMetadata("GeneratePathProperty", "true", true);
-                    packageReferenceItem.AddMetadata("ExcludeAssets", "all", true);
-                }
             }
 
             foreach (var packageName in packageReferences)
             {
                 if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
                 {
+                    AddPackageReference(itemGroup, "Microsoft.AI.DirectML");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
+                    AddPackageReference(itemGroup, "Microsoft.AI.DirectML");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.Qnn");
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.QNN");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 }
 
