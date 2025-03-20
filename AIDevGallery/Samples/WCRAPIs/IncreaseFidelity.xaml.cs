@@ -170,11 +170,18 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
         var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-
-        var bitmap = await Task.Run(() =>
+        try
         {
-            return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
-        });
+            var bitmap = await Task.Run(() =>
+            {
+                return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to scale image.");
+            return;
+        }
 
         Loader.Visibility = Visibility.Collapsed;
         ScaledImage.Visibility = Visibility.Visible;
