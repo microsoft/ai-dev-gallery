@@ -63,6 +63,7 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         }
 
         filePaths.Add("NativeMethods.txt");
+        filePaths.Add("NativeMethods.json");
 
         foreach (var filePath in filePaths)
         {
@@ -82,6 +83,11 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
             }
             else
             {
+                if (fileName.StartsWith("NativeMethods"))
+                {
+                    fileName = GetNameWithExtension(filePath);
+                }
+
                 sourceBuilder.AppendLine($"        {fileName},");
             }
         }
@@ -113,7 +119,13 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
             }
             else
             {
-                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName} => \"{Path.GetFileName(filePath)}\",");
+                var name = Path.GetFileName(filePath);
+                if (name.StartsWith("NativeMethods"))
+                {
+                    fileName = GetNameWithExtension(filePath);
+                }
+
+                sourceBuilder.AppendLine($"                 SharedCodeEnum.{fileName} => \"{name}\",");
             }
         }
 
@@ -153,10 +165,11 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
             }
 
             string fileContent;
-            if (fileName == "NativeMethods")
+            if (filePath.StartsWith("NativeMethods"))
             {
+                fileName = GetNameWithExtension(filePath);
                 var assembly = Assembly.GetExecutingAssembly();
-                using (Stream stream = assembly.GetManifestResourceStream("AIDevGallery.SourceGenerator.NativeMethods.txt"))
+                using (Stream stream = assembly.GetManifestResourceStream($"AIDevGallery.SourceGenerator.{filePath}"))
                 {
                     using (StreamReader reader = new(stream))
                     {
@@ -186,6 +199,13 @@ internal class SamplesSourceGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("}");
 
         context.AddSource("SharedCodeEnum.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+
+        static string GetNameWithExtension(string filePath)
+        {
+            return Path.GetFileName(filePath)
+                                .Replace(".txt", "_Txt")
+                                .Replace(".json", "_Json");
+        }
     }
 
     private static readonly Regex UsingAIDevGalleryTelemetryNamespace = new(@"using AIDevGallery.Telemetry\S*;\r?\n", RegexOptions.Multiline | RegexOptions.Compiled);

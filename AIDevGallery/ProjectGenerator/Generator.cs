@@ -403,7 +403,8 @@ internal partial class Generator
         {
             string directory = outputPath;
 
-            if (sharedCodeEnum != SharedCodeEnum.NativeMethods)
+            if (sharedCodeEnum != SharedCodeEnum.NativeMethods_Txt &&
+                sharedCodeEnum != SharedCodeEnum.NativeMethods_Json)
             {
                 if (!Directory.Exists(Path.Join(outputPath, "Utils")))
                 {

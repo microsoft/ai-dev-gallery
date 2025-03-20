@@ -27,6 +27,7 @@
     <EmbeddedResource Include="..\AIDevGallery\Samples\scenarios.json" Visible="False" />
     <EmbeddedResource Include="..\AIDevGallery\Samples\promptTemplates.json" Visible="False" />
     <EmbeddedResource Include="..\AIDevGallery\NativeMethods.txt" Visible="False" />
+    <EmbeddedResource Include="..\AIDevGallery\NativeMethods.json" Visible="False" />
     <EmbeddedResource Include="..\Directory.Packages.props" Visible="False" />
   </ItemGroup>
 
