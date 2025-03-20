@@ -28,7 +28,7 @@
       "SemanticKernelChat": {
         "Name": "Semantic Kernel Chat",
         "Description": "Chat with a local language model via the semantic kernel.",
-        "Instruction": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history. Note: The first response from this sample may take a moment.",
+        "Instruction": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history.",
         "Id": "semantic-kernel-chat"
       },
       "TranslateText": {
