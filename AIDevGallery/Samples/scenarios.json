@@ -21,7 +21,7 @@
       "Chat": {
         "Name": "Chat",
         "Description": "Chat with a local language model.",
-        "Instructions": "Enter a message into the textbox and click 'Send' to chat with the model.",
+        "Instructions": "Enter a message into the textbox and click 'Send' to start a conversation with a chat completion service.",
         "Id": "chat",
         "Icon": "\uE8F2"
       },
