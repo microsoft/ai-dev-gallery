@@ -8,6 +8,7 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -193,6 +194,10 @@ internal sealed partial class ModelPage : Page
                 {
                     Tag = (action, modelDetails),
                     Text = modelDetails.Name,
+                    Icon = new ImageIcon()
+                    {
+                        Source = new BitmapImage(new Uri(modelDetails.Icon))
+                    }
                 };
 
                 modelFlyoutItem.Click += ToolkitActionFlyoutItem_Click;
