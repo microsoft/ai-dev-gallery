@@ -392,6 +392,60 @@ internal sealed partial class AddModelPage : Page
                 return;
             }
 
+            var nameTextBox = new TextBox()
+            {
+                Text = Path.GetFileName(folder.Path),
+                Width = 300,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 10),
+                Header = "Model name"
+            };
+
+            ContentDialog nameModelDialog = new()
+            {
+                Title = "Add model",
+                Content = new StackPanel()
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock()
+                        {
+                            Text = $"Adding ONNX model from \n \"{folder.Path}\"",
+                            TextWrapping = TextWrapping.WrapWholeWords
+                        },
+                        nameTextBox
+                    }
+                },
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "Cancel",
+                PrimaryButtonText = "Add",
+                DefaultButton = ContentDialogButton.Primary,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+            };
+
+            string modelName = nameTextBox.Text;
+
+            nameTextBox.TextChanged += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(nameTextBox.Text))
+                {
+                    nameModelDialog.IsPrimaryButtonEnabled = false;
+                }
+                else
+                {
+                    modelName = nameTextBox.Text;
+                    nameModelDialog.IsPrimaryButtonEnabled = true;
+                }
+            };
+
+            var result = await nameModelDialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
             if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.InvariantCultureIgnoreCase))
             {
                 accelerator = HardwareAccelerator.QNN;
@@ -407,7 +461,7 @@ internal sealed partial class AddModelPage : Page
             var details = new ModelDetails()
             {
                 Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
-                Name = Path.GetFileName(folder.Path),
+                Name = modelName,
                 Url = $"local-file:///{folder.Path}",
                 Description = "Localy added GenAI Model",
                 HardwareAccelerators = [accelerator],

@@ -119,17 +119,17 @@ internal static class AppUtils
     {
         if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
         {
-            return "Hugging Face";
+            return "This model was downloaded from Hugging Face";
         }
 
         if (url.StartsWith("https://github.co", StringComparison.InvariantCultureIgnoreCase))
         {
-            return "GitHub";
+            return "This model was downloaded from GitHub";
         }
 
         if (url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
         {
-            return "your local machine";
+            return "This model was added by you";
         }
 
         return string.Empty;

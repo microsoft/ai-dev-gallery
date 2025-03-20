@@ -123,7 +123,6 @@
                                                     Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
-                                                            <Run Text="This model is from" />
                                                             <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
                                                         </TextBlock>
                                                     </ToolTipService.ToolTip>
@@ -306,7 +305,6 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="This model is from" />
                                                         <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
@@ -492,7 +490,6 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="This model is from" />
                                                         <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
