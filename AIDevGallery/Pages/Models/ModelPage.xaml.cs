@@ -68,7 +68,7 @@ internal sealed partial class ModelPage : Page
                 Name = details.Name
             };
 
-            isLocalModel = details.Url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase);
+            isLocalModel = details.Url.StartsWith("local", StringComparison.OrdinalIgnoreCase);
         }
         else
         {
@@ -121,11 +121,11 @@ internal sealed partial class ModelPage : Page
     {
         string readmeContents = string.Empty;
 
-        if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github.com", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await GithubApi.GetContentsOfTextFile(url);
         }
-        else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        else if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }

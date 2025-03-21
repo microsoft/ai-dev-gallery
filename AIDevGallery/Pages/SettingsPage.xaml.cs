@@ -68,7 +68,7 @@ internal sealed partial class SettingsPage : Page
 
         long totalCacheSize = 0;
 
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.InvariantCultureIgnoreCase)).OrderBy(m => m.Details.Name))
+        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
         {
             cachedModels.Add(cachedModel);
             totalCacheSize += cachedModel.ModelSize;

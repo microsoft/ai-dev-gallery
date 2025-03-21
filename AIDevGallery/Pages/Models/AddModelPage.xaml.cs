@@ -143,7 +143,7 @@ internal sealed partial class AddModelPage : Page
                     string? licenseKey = null;
                     if (result.Tags != null)
                     {
-                        var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                        var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                         if (licenseTag != null)
                         {
                             licenseKey = licenseTag.Split(":").Last();
@@ -197,9 +197,9 @@ internal sealed partial class AddModelPage : Page
                 continue;
             }
 
-            var configs = result.Siblings.Where(r => r.RFilename.EndsWith("genai_config.json", StringComparison.InvariantCultureIgnoreCase));
+            var configs = result.Siblings.Where(r => r.RFilename.EndsWith("genai_config.json", StringComparison.OrdinalIgnoreCase));
 
-            var readmeSiblings = result.Siblings.Where(r => r.RFilename.EndsWith("readme.md", StringComparison.InvariantCultureIgnoreCase));
+            var readmeSiblings = result.Siblings.Where(r => r.RFilename.EndsWith("readme.md", StringComparison.OrdinalIgnoreCase));
             string? readmeUrl = null;
 
             if (readmeSiblings.Any())

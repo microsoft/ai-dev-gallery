@@ -20,12 +20,12 @@ internal class CachedModel
     public CachedModel(ModelDetails details, string path, bool isFile, long modelSize)
     {
         Details = details;
-        if (details.Url.StartsWith("https://github.com", StringComparison.InvariantCulture))
+        if (details.Url.StartsWith("https://github.com", StringComparison.OrdinalIgnoreCase))
         {
             Url = details.Url;
             Source = CachedModelSource.GitHub;
         }
-        else if (details.Url.StartsWith("local", StringComparison.InvariantCulture))
+        else if (details.Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
             Url = details.Url;
             Source = CachedModelSource.Local;

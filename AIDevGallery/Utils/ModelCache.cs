@@ -120,7 +120,7 @@ internal class ModelCache
         ModelDeletedEvent.Log(model.Url);
         await CacheStore.RemoveModel(model);
 
-        if (model.Url.StartsWith("local", System.StringComparison.InvariantCultureIgnoreCase))
+        if (model.Url.StartsWith("local", System.StringComparison.OrdinalIgnoreCase))
         {
             // do not delete models added by user that are not in the cache folder
             return;

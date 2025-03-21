@@ -171,17 +171,17 @@ internal static class AppUtils
 
     public static string GetModelSourceNameFromUrl(string url)
     {
-        if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
             return "This model was downloaded from Hugging Face";
         }
 
-        if (url.StartsWith("https://github.co", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github.co", StringComparison.OrdinalIgnoreCase))
         {
             return "This model was downloaded from GitHub";
         }
 
-        if (url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
             return "This model was added by you";
         }
@@ -218,7 +218,7 @@ internal static class AppUtils
 
     public static ImageSource GetModelSourceImageFromUrl(string url)
     {
-        if (url.StartsWith("https://github", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github", StringComparison.OrdinalIgnoreCase))
         {
             if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
             {
