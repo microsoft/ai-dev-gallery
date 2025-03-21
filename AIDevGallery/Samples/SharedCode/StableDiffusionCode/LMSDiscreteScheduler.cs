@@ -3,7 +3,6 @@
 
 using MathNet.Numerics;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using NumSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,23 +12,22 @@ namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 internal class LMSDiscreteScheduler
 {
     private readonly int _numTrainTimesteps;
-    private readonly List<float> _alphasCumulativeProducts;
-
-    public Tensor<float> Sigmas { get; set; } = null!;
-    public List<int> Timesteps { get; set; }
+    private readonly IEnumerable<float> _alphasCumulativeProducts;
+    private DenseTensor<float> Sigmas { get; }
     private readonly List<Tensor<float>> derivatives;
-    public float InitNoiseSigma { get; set; }
     private readonly string _predictionType;
 
-    public LMSDiscreteScheduler(int num_train_timesteps = 1000, float beta_start = 0.00085f, float beta_end = 0.012f, string beta_schedule = "scaled_linear", string prediction_type = "epsilon", List<float>? trained_betas = null)
+    public int[] Timesteps { get; }
+    public float InitNoiseSigma { get; }
+
+    public LMSDiscreteScheduler(int num_inference_steps, int num_train_timesteps = 1000, float beta_start = 0.00085f, float beta_end = 0.012f, string beta_schedule = "scaled_linear", string prediction_type = "epsilon", IEnumerable<float>? trained_betas = null)
     {
         _numTrainTimesteps = num_train_timesteps;
         _predictionType = prediction_type;
         derivatives = [];
         Timesteps = [];
 
-        var alphas = new List<float>();
-        var betas = new List<float>();
+        IEnumerable<float> betas;
 
         if (trained_betas != null)
         {
@@ -38,35 +36,45 @@ internal class LMSDiscreteScheduler
         else if (beta_schedule == "linear")
         {
             betas = Enumerable.Range(0, num_train_timesteps)
-                              .Select(i => beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1))
-                              .ToList();
+                              .Select(i => beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1));
         }
         else if (beta_schedule == "scaled_linear")
         {
-            var start = (float)Math.Sqrt(beta_start);
-            var end = (float)Math.Sqrt(beta_end);
-            betas = np.linspace(start, end, num_train_timesteps)
-                     .ToArray<float>()
-                     .Select(x => x * x)
-                     .ToList();
+            var start = Math.Sqrt(beta_start);
+            var end = Math.Sqrt(beta_end);
+            betas = Linspace(start, end, num_train_timesteps)
+                     .Select(x => (float)(x * x));
         }
         else
         {
             // Fallback to a default value
-            betas = Enumerable.Repeat(beta_start, num_train_timesteps).ToList();
+            betas = Enumerable.Repeat(beta_start, num_train_timesteps);
         }
 
-        alphas = betas.Select(beta => 1 - beta).ToList();
+        var alphas = betas.Select(beta => 1 - beta);
 
-        _alphasCumulativeProducts = alphas.Select((alpha, i) => alphas.Take(i + 1).Aggregate((a, b) => a * b)).ToList();
+        _alphasCumulativeProducts = alphas.Select((alpha, i) => alphas.Take(i + 1).Aggregate((a, b) => a * b));
         var sigmas = _alphasCumulativeProducts.Select(alpha_prod => Math.Sqrt((1 - alpha_prod) / alpha_prod)).Reverse().ToList();
 
         InitNoiseSigma = (float)sigmas.Max();
+
+        double[] timesteps = [.. Linspace(0, _numTrainTimesteps - 1, num_inference_steps)];
+
+        Timesteps = timesteps.Select(x => (int)x).Reverse().ToArray();
+
+        sigmas = [.. Interpolate(timesteps, sigmas)];
+        Sigmas = new DenseTensor<float>(sigmas.Count);
+        for (int i = 0; i < sigmas.Count; i++)
+        {
+            Sigmas[i] = (float)sigmas[i];
+        }
     }
 
-    public static double[] Interpolate(double[] timesteps, double[] range, List<double> sigmas)
+    private static double[] Interpolate(double[] timesteps, List<double> sigmas)
     {
-        var result = np.zeros(timesteps.Length + 1);
+        var range = Enumerable.Range(0, sigmas.Count).Select(x => (double)x).ToArray();
+
+        var result = new double[timesteps.Length + 1];
 
         for (int i = 0; i < timesteps.Length; i++)
         {
@@ -92,9 +100,7 @@ internal class LMSDiscreteScheduler
             }
         }
 
-        result = np.add(result, 0.000f);
-
-        return result.ToArray<double>();
+        return result;
     }
 
     public DenseTensor<float> ScaleInput(DenseTensor<float> sample, int timestep)
@@ -107,7 +113,7 @@ internal class LMSDiscreteScheduler
         return sample;
     }
 
-    public double GetLmsCoefficient(int order, int t, int currentOrder)
+    private double GetLmsCoefficient(int order, int t, int currentOrder)
     {
         double LmsDerivative(double tau)
         {
@@ -125,29 +131,9 @@ internal class LMSDiscreteScheduler
             return prod;
         }
 
-        double integratedCoeff = Integrate.OnClosedInterval(LmsDerivative, Sigmas![t], Sigmas[t + 1], 1e-4);
+        double integratedCoeff = Integrate.OnClosedInterval(LmsDerivative, Sigmas[t], Sigmas[t + 1], 1e-4);
 
         return integratedCoeff;
-    }
-
-    public int[] SetTimesteps(int num_inference_steps)
-    {
-        double start = 0;
-        double stop = _numTrainTimesteps - 1;
-        double[] timesteps = np.linspace(start, stop, num_inference_steps).ToArray<double>();
-
-        Timesteps = timesteps.Select(x => (int)x).Reverse().ToList();
-
-        var sigmas = _alphasCumulativeProducts.Select(alpha_prod => Math.Sqrt((1 - alpha_prod) / alpha_prod)).Reverse().ToList();
-        var range = np.arange(0, (double)sigmas.Count).ToArray<double>();
-        sigmas = [.. Interpolate(timesteps, range, sigmas)];
-        Sigmas = new DenseTensor<float>(sigmas.Count);
-        for (int i = 0; i < sigmas.Count; i++)
-        {
-            Sigmas[i] = (float)sigmas[i];
-        }
-
-        return [.. Timesteps];
     }
 
     public DenseTensor<float> Step(
@@ -194,20 +180,20 @@ internal class LMSDiscreteScheduler
 
         var derivativeItems = TensorHelper.CreateTensor(derivativeItemsArray, sample.Dimensions.ToArray());
 
-        derivatives?.Add(derivativeItems);
+        derivatives.Add(derivativeItems);
 
-        if (derivatives?.Count > order)
+        if (derivatives.Count > order)
         {
-            derivatives?.RemoveAt(0);
+            derivatives.RemoveAt(0);
         }
 
         order = Math.Min(stepIndex + 1, order);
         var lmsCoeffs = Enumerable.Range(0, order).Select(currOrder => GetLmsCoefficient(order, stepIndex, currOrder)).ToArray();
 
-        var revDerivatives = Enumerable.Reverse(derivatives!).ToList();
+        var revDerivatives = Enumerable.Reverse(derivatives);
         var lmsCoeffsAndDerivatives = lmsCoeffs.Zip(revDerivatives, (lmsCoeff, derivative) => (lmsCoeff, derivative)).ToArray();
 
-        var lmsDerProduct = new Tensor<float>[derivatives!.Count];
+        var lmsDerProduct = new Tensor<float>[derivatives.Count];
 
         for (int m = 0; m < lmsCoeffsAndDerivatives.Length; m++)
         {
@@ -219,5 +205,24 @@ internal class LMSDiscreteScheduler
         var prevSample = TensorHelper.AddTensors([.. sample], [.. sumTensor], sample.Dimensions.ToArray());
 
         return prevSample;
+    }
+
+    private static double[] Linspace(double start, double end, int num)
+    {
+        double[] result = new double[num];
+
+        if (num == 1)
+        {
+            result[0] = start;
+            return result;
+        }
+
+        double step = (end - start) / (num - 1);
+        for (int i = 0; i < num; i++)
+        {
+            result[i] = start + step * i;
+        }
+
+        return result;
     }
 }
