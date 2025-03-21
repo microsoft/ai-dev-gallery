@@ -5,5 +5,6 @@ internal enum HardwareAccelerator
     CPU,
     DML,
     QNN,
-    WCRAPI
+    WCRAPI,
+    OLLAMA
 }
