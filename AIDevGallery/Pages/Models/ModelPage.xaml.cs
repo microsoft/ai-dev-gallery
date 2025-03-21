@@ -214,7 +214,7 @@ internal sealed partial class ModelPage : Page
         {
             (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
 
-            string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(action, modelDetails);
+            string toolkitDeeplink = modelDetails.CreateAiToolkitDeeplink(action);
             bool wasDeeplinkSuccesful = true;
             try
             {

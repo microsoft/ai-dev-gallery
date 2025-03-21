@@ -22,7 +22,7 @@ internal static class AIToolkitHelper
         get { return aiToolkitActionInfos; }
     }
 
-    public static string CreateAiToolkitDeeplink(AIToolkitAction action, ModelDetails modelDetails)
+    public static string CreateAiToolkitDeeplink(this ModelDetails modelDetails, AIToolkitAction action)
     {
         ToolkitActionInfo? actionInfo;
         string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
@@ -55,11 +55,11 @@ internal static class AIToolkitHelper
 
         if(action == AIToolkitAction.FineTuning)
         {
-            return ValidateForFineTuning(modelDetails);
+            return modelDetails.ValidateForFineTuning();
         }
         else
         {
-            return ValidateForGeneralToolkit(modelDetails);
+            return modelDetails.ValidateForGeneralToolkit();
         }
     }
 }
