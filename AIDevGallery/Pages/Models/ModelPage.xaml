@@ -32,16 +32,44 @@
         </Grid.ColumnDefinitions>
         <TextBlock
             Margin="4,0,0,0"
+            VerticalAlignment="Center"
             Style="{StaticResource SubtitleTextBlockStyle}"
             Text="{x:Bind ModelFamily.Name}" />
-        <controls:CopyButton
+        <StackPanel
             Grid.Column="1"
-            Height="34"
-            AutomationProperties.Name="Copy link to page"
-            Click="CopyButton_Click"
-            Content="{ui:FontIcon Glyph=&#xE71B;,
-                                  FontSize=16}"
-            ToolTipService.ToolTip="Copy link to page" />
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="8">
+            <DropDownButton
+                x:Name="AIToolkitDropdown"
+                AutomationProperties.Name="Open in AI Toolkit"
+                Visibility="Collapsed">
+                <DropDownButton.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Image Width="16">
+                            <Image.Source>
+                                <BitmapImage
+                                    DecodePixelHeight="16"
+                                    DecodePixelWidth="16"
+                                    UriSource="ms-appx:///Assets/AITKIcon.png" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="Open in AI Toolkit" />
+                    </StackPanel>
+                </DropDownButton.Content>
+                <DropDownButton.Flyout>
+                    <MenuFlyout x:Name="AIToolkitFlyout" Placement="Bottom" />
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <controls:CopyButton
+                Height="34"
+                AutomationProperties.Name="Copy link to page"
+                Click="CopyButton_Click"
+                Content="{ui:FontIcon Glyph=&#xE71B;,
+                                      FontSize=16}"
+                ToolTipService.ToolTip="Copy link to page" />
+        </StackPanel>
+
 
         <ScrollViewer
             x:Name="RootScroller"
