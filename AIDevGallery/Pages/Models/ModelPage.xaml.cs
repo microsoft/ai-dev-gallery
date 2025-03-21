@@ -171,7 +171,12 @@ internal sealed partial class ModelPage : Page
 
         foreach(ModelDetails modelDetails in models)
         {
-            foreach(AIToolkitAction action in modelDetails.AIToolkitActions!)
+            if(modelDetails.AIToolkitActions == null)
+            {
+                continue;
+            }
+
+            foreach(AIToolkitAction action in modelDetails.AIToolkitActions)
             {
                 if(modelDetails.ValidateAction(action))
                 {
