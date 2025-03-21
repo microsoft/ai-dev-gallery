@@ -446,7 +446,7 @@ internal sealed partial class AddModelPage : Page
                 return;
             }
 
-            if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.InvariantCultureIgnoreCase))
+            if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
             {
                 accelerator = HardwareAccelerator.QNN;
             }
