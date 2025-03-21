@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -129,5 +130,45 @@ internal static class ModelDetailsHelper
 
             return allModelDetails;
         }
+    }
+
+    public static bool IsApi(this ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ||
+               modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
+               modelDetails.Size == 0;
+    }
+
+    public static bool IsApi(this ExpandedModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerator == HardwareAccelerator.WCRAPI ||
+            modelDetails.HardwareAccelerator == HardwareAccelerator.OLLAMA;
+    }
+
+    public static Visibility ShowWhenWcrApi(ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility ShowWhenOllama(ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility ShowWhenOnnxModel(ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN)
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility ShowWhenDownloadedModel(ModelDetails modelDetails)
+    {
+        return (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN))
+            && !modelDetails.IsUserAdded
+            ? Visibility.Visible : Visibility.Collapsed;
     }
 }

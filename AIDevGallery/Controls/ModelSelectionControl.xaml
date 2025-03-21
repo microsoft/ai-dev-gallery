@@ -11,6 +11,7 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
+    xmlns:helpers="using:AIDevGallery.Helpers"
     xmlns:vm="using:AIDevGallery.ViewModels"
     Loaded="UserControl_Loaded"
     mc:Ignorable="d">
@@ -107,7 +108,7 @@
                                                 HorizontalSpacing="6"
                                                 Orientation="Horizontal"
                                                 VerticalSpacing="2"
-                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}">
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}">
                                                 <TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
                                                     <Run Text="{x:Bind ModelDetails.ParameterSize}" />
                                                     <Run Text="params" />
@@ -128,10 +129,10 @@
                                                     </ToolTipService.ToolTip>
                                                 </Image>
                                                 <TextBlock Text="• " 
-                                                           Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}" />
+                                                           Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
                                                 <TextBlock VerticalAlignment="Center" 
                                                            Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}"
-                                                           Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}">
+                                                           Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
                                                             <Run Text="This model is under the" />
@@ -139,6 +140,24 @@
                                                             <Run Text="license" />
                                                         </TextBlock>
                                                     </ToolTipService.ToolTip>
+                                                </TextBlock>
+                                            </toolkit:WrapPanel>
+                                            <toolkit:WrapPanel
+                                                HorizontalSpacing="6"
+                                                Orientation="Horizontal"
+                                                VerticalSpacing="2"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}">
+                                                <TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
+                                                    <Run Text="{x:Bind ModelDetails.ParameterSize}" />
+                                                    <Run Text="params" />
+                                                    <Run Text=" • " />
+                                                </TextBlock>
+                                                <TextBlock VerticalAlignment="Center">
+                                                    <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
+                                                    <Run Text=" • " />
+                                                </TextBlock>
+                                                <TextBlock VerticalAlignment="Center">
+                                                    <Run Text="{x:Bind utils:OllamaHelper.GetOllamaUrl()}" />
                                                 </TextBlock>
                                             </toolkit:WrapPanel>
                                             <TextBlock Text="Windows Copilot Runtime APIs" Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
@@ -169,39 +188,51 @@
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View model card"
-                                                        Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="ApiDocumentation_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View API documentation"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                        Click="OllamaCopyUrl_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind ModelDetails}"
+                                                        Text="Copy Url"
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                        Click="OllamaViewModelDetails_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind ModelDetails}"
+                                                        Text="Open Model Details"
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View license"
-                                                        Visibility="{x:Bind local:ModelSelectionControl.ShowForDownloadedModelsOnly(ModelDetails)}"  />
-                                                    <MenuFlyoutSeparator Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="CopyModelPath_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8C8;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Copy as path"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="OpenModelFolder_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE838;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Open containing folder"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
-                                                    <MenuFlyoutSeparator Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="DeleteModel_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE74D;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Delete"
-                                                        Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>

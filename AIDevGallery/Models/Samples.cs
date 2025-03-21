@@ -108,7 +108,18 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
-                else if (Url.StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+                else if (Url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
+                    {
+                        icon = "ollama.light.svg";
+                    }
+                    else
+                    {
+                        icon = "ollama.dark.svg";
+                    }
+                }
+                else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
                 {
                     icon = "onnx.svg";
                 }
@@ -163,7 +174,8 @@ internal enum HardwareAccelerator
     CPU,
     DML,
     QNN,
-    WCRAPI
+    WCRAPI,
+    OLLAMA
 }
 
 #pragma warning restore SA1402 // File may only contain a single type

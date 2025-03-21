@@ -123,9 +123,7 @@ internal class StableDiffusion : IDisposable
         var textEmbeddings = textProcessor.PreprocessText(prompt);
         token.ThrowIfCancellationRequested();
 
-        var scheduler = new LMSDiscreteScheduler();
-
-        var timesteps = scheduler.SetTimesteps(config.NumInferenceSteps);
+        var scheduler = new LMSDiscreteScheduler(config.NumInferenceSteps);
 
         // If you use the same seed, you will get the same image result.
         var seed = new Random().Next();
@@ -134,13 +132,13 @@ internal class StableDiffusion : IDisposable
         var latents = GenerateLatentSample(config.Height, config.Width, seed, scheduler.InitNoiseSigma);
 
         // Unet Loop
-        for (int t = 0; t < timesteps.Length; t++)
+        for (int t = 0; t < scheduler.Timesteps.Length; t++)
         {
             var latentModelInput = TensorHelper.Duplicate([.. latents], [2, 4, config.Height / 8, config.Width / 8]);
 
-            latentModelInput = scheduler.ScaleInput(latentModelInput, timesteps[t]);
+            latentModelInput = scheduler.ScaleInput(latentModelInput, scheduler.Timesteps[t]);
 
-            var input = CreateUnetModelInput(textEmbeddings, latentModelInput, timesteps[t]);
+            var input = CreateUnetModelInput(textEmbeddings, latentModelInput, scheduler.Timesteps[t]);
 
             token.ThrowIfCancellationRequested();
 
@@ -156,7 +154,7 @@ internal class StableDiffusion : IDisposable
 
                 noisePred = PerformGuidance(noisePred, noisePredText, config.GuidanceScale);
 
-                latents = scheduler.Step(noisePred, timesteps[t], latents);
+                latents = scheduler.Step(noisePred, scheduler.Timesteps[t], latents);
             }
             catch
             {

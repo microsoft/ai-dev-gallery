@@ -119,9 +119,7 @@ internal sealed partial class SemanticComboBox : Control
         {
             if (semanticComboBox._vectorStore == null || semanticComboBox._stringsCollection == null)
             {
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 semanticComboBox._vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 semanticComboBox._stringsCollection = semanticComboBox._vectorStore.GetCollection<int, StringData>("strings");
                 await semanticComboBox._stringsCollection.CreateCollectionIfNotExistsAsync().ConfigureAwait(false);
             }
