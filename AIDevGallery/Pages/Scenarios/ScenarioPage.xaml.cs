@@ -126,12 +126,12 @@ internal sealed partial class ScenarioPage : Page
 
     private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
     {
-        var latestModelOrApiUsageHistory = App.AppData.UsageHistory.FirstOrDefault(id => models.Any(m => m.Id == id));
+        var latestModelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => models.Any(m => m.Id == u.Id));
 
-        if (latestModelOrApiUsageHistory != null)
+        if (latestModelOrApiUsageHistory != default)
         {
             // select most recently used if there is one
-            return models.First(m => m.Id == latestModelOrApiUsageHistory);
+            return models.First(m => m.Id == latestModelOrApiUsageHistory.Id);
         }
 
         return models.FirstOrDefault();
@@ -227,7 +227,8 @@ internal sealed partial class ScenarioPage : Page
                     SubItemId = selectedModelDetails!.Id,
                     DisplayName = scenario.Name
                 },
-                selectedModelDetails.Id);
+                selectedModelDetails.Id,
+                selectedModelDetails.HardwareAccelerators.First());
         }
     }
 

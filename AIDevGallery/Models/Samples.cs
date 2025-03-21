@@ -111,7 +111,7 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
-                else if (Url.StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+                else if (Url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
                 {
                     if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
                     {
@@ -121,6 +121,10 @@ internal class ModelDetails
                     {
                         icon = "ollama.dark.svg";
                     }
+                }
+                else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
+                {
+                    icon = "onnx.svg";
                 }
                 else
                 {

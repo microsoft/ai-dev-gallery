@@ -23,6 +23,7 @@ internal class SampleNavigationParameters(
     public string SampleId => sampleId;
 
     protected override string ChatClientModelPath => ModelPath;
+    protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerator;
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)

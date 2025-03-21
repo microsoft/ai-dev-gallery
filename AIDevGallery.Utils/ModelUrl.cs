@@ -104,9 +104,9 @@ public class HuggingFaceUrl : ModelUrl
 
         modelNameOrUrl = modelNameOrUrl.Trim();
 
-        if (modelNameOrUrl.StartsWith("https://", StringComparison.InvariantCulture))
+        if (modelNameOrUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            if (!modelNameOrUrl.StartsWith("https://huggingface.co", StringComparison.InvariantCulture))
+            if (!modelNameOrUrl.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Invalid URL", nameof(modelNameOrUrl));
             }
@@ -174,7 +174,7 @@ public class GitHubUrl : ModelUrl
         url = url.Trim();
         FullUrl = url;
 
-        if (!url.StartsWith("https://github.com/", StringComparison.InvariantCulture))
+        if (!url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException("Invalid URL", nameof(url));
         }
@@ -248,7 +248,11 @@ public static class UrlHelpers
     /// <returns>The full URL as a string.</returns>
     public static string GetFullUrl(string url)
     {
-        if (url.StartsWith("https://github.com", StringComparison.InvariantCulture))
+        if (url.StartsWith("https://github.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return url;
+        }
+        else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
             return url;
         }
