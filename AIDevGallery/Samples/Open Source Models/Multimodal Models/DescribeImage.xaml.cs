@@ -28,7 +28,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels;
     Id = "58c3565d-dbe0-46c7-accc-2c088db2bdf9",
     Icon = "\uE8D4",
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML"
+        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
+        "Microsoft.AI.DirectML"
     ],
     Name = "Describe Image")]
 internal sealed partial class DescribeImage : BaseSamplePage
@@ -51,12 +52,15 @@ internal sealed partial class DescribeImage : BaseSamplePage
         await InitModel(sampleParams.ModelPath, sampleParams.CancellationToken);
         sampleParams.NotifyCompletion();
 
+        // <exclude>
         // Load default image
         if (!sampleParams.CancellationToken.IsCancellationRequested)
         {
             imageFile = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
             LoadImage(this.imageFile);
         }
+
+        // </exclude>
     }
 
     private async Task InitModel(string modelPath, CancellationToken ct)
