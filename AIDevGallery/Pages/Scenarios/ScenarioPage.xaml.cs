@@ -87,7 +87,7 @@ internal sealed partial class ScenarioPage : Page
             if (s.Model1Types.Contains(ModelType.LanguageModels))
             {
                 // add ollama models
-                var ollamaModels = Ollama.GetOllamaModels();
+                var ollamaModels = OllamaHelper.GetOllamaModels();
 
                 if (ollamaModels != null)
                 {

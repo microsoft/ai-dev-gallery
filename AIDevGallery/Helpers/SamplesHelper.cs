@@ -188,7 +188,7 @@ internal static partial class SamplesHelper
         {
             var modelId = modelPath[2..^1].Split('/').LastOrDefault();
 
-            return $"new OllamaChatClient(\"{Ollama.GetOllamaUrl()}\", \"{modelId}\")";
+            return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
         }
 
         return $"await GenAIModel.CreateAsync({modelPath}, {promptTemplate})";

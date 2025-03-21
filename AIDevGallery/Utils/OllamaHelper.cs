@@ -10,7 +10,7 @@ namespace AIDevGallery.Utils;
 
 internal record OllamaModel(string Name, string Tag, string Id, string Size, string Modified);
 
-internal class Ollama
+internal class OllamaHelper
 {
     private static bool? isOllamaAvailable;
     public static List<OllamaModel>? GetOllamaModels()

@@ -561,7 +561,7 @@ internal partial class ModelSelectionControl : UserControl
     private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
     {
         var dataPackage = new DataPackage();
-        dataPackage.SetText(Ollama.GetOllamaUrl());
+        dataPackage.SetText(OllamaHelper.GetOllamaUrl());
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 

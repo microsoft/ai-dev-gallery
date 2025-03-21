@@ -154,7 +154,7 @@
                                                     <Run Text=" • " />
                                                 </TextBlock>
                                                 <TextBlock VerticalAlignment="Center">
-                                                    <Run Text="{x:Bind utils:Ollama.GetOllamaUrl()}" />
+                                                    <Run Text="{x:Bind utils:OllamaHelper.GetOllamaUrl()}" />
                                                 </TextBlock>
                                             </toolkit:WrapPanel>
                                             <TextBlock Text="Windows Copilot Runtime APIs" Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />

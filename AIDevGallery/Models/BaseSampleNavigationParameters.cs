@@ -32,7 +32,7 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         else if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
         {
             var modelId = ChatClientModelPath.Split('/').LastOrDefault();
-            return new OllamaChatClient(Ollama.GetOllamaUrl(), modelId);
+            return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId);
         }
 
         return await GenAIModel.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);
