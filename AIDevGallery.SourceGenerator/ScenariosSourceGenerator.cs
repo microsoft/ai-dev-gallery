@@ -94,6 +94,7 @@ internal class ScenariosSourceGenerator : IIncrementalGenerator
                                         ScenarioType = ScenarioType.{{scenarioCategory.Key}}{{scenario.Key}},
                                         Name = "{{scenario.Value.Name}}",
                                         Description = "{{scenario.Value.Description}}",
+                                        Instructions = "{{scenario.Value.Instructions}}",
                                         Id = "{{scenario.Value.Id}}",
                                         Icon = {{scenarioIcon}}
                                     },
