@@ -111,6 +111,17 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
+                else if (Url.StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
+                    {
+                        icon = "ollama.light.svg";
+                    }
+                    else
+                    {
+                        icon = "ollama.dark.svg";
+                    }
+                }
                 else
                 {
                     icon = "HuggingFace.svg";
@@ -162,7 +173,8 @@ internal enum HardwareAccelerator
     CPU,
     DML,
     QNN,
-    WCRAPI
+    WCRAPI,
+    OLLAMA
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]

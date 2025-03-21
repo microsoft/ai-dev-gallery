@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,7 +23,10 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            AddUnique(SharedCodeEnum.GenAIModel);
+            if (!models.Values.Any(m => m.IsApi()))
+            {
+                AddUnique(SharedCodeEnum.GenAIModel);
+            }
         }
 
         if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
@@ -62,7 +66,14 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
+            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.OLLAMA))
+            {
+                AddUnique("Microsoft.Extensions.AI.Ollama");
+            }
+            else
+            {
+                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
+            }
         }
 
         var sharedCode = sample.GetAllSharedCode(models);
@@ -171,10 +182,16 @@ internal static partial class SamplesHelper
 
         if (isPhiSilica)
         {
-            return "PhiSilicaClient.CreateAsync()";
+            return "await PhiSilicaClient.CreateAsync()";
+        }
+        else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var modelId = modelPath[2..^1].Split('/').LastOrDefault();
+
+            return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
         }
 
-        return $"GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
+        return $"await GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
     }
 
     public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
@@ -204,7 +221,7 @@ internal static partial class SamplesHelper
 
         List<SharedCodeEnum> sharedCode = sample.GetAllSharedCode(modelInfos.ToDictionary(m => m.Key, m => m.Value.ExpandedModelDetails));
 
-        var search = "sampleParams.GetIChatClientAsync()";
+        var search = "await sampleParams.GetIChatClientAsync()";
         int index = cleanCsSource.IndexOf(search, StringComparison.OrdinalIgnoreCase);
         if (index > 0)
         {
@@ -269,7 +286,7 @@ internal static partial class SamplesHelper
 
         ExpandedModelDetails cachedModel;
 
-        if (selectedModelDetails.Size == 0)
+        if (selectedModelDetails.IsApi())
         {
             cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
         }
