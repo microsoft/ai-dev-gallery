@@ -13,11 +13,10 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
     <NoWarn>CS8305;WMC1501</NoWarn>
-    <!-- https://github.com/microsoft/CsWin32/issues/1273 -->
-    <NoWarn>$(NoWarn);IL2050</NoWarn>
     <!-- Microsoft.Xaml.Interactivity.EventTriggerBehavior is not trimmable -->
     <NoWarn>$(NoWarn);IL2026</NoWarn>
     <IsAotCompatible>true</IsAotCompatible>
+    <PublishAot>true</PublishAot>
     <TrimmerRootDescriptor>SamplesRoots.xml</TrimmerRootDescriptor>
     <!-- The *first* DefineConstants is removed during Official Release Builds (.pipelines/Unstub.ps1)-->
     <DefineConstants>TELEMETRYEVENTSOURCE_PUBLIC</DefineConstants>

@@ -18,6 +18,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Samples.SharedCode;
 
+[WinRT.GeneratedBindableCustomProperty]
 internal sealed partial class SmartPasteForm : Control
 {
     private const int _defaultMaxLength = 1024;
@@ -207,7 +208,8 @@ Rules:
         new PropertyMetadata(default(List<string>), new PropertyChangedCallback(OnFieldLabelsChanged)));
 }
 
-internal class FormField : ObservableObject
+[WinRT.GeneratedBindableCustomProperty]
+internal partial class FormField : ObservableObject
 {
     private string? label;
     private string? value;

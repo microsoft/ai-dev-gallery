@@ -15,7 +15,8 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class ScenarioSelectionPage : Page
 {
-    internal record FilterRecord(string? Tag, string Text);
+    [WinRT.GeneratedBindableCustomProperty]
+    internal partial record FilterRecord(string? Tag, string Text);
 
     private readonly List<FilterRecord> filters =
     [
