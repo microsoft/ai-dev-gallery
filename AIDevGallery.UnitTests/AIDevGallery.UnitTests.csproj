@@ -26,7 +26,6 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="MSTest.TestFramework" />
-    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.TestPlatform.TestHost">
       <ExcludeAssets>build</ExcludeAssets>
     </PackageReference>
