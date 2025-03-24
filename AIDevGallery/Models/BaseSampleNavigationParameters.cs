@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +28,11 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         if (ChatClientModelPath == $"file://{ModelType.PhiSilica}")
         {
             return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
+        }
+        else if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
+        {
+            var modelId = ChatClientModelPath.Split('/').LastOrDefault();
+            return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId);
         }
 
         return await OnnxRuntimeGenAIChatClientFactory.CreateAsync(ChatClientModelPath, ChatClientPromptTemplate, CancellationToken).ConfigureAwait(false);

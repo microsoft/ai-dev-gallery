@@ -165,9 +165,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         _cts = new CancellationTokenSource();
         CancellationToken ct = _cts.Token;
 
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
         await _pdfPages.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
         int chunksProcessedCount = 0;

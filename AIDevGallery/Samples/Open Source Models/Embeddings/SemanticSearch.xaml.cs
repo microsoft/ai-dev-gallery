@@ -192,9 +192,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 GeneratedEmbeddings<Embedding<float>> searchVectors;
                 GeneratedEmbeddings<Embedding<float>> sourceVectors;
 
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 IVectorStore? vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 var stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
                 await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
 

@@ -6,6 +6,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.1.240916" />
     <PackageVersion Include="Microsoft.AI.DirectML" Version="1.15.4" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25161.3" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.42.0-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.42.0" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
@@ -50,10 +51,9 @@
     <PackageVersion Include="MSTest.TestAdapter" Version="3.8.2" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.8.2" />
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.10" />
-  <!-- for Markdown control-->
+    <!-- for Markdown control-->
     <PackageVersion Include="HtmlAgilityPack" Version="1.11.71" />
     <PackageVersion Include="Markdig" Version="0.38.0" />
     <PackageVersion Include="Roman-Numerals" Version="2.0.1" />

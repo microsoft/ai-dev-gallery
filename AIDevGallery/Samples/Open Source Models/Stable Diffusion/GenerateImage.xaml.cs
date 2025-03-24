@@ -47,7 +47,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
     ],
     NugetPackageReferences = [
         "MathNet.Numerics",
-        "NumSharp",
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.Extensions",
         "Microsoft.ML.OnnxRuntime.DirectML"
