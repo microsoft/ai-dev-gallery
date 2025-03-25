@@ -156,7 +156,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
                     ScaleSlider.Value = 4;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ShowException(ex, "Failed to create Image Scaler session.");
                 return;
@@ -170,9 +170,10 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
         var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
+        SoftwareBitmap? bitmap;
         try
         {
-            var bitmap = await Task.Run(() =>
+            bitmap = await Task.Run(() =>
             {
                 return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
             });
@@ -187,7 +188,10 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
         ScaledImage.Visibility = Visibility.Visible;
         GridSplitter.Visibility = Visibility.Visible;
         ScaledDimensionsPanel.Visibility = Visibility.Visible;
-        await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+        if (bitmap != null)
+        {
+            await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+        }
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap, Run textBlock)
