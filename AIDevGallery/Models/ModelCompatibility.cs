@@ -31,7 +31,8 @@ internal class ModelCompatibility
         else if (ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id))
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
-            if (AppUtils.HasNpu() && WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.NotSupported)
+            var availbility = WcrApiHelpers.GetApiAvailability(apiType);
+            if (AppUtils.HasNpu() && availbility != WcrApiAvailability.NotSupported)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }

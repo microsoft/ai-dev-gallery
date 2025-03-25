@@ -45,7 +45,6 @@
     <PackageVersion Include="System.IO.Pipelines" Version="9.0.3" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.13.0" />
     <!-- Keep version in sync with GHAction build.yml (vstest.console.exe) -->
     <PackageVersion Include="MSTest.TestAdapter" Version="3.8.2" />
