@@ -357,7 +357,7 @@ internal static class AppUtils
             }
 
             adapters.Add(adapter);
-            if (adapterDescription.Contains("NPU"))
+            if (adapterDescription.Contains("NPU") || adapterDescription.Contains("AI Boost"))
             {
                 _hasNpu = true;
                 return true;
