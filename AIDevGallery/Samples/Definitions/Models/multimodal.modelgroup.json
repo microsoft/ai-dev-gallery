@@ -20,7 +20,9 @@
             "Size": 3220615084,
             "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3-vision-128k-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/blob/main/README.md"
@@ -40,7 +42,9 @@
             "Size": 3220612860,
             "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3.5-vision-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-vision-128k-instruct-onnx/blob/main/README.md"

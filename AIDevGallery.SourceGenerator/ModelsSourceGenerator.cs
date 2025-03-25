@@ -250,6 +250,9 @@ internal class ModelSourceGenerator : IIncrementalGenerator
             var supportedOnQualcomm = modelDefinition.SupportedOnQualcomm.HasValue ? modelDefinition.SupportedOnQualcomm.Value.ToString().ToLower() : "null";
             var icon = !string.IsNullOrEmpty(modelDefinition.Icon) ? $"\"{modelDefinition.Icon}\"" : "string.Empty";
             var fileFilters = modelDefinition.FileFilters != null ? string.Join(", ", modelDefinition.FileFilters.Select(ff => $"\"{ff}\"")) : string.Empty;
+            var aiToolkitActions = modelDefinition.AIToolkitActions != null ? string.Join(", ", modelDefinition.AIToolkitActions.Select(action => $"AIToolkitAction.{action}")) : string.Empty;
+            var aiToolkitId = !string.IsNullOrEmpty(modelDefinition.AIToolkitId) ? $"\"{modelDefinition.AIToolkitId}\"" : "null";
+            var aiToolkitFinetuningId = !string.IsNullOrEmpty(modelDefinition.AIToolkitFinetuningId) ? $"\"{modelDefinition.AIToolkitFinetuningId}\"" : "null";
 
             sourceBuilder.AppendLine(
                 $$""""
@@ -268,7 +271,10 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 PromptTemplate = {{promptTemplate}},
                                 Icon = {{icon}},
                                 License = "{{modelDefinition.License}}",
-                                FileFilters = [ {{fileFilters}} ]
+                                FileFilters = [ {{fileFilters}} ],
+                                AIToolkitActions = [ {{aiToolkitActions}} ],
+                                AIToolkitId = {{aiToolkitId}},
+                                AIToolkitFinetuningId = {{aiToolkitFinetuningId}}
                             }
                         },
                 """");

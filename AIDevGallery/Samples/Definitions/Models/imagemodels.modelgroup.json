@@ -213,6 +213,50 @@
           }
         },
         "ReadmeUrl": "https://github.com/onnx/models/blob/main/validated/vision/object_detection_segmentation/yolov4/README.md"
+      },
+      "SINet": {
+        "Id": "sinet",
+        "Name": "SINet",
+        "Description": "Lightweight portrait segmentation for background removal.",
+        "DocsUrl": "https://huggingface.co/qualcomm/SINet",
+        "Models": {
+          "SINet": {
+            "Id": "b7cae321-478f-1177-9559-709df5dfe703",
+            "Name": "SINet",
+            "Url": "https://huggingface.co/qualcomm/SINet/blob/main/SINet.onnx",
+            "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML",
+              "QNN"
+            ],
+            "Size": 414444,
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/SINet/blob/main/README.md"
+      },
+      "FaceDetLite": {
+        "Id": "FaceDetLite",
+        "Name": "FaceDetLite",
+        "Description": "face_det_lite is a machine learning model that detect face in the images",
+        "DocsUrl": "https://aihub.qualcomm.com/models/face_det_lite",
+        "Models": {
+          "FaceDetLite": {
+            "Id": "b7cae123-478f-1177-9559-709df5dfe703",
+            "Name": "FaceDetLite",
+            "Url": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/blob/main/Lightweight-Face-Detection.onnx",
+            "Description": "face_det_lite is a machine learning model that detect face in the images",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML",
+              "QNN"
+            ],
+            "Size": 3540725,
+            "License": "bsd-3-clause"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/blob/main/README.md"
       }
     }
   }
