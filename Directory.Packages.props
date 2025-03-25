@@ -6,6 +6,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250129-preview2" />
     <PackageVersion Include="Microsoft.AI.DirectML" Version="1.15.4" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25161.3" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.42.0-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.42.0" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
@@ -44,13 +45,11 @@
     <PackageVersion Include="System.IO.Pipelines" Version="9.0.3" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.13.0" />
     <!-- Keep version in sync with GHAction build.yml (vstest.console.exe) -->
     <PackageVersion Include="MSTest.TestAdapter" Version="3.8.2" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.8.2" />
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.10" />
     <!-- for Markdown control-->

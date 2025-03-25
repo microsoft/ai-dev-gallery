@@ -5,12 +5,11 @@ using System.Text.Json.Serialization;
 
 namespace AIDevGallery.SourceGenerator.Models;
 
-[JsonConverter(typeof(JsonStringEnumConverter<HardwareAccelerator>))]
-internal enum HardwareAccelerator
+[JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
+internal enum AIToolkitAction
 {
-    CPU,
-    DML,
-    QNN,
-    WCRAPI,
-    OLLAMA
+    FineTuning,
+    PromptBuilder,
+    BulkRun,
+    Playground
 }
