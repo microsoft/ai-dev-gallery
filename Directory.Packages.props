@@ -1,12 +1,15 @@
 <Project>
   <ItemGroup>
     <PackageVersion Include="CommunityToolkit.WinUI.Behaviors" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.CameraPreview" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.1.240916" />
     <PackageVersion Include="Microsoft.AI.DirectML" Version="1.15.4" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25114.11" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.39.0-preview" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.39.0" />
-    <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25161.3" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.42.0-preview" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.42.0" />
+    <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
     <PackageVersion Include="System.Text.Json" Version="9.0.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="9.0.3" />
     <PackageVersion Include="System.Memory" Version="4.6.0" />
@@ -17,7 +20,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.1.240916" />
-    <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Qnn" Version="1.20.2" />
@@ -43,14 +45,16 @@
     <PackageVersion Include="System.IO.Pipelines" Version="9.0.3" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="FluentAssertions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.13.0" />
     <!-- Keep version in sync with GHAction build.yml (vstest.console.exe) -->
     <PackageVersion Include="MSTest.TestAdapter" Version="3.8.2" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.8.2" />
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.10" />
+    <!-- for Markdown control-->
+    <PackageVersion Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageVersion Include="Markdig" Version="0.38.0" />
+    <PackageVersion Include="Roman-Numerals" Version="2.0.1" />
   </ItemGroup>
 </Project>

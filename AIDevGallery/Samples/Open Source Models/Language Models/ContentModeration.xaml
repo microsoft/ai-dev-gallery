@@ -21,6 +21,7 @@
                 x:Name="InputTextBox"
                 AutomationProperties.Name="Prompt input"
                 KeyUp="TextBox_KeyUp"
+                PreviewKeyDown="TextBox_PreviewKeyDown"
                 PlaceholderText="Enter a prompt to generate on..." />
             <ProgressBar
                 x:Name="OutputProgressBar"

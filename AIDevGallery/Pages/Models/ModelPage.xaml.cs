@@ -8,6 +8,7 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -22,11 +23,22 @@ internal sealed partial class ModelPage : Page
 {
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
+    private List<ModelDetails> models = new();
+    private string? readme;
 
     public ModelPage()
     {
         this.InitializeComponent();
         this.Unloaded += ModelPage_Unloaded;
+        this.ActualThemeChanged += APIPage_ActualThemeChanged;
+    }
+
+    private void APIPage_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        if (ModelFamily != null)
+        {
+            RenderReadme(readme);
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -41,12 +53,14 @@ internal sealed partial class ModelPage : Page
             modelFamilyType = modelType;
             ModelFamily = modelFamilyDetails;
 
-            modelSelectionControl.SetModels(GetAllSampleDetails().ToList());
+            models = GetAllSampleDetails().ToList();
+            modelSelectionControl.SetModels(models);
         }
         else if (e.Parameter is ModelDetails details)
         {
             // this is likely user added model
-            modelSelectionControl.SetModels([details]);
+            models = [details];
+            modelSelectionControl.SetModels(models);
 
             ModelFamily = new ModelFamily
             {
@@ -68,6 +82,11 @@ internal sealed partial class ModelPage : Page
         else
         {
             DocumentationCard.Visibility = Visibility.Collapsed;
+        }
+
+        if(models.Count > 0)
+        {
+            BuildAIToolkitButton();
         }
 
         EnableSampleListIfModelIsDownloaded();
@@ -111,10 +130,18 @@ internal sealed partial class ModelPage : Page
             readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }
 
+        readme = readmeContents;
+        RenderReadme(readmeContents);
+    }
+
+    private void RenderReadme(string? readmeContents)
+    {
+        markdownTextBlock.Text = string.Empty;
+
         if (!string.IsNullOrWhiteSpace(readmeContents))
         {
             readmeContents = MarkdownHelper.PreprocessMarkdown(readmeContents);
-
+            markdownTextBlock.Config = MarkdownHelper.GetMarkdownConfig();
             markdownTextBlock.Text = readmeContents;
         }
 
@@ -133,6 +160,87 @@ internal sealed partial class ModelPage : Page
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails))
             {
                 yield return modelDetails;
+            }
+        }
+    }
+
+    private void BuildAIToolkitButton()
+    {
+        bool isAiToolkitActionAvailable = false;
+        Dictionary<AIToolkitAction, MenuFlyoutSubItem> actionSubmenus = new();
+
+        foreach(ModelDetails modelDetails in models)
+        {
+            if(modelDetails.AIToolkitActions == null)
+            {
+                continue;
+            }
+
+            foreach(AIToolkitAction action in modelDetails.AIToolkitActions)
+            {
+                if(!modelDetails.ValidateAction(action))
+                {
+                    continue;
+                }
+
+                MenuFlyoutSubItem? actionFlyoutItem;
+                if (!actionSubmenus.TryGetValue(action, out actionFlyoutItem))
+                {
+                    actionFlyoutItem = new MenuFlyoutSubItem()
+                    {
+                        Text = AIToolkitHelper.AIToolkitActionInfos[action].DisplayName
+                    };
+                    actionSubmenus.Add(action, actionFlyoutItem);
+                    AIToolkitFlyout.Items.Add(actionFlyoutItem);
+                }
+
+                isAiToolkitActionAvailable = true;
+                MenuFlyoutItem modelFlyoutItem = new MenuFlyoutItem()
+                {
+                    Tag = (action, modelDetails),
+                    Text = modelDetails.Name,
+                    Icon = new ImageIcon()
+                    {
+                        Source = new BitmapImage(new Uri(modelDetails.Icon))
+                    }
+                };
+
+                modelFlyoutItem.Click += ToolkitActionFlyoutItem_Click;
+                actionFlyoutItem.Items.Add(modelFlyoutItem);
+            }
+        }
+
+        AIToolkitDropdown.Visibility = isAiToolkitActionAvailable ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ToolkitActionFlyoutItem_Click(object sender, RoutedEventArgs e)
+    {
+        if(sender is MenuFlyoutItem actionFlyoutItem)
+        {
+            (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
+
+            string toolkitDeeplink = modelDetails.CreateAiToolkitDeeplink(action);
+            bool wasDeeplinkSuccesful = true;
+            try
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = toolkitDeeplink,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
+                    UseShellExecute = true
+                });
+                wasDeeplinkSuccesful = false;
+            }
+            finally
+            {
+                AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
             }
         }
     }
@@ -164,9 +272,9 @@ internal sealed partial class ModelPage : Page
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
-    private void MarkdownTextBlock_LinkClicked(object sender, CommunityToolkit.WinUI.UI.Controls.LinkClickedEventArgs e)
+    private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Link;
+        string link = e.Url;
 
         ModelDetailsLinkClickedEvent.Log(link);
         Process.Start(new ProcessStartInfo()

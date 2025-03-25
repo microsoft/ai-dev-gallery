@@ -192,9 +192,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 GeneratedEmbeddings<Embedding<float>> searchVectors;
                 GeneratedEmbeddings<Embedding<float>> sourceVectors;
 
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 IVectorStore? vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 var stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
                 await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
 
@@ -209,18 +207,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         Text = sourceContent[i],
                         Vector = x.Vector
                     }),
-                    null,
                     ct).ConfigureAwait(false))
                 {
                 }
 
                 var vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
-                    new VectorSearchOptions
+                    new VectorSearchOptions<StringData>
                     {
                         // Number of results to return
                         Top = 5,
-                        VectorPropertyName = nameof(StringData.Vector)
+                        VectorProperty = (str) => str.Vector
                     },
                     ct).ConfigureAwait(false);
 

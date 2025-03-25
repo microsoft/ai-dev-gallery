@@ -134,6 +134,10 @@ internal partial class Generator
                     modelIds.Add("UserAdded");
                 }
             }
+            else
+            {
+                modelIds.Add(modelInfo.Id);
+            }
 
             string modelPathStr;
 

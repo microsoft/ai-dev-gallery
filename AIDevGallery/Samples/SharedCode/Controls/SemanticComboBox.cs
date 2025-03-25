@@ -81,11 +81,11 @@ internal sealed partial class SemanticComboBox : Control
         var searchVectors = await EmbeddingGenerator.GenerateAsync([searchTerm]);
         return (await _stringsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
-                    new VectorSearchOptions
+                    new VectorSearchOptions<StringData>
                     {
                         // Number of results to return
                         Top = 5,
-                        VectorPropertyName = nameof(StringData.Vector)
+                        VectorProperty = (str) => str.Vector
                     }))
                     .Results
                     .ToBlockingEnumerable()
@@ -119,9 +119,7 @@ internal sealed partial class SemanticComboBox : Control
         {
             if (semanticComboBox._vectorStore == null || semanticComboBox._stringsCollection == null)
             {
-#pragma warning disable SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 semanticComboBox._vectorStore = new InMemoryVectorStore();
-#pragma warning restore SKEXP0020 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 semanticComboBox._stringsCollection = semanticComboBox._vectorStore.GetCollection<int, StringData>("strings");
                 await semanticComboBox._stringsCollection.CreateCollectionIfNotExistsAsync().ConfigureAwait(false);
             }
