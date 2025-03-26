@@ -186,7 +186,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
             var sentence_embeddings = MeanPooling(output.GetTensorDataAsSpan<float>(), input.AttentionMask, typeAndShape.Shape);
 
-            var resultArray = NormalizeAndDivide(sentence_embeddings, typeAndShape.Shape);
+            var resultArray = NormalizeSentenceEmbeddings(sentence_embeddings, typeAndShape.Shape);
 
             return Enumerable.Chunk(resultArray, resultArray.Length / count).ToArray();
     }
@@ -253,7 +253,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         return [.. result];
     }
 
-    private static float[] NormalizeAndDivide(float[] sentenceEmbeddings, long[] shape)
+    private static float[] NormalizeSentenceEmbeddings(float[] sentenceEmbeddings, long[] shape)
     {
         int batchSize = (int)shape[0];
         int embeddingSize = (int)shape[2];
