@@ -9,22 +9,23 @@ namespace AIDevGallery.Utils;
 
 internal static class DeviceUtils
 {
-    public static int GetBestDeviceId()
+    public static unsafe int GetBestDeviceId()
     {
         int deviceId = 0;
         nuint maxDedicatedVideoMemory = 0;
         try
         {
             DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
-            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
-            IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
+            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out void* dxgiFactoryObj).ThrowOnFailure();
+            IDXGIFactory2* dxgiFactory = (IDXGIFactory2*)dxgiFactoryObj;
 
-            IDXGIAdapter1? selectedAdapter = null;
+            IDXGIAdapter1* selectedAdapter = null;
 
             var index = 0u;
             do
             {
-                var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
+                IDXGIAdapter1* dxgiAdapter1 = null;
+                var result = dxgiFactory->EnumAdapters1(index, &dxgiAdapter1);
 
                 if (result.Failed)
                 {
@@ -37,7 +38,7 @@ internal static class DeviceUtils
                 }
                 else
                 {
-                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
+                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1->GetDesc1();
 
                     if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
                     {
@@ -59,21 +60,22 @@ internal static class DeviceUtils
         return deviceId;
     }
 
-    public static ulong GetVram()
+    public static unsafe ulong GetVram()
     {
         nuint maxDedicatedVideoMemory = 0;
         try
         {
             DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
-            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
-            IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
+            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out void* dxgiFactoryObj).ThrowOnFailure();
+            IDXGIFactory2* dxgiFactory = (IDXGIFactory2*)dxgiFactoryObj;
 
-            IDXGIAdapter1? selectedAdapter = null;
+            IDXGIAdapter1* selectedAdapter = null;
 
             var index = 0u;
             do
             {
-                var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
+                IDXGIAdapter1* dxgiAdapter1 = null;
+                var result = dxgiFactory->EnumAdapters1(index, &dxgiAdapter1);
 
                 if (result.Failed)
                 {
@@ -86,7 +88,7 @@ internal static class DeviceUtils
                 }
                 else
                 {
-                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
+                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1->GetDesc1();
 
                     if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
                     {
