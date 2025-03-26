@@ -137,19 +137,16 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private async Task<float[][]> GetVectorsAsync(IEnumerable<string> values, RunOptions runOptions)
     {
         values = values.Select(s => MyRegex().Replace(s, string.Empty));
-
-        var encoded = _tokenizer.EncodeBatch(values);
-
+        IEnumerable<EmbeddingModelInput> encoded = _tokenizer.EncodeBatch(values);
         var count = values.Count();
 
         var input = new EmbeddingModelInput
         {
-            InputIds = encoded.SelectMany(t => t.InputIds.Select(x => x)).ToArray(),
+            InputIds = encoded.SelectMany(t => t.InputIds).ToArray(),
             AttentionMask = encoded.SelectMany(t => t.AttentionMask).ToArray(),
             TokenTypeIds = encoded.SelectMany(t => t.TokenTypeIds).ToArray()
         };
 
-        // round up
         int sequenceLength = input.InputIds.Length / count;
 
         // Create input tensors over the input data.
@@ -192,7 +189,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             var resultArray = NormalizeAndDivide(sentence_embeddings, typeAndShape.Shape);
 
             return Enumerable.Chunk(resultArray, resultArray.Length / count).ToArray();
-        }
+    }
         catch (Exception)
         {
             return [];
@@ -258,34 +255,32 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
     private static float[] NormalizeAndDivide(float[] sentenceEmbeddings, long[] shape)
     {
-        long batchSize = shape[0];
+        int batchSize = (int)shape[0];
         int embeddingSize = (int)shape[2];
 
+        TensorSpan<float> sentenceEmbeddingsTensor = Tensor.Reshape(sentenceEmbeddings.AsTensorSpan(), (ReadOnlySpan<nint>)[batchSize, embeddingSize]);
+
         // Create a tensor for the square of the embeddings
-        var squaredEmbeddings = Tensor.Multiply<float>(sentenceEmbeddings, sentenceEmbeddings);
+        var squaredEmbeddings = Tensor.Multiply<float>(sentenceEmbeddingsTensor, sentenceEmbeddingsTensor);
 
         // Create Tensor for sumSquaredEmbeddings
-        var sumSquaredEmbeddings = Tensor.Create<float>([(nint)batchSize, 1]);
+        TensorSpan<float> sumSquaredEmbeddings = Tensor.Create<float>((ReadOnlySpan<nint>)[batchSize, 1]);
 
         // Sum the squared embeddings across the embedding dimension
         for (var batch = 0; batch < batchSize; batch++)
         {
             // Get the embeddings for the current batch
-            var embeddings = squaredEmbeddings.Slice([0..embeddingSize]);
+            TensorSpan<float> embeddings = squaredEmbeddings.Slice([batch..(batch + 1), 0..embeddingSize]);
 
-            // Sum the embeddings across the embedding dimension
-            var clampedSumEmbedding = Math.Max(Tensor.Sum<float>(embeddings), 1e-9f);
-            var sumEmbeddings = Tensor.Create([clampedSumEmbedding], [1, 1]);
-
-            // Set the sum of the squared embeddings for the current batch
-            sumSquaredEmbeddings[(ReadOnlySpan<nint>)[batch, 0]] = sumEmbeddings[(ReadOnlySpan<nint>)[0, 0]];
+            float clampedSumEmbedding = Math.Max(Tensor.Sum<float>(embeddings), 1e-9f);
+            sumSquaredEmbeddings[batch, 0] = clampedSumEmbedding;
         }
 
         // Calculate the square root of the sum of the squared embeddings
         var sqrtSumSquaredEmbeddings = Tensor.Sqrt<float>(sumSquaredEmbeddings);
 
         // Divide the sentence embeddings by the denominator
-        var normalizedEmbeddings = Tensor.Divide(sentenceEmbeddings, sqrtSumSquaredEmbeddings.First()); // Temporary fix
+        var normalizedEmbeddings = Tensor.Divide<float>(sentenceEmbeddingsTensor, sqrtSumSquaredEmbeddings);
 
         // Return the normalized embeddings
         return [.. normalizedEmbeddings];
