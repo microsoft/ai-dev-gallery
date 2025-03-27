@@ -134,14 +134,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             async () =>
             {
                 IVectorStore? vectorStore = new InMemoryVectorStore();
-                IVectorStoreRecordCollection<int, StringData> stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
-                await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+                IVectorStoreRecordCollection<int, StringData> embeddingsCollection = vectorStore.GetCollection<int, StringData>("embeddings");
+                await embeddingsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
 
                 List<string> sourceContent = ChunkSourceText(sourceText, 512);
                 GeneratedEmbeddings<Embedding<float>> searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
                 GeneratedEmbeddings<Embedding<float>> sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
 
-                await foreach (var key in stringsCollection.UpsertBatchAsync(
+                await foreach (var key in embeddingsCollection.UpsertBatchAsync(
                     sourceVectors.Select((x, i) => new StringData
                     {
                         Key = i,
@@ -152,7 +152,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 {
                 }
 
-                VectorSearchResults<StringData> vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
+                VectorSearchResults<StringData> vectorSearchResults = await embeddingsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
                     new VectorSearchOptions<StringData>
                     {
