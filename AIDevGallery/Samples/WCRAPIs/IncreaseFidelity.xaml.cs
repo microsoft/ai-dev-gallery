@@ -147,11 +147,19 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         if (_imageScaler == null)
         {
-            _imageScaler = await ImageScaler.CreateAsync();
-            ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
-            if (_imageScaler.MaxSupportedScaleFactor >= 4)
+            try
             {
-                ScaleSlider.Value = 4;
+                _imageScaler = await ImageScaler.CreateAsync();
+                ScaleSlider.Maximum = _imageScaler.MaxSupportedScaleFactor;
+                if (_imageScaler.MaxSupportedScaleFactor >= 4)
+                {
+                    ScaleSlider.Value = 4;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex, "Failed to create Image Scaler session.");
+                return;
             }
         }
 
@@ -162,17 +170,28 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
         var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-
-        var bitmap = await Task.Run(() =>
+        SoftwareBitmap? bitmap;
+        try
         {
-            return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
-        });
+            bitmap = await Task.Run(() =>
+            {
+                return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to scale image.");
+            return;
+        }
 
         Loader.Visibility = Visibility.Collapsed;
         ScaledImage.Visibility = Visibility.Visible;
         GridSplitter.Visibility = Visibility.Visible;
         ScaledDimensionsPanel.Visibility = Visibility.Visible;
-        await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+        if (bitmap != null)
+        {
+            await SetImageSource(ScaledImage, bitmap, ScaledDimensionsTxt);
+        }
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap, Run textBlock)
