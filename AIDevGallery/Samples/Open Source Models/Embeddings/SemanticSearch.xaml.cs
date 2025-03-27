@@ -133,14 +133,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             async () =>
             {
-                List<string> sourceContent = ChunkSourceText(sourceText, 512);
-
-                GeneratedEmbeddings<Embedding<float>> searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
-                GeneratedEmbeddings<Embedding<float>> sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
-
                 IVectorStore? vectorStore = new InMemoryVectorStore();
                 IVectorStoreRecordCollection<int, StringData> stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
                 await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+
+                List<string> sourceContent = ChunkSourceText(sourceText, 512);
+                GeneratedEmbeddings<Embedding<float>> searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
+                GeneratedEmbeddings<Embedding<float>> sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
 
                 await foreach (var key in stringsCollection.UpsertBatchAsync(
                     sourceVectors.Select((x, i) => new StringData
