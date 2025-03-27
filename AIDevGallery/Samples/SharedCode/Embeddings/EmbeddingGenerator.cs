@@ -82,7 +82,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
                     bool ownsRunOptions = runOptions == null;
                     runOptions ??= new RunOptions();
 
-                    var vectors = await GetVectorsAsync(values, runOptions).ConfigureAwait(false);
+                    float[][] vectors = await GetVectorsAsync(values, runOptions).ConfigureAwait(false);
 
                     for (var i = 0; i < values.Count(); i++)
                     {
@@ -189,7 +189,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             float[] resultArray = NormalizeSentenceEmbeddings(sentence_embeddings, typeAndShape.Shape);
 
             return Enumerable.Chunk(resultArray, resultArray.Length / count).ToArray();
-    }
+        }
         catch (Exception)
         {
             return [];
