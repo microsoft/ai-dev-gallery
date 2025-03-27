@@ -61,6 +61,7 @@ internal sealed partial class ObjectEraser : BaseSamplePage
     private void ObejectEraserUnloaded(object sender, RoutedEventArgs e)
     {
         _inferenceSession?.Dispose();
+        originalImage?.Dispose();
     }
 
     // </exclude>
@@ -140,6 +141,11 @@ internal sealed partial class ObjectEraser : BaseSamplePage
 
     private async void EraseButton_Click(object sender, RoutedEventArgs e)
     {
+        if(originalImage == null)
+        {
+            return;
+        }
+
         int width = originalImage.Width;
         int height = originalImage.Height;
 
@@ -204,6 +210,7 @@ internal sealed partial class ObjectEraser : BaseSamplePage
         Loader.Visibility = Visibility.Visible;
         UploadButton.IsEnabled = false;
         EraseObjectButton.IsEnabled = false;
+        ClearDrawingButton.IsEnabled = false;
 
         int originalImageWidth = originalImage.Width;
         int originalImageHeight = originalImage.Height;
@@ -258,7 +265,14 @@ internal sealed partial class ObjectEraser : BaseSamplePage
             Loader.Visibility = Visibility.Collapsed;
             UploadButton.IsEnabled = true;
             EraseObjectButton.IsEnabled = true;
+            ClearDrawingButton.IsEnabled = true;
         });
+    }
+
+    private async void ClearDrawing_Click(object sender, RoutedEventArgs e)
+    {
+        strokes.Clear();
+        DrawCanvas.Invalidate();
     }
 
     private void DrawCanvas_PointerPressed(object sender, PointerRoutedEventArgs e)

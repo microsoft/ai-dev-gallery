@@ -52,6 +52,12 @@
           Click="EraseButton_Click"
           Content="Erase mask"
           Style="{StaticResource AccentButtonStyle}" />
+        <Button
+          x:Name="ClearDrawingButton"
+          HorizontalAlignment="Center"
+          Click="ClearDrawing_Click"
+          Content="Clear drawing"
+          Style="{StaticResource AccentButtonStyle}" />
       </StackPanel>
       
     </Grid>
