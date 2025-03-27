@@ -257,6 +257,28 @@
           }
         },
         "ReadmeUrl": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/blob/main/README.md"
+      },
+      "AOTGAN": {
+        "Id": "AOTGAN",
+        "Name": "AOTGAN",
+        "Description": "AOT\u2011GAN is a machine learning model that allows to erase and in\u2011paint part of given input image.",
+        "DocsUrl": "https://aihub.qualcomm.com/models/aotgan",
+        "Models": {
+          "FaceDetLite": {
+            "Id": "b7cae123-478f-1177-9669-709df5dfe703",
+            "Name": "AOTGAN",
+            "Url": "https://huggingface.co/qualcomm/AOT-GAN/blob/main/AOT-GAN.onnx",
+            "Description": "AOT\u2011GAN is a machine learning model that allows to erase and in\u2011paint part of given input image.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML",
+              "QNN"
+            ],
+            "Size": 60871417,
+            "License": "mit"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/AOT-GAN/blob/main/README.md"
       }
     }
   }

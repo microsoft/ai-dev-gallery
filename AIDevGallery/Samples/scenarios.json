@@ -186,6 +186,11 @@
         "Name": "Detect Face",
         "Description": "Models in this scenario detect human faces from a specified image or video.",
         "Id": "detect-face"
+      },
+      "EraseObject": {
+        "Name": "Erase Object",
+        "Description": "Models in this scenario edit image using a drawn mask to remove objects.",
+        "Id": "erase-object"
       }
     }
   },

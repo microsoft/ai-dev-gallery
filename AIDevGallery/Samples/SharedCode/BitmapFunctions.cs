@@ -112,6 +112,41 @@ internal class BitmapFunctions
         }
     }
 
+    public static Tensor<float> PreprocessSingularChannelWithoutStandardization(Bitmap bitmap, Tensor<float> input)
+    {
+        int width = bitmap.Width;
+        int height = bitmap.Height;
+
+        // Lock as 8bpp grayscale
+        BitmapData bmpData = bitmap.LockBits(
+            new System.Drawing.Rectangle(0, 0, width, height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format8bppIndexed);
+
+        int stride = bmpData.Stride;
+        IntPtr ptr = bmpData.Scan0;
+        int bytes = Math.Abs(stride) * height;
+        byte[] grayValues = new byte[bytes];
+
+        Marshal.Copy(ptr, grayValues, 0, bytes);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = y * stride + x;
+                byte gray = grayValues[index];
+
+                input[0, 0, y, x] = gray > 1 ? 1f : 0f;
+            }
+        }
+
+        bitmap.UnlockBits(bmpData);
+
+        return input;
+    }
+
+
     public static Tensor<float> PreprocessBitmapForFaceDetection(Bitmap bitmap, Tensor<float> input)
     {
         int width = bitmap.Width;
@@ -357,6 +392,36 @@ internal class BitmapFunctions
         return bitmapImage;
     }
 
+    public static Bitmap CropAndScaleToOriginalSize(Bitmap paddedBitmap, int originalWidth, int originalHeight)
+    {
+        // paddedBitmap is assumed to be the target dimensions (e.g., 512 x 512)
+        int targetWidth = paddedBitmap.Width;
+        int targetHeight = paddedBitmap.Height;
+
+        // Compute the scale used during ResizeWithPadding
+        float scale = Math.Min((float)targetWidth / originalWidth, (float)targetHeight / originalHeight);
+        int scaledWidth = (int)(originalWidth * scale);
+        int scaledHeight = (int)(originalHeight * scale);
+
+        // Calculate offsets where the original image content is centered
+        int offsetX = (targetWidth - scaledWidth) / 2;
+        int offsetY = (targetHeight - scaledHeight) / 2;
+
+        // Crop out the area containing the scaled content
+        Rectangle cropArea = new Rectangle(offsetX, offsetY, scaledWidth, scaledHeight);
+        using Bitmap croppedBitmap = paddedBitmap.Clone(cropArea, paddedBitmap.PixelFormat);
+
+        // Resize the cropped bitmap back to the original image dimensions
+        Bitmap scaledBitmap = new Bitmap(originalWidth, originalHeight);
+        using (Graphics graphics = Graphics.FromImage(scaledBitmap))
+        {
+            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            graphics.DrawImage(croppedBitmap, 0, 0, originalWidth, originalHeight);
+        }
+
+        return scaledBitmap;
+    }
+
     // For super resolution
     public static Bitmap CropAndScale(Bitmap paddedBitmap, int originalWidth, int originalHeight, int modelScalingFactor)
     {
@@ -387,6 +452,53 @@ internal class BitmapFunctions
 
         return scaledBitmap;
     }
+
+    public static Bitmap TensorToBitmapv2(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> tensor)
+    {
+        // Assumes output tensor shape [batch, c, height, width]
+        var outputTensor = tensor[0].AsTensor<float>();
+        int height = outputTensor.Dimensions[2];
+        int width = outputTensor.Dimensions[3];
+
+        Bitmap bitmap = new(width, height, PixelFormat.Format24bppRgb);
+        BitmapData bmpData = bitmap.LockBits(
+            new Rectangle(0, 0, width, height),
+            ImageLockMode.WriteOnly,
+            PixelFormat.Format24bppRgb);
+
+        int stride = bmpData.Stride;
+        IntPtr ptr = bmpData.Scan0;
+        byte[] pixelData = new byte[Math.Abs(stride) * height];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = (y * stride) + (x * 3);
+
+                // Read float values in [-1, 1] range
+                float rVal = outputTensor[0, 0, y, x];
+                float gVal = outputTensor[0, 1, y, x];
+                float bVal = outputTensor[0, 2, y, x];
+
+                // Convert to [0, 255]
+                byte r = (byte)Math.Clamp((rVal + 1f) * 127.5f, 0, 255);
+                byte g = (byte)Math.Clamp((gVal + 1f) * 127.5f, 0, 255);
+                byte b = (byte)Math.Clamp((bVal + 1f) * 127.5f, 0, 255);
+
+                // Write BGR order
+                pixelData[index] = b;
+                pixelData[index + 1] = g;
+                pixelData[index + 2] = r;
+            }
+        }
+
+        Marshal.Copy(pixelData, 0, ptr, pixelData.Length);
+        bitmap.UnlockBits(bmpData);
+
+        return bitmap;
+    }
+
 
     public static Bitmap TensorToBitmap(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> tensor)
     {

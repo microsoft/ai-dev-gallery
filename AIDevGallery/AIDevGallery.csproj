@@ -82,9 +82,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
-    <PackageReference Include="HtmlAgilityPack"/>
-    <PackageReference Include="Markdig"/>
-    <PackageReference Include="Roman-Numerals"/>
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Roman-Numerals" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -286,6 +286,9 @@
   <ItemGroup>
     <Content Update="Assets\cliptokenizer.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\eraser_default.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Assets\TileBrush.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

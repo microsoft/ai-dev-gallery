@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<samples:BaseSamplePage
+    xmlns:samples="using:AIDevGallery.Samples"
+    x:Class="AIDevGallery.Samples.OpenSourceModels.AOTGAN.ObjectEraser"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml">
+
+  <ScrollViewer>
+    <Grid RowSpacing="16">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <Grid>
+        <Image 
+          x:Name="DefaultImage"
+          MaxWidth="800"
+          MaxHeight="500"
+          Stretch="Uniform" />
+
+        <canvas:CanvasControl
+          x:Name="DrawCanvas"
+          ClearColor="Transparent"
+          Draw="DrawCanvas_Draw"
+          PointerPressed="DrawCanvas_PointerPressed"
+          PointerMoved="DrawCanvas_PointerMoved"
+          PointerReleased="DrawCanvas_PointerReleased" />
+
+        <ProgressRing 
+          x:Name="Loader"
+          IsActive="False"
+          Visibility="Collapsed"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"/>
+      </Grid>
+
+      <StackPanel HorizontalAlignment="Center" Grid.Row="1" Orientation="Horizontal" Spacing="10">
+        <Button 
+          x:Name="UploadButton"
+          HorizontalAlignment="Center"
+          Click="UploadButton_Click"
+          Content="Select image"
+          Style="{StaticResource AccentButtonStyle}" />
+        <Button
+          x:Name="EraseObjectButton"
+          HorizontalAlignment="Center"
+          Click="EraseButton_Click"
+          Content="Erase mask"
+          Style="{StaticResource AccentButtonStyle}" />
+      </StackPanel>
+      
+    </Grid>
+  </ScrollViewer>
+
+</samples:BaseSamplePage>
