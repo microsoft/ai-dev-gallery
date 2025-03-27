@@ -146,7 +146,6 @@ internal class BitmapFunctions
         return input;
     }
 
-
     public static Tensor<float> PreprocessBitmapForFaceDetection(Bitmap bitmap, Tensor<float> input)
     {
         int width = bitmap.Width;
@@ -498,7 +497,6 @@ internal class BitmapFunctions
 
         return bitmap;
     }
-
 
     public static Bitmap TensorToBitmap(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> tensor)
     {

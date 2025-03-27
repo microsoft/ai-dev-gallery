@@ -13,18 +13,14 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
 using Windows.Storage.Pickers;
-using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.OpenSourceModels.AOTGAN;
 
@@ -158,7 +154,10 @@ internal sealed partial class ObjectEraser : BaseSamplePage
 
             foreach (var stroke in strokes)
             {
-                if (stroke.Count < 2) continue;
+                if (stroke.Count < 2)
+                {
+                    continue;
+                }
 
                 using var builder = new CanvasPathBuilder(DrawCanvas);
                 builder.BeginFigure(ToVector2(stroke[0]));
@@ -269,7 +268,7 @@ internal sealed partial class ObjectEraser : BaseSamplePage
         });
     }
 
-    private async void ClearDrawing_Click(object sender, RoutedEventArgs e)
+    private void ClearDrawing_Click(object sender, RoutedEventArgs e)
     {
         strokes.Clear();
         DrawCanvas.Invalidate();
