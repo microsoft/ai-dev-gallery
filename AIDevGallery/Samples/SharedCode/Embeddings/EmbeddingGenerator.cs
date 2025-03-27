@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Networking.Sockets;
 using Tensor = System.Numerics.Tensors.Tensor;
 
 // 'System.Numerics.Tensors' is for evaluation purposes only and is subject to change or removal in future updates.
@@ -83,17 +84,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
                     runOptions ??= new RunOptions();
 
                     float[][] vectors = await GetVectorsAsync(values, runOptions).ConfigureAwait(false);
-
-                    for (var i = 0; i < values.Count(); i++)
-                    {
-                        generatedEmbeddings.Add(new Embedding<float>(vectors[i])
-                        {
-                            AdditionalProperties = new AdditionalPropertiesDictionary
-                            {
-                                ["Text"] = values.ElementAt(i)
-                            }
-                        });
-                    }
+                    generatedEmbeddings.AddRange(vectors.Select(x => new Embedding<float>(x)));
 
                     if (ownsRunOptions)
                     {
