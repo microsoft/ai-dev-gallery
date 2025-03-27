@@ -17,7 +17,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Networking.Sockets;
 using Tensor = System.Numerics.Tensors.Tensor;
 
 // 'System.Numerics.Tensors' is for evaluation purposes only and is subject to change or removal in future updates.
