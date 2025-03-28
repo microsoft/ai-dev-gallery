@@ -18,7 +18,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextParaphraseText,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     Id = "9e006e82-8e3f-4401-8a83-d4c4c59cc20c",
     Icon = "\uE8D4")]

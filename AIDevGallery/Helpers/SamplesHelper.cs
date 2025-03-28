@@ -25,11 +25,11 @@ internal static partial class SamplesHelper
         {
             if (!models.Values.Any(m => m.IsApi()))
             {
-                AddUnique(SharedCodeEnum.GenAIModel);
+                AddUnique(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory);
             }
         }
 
-        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
         {
             AddUnique(SharedCodeEnum.LlmPromptTemplate);
         }
@@ -72,6 +72,7 @@ internal static partial class SamplesHelper
             }
             else
             {
+                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
             }
         }
@@ -175,7 +176,7 @@ internal static partial class SamplesHelper
     private static string? GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
-        if (!sharedCode.Contains(SharedCodeEnum.GenAIModel) && !isPhiSilica && !isLanguageModel)
+        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
         {
             return null;
         }
@@ -191,7 +192,7 @@ internal static partial class SamplesHelper
             return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
         }
 
-        return $"await GenAIModel.CreateAsync({modelPath}, {promptTemplate})";
+        return $"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
     }
 
     public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
@@ -259,9 +260,9 @@ internal static partial class SamplesHelper
             }
         }
 
-        if (sharedCode.Contains(SharedCodeEnum.GenAIModel))
+        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
         {
-            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1GenAIModel.InitializeGenAI();");
+            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
         }
 
         return cleanCsSource;

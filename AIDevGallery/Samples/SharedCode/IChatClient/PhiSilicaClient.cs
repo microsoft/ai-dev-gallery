@@ -77,7 +77,7 @@ internal class PhiSilicaClient : IChatClient
         {
             yield return new(ChatRole.Assistant, part)
             {
-                ResponseId = responseId,
+                ResponseId = responseId
             };
         }
     }

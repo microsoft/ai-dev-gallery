@@ -18,7 +18,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextAnalyzeSentimentText,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     Name = "Sentiment Analysis",
     Id = "9cc84d1e-6b02-4bd2-a350-6e38c3a92ced",
