@@ -13,11 +13,13 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
 
@@ -95,87 +97,80 @@ internal sealed partial class AddModelPage : Page
             {
                 var (result, config, readmeUrl) = item;
                 var configContents = await HuggingFaceApi.GetContentsOfTextFile(result.Id, config.RFilename);
-                GenAIConfig? genAIConfig = null;
+                HardwareAccelerator accelerator;
+
                 try
                 {
-                    genAIConfig = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+                    accelerator = GetHardwareAcceleratorFromConfig(configContents);
                 }
                 catch (JsonException)
                 {
+                    return;
                 }
 
-                if (genAIConfig != null &&
-                    (
-                        genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Length == 0 ||
-                        genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
-                    )
+                var pathComponents = config.RFilename.Split("/");
+                string modelPath = string.Empty;
+                if (pathComponents.Length > 1)
                 {
-                    var pathComponents = config.RFilename.Split("/");
-                    string modelPath = string.Empty;
-                    if (pathComponents.Length > 1)
-                    {
-                        modelPath = string.Join("/", pathComponents.Take(pathComponents.Length - 1));
-                    }
-
-                    var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
-
-                    bool isDmlModel = genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null);
-
-                    var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
-
-                    var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
-
-                    var details = curratedModel ?? new ModelDetails()
-                    {
-                        Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
-                        Name = result.Id + " " + (isDmlModel ? "DML" : "CPU"),
-                        Url = modelUrl,
-                        Description = "TODO",
-                        HardwareAccelerators = [isDmlModel ? HardwareAccelerator.DML : HardwareAccelerator.CPU],
-                        IsUserAdded = true,
-                        PromptTemplate = GetTemplateFromName(result.Id),
-                        Size = filesToDownload.Sum(f => f.Size),
-                        ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
-                    };
-
-                    string? licenseKey = null;
-                    if (result.Tags != null)
-                    {
-                        var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                        if (licenseTag != null)
-                        {
-                            licenseKey = licenseTag.Split(":").Last();
-                        }
-                    }
-
-                    if (curratedModel == null)
-                    {
-                        details.License = licenseKey;
-                    }
-
-                    ResultState state = ResultState.NotDownloaded;
-
-                    if (App.ModelCache.IsModelCached(details.Url))
-                    {
-                        state = ResultState.Downloaded;
-                    }
-                    else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
-                    {
-                        state = ResultState.Downloading;
-                    }
-
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        this.results.Add(new Result
-                        {
-                            Details = details,
-                            SearchResult = result,
-                            License = LicenseInfo.GetLicenseInfo(licenseKey),
-                            State = state,
-                            HFUrl = $"https://huggingface.co/{result.Id}"
-                        });
-                    });
+                    modelPath = string.Join("/", pathComponents.Take(pathComponents.Length - 1));
                 }
+
+                var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
+
+                var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
+
+                var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
+
+                var details = curratedModel ?? new ModelDetails()
+                {
+                    Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
+                    Name = result.Id + " " + accelerator.ToString(),
+                    Url = modelUrl,
+                    Description = "Model downloaded from HuggingFace",
+                    HardwareAccelerators = [accelerator],
+                    IsUserAdded = true,
+                    PromptTemplate = GetTemplateFromName(result.Id),
+                    Size = filesToDownload.Sum(f => f.Size),
+                    ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
+                };
+
+                string? licenseKey = null;
+                if (result.Tags != null)
+                {
+                    var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    if (licenseTag != null)
+                    {
+                        licenseKey = licenseTag.Split(":").Last();
+                    }
+                }
+
+                if (curratedModel == null)
+                {
+                    details.License = licenseKey;
+                }
+
+                ResultState state = ResultState.NotDownloaded;
+
+                if (App.ModelCache.IsModelCached(details.Url))
+                {
+                    state = ResultState.Downloaded;
+                }
+                else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
+                {
+                    state = ResultState.Downloading;
+                }
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    this.results.Add(new Result
+                    {
+                        Details = details,
+                        SearchResult = result,
+                        License = LicenseInfo.GetLicenseInfo(licenseKey),
+                        State = state,
+                        HFUrl = $"https://huggingface.co/{result.Id}"
+                    });
+                });
 
                 if (actionBlock.InputCount == 0)
                 {
@@ -195,9 +190,9 @@ internal sealed partial class AddModelPage : Page
                 continue;
             }
 
-            var configs = result.Siblings.Where(r => r.RFilename.EndsWith("genai_config.json", StringComparison.InvariantCultureIgnoreCase));
+            var configs = result.Siblings.Where(r => r.RFilename.EndsWith("genai_config.json", StringComparison.OrdinalIgnoreCase));
 
-            var readmeSiblings = result.Siblings.Where(r => r.RFilename.EndsWith("readme.md", StringComparison.InvariantCultureIgnoreCase));
+            var readmeSiblings = result.Siblings.Where(r => r.RFilename.EndsWith("readme.md", StringComparison.OrdinalIgnoreCase));
             string? readmeUrl = null;
 
             if (readmeSiblings.Any())
@@ -330,6 +325,157 @@ internal sealed partial class AddModelPage : Page
     private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
     {
         this.Focus(FocusState.Programmatic);
+    }
+
+    private HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
+    {
+        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
+        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+        if (config == null)
+        {
+            throw new FileLoadException("genai_config.json is not valid");
+        }
+
+        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+        {
+            return HardwareAccelerator.DML;
+        }
+
+        return HardwareAccelerator.CPU;
+    }
+
+    private async void AddLocalClicked(object sender, RoutedEventArgs e)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            var files = Directory.GetFiles(folder.Path);
+            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
+            {
+                var message = string.IsNullOrEmpty(config) ?
+                    "The folder does not contain a model you can add. Ensure \"genai_config.json\" is present in the selected directory" :
+                    "This model is already added";
+
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't add model",
+                    Content = message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+
+            try
+            {
+                string configContents = string.Empty;
+                configContents = await File.ReadAllTextAsync(config);
+                accelerator = GetHardwareAcceleratorFromConfig(configContents);
+            }
+            catch (Exception ex)
+            {
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't read genai_config.json",
+                    Content = ex.Message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            var nameTextBox = new TextBox()
+            {
+                Text = Path.GetFileName(folder.Path),
+                Width = 300,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 10),
+                Header = "Model name"
+            };
+
+            ContentDialog nameModelDialog = new()
+            {
+                Title = "Add model",
+                Content = new StackPanel()
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock()
+                        {
+                            Text = $"Adding ONNX model from \n \"{folder.Path}\"",
+                            TextWrapping = TextWrapping.WrapWholeWords
+                        },
+                        nameTextBox
+                    }
+                },
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "Cancel",
+                PrimaryButtonText = "Add",
+                DefaultButton = ContentDialogButton.Primary,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+            };
+
+            string modelName = nameTextBox.Text;
+
+            nameTextBox.TextChanged += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(nameTextBox.Text))
+                {
+                    nameModelDialog.IsPrimaryButtonEnabled = false;
+                }
+                else
+                {
+                    modelName = nameTextBox.Text;
+                    nameModelDialog.IsPrimaryButtonEnabled = true;
+                }
+            };
+
+            var result = await nameModelDialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
+            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
+
+            var details = new ModelDetails()
+            {
+                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
+                Name = modelName,
+                Url = $"local-file:///{folder.Path}",
+                Description = "Localy added GenAI Model",
+                HardwareAccelerators = [accelerator],
+                IsUserAdded = true,
+                PromptTemplate = GetTemplateFromName(folder.Path),
+                Size = dirSize,
+                ReadmeUrl = null,
+                License = "unknown"
+            };
+
+            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+
+            App.MainWindow.NavigateToPage(details);
+        }
     }
 }
 

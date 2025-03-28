@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
@@ -25,6 +26,9 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
         SharedCodeEnum.BitmapFunctions,
         SharedCodeEnum.NarratorHelper,
         SharedCodeEnum.DeviceUtils,
+      ],
+      AssetFilenames = [
+        "Enhance.png"
       ],
       NugetPackageReferences = [
         "System.Drawing.Common",
@@ -56,7 +60,10 @@ internal sealed partial class SuperResolution : BaseSamplePage
     {
         var hardwareAccelerator = sampleParams.HardwareAccelerator;
         await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+
         sampleParams.NotifyCompletion();
+
+        await EnhanceImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "Enhance.png"));
     }
 
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)

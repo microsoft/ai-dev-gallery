@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
@@ -54,7 +55,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
         sampleParams.NotifyCompletion();
 
         // Loads inference on default image
-        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\pose_default.png");
+        await DetectObjects(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
     }
 
     // <exclude>
