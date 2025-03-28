@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
@@ -134,11 +135,14 @@ internal sealed partial class ModelSelectionPage : Page
             if (key != ModelType.WCRAPIs)
             {
                 var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
-                NavView.MenuItems.Add(navItem);
-
-                if (key == ModelType.LanguageModels)
+                if (navItem != null)
                 {
-                    languageModelsNavItem = navItem;
+                    NavView.MenuItems.Add(navItem);
+
+                    if (key == ModelType.LanguageModels)
+                    {
+                        languageModelsNavItem = navItem;
+                    }
                 }
             }
         }
@@ -158,7 +162,7 @@ internal sealed partial class ModelSelectionPage : Page
         }
     }
 
-    private static NavigationViewItem CreateFromItem(ModelType key, bool includeChildren)
+    private static NavigationViewItem? CreateFromItem(ModelType key, bool includeChildren)
     {
         string name;
         string? icon = null;
@@ -171,10 +175,38 @@ internal sealed partial class ModelSelectionPage : Page
         {
             if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(key, out var modelFamily))
             {
+                ModelTypeHelpers.ParentMapping.TryGetValue(key, out List<ModelType>? modelTypes);
+                bool hasCompattibleModel = false;
+
+                if (modelTypes != null)
+                {
+                    foreach (var modelType in modelTypes)
+                    {
+                        if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails) && modelDetails.Compatibility.CompatibilityState != ModelCompatibilityState.NotRecomended)
+                        {
+                            hasCompattibleModel = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasCompattibleModel)
+                    {
+                        return null;
+                    }
+                }
+
                 name = modelFamily.Name ?? key.ToString();
             }
             else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(key, out var apiDefinition))
             {
+                // get details from apiDefinition
+                ModelDetails details = ModelDetailsHelper.GetModelDetailsFromApiDefinition(key, apiDefinition);
+
+                if (details.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+                {
+                    return null;
+                }
+
                 name = apiDefinition.Name ?? key.ToString();
             }
             else
@@ -203,7 +235,11 @@ internal sealed partial class ModelSelectionPage : Page
                     item.SelectsOnInvoked = false;
                     foreach (var childNavigationItem in innerItems)
                     {
-                        item.MenuItems.Add(CreateFromItem(childNavigationItem, false));
+                        var child = CreateFromItem(childNavigationItem, false);
+                        if (child != null)
+                        {
+                            item.MenuItems.Add(child);
+                        }
                     }
                 }
             }

@@ -213,12 +213,12 @@ internal partial class ModelSelectionControl : UserControl
                 }
                 else
                 {
-                    UnavailableModels.Add(new DownloadableModel(model));
+                    // UnavailableModels.Add(new DownloadableModel(model));
                 }
             }
             else if (model.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
             {
-                UnavailableModels.Add(new DownloadableModel(model));
+                // UnavailableModels.Add(new DownloadableModel(model));
             }
             else if (!App.ModelCache.IsModelCached(model.Url))
             {
@@ -268,7 +268,7 @@ internal partial class ModelSelectionControl : UserControl
                         }
                         else
                         {
-                            UnavailableModels.Add(new DownloadableModel(modelDetails));
+                            // UnavailableModels.Add(new DownloadableModel(modelDetails));
                         }
                     }
                 }
