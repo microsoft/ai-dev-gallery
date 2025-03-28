@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -55,7 +56,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
         // Load default image
         if (!sampleParams.CancellationToken.IsCancellationRequested)
         {
-            imageFile = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+            imageFile = await StorageFile.GetFileFromPathAsync(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
             LoadImage(this.imageFile);
         }
 

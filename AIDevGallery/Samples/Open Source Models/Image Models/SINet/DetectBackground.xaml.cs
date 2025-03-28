@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
@@ -65,7 +66,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
 
         sampleParams.NotifyCompletion();
 
-        await Detect(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\detection_default.png");
+        await Detect(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "detection_default.png"));
     }
 
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
