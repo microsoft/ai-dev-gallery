@@ -117,7 +117,6 @@ internal sealed partial class AddModelPage : Page
 
                 var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
 
-
                 var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
 
                 var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
