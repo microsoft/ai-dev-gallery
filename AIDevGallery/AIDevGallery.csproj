@@ -85,22 +85,16 @@
     <PackageReference Include="HtmlAgilityPack"/>
     <PackageReference Include="Markdig"/>
     <PackageReference Include="Roman-Numerals"/>
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
   <ItemGroup Condition="$(Platform) == 'ARM64'">
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Qnn" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" GeneratePathProperty="true" ExcludeAssets="all" />
-    <None Include="$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\runtimes\win-arm64\native\onnxruntime-genai.dll">
-	    <Link>onnxruntime-genai.dll</Link>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <Visible>false</Visible>
-    </None>
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.QNN" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
   </ItemGroup>
 	
   <ItemGroup Condition="$(Platform) == 'x64'">
-    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
   </ItemGroup>
@@ -250,6 +244,7 @@
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
+    <None Remove="Assets\ModelIcons\onnx.svg" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
     <None Remove="Assets\TileImages\Chat.png" />
     <None Remove="Assets\TileImages\ClassifyImage.png" />

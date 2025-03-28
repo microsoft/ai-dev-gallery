@@ -31,6 +31,7 @@ internal class GenAIModel : IChatClient
     private LlmPromptTemplate? _template;
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
     private static OgaHandle? _ogaHandle;
+    private Config? _config;
 
     private static ChatOptions GetDefaultChatOptions()
     {
@@ -53,7 +54,7 @@ internal class GenAIModel : IChatClient
         _metadata = new ChatClientMetadata("GenAIChatClient", new Uri($"file:///{modelDir}"));
     }
 
-    public static async Task<GenAIModel?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, CancellationToken cancellationToken = default)
+    public static async Task<GenAIModel?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, string? provider = null, CancellationToken cancellationToken = default)
     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var model = new GenAIModel(modelDir);
@@ -66,7 +67,7 @@ internal class GenAIModel : IChatClient
             await _createSemaphore.WaitAsync(cancellationToken);
             lockAcquired = true;
             cancellationToken.ThrowIfCancellationRequested();
-            await model.InitializeAsync(modelDir, cancellationToken);
+            await model.InitializeAsync(modelDir, provider, cancellationToken);
         }
         catch
         {
@@ -98,6 +99,7 @@ internal class GenAIModel : IChatClient
         _model?.Dispose();
         _tokenizer?.Dispose();
         _ogaHandle?.Dispose();
+        _config?.Dispose();
     }
 
     private string GetPrompt(IEnumerable<ChatMessage> history)
@@ -263,12 +265,18 @@ internal class GenAIModel : IChatClient
         }
     }
 
-    private Task InitializeAsync(string modelDir, CancellationToken cancellationToken = default)
+    private Task InitializeAsync(string modelDir, string? provider = null, CancellationToken cancellationToken = default)
     {
         return Task.Run(
             () =>
             {
-                _model = new Model(modelDir);
+                _config = new Config(modelDir);
+                if (!string.IsNullOrEmpty(provider))
+                {
+                    _config.AppendProvider(provider);
+                }
+
+                _model = new Model(_config);
                 cancellationToken.ThrowIfCancellationRequested();
                 _tokenizer = new Tokenizer(_model);
             },

@@ -57,6 +57,10 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavigateToApiOrModelPage(modelTypes[0]);
         }
+        else if (obj is ModelDetails)
+        {
+            Navigate("Models", obj);
+        }
         else
         {
             Navigate("Home");
