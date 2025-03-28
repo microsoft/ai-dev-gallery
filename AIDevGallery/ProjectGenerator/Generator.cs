@@ -276,33 +276,20 @@ internal partial class Generator
                 {
                     packageReferenceItem.AddMetadata("PrivateAssets", "all", true);
                 }
-                else if (packageName == "Microsoft.AI.DirectML" ||
-                            packageName == "Microsoft.ML.OnnxRuntime.DirectML" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
+                else if (packageName == "Microsoft.ML.OnnxRuntime.DirectML" ||
+                         packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
                     packageReferenceItem.Condition = "$(Platform) == 'x64'";
                 }
                 else if (packageName == "Microsoft.ML.OnnxRuntime.QNN" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI" ||
-                            packageName == "Microsoft.ML.OnnxRuntimeGenAI.Managed")
+                         packageName == "Microsoft.ML.OnnxRuntimeGenAI.QNN" ||
+                         packageName == "Microsoft.ML.OnnxRuntimeGenAI")
                 {
                     packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
                 }
 
                 var versionStr = PackageVersionHelpers.PackageVersions[packageName];
                 packageReferenceItem.AddMetadata("Version", versionStr, true);
-
-                if (packageName == "Microsoft.ML.OnnxRuntimeGenAI")
-                {
-                    var noneItem = itemGroup.AddItem("None", "$(PKGMicrosoft_ML_OnnxRuntimeGenAI)\\runtimes\\win-arm64\\native\\onnxruntime-genai.dll");
-                    noneItem.Condition = "$(Platform) == 'ARM64'";
-                    noneItem.AddMetadata("Link", "onnxruntime-genai.dll", false);
-                    noneItem.AddMetadata("CopyToOutputDirectory", "PreserveNewest", false);
-                    noneItem.AddMetadata("Visible", "false", false);
-
-                    packageReferenceItem.AddMetadata("GeneratePathProperty", "true", true);
-                    packageReferenceItem.AddMetadata("ExcludeAssets", "all", true);
-                }
             }
 
             foreach (var packageName in packageReferences)
@@ -314,7 +301,7 @@ internal partial class Generator
                 else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
                 {
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.QNN");
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI");
+                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.QNN");
                     AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
                 }
 

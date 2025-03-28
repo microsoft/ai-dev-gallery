@@ -28,8 +28,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels;
     Id = "58c3565d-dbe0-46c7-accc-2c088db2bdf9",
     Icon = "\uE8D4",
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.DirectML",
-        "Microsoft.AI.DirectML"
+        "Microsoft.ML.OnnxRuntimeGenAI.DirectML"
     ],
     Name = "Describe Image")]
 internal sealed partial class DescribeImage : BaseSamplePage

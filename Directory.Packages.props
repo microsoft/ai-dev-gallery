@@ -4,7 +4,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.CameraPreview" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.1.240916" />
-    <PackageVersion Include="Microsoft.AI.DirectML" Version="1.15.4" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.3.0-preview.1.25161.3" />
     <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.43.0-preview" />

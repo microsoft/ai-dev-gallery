@@ -85,17 +85,16 @@
     <PackageReference Include="HtmlAgilityPack"/>
     <PackageReference Include="Markdig"/>
     <PackageReference Include="Roman-Numerals"/>
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
   <ItemGroup Condition="$(Platform) == 'ARM64'">
     <PackageReference Include="Microsoft.ML.OnnxRuntime.QNN" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
   </ItemGroup>
 	
   <ItemGroup Condition="$(Platform) == 'x64'">
-    <PackageReference Include="Microsoft.AI.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
   </ItemGroup>
