@@ -182,7 +182,7 @@ internal sealed partial class ModelSelectionPage : Page
                 {
                     foreach (var modelType in modelTypes)
                     {
-                        if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails) && modelDetails.Compatibility.CompatibilityState != ModelCompatibilityState.NotRecomended)
+                        if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails) && modelDetails.Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible)
                         {
                             hasCompattibleModel = true;
                             break;
