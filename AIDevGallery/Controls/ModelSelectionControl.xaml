@@ -124,7 +124,7 @@
                                                     Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
-                                                            <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                            <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                         </TextBlock>
                                                     </ToolTipService.ToolTip>
                                                 </Image>
@@ -336,7 +336,7 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
                                             </Image>
@@ -521,7 +521,7 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
                                             </Image>

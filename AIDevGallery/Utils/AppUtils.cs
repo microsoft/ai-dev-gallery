@@ -169,7 +169,7 @@ internal static class AppUtils
         }
     }
 
-    public static string GetModelSourceNameFromUrl(string url)
+    public static string GetModelSourceOriginFromUrl(string url)
     {
         if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
