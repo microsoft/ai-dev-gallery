@@ -97,87 +97,81 @@ internal sealed partial class AddModelPage : Page
             {
                 var (result, config, readmeUrl) = item;
                 var configContents = await HuggingFaceApi.GetContentsOfTextFile(result.Id, config.RFilename);
-                GenAIConfig? genAIConfig = null;
+                HardwareAccelerator accelerator;
+
                 try
                 {
-                    genAIConfig = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+                    accelerator = GetHardwareAcceleratorFromConfig(configContents);
                 }
                 catch (JsonException)
                 {
+                    return;
                 }
 
-                if (genAIConfig != null &&
-                    (
-                        genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Length == 0 ||
-                        genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
-                    )
+                var pathComponents = config.RFilename.Split("/");
+                string modelPath = string.Empty;
+                if (pathComponents.Length > 1)
                 {
-                    var pathComponents = config.RFilename.Split("/");
-                    string modelPath = string.Empty;
-                    if (pathComponents.Length > 1)
-                    {
-                        modelPath = string.Join("/", pathComponents.Take(pathComponents.Length - 1));
-                    }
-
-                    var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
-
-                    bool isDmlModel = genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null);
-
-                    var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
-
-                    var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
-
-                    var details = curratedModel ?? new ModelDetails()
-                    {
-                        Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
-                        Name = result.Id + " " + (isDmlModel ? "DML" : "CPU"),
-                        Url = modelUrl,
-                        Description = "TODO",
-                        HardwareAccelerators = [isDmlModel ? HardwareAccelerator.DML : HardwareAccelerator.CPU],
-                        IsUserAdded = true,
-                        PromptTemplate = GetTemplateFromName(result.Id),
-                        Size = filesToDownload.Sum(f => f.Size),
-                        ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
-                    };
-
-                    string? licenseKey = null;
-                    if (result.Tags != null)
-                    {
-                        var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                        if (licenseTag != null)
-                        {
-                            licenseKey = licenseTag.Split(":").Last();
-                        }
-                    }
-
-                    if (curratedModel == null)
-                    {
-                        details.License = licenseKey;
-                    }
-
-                    ResultState state = ResultState.NotDownloaded;
-
-                    if (App.ModelCache.IsModelCached(details.Url))
-                    {
-                        state = ResultState.Downloaded;
-                    }
-                    else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
-                    {
-                        state = ResultState.Downloading;
-                    }
-
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        this.results.Add(new Result
-                        {
-                            Details = details,
-                            SearchResult = result,
-                            License = LicenseInfo.GetLicenseInfo(licenseKey),
-                            State = state,
-                            HFUrl = $"https://huggingface.co/{result.Id}"
-                        });
-                    });
+                    modelPath = string.Join("/", pathComponents.Take(pathComponents.Length - 1));
                 }
+
+                var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
+
+
+                var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
+
+                var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
+
+                var details = curratedModel ?? new ModelDetails()
+                {
+                    Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
+                    Name = result.Id + " " + accelerator.ToString(),
+                    Url = modelUrl,
+                    Description = "Model downloaded from HuggingFace",
+                    HardwareAccelerators = [accelerator],
+                    IsUserAdded = true,
+                    PromptTemplate = GetTemplateFromName(result.Id),
+                    Size = filesToDownload.Sum(f => f.Size),
+                    ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
+                };
+
+                string? licenseKey = null;
+                if (result.Tags != null)
+                {
+                    var licenseTag = result.Tags.Where(t => t.StartsWith("license:", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    if (licenseTag != null)
+                    {
+                        licenseKey = licenseTag.Split(":").Last();
+                    }
+                }
+
+                if (curratedModel == null)
+                {
+                    details.License = licenseKey;
+                }
+
+                ResultState state = ResultState.NotDownloaded;
+
+                if (App.ModelCache.IsModelCached(details.Url))
+                {
+                    state = ResultState.Downloaded;
+                }
+                else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
+                {
+                    state = ResultState.Downloading;
+                }
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    this.results.Add(new Result
+                    {
+                        Details = details,
+                        SearchResult = result,
+                        License = LicenseInfo.GetLicenseInfo(licenseKey),
+                        State = state,
+                        HFUrl = $"https://huggingface.co/{result.Id}"
+                    });
+                });
 
                 if (actionBlock.InputCount == 0)
                 {
@@ -334,6 +328,27 @@ internal sealed partial class AddModelPage : Page
         this.Focus(FocusState.Programmatic);
     }
 
+    private HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
+    {
+        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
+        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+        if (config == null)
+        {
+            throw new FileLoadException("genai_config.json is not valid");
+        }
+
+        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+        {
+            return HardwareAccelerator.DML;
+        }
+
+        return HardwareAccelerator.CPU;
+    }
+
     private async void AddLocalClicked(object sender, RoutedEventArgs e)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
@@ -366,17 +381,12 @@ internal sealed partial class AddModelPage : Page
             }
 
             HardwareAccelerator accelerator = HardwareAccelerator.CPU;
-            string configContents = string.Empty;
-            GenAIConfig? genAIConfig;
+
             try
             {
+                string configContents = string.Empty;
                 configContents = await File.ReadAllTextAsync(config);
-
-                genAIConfig = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
-                if (genAIConfig == null)
-                {
-                    throw new FileLoadException("genai_config.json is not valid");
-                }
+                accelerator = GetHardwareAcceleratorFromConfig(configContents);
             }
             catch (Exception ex)
             {
@@ -444,15 +454,6 @@ internal sealed partial class AddModelPage : Page
             if (result != ContentDialogResult.Primary)
             {
                 return;
-            }
-
-            if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
-            {
-                accelerator = HardwareAccelerator.QNN;
-            }
-            else if (genAIConfig.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
-            {
-                accelerator = HardwareAccelerator.DML;
             }
 
             DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
