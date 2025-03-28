@@ -187,7 +187,7 @@ internal sealed partial class ModelPage : Page
 
             foreach(AIToolkitAction action in modelDetails.AIToolkitActions)
             {
-                if(modelDetails.ValidateAction(action))
+                if(!modelDetails.ValidateAction(action))
                 {
                     continue;
                 }
