@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
@@ -62,7 +63,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
 
         sampleParams.NotifyCompletion();
 
-        await EnhanceImage(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Enhance.png");
+        await EnhanceImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "Enhance.png"));
     }
 
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
