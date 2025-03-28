@@ -24,14 +24,15 @@ internal class PhiSilicaClient : IChatClient
     private const float DefaultTopP = 0.9f;
     private const float DefaultTemperature = 1;
 
-    private LanguageModel? _languageModel;
+    private LanguageModel _languageModel;
     private LanguageModelContext? _languageModelContext;
 
     public ChatClientMetadata Metadata { get; }
 
-    private PhiSilicaClient()
+    private PhiSilicaClient(LanguageModel languageModel)
     {
         Metadata = new ChatClientMetadata("PhiSilica", new Uri($"file:///PhiSilica"));
+        _languageModel = languageModel;
     }
 
     private static ChatOptions GetDefaultChatOptions()
@@ -52,11 +53,20 @@ internal class PhiSilicaClient : IChatClient
 
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        var phiSilicaClient = new PhiSilicaClient();
-#pragma warning restore CA2000 // Dispose objects before losing scope
+        cancellationToken.ThrowIfCancellationRequested();
 
-        await phiSilicaClient.InitializeAsync(cancellationToken);
+        if (!IsAvailable())
+        {
+            await LanguageModel.MakeAvailableAsync();
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var languageModel = await LanguageModel.CreateAsync();
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var phiSilicaClient = new PhiSilicaClient(languageModel);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         return phiSilicaClient;
     }
 
@@ -65,11 +75,6 @@ internal class PhiSilicaClient : IChatClient
 
     public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         var prompt = GetPrompt(chatMessages);
 
         string responseId = Guid.NewGuid().ToString("N");
@@ -136,8 +141,8 @@ internal class PhiSilicaClient : IChatClient
         var firstMessage = history.FirstOrDefault();
 
         _languageModelContext = firstMessage?.Role == ChatRole.System ?
-            _languageModel?.CreateContext(firstMessage.Text, new ContentFilterOptions()) :
-            _languageModel?.CreateContext();
+            _languageModel.CreateContext(firstMessage.Text, new ContentFilterOptions()) :
+            _languageModel.CreateContext();
 
         for (var i = 0; i < history.Count(); i++)
         {
@@ -165,15 +170,14 @@ internal class PhiSilicaClient : IChatClient
 
     public void Dispose()
     {
-        _languageModel?.Dispose();
-        _languageModel = null;
+        _languageModel.Dispose();
     }
 
     public object? GetService(Type serviceType, object? serviceKey = null)
     {
         return
             serviceKey is not null ? null :
-            _languageModel is not null && serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
+            serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
             serviceType?.IsInstanceOfType(this) is true ? this :
             serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
             null;
@@ -191,29 +195,10 @@ internal class PhiSilicaClient : IChatClient
         }
     }
 
-    private async Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (!IsAvailable())
-        {
-            await LanguageModel.MakeAvailableAsync();
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        _languageModel = await LanguageModel.CreateAsync();
-    }
-
 #pragma warning disable IDE0060 // Remove unused parameter
     public async IAsyncEnumerable<string> GenerateStreamResponseAsync(string prompt, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         string currentResponse = string.Empty;
         using var newPartEvent = new ManualResetEventSlim(false);
 

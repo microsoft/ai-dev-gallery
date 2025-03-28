@@ -16,7 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     SharedCode = [
         SharedCodeEnum.SemanticComboBoxCs,
         SharedCodeEnum.SemanticComboBoxXaml,
-        SharedCodeEnum.EmbeddingGenerator,
+        SharedCodeEnum.ORTEmbeddingGenerator,
         SharedCodeEnum.EmbeddingModelInput,
         SharedCodeEnum.TokenizerExtensions,
         SharedCodeEnum.DeviceUtils,
@@ -40,7 +40,7 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
 
     protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        this.MySemanticComboBox.EmbeddingGenerator = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+        this.MySemanticComboBox.EmbeddingGenerator = new ORTEmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
         sampleParams.NotifyCompletion();
         return Task.CompletedTask;
     }

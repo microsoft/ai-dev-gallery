@@ -13,7 +13,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics.Tensors;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +23,7 @@ using Tensor = System.Numerics.Tensors.Tensor;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<string, Embedding<float>>
+internal partial class ORTEmbeddingGenerator : IDisposable, IEmbeddingGenerator<string, Embedding<float>>
 {
     [GeneratedRegex(@"[\u0000-\u001F\u007F-\uFFFF]")]
     private static partial Regex MyRegex();
@@ -33,9 +32,9 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly SessionOptions _sessionOptions;
     private readonly InferenceSession _inferenceSession;
     private readonly BertTokenizer _tokenizer;
-    private readonly int _chunkSize = 128;
+    private static int _chunkSize = 128;
 
-    public EmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
+    public ORTEmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
     {
         _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
 
@@ -61,12 +60,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
     }
 
-    public Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        return InternalGenerateEmbeddings(values, null, options, cancellationToken);
-    }
-
-    private async Task<GeneratedEmbeddings<Embedding<float>>> InternalGenerateEmbeddings(IEnumerable<string> values, RunOptions? runOptions = null, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
+    public async Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
     {
         var generatedEmbeddings = new GeneratedEmbeddings<Embedding<float>>();
         try
@@ -79,6 +73,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             await Task.Run(
                 async () =>
                 {
+                    RunOptions? runOptions = options?.AdditionalProperties?["RunOptions"] as RunOptions;
                     bool ownsRunOptions = runOptions == null;
                     runOptions ??= new RunOptions();
 
@@ -108,30 +103,6 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         }
 
         return generatedEmbeddings;
-    }
-
-    public async IAsyncEnumerable<Embedding<float>> GenerateStreamingAsync(
-        IEnumerable<string> values,
-        EmbeddingGenerationOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        var chunks = values.Chunk(_chunkSize);
-
-        using var runOptions = new RunOptions();
-
-        foreach (var chunk in chunks)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            GeneratedEmbeddings<Embedding<float>> embeddings = await InternalGenerateEmbeddings(chunk, runOptions, options, cancellationToken).ConfigureAwait(false);
-
-            foreach (var embedding in embeddings)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                yield return embedding;
-            }
-        }
     }
 
     private async Task<float[][]> GetVectorsAsync(IEnumerable<string> values, RunOptions runOptions)
@@ -300,11 +271,10 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     public object? GetService(Type serviceType, object? serviceKey = null)
     {
         return
-            serviceKey is not null ? null :
             serviceType == typeof(EmbeddingGeneratorMetadata) ? _metadata :
             serviceType?.IsInstanceOfType(_inferenceSession) is true ? _inferenceSession :
             serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :
-            null;
+            serviceType == typeof(int) && serviceKey is "ChunkSize" ? _chunkSize : null;
     }
 }

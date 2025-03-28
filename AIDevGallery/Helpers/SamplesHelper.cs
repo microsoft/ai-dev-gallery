@@ -221,8 +221,8 @@ internal static partial class SamplesHelper
 
         List<SharedCodeEnum> sharedCode = sample.GetAllSharedCode(modelInfos.ToDictionary(m => m.Key, m => m.Value.ExpandedModelDetails));
 
-        var search = "await sampleParams.GetIChatClientAsync()";
-        int index = cleanCsSource.IndexOf(search, StringComparison.OrdinalIgnoreCase);
+        var getIChatClientAsyncSearch = "await sampleParams.GetIChatClientAsync()";
+        int index = cleanCsSource.IndexOf(getIChatClientAsyncSearch, StringComparison.OrdinalIgnoreCase);
         if (index > 0)
         {
             int newLineIndex = cleanCsSource[..index].LastIndexOf(Environment.NewLine, StringComparison.OrdinalIgnoreCase);
@@ -255,7 +255,7 @@ internal static partial class SamplesHelper
             var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
             if (chatClientLoader != null)
             {
-                cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
+                cleanCsSource = cleanCsSource.Replace(getIChatClientAsyncSearch, chatClientLoader);
             }
         }
 

@@ -31,7 +31,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Model2Types = [ModelType.EmbeddingModel],
     Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
     SharedCode = [
-        SharedCodeEnum.EmbeddingGenerator,
+        SharedCodeEnum.ORTEmbeddingGenerator,
+        SharedCodeEnum.ORTEmbeddingGeneratorExtensions,
         SharedCodeEnum.EmbeddingModelInput,
         SharedCodeEnum.TokenizerExtensions,
         SharedCodeEnum.DeviceUtils,
@@ -49,7 +50,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Icon = "\uE8D4")]
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
-    private EmbeddingGenerator? _embeddings;
+    private IEmbeddingGenerator<string, Embedding<float>>? _embeddings;
     private int _maxTokens = 2048;
     private IChatClient? _chatClient;
     private IVectorStore? _vectorStore;
@@ -86,7 +87,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            _embeddings = new ORTEmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -190,14 +191,14 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                     await foreach (var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
                     {
                         await _pdfPages.UpsertAsync(
-                        new PdfPageData
-                        {
-                            Key = chunksProcessedCount,
-                            Page = pageChunks[i].Page,
-                            Text = pageChunks[i].Text,
-                            Vector = embedding.Vector
-                        },
-                        ct).ConfigureAwait(false);
+                            new PdfPageData
+                            {
+                                Key = chunksProcessedCount,
+                                Page = pageChunks[i].Page,
+                                Text = pageChunks[i].Text,
+                                Vector = embedding.Vector
+                            },
+                            ct).ConfigureAwait(false);
                         i++;
                         chunksProcessedCount++;
                     }

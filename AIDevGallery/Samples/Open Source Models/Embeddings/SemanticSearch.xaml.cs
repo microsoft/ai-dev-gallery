@@ -25,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Model1Types = [ModelType.EmbeddingModel],
     Scenario = ScenarioType.TextSemanticSearch,
     SharedCode = [
-        SharedCodeEnum.EmbeddingGenerator,
+        SharedCodeEnum.ORTEmbeddingGenerator,
         SharedCodeEnum.EmbeddingModelInput,
         SharedCodeEnum.TokenizerExtensions,
         SharedCodeEnum.DeviceUtils,
@@ -42,7 +42,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     Icon = "\uE8D4")]
 internal sealed partial class SemanticSearch : BaseSamplePage
 {
-    private EmbeddingGenerator? _embeddings;
+    private IEmbeddingGenerator<string, Embedding<float>>? _embeddings;
     private CancellationTokenSource cts = new();
 
     public SemanticSearch()
@@ -57,7 +57,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+        _embeddings = new ORTEmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
         sampleParams.NotifyCompletion();
 
         this.SourceTextBox.Text = _sampleText;
