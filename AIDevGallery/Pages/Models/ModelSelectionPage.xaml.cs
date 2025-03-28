@@ -176,7 +176,7 @@ internal sealed partial class ModelSelectionPage : Page
             if (ModelTypeHelpers.ModelFamilyDetails.TryGetValue(key, out var modelFamily))
             {
                 ModelTypeHelpers.ParentMapping.TryGetValue(key, out List<ModelType>? modelTypes);
-                bool hasCompattibleModel = false;
+                bool hasCompatibleModel = false;
 
                 if (modelTypes != null)
                 {
@@ -184,12 +184,12 @@ internal sealed partial class ModelSelectionPage : Page
                     {
                         if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out var modelDetails) && modelDetails.Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible)
                         {
-                            hasCompattibleModel = true;
+                            hasCompatibleModel = true;
                             break;
                         }
                     }
 
-                    if (!hasCompattibleModel)
+                    if (!hasCompatibleModel)
                     {
                         return null;
                     }
