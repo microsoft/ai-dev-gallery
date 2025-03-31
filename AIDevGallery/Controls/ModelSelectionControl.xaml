@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="AIDevGallery.Controls.ModelSelectionControl"
+    xmlns:local="using:AIDevGallery.Controls"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -107,7 +108,7 @@
                                                 HorizontalSpacing="6"
                                                 Orientation="Horizontal"
                                                 VerticalSpacing="2"
-                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}">
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}">
                                                 <TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
                                                     <Run Text="{x:Bind ModelDetails.ParameterSize}" />
                                                     <Run Text="params" />
@@ -123,13 +124,15 @@
                                                     Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
-                                                            <Run Text="This model is from" />
-                                                            <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                            <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                         </TextBlock>
                                                     </ToolTipService.ToolTip>
                                                 </Image>
-                                                <TextBlock Text="• " />
-                                                <TextBlock VerticalAlignment="Center" Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}">
+                                                <TextBlock Text="• " 
+                                                           Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                <TextBlock VerticalAlignment="Center" 
+                                                           Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}"
+                                                           Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}">
                                                     <ToolTipService.ToolTip>
                                                         <TextBlock TextWrapping="Wrap">
                                                             <Run Text="This model is under the" />
@@ -216,20 +219,20 @@
                                                         Icon="{ui:FontIcon Glyph=&#xE8C8;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Copy as path"
-                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="OpenModelFolder_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE838;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Open containing folder"
-                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
-                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="DeleteModel_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE74D;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Delete"
-                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>
@@ -333,8 +336,7 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="This model is from" />
-                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
                                             </Image>
@@ -519,8 +521,7 @@
                                                 Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
                                                 <ToolTipService.ToolTip>
                                                     <TextBlock TextWrapping="Wrap">
-                                                        <Run Text="This model is from" />
-                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceNameFromUrl(ModelDetails.Url)}" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
                                                     </TextBlock>
                                                 </ToolTipService.ToolTip>
                                             </Image>

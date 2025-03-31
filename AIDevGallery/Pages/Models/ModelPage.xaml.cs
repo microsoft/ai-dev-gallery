@@ -44,6 +44,8 @@ internal sealed partial class ModelPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        bool isLocalModel = false;
+
         if (e.Parameter is MostRecentlyUsedItem mru)
         {
             var modelFamilyId = mru.ItemId;
@@ -69,6 +71,8 @@ internal sealed partial class ModelPage : Page
                 ReadmeUrl = details.ReadmeUrl ?? string.Empty,
                 Name = details.Name
             };
+
+            isLocalModel = details.Url.StartsWith("local", StringComparison.OrdinalIgnoreCase);
         }
         else
         {
@@ -78,6 +82,11 @@ internal sealed partial class ModelPage : Page
         if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
             var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
+        }
+        else if (isLocalModel)
+        {
+            markdownTextBlock.Text = "This model was added by you.";
+            readmeProgressRing.IsActive = false;
         }
         else
         {
@@ -121,11 +130,11 @@ internal sealed partial class ModelPage : Page
     {
         string readmeContents = string.Empty;
 
-        if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github.com", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await GithubApi.GetContentsOfTextFile(url);
         }
-        else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        else if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }
@@ -291,5 +300,15 @@ internal sealed partial class ModelPage : Page
             var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
             App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
         }
+    }
+
+    public static Uri GetSafeUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return new Uri("https://aka.ms/ai-dev-gallery-repo");
+        }
+
+        return new Uri(url);
     }
 }

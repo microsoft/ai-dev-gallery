@@ -71,7 +71,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\Road.png");
+        var file = await StorageFile.GetFileFromPathAsync(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "Road.png"));
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
     }

@@ -155,11 +155,21 @@ internal static class ModelDetailsHelper
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public static Visibility ShowWhenDownloadedModel(ModelDetails modelDetails)
+    private static bool IsOnnxModel(ModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)
-            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN);
+    }
+
+    public static Visibility ShowWhenOnnxModel(ModelDetails modelDetails)
+    {
+        return IsOnnxModel(modelDetails) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility ShowWhenDownloadedModel(ModelDetails modelDetails)
+    {
+        return IsOnnxModel(modelDetails) && !modelDetails.IsUserAdded
             ? Visibility.Visible : Visibility.Collapsed;
     }
 }
