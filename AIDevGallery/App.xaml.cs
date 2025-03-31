@@ -42,7 +42,9 @@ public partial class App : Application
         await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = ActivationHelper.GetActivationParam(appActivationArguments);
-        MainWindow = new MainWindow(activationParam);
+
+        Scenario? selectedScenario = App.FindScenarioById("generate-text");
+        MainWindow = new MainWindow(selectedScenario);
 
         MainWindow.Activate();
     }

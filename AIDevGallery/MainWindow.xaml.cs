@@ -45,6 +45,7 @@ internal sealed partial class MainWindow : WindowEx
 
     public void NavigateToPage(object? obj)
     {
+
         if (obj is Scenario)
         {
             Navigate("Samples", obj);
