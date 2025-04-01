@@ -36,7 +36,7 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
             return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId);
         }
 
-        return await GenAIModel.CreateAsync(
+        return await OnnxRuntimeGenAIChatClientFactory.CreateAsync(
             ChatClientModelPath,
             ChatClientPromptTemplate,
             ChatClientHardwareAccelerator == HardwareAccelerator.QNN ? "qnn" : null,
