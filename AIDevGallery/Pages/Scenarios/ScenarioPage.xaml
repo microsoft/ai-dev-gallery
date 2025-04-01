@@ -59,8 +59,68 @@
                     Orientation="Horizontal"
                     Spacing="8"
                     Visibility="Collapsed">
-                    <Button Click="NewModelSelectionCOntrolClick" Content="Click" />
-                    <controls:ModelDropDownButton x:Name="ModelDropDown">
+                    <Grid
+                        HorizontalAlignment="Left"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        ColumnSpacing="12"
+                        Style="{StaticResource CardGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image Width="24" Source="/Assets/ModelIcons/Microsoft.svg" />
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Phi 3.5 Mini CPU ACC4" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="3.8B params" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Margin="12,0,0,0"
+                            Orientation="Horizontal">
+                            <Border
+                                Padding="4,2,4,2"
+                                VerticalAlignment="Center"
+                                Background="{ThemeResource TertiaryButtonBackground}"
+                                BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4,0,0,4">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TertiaryButtonForeground}"
+                                    Text="GPU" />
+                            </Border>
+                            <Border
+                                Padding="4,2,4,2"
+                                VerticalAlignment="Center"
+                                Background="{ThemeResource AccentTextFillColorTertiaryBrush}"
+                                BorderBrush="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="0,1,1,1"
+                                CornerRadius="0,4,4,0">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                    Text="NPU" />
+                            </Border>
+                        </StackPanel>
+                        <Button
+                            Grid.ColumnSpan="3"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Click="NewModelSelectionCOntrolClick"
+                            Content="Click"
+                            Opacity="0" />
+                    </Grid>
+
+                    <controls:ModelDropDownButton x:Name="ModelDropDown" Visibility="Collapsed">
                         <controls:ModelDropDownButton.FlyoutContent>
                             <controls:ModelSelectionControl
                                 x:Name="modelSelectionControl"

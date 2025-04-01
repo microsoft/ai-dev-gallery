@@ -94,14 +94,53 @@
                 Style="{StaticResource AccentButtonStyle}" />
         </Grid>
         <TextBlock
-            Margin="24,24,24,0"
+            Margin="24,24,24,12"
             Style="{StaticResource SubtitleTextBlockStyle}"
             Text="Select a model" />
+
+        <StackPanel
+            Margin="0,28,0,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="2">
+            <FontIcon
+                AutomationProperties.AccessibilityView="Raw"
+                FontSize="14"
+                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                Glyph="&#xE71C;" />
+            <ComboBox
+                SelectedIndex="0"
+                SelectedValuePath="Tag"
+                Style="{StaticResource SubtleComboBoxStyle}">
+                <ComboBoxItem>CPU</ComboBoxItem>
+                <ComboBoxItem>NPU</ComboBoxItem>
+                <ComboBoxItem>GPU</ComboBoxItem>
+            </ComboBox>
+            <Button
+                Margin="12,0,12,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Add" />
+                    <TextBlock Text="Add model" />
+                </StackPanel>
+                <Button.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Search on HuggingFace" />
+                        <MenuFlyoutItem Text="Add OpenAI" />
+                    </MenuFlyout>
+                </Button.Flyout>
+            </Button>
+        </StackPanel>
         <Grid
             Grid.Row="1"
-            BorderThickness="0,1,0,1"
+            Margin="8"
+            Padding="0"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
             ColumnSpacing="48"
-            CornerRadius="0">
+            CornerRadius="8"
+            Style="{StaticResource CardGridStyle}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -109,7 +148,7 @@
             <ItemsView
                 x:Name="ModelSelectionItemsView"
                 Grid.Row="1"
-                Margin="16,16,16,16"
+                Margin="12"
                 IsItemInvokedEnabled="True"
                 ItemInvoked="ModelSelectionItemsView_ItemInvoked"
                 ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
@@ -134,7 +173,7 @@
                                     <SolidColorBrush x:Key="ItemContainerPressedBackground" Color="Transparent" />
                                 </ItemContainer.Resources>-->
                             <Grid
-                                Padding="12"
+                                Padding="8"
                                 ColumnSpacing="4"
                                 Style="{StaticResource CardGridStyle}"
                                 ToolTipService.ToolTip="{x:Bind ModelDetails.Name}">
@@ -228,9 +267,9 @@
                 Grid.Column="1"
                 Width="320"
                 Padding="0"
-                BorderThickness="1,1,0,0"
-                CornerRadius="8,0,0,0"
-                Style="{StaticResource CardGridStyle}">
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="1,0,0,0"
+                CornerRadius="8,0,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -240,18 +279,7 @@
                         Margin="16"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="Available models" />
-                    <Button Margin="0,0,12,0" HorizontalAlignment="Right">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <SymbolIcon Symbol="Add" />
-                            <TextBlock Text="Add model" />
-                        </StackPanel>
-                        <Button.Flyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Text="Search on HuggingFace" />
-                                <MenuFlyoutItem Text="Add OpenAI" />
-                            </MenuFlyout>
-                        </Button.Flyout>
-                    </Button>
+
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Orientation="Vertical" Spacing="8">
                             <ItemsRepeater IsTabStop="False" ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}">
