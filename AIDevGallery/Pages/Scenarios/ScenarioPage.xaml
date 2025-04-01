@@ -174,10 +174,15 @@
                 </StackPanel>
             </ContentDialog.Content>
         </ContentDialog>
-        <ContentDialog x:Name="ModelSelectionDialog">
+        <ContentDialog
+            x:Name="ModelSelectionDialog"
+            Width="100"
+            Height="320"
+            Padding="0">
             <ContentDialog.Resources>
+                <Thickness x:Key="ContentDialogPadding">0</Thickness>
                 <x:Double x:Key="ContentDialogMaxWidth">2000</x:Double>
-                <x:Double x:Key="ContentDialogMaxHeight">2000</x:Double>
+                <x:Double x:Key="ContentDialogMaxHeight">860</x:Double>
                 <StaticResource x:Key="ContentDialogTopOverlay" ResourceKey="SubtleFillColorTransparent" />
             </ContentDialog.Resources>
             <ContentDialog.Content>
