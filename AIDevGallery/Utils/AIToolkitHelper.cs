@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Pages;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -61,6 +62,35 @@ internal static class AIToolkitHelper
         {
             return modelDetails.ValidateForGeneralToolkit();
         }
+    }
+
+    public static Dictionary<ModelDetails, List<AIToolkitAction>> GetValidatedToolkitModelDetailsToActionListDict(List<ModelDetails> modelDetailsList)
+    {
+        var validatedDetailsActionListMap = new Dictionary<ModelDetails, List<AIToolkitAction>>();
+
+        foreach (ModelDetails details in modelDetailsList)
+        {
+            if (details.AIToolkitActions == null)
+            {
+                continue;
+            }
+
+            var actionsList = new List<AIToolkitAction>();
+            foreach (AIToolkitAction action in details.AIToolkitActions)
+            {
+                if(details.ValidateAction(action))
+                {
+                    actionsList.Add(action);
+                }
+            }
+
+            if(actionsList.Count > 0)
+            {
+                validatedDetailsActionListMap.Add(details, actionsList);
+            }
+        }
+
+        return validatedDetailsActionListMap;
     }
 }
 
