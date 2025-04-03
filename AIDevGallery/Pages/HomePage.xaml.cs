@@ -44,7 +44,7 @@ internal sealed partial class HomePage : Page
 
             foreach (var item in App.AppData.MostRecentlyUsedItems)
             {
-                item.Description = GetFirstSentenceFromDescription(item.Description);
+                item.Description = item.Description;
                 mostRecentlyUsedItems.Add(item);
             }
         }
@@ -66,17 +66,6 @@ internal sealed partial class HomePage : Page
         App.AppData.IsDiagnosticsMessageDismissed = true;
         App.AppData.IsDiagnosticDataEnabled = isEnabled;
         await App.AppData.SaveAsync();
-    }
-
-    private string GetFirstSentenceFromDescription(string? description)
-    {
-        if (string.IsNullOrEmpty(description))
-        {
-            return string.Empty;
-        }
-
-        int i = description.IndexOf('.');
-        return i == -1 ? description : description.Substring(0, i + 1);
     }
 
     private void MRUView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
