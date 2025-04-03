@@ -169,16 +169,21 @@ internal static class AppUtils
         }
     }
 
-    public static string GetModelSourceNameFromUrl(string url)
+    public static string GetModelSourceOriginFromUrl(string url)
     {
-        if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
-            return "Hugging Face";
+            return "This model was downloaded from Hugging Face";
         }
 
-        if (url.StartsWith("https://github.co", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github.co", StringComparison.OrdinalIgnoreCase))
         {
-            return "GitHub";
+            return "This model was downloaded from GitHub";
+        }
+
+        if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
+        {
+            return "This model was added by you";
         }
 
         return string.Empty;
@@ -213,7 +218,7 @@ internal static class AppUtils
 
     public static ImageSource GetModelSourceImageFromUrl(string url)
     {
-        if (url.StartsWith("https://github", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github", StringComparison.OrdinalIgnoreCase))
         {
             if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
             {
@@ -224,7 +229,7 @@ internal static class AppUtils
                 return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
             }
         }
-        else if (url.StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        else if (url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
         {
             if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
             {
@@ -234,6 +239,10 @@ internal static class AppUtils
             {
                 return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/ollama.dark.svg"));
             }
+        }
+        else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
+        {
+            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/onnx.svg"));
         }
         else
         {
@@ -357,7 +366,7 @@ internal static class AppUtils
             }
 
             adapters.Add(adapter);
-            if (adapterDescription.Contains("NPU"))
+            if (adapterDescription.Contains("NPU") || adapterDescription.Contains("AI Boost"))
             {
                 _hasNpu = true;
                 return true;

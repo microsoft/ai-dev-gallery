@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
@@ -65,7 +66,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
         sampleParams.NotifyCompletion();
 
         // Loads inference on default image
-        await DetectObjects(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\team.jpg");
+        await DetectObjects(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)

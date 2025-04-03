@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:local="using:AIDevGallery.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
@@ -13,6 +14,7 @@
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
+        <tkconverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
@@ -30,16 +32,44 @@
         </Grid.ColumnDefinitions>
         <TextBlock
             Margin="4,0,0,0"
+            VerticalAlignment="Center"
             Style="{StaticResource SubtitleTextBlockStyle}"
             Text="{x:Bind ModelFamily.Name}" />
-        <controls:CopyButton
+        <StackPanel
             Grid.Column="1"
-            Height="34"
-            AutomationProperties.Name="Copy link to page"
-            Click="CopyButton_Click"
-            Content="{ui:FontIcon Glyph=&#xE71B;,
-                                  FontSize=16}"
-            ToolTipService.ToolTip="Copy link to page" />
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="8">
+            <DropDownButton
+                x:Name="AIToolkitDropdown"
+                AutomationProperties.Name="Open in AI Toolkit"
+                Visibility="Visible">
+                <DropDownButton.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Image Width="16">
+                            <Image.Source>
+                                <BitmapImage
+                                    DecodePixelHeight="16"
+                                    DecodePixelWidth="16"
+                                    UriSource="ms-appx:///Assets/AITKIcon.png" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="Open in AI Toolkit" />
+                    </StackPanel>
+                </DropDownButton.Content>
+                <DropDownButton.Flyout>
+                    <MenuFlyout x:Name="AIToolkitFlyout" Placement="Bottom" />
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <controls:CopyButton
+                Height="34"
+                AutomationProperties.Name="Copy link to page"
+                Click="CopyButton_Click"
+                Content="{ui:FontIcon Glyph=&#xE71B;,
+                                      FontSize=16}"
+                ToolTipService.ToolTip="Copy link to page" />
+        </StackPanel>
+
 
         <ScrollViewer
             x:Name="RootScroller"
@@ -70,9 +100,10 @@
                                        FontSize=16}">
                     <controls:Card.TitleContent>
                         <HyperlinkButton
+                            Visibility="{x:Bind ModelFamily.DocsUrl, Converter={StaticResource StringVisibilityConverter}}"
                             Padding="4,2,4,2"
                             AutomationProperties.Name="View model card in the browser"
-                            NavigateUri="{x:Bind ModelFamily.DocsUrl}"
+                            NavigateUri="{x:Bind local:ModelPage.GetSafeUrl(ModelFamily.DocsUrl)}"
                             ToolTipService.ToolTip="View model card in the browser">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock

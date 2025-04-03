@@ -18,7 +18,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.CodeExplainCode,
     SharedCode = [],
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     Name = "Explain Code",
     Id = "ad763407-6a97-4916-ab05-30fd22f54252",

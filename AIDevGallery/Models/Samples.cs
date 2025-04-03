@@ -75,6 +75,9 @@ internal class ModelDetails
     public string? ReadmeUrl { get; set; }
     public string? License { get; set; }
     public List<string>? FileFilters { get; set; }
+    public List<AIToolkitAction>? AIToolkitActions { get; set; }
+    public string? AIToolkitId { get; set; }
+    public string? AIToolkitFinetuningId { get; set; }
 
     private ModelCompatibility? compatibility;
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
@@ -108,7 +111,7 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
-                else if (Url.StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+                else if (Url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
                 {
                     if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
                     {
@@ -118,6 +121,10 @@ internal class ModelDetails
                     {
                         icon = "ollama.dark.svg";
                     }
+                }
+                else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
+                {
+                    icon = "onnx.svg";
                 }
                 else
                 {
@@ -173,6 +180,15 @@ internal enum HardwareAccelerator
     QNN,
     WCRAPI,
     OLLAMA
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
+internal enum AIToolkitAction
+{
+    FineTuning,
+    PromptBuilder,
+    BulkRun,
+    Playground
 }
 
 #pragma warning restore SA1402 // File may only contain a single type

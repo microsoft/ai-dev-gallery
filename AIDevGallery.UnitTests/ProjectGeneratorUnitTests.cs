@@ -8,7 +8,6 @@ using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FluentAssertions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -28,16 +27,28 @@ namespace AIDevGallery.UnitTests;
 #pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401 // Fields should be private
-internal partial class SampleUIData : ObservableObject
+#pragma warning disable CA1051 // Do not declare visible instance fields
+#pragma warning disable CA1708 // Identifiers should differ by more than case
+public partial class SampleUIData : ObservableObject
 {
     internal static SolidColorBrush? graySolidColorBrush;
     internal static SolidColorBrush? greenSolidColorBrush;
     internal static SolidColorBrush? redSolidColorBrush;
     internal static SolidColorBrush? yellowSolidColorBrush;
 
-    public required string SampleName { get; init; }
-    public required Sample Sample { get; init; }
-    public required Dictionary<ModelType, ExpandedModelDetails> CachedModelsToGenerator { get; init; }
+    public string SampleName { get; }
+    internal Sample Sample { get; }
+    internal Dictionary<ModelType, ExpandedModelDetails> CachedModelsToGenerator { get; }
+
+    private static int currentId;
+
+    internal SampleUIData(string sampleName, Sample sample, Dictionary<ModelType, ExpandedModelDetails> cachedModelsToGenerator)
+    {
+        Id = Interlocked.Increment(ref currentId);
+        SampleName = sampleName;
+        Sample = sample;
+        CachedModelsToGenerator = cachedModelsToGenerator;
+    }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(OpenBuildFolderCommand))]
@@ -79,7 +90,14 @@ internal partial class SampleUIData : ObservableObject
             Arguments = $"\"{logFilePath}\""
         });
     }
+
+    public override string ToString()
+    {
+        return SampleName;
+    }
 }
+#pragma warning restore CA1708 // Identifiers should differ by more than case
+#pragma warning restore CA1051 // Do not declare visible instance fields
 #pragma warning restore SA1401 // Fields should be private
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
@@ -94,8 +112,11 @@ public class ProjectGenerator
 
     public TestContext TestContext { get; set; } = null!;
 
+    private static List<SampleUIData> Source { get; set; } = null!;
+    private static ListView listView = null!;
+
     [ClassInitialize]
-    public static void Initialize(TestContext context)
+    public static async Task Initialize(TestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -117,13 +138,7 @@ public class ProjectGenerator
         Directory.CreateDirectory(TmpPath);
         Directory.CreateDirectory(TmpPathProjectGenerator);
         Directory.CreateDirectory(TmpPathLogs);
-    }
 
-    [TestMethod]
-    public async Task GenerateForAllSamples()
-    {
-        List<SampleUIData> source = null!;
-        ListView listView = null!;
         TaskCompletionSource taskCompletionSource = new();
 
         UITestMethodAttribute.DispatcherQueue?.TryEnqueue(() =>
@@ -133,11 +148,11 @@ public class ProjectGenerator
             SampleUIData.yellowSolidColorBrush = new(Colors.Yellow);
             SampleUIData.graySolidColorBrush = new(Colors.LightGray);
 
-            source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
+            Source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
 
             listView = new ListView
             {
-                ItemsSource = source,
+                ItemsSource = Source,
                 ItemTemplate = Microsoft.UI.Xaml.Application.Current.Resources["SampleItemTemplate"] as Microsoft.UI.Xaml.DataTemplate
             };
             UnitTestApp.SetWindowContent(listView);
@@ -147,33 +162,77 @@ public class ProjectGenerator
 
         await taskCompletionSource.Task;
 
-        Dictionary<string, bool> successDict = [];
+        context.WriteLine($"Running {Source.Count} tests");
+    }
 
-        // write test count
-        TestContext.WriteLine($"Running {source.Count} tests");
-        int currentId = 0;
-        await Parallel.ForEachAsync(source, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (item, ct) =>
+    public static IEnumerable<SampleGroup> BatchSource()
+    {
+        var batchSize = 4;
+        var nextbatch = new SampleGroup(batchSize);
+        foreach (SampleUIData item in Source)
         {
-            listView.DispatcherQueue.TryEnqueue(() =>
+            nextbatch.Add(item);
+            if (nextbatch.Count == batchSize)
             {
-                item.StatusColor = SampleUIData.yellowSolidColorBrush;
-            });
+                yield return nextbatch;
+                nextbatch = new SampleGroup();
+            }
+        }
 
-            Interlocked.Increment(ref currentId);
-            item.Id = currentId;
-            var success = await GenerateForSample(item, ct);
+        if (nextbatch.Count > 0)
+        {
+            yield return nextbatch;
+        }
+    }
 
-            TestContext.WriteLine($"Built {item.SampleName} with status {success}");
-            Debug.WriteLine($"Built {item.SampleName} with status {success}");
+    public class SampleGroup : List<SampleUIData>
+    {
+        public SampleGroup()
+        {
+        }
 
-            listView.DispatcherQueue.TryEnqueue(() =>
-            {
-                item.StatusColor = success ? SampleUIData.greenSolidColorBrush : SampleUIData.redSolidColorBrush;
-            });
-            successDict.Add(item.SampleName, success);
+        public SampleGroup(int capacity)
+            : base(capacity)
+        {
+        }
+
+        public override string ToString()
+        {
+            return string.Join(", ", this.Select(i => i.SampleName));
+        }
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(BatchSource))]
+    public async Task GenerateForAllSamples(SampleGroup items)
+    {
+        await Parallel.ForEachAsync(
+            items,
+            new ParallelOptions { MaxDegreeOfParallelism = 4 },
+            async (item, ct) =>
+        {
+            await GenerateForSampleUI(item, ct);
+        });
+    }
+
+    public async Task GenerateForSampleUI(SampleUIData item, CancellationToken ct)
+    {
+        listView.DispatcherQueue.TryEnqueue(() =>
+        {
+            item.StatusColor = SampleUIData.yellowSolidColorBrush;
         });
 
-        successDict.Should().AllSatisfy(kvp => kvp.Value.Should().BeTrue($"{kvp.Key} should build successfully"));
+        var success = await GenerateForSample(item, ct);
+
+        TestContext.WriteLine($"Built {item.SampleName} with status {success}");
+        Debug.WriteLine($"Built {item.SampleName} with status {success}");
+
+        listView.DispatcherQueue.TryEnqueue(() =>
+        {
+            item.StatusColor = success ? SampleUIData.greenSolidColorBrush : SampleUIData.redSolidColorBrush;
+        });
+
+        Assert.IsTrue(success, $"{item.SampleName} should build successfully");
     }
 
     private static IEnumerable<SampleUIData> GetAllForSample(Sample s)
@@ -183,29 +242,29 @@ public class ProjectGenerator
         if (modelsDetails[0].ContainsKey(ModelType.LanguageModels) &&
             modelsDetails[0].ContainsKey(ModelType.PhiSilica))
         {
-            yield return new SampleUIData
+            yield return new SampleUIData(
+                $"{s.Name} GenAI",
+                s,
+                GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.LanguageModels)))
             {
-                Sample = s,
-                SampleName = $"{s.Name} GenAI",
-                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.LanguageModels)),
                 StatusColor = SampleUIData.graySolidColorBrush
             };
 
-            yield return new SampleUIData
+            yield return new SampleUIData(
+                $"{s.Name} PhiSilica",
+                s,
+                GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.PhiSilica)))
             {
-                Sample = s,
-                SampleName = $"{s.Name} PhiSilica",
-                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.PhiSilica)),
                 StatusColor = SampleUIData.graySolidColorBrush
             };
         }
         else
         {
-            yield return new SampleUIData
+            yield return new SampleUIData(
+                s.Name,
+                s,
+                GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First()))
             {
-                Sample = s,
-                SampleName = s.Name,
-                CachedModelsToGenerator = GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First()),
                 StatusColor = SampleUIData.graySolidColorBrush
             };
         }

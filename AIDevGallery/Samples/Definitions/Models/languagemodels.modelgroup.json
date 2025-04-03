@@ -21,7 +21,9 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-4-mini-gpu-int4-rtn-block-32"
           },
           "Phi4MiniCPU": {
             "Id": "69252aa6-0138-4bc0-b2d3-ef8d72f5380e",
@@ -30,11 +32,12 @@
             "Description": "Phi 4 Mini CPU Accuracy Level 4",
             "HardwareAccelerator": "CPU",
             "Size": 4930563630,
-            "SupportedOnQualcomm": false,
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/Phi-4-mini-instruct-onnx/blob/main/README.md"
@@ -55,7 +58,9 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3.5-mini-cpu-int4-awq-block-128-acc-level-4-onnx"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3.5-mini-instruct-onnx/blob/main/README.md"
@@ -76,7 +81,9 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3-mini-4k-directml-int4-awq-block-128-onnx"
           },
           "Phi3MiniCPU": {
             "Id": "69252aa6-0137-4bc0-b2d3-ef8d72f5380e",
@@ -88,7 +95,9 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3-mini-4k-cpu-int4-rtn-block-32-onnx"
           },
           "Phi3MiniCPUACC4": {
             "Id": "f4eba19c-b93f-4a4b-b003-0cfd1322ebad",
@@ -100,7 +109,9 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
-            "License": "mit"
+            "License": "mit",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "Phi-3-mini-4k-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx/blob/main/README.md"
@@ -154,7 +165,9 @@
             "Icon": "Mistral.svg",
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
-            "License": "apache-2.0"
+            "License": "apache-2.0",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "mistral-7b-v02-int4-directml"
           },
           "Mistral7BInstruct02CPU": {
             "Id": "4e01634b-1c52-4e59-9f0f-0994a0730548",
@@ -178,7 +191,9 @@
             "Icon": "Mistral.svg",
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
-            "License": "apache-2.0"
+            "License": "apache-2.0",
+            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitId": "mistral-7b-v02-int4-cpu"
           }
         },
         "ReadmeUrl": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/blob/main/README.md"

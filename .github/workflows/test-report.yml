@@ -1,0 +1,26 @@
+name: 'Test Report'
+on:
+  workflow_run:
+    workflows: ['CI'] # runs after CI workflow
+    types:
+      - completed
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  report:
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-arch: ['x64' ]
+    name: Test - ${{ matrix.dotnet-arch }}
+    runs-on: windows-latest
+    steps:
+    - name: Display test results
+      uses: dorny/test-reporter@v2
+      with:
+        artifact: test-results-${{ matrix.dotnet-arch }}
+        name: Test - Results - ${{ matrix.dotnet-arch }}
+        path: '*.trx'
+        reporter: dotnet-trx

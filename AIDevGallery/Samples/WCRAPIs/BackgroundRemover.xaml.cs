@@ -66,7 +66,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(Windows.ApplicationModel.Package.Current.InstalledLocation.Path + "\\Assets\\pose_default.png");
+        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
     }
@@ -174,9 +174,25 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return null;
         }
 
-        var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
-        var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
-        return ApplyMask(bitmap, mask);
+        try
+        {
+            var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
+            try
+            {
+                var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
+                return ApplyMask(bitmap, mask);
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex, "Failed to create get mask.");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to create ImageObjectExtractor session.");
+            return null;
+        }
     }
 
     private static SoftwareBitmap ApplyMask(SoftwareBitmap inputBitmap, SoftwareBitmap grayMask)
