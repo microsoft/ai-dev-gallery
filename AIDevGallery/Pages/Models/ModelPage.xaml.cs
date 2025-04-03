@@ -175,23 +175,30 @@ internal sealed partial class ModelPage : Page
 
     private void BuildAIToolkitButton()
     {
-        bool isAiToolkitActionAvailable = false;
+        Dictionary<ModelDetails, List<AIToolkitAction>> validatedModelDetailActionDict = AIToolkitHelper.GetValidatedToolkitModelDetailsToActionListDict(models);
+
+        if (validatedModelDetailActionDict.Count == 0)
+        {
+            AIToolkitDropdown.Visibility = Visibility.Collapsed;
+        }
+        else if (validatedModelDetailActionDict.Count == 1)
+        {
+            BuildSingleModelAIToolkitButton(validatedModelDetailActionDict.First().Key, validatedModelDetailActionDict.First().Value);
+        }
+        else
+        {
+            BuildMultiModelAIToolkitButton(validatedModelDetailActionDict);
+        }
+    }
+
+    private void BuildMultiModelAIToolkitButton(Dictionary<ModelDetails, List<AIToolkitAction>> modelActionDict)
+    {
         Dictionary<AIToolkitAction, MenuFlyoutSubItem> actionSubmenus = new();
 
-        foreach(ModelDetails modelDetails in models)
+        foreach(ModelDetails modelDetails in modelActionDict.Keys)
         {
-            if(modelDetails.AIToolkitActions == null)
+            foreach(AIToolkitAction action in modelActionDict[modelDetails])
             {
-                continue;
-            }
-
-            foreach(AIToolkitAction action in modelDetails.AIToolkitActions)
-            {
-                if(!modelDetails.ValidateAction(action))
-                {
-                    continue;
-                }
-
                 MenuFlyoutSubItem? actionFlyoutItem;
                 if (!actionSubmenus.TryGetValue(action, out actionFlyoutItem))
                 {
@@ -203,7 +210,6 @@ internal sealed partial class ModelPage : Page
                     AIToolkitFlyout.Items.Add(actionFlyoutItem);
                 }
 
-                isAiToolkitActionAvailable = true;
                 MenuFlyoutItem modelFlyoutItem = new MenuFlyoutItem()
                 {
                     Tag = (action, modelDetails),
@@ -218,8 +224,21 @@ internal sealed partial class ModelPage : Page
                 actionFlyoutItem.Items.Add(modelFlyoutItem);
             }
         }
+    }
 
-        AIToolkitDropdown.Visibility = isAiToolkitActionAvailable ? Visibility.Visible : Visibility.Collapsed;
+    private void BuildSingleModelAIToolkitButton(ModelDetails modelDetails, List<AIToolkitAction> actions)
+    {
+        foreach (AIToolkitAction action in actions)
+        {
+            MenuFlyoutItem actionFlyoutItem = new MenuFlyoutItem()
+            {
+                Tag = (action, modelDetails),
+                Text = AIToolkitHelper.AIToolkitActionInfos[action].DisplayName
+            };
+
+            actionFlyoutItem.Click += ToolkitActionFlyoutItem_Click;
+            AIToolkitFlyout.Items.Add(actionFlyoutItem);
+        }
     }
 
     private void ToolkitActionFlyoutItem_Click(object sender, RoutedEventArgs e)
