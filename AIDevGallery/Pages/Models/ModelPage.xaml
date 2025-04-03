@@ -43,7 +43,7 @@
             <DropDownButton
                 x:Name="AIToolkitDropdown"
                 AutomationProperties.Name="Open in AI Toolkit"
-                Visibility="Collapsed">
+                Visibility="Visible">
                 <DropDownButton.Content>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Image Width="16">
