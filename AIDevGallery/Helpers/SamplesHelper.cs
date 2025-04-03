@@ -66,9 +66,19 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.OLLAMA))
+            if (models.Values.Any(m => m.IsHttpApi()))
             {
-                AddUnique("Microsoft.Extensions.AI.Ollama");
+                foreach (var m in models)
+                {
+                    if (m.Value.IsHttpApi())
+                    {
+                        var nugetPackages = ExternalModelHelper.GetPackageReferences(m.Value.HardwareAccelerator);
+                        foreach (var nugetPackage in nugetPackages)
+                        {
+                            AddUnique(nugetPackage);
+                        }
+                    }
+                }
             }
             else
             {
@@ -185,11 +195,9 @@ internal static partial class SamplesHelper
         {
             return "await PhiSilicaClient.CreateAsync()";
         }
-        else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        else if (ExternalModelHelper.IsUrlFromExternalProvider(modelPath[2..^1]))
         {
-            var modelId = modelPath[2..^1].Split('/').LastOrDefault();
-
-            return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
+            return ExternalModelHelper.GetIChatClientString(modelPath[2..^1]);
         }
 
         return $"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
