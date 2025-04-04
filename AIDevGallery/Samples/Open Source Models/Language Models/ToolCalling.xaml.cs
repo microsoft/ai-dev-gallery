@@ -17,7 +17,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Tool Calling",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.ToolCallingLanguageModels],
     Scenario = ScenarioType.TextToolCalling,
     NugetPackageReferences = [
     ],

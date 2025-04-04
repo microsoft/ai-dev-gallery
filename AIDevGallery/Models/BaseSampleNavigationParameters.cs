@@ -43,10 +43,9 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
 
     public IChatClient? GetFunctionInvokingIChatClientAsync()
     {
-        if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
+        if (ExternalModelHelper.IsUrlFromExternalProvider(ChatClientModelPath))
         {
-            var modelId = ChatClientModelPath.Split('/').LastOrDefault();
-            return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId)
+            return ExternalModelHelper.GetIChatClient(ChatClientModelPath)?
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();
