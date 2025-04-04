@@ -41,5 +41,18 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
             CancellationToken).ConfigureAwait(false);
     }
 
+    public IChatClient? GetFunctionInvokingIChatClientAsync()
+    {
+        if (ExternalModelHelper.IsUrlFromExternalProvider(ChatClientModelPath))
+        {
+            return ExternalModelHelper.GetIChatClient(ChatClientModelPath)?
+                .AsBuilder()
+                .UseFunctionInvocation()
+                .Build();
+        }
+
+        return null;
+    }
+
     internal abstract void SendSampleInteractionEvent(string? customInfo = null);
 }

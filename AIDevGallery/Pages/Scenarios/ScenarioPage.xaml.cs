@@ -91,6 +91,13 @@ internal sealed partial class ScenarioPage : Page
                 var externalModels = await ExternalModelHelper.GetAllModelsAsync();
                 modelDetailsList.AddRange(externalModels);
             }
+
+            if (s.Model1Types.Contains(ModelType.ToolCallingLanguageModels))
+            {
+                // add tool calling external models
+                var externalModels = await ExternalModelHelper.GetAllModelsAsync(true);
+                modelDetailsList.AddRange(externalModels);
+            }
         }
 
         if (modelDetailsList.Count == 0)

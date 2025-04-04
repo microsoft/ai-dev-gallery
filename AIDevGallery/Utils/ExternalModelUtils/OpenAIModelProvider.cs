@@ -48,6 +48,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
     public string DarkIcon => LightIcon;
 
     public string Url => "https://api.openai.com/v1";
+    private static List<string> ToolCallingModelsNames => [];
 
     public string? GetDetailsUrl(ModelDetails details)
     {
@@ -68,7 +69,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         return $"new OpenAIClient(\"OPENAI_API_KEY\").AsChatClient(\"{modelId}\")";
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default)
     {
         if (_cachedModels != null && _cachedModels.Any())
         {
