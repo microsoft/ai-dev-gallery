@@ -43,5 +43,19 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
             CancellationToken).ConfigureAwait(false);
     }
 
+    public IChatClient? GetFunctionInvokingIChatClientAsync()
+    {
+        if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
+        {
+            var modelId = ChatClientModelPath.Split('/').LastOrDefault();
+            return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId)
+                .AsBuilder()
+                .UseFunctionInvocation()
+                .Build();
+        }
+
+        return null;
+    }
+
     internal abstract void SendSampleInteractionEvent(string? customInfo = null);
 }

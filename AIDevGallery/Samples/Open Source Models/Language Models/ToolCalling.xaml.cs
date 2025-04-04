@@ -8,6 +8,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +20,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
     Scenario = ScenarioType.TextToolCalling,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
     ],
     Id = "25bb4e58-d909-4377-b59c-975cd6baff19",
     Icon = "\uEC7A")]
@@ -27,6 +28,7 @@ internal sealed partial class ToolCalling : BaseSamplePage
     private const int _maxTokenLength = 1024;
     private IChatClient? chatClient;
     private CancellationTokenSource? cts;
+    private ChatOptions chatOptions;
     private bool isProgressVisible;
     private bool isImeActive = true;
 
@@ -34,6 +36,19 @@ internal sealed partial class ToolCalling : BaseSamplePage
     {
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
+
+        [Description("Gets the weather")]
+        static string GetWeather()
+        {
+            System.Diagnostics.Debug.WriteLine("Weather function called");
+            return Random.Shared.NextDouble() > 0.5 ? "It's 135 degrees" : "It's raining";
+        }
+
+        chatOptions = new ChatOptions()
+        {
+            Tools = [AIFunctionFactory.Create(GetWeather)]
+        };
+
         this.InitializeComponent();
     }
 
@@ -41,7 +56,8 @@ internal sealed partial class ToolCalling : BaseSamplePage
     {
         try
         {
-            chatClient = await sampleParams.GetIChatClientAsync();
+            await Task.Run(() => Thread.Sleep(1));
+            chatClient = sampleParams.GetFunctionInvokingIChatClientAsync();
             InputTextBox.MaxLength = _maxTokenLength;
         }
         catch (System.Exception ex)
@@ -98,8 +114,8 @@ internal sealed partial class ToolCalling : BaseSamplePage
         Task.Run(
             async () =>
             {
-                string systemPrompt = "You generate text based on a user-provided topic. Respond with only the generated content and no extraneous text.";
-                string userPrompt = "Generate text based on the topic: " + topic;
+                string systemPrompt = "You are a helpful assistant with some tools.";
+                string userPrompt = topic;
 
                 cts = new CancellationTokenSource();
 
@@ -107,10 +123,9 @@ internal sealed partial class ToolCalling : BaseSamplePage
 
                 await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
-                        new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
                     ],
-                    null,
+                    chatOptions,
                     cts.Token))
                 {
                     DispatcherQueue.TryEnqueue(() =>
