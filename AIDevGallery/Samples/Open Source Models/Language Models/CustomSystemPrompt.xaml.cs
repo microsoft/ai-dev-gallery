@@ -25,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ])]
 internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {

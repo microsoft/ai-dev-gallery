@@ -61,7 +61,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
-    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.AI.Ollama" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
