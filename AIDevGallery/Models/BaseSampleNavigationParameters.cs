@@ -4,7 +4,6 @@
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,10 +29,9 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         {
             return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
         }
-        else if (ChatClientModelPath.StartsWith("ollama", System.StringComparison.InvariantCultureIgnoreCase))
+        else if (ExternalModelHelper.IsUrlFromExternalProvider(ChatClientModelPath))
         {
-            var modelId = ChatClientModelPath.Split('/').LastOrDefault();
-            return new OllamaChatClient(OllamaHelper.GetOllamaUrl(), modelId);
+            return ExternalModelHelper.GetIChatClient(ChatClientModelPath);
         }
 
         return await OnnxRuntimeGenAIChatClientFactory.CreateAsync(

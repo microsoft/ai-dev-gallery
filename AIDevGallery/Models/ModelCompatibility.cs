@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using System;
@@ -24,7 +25,7 @@ internal class ModelCompatibility
         string description = string.Empty;
         ModelCompatibilityState compatibility;
 
-        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+        if (modelDetails.IsHttpApi())
         {
             compatibility = ModelCompatibilityState.Compatible;
         }
