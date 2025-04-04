@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ColorCode.WinUI" />
+	<PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.CameraPreview" />
@@ -83,9 +83,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
-    <PackageReference Include="HtmlAgilityPack"/>
-    <PackageReference Include="Markdig"/>
-    <PackageReference Include="Roman-Numerals"/>
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Roman-Numerals" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
@@ -243,6 +243,7 @@
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
+    <None Remove="Assets\ModelIcons\lemonade.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
     <None Remove="Assets\ModelIcons\onnx.svg" />

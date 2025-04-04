@@ -63,7 +63,7 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     private static bool? isOllamaAvailable;
 
-    public static async Task<List<OllamaModel>?> GetOllamaModelsAsync(CancellationToken cancelationToken)
+    private static async Task<List<OllamaModel>?> GetOllamaModelsAsync(CancellationToken cancelationToken)
     {
         if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
