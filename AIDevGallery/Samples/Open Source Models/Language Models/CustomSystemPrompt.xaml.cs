@@ -78,12 +78,17 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         {
             chatClient = await sampleParams.GetIChatClientAsync();
             chatOptions = GetDefaultChatOptions(chatClient);
-            IsPhiSilica = chatClient?.GetType().ToString() == "AIDevGallery.Samples.SharedCode.PhiSilicaClient";
+            IsPhiSilica = chatClient?.GetType() == typeof(PhiSilicaClient);
             InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         }
         catch (Exception ex)
         {
             ShowException(ex);
+        }
+
+        if (IsPhiSilica)
+        {
+            SetupForPhiSilica();
         }
 
         sampleParams.NotifyCompletion();
@@ -107,11 +112,6 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             SkillCombo.SelectedItem = lastState.ModelSkill ?? LanguageModelSkill.General;
             InputModerationCombo.SelectedItem = lastState.InputContentModeration ?? SeverityLevel.None;
             OutputModerationCombo.SelectedItem = lastState.OutputContentModeration ?? SeverityLevel.None;
-        }
-
-        if (IsPhiSilica)
-        {
-            SetupForPhiSilica();
         }
     }
 
