@@ -36,7 +36,8 @@ internal class OllamaModelProvider : IExternalModelProvider
     private static List<string> ToolCallingModelNames =>
     [
         "Llama3.1",
-        "Mistral-small"
+        "Llama3.2",
+        "Mistral-Small"
     ];
 
     public Task InitializeAsync(CancellationToken cancelationToken = default)
