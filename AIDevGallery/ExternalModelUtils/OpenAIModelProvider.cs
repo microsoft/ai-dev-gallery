@@ -62,6 +62,8 @@ internal class OpenAIModelProvider : IExternalModelProvider
         return modelId == null ? null : new OpenAIClient(OpenAIKey).AsChatClient(modelId);
     }
 
+    public string? IChatClientImplementationNamespace { get; } = "OpenAI";
+
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
