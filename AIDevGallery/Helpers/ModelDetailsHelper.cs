@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
-using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 using System.Linq;

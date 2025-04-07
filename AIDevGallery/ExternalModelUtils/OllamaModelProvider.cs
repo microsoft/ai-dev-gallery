@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal record OllamaModel(string Name, string Tag, string Id, string Size, string Modified);
 
@@ -31,6 +32,11 @@ internal class OllamaModelProvider : IExternalModelProvider
     public string DarkIcon => "ollama.dark.svg";
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
+
+    public Task InitializeAsync(CancellationToken cancelationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
     {

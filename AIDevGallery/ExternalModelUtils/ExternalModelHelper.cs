@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -10,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal static class ExternalModelHelper
 {
@@ -18,6 +19,11 @@ internal static class ExternalModelHelper
         new OllamaModelProvider(),
         new OpenAIModelProvider()
     ];
+
+    public static async Task InitializeAsync()
+    {
+        await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
+    }
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
     {
@@ -105,7 +111,7 @@ internal static class ExternalModelHelper
         {
             if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
+                if (Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
                 {
                     return provider.LightIcon;
                 }
