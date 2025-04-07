@@ -58,6 +58,11 @@ internal static class ExternalModelHelper
         return _modelProviders?.FirstOrDefault(p => p.ModelHardwareAccelerator == hardwareAccelerator);
     }
 
+    private static IExternalModelProvider? GetProvider(string url)
+    {
+        return _modelProviders?.FirstOrDefault(p => url.StartsWith(p.UrlPrefix, StringComparison.InvariantCultureIgnoreCase));
+    }
+
     private static IExternalModelProvider? GetProvider(ModelDetails details)
     {
         return _modelProviders?.FirstOrDefault(p => details.HardwareAccelerators.Contains(p.ModelHardwareAccelerator));
@@ -107,47 +112,26 @@ internal static class ExternalModelHelper
 
     public static string GetIcon(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                if (Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                {
-                    return provider.LightIcon;
-                }
-                else
-                {
-                    return provider.DarkIcon;
-                }
-            }
-        }
-
-        return "HuggingFace.svg";
+        var provider = GetProvider(url);
+        return provider == null
+                ? "HuggingFace.svg"
+            : Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light
+                ? provider.LightIcon
+                : provider.DarkIcon;
     }
 
     public static IChatClient? GetIChatClient(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return provider.GetIChatClient(url);
-            }
-        }
+        return GetProvider(url)?.GetIChatClient(url);
+    }
 
-        return null;
+    public static string? GetIChatClientNamespace(string url)
+    {
+        return GetProvider(url)?.IChatClientImplementationNamespace;
     }
 
     public static string? GetIChatClientString(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return provider.GetIChatClientString(url);
-            }
-        }
-
-        return null;
+        return GetProvider(url)?.GetIChatClientString(url);
     }
 }

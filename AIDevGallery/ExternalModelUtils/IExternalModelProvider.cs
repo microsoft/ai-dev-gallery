@@ -21,6 +21,7 @@ internal interface IExternalModelProvider
     Task InitializeAsync(CancellationToken cancelationToken = default);
     Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default);
     IChatClient? GetIChatClient(string url);
+    string? IChatClientImplementationNamespace { get; }
     string? GetIChatClientString(string url);
     string? GetDetailsUrl(ModelDetails details);
     string Url { get; }

@@ -151,6 +151,8 @@ internal class OllamaModelProvider : IExternalModelProvider
         return $"https://ollama.com/library/{details.Name}";
     }
 
+    public string? IChatClientImplementationNamespace { get; }
+
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
