@@ -157,7 +157,7 @@ internal sealed partial class ScenarioPage : Page
             {
                 if (selectedModelDetails.IsHttpApi())
                 {
-                    if (s.Model1Types.Contains(ModelType.LanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
+                    if (s.Model1Types.Contains(ModelType.LanguageModels) || s.Model1Types.Contains(ModelType.ToolCallingLanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
                     {
                         sample = s;
                         break;

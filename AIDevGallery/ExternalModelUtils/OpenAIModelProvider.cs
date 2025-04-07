@@ -70,7 +70,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         return $"new OpenAIClient(\"OPENAI_API_KEY\").AsChatClient(\"{modelId}\")";
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default)
+    public async Task InitializeAsync(CancellationToken cancelationToken = default)
     {
         if (_cachedModels != null && _cachedModels.Any())
         {
@@ -117,7 +117,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         }
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool toolCallingModelsOnly = false, CancellationToken cancelationToken = default)
     {
         await InitializeAsync(cancelationToken);
 
