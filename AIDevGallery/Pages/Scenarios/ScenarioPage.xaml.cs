@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;

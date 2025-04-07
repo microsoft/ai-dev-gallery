@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using OpenAI;
 using OpenAI.Models;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal class OpenAIModelProvider : IExternalModelProvider
 {
@@ -73,7 +74,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
     {
         if (_cachedModels != null && _cachedModels.Any())
         {
-            return _cachedModels;
+            return;
         }
 
         try
@@ -84,7 +85,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
             if (models?.Value == null)
             {
-                return [];
+                return;
             }
 
             _cachedModels = [.. models.Value
@@ -94,12 +95,10 @@ internal class OpenAIModelProvider : IExternalModelProvider
                     !model.Id.Contains("tts", StringComparison.InvariantCultureIgnoreCase) &&
                     !model.Id.Contains("preview", StringComparison.InvariantCultureIgnoreCase))
                 .Select(ToModelDetails)];
-
-            return _cachedModels;
         }
         catch
         {
-            return [];
+            return;
         }
 
         static ModelDetails ToModelDetails(OpenAIModel model)
@@ -116,5 +115,12 @@ internal class OpenAIModelProvider : IExternalModelProvider
                 ParameterSize = string.Empty,
             };
         }
+    }
+
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    {
+        await InitializeAsync(cancelationToken);
+
+        return _cachedModels != null && _cachedModels.Any() ? _cachedModels : [];
     }
 }

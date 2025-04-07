@@ -20,6 +20,7 @@ internal interface IExternalModelProvider
     private static List<string>? ToolCallingModelNames { get; }
     string ProviderDescription { get; }
     Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default);
+    Task InitializeAsync(CancellationToken cancelationToken = default);
     IChatClient? GetIChatClient(string url);
     string? GetIChatClientString(string url);
     string? GetDetailsUrl(ModelDetails details);

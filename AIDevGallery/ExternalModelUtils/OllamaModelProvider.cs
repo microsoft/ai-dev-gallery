@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal record OllamaModel(string Name, string Tag, string Id, string Size, string Modified);
 
@@ -37,6 +38,11 @@ internal class OllamaModelProvider : IExternalModelProvider
         "Llama3.1",
         "Mistral-small"
     ];
+
+    public Task InitializeAsync(CancellationToken cancelationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default)
     {
