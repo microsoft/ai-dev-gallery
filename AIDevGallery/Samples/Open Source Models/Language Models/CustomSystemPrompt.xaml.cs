@@ -78,7 +78,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         {
             chatClient = await sampleParams.GetIChatClientAsync();
             chatOptions = GetDefaultChatOptions(chatClient);
-            IsPhiSilica = chatClient?.GetType() == typeof(PhiSilicaClient);
+            IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
             InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         }
         catch (Exception ex)
