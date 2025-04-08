@@ -37,16 +37,20 @@ internal sealed partial class ToolCalling : BaseSamplePage
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
 
-        [Description("Gets the weather")]
-        static string GetWeather()
+        [Description("Adjusts the output font size.")]
+        void AdjustFontSize(int fontsize)
         {
-            System.Diagnostics.Debug.WriteLine("Weather function called");
-            return Random.Shared.NextDouble() > 0.5 ? "It's 135 degrees" : "It's raining";
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                GenerateTextBlock.FontSize = fontsize;
+            });
         }
 
         chatOptions = new ChatOptions()
         {
-            Tools = [AIFunctionFactory.Create(GetWeather)]
+            Tools = [
+                AIFunctionFactory.Create(AdjustFontSize),
+            ]
         };
 
         this.InitializeComponent();
