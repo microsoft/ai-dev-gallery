@@ -367,7 +367,7 @@ internal partial class Generator
             var appXamlPath = Path.Join(outputPath, "App.xaml");
             var appXaml = await File.ReadAllTextAsync(appXamlPath, cancellationToken);
             appXaml = appXaml.Replace(
-                "                <!--  Other merged dictionaries here  -->",
+                "                <!-- Other merged dictionaries here -->",
                 string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.Join("Utils", Path.GetFileName(s))}\" />")));
             await File.WriteAllTextAsync(appXamlPath, appXaml, cancellationToken);
         }
