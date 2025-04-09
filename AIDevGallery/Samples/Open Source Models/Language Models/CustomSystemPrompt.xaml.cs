@@ -86,6 +86,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             ShowException(ex);
         }
 
+        if (IsPhiSilica)
+        {
+            SetupForPhiSilica();
+        }
+
         sampleParams.NotifyCompletion();
     }
 
@@ -337,5 +342,13 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         LanguageModelSkill = defaultSkill;
         InputModerationLevel = defaultSeverityLevel;
         OutputModerationLevel = defaultSeverityLevel;
+    }
+
+    private void SetupForPhiSilica()
+    {
+        MaxLengthSlider.Visibility = Visibility.Collapsed;
+        MinLengthSlider.Visibility = Visibility.Collapsed;
+        DoSampleToggle.Visibility = Visibility.Collapsed;
+        PhiSilicaParams.Visibility = Visibility.Visible;
     }
 }
