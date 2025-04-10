@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
@@ -476,6 +477,56 @@ internal sealed partial class AddModelPage : Page
 
             App.MainWindow.NavigateToPage(details);
         }
+    }
+
+    private async void AddCloudClicked(object sender, RoutedEventArgs e)
+    {
+        var textBox = new TextBox
+        {
+            Width = 300,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 10),
+            Header = "OpenAI API Key"
+        };
+
+        // Ask for OPENAI key
+        ContentDialog keyDialog = new()
+        {
+            Title = "Add OpenAI model",
+            Content = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                Spacing = 8,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = "Please enter your OpenAI API key",
+                        TextWrapping = TextWrapping.WrapWholeWords
+                    },
+                    textBox
+                }
+            },
+            XamlRoot = this.Content.XamlRoot,
+            CloseButtonText = "Cancel",
+            PrimaryButtonText = "Add",
+            DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+        };
+
+        var result = await keyDialog.ShowAsync();
+        if (result != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        string openAIKey = textBox.Text;
+        if (string.IsNullOrEmpty(openAIKey))
+        {
+            return;
+        }
+
+        OpenAIModelProvider.OpenAIKey = openAIKey;
     }
 }
 
