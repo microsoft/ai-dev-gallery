@@ -60,15 +60,13 @@
                             Content="Reset to defaults" />
                 </StackPanel>
             </StackPanel>
-            <StackPanel Grid.RowSpan="3" Grid.Column="1" Spacing="12">
+            <StackPanel Grid.RowSpan="3" Grid.Column="1" Spacing="12" Margin="0,0,12,0">
                 <Slider x:Name="MinLengthSlider" Header="Min Length" Maximum="2048"
                         Minimum="0" StepFrequency="1"
-                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
                         ToolTipService.ToolTip="The min length parameter sets the minimum number of tokens for the model to respond with."
                         Value="0" />
                 <Slider x:Name="MaxLengthSlider" Header="Max Length" Maximum="2048"
                         Minimum="1" StepFrequency="1"
-                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
                         ToolTipService.ToolTip="The max length parameter sets the maximum number of tokens for the model to respond with."
                         Value="{x:Bind defaultMaxLength, Mode=OneTime}" />
                 <Slider x:Name="TopPSlider" Header="Top P" Maximum="1" Minimum="0"
@@ -85,10 +83,9 @@
                         Value="{x:Bind defaultTemperature, Mode=OneTime}" />
                 <ToggleSwitch x:Name="DoSampleToggle" Header="Sampling"
                         IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
-                        Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, ConverterParameter=True}"
                         ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
-                <StackPanel x:Name="PhiSilicaParams" Spacing="12" Visibility="{x:Bind IsPhiSilica, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                    <TextBlock VerticalAlignment="Center" Text="Skill">
+                <StackPanel x:Name="PhiSilicaParams" Spacing="12" Visibility="Collapsed">
+                    <TextBlock VerticalAlignment="Center" Text="Language Model Skill">
                          <ToolTipService.ToolTip>
                              <ToolTip>
                                  <StackPanel>

@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace AIDevGallery.Samples.SharedCode;
@@ -16,9 +15,9 @@ internal class ImageNet
     public static Prediction[] GetSoftmax(IEnumerable<float> output)
     {
         float sum = output.Sum(x => (float)Math.Exp(x));
-        IEnumerable<float> softmax = output.Select(x => (float)Math.Exp(x) / sum);
+        IEnumerable<float> softmax = output.Select(x => (float)Math.Round((float)Math.Exp(x) / sum, 4));
 
-        return softmax.Select((x, i) => new Prediction { Label = ImageNetLabels.Labels[i], Confidence = float.Parse(x.ToString("F4", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture) })
+        return softmax.Select((x, i) => new Prediction { Label = ImageNetLabels.Labels[i], Confidence = x })
                            .OrderByDescending(x => x.Confidence)
                            .Take(5)
                            .ToArray();
