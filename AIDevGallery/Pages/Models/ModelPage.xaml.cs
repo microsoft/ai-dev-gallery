@@ -46,6 +46,8 @@ internal sealed partial class ModelPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        bool isLocalModel = false;
+
         if (e.Parameter is MostRecentlyUsedItem mru)
         {
             var modelFamilyId = mru.ItemId;
@@ -71,6 +73,8 @@ internal sealed partial class ModelPage : Page
                 ReadmeUrl = details.ReadmeUrl ?? string.Empty,
                 Name = details.Name
             };
+
+            isLocalModel = details.Url.StartsWith("local", StringComparison.OrdinalIgnoreCase);
         }
         else
         {
@@ -80,6 +84,11 @@ internal sealed partial class ModelPage : Page
         if (ModelFamily != null && !string.IsNullOrWhiteSpace(ModelFamily.ReadmeUrl))
         {
             var loadReadme = LoadReadme(ModelFamily.ReadmeUrl);
+        }
+        else if (isLocalModel)
+        {
+            markdownTextBlock.Text = "This model was added by you.";
+            readmeProgressRing.IsActive = false;
         }
         else
         {
@@ -123,11 +132,11 @@ internal sealed partial class ModelPage : Page
     {
         string readmeContents = string.Empty;
 
-        if (url.StartsWith("https://github.com", StringComparison.InvariantCultureIgnoreCase))
+        if (url.StartsWith("https://github.com", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await GithubApi.GetContentsOfTextFile(url);
         }
-        else if (url.StartsWith("https://huggingface.co", StringComparison.InvariantCultureIgnoreCase))
+        else if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
         {
             readmeContents = await HuggingFaceApi.GetContentsOfTextFile(url);
         }
@@ -168,23 +177,30 @@ internal sealed partial class ModelPage : Page
 
     private void BuildAIToolkitButton()
     {
-        bool isAiToolkitActionAvailable = false;
+        Dictionary<ModelDetails, List<AIToolkitAction>> validatedModelDetailActionDict = AIToolkitHelper.GetValidatedToolkitModelDetailsToActionListDict(models);
+
+        if (validatedModelDetailActionDict.Count == 0)
+        {
+            AIToolkitDropdown.Visibility = Visibility.Collapsed;
+        }
+        else if (validatedModelDetailActionDict.Count == 1)
+        {
+            BuildSingleModelAIToolkitButton(validatedModelDetailActionDict.First().Key, validatedModelDetailActionDict.First().Value);
+        }
+        else
+        {
+            BuildMultiModelAIToolkitButton(validatedModelDetailActionDict);
+        }
+    }
+
+    private void BuildMultiModelAIToolkitButton(Dictionary<ModelDetails, List<AIToolkitAction>> modelActionDict)
+    {
         Dictionary<AIToolkitAction, MenuFlyoutSubItem> actionSubmenus = new();
 
-        foreach(ModelDetails modelDetails in models)
+        foreach(ModelDetails modelDetails in modelActionDict.Keys)
         {
-            if(modelDetails.AIToolkitActions == null)
+            foreach(AIToolkitAction action in modelActionDict[modelDetails])
             {
-                continue;
-            }
-
-            foreach(AIToolkitAction action in modelDetails.AIToolkitActions)
-            {
-                if(!modelDetails.ValidateAction(action))
-                {
-                    continue;
-                }
-
                 MenuFlyoutSubItem? actionFlyoutItem;
                 if (!actionSubmenus.TryGetValue(action, out actionFlyoutItem))
                 {
@@ -196,7 +212,6 @@ internal sealed partial class ModelPage : Page
                     AIToolkitFlyout.Items.Add(actionFlyoutItem);
                 }
 
-                isAiToolkitActionAvailable = true;
                 MenuFlyoutItem modelFlyoutItem = new MenuFlyoutItem()
                 {
                     Tag = (action, modelDetails),
@@ -211,8 +226,21 @@ internal sealed partial class ModelPage : Page
                 actionFlyoutItem.Items.Add(modelFlyoutItem);
             }
         }
+    }
 
-        AIToolkitDropdown.Visibility = isAiToolkitActionAvailable ? Visibility.Visible : Visibility.Collapsed;
+    private void BuildSingleModelAIToolkitButton(ModelDetails modelDetails, List<AIToolkitAction> actions)
+    {
+        foreach (AIToolkitAction action in actions)
+        {
+            MenuFlyoutItem actionFlyoutItem = new MenuFlyoutItem()
+            {
+                Tag = (action, modelDetails),
+                Text = AIToolkitHelper.AIToolkitActionInfos[action].DisplayName
+            };
+
+            actionFlyoutItem.Click += ToolkitActionFlyoutItem_Click;
+            AIToolkitFlyout.Items.Add(actionFlyoutItem);
+        }
     }
 
     private void ToolkitActionFlyoutItem_Click(object sender, RoutedEventArgs e)
@@ -299,5 +327,15 @@ internal sealed partial class ModelPage : Page
             var availableModel = modelSelectionControl.DownloadedModels.FirstOrDefault();
             App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, availableModel));
         }
+    }
+
+    public static Uri GetSafeUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return new Uri("https://aka.ms/ai-dev-gallery-repo");
+        }
+
+        return new Uri(url);
     }
 }

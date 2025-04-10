@@ -25,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ])]
 internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
@@ -84,6 +84,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         catch (Exception ex)
         {
             ShowException(ex);
+        }
+
+        if (IsPhiSilica)
+        {
+            SetupForPhiSilica();
         }
 
         sampleParams.NotifyCompletion();
@@ -337,5 +342,13 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         LanguageModelSkill = defaultSkill;
         InputModerationLevel = defaultSeverityLevel;
         OutputModerationLevel = defaultSeverityLevel;
+    }
+
+    private void SetupForPhiSilica()
+    {
+        MaxLengthSlider.Visibility = Visibility.Collapsed;
+        MinLengthSlider.Visibility = Visibility.Collapsed;
+        DoSampleToggle.Visibility = Visibility.Collapsed;
+        PhiSilicaParams.Visibility = Visibility.Visible;
     }
 }

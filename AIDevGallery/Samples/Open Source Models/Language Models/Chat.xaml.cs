@@ -25,7 +25,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     SharedCode = [
         SharedCodeEnum.Message,

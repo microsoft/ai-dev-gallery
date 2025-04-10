@@ -22,6 +22,7 @@ internal class MultiModelSampleNavigationParameters(
     public HardwareAccelerator[] HardwareAccelerators { get; } = hardwareAccelerators;
 
     protected override string ChatClientModelPath => ModelPaths[0];
+    protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerators[0];
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplates[0];
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)

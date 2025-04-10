@@ -16,7 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Icon = "\uE8D4",
     Scenario = ScenarioType.SmartControlsSmartTextBox,
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI.Abstractions"
+        "Microsoft.Extensions.AI"
     ],
     SharedCode = [
         SharedCodeEnum.SmartTextBoxCs,
