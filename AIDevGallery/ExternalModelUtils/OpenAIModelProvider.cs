@@ -58,7 +58,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
     public IChatClient? GetIChatClient(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return modelId == null ? null : new OpenAIClient(OpenAIKey).AsChatClient(modelId);
+        return modelId == null ? null : new OpenAIClient(OpenAIKey).GetChatClient(modelId).AsIChatClient();
     }
 
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";
@@ -68,7 +68,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         var modelId = url.Split('/').LastOrDefault();
 
         // TODO
-        return $"new OpenAIClient(\"OPENAI_API_KEY\").AsChatClient(\"{modelId}\")";
+        return $"new OpenAIClient(\"OPENAI_API_KEY\").GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
     public async Task InitializeAsync(CancellationToken cancelationToken = default)
