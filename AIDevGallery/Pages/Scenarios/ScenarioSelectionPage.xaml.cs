@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using ColorCode.Compilation.Languages;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
@@ -103,11 +104,14 @@ internal sealed partial class ScenarioSelectionPage : Page
         NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 248 : 0;
     }
 
+    record SampleMapping(string id, string name);
+
     private void SetUpScenarios(string? filter = null)
     {
         NavView.MenuItems.Clear();
         NavView.MenuItems.Add(new NavigationViewItem() { Content = "Overview", Icon = new FontIcon() { Glyph = "\uF0E2" }, Tag = "Overview" });
         NavView.MenuItems.Add(new NavigationViewItemSeparator());
+        var sampleMapping = new List<SampleMapping>();
         foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
         {
             var categoryMenu = new NavigationViewItem() { Content = scenarioCategory.Name, Icon = new FontIcon() { Glyph = scenarioCategory.Icon }, Tag = scenarioCategory };
@@ -116,6 +120,11 @@ internal sealed partial class ScenarioSelectionPage : Page
 
             foreach (var scenario in scenarioCategory.Scenarios)
             {
+                foreach (var sample in SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList())
+                {
+                    sampleMapping.Add(new SampleMapping(sample.Id, sample.Name));
+                }
+
                 if (filter != null)
                 {
                     var models = GetModelsForScenario(scenario);
@@ -148,6 +157,9 @@ internal sealed partial class ScenarioSelectionPage : Page
                 NavView.MenuItems.Add(categoryMenu);
             }
         }
+
+        // serailize the sample mapping to a JSON string
+        var sampleMappingJson = System.Text.Json.JsonSerializer.Serialize(sampleMapping);
     }
 
     private List<ModelDetails> GetModelsForScenario(Scenario scenario)
