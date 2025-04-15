@@ -152,6 +152,25 @@
                     ModelCardVisibility="Visible"
                     ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged" />
             </Grid>
+            <Grid x:Name="NoToolCallingGrid"
+                  MaxWidth="480"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Image Source="/Assets/ModelIcons/ollama.light.svg"
+                       MaxWidth="80"/>
+                <TextBlock Grid.Row="1">
+                    <Run FontWeight="SemiBold" Text="It looks like you don't have any local models installed." />
+                    <LineBreak />
+                    <LineBreak />
+                    <Run Text="Consider one of these to get aaaaaa started:" />
+                </TextBlock>
+
+            </Grid>
         </Grid>
         <ContentDialog
             x:Name="ExportDialog"
@@ -192,6 +211,7 @@
                         <Setter Target="ButtonsPanel.Visibility" Value="Collapsed" />
                         <Setter Target="ModelDropDown.Visibility" Value="Collapsed" />
                         <Setter Target="ModelDropDown2.Visibility" Value="Collapsed" />
+                        <Setter Target="NoToolCallingGrid.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="ModelSelected">
@@ -200,6 +220,16 @@
                         <Setter Target="SampleContainer.Visibility" Value="Visible" />
                         <Setter Target="ButtonsPanel.Visibility" Value="Visible" />
                         <Setter Target="ModelPanel.Visibility" Value="Visible" />
+                        <Setter Target="NoToolCallingGrid.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="NoToolCalling">
+                    <VisualState.Setters>
+                        <Setter Target="NoModelSelectedGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="SampleContainer.Visibility" Value="Collapsed" />
+                        <Setter Target="ButtonsPanel.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelPanel.Visibility" Value="Collapsed" />
+                        <Setter Target="NoToolCallingGrid.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

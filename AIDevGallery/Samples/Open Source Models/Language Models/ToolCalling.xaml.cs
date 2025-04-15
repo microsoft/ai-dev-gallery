@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Tool Calling",
-    Model1Types = [ModelType.ToolCallingLanguageModels],
+    Model1Types = [ModelType.LanguageModels],
     Scenario = ScenarioType.TextToolCalling,
     NugetPackageReferences = [
     ],
@@ -29,6 +30,7 @@ internal sealed partial class ToolCalling : BaseSamplePage
     private IChatClient? chatClient;
     private CancellationTokenSource? cts;
     private ChatOptions chatOptions;
+    private List<ChatMessage> _history = new List<ChatMessage>();
     private bool isProgressVisible;
     private bool isImeActive = true;
 
@@ -37,19 +39,35 @@ internal sealed partial class ToolCalling : BaseSamplePage
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
 
-        [Description("Adjusts the output font size.")]
-        void AdjustFontSize(int fontsize)
+        [Description("Get the weather for a specific city.")]
+        string GetWeatherForCity(string city)
+        {
+            if(city == "New York")
+            {
+                return "40 degrees and rainy";
+            }
+            else if(city == "Durham")
+            {
+                return "85 degrees and sunny";
+            }
+
+            return "No city entered.";
+        }
+
+        [Description("Increase the output font size.")]
+        void IncreaseFontSize()
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                GenerateTextBlock.FontSize = fontsize;
+                GenerateTextBlock.FontSize = GenerateTextBlock.FontSize + 8;
             });
         }
 
         chatOptions = new ChatOptions()
         {
             Tools = [
-                AIFunctionFactory.Create(AdjustFontSize),
+                AIFunctionFactory.Create(GetWeatherForCity),
+                AIFunctionFactory.Create(IncreaseFontSize)
             ]
         };
 
@@ -60,7 +78,6 @@ internal sealed partial class ToolCalling : BaseSamplePage
     {
         try
         {
-            await Task.Run(() => Thread.Sleep(1));
             chatClient = sampleParams.GetFunctionInvokingIChatClientAsync();
             InputTextBox.MaxLength = _maxTokenLength;
         }
@@ -125,10 +142,9 @@ internal sealed partial class ToolCalling : BaseSamplePage
 
                 IsProgressVisible = true;
 
+                _history.Add(new ChatMessage(ChatRole.User, userPrompt));
                 await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
-                    [
-                        new ChatMessage(ChatRole.User, userPrompt)
-                    ],
+                    _history,
                     chatOptions,
                     cts.Token))
                 {

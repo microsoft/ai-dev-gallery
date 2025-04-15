@@ -17,7 +17,6 @@ internal interface IExternalModelProvider
     string DarkIcon { get; }
     HardwareAccelerator ModelHardwareAccelerator { get; }
     List<string> NugetPackageReferences { get; }
-    private static List<string>? ToolCallingModelNames { get; }
     string ProviderDescription { get; }
     Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default);
     Task InitializeAsync(CancellationToken cancelationToken = default);

@@ -199,12 +199,5 @@
         "ReadmeUrl": "https://huggingface.co/microsoft/mistral-7b-instruct-v0.2-ONNX/blob/main/README.md"
       }
     }
-  },
-  "ToolCallingLanguageModels": {
-    "Id": "21d4d347-5772-4483-82b6-6d7fd1e6c478",
-    "Name": "Tool Calling Language",
-    "Icon": "\uEC7A",
-    "Order": 1,
-    "Models": {}
   }
 }

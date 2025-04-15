@@ -75,7 +75,7 @@ internal sealed partial class ScenarioPage : Page
             var models = ModelDetailsHelper.GetModelDetails(s);
 
             // Model1Types
-            if (models.Count > 0)
+            if (models.Count > 0 && s.Scenario != ScenarioType.TextToolCalling)
             {
                 modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
 
@@ -93,11 +93,15 @@ internal sealed partial class ScenarioPage : Page
                 modelDetailsList.AddRange(externalModels);
             }
 
-            if (s.Model1Types.Contains(ModelType.ToolCallingLanguageModels))
+            if (s.Scenario == ScenarioType.TextToolCalling)
             {
                 // add tool calling external models
                 var externalModels = await ExternalModelHelper.GetAllModelsAsync(true);
                 modelDetailsList.AddRange(externalModels);
+                if (modelDetailsList.Count == 0)
+                {
+                    VisualStateManager.GoToState(this, "NoToolCalling", true);
+                }
             }
         }
 
@@ -157,7 +161,7 @@ internal sealed partial class ScenarioPage : Page
             {
                 if (selectedModelDetails.IsHttpApi())
                 {
-                    if (s.Model1Types.Contains(ModelType.LanguageModels) || s.Model1Types.Contains(ModelType.ToolCallingLanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
+                    if (s.Model1Types.Contains(ModelType.LanguageModels) || s.Scenario == ScenarioType.TextToolCalling || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
                     {
                         sample = s;
                         break;
@@ -191,7 +195,15 @@ internal sealed partial class ScenarioPage : Page
         {
             UpdateModelSelectionPlaceholderControl();
 
-            VisualStateManager.GoToState(this, "NoModelSelected", true);
+            if(sample.Scenario == ScenarioType.TextToolCalling)
+            {
+                VisualStateManager.GoToState(this, "NoToolCalling", true);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "NoModelSelected", true);
+            }
+
             return;
         }
         else

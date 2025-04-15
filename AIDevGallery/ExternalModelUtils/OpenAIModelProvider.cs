@@ -49,7 +49,6 @@ internal class OpenAIModelProvider : IExternalModelProvider
     public string DarkIcon => LightIcon;
 
     public string Url => "https://api.openai.com/v1";
-    private static List<string> ToolCallingModelsNames => [];
 
     public string? GetDetailsUrl(ModelDetails details)
     {

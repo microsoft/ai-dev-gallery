@@ -33,7 +33,7 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
-    private static List<string> ToolCallingModelNames =>
+    public static List<string> ToolCallingModelNames =>
     [
         "Llama3.1",
         "Llama3.2",

@@ -132,7 +132,7 @@ internal sealed partial class ModelSelectionPage : Page
 
         foreach (var key in rootModels.OrderBy(ModelTypeHelpers.GetModelOrder))
         {
-            if (key != ModelType.WCRAPIs && key != ModelType.ToolCallingLanguageModels)
+            if (key != ModelType.WCRAPIs)
             {
                 var navItem = CreateFromItem(key, ModelTypeHelpers.ModelGroupDetails.ContainsKey(key));
                 if (navItem != null)
