@@ -189,6 +189,19 @@
       }
     }
   },
+  "StudioEffects": {
+    "Name": "Studio Effects",
+    "Icon": "\uF4A5",
+    "Description": "Studio effect scenarios are designed to perform common effects over live video feed.",
+    "Scenarios": {
+      "AutoFraming": {
+        "Name": "Auto Framing",
+        "Description": "Automatically track the users face and keep it centered and zoomed within the frame.",
+        "Id": "auto-frame",
+        "Icon": "\uE8D4"
+      }
+    }
+  },
   "AudioAndVideo": {
     "Name": "Audio and Video",
     "Icon": "\uEA69",
