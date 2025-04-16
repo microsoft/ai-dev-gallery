@@ -12,10 +12,23 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <TextBlock 
+            x:Name="InstructionTextBlock"
+            TextWrapping="WrapWholeWords" LineHeight="20">
+            <Run Text="This sample exposes a chat client that has access to callable tools (or functions). For the sake of demonstration, these tools will manipulate this instructional text. Try prompting the model to see if it can use the following tools:" />
+            <LineBreak/>
+            <Run Text="    &#x2022; IncreaseFontSize: Increments the font size of this text by 4 pts."/>
+            <LineBreak/>
+            <Run Text="    &#x2022; DecreaseFontSize: Decrements the font size of this text by 4 pts."/>
+            <LineBreak/>
+            <Run Text="    &#x2022; ChangeFontColor: Changes font color of this text to 'Red', 'Green', or 'Blue.' "/>
+        </TextBlock>
         <TextBox
             x:Name="InputTextBox"
+            Grid.Row="1"
             AutomationProperties.Name="Prompt input"
             Description=" "
             KeyUp="TextBox_KeyUp"
@@ -23,7 +36,7 @@
             PlaceholderText="Enter a topic to generate text on..."
             TextChanged="InputBox_Changed" />
         <StackPanel
-            Grid.Row="1"
+            Grid.Row="2"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Orientation="Horizontal"
@@ -59,12 +72,12 @@
             </Button>
         </StackPanel>
         <TextBlock
-            Grid.Row="2"
+            Grid.Row="3"
             Margin="0,8,0,0"
             Style="{ThemeResource BodyStrongTextBlockStyle}"
             Text="Output" />
         <ScrollViewer
-            Grid.Row="3"
+            Grid.Row="4"
             AutomationProperties.Name="Generated Text Scroll Area"
             HorizontalScrollBarVisibility="Disabled"
             IsTabStop="True"

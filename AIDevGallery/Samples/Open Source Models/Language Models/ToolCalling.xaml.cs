@@ -5,11 +5,13 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
+using Microsoft.UI;
+using Windows.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,8 +31,7 @@ internal sealed partial class ToolCalling : BaseSamplePage
     private const int _maxTokenLength = 1024;
     private IChatClient? chatClient;
     private CancellationTokenSource? cts;
-    private ChatOptions chatOptions;
-    private List<ChatMessage> _history = new List<ChatMessage>();
+    private ChatOptions _chatOptions;
     private bool isProgressVisible;
     private bool isImeActive = true;
 
@@ -39,37 +40,7 @@ internal sealed partial class ToolCalling : BaseSamplePage
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
 
-        [Description("Get the weather for a specific city.")]
-        string GetWeatherForCity(string city)
-        {
-            if(city == "New York")
-            {
-                return "40 degrees and rainy";
-            }
-            else if(city == "Durham")
-            {
-                return "85 degrees and sunny";
-            }
-
-            return "No city entered.";
-        }
-
-        [Description("Increase the output font size.")]
-        void IncreaseFontSize()
-        {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                GenerateTextBlock.FontSize = GenerateTextBlock.FontSize + 8;
-            });
-        }
-
-        chatOptions = new ChatOptions()
-        {
-            Tools = [
-                AIFunctionFactory.Create(GetWeatherForCity),
-                AIFunctionFactory.Create(IncreaseFontSize)
-            ]
-        };
+        _chatOptions = GetChatOptionsWithTools();
 
         this.InitializeComponent();
     }
@@ -116,7 +87,7 @@ internal sealed partial class ToolCalling : BaseSamplePage
         }
     }
 
-    public void GenerateText(string topic)
+    public void GenerateText(string userPrompt)
     {
         if (chatClient == null)
         {
@@ -136,16 +107,17 @@ internal sealed partial class ToolCalling : BaseSamplePage
             async () =>
             {
                 string systemPrompt = "You are a helpful assistant with some tools.";
-                string userPrompt = topic;
 
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
 
-                _history.Add(new ChatMessage(ChatRole.User, userPrompt));
                 await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
-                    _history,
-                    chatOptions,
+                    [
+                        new ChatMessage(ChatRole.System, systemPrompt),
+                        new ChatMessage(ChatRole.User, userPrompt)
+                    ],
+                    _chatOptions,
                     cts.Token))
                 {
                     DispatcherQueue.TryEnqueue(() =>
@@ -247,5 +219,70 @@ internal sealed partial class ToolCalling : BaseSamplePage
             InputTextBox.Description = string.Empty;
             GenerateButton.IsEnabled = false;
         }
+    }
+
+    private ChatOptions GetChatOptionsWithTools()
+    {
+        [Description("Increases the instructional font size by four points.")]
+        string IncreaseFontSize()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                InstructionTextBlock.FontSize = InstructionTextBlock.FontSize + 4;
+            });
+
+            return "Font size was increased by 4 points.";
+        }
+
+        [Description("Decreases the instructional font size by four points.")]
+        string DecreaseFontSize()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                InstructionTextBlock.FontSize = InstructionTextBlock.FontSize - 4;
+            });
+
+            return "Font size was decreased by 4 points.";
+        }
+
+        [Description("Changes the instructional font color to a color specified by the user.")]
+        string ChangeFontColor(string colorName)
+        {
+            Color? color = null;
+
+            if(string.Equals(colorName, "Red", StringComparison.OrdinalIgnoreCase))
+            {
+                color = Windows.UI.Color.FromArgb(255, 255, 0, 0);
+            }
+            else if (string.Equals(colorName, "Green", StringComparison.OrdinalIgnoreCase))
+            {
+                color = Windows.UI.Color.FromArgb(255, 0, 255, 0);
+            }
+            else if (string.Equals(colorName, "Blue", StringComparison.OrdinalIgnoreCase))
+            {
+                color = Windows.UI.Color.FromArgb(255, 0, 0, 255);
+            }
+
+            if(color.HasValue)
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    InstructionTextBlock.Foreground = new SolidColorBrush((Color)color);
+                });
+
+                return "Font color is now " + colorName;
+            }
+
+            return "Did not change font color, invalid color provided.";
+        }
+
+        return new ChatOptions()
+        {
+            Tools = [
+                AIFunctionFactory.Create(IncreaseFontSize),
+                AIFunctionFactory.Create(DecreaseFontSize),
+                AIFunctionFactory.Create(ChangeFontColor)
+            ]
+        };
     }
 }
