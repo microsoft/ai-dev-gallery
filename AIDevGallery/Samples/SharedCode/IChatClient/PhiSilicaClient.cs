@@ -62,14 +62,9 @@ internal class PhiSilicaClient : IChatClient
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
         var readyState = LanguageModel.GetReadyState();
-        if (readyState is AIFeatureReadyState.DisabledByUser )
+        if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
         {
-            throw new PhiSilicaLoadingException("PhiSilica is disabled by the user in Windows Settings");
-        }
-
-        if (readyState is AIFeatureReadyState.NotSupportedOnCurrentSystem)
-        {
-            throw new PhiSilicaLoadingException("PhiSilica is not supported on this device");
+            return null;
         }
 
         if (readyState is AIFeatureReadyState.EnsureNeeded)
@@ -77,13 +72,13 @@ internal class PhiSilicaClient : IChatClient
             var operation = await LanguageModel.EnsureReadyAsync();
             if (operation.Status != AIFeatureReadyResultState.Success)
             {
-                throw new PhiSilicaLoadingException(operation.ErrorDisplayText);
+                return null;
             }
         }
 
         if (LanguageModel.GetReadyState() is not AIFeatureReadyState.Ready)
         {
-            throw new PhiSilicaLoadingException("PhiSilica is not ready");
+            return null;
         }
 
         var languageModel = await LanguageModel.CreateAsync();
