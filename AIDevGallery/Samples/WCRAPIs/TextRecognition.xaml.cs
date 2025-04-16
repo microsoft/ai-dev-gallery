@@ -66,7 +66,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
             var msg = readyState == AIFeatureReadyState.DisabledByUser
                 ? "Disabled by user."
                 : "Not supported on this system.";
-            ShowException(null, $"ImageDescription is not available: {msg}");
+            ShowException(null, $"Text Recognition is not available: {msg}");
         }
 
         sampleParams.NotifyCompletion();

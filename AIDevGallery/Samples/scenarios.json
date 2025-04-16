@@ -167,11 +167,6 @@
         "Description": "Detect image foreground vs background. Upload a portrait image and the model will separate the foreground from the background.",
         "Id": "detect-background"
       },
-      "MagicEraser": {
-        "Name": "Remove Objects",
-        "Description": "Remove objects from an image. Upload an image and select the objects in the image you want to remove by drawing a rectangle around them. Select erase to get the image without the erased objects.",
-        "Id": "object-eraser"
-      },
       "DetectPose": {
         "Name": "Detect Human Pose",
         "Description": "Model human posture with a pose detection model. Upload an image including a clearly visible person to see pose estimate drawn onto the image.",
