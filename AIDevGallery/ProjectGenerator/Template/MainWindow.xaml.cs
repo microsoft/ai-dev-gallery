@@ -23,7 +23,7 @@ public sealed partial class MainWindow : Window
         ProgressRingGrid.Visibility = Visibility.Collapsed;
     }
 
-    internal async void ShowException(Exception ex, string? optionalMessage = null)
+    internal async void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = optionalMessage ?? ex switch
         {
