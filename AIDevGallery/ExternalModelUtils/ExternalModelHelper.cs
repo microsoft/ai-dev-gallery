@@ -25,9 +25,9 @@ internal static class ExternalModelHelper
         await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
     }
 
-    public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
+    public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync(bool toolCallingModelsOnly = false)
     {
-        var tasks = _modelProviders.Select(provider => provider.GetModelsAsync());
+        var tasks = _modelProviders.Select(provider => provider.GetModelsAsync(toolCallingModelsOnly));
 
         // Run in parallel and wait for all tasks to complete
         var results = await Task.WhenAll(tasks);
