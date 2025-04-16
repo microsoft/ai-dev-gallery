@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using Microsoft.Graphics.Imaging;
+using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Generative;
 using Microsoft.Windows.Vision;
 using System;
@@ -15,28 +16,28 @@ internal static class WcrApiHelpers
     private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>
     {
         {
-            ModelType.PhiSilica, () => LanguageModel.GetReadyState() is not Microsoft.Windows.AI.AIFeatureReadyState.DisabledByUser and
-                                       not Microsoft.Windows.AI.AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.PhiSilica, () => LanguageModel.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                       not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.TextRecognitionOCR, () => TextRecognizer.GetReadyState() is not Microsoft.Windows.AI.AIFeatureReadyState.DisabledByUser and
-                                                not Microsoft.Windows.AI.AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.TextRecognitionOCR, () => TextRecognizer.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                                not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.ImageScaler, () => ImageScaler.GetReadyState() is not Microsoft.Windows.AI.AIFeatureReadyState.DisabledByUser and
-                                         not Microsoft.Windows.AI.AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.ImageScaler, () => ImageScaler.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                         not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.BackgroundRemover, () => ImageObjectExtractor.GetReadyState() is not Microsoft.Windows.AI.AIFeatureReadyState.DisabledByUser and
-                                               not Microsoft.Windows.AI.AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.BackgroundRemover, () => ImageObjectExtractor.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                               not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.ImageDescription, () => ImageDescriptionGenerator.GetReadyState() is not Microsoft.Windows.AI.AIFeatureReadyState.DisabledByUser and
-                                              not Microsoft.Windows.AI.AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.ImageDescription, () => ImageDescriptionGenerator.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                              not AIFeatureReadyState.NotSupportedOnCurrentSystem
         }
     };
 
-    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<Microsoft.Windows.AI.AIFeatureReadyResult, double>>> MakeAvailables = new()
+    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> MakeAvailables = new()
     {
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync

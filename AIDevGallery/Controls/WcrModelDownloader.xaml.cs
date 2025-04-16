@@ -6,6 +6,7 @@ using AIDevGallery.Telemetry.Events; // <exclude-line>
 using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -85,7 +86,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         UpdateState();
     }
 
-    public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<Microsoft.Windows.AI.AIFeatureReadyResult, double> operation)
+    public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<AIFeatureReadyResult, double> operation)
     {
         if (operation == null)
         {
@@ -107,7 +108,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         {
             var result = await operation;
 
-            if (result.Status == Microsoft.Windows.AI.AIFeatureReadyResultState.Success)
+            if (result.Status == AIFeatureReadyResultState.Success)
             {
                 State = WcrApiDownloadState.Downloaded;
                 return true;
@@ -130,9 +131,9 @@ internal sealed partial class WcrModelDownloader : UserControl
     }
 
     // <exclude>
-    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<Microsoft.Windows.AI.AIFeatureReadyResult, double>> makeAvailable)
+    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>> makeAvailable)
     {
-        IAsyncOperationWithProgress<Microsoft.Windows.AI.AIFeatureReadyResult, double>? exisitingOperation;
+        IAsyncOperationWithProgress<AIFeatureReadyResult, double>? exisitingOperation;
 
         WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
         this.modelTypeHint = modelType;
