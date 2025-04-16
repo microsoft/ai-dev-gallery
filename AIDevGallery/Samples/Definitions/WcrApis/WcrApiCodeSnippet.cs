@@ -21,15 +21,15 @@ internal static class WcrApiCodeSnippet
                 {
                     var op = await LanguageModel.EnsureReadyAsync();
                 }
+            
+                using LanguageModel languageModel = LanguageModel.CreateAsync();
+            
+                string prompt = "Provide the molecular formula for glucose.";
+            
+                var result = await languageModel.GenerateResponseAsync(prompt);
+            
+                Console.WriteLine(result.Response);
             }
-            
-            using LanguageModel languageModel = LanguageModel.CreateAsync();
-            
-            string prompt = "Provide the molecular formula for glucose.";
-            
-            var result = await languageModel.GenerateResponseAsync(prompt);
-            
-            Console.WriteLine(result.Response);
             """"
         },
         {
@@ -44,14 +44,14 @@ internal static class WcrApiCodeSnippet
                 {
                     var op = await TextRecognizer.EnsureReadyAsync();
                 }
-            }
+                        
+                using TextRecognizer textRecognizer = TextRecognizer.CreateAsync();
             
-            using TextRecognizer textRecognizer = TextRecognizer.CreateAsync();
-            
-            ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
-            RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
+                ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
+                RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-            Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
+                Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
+            }
             """"
         },
         {
@@ -66,10 +66,10 @@ internal static class WcrApiCodeSnippet
                 {
                     var op = await ImageScaler.EnsureReadyAsync();
                 }
+                        
+                ImageScaler imageScaler = await ImageScaler.CreateAsync();
+                SoftwareBitmap finalImage = imageScaler.ScaleSoftwareBitmap(softwareBitmap, targetWidth, targetHeight);
             }
-            
-            ImageScaler imageScaler = await ImageScaler.CreateAsync();
-            SoftwareBitmap finalImage = imageScaler.ScaleSoftwareBitmap(softwareBitmap, targetWidth, targetHeight);
             """"
         },
         {
@@ -84,18 +84,18 @@ internal static class WcrApiCodeSnippet
                 {
                     var op = await ImageObjectExtractor.EnsureReadyAsync();
                 }
-            }
-
-            ImageObjectExtractor imageObjectExtractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(softwareBitmap);
-
-            ImageObjectExtractorHint hint = new ImageObjectExtractorHint{
-                includeRects: null, 
-                includePoints:
-                    new List<PointInt32> { new PointInt32(306, 212),
-                                           new PointInt32(216, 336)},
-                excludePoints: null};
             
-            SoftwareBitmap finalImage = imageObjectExtractor.GetSoftwareBitmapObjectMask(hint);
+                ImageObjectExtractor imageObjectExtractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(softwareBitmap);
+
+                ImageObjectExtractorHint hint = new ImageObjectExtractorHint{
+                    includeRects: null, 
+                    includePoints:
+                        new List<PointInt32> { new PointInt32(306, 212),
+                                               new PointInt32(216, 336)},
+                    excludePoints: null};
+            
+                SoftwareBitmap finalImage = imageObjectExtractor.GetSoftwareBitmapObjectMask(hint);
+            }
             """"
         },
         {
@@ -112,19 +112,19 @@ internal static class WcrApiCodeSnippet
                 {
                     var op = await ImageDescriptionGenerator.EnsureReadyAsync();
                 }
+            
+                ImageDescriptionGenerator imageDescriptionGenerator = await ImageDescriptionGenerator.CreateAsync();
+            
+                ImageBuffer inputImage = ImageBuffer.CreateCopyFromBitmap(softwareBitmap);  
+            
+                ContentFilterOptions filterOptions = new ContentFilterOptions();
+                filterOptions.PromptMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
+                filterOptions.ResponseMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
+            
+                LanguageModelResponse languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionScenario.Caption, filterOptions);
+            
+                Console.WriteLine(languageModelResponse.Response);
             }
-            
-            ImageDescriptionGenerator imageDescriptionGenerator = await ImageDescriptionGenerator.CreateAsync();
-            
-            ImageBuffer inputImage = ImageBuffer.CreateCopyFromBitmap(softwareBitmap);  
-            
-            ContentFilterOptions filterOptions = new ContentFilterOptions();
-            filterOptions.PromptMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
-            filterOptions.ResponseMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
-            
-            LanguageModelResponse languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionScenario.Caption, filterOptions);
-            
-            Console.WriteLine(languageModelResponse.Response);
             """"
         }
     };
