@@ -14,12 +14,16 @@ internal static class WcrApiCodeSnippet
             ModelType.PhiSilica, """"
             using Microsoft.Windows.AI.Generative;
             
-            if (!LanguageModel.IsAvailable())
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await LanguageModel.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
             }
             
-            using LanguageModel languageModel = await LanguageModel.CreateAsync();
+            using LanguageModel languageModel = LanguageModel.CreateAsync();
             
             string prompt = "Provide the molecular formula for glucose.";
             
@@ -33,12 +37,17 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Windows.Vision;
             using Microsoft.Graphics.Imaging;
 
-            if (!TextRecognizer.IsAvailable())
+            var readyState = TextRecognizer.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await TextRecognizer.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await TextRecognizer.EnsureReadyAsync();
+                }
             }
             
-            TextRecognizer textRecognizer = await TextRecognizer.CreateAsync();
+            using TextRecognizer textRecognizer = TextRecognizer.CreateAsync();
+            
             ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
             RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
@@ -50,11 +59,15 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Graphics.Imaging;
             using Windows.Graphics.Imaging;
 
-            if (!ImageScaler.IsAvailable())
+            var readyState = ImageScaler.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageScaler.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageScaler.EnsureReadyAsync();
+                }
             }
-
+            
             ImageScaler imageScaler = await ImageScaler.CreateAsync();
             SoftwareBitmap finalImage = imageScaler.ScaleSoftwareBitmap(softwareBitmap, targetWidth, targetHeight);
             """"
@@ -64,9 +77,13 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Graphics.Imaging;
             using Windows.Graphics.Imaging;
 
-            if (!ImageObjectExtractor.IsAvailable())
+            var readyState = ImageObjectExtractor.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageObjectExtractor.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageObjectExtractor.EnsureReadyAsync();
+                }
             }
 
             ImageObjectExtractor imageObjectExtractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(softwareBitmap);
@@ -88,9 +105,13 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Windows.AI.ContentModeration;
             using Windows.Graphics.Imaging;
             
-            if (!ImageDescriptionGenerator.IsAvailable())
+            var readyState = ImageDescriptionGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageDescriptionGenerator.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageDescriptionGenerator.EnsureReadyAsync();
+                }
             }
             
             ImageDescriptionGenerator imageDescriptionGenerator = await ImageDescriptionGenerator.CreateAsync();

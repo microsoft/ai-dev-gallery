@@ -88,11 +88,6 @@ internal class PhiSilicaClient : IChatClient
 
     public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         var prompt = GetPrompt(chatMessages);
 
         string responseId = Guid.NewGuid().ToString("N");
@@ -105,11 +100,11 @@ internal class PhiSilicaClient : IChatClient
         }
     }
 
-    private LanguageModelOptions? GetModelOptions(ChatOptions options)
+    private LanguageModelOptions GetModelOptions(ChatOptions? options)
     {
         if (options == null)
         {
-            return null;
+            return new LanguageModelOptions();
         }
 
         var contentFilterOptions = new ContentFilterOptions();
@@ -205,24 +200,13 @@ internal class PhiSilicaClient : IChatClient
     public async IAsyncEnumerable<string> GenerateStreamResponseAsync(string prompt, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         string currentResponse = string.Empty;
         using var newPartEvent = new ManualResetEventSlim(false);
 
         IAsyncOperationWithProgress<LanguageModelResponseResult, string>? progress;
-        if (options == null)
-        {
-            progress = _languageModel.GenerateResponseAsync(_languageModelContext, prompt, new LanguageModelOptions());
-        }
-        else
-        {
-            var modelOptions = GetModelOptions(options);
-            progress = _languageModel.GenerateResponseAsync(_languageModelContext, prompt, modelOptions);
-        }
+
+        var modelOptions = GetModelOptions(options);
+        progress = _languageModel.GenerateResponseAsync(_languageModelContext, prompt, modelOptions);
 
         progress.Progress = (result, value) =>
         {
