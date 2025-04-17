@@ -15,14 +15,6 @@ using Windows.Foundation;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal class PhiSilicaLoadingException : Exception
-{
-    public PhiSilicaLoadingException(string message)
-        : base(message)
-    {
-    }
-}
-
 internal class PhiSilicaClient : IChatClient
 {
     // Search Options
@@ -52,7 +44,6 @@ internal class PhiSilicaClient : IChatClient
                 { "input_moderation", DefaultInputModeration },
                 { "output_moderation", DefaultOutputModeration },
             },
-            MaxOutputTokens = 2048,
             Temperature = DefaultTemperature,
             TopP = DefaultTopP,
             TopK = DefaultTopK,
