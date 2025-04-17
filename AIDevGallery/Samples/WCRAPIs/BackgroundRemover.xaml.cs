@@ -59,11 +59,18 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, $"Background Remover is not available");
                 }
             }
 
-            _ = LoadDefaultImage();
+            if (ImageObjectRemover.GetReadyState() == AIFeatureReadyState.Ready)
+            {
+                _ = LoadDefaultImage();
+            }
+            else
+            {
+                ShowException(null, "Background Remover is not available");
+            }
         }
         else
         {

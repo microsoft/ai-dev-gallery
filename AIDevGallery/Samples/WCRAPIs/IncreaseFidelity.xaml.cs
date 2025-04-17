@@ -53,11 +53,18 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, "Image Scaler is not available.");
                 }
             }
 
-            _ = LoadDefaultImage();
+            if (ImageScaler.GetReadyState() == AIFeatureReadyState.Ready)
+            {
+                _ = LoadDefaultImage();
+            }
+            else
+            {
+                ShowException(null, "Image Scaler is not available.");
+            }
         }
         else
         {

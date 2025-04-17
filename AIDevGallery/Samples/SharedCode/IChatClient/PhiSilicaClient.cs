@@ -15,6 +15,11 @@ using Windows.Foundation;
 
 namespace AIDevGallery.Samples.SharedCode;
 
+internal class WCRException : Exception
+{
+    public WCRException(string message) : base(message) { }
+}
+
 internal class PhiSilicaClient : IChatClient
 {
     // Search Options
@@ -53,9 +58,16 @@ internal class PhiSilicaClient : IChatClient
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
         var readyState = LanguageModel.GetReadyState();
+
         if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
         {
-            return null;
+            throw new WCRException("PhiSilica is not available: " +
+                readyState switch
+                {
+                    AIFeatureReadyState.NotSupportedOnCurrentSystem => "Not supported",
+                    AIFeatureReadyState.DisabledByUser => "Disabled by user",
+                    _ => "Unknown reason"
+                });
         }
 
         if (readyState is AIFeatureReadyState.EnsureNeeded)
@@ -63,13 +75,13 @@ internal class PhiSilicaClient : IChatClient
             var operation = await LanguageModel.EnsureReadyAsync();
             if (operation.Status != AIFeatureReadyResultState.Success)
             {
-                return null;
+                throw new WCRException($"PhiSilica is not available");
             }
         }
 
         if (LanguageModel.GetReadyState() is not AIFeatureReadyState.Ready)
         {
-            return null;
+            throw new WCRException("PhiSilica is not available");
         }
 
         var languageModel = await LanguageModel.CreateAsync();
@@ -205,6 +217,12 @@ internal class PhiSilicaClient : IChatClient
         IAsyncOperationWithProgress<LanguageModelResponseResult, string>? progress;
 
         var modelOptions = GetModelOptions(options);
+        if ((ulong)prompt.Length > _languageModel.GetUsablePromptLength(_languageModelContext, prompt))
+        {
+            yield return "\nPrompt larger than context";
+            yield break;
+        }
+
         progress = _languageModel.GenerateResponseAsync(_languageModelContext, prompt, modelOptions);
 
         progress.Progress = (result, value) =>
