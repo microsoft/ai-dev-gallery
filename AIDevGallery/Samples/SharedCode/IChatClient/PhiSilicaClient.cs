@@ -173,9 +173,11 @@ internal class PhiSilicaClient : IChatClient
     {
         return
             serviceKey is not null ? null :
-            _languageModel is not null && serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
-            serviceType?.IsInstanceOfType(this) is true ? this :
-            serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
+            _languageModel is not null && serviceType == typeof(LanguageModel) ? _languageModel :
+            serviceType == typeof(PhiSilicaClient) ? this :
+            serviceType == typeof(IChatClient) ? this :
+            serviceType == typeof(ChatClientMetadata) ? Metadata :
+            serviceType == typeof(ChatOptions) ? GetDefaultChatOptions() :
             null;
     }
 

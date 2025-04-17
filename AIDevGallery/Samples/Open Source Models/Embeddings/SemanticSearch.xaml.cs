@@ -44,6 +44,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 {
     private EmbeddingGenerator? _embeddings;
     private CancellationTokenSource cts = new();
+    internal static readonly string[] ParagraphSeparators = ["\n", "\r"];
 
     public SemanticSearch()
     {
@@ -87,8 +88,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         this.SearchButton.IsEnabled = !string.IsNullOrEmpty(this.SearchTextBox.Text) && !string.IsNullOrEmpty(this.SourceTextBox.Text);
         ErrorMessage.IsOpen = string.IsNullOrEmpty(this.SearchTextBox.Text) || string.IsNullOrEmpty(this.SourceTextBox.Text);
     }
-
-    internal static readonly string[] ParagraphSeparators = ["\n", "\r"];
 
     private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
@@ -134,73 +133,15 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             async () =>
             {
-                var sourceParagraphs = sourceText
-                                .Split(ParagraphSeparators, StringSplitOptions.RemoveEmptyEntries)
-                                .Where(x => !string.IsNullOrWhiteSpace(x))
-                                .ToList();
-
-                var sourceContent = new List<string>();
-
-                for (int i = 0; i < sourceParagraphs.Count; i++)
-                {
-                    var paragraph = sourceParagraphs[i];
-
-                    var sourceSentences = paragraph
-                                .Split('.', StringSplitOptions.RemoveEmptyEntries)
-                                .Where(x => !string.IsNullOrWhiteSpace(x))
-                                .ToList();
-
-                    var maxLength = 1024 / 2;
-                    for (int s = 0; s < sourceSentences.Count; s++)
-                    {
-                        var content = sourceSentences[s];
-                        int index = 0;
-                        var contentChunks = new List<string>();
-                        while (index < content.Length)
-                        {
-                            if (index + maxLength >= content.Length)
-                            {
-                                contentChunks.Add(
-                                    SentenceEndRegex().Replace(content[index..].Trim(), "."));
-                                break;
-                            }
-
-                            int lastIndexOfBreak = content.LastIndexOf(' ', index + maxLength, maxLength);
-                            if (lastIndexOfBreak <= index)
-                            {
-                                lastIndexOfBreak = index + maxLength;
-                            }
-
-                            contentChunks.Add(
-                                Regex.Replace(content[index..lastIndexOfBreak].Trim(), @"(\.){2,}", "."));
-
-                            index = lastIndexOfBreak + 1;
-                        }
-
-                        sourceSentences.RemoveAt(s);
-                        sourceSentences.InsertRange(s, contentChunks);
-                        i += contentChunks.Count - 1;
-                    }
-
-                    sourceContent.AddRange(sourceSentences);
-                }
-
-                sourceContent = sourceContent
-                    .Where(x => x != "\"")
-                    .ToList();
-
-                GeneratedEmbeddings<Embedding<float>> searchVectors;
-                GeneratedEmbeddings<Embedding<float>> sourceVectors;
-
                 IVectorStore? vectorStore = new InMemoryVectorStore();
-                var stringsCollection = vectorStore.GetCollection<int, StringData>("strings");
-                await stringsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+                IVectorStoreRecordCollection<int, StringData> embeddingsCollection = vectorStore.GetCollection<int, StringData>("embeddings");
+                await embeddingsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
 
-                searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
+                List<string> sourceContent = ChunkSourceText(sourceText, 512);
+                GeneratedEmbeddings<Embedding<float>> searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
+                GeneratedEmbeddings<Embedding<float>> sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
 
-                sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
-
-                await foreach (var key in stringsCollection.UpsertBatchAsync(
+                await foreach (var key in embeddingsCollection.UpsertBatchAsync(
                     sourceVectors.Select((x, i) => new StringData
                     {
                         Key = i,
@@ -211,7 +152,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 {
                 }
 
-                var vectorSearchResults = await stringsCollection.VectorizedSearchAsync(
+                VectorSearchResults<StringData> vectorSearchResults = await embeddingsCollection.VectorizedSearchAsync(
                     searchVectors[0].Vector,
                     new VectorSearchOptions<StringData>
                     {
@@ -235,6 +176,39 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 });
             },
             ct);
+    }
+
+    private List<string> ChunkSourceText(string sourceText, int maxLength)
+    {
+        List<string> chunkedSourceText = new List<string>();
+
+        List<string> sourceSentences = sourceText
+            .Replace("\r", " ")
+            .Replace("\n", " ")
+            .Split(".", StringSplitOptions.RemoveEmptyEntries)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(s => s.StartsWith("\"", StringComparison.OrdinalIgnoreCase) ? s[1..] : s)
+            .ToList();
+
+        for (int i = 0; i < sourceSentences.Count; i++)
+        {
+            string sentence = sourceSentences[i];
+
+            if(sentence.Length > maxLength)
+            {
+                int indexOfLastSpace = sentence[0..maxLength].LastIndexOf(' ');
+                string firstSentenceChunk = sentence[0..indexOfLastSpace].Trim();
+                string secondSentenceChunk = sentence[indexOfLastSpace..].Trim();
+                sourceSentences.Insert(i + 1, secondSentenceChunk);
+                chunkedSourceText.Add(firstSentenceChunk);
+            }
+            else
+            {
+                chunkedSourceText.Add(sentence.Trim());
+            }
+        }
+
+        return chunkedSourceText;
     }
 
     private CancellationToken CancelGenerationAndGetNewToken()
