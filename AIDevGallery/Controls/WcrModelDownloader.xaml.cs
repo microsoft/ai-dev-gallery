@@ -6,7 +6,7 @@ using AIDevGallery.Telemetry.Events; // <exclude-line>
 using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,7 +86,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         UpdateState();
     }
 
-    public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress> operation)
+    public async Task<bool> SetDownloadOperation(IAsyncOperationWithProgress<AIFeatureReadyResult, double> operation)
     {
         if (operation == null)
         {
@@ -98,7 +98,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                DownloadProgress = (int)(progress.Progress * 100);
+                DownloadProgress = (int)(progress * 100);
             });
         };
 
@@ -108,7 +108,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         {
             var result = await operation;
 
-            if (result.Status == PackageDeploymentStatus.CompletedSuccess)
+            if (result.Status == AIFeatureReadyResultState.Success)
             {
                 State = WcrApiDownloadState.Downloaded;
                 return true;
@@ -131,9 +131,9 @@ internal sealed partial class WcrModelDownloader : UserControl
     }
 
     // <exclude>
-    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>> makeAvailable)
+    public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>> makeAvailable)
     {
-        IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>? exisitingOperation;
+        IAsyncOperationWithProgress<AIFeatureReadyResult, double>? exisitingOperation;
 
         WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
         this.modelTypeHint = modelType;
