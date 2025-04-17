@@ -99,6 +99,31 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.ObjectRemover, """"
+            using Microsoft.Graphics.Imaging;
+            using Windows.Graphics.Imaging;
+
+            var readyState = ImageObjectRemover.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            {
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageObjectRemover.EnsureReadyAsync();
+                }
+
+                var readyState = ImageObjectRemover.GetReadyState();
+            
+                ImageObjectRemover imageObjectRemover = await ImageObjectRemover.CreateAsync();
+
+                // Create a bitmap mask from the foreground rectangle - Gray Image with white rectangle
+                // The white rectangle is the area to be removed
+                var maskBitmap = CreateMaskFromForegroundRect(softwareBitmap.PixelWidth,softwareBitmap.PixelHeight, rect);
+                        
+                SoftwareBitmap finalImage = imageObjectRemover.RemoveFromSoftwareBitmap(softwareBitmap, maskBitmap);
+            }
+            """"
+        },
+        {
             ModelType.ImageDescription, """"
             using Microsoft.Graphics.Imaging;
             using Microsoft.Windows.AI.Generative;
