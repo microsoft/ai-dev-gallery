@@ -58,7 +58,14 @@ internal static class WcrApiHelpers
             return AIFeatureReadyState.NotSupportedOnCurrentSystem;
         }
 
-        return getReadyStateFunction();
+        try
+        {
+            return getReadyStateFunction();
+        }
+        catch
+        {
+            return AIFeatureReadyState.NotSupportedOnCurrentSystem;
+        }
     }
 
     public static string GetStringDescription(this AIFeatureReadyState state)
