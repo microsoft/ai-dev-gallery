@@ -153,7 +153,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
 
                         if (!stopped)
                         {
-                            ResponseTxt.Text += delta;
+                            ResponseTxt.Text = delta;
                         }
                     });
                     if (_cts?.IsCancellationRequested == true && stopped)

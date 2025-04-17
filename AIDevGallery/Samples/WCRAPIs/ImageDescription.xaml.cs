@@ -201,7 +201,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                             isFirstWord = false;
                         }
 
-                        ResponseTxt.Text += delta;
+                        ResponseTxt.Text = delta;
                     });
                     if (_cts?.IsCancellationRequested == true)
                     {
