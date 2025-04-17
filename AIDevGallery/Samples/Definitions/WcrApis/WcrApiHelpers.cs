@@ -13,31 +13,26 @@ using Windows.Foundation;
 namespace AIDevGallery.Samples;
 internal static class WcrApiHelpers
 {
-    private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>
+    private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
-            ModelType.PhiSilica, () => LanguageModel.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
-                                       not AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.PhiSilica, LanguageModel.GetReadyState
         },
         {
-            ModelType.TextRecognitionOCR, () => TextRecognizer.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
-                                                not AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.TextRecognitionOCR, TextRecognizer.GetReadyState
         },
         {
-            ModelType.ImageScaler, () => ImageScaler.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
-                                         not AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.ImageScaler, ImageScaler.GetReadyState
         },
         {
-            ModelType.BackgroundRemover, () => ImageObjectExtractor.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
-                                               not AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
         {
-            ModelType.ImageDescription, () => ImageDescriptionGenerator.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
-                                              not AIFeatureReadyState.NotSupportedOnCurrentSystem
+            ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         }
     };
 
-    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> MakeAvailables = new()
+    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
     {
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
@@ -56,27 +51,30 @@ internal static class WcrApiHelpers
         }
     };
 
-    public static WcrApiAvailability GetApiAvailability(ModelType type)
+    public static AIFeatureReadyState GetApiAvailability(ModelType type)
     {
-        if (!CompatibilityCheckers.TryGetValue(type, out Func<bool>? isAvailable))
+        if (!CompatibilityCheckers.TryGetValue(type, out var getReadyStateFunction))
         {
-            return WcrApiAvailability.NotSupported;
+            return AIFeatureReadyState.NotSupportedOnCurrentSystem;
         }
 
-        try
+        return getReadyStateFunction();
+    }
+
+    public static string GetStringDescription(this AIFeatureReadyState state)
+    {
+        switch (state)
         {
-            return isAvailable() ? WcrApiAvailability.Available : WcrApiAvailability.NotAvailable;
-        }
-        catch
-        {
-            return WcrApiAvailability.NotSupported;
+            case AIFeatureReadyState.Ready:
+                return "Ready";
+            case AIFeatureReadyState.NotSupportedOnCurrentSystem:
+                return "Not supported on this system.";
+            case AIFeatureReadyState.DisabledByUser:
+                return "API is disabled by the user in the Windows settings.";
+            case AIFeatureReadyState.EnsureNeeded:
+                return "API requires a model download or update.";
+            default:
+                return string.Empty;
         }
     }
-}
-
-internal enum WcrApiAvailability
-{
-    Available,
-    NotAvailable,
-    NotSupported
 }
