@@ -17,7 +17,10 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal class WCRException : Exception
 {
-    public WCRException(string message) : base(message) { }
+    public WCRException(string message)
+        : base(message)
+    {
+    }
 }
 
 internal class PhiSilicaClient : IChatClient
