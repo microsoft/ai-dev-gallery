@@ -61,7 +61,7 @@
                     Visibility="Collapsed">
                     <controls:ModelDropDownButton x:Name="ModelDropDown">
                         <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
+                            <controls:ModelSelectionControl2
                                 x:Name="modelSelectionControl"
                                 AvailableModelsTitle="Available implementations"
                                 DownloadableModelsTitle="Downloadable models"
@@ -74,7 +74,7 @@
                     </controls:ModelDropDownButton>
                     <controls:ModelDropDownButton x:Name="ModelDropDown2">
                         <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
+                            <controls:ModelSelectionControl2
                                 x:Name="modelSelectionControl2"
                                 AvailableModelsTitle="Available implementations"
                                 DownloadableModelsTitle="Downloadable models"

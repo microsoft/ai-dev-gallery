@@ -14,6 +14,7 @@
             BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
             TargetType="FlyoutPresenter">
             <Setter Property="MinWidth" Value="420" />
+            <Setter Property="MaxWidth" Value="1000" />
         </Style>
     </UserControl.Resources>
     <Grid>
@@ -61,8 +62,8 @@
             </DropDownButton.Content>
             <DropDownButton.Flyout>
                 <Flyout FlyoutPresenterStyle="{StaticResource CustomFlyoutPresenterStyle}" ShouldConstrainToRootBounds="True">
-                    <Grid>
-                        <ContentPresenter MaxWidth="420" Content="{x:Bind FlyoutContent}" />
+                    <Grid Width="960">
+                        <ContentPresenter MaxWidth="960" Content="{x:Bind FlyoutContent}" />
                     </Grid>
                 </Flyout>
             </DropDownButton.Flyout>

@@ -135,7 +135,7 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        if ((ModelSelectionControl)sender == modelSelectionControl)
+        if ((ModelSelectionControl2)sender == modelSelectionControl)
         {
             selectedModelDetails = modelDetails;
         }
