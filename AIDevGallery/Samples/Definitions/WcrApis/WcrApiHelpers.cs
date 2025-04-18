@@ -3,8 +3,8 @@
 
 using AIDevGallery.Models;
 using Microsoft.Graphics.Imaging;
+using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
 using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
@@ -16,38 +16,43 @@ internal static class WcrApiHelpers
     private static readonly Dictionary<ModelType, Func<bool>> CompatibilityCheckers = new Dictionary<ModelType, Func<bool>>
     {
         {
-            ModelType.PhiSilica, LanguageModel.IsAvailable
+            ModelType.PhiSilica, () => LanguageModel.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                       not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.TextRecognitionOCR, TextRecognizer.IsAvailable
+            ModelType.TextRecognitionOCR, () => TextRecognizer.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                                not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.ImageScaler, ImageScaler.IsAvailable
+            ModelType.ImageScaler, () => ImageScaler.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                         not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.BackgroundRemover, ImageObjectExtractor.IsAvailable
+            ModelType.BackgroundRemover, () => ImageObjectExtractor.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                               not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
-            ModelType.ImageDescription, ImageDescriptionGenerator.IsAvailable
+            ModelType.ImageDescription, () => ImageDescriptionGenerator.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                              not AIFeatureReadyState.NotSupportedOnCurrentSystem
         }
     };
 
-    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>>> MakeAvailables = new Dictionary<ModelType, Func<IAsyncOperationWithProgress<PackageDeploymentResult, PackageDeploymentProgress>>>
+    public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> MakeAvailables = new()
     {
         {
-            ModelType.PhiSilica, LanguageModel.MakeAvailableAsync
+            ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
         },
         {
-            ModelType.TextRecognitionOCR, TextRecognizer.MakeAvailableAsync
+            ModelType.TextRecognitionOCR, TextRecognizer.EnsureReadyAsync
         },
         {
-            ModelType.ImageScaler, ImageScaler.MakeAvailableAsync
+            ModelType.ImageScaler, ImageScaler.EnsureReadyAsync
         },
         {
-            ModelType.BackgroundRemover, ImageObjectExtractor.MakeAvailableAsync
+            ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
         },
         {
-            ModelType.ImageDescription, ImageDescriptionGenerator.MakeAvailableAsync
+            ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
         }
     };
 

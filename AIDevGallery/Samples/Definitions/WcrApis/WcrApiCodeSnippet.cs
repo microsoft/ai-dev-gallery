@@ -14,18 +14,22 @@ internal static class WcrApiCodeSnippet
             ModelType.PhiSilica, """"
             using Microsoft.Windows.AI.Generative;
             
-            if (!LanguageModel.IsAvailable())
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await LanguageModel.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+            
+                using LanguageModel languageModel = LanguageModel.CreateAsync();
+            
+                string prompt = "Provide the molecular formula for glucose.";
+            
+                var result = await languageModel.GenerateResponseAsync(prompt);
+            
+                Console.WriteLine(result.Response);
             }
-            
-            using LanguageModel languageModel = await LanguageModel.CreateAsync();
-            
-            string prompt = "Provide the molecular formula for glucose.";
-            
-            var result = await languageModel.GenerateResponseAsync(prompt);
-            
-            Console.WriteLine(result.Response);
             """"
         },
         {
@@ -33,16 +37,21 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Windows.Vision;
             using Microsoft.Graphics.Imaging;
 
-            if (!TextRecognizer.IsAvailable())
+            var readyState = TextRecognizer.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await TextRecognizer.MakeAvailableAsync();
-            }
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await TextRecognizer.EnsureReadyAsync();
+                }
+                        
+                using TextRecognizer textRecognizer = TextRecognizer.CreateAsync();
             
-            TextRecognizer textRecognizer = await TextRecognizer.CreateAsync();
-            ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
-            RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
+                ImageBuffer imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
+                RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-            Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
+                Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
+            }
             """"
         },
         {
@@ -50,13 +59,17 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Graphics.Imaging;
             using Windows.Graphics.Imaging;
 
-            if (!ImageScaler.IsAvailable())
+            var readyState = ImageScaler.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageScaler.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageScaler.EnsureReadyAsync();
+                }
+                        
+                ImageScaler imageScaler = await ImageScaler.CreateAsync();
+                SoftwareBitmap finalImage = imageScaler.ScaleSoftwareBitmap(softwareBitmap, targetWidth, targetHeight);
             }
-
-            ImageScaler imageScaler = await ImageScaler.CreateAsync();
-            SoftwareBitmap finalImage = imageScaler.ScaleSoftwareBitmap(softwareBitmap, targetWidth, targetHeight);
             """"
         },
         {
@@ -64,21 +77,25 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Graphics.Imaging;
             using Windows.Graphics.Imaging;
 
-            if (!ImageObjectExtractor.IsAvailable())
+            var readyState = ImageObjectExtractor.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageObjectExtractor.MakeAvailableAsync();
-            }
-
-            ImageObjectExtractor imageObjectExtractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(softwareBitmap);
-
-            ImageObjectExtractorHint hint = new ImageObjectExtractorHint{
-                includeRects: null, 
-                includePoints:
-                    new List<PointInt32> { new PointInt32(306, 212),
-                                           new PointInt32(216, 336)},
-                excludePoints: null};
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageObjectExtractor.EnsureReadyAsync();
+                }
             
-            SoftwareBitmap finalImage = imageObjectExtractor.GetSoftwareBitmapObjectMask(hint);
+                ImageObjectExtractor imageObjectExtractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(softwareBitmap);
+
+                ImageObjectExtractorHint hint = new ImageObjectExtractorHint{
+                    includeRects: null, 
+                    includePoints:
+                        new List<PointInt32> { new PointInt32(306, 212),
+                                               new PointInt32(216, 336)},
+                    excludePoints: null};
+            
+                SoftwareBitmap finalImage = imageObjectExtractor.GetSoftwareBitmapObjectMask(hint);
+            }
             """"
         },
         {
@@ -88,22 +105,26 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Windows.AI.ContentModeration;
             using Windows.Graphics.Imaging;
             
-            if (!ImageDescriptionGenerator.IsAvailable())
+            var readyState = ImageDescriptionGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
-                var op = await ImageDescriptionGenerator.MakeAvailableAsync();
+                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                {
+                    var op = await ImageDescriptionGenerator.EnsureReadyAsync();
+                }
+            
+                ImageDescriptionGenerator imageDescriptionGenerator = await ImageDescriptionGenerator.CreateAsync();
+            
+                ImageBuffer inputImage = ImageBuffer.CreateCopyFromBitmap(softwareBitmap);  
+            
+                ContentFilterOptions filterOptions = new ContentFilterOptions();
+                filterOptions.PromptMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
+                filterOptions.ResponseMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
+            
+                LanguageModelResponse languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionScenario.Caption, filterOptions);
+            
+                Console.WriteLine(languageModelResponse.Response);
             }
-            
-            ImageDescriptionGenerator imageDescriptionGenerator = await ImageDescriptionGenerator.CreateAsync();
-            
-            ImageBuffer inputImage = ImageBuffer.CreateCopyFromBitmap(softwareBitmap);  
-            
-            ContentFilterOptions filterOptions = new ContentFilterOptions();
-            filterOptions.PromptMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
-            filterOptions.ResponseMinSeverityLevelToBlock.ViolentContentSeverity = SeverityLevel.Medium;
-            
-            LanguageModelResponse languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionScenario.Caption, filterOptions);
-            
-            Console.WriteLine(languageModelResponse.Response);
             """"
         }
     };

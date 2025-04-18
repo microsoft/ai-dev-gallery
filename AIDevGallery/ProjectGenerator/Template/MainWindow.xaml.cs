@@ -23,14 +23,14 @@ public sealed partial class MainWindow : Window
         ProgressRingGrid.Visibility = Visibility.Collapsed;
     }
 
-    internal async void ShowException(Exception ex, string? optionalMessage = null)
+    internal async void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = optionalMessage ?? ex switch
         {
             COMException
                 when ex.Message.Contains("the rpc server is unavailable", StringComparison.CurrentCultureIgnoreCase) =>
                     "The WCL is in an unstable state.\nRebooting the machine will restart the WCL.",
-            _ => $"Error:\n{ex.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
+            _ => $"Error:\n{ex?.Message ?? string.Empty}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
         };
         var contenText = new TextBlock
         {

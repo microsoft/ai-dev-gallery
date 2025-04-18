@@ -4,11 +4,11 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.CameraPreview" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
-    <PackageVersion Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25161.3" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
-    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25161.3" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.45.0-preview" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.45.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI" Version="9.4.0-preview.1.25207.5" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.4.0-preview.1.25207.5" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.4.0-preview.1.25207.5" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.46.0-preview" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.46.0" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
     <PackageVersion Include="System.Text.Json" Version="9.0.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="9.0.3" />
@@ -24,7 +24,7 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.QNN" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.7.250127003-experimental3" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250410001-experimental1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" Version="0.7.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.7.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.7.0" />

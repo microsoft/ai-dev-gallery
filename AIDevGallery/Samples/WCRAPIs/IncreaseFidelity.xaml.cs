@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
 using System;
 using System.IO;
 using System.Linq;
@@ -44,17 +44,36 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageScaler.IsAvailable())
+        var readyState = ImageScaler.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
         {
-            var operation = await ImageScaler.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.EnsureNeeded)
             {
-                // TODO: handle error
+                var operation = await ImageScaler.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, "Image Scaler is not available.");
+                }
+            }
+
+            if (ImageScaler.GetReadyState() == AIFeatureReadyState.Ready)
+            {
+                _ = LoadDefaultImage();
+            }
+            else
+            {
+                ShowException(null, "Image Scaler is not available.");
             }
         }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Image Enhancer is not available: {msg}");
+        }
 
-        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
     }
 
