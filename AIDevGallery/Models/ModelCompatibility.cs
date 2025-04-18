@@ -33,7 +33,7 @@ internal class ModelCompatibility
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
             var availbility = WcrApiHelpers.GetApiAvailability(apiType);
-            if (availbility is not AIFeatureReadyState.NotSupportedOnCurrentSystem or AIFeatureReadyState.DisabledByUser)
+            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
