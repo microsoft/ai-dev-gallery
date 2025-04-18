@@ -67,12 +67,19 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, "Image Description is not available.");
                 }
             }
 
-            // Load camera
-            this.InitializeCameraPreviewControl();
+            if (ImageDescriptionGenerator.GetReadyState() == AIFeatureReadyState.Ready)
+            {
+                // Load camera
+                this.InitializeCameraPreviewControl();
+            }
+            else
+            {
+                ShowException(null, "Image Description is not available.");
+            }
         }
         else
         {
