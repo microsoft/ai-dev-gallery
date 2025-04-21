@@ -65,11 +65,18 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, $"Image Description is not available");
                 }
             }
 
-            _ = LoadDefaultImage();
+            if (ImageDescriptionGenerator.GetReadyState() == AIFeatureReadyState.Ready)
+            {
+                _ = LoadDefaultImage();
+            }
+            else
+            {
+                ShowException(null, "Image Description is not available");
+            }
         }
         else
         {
