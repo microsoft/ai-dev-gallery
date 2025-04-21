@@ -32,6 +32,10 @@ internal static class WcrApiHelpers
                                                not AIFeatureReadyState.NotSupportedOnCurrentSystem
         },
         {
+            ModelType.ObjectRemover, () => ImageObjectRemover.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
+                                               not AIFeatureReadyState.NotSupportedOnCurrentSystem
+        },
+        {
             ModelType.ImageDescription, () => ImageDescriptionGenerator.GetReadyState() is not AIFeatureReadyState.DisabledByUser and
                                               not AIFeatureReadyState.NotSupportedOnCurrentSystem
         }
@@ -50,6 +54,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
+        },
+        {
+            ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
