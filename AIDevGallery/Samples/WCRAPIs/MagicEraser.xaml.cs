@@ -38,7 +38,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
     private SoftwareBitmap? _maskBitmap;
     private SoftwareBitmap? _originalBitmap;
     private bool _isDragging;
-    private ImageObjectRemover _eraser;
+    private ImageObjectRemover? _eraser;
 
     public MagicEraser()
     {
@@ -170,7 +170,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
     private async void EraseObject_Click(object sender, RoutedEventArgs e)
     {
-        if (_inputBitmap == null)
+        if (_inputBitmap == null || _eraser == null)
         {
             return;
         }
