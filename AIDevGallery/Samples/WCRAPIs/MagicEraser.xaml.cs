@@ -10,7 +10,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
 using System;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
@@ -38,8 +37,8 @@ internal sealed partial class MagicEraser : BaseSamplePage
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _maskBitmap;
     private SoftwareBitmap? _originalBitmap;
-    private bool _isSelectionEnabled = true;
     private bool _isDragging;
+    private ImageObjectRemover _eraser;
 
     public MagicEraser()
     {
@@ -71,12 +70,14 @@ internal sealed partial class MagicEraser : BaseSamplePage
             ShowException(null, $"Background Remover is not available: {msg}");
         }
 
+        _eraser = await ImageObjectRemover.CreateAsync();
+
         sampleParams.NotifyCompletion();
     }
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
+        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "enhance.png"));
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
     }
@@ -155,16 +156,6 @@ internal sealed partial class MagicEraser : BaseSamplePage
         SwitchInputOutputView(true);
     }
 
-    private async Task SetImage(string filePath)
-    {
-        if (File.Exists(filePath))
-        {
-            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
-            using IRandomAccessStream stream = await file.OpenReadAsync();
-            await SetImage(stream);
-        }
-    }
-
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
     {
         var bitmapSource = new SoftwareBitmapSource();
@@ -177,37 +168,6 @@ internal sealed partial class MagicEraser : BaseSamplePage
         CanvasImage.Height = _inputBitmap.PixelHeight;
     }
 
-    private static SoftwareBitmap ApplyMask(SoftwareBitmap inputBitmap, SoftwareBitmap grayMask)
-    {
-        if (inputBitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8 || grayMask.BitmapPixelFormat != BitmapPixelFormat.Gray8)
-        {
-            throw new ArgumentException("Input bitmap must be Bgra8 and gray mask must be Gray8");
-        }
-
-        byte[] inputBuffer = new byte[4 * inputBitmap.PixelWidth * inputBitmap.PixelHeight];
-        byte[] maskBuffer = new byte[grayMask.PixelWidth * grayMask.PixelHeight];
-        inputBitmap.CopyToBuffer(inputBuffer.AsBuffer());
-        grayMask.CopyToBuffer(maskBuffer.AsBuffer());
-
-        for (int y = 0; y < inputBitmap.PixelHeight; y++)
-        {
-            for (int x = 0; x < inputBitmap.PixelWidth; x++)
-            {
-                int inputIndex = (y * inputBitmap.PixelWidth + x) * 4;
-                int maskIndex = y * grayMask.PixelWidth + x;
-
-                if (maskBuffer[maskIndex] == 0)
-                {
-                    inputBuffer[inputIndex + 3] = 0; // Set alpha to 0 for background
-                }
-            }
-        }
-
-        var segmentedBitmap = new SoftwareBitmap(BitmapPixelFormat.Bgra8, inputBitmap.PixelWidth, inputBitmap.PixelHeight);
-        segmentedBitmap.CopyFromBuffer(inputBuffer.AsBuffer());
-        return segmentedBitmap;
-    }
-
     private async void EraseObject_Click(object sender, RoutedEventArgs e)
     {
         if (_inputBitmap == null)
@@ -215,13 +175,19 @@ internal sealed partial class MagicEraser : BaseSamplePage
             return;
         }
 
-        var eraser = await ImageObjectRemover.CreateAsync();
-        var outputBitmap = eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
-        if (outputBitmap != null)
+        try
         {
-            _originalBitmap = _inputBitmap;
-            await SetImageSource(CanvasImage, outputBitmap);
-            SwitchInputOutputView(false);
+            var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
+            if (outputBitmap != null)
+            {
+                _originalBitmap = _inputBitmap;
+                await SetImageSource(CanvasImage, outputBitmap);
+                SwitchInputOutputView(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
         }
     }
 
@@ -258,7 +224,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
         }
     }
 
-    private async void CanvasImage_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private void CanvasImage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         _isDragging = false;
         if (_inputBitmap != null)
@@ -283,14 +249,15 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
             var rect = new RectInt32(x, y, width, height);
 
-            _maskBitmap = CreateMaskFromForegroundRect(_inputBitmap.PixelWidth, _inputBitmap.PixelHeight, rect);
-            await SetImageSource(CanvasImage, _maskBitmap);
+            _maskBitmap = CreateMaskFromRect(_inputBitmap.PixelWidth, _inputBitmap.PixelHeight, rect);
+            EraseObjectButton.IsEnabled = true;
+            ClearRectangleButton.IsEnabled = true;
         }
 
         DrawCanvas.ReleasePointerCapture(e.Pointer);
     }
 
-    private SoftwareBitmap CreateMaskFromForegroundRect(int width, int height, RectInt32 rect)
+    private SoftwareBitmap CreateMaskFromRect(int width, int height, RectInt32 rect)
     {
         byte[] bitmapBuffer = new byte[width * height]; // Gray image hence 1-Byte per pixel.
 
@@ -309,12 +276,13 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
     private void SwitchInputOutputView(bool isInputEnabled)
     {
-        _isSelectionEnabled = isInputEnabled;
         InputImageRectangle.Visibility = Visibility.Collapsed;
         RevertButton.Visibility = isInputEnabled ? Visibility.Collapsed : Visibility.Visible;
         EraseObjectButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-        ClearSelectionButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+        ClearRectangleButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
         InstructionText.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+        ClearRectangleButton.IsEnabled = false;
+        EraseObjectButton.IsEnabled = false;
     }
 
     private async void RevertButton_Click(object sender, RoutedEventArgs e)
@@ -328,8 +296,10 @@ internal sealed partial class MagicEraser : BaseSamplePage
         SwitchInputOutputView(true);
     }
 
-    private void CleanSelection_Click(object sender, RoutedEventArgs e)
+    private void CleanRectangle_Click(object sender, RoutedEventArgs e)
     {
         InputImageRectangle.Visibility = Visibility.Collapsed;
+        ClearRectangleButton.IsEnabled = false;
+        EraseObjectButton.IsEnabled = false;
     }
 }
