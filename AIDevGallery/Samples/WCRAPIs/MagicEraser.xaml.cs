@@ -154,7 +154,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
         }
 
         await SetImageSource(CanvasImage, _inputBitmap);
-        SwitchInputOutputView(true);
+        SwitchInputOutputView();
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
@@ -184,7 +184,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
                 _bitmaps.Push(_inputBitmap);
                 _inputBitmap = outputBitmap;
                 await SetImageSource(CanvasImage, outputBitmap);
-                SwitchInputOutputView(false);
+                SwitchInputOutputView();
             }
         }
         catch (Exception ex)
@@ -276,7 +276,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
         return bitmap;
     }
 
-    private void SwitchInputOutputView(bool isInputEnabled)
+    private void SwitchInputOutputView()
     {
         InputImageRectangle.Visibility = Visibility.Collapsed;
         RevertButton.Visibility = _bitmaps.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -292,7 +292,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
             await SetImageSource(CanvasImage, _inputBitmap);
         }
 
-        SwitchInputOutputView(true);
+        SwitchInputOutputView();
     }
 
     private void CleanRectangle_Click(object sender, RoutedEventArgs e)
