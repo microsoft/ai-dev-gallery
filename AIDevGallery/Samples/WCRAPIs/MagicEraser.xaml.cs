@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Scenario = ScenarioType.ImageMagicEraser,
     Id = "de3d6919-5f2a-431e-ac19-3411d13e7d9b",
     AssetFilenames = [
-        "pose_default.png"
+        "WinDev.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class MagicEraser : BaseSamplePage
@@ -77,7 +77,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "enhance.png"));
+        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "WinDev.png"));
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
     }
@@ -180,6 +180,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
             var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
             if (outputBitmap != null)
             {
+                _inputBitmap = outputBitmap;
                 _originalBitmap = _inputBitmap;
                 await SetImageSource(CanvasImage, outputBitmap);
                 SwitchInputOutputView(false);
