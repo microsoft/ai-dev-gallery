@@ -180,8 +180,8 @@ internal sealed partial class MagicEraser : BaseSamplePage
             var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
             if (outputBitmap != null)
             {
-                _inputBitmap = outputBitmap;
                 _originalBitmap = _inputBitmap;
+                _inputBitmap = outputBitmap;
                 await SetImageSource(CanvasImage, outputBitmap);
                 SwitchInputOutputView(false);
             }
