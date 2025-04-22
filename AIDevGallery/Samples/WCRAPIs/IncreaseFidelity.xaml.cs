@@ -57,14 +57,7 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
                 }
             }
 
-            if (ImageScaler.GetReadyState() == AIFeatureReadyState.Ready)
-            {
-                _ = LoadDefaultImage();
-            }
-            else
-            {
-                ShowException(null, "Image Scaler is not available.");
-            }
+            _ = LoadDefaultImage();
         }
         else
         {

@@ -71,15 +71,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
                 }
             }
 
-            if (ImageDescriptionGenerator.GetReadyState() == AIFeatureReadyState.Ready)
-            {
-                // Load camera
-                this.InitializeCameraPreviewControl();
-            }
-            else
-            {
-                ShowException(null, "Image Description is not available.");
-            }
+            this.InitializeCameraPreviewControl();
         }
         else
         {

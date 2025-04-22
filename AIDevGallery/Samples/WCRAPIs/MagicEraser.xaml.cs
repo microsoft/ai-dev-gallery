@@ -57,9 +57,11 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, "Image Object Remover is not available.");
                 }
             }
+
+            _eraser = await ImageObjectRemover.CreateAsync();
 
             _ = LoadDefaultImage();
         }
@@ -70,8 +72,6 @@ internal sealed partial class MagicEraser : BaseSamplePage
                 : "Not supported on this system.";
             ShowException(null, $"Background Remover is not available: {msg}");
         }
-
-        _eraser = await ImageObjectRemover.CreateAsync();
 
         sampleParams.NotifyCompletion();
     }
