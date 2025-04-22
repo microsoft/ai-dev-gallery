@@ -28,17 +28,39 @@
                 VerticalAlignment="Stretch"
                 Stretch="Uniform">
                 <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
-                    <Image x:Name="CanvasImage"
-                            PointerPressed="CanvasImage_PointerPressed"
-                            PointerMoved="CanvasImage_PointerMoved"
-                            PointerReleased="CanvasImage_PointerReleased"/>
+                    <Image
+                        x:Name="CanvasImage"
+                        PointerMoved="CanvasImage_PointerMoved"
+                        PointerPressed="CanvasImage_PointerPressed"
+                        PointerReleased="CanvasImage_PointerReleased" />
                     <Canvas x:Name="DrawCanvas" IsHitTestVisible="False">
-                        <Rectangle x:Name="InputImageRectangle" Grid.Row="1"
-                                Grid.Column="0" Stroke="Red" StrokeThickness="2"
-                                Fill="Transparent" Visibility="Collapsed" />
+                        <Rectangle
+                            x:Name="InputImageRectangle"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Fill="{ThemeResource FocusStrokeColorInnerBrush}"
+                            Stroke="{ThemeResource FocusStrokeColorOuterBrush}"
+                            StrokeThickness="2"
+                            Visibility="Collapsed" />
                     </Canvas>
                 </Grid>
             </Viewbox>
+
+            <Grid
+                x:Name="RevertButton"
+                Margin="8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Visibility="Collapsed">
+                <Button
+                    AutomationProperties.Name="Revert"
+                    Click="RevertButton_Click"
+                    ToolTipService.ToolTip="Undo erase">
+                    <FontIcon FontSize="16" Glyph="&#xE7A7;" />
+                </Button>
+            </Grid>
             <Grid
                 Margin="8"
                 HorizontalAlignment="Right"
@@ -57,7 +79,7 @@
                             <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
-                    <FontIcon Glyph="&#xEE71;" />
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
                 </DropDownButton>
             </Grid>
         </Grid>
@@ -69,21 +91,16 @@
             Orientation="Vertical"
             Spacing="8">
             <Button
-                x:Name="RevertButton"
-                Click="RevertButton_Click"
-                Content="Revert"
-                Style="{ThemeResource AccentButtonStyle}"
-                Visibility="Collapsed" />
-            <Button
-                x:Name="EraseObjectButton" Click="EraseObject_Click"
-                    Content="Erase Object"
+                x:Name="EraseObjectButton"
+                Click="EraseObject_Click"
+                Content="Erase object"
                 IsEnabled="False"
                 Style="{ThemeResource AccentButtonStyle}" />
             <Button
                 x:Name="ClearRectangleButton"
                 Click="CleanRectangle_Click"
-                IsEnabled="False"
-                Content="Clear rectangle" />
+                Content="Clear rectangle"
+                IsEnabled="False" />
             <TextBlock
                 x:Name="InstructionText"
                 Margin="0,12,0,0"
