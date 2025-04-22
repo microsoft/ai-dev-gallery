@@ -81,10 +81,10 @@ public sealed partial class MainWindow : Window
         Clipboard.SetContent(dataPackage);
     }
 
-    private static string GetExceptionDetails(Exception ex, string optionalMessage)
+    private static string GetExceptionDetails(Exception ex)
     {
         var innerExceptionData = ex.InnerException == null ? "" :
-            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException, optionalMessage)}";
+            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException)}";
         string details = $@"Message: {ex.Message}
 StackTrace: {ex.StackTrace}
 {innerExceptionData}";
