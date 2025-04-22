@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
@@ -29,16 +30,16 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Scenario = ScenarioType.ImageMagicEraser,
     Id = "de3d6919-5f2a-431e-ac19-3411d13e7d9b",
     AssetFilenames = [
-        "pose_default.png"
+        "WinDev.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class MagicEraser : BaseSamplePage
 {
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _maskBitmap;
-    private SoftwareBitmap? _originalBitmap;
     private bool _isDragging;
     private ImageObjectRemover? _eraser;
+    private Stack<SoftwareBitmap> _bitmaps = new();
 
     public MagicEraser()
     {
@@ -77,7 +78,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "enhance.png"));
+        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "WinDev.png"));
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
     }
@@ -153,7 +154,7 @@ internal sealed partial class MagicEraser : BaseSamplePage
         }
 
         await SetImageSource(CanvasImage, _inputBitmap);
-        SwitchInputOutputView(true);
+        SwitchInputOutputView();
     }
 
     private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
@@ -180,9 +181,10 @@ internal sealed partial class MagicEraser : BaseSamplePage
             var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
             if (outputBitmap != null)
             {
-                _originalBitmap = _inputBitmap;
+                _bitmaps.Push(_inputBitmap);
+                _inputBitmap = outputBitmap;
                 await SetImageSource(CanvasImage, outputBitmap);
-                SwitchInputOutputView(false);
+                SwitchInputOutputView();
             }
         }
         catch (Exception ex)
@@ -274,26 +276,23 @@ internal sealed partial class MagicEraser : BaseSamplePage
         return bitmap;
     }
 
-    private void SwitchInputOutputView(bool isInputEnabled)
+    private void SwitchInputOutputView()
     {
         InputImageRectangle.Visibility = Visibility.Collapsed;
-        RevertButton.Visibility = isInputEnabled ? Visibility.Collapsed : Visibility.Visible;
-        EraseObjectButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-        ClearRectangleButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-        InstructionText.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
+        RevertButton.Visibility = _bitmaps.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         ClearRectangleButton.IsEnabled = false;
         EraseObjectButton.IsEnabled = false;
     }
 
     private async void RevertButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_originalBitmap != null)
+        if (_bitmaps.Count > 0)
         {
-            _inputBitmap = _originalBitmap;
+            _inputBitmap = _bitmaps.Pop();
             await SetImageSource(CanvasImage, _inputBitmap);
         }
 
-        SwitchInputOutputView(true);
+        SwitchInputOutputView();
     }
 
     private void CleanRectangle_Click(object sender, RoutedEventArgs e)
