@@ -71,7 +71,7 @@ internal partial class BaseSamplePage : Page
         {
             Title = "Something went wrong",
             Content = errorText,
-            PrimaryButtonText = "Copy to clipboard",
+            PrimaryButtonText = "Copy error details",
             XamlRoot = App.MainWindow.Content.XamlRoot,
             CloseButtonText = "Close",
             PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],

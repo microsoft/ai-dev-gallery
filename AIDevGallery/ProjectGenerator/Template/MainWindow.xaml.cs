@@ -44,16 +44,12 @@ public sealed partial class MainWindow : Window
         {
             Title = "Something went wrong",
             Content = errorText,
-            PrimaryButtonText = "Copy to clipboard",
-            XamlRoot = App.MainWindow.Content.XamlRoot,
+            PrimaryButtonText = "Copy error details",
+            SecondaryButtonText = "Reload",
+            XamlRoot = Content.XamlRoot,
             CloseButtonText = "Close",
             PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
         };
-
-        if (SampleParams != null)
-        {
-            exceptionDialog.SecondaryButtonText = "Reload";
-        }
 
         var result = await exceptionDialog.ShowAsync();
 
