@@ -10,6 +10,7 @@ using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -180,16 +181,22 @@ internal sealed partial class SampleContainer : UserControl
 
             try
             {
-                if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
+                var state = WcrApiHelpers.GetApiAvailability(apiType);
+                if (state != AIFeatureReadyState.Ready)
                 {
-                    modelDownloader.State = WcrApiDownloadState.NotStarted;
-                    modelDownloader.ErrorMessage = string.Empty;
+                    modelDownloader.State = state switch
+                    {
+                        AIFeatureReadyState.EnsureNeeded => WcrApiDownloadState.NotStarted,
+                        _ => WcrApiDownloadState.Error
+                    };
+
+                    modelDownloader.ErrorMessage = WcrApiHelpers.GetStringDescription(state);
                     modelDownloader.DownloadProgress = 0;
                     SampleFrame.Content = null;
                     _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]).WaitAsync(token))
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
                     {
                         return;
                     }
@@ -423,9 +430,9 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
-        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != WcrApiAvailability.Available)
+        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != AIFeatureReadyState.Ready)
         {
-            var op = WcrApiHelpers.MakeAvailables[_wcrApi.Value]();
+            var op = WcrApiHelpers.EnsureReadyFuncs[_wcrApi.Value]();
             if (await modelDownloader.SetDownloadOperation(op))
             {
                 // reload sample
