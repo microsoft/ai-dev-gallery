@@ -58,6 +58,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private InMemoryRandomAccessStream? _inMemoryRandomAccessStream;
     private CancellationTokenSource? _cts;
     private bool _isCancellable;
+    private bool isImeActive = true;
 
     private List<uint>? selectedPages;
     private int selectedPageIndex = -1;
@@ -504,10 +505,22 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     private async void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && SearchTextBox.Text.Length > 0)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && isImeActive == false)
         {
-            await DoRAG();
+            if (SearchTextBox.Text.Length > 0)
+            {
+                await DoRAG();
+            }
         }
+        else
+        {
+            isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        isImeActive = false;
     }
 
     private async Task<StorageFile> SelectPDFFromFileSystem()
