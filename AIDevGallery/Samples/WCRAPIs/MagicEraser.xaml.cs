@@ -278,9 +278,6 @@ internal sealed partial class MagicEraser : BaseSamplePage
     {
         InputImageRectangle.Visibility = Visibility.Collapsed;
         RevertButton.Visibility = isInputEnabled ? Visibility.Collapsed : Visibility.Visible;
-        EraseObjectButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-        ClearRectangleButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-        InstructionText.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
         ClearRectangleButton.IsEnabled = false;
         EraseObjectButton.IsEnabled = false;
     }
