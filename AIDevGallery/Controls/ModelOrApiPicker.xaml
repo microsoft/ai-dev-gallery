@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="AIDevGallery.Controls.ModelOrApiPicker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Visibility="Collapsed">
+
+    <Grid Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}">
+        <Grid Height="400"
+              Width="600" 
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="100"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+
+                    <SelectorBar x:Name="myLLMTypeSelector" 
+                                 SelectionChanged="myLLMTypeSelector_SelectionChanged">
+                    </SelectorBar>
+
+                    <Grid x:Name="modelsGrid"
+                          Grid.Row="1"></Grid>
+                </Grid>
+                
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Right"
+                            Padding="12">
+                    <Button Style="{StaticResource AccentButtonStyle}"
+                            Click="Button_Click" Content="Close"></Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

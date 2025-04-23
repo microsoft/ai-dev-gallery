@@ -43,11 +43,13 @@ internal sealed partial class ScenarioPage : Page
         {
             this.scenario = scenario;
             PopulateModelControls();
+            LoadPicker();
         }
         else if (e.Parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
             PopulateModelControls(sampleArgs.ModelDetails);
+            LoadPicker(sampleArgs.ModelDetails); // TODO: handle model to load
         }
     }
 
@@ -122,6 +124,88 @@ internal sealed partial class ScenarioPage : Page
         selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
         modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
         UpdateModelSelectionPlaceholderControl();
+    }
+
+    private void LoadPicker(ModelDetails? initialModelToLoad = null)
+    {
+        if (scenario == null)
+        {
+            return;
+        }
+
+        samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
+
+        if (samples.Count == 0)
+        {
+            return;
+        }
+
+        List<ModelType> modelDetailsList = samples.SelectMany(s => s.Model1Types).ToList();
+        List<ModelType> modelDetailsList2 = null;
+
+        if (samples[0].Model2Types != null)
+        {
+            modelDetailsList2 = samples.SelectMany(s => s.Model2Types).ToList();
+        }
+
+        modelOrApiPicker.Load(modelDetailsList, modelDetailsList2);
+
+        //foreach (var s in samples)
+        //{
+        //    var models = ModelDetailsHelper.GetModelDetails(s);
+
+        //    modelOrApiPicker.Load(models);
+
+        //    // Model1Types
+        //    if (models.Count > 0)
+        //    {
+        //        modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
+
+        //        // Model2Types
+        //        if (models.Count > 1)
+        //        {
+        //            modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
+        //        }
+        //    }
+
+        //    if (s.Model1Types.Contains(ModelType.LanguageModels))
+        //    {
+        //        // add ollama models
+        //        var ollamaModels = OllamaHelper.GetOllamaModels();
+
+        //        if (ollamaModels != null)
+        //        {
+        //            modelDetailsList.AddRange(ollamaModels.Select(om => new ModelDetails()
+        //            {
+        //                Id = $"ollama-{om.Id}",
+        //                Name = om.Name,
+        //                Url = $"ollama://{om.Name}:{om.Tag}",
+        //                Description = $"{om.Name}:{om.Tag} running locally via Ollama",
+        //                HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
+        //                Size = AppUtils.StringToFileSize(om.Size),
+        //                SupportedOnQualcomm = true,
+        //                ParameterSize = om.Tag.ToUpperInvariant(),
+        //            }));
+        //        }
+        //    }
+        //}
+
+        //if (modelDetailsList.Count == 0)
+        //{
+        //    return;
+        //}
+
+        //if (modelDetailsList2.Count > 0)
+        //{
+        //    modelDetailsList2 = modelDetailsList2.DistinctBy(m => m.Id).ToList();
+        //    selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
+        //    modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
+        //}
+
+        //modelDetailsList = modelDetailsList.DistinctBy(m => m.Id).ToList();
+        //selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
+        //modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
+        //UpdateModelSelectionPlaceholderControl();
     }
 
     private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
@@ -407,5 +491,10 @@ internal sealed partial class ScenarioPage : Page
         {
             VisualStateManager.GoToState(this, "WideLayout", true);
         }
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        modelOrApiPicker.Show();
     }
 }
