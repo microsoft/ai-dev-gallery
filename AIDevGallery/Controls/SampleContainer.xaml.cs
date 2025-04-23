@@ -182,7 +182,7 @@ internal sealed partial class SampleContainer : UserControl
             try
             {
                 var state = WcrApiHelpers.GetApiAvailability(apiType);
-                if (state != AIFeatureReadyState.Ready)
+                if (state != AIFeatureReadyState.Ready && !WcrApiHelpers.IsModelReadyWorkaround.ContainsKey(apiType))
                 {
                     modelDownloader.State = state switch
                     {

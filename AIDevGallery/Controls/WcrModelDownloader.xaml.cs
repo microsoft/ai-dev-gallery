@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models; // <exclude-line>
+using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events; // <exclude-line>
 using AIDevGallery.Utils; // <exclude-line>
 using Microsoft.UI.Xaml;
@@ -17,7 +18,7 @@ namespace AIDevGallery.Controls;
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
-    private ModelType modelTypeHint; // <exclude-line>
+    private ModelType? modelTypeHint; // <exclude-line>
     private string sampleId = string.Empty; // <exclude-line>
 
     public int DownloadProgress
@@ -93,7 +94,11 @@ internal sealed partial class WcrModelDownloader : UserControl
             return false;
         }
 
-        WcrDownloadOperationTracker.Operations[this.modelTypeHint] = operation; // <exclude-line>
+        if (modelTypeHint != null)
+        {
+            WcrDownloadOperationTracker.Operations[modelTypeHint.Value] = operation; // <exclude-line>
+        }
+
         operation.Progress = (result, progress) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -111,20 +116,31 @@ internal sealed partial class WcrModelDownloader : UserControl
             if (result.Status == AIFeatureReadyResultState.Success)
             {
                 State = WcrApiDownloadState.Downloaded;
+                if (modelTypeHint != null)
+                {
+                    WcrApiHelpers.IsModelReadyWorkaround[modelTypeHint.Value] = true;
+                }
+
                 return true;
             }
             else
             {
                 State = WcrApiDownloadState.Error;
                 ErrorMessage = result.ExtendedError.Message;
-                WcrApiDownloadFailedEvent.Log(this.modelTypeHint, result.ExtendedError.Message); // <exclude-line>
+                if (modelTypeHint != null)
+                {
+                    WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, result.ExtendedError.Message); // <exclude-line>
+                }
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
             State = WcrApiDownloadState.Error;
-            WcrApiDownloadFailedEvent.Log(this.modelTypeHint, ex); // <exclude-line>
+            if (modelTypeHint != null)
+            {
+                WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, ex); // <exclude-line>
+            }
         }
 
         return false;
@@ -152,7 +168,10 @@ internal sealed partial class WcrModelDownloader : UserControl
     private void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         DownloadClicked?.Invoke(this, EventArgs.Empty);
-        WcrApiDownloadRequestedEvent.Log(modelTypeHint, sampleId); // <exclude-line>
+        if (modelTypeHint != null && sampleId != string.Empty)
+        {
+            WcrApiDownloadRequestedEvent.Log(modelTypeHint.Value, sampleId); // <exclude-line>
+        }
     }
 
     private async void WindowsUpdateHyperlinkClicked(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
