@@ -41,7 +41,7 @@
                             <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
-                    <FontIcon Glyph="&#xEE71;" />
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
                 </DropDownButton>
             </Grid>
 

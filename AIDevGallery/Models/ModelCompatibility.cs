@@ -3,6 +3,7 @@
 
 using AIDevGallery.Samples;
 using AIDevGallery.Utils;
+using Microsoft.Windows.AI;
 using System;
 using System.Linq;
 
@@ -32,14 +33,14 @@ internal class ModelCompatibility
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
             var availbility = WcrApiHelpers.GetApiAvailability(apiType);
-            if (AppUtils.HasNpu() && availbility != WcrApiAvailability.NotSupported)
+            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = "This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073 (Dev and Beta Channels).";
+                description = $"{availbility.GetStringDescription()} This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073.";
             }
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)

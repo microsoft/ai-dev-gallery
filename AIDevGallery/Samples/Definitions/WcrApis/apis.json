@@ -53,6 +53,16 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757"
+      },
+      "ObjectRemover": {
+        "Id": "69637859-f91f-468a-99e0-9ed3fbc5f78e",
+        "Name": "Object Erase",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF20",
+        "Description": "Remove an object from an image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       }
     }
   }

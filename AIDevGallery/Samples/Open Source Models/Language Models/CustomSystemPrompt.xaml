@@ -85,22 +85,6 @@
                         IsOn="{x:Bind defaultDoSample, Mode=OneTime}"
                         ToolTipService.ToolTip="If Sampling is disabled, a greedy approach will be used and the model will select the most likely token every time. If enabled,tokens will be selected based on the token probability distribution. The Top K, Top P, and Temperature parameters only apply if sampling is enabled." />
                 <StackPanel x:Name="PhiSilicaParams" Spacing="12" Visibility="Collapsed">
-                    <TextBlock VerticalAlignment="Center" Text="Language Model Skill">
-                         <ToolTipService.ToolTip>
-                             <ToolTip>
-                                 <StackPanel>
-                                     <TextBlock Text="The skill used for the response." />
-                                     <TextBlock Margin="10,0" Text="General - Don't use any skill for the response" />
-                                     <TextBlock Margin="10,0" Text="TextToTable - Generates a csv table with the data" />
-                                     <TextBlock Margin="10,0" Text="Summarize - Summarizes the text" />
-                                     <TextBlock Margin="10,0" Text="Rewrite - Rewrites the input text" />
-                                 </StackPanel>
-                             </ToolTip>
-                         </ToolTipService.ToolTip>
-                    </TextBlock>
-                    <ComboBox Width="120" x:Name ="SkillCombo" VerticalAlignment="Center" 
-                            ItemsSource="{x:Bind LanguageModelSkills}"
-                            SelectedItem="{x:Bind LanguageModelSkill, Mode=OneTime}" />
                     <TextBlock VerticalAlignment="Center" Text="Prompt Content Moderation">
                         <ToolTipService.ToolTip>
                             <ToolTip>
