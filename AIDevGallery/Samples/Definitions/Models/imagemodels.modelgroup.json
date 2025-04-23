@@ -20,6 +20,8 @@
               "CPU",
               "DML"
             ],
+            "InputDimensions": [ [ 3, -1, -1 ] ],
+            "OutputDimensions": [[-1, 4], [-1], [-1]],
             "Size": 167330019,
             "License": "mit"
           },

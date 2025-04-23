@@ -3,9 +3,11 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace AIDevGallery.Helpers;
 
@@ -106,10 +108,11 @@ internal static class ModelDetailsHelper
                         leafs.Enqueue(leaf);
                     }
                 }
-            }
+}
             while (leafs.Count > 0 && added);
 
             var allModelDetails = new List<ModelDetails>();
+            List<string> addedUserModels = new();
             foreach (var modelType in leafs.ToList())
             {
                 if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out ModelDetails? modelDetails))
@@ -120,11 +123,25 @@ internal static class ModelDetailsHelper
                 {
                     allModelDetails.Add(GetModelDetailsFromApiDefinition(modelType, apiDefinition));
                 }
+
+                System.Diagnostics.Debug.WriteLine(modelType.ToString());
+                if (App.AppData.ModelTypeToUserAddedModelsMapping != null && initialModelType != ModelType.LanguageModels && App.AppData.ModelTypeToUserAddedModelsMapping.TryGetValue(modelType.ToString(), out List<string>? modelIds))
+                {
+                    foreach (string id in modelIds)
+                    {
+                        ModelDetails? details = App.ModelCache.Models.Where(m => m.Details.Id == id).FirstOrDefault()?.Details;
+                        if (!addedUserModels.Contains(id) && details != null)
+                        {
+                            allModelDetails.Add(details);
+                            addedUserModels.Add(id);
+                        }
+                    }
+                }
             }
 
             if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
             {
-                var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
+                var userAddedModels = App.ModelCache.Models.Where(m => m.Details.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.OrdinalIgnoreCase)).ToList();
                 allModelDetails.AddRange(userAddedModels.Select(c => c.Details));
             }
 

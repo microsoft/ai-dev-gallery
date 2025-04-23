@@ -42,7 +42,6 @@
                 Content="{ui:FontIcon Glyph=&#xE71B;,
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
-
             <Grid
                 x:Name="ActionButtonsGrid"
                 Grid.Row="2"
@@ -137,6 +136,7 @@
                 RowSpacing="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock>
@@ -151,6 +151,12 @@
                     MinWidth="360"
                     ModelCardVisibility="Visible"
                     ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged" />
+                <Button 
+                    x:Name="AddLocalModelButton"
+                    Grid.Row="2"
+                    Click="AddLocalModelButton_Click"
+                    HorizontalAlignment="Center" 
+                    Content="Add Local Model"/>
             </Grid>
         </Grid>
         <ContentDialog

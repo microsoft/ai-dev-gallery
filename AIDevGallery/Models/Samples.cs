@@ -78,6 +78,8 @@ internal class ModelDetails
     public List<AIToolkitAction>? AIToolkitActions { get; set; }
     public string? AIToolkitId { get; set; }
     public string? AIToolkitFinetuningId { get; set; }
+    public List<int[]>? InputDimensions { get; set; }
+    public List<int[]>? OutputDimensions { get; set; }
 
     private ModelCompatibility? compatibility;
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
