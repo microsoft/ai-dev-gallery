@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="utf-8"?>
+<local:BaseModelPickerView
+    x:Class="AIDevGallery.Controls.LanguageModelPickerViews.OnnxPickerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Controls.LanguageModelPickerViews"
+    xmlns:models="using:AIDevGallery.Models"
+    xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:utils="using:AIDevGallery.Utils"
+    xmlns:helpers="using:AIDevGallery.Helpers"
+    xmlns:vm="using:AIDevGallery.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" Spacing="8">
+                <TextBlock
+                    x:Name="AvailableModelsTxt"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Downloaded Models"
+                    Visibility="Collapsed" />
+                <ItemsView
+                    x:Name="ModelSelectionItemsView"
+                    IsItemInvokedEnabled="True"
+                    ItemInvoked="ModelSelectionItemsView_ItemInvoked"
+                    ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
+                    SelectionMode="None">
+                    <ItemsView.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsView.Layout>
+                    <ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AvailableModel">
+                            <ItemContainer
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        GotFocus="ItemContainer_GotFocus"
+                        PointerEntered="ItemContainer_PointerEntered"
+                        Tag="{x:Bind}">
+                                <ItemContainer.Resources>
+                                    <SolidColorBrush x:Key="ItemContainerPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerSelectedPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerPressedBackground" Color="Transparent" />
+                                </ItemContainer.Resources>
+                                <toolkit:SettingsCard
+                            MinHeight="48"
+                            Padding="14,10,14,10"
+                            CornerRadius="{StaticResource OverlayCornerRadius}">
+                                    <toolkit:SettingsCard.Resources>
+                                        <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
+                                        <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                    </toolkit:SettingsCard.Resources>
+                                    <toolkit:SettingsCard.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                        VerticalAlignment="Center"
+                                        Text="{x:Bind ModelDetails.Name}"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                            <ItemsRepeater
+                                        Grid.Column="1"
+                                        Margin="4,0,0,0"
+                                        ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                        <Button
+                                                    VerticalAlignment="Center"
+                                                    AutomationProperties.Name="More info"
+                                                    Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
+                                                    Style="{StaticResource TertiaryButtonStyle}"
+                                                    Tapped="StopPropagatingHandler"
+                                                    ToolTipService.ToolTip="More info">
+                                                            <Button.Flyout>
+                                                                <Flyout ShouldConstrainToRootBounds="False">
+                                                                    <TextBlock
+                                                                MaxWidth="360"
+                                                                Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                                TextWrapping="Wrap" />
+                                                                </Flyout>
+                                                            </Button.Flyout>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </Grid>
+                                    </toolkit:SettingsCard.Header>
+                                    <toolkit:SettingsCard.HeaderIcon>
+                                        <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind ModelDetails.Icon}" />
+                                    </toolkit:SettingsCard.HeaderIcon>
+                                    <toolkit:SettingsCard.Description>
+                                        <StackPanel>
+                                            <toolkit:WrapPanel
+                                                HorizontalSpacing="6"
+                                                Orientation="Horizontal"
+                                                VerticalSpacing="2">
+                                                <!--<TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
+                                                    <Run Text="{x:Bind ModelDetails.ParameterSize}" />
+                                                    <Run Text="params" />
+                                                    <Run Text=" • " />
+                                                </TextBlock>-->
+                                                <TextBlock VerticalAlignment="Center">
+                                                    <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
+                                                    <Run Text=" • " />
+                                                </TextBlock>
+                                                <Image
+                                                    Height="12"
+                                                    Margin="0,2,0,0"
+                                                    Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
+                                                    <ToolTipService.ToolTip>
+                                                        <TextBlock TextWrapping="Wrap">
+                                                    <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
+                                                        </TextBlock>
+                                                    </ToolTipService.ToolTip>
+                                                </Image>
+                                                <TextBlock Text="• " 
+                                                   Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                <TextBlock VerticalAlignment="Center" 
+                                                   Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}"
+                                                   Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}">
+                                                    <ToolTipService.ToolTip>
+                                                        <TextBlock TextWrapping="Wrap">
+                                                            <Run Text="This model is under the" />
+                                                            <Run Text="{x:Bind utils:AppUtils.GetLicenseTitleFromString(ModelDetails.License)}" />
+                                                            <Run Text="license" />
+                                                        </TextBlock>
+                                                    </ToolTipService.ToolTip>   
+                                                </TextBlock>
+                                            </toolkit:WrapPanel>
+                                        </StackPanel>
+
+                                    </toolkit:SettingsCard.Description>
+                                    <Border
+                                        Width="28"
+                                        Height="28"
+                                        Margin="0,0,1,0"
+                                        Padding="0">
+                                        <Button
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                    AutomationProperties.Name="More options"
+                                    Content="{ui:FontIcon Glyph=&#xE712;,
+                                                          FontSize=16}"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    Tapped="StopPropagatingHandler"
+                                    ToolTipService.ToolTip="More options"
+                                    Visibility="{x:Bind OptionsVisible, Mode=OneWay}">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="Bottom">
+                                                    <MenuFlyoutItem
+                                                Click="ModelCard_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View model card"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="ApiDocumentation_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View API documentation"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="OllamaCopyUrl_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="Copy Url"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="OllamaViewModelDetails_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="Open Model Details"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="ViewLicense_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE82D;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View license"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenDownloadedModel(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="CopyModelPath_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8C8;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="Copy as path"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="OpenModelFolder_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE838;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="Open containing folder"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                    <MenuFlyoutSeparator Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                    <MenuFlyoutItem
+                                                Click="DeleteModel_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE74D;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="Delete"
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOnnxModel(ModelDetails)}" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Border>
+
+                                    <!--</StackPanel>-->
+                                </toolkit:SettingsCard>
+                            </ItemContainer>
+                        </DataTemplate>
+                    </ItemsView.ItemTemplate>
+                </ItemsView>
+                <TextBlock
+                    x:Name="DownloadableModelsTxt"
+                    Margin="0,8,0,0"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Downloadable Models"
+                    Visibility="Collapsed" />
+                <ItemsRepeater
+                    Grid.Row="1"
+                    IsTabStop="False"
+                    ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DownloadableModel">
+                            <toolkit:SettingsCard
+                        MinHeight="48"
+                        Padding="14,10,14,10"
+                        CornerRadius="{StaticResource OverlayCornerRadius}"
+                        GotFocus="ItemContainer_GotFocus"
+                        PointerEntered="ItemContainer_PointerEntered"
+                        Tag="{x:Bind}">
+                                <toolkit:SettingsCard.Resources>
+                                    <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
+                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                </toolkit:SettingsCard.Resources>
+                                <toolkit:SettingsCard.Header>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                    MaxWidth="268"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind ModelDetails.Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                        <ItemsRepeater
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                    <Button
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.Name="More info"
+                                                Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
+                                                Style="{StaticResource TertiaryButtonStyle}"
+                                                ToolTipService.ToolTip="More info">
+                                                        <Button.Flyout>
+                                                            <Flyout ShouldConstrainToRootBounds="False">
+                                                                <TextBlock
+                                                            MaxWidth="360"
+                                                            Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                            TextWrapping="Wrap" />
+                                                            </Flyout>
+                                                        </Button.Flyout>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </Grid>
+                                </toolkit:SettingsCard.Header>
+                                <toolkit:SettingsCard.HeaderIcon>
+                                    <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind ModelDetails.Icon}" />
+                                </toolkit:SettingsCard.HeaderIcon>
+                                <toolkit:SettingsCard.Description>
+                                    <StackPanel>
+                                        <toolkit:WrapPanel
+                                    HorizontalSpacing="4"
+                                    Orientation="Horizontal"
+                                    VerticalSpacing="2">
+                                            <!--<TextBlock Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
+                                        <Run Text="{x:Bind ModelDetails.ParameterSize}" />
+                                        <Run Text="params" />
+                                        <Run Text=" • " />
+                                            </TextBlock>-->
+                                            <TextBlock>
+                                        <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
+                                        <Run Text=" • " />
+                                            </TextBlock>
+                                            <Image
+                                        Height="12"
+                                        Margin="0,2,0,0"
+                                        Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
+                                                <ToolTipService.ToolTip>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
+                                                    </TextBlock>
+                                                </ToolTipService.ToolTip>
+                                            </Image>
+                                            <TextBlock Text="• " />
+                                            <TextBlock VerticalAlignment="Center" Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}">
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock TextWrapping="Wrap">
+                                                <Run Text="This model is under the" />
+                                                <Run Text="{x:Bind utils:AppUtils.GetLicenseTitleFromString(ModelDetails.License)}" />
+                                                <Run Text="license" />
+                                            </TextBlock>
+                                        </ToolTipService.ToolTip>
+                                    </TextBlock>
+                                        </toolkit:WrapPanel>
+                                    </StackPanel>
+                                </toolkit:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border
+                                Width="28"
+                                Height="28"
+                                Margin="0,0,1,0"
+                                Padding="0">
+                                        <Button
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                    AutomationProperties.Name="More options"
+                                    Content="{ui:FontIcon Glyph=&#xE712;,
+                                                          FontSize=16}"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    ToolTipService.ToolTip="More options"
+                                    Visibility="{x:Bind OptionsVisible, Mode=OneWay}">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="Bottom">
+                                                    <MenuFlyoutItem
+                                                Click="ModelCard_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View model card" />
+                                                    <MenuFlyoutItem
+                                                Click="ViewLicense_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE82D;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View model license" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Border>
+                                    <Grid>
+                                        <Button
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.HelpText="Download model"
+                                    AutomationProperties.Name="{x:Bind ModelDetails.Name}"
+                                    Click="DownloadModelButton_Click"
+                                    Content="{ui:FontIcon Glyph=&#xE896;,
+                                                          FontSize=14}"
+                                    HighContrastAdjustment="None"
+                                    IsEnabled="{x:Bind IsDownloadEnabled}"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    Tag="{x:Bind}"
+                                    ToolTipService.ToolTip="Download model"
+                                    Visibility="{x:Bind CanDownload, Mode=OneWay}" />
+
+                                        <ProgressRing
+                                    Width="24"
+                                    Height="24"
+                                    Background="{ThemeResource ControlStrongStrokeColorDisabledBrush}"
+                                    IsIndeterminate="False"
+                                    Visibility="{x:Bind vm:DownloadableModel.BoolToVisibilityInverse(CanDownload), Mode=OneWay}"
+                                    Value="{x:Bind Progress, Mode=OneWay}" />
+                                    </Grid>
+                                </StackPanel>
+                            </toolkit:SettingsCard>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+                <TextBlock
+            x:Name="UnavailableModelsTitleTxt"
+            Margin="0,8,0,0"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="Models not supported on this device"
+            Visibility="Collapsed" />
+                <ItemsRepeater ItemsSource="{x:Bind UnavailableModels, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:BaseModel">
+                            <toolkit:SettingsCard
+                        MinHeight="48"
+                        Padding="12,8,12,8"
+                        Background="{ThemeResource ControlFillColorDisabledBrush}"
+                        BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                        CornerRadius="{StaticResource OverlayCornerRadius}"
+                        Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                        GotFocus="ItemContainer_GotFocus"
+                        PointerEntered="ItemContainer_PointerEntered"
+                        Tag="{x:Bind}">
+                                <toolkit:SettingsCard.Header>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                    MaxWidth="268"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind ModelDetails.Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                        <ItemsRepeater
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    VerticalAlignment="Center"
+                                    ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}"
+                                    Opacity="0.6">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                    <Button
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.Name="More info"
+                                                Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
+                                                Style="{StaticResource TertiaryButtonStyle}"
+                                                ToolTipService.ToolTip="More info">
+                                                        <Button.Flyout>
+                                                            <Flyout ShouldConstrainToRootBounds="False">
+                                                                <TextBlock
+                                                            MaxWidth="360"
+                                                            Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                            TextWrapping="Wrap" />
+                                                            </Flyout>
+                                                        </Button.Flyout>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </Grid>
+                                </toolkit:SettingsCard.Header>
+                                <toolkit:SettingsCard.Resources>
+                                    <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,12,0</Thickness>
+                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                </toolkit:SettingsCard.Resources>
+                                <toolkit:SettingsCard.HeaderIcon>
+                                    <ImageIcon
+                                AutomationProperties.AccessibilityView="Control"
+                                AutomationProperties.Name="Model source icon"
+                                Opacity="0.4"
+                                Source="{x:Bind ModelDetails.Icon}" />
+                                </toolkit:SettingsCard.HeaderIcon>
+                                <toolkit:SettingsCard.Description>
+                                    <StackPanel>
+                                        <toolkit:WrapPanel
+                                    HorizontalSpacing="6"
+                                    Orientation="Horizontal"
+                                    VerticalSpacing="2"
+                                    Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}">
+                                            <!--<TextBlock
+                                        MaxWidth="268"
+                                        Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                        TextTrimming="CharacterEllipsis"
+                                        Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
+                                        <Run Text="{x:Bind ModelDetails.ParameterSize}" />
+                                        <Run Text="params" />
+                                        <Run Text=" • " />
+                                            </TextBlock>-->
+                                            <TextBlock Foreground="{ThemeResource TextFillColorDisabledBrush}">
+                                        <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
+                                        <Run Text=" • " />
+                                            </TextBlock>
+                                            <Image
+                                        Height="12"
+                                        Margin="0,2,0,0"
+                                        Opacity="0.6"
+                                        Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(ModelDetails.Url)}">
+                                                <ToolTipService.ToolTip>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(ModelDetails.Url)}" />
+                                                    </TextBlock>
+                                                </ToolTipService.ToolTip>
+                                            </Image>
+                                            <TextBlock Text="• " />
+                                            <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                        Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}">
+                                        <ToolTipService.ToolTip>
+                                            <TextBlock TextWrapping="Wrap">
+                                                <Run Text="This model is under the" />
+                                                <Run Text="{x:Bind utils:AppUtils.GetLicenseTitleFromString(ModelDetails.License)}" />
+                                                <Run Text="license" />
+                                            </TextBlock>
+                                        </ToolTipService.ToolTip>
+                                    </TextBlock>
+                                        </toolkit:WrapPanel>
+                                        <TextBlock
+                                    Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                    Text="Windows Copilot Runtime APIs"
+                                    Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </toolkit:SettingsCard.Description>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border
+                                Width="28"
+                                Height="28"
+                                Margin="0,0,1,0"
+                                Padding="0">
+                                        <Button
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                    AutomationProperties.Name="More options"
+                                    Content="{ui:FontIcon Glyph=&#xE712;,
+                                                          FontSize=16}"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    ToolTipService.ToolTip="More options"
+                                    Visibility="{x:Bind OptionsVisible, Mode=OneWay}">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="Bottom">
+                                                    <MenuFlyoutItem
+                                                Click="ModelCard_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View model card"
+                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                    <MenuFlyoutItem
+                                                Click="ApiDocumentation_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View API documentation"
+                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
+                                                    <MenuFlyoutItem
+                                                Click="ViewLicense_Click"
+                                                Icon="{ui:FontIcon Glyph=&#xE82D;}"
+                                                Tag="{x:Bind ModelDetails}"
+                                                Text="View license"
+                                                Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource NotZeroToVisibilityConverter}}" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Border>
+                                    <Button
+                                Margin="0,0,2,0"
+                                Padding="2"
+                                AutomationProperties.Name="Warning"
+                                Style="{StaticResource SubtleButtonStyle}"
+                                ToolTipService.ToolTip="Warning">
+                                        <Button.Flyout>
+                                            <Flyout ShouldConstrainToRootBounds="False">
+                                                <TextBlock
+                                            Width="368"
+                                            Text="{x:Bind Compatibility.CompatibilityIssueDescription}"
+                                            TextWrapping="WrapWholeWords" />
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <FontIcon
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    FontSize="16"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Glyph="&#xE7BA;" />
+                                    </Button>
+                                </StackPanel>
+                            </toolkit:SettingsCard>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+        </ScrollViewer>
+        <ContentDialog
+            x:Name="DownloadDialog"
+            Title="Download model"
+            DefaultButton="Primary"
+            IsPrimaryButtonEnabled="{Binding ElementName=AgreeCheckBox, Path=IsChecked}"
+            PrimaryButtonText="Download"
+            SecondaryButtonText="Cancel">
+            <ContentDialog.Content>
+                <StackPanel MinWidth="360">
+                    <InfoBar
+                x:Name="WarningInfoBar"
+                Title="Model is not recommended"
+                Margin="0,0,0,16"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Warning" />
+                    <TextBlock TextWrapping="Wrap">
+                <Run Text="You are about to download" />
+                <Run x:Name="ModelNameTxt" FontWeight="SemiBold" />
+                <Run Text="from" />
+                <Run x:Name="ModelSourceTxt" FontWeight="SemiBold" />
+                <LineBreak />
+                <LineBreak /><Run Text="License:" />
+                <Hyperlink x:Name="ModelLicenseLink">
+                    <Run x:Name="ModelLicenseLabel" />
+                </Hyperlink>
+                    </TextBlock>
+                    <CheckBox
+                x:Name="AgreeCheckBox"
+                Margin="0,16,0,0"
+                Content="I have reviewed and agree with the license" />
+                </StackPanel>
+            </ContentDialog.Content>
+        </ContentDialog>
+    </Grid>
+</local:BaseModelPickerView>

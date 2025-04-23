@@ -148,7 +148,7 @@ internal sealed partial class ScenarioPage : Page
             modelDetailsList2 = samples.SelectMany(s => s.Model2Types).ToList();
         }
 
-        modelOrApiPicker.Load(modelDetailsList, modelDetailsList2);
+        modelOrApiPicker.Load([modelDetailsList, modelDetailsList2]);
 
         //foreach (var s in samples)
         //{

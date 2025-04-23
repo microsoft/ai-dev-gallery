@@ -51,7 +51,7 @@ internal static class ModelDetailsHelper
         Dictionary<ModelType, List<ModelDetails>> model1Details = [];
         foreach (ModelType modelType in sample.Model1Types)
         {
-            model1Details[modelType] = GetSamplesForModelType(modelType);
+            model1Details[modelType] = GetModelDetailsForModelType(modelType);
         }
 
         List<Dictionary<ModelType, List<ModelDetails>>> listModelDetails = [model1Details];
@@ -61,75 +61,75 @@ internal static class ModelDetailsHelper
             Dictionary<ModelType, List<ModelDetails>> model2Details = [];
             foreach (ModelType modelType in sample.Model2Types)
             {
-                model2Details[modelType] = GetSamplesForModelType(modelType);
+                model2Details[modelType] = GetModelDetailsForModelType(modelType);
             }
 
             listModelDetails.Add(model2Details);
         }
 
         return listModelDetails;
+    }
 
-        static List<ModelDetails> GetSamplesForModelType(ModelType initialModelType)
+    public static List<ModelDetails> GetModelDetailsForModelType(ModelType initialModelType)
+    {
+        Queue<ModelType> leafs = new();
+        leafs.Enqueue(initialModelType);
+        bool added = true;
+
+        do
         {
-            Queue<ModelType> leafs = new();
-            leafs.Enqueue(initialModelType);
-            bool added = true;
+            added = false;
+            int initialCount = leafs.Count;
 
-            do
+            for (int i = 0; i < initialCount; i++)
             {
-                added = false;
-                int initialCount = leafs.Count;
-
-                for (int i = 0; i < initialCount; i++)
+                var leaf = leafs.Dequeue();
+                if (ModelTypeHelpers.ParentMapping.TryGetValue(leaf, out List<ModelType>? values))
                 {
-                    var leaf = leafs.Dequeue();
-                    if (ModelTypeHelpers.ParentMapping.TryGetValue(leaf, out List<ModelType>? values))
+                    if (values.Count > 0)
                     {
-                        if (values.Count > 0)
-                        {
-                            added = true;
+                        added = true;
 
-                            foreach (var value in values)
-                            {
-                                leafs.Enqueue(value);
-                            }
-                        }
-                        else
+                        foreach (var value in values)
                         {
-                            // Is API, just add back but don't mark as added
-                            leafs.Enqueue(leaf);
+                            leafs.Enqueue(value);
                         }
                     }
                     else
                     {
-                        // Re-enqueue the leaf since it's actually a leaf node
+                        // Is API, just add back but don't mark as added
                         leafs.Enqueue(leaf);
                     }
                 }
-            }
-            while (leafs.Count > 0 && added);
-
-            var allModelDetails = new List<ModelDetails>();
-            foreach (var modelType in leafs.ToList())
-            {
-                if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out ModelDetails? modelDetails))
+                else
                 {
-                    allModelDetails.Add(modelDetails);
-                }
-                else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out ApiDefinition? apiDefinition))
-                {
-                    allModelDetails.Add(GetModelDetailsFromApiDefinition(modelType, apiDefinition));
+                    // Re-enqueue the leaf since it's actually a leaf node
+                    leafs.Enqueue(leaf);
                 }
             }
-
-            if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
-            {
-                var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
-                allModelDetails.AddRange(userAddedModels.Select(c => c.Details));
-            }
-
-            return allModelDetails;
         }
+        while (leafs.Count > 0 && added);
+
+        var allModelDetails = new List<ModelDetails>();
+        foreach (var modelType in leafs.ToList())
+        {
+            if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out ModelDetails? modelDetails))
+            {
+                allModelDetails.Add(modelDetails);
+            }
+            else if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out ApiDefinition? apiDefinition))
+            {
+                allModelDetails.Add(GetModelDetailsFromApiDefinition(modelType, apiDefinition));
+            }
+        }
+
+        if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
+        {
+            var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
+            allModelDetails.AddRange(userAddedModels.Select(c => c.Details));
+        }
+
+        return allModelDetails;
     }
 
     public static bool IsApi(this ModelDetails modelDetails)
@@ -155,7 +155,7 @@ internal static class ModelDetailsHelper
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private static bool IsOnnxModel(ModelDetails modelDetails)
+    public static bool IsOnnxModel(this ModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)

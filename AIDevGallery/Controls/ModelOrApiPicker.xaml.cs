@@ -3,25 +3,20 @@
 
 using AIDevGallery.Controls.LanguageModelPickerViews;
 using AIDevGallery.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 
 namespace AIDevGallery.Controls;
 internal sealed partial class ModelOrApiPicker : UserControl
 {
+    private ObservableCollection<ModelSelectionItem> modelSelectionItems = new ObservableCollection<ModelSelectionItem>();
+
     public ModelOrApiPicker()
     {
         this.InitializeComponent();
@@ -32,35 +27,77 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
-    public async Task Load(List<ModelType> modelOrApiTypes, List<ModelType>? modelOrApiTypes2)
+    public List<ModelDetails?> Load(List<List<ModelType>> modelOrApiTypes, List<ModelDetails> initialSelectedModels = null)
     {
-        modelOrApiTypes = modelOrApiTypes.Distinct().ToList();
-        modelOrApiTypes2 = modelOrApiTypes2?.Distinct().ToList();
-
-        // TODO: handle multiple models
-
-        // if language model - load one experience
-        // ortherwise load the second experience
-
-        if (modelOrApiTypes.Contains(ModelType.LanguageModels))
+        foreach (var modelOrApiType in modelOrApiTypes)
         {
-            await LoadLanguageModels();
+            if (modelOrApiType != null)
+            {
+                var modelSelectionItem = new ModelSelectionItem(modelOrApiType.Distinct().ToList());
+                modelSelectionItems.Add(modelSelectionItem);
+            }
+        }
+
+        SelectedModelsItemsView.ItemsSource = modelSelectionItems;
+        SelectedModelsItemsView.Select(0);
+
+        ValidateSaveButton();
+    }
+
+    private void ModelSelectionItemChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    {
+        var selectedItem = sender.SelectedItem as ModelSelectionItem;
+        if (selectedItem == null)
+        {
+            return;
+        }
+
+        if (selectedItem.ModelTypes.Contains(ModelType.LanguageModels))
+        {
+            LoadLanguageModels(selectedItem);
         }
         else
         {
-            await LoadNonLanguageModels();
+            LoadNonLanguageModels(selectedItem);
         }
     }
 
-    private async Task LoadLanguageModels()
+    private void LoadLanguageModels(ModelSelectionItem selectionItem)
     {
-        myLLMTypeSelector.Items.Add(new SelectorBarItem() { Text = "Onnx Models", Tag = "onnx", IsSelected = true });
-        myLLMTypeSelector.Items.Add(new SelectorBarItem() { Text = "Ollama", Tag = "ollama" });
+        myLLMTypeSelector.Items.Clear();
+
+        foreach (var (name, modelPicker) in LLMModelPickers.LLMModelPickerTypes)
+        {
+            myLLMTypeSelector.Items.Add(new SelectorBarItem() { Text = name, Tag = name });
+        }
+
+        myLLMTypeSelector.Visibility = Visibility.Visible;
+        myLLMTypeSelector.SelectedItem = myLLMTypeSelector.Items[0];
     }
 
-    private async Task LoadNonLanguageModels()
+    private void LoadNonLanguageModels(ModelSelectionItem selectionItem)
     {
+        myLLMTypeSelector.Items.Clear();
+        myLLMTypeSelector.Visibility = Visibility.Collapsed;
+        modelsGrid.Children.Clear();
 
+        BaseModelPickerView? modelPickerView = null;
+
+        if (selectionItem.ModelPickerViews.Count > 0)
+        {
+            // we only need one for non langauge models for now
+            modelPickerView = selectionItem.ModelPickerViews.First().Value;
+        }
+
+        if (modelPickerView == null)
+        {
+            modelPickerView = new OnnxPickerView();
+            modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
+            modelPickerView.Load(selectionItem.ModelTypes);
+            selectionItem.ModelPickerViews.Add("ModelPickerView", modelPickerView);
+        }
+
+        modelsGrid.Children.Add(modelPickerView);
     }
 
     private void Button_Click(object sender, RoutedEventArgs e)
@@ -70,26 +107,80 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void myLLMTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
-        var selectedItem = sender.SelectedItem as SelectorBarItem;
+        var selectedItem = sender.SelectedItem;
         modelsGrid.Children.Clear();
-        BaseModelPickerView modelPickerView = null;
 
-        switch (selectedItem?.Tag)
+        BaseModelPickerView? modelPickerView = null;
+
+        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+
+        if (modelSelectionItem == null)
         {
-            case "onnx":
-                modelPickerView = new OnnxLLMPickerView();
-                break;
-            case "ollama":
-                modelPickerView = new OllamaLLMPickerView();
-                break;
-            default:
-                break;
+            return;
         }
 
-        if (modelPickerView != null)
+        if (selectedItem?.Tag is string tag
+            && LLMModelPickers.LLMModelPickerTypes.TryGetValue(tag, out var type))
         {
-            modelsGrid.Children.Add(modelPickerView);
-            modelPickerView.Load();
+            if (!modelSelectionItem.ModelPickerViews.TryGetValue(tag, out modelPickerView))
+            {
+                modelPickerView = (BaseModelPickerView?)Activator.CreateInstance(type);
+                modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
+                modelPickerView!.Load(modelSelectionItem.ModelTypes);
+                modelSelectionItem.ModelPickerViews[tag] = modelPickerView!;
+            }
+
+            if (modelPickerView != null)
+            {
+                modelsGrid.Children.Add(modelPickerView);
+            }
         }
     }
+
+    private void ModelPickerView_SelectedModelChanged(object sender, ModelDetails? modelDetails)
+    {
+        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+
+        if (modelSelectionItem == null)
+        {
+            return;
+        }
+
+        modelSelectionItem.SelectedModel = modelDetails;
+
+        ValidateSaveButton();
+    }
+
+    private void ValidateSaveButton()
+    {
+        foreach (var item in modelSelectionItems)
+        {
+            if (item.SelectedModel == null)
+            {
+                SaveButton.IsEnabled = false;
+                return;
+            }
+        }
+
+        SaveButton.IsEnabled = true;
+    }
+}
+
+internal class ModelSelectionItem : ObservableObject
+{
+    private ModelDetails? selectedModel;
+    public ModelDetails? SelectedModel
+    {
+        get => selectedModel;
+        set => SetProperty(ref selectedModel, value);
+    }
+
+    public List<ModelType> ModelTypes { get; set; }
+
+    public ModelSelectionItem(List<ModelType> modelTypes)
+    {
+        ModelTypes = modelTypes;
+    }
+
+    public Dictionary<string, BaseModelPickerView> ModelPickerViews { get; private set; } = new();
 }

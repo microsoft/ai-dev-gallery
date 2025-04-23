@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<local:BaseModelPickerView
+    x:Class="AIDevGallery.Controls.LanguageModelPickerViews.OllamaPickerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Controls.LanguageModelPickerViews"
+    xmlns:models="using:AIDevGallery.Models"
+    xmlns:utils="using:AIDevGallery.Utils"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" Spacing="8">
+                <TextBlock
+                 x:Name="AvailableModelsTxt"
+                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                 Style="{StaticResource CaptionTextBlockStyle}"
+                 Text="Downloaded Models"/>
+                <ItemsView
+                     x:Name="ModelSelectionItemsView"
+                     ItemsSource="{x:Bind Models, Mode=OneWay}"
+                    SelectionChanged="ModelSelectionItemsView_SelectionChanged"
+                     SelectionMode="Single">
+                    <ItemsView.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsView.Layout>
+                    <ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ModelDetails">
+                            <ItemContainer
+                             CornerRadius="{StaticResource ControlCornerRadius}"
+                             Tag="{x:Bind}">
+                                <ItemContainer.Resources>
+                                    <SolidColorBrush x:Key="ItemContainerPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerSelectedPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerPressedBackground" Color="Transparent" />
+                                </ItemContainer.Resources>
+                                <toolkit:SettingsCard
+                                     MinHeight="48"
+                                     Padding="14,10,14,10"
+                                     CornerRadius="{StaticResource OverlayCornerRadius}">
+                                    <toolkit:SettingsCard.Resources>
+                                        <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
+                                        <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                    </toolkit:SettingsCard.Resources>
+                                    <toolkit:SettingsCard.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                 VerticalAlignment="Center"
+                                                 Text="{x:Bind Name}"
+                                                 TextTrimming="CharacterEllipsis"
+                                                 ToolTipService.ToolTip="{x:Bind Name}" />
+
+                                            <Button
+                                                 Grid.Column="1"
+                                                 VerticalAlignment="Center"
+                                                 AutomationProperties.Name="More info"
+                                                 Content="OLLAMA"
+                                                 Style="{StaticResource TertiaryButtonStyle}"
+                                                 ToolTipService.ToolTip="More info">
+                                                <Button.Flyout>
+                                                    <Flyout ShouldConstrainToRootBounds="False">
+                                                        <TextBlock
+                                                            MaxWidth="360"
+                                                            Text="This model is running locally via Ollama"
+                                                            TextWrapping="Wrap" />
+                                                    </Flyout>
+                                                </Button.Flyout>
+                                            </Button>
+                                        </Grid>
+                                    </toolkit:SettingsCard.Header>
+                                    <toolkit:SettingsCard.HeaderIcon>
+                                        <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind Icon}" />
+                                    </toolkit:SettingsCard.HeaderIcon>
+                                    <toolkit:SettingsCard.Description>
+                                        <StackPanel>
+                                            <toolkit:WrapPanel
+                                                 HorizontalSpacing="6"
+                                                 Orientation="Horizontal"
+                                                 VerticalSpacing="2">
+                                                <TextBlock VerticalAlignment="Center">
+                                                     <Run Text="{x:Bind ParameterSize}" />
+                                                     <Run Text=" • " />
+                                                </TextBlock>
+                                                <TextBlock VerticalAlignment="Center">
+                                                     <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
+                                                     <Run Text=" • " />
+                                                </TextBlock>
+                                                <Image
+                                                     Height="12"
+                                                     Margin="0,2,0,0"
+                                                     Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(Url)}">
+                                                    <ToolTipService.ToolTip>
+                                                        <TextBlock TextWrapping="Wrap">
+                                                            <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(Url)}" />
+                                                        </TextBlock>
+                                                    </ToolTipService.ToolTip>
+                                                </Image>
+                                            </toolkit:WrapPanel>
+                                        </StackPanel>
+                                    </toolkit:SettingsCard.Description>
+                                    <Border
+                                         Width="28"
+                                         Height="28"
+                                         Margin="0,0,1,0"
+                                         Padding="0">
+                                        <Button
+                                             Width="28"
+                                             Height="28"
+                                             Padding="0"
+                                             ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                             AutomationProperties.Name="More options"
+                                             Content="{ui:FontIcon Glyph=&#xE712;, FontSize=16}"
+                                             Style="{StaticResource SubtleButtonStyle}"
+                                             ToolTipService.ToolTip="More options">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="Bottom">
+                                                    <MenuFlyoutItem
+                                                        Click="OllamaCopyUrl_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind}"
+                                                        Text="Copy Url" />
+                                                    <MenuFlyoutItem
+                                                        Click="OllamaViewModelDetails_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind}"
+                                                        Text="Open Model Details"/>
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Border>
+                                </toolkit:SettingsCard>
+                            </ItemContainer>
+                        </DataTemplate>
+                    </ItemsView.ItemTemplate>
+                </ItemsView>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</local:BaseModelPickerView>
