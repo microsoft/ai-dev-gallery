@@ -11,7 +11,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,17 +50,29 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageObjectExtractor.IsAvailable())
+        var readyState = ImageObjectRemover.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
         {
-            var operation = await ImageObjectExtractor.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.EnsureNeeded)
             {
-                // TODO: handle error
+                var operation = await ImageObjectRemover.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, $"Background Remover is not available");
+                }
             }
+
+            _ = LoadDefaultImage();
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Background Remover is not available: {msg}");
         }
 
-        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
     }
 
@@ -147,7 +159,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private async Task SetImage(string filePath)
     {
-        if(File.Exists(filePath))
+        if (File.Exists(filePath))
         {
             StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
             using IRandomAccessStream stream = await file.OpenReadAsync();
@@ -293,7 +305,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
     private async void RevertButton_Click(object sender, RoutedEventArgs e)
     {
-        if(_originalBitmap != null)
+        if (_originalBitmap != null)
         {
             _inputBitmap = _originalBitmap;
             await SetImageSource(CanvasImage, _inputBitmap);

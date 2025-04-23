@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
 using Microsoft.Windows.Vision;
 using System;
 using System.Collections.Generic;
@@ -46,17 +46,29 @@ internal sealed partial class TextRecognition : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!TextRecognizer.IsAvailable())
+        var readyState = TextRecognizer.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
         {
-            var operation = await TextRecognizer.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.EnsureNeeded)
             {
-                // TODO: handle error
+                var operation = await TextRecognizer.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, "Text Recognition is not available.");
+                }
             }
+
+            _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Text Recognition is not available: {msg}");
         }
 
-        _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
         sampleParams.NotifyCompletion();
     }
 
@@ -164,7 +176,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
         _textRecognizer ??= await TextRecognizer.CreateAsync();
         RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
 
-        if (result?.Lines == null )
+        if (result?.Lines == null)
         {
             return;
         }

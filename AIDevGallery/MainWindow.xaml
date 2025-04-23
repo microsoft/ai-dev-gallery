@@ -148,7 +148,7 @@
                     TextChanged="SearchBox_TextChanged"
                     UpdateTextOnSelect="False" />
             </TitleBar.Content>
-            <TitleBar.Footer>
+            <TitleBar.RightHeader>
                 <StackPanel
                     x:Name="DownloadProgressPanel"
                     VerticalAlignment="Center"
@@ -196,7 +196,7 @@
                         </Button.Flyout>
                     </Button>
                 </StackPanel>
-            </TitleBar.Footer>
+            </TitleBar.RightHeader>
         </TitleBar>
     </Grid>
 </winuiex:WindowEx>
