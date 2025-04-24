@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Controls.LanguageModelPickerViews;
+using AIDevGallery.Controls.ModelPickerViews;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Utils;
@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls;
 internal sealed partial class ModelOrApiPicker : UserControl
@@ -32,8 +31,16 @@ internal sealed partial class ModelOrApiPicker : UserControl
         SelectedModelsChanged?.Invoke(sender, args);
     }
 
-    public void Show()
+    public void Show(List<ModelDetails?>? selectedModels = null)
     {
+        if (selectedModels != null && selectedModels.Count == modelSelectionItems.Count)
+        {
+            for (var i = 0; i < selectedModels.Count; i++)
+            {
+                modelSelectionItems[i].SelectedModel = selectedModels[i];
+            }
+        }
+
         this.Visibility = Visibility.Visible;
     }
 
@@ -102,12 +109,13 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
+            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
             models.AddRange(OllamaHelper.GetOllamaModels() ?? []);
             // TODO: add other model types
         }
         else
         {
-            // get all the models (we assume it's just onnx for now)
+            // get all the models for types
             foreach (var type in modelOrApiTypes)
             {
                 models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
@@ -125,52 +133,41 @@ internal sealed partial class ModelOrApiPicker : UserControl
             return;
         }
 
-        if (selectedItem.ModelTypes.Contains(ModelType.LanguageModels))
+        LoadModels(selectedItem.ModelTypes);
+    }
+
+    private void LoadModels(List<ModelType> types)
+    {
+        modelTypeSelector.Items.Clear();
+        modelsGrid.Children.Clear();
+
+        List<ModelPickerDefinition> pickers = [];
+
+        if (types.Contains(ModelType.LanguageModels))
         {
-            LoadLanguageModels(selectedItem);
+            pickers = ModelPickerDefinition.Definitions.Values.ToList();
         }
         else
         {
-            LoadNonLanguageModels(selectedItem);
+            List<ModelDetails> models = GetAllModels(types);
+
+            if (models.Any(m => m.IsOnnxModel()) && ModelPickerDefinition.Definitions.TryGetValue("onnx", out var def))
+            {
+                pickers.Add(ModelPickerDefinition.Definitions["onnx"]);
+            }
+
+            if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
+            {
+                pickers.Add(ModelPickerDefinition.Definitions["wcr"]);
+            }
         }
-    }
 
-    private void LoadLanguageModels(ModelSelectionItem selectionItem)
-    {
-        myLLMTypeSelector.Items.Clear();
-
-        foreach (var (name, modelPicker) in LLMModelPickers.LLMModelPickerTypes)
+        foreach (var def in pickers)
         {
-            myLLMTypeSelector.Items.Add(new SelectorBarItem() { Text = name, Tag = name });
+            modelTypeSelector.Items.Add(new SelectorBarItem() { Text = def.Name, Tag = def });
         }
 
-        myLLMTypeSelector.Visibility = Visibility.Visible;
-        myLLMTypeSelector.SelectedItem = myLLMTypeSelector.Items[0];
-    }
-
-    private void LoadNonLanguageModels(ModelSelectionItem selectionItem)
-    {
-        myLLMTypeSelector.Items.Clear();
-        myLLMTypeSelector.Visibility = Visibility.Collapsed;
-        modelsGrid.Children.Clear();
-
-        BaseModelPickerView? modelPickerView = null;
-
-        if (selectionItem.ModelPickerViews.Count > 0)
-        {
-            // we only need one for non langauge models for now
-            modelPickerView = selectionItem.ModelPickerViews.First().Value;
-        }
-
-        if (modelPickerView == null)
-        {
-            modelPickerView = new OnnxPickerView();
-            modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
-            modelPickerView.Load(selectionItem.ModelTypes);
-            selectionItem.ModelPickerViews.Add("ModelPickerView", modelPickerView);
-        }
-
-        modelsGrid.Children.Add(modelPickerView);
+        modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
     }
 
     private void OnSave_Clicked(object sender, RoutedEventArgs e)
@@ -184,7 +181,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         OnSelectedModelsChanged(this, selectedModels);
     }
 
-    private void MyLLMTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void ModelTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
         var selectedItem = sender.SelectedItem;
         modelsGrid.Children.Clear();
@@ -198,19 +195,19 @@ internal sealed partial class ModelOrApiPicker : UserControl
             return;
         }
 
-        if (selectedItem?.Tag is string tag
-            && LLMModelPickers.LLMModelPickerTypes.TryGetValue(tag, out var type))
+        if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
         {
-            if (!modelSelectionItem.ModelPickerViews.TryGetValue(tag, out modelPickerView))
+            if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
             {
-                modelPickerView = (BaseModelPickerView?)Activator.CreateInstance(type);
+                modelPickerView = pickerDefinition.CreatePicker();
                 modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
                 modelPickerView!.Load(modelSelectionItem.ModelTypes);
-                modelSelectionItem.ModelPickerViews[tag] = modelPickerView!;
+                modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
             }
 
             if (modelPickerView != null)
             {
+                modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
                 modelsGrid.Children.Add(modelPickerView);
             }
         }

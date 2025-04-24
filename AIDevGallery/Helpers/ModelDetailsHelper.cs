@@ -145,6 +145,12 @@ internal static class ModelDetailsHelper
             modelDetails.HardwareAccelerator == HardwareAccelerator.OLLAMA;
     }
 
+    public static bool IsLanguageModel(this ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
+            modelDetails.Url == "file://PhiSilica";
+    }
+
     public static Visibility ShowWhenWcrApi(ModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ? Visibility.Visible : Visibility.Collapsed;

@@ -72,32 +72,16 @@
                             </ItemsRepeater>
                         </StackPanel>
                     </Button>
-                    <!--<controls:ModelDropDownButton x:Name="ModelDropDown">
-                        <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
-                                x:Name="modelSelectionControl"
-                                AvailableModelsTitle="Available implementations"
-                                DownloadableModelsTitle="Downloadable models"
-                                IsSelectionEnabled="True"
-                                ModelCardVisibility="Visible"
-                                ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged"
-                                SelectedModelChanged="ModelSelectionControl_SelectedModelChanged"
-                                UnavailableModelsTitle="Not supported on this device" />
-                        </controls:ModelDropDownButton.FlyoutContent>
-                    </controls:ModelDropDownButton>
-                    <controls:ModelDropDownButton x:Name="ModelDropDown2">
-                        <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
-                                x:Name="modelSelectionControl2"
-                                AvailableModelsTitle="Available implementations"
-                                DownloadableModelsTitle="Downloadable models"
-                                IsSelectionEnabled="True"
-                                ModelCardVisibility="Visible"
-                                ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged"
-                                SelectedModelChanged="ModelSelectionControl_SelectedModelChanged"
-                                UnavailableModelsTitle="Not supported on this device" />
-                        </controls:ModelDropDownButton.FlyoutContent>
-                    </controls:ModelDropDownButton>-->
+                    <ComboBox x:Name="SampleSelection"
+                              SelectionChanged="SampleSelection_SelectionChanged"
+                              Visibility="Collapsed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:Sample">
+                                <TextBlock Text="{x:Bind Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+
+                    </ComboBox>
                 </StackPanel>
                 <StackPanel
                     x:Name="ButtonsPanel"
@@ -162,8 +146,7 @@
                     x:Name="ModelSelectionPlaceholderControl"
                     Grid.Row="1"
                     MinWidth="360"
-                    ModelCardVisibility="Visible"
-                    ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged" />
+                    ModelCardVisibility="Visible"/>
             </Grid>
         </Grid>
         <ContentDialog

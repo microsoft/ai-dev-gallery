@@ -35,16 +35,13 @@
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
 
-                    <SelectorBar x:Name="myLLMTypeSelector" 
-                                 SelectionChanged="MyLLMTypeSelector_SelectionChanged">
+                    <SelectorBar x:Name="modelTypeSelector" 
+                                 SelectionChanged="ModelTypeSelector_SelectionChanged">
                     </SelectorBar>
 
                     <Grid x:Name="modelsGrid"
                           Grid.Row="1"></Grid>
                 </Grid>
-                
-
-               
             </Grid>
 
             <Grid Grid.Column="1"

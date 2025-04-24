@@ -3,21 +3,20 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using AIDevGallery.ViewModels;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
-using AIDevGallery.Telemetry.Events;
-using System;
-using System.IO;
 
-namespace AIDevGallery.Controls.LanguageModelPickerViews;
+namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OnnxPickerView : BaseModelPickerView
 {
     private List<ModelDetails>? Models { get; set; }
@@ -44,10 +43,10 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             Models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
         }
 
-        ResetAndLoadModelList(null); // TODO: initialSelectedModel);
+        ResetAndLoadModelList(); // TODO: initialSelectedModel);
     }
 
-    private void ResetAndLoadModelList(ModelDetails? selectedModel = null)
+    private void ResetAndLoadModelList()
     {
         AvailableModels.Clear();
         DownloadableModels.Clear();
@@ -60,51 +59,51 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         PopulateModelDetailsLists();
 
-        if (AvailableModels.Count > 0)
-        {
-            var modelIds = AvailableModels.Select(s => s.ModelDetails.Id);
-            var modelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => modelIds.Contains(u.Id));
+        //if (AvailableModels.Count > 0)
+        //{
+        //    var modelIds = AvailableModels.Select(s => s.ModelDetails.Id);
+        //    var modelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => modelIds.Contains(u.Id));
 
-            ModelDetails? modelToPreselect = null;
+        //    ModelDetails? modelToPreselect = null;
 
-            if (selectedModel != null)
-            {
-                modelToPreselect = AvailableModels.Where(m => m.ModelDetails.Id == selectedModel.Id).FirstOrDefault()?.ModelDetails;
-            }
+        //    if (selectedModel != null)
+        //    {
+        //        modelToPreselect = AvailableModels.Where(m => m.ModelDetails.Id == selectedModel.Id).FirstOrDefault()?.ModelDetails;
+        //    }
 
-            if (modelToPreselect == null && modelOrApiUsageHistory != default)
-            {
-                var models = AvailableModels.Where(am => am.ModelDetails.Id == modelOrApiUsageHistory.Id).ToList();
-                if (models.Count > 0)
-                {
-                    if (modelOrApiUsageHistory.HardwareAccelerator != null)
-                    {
-                        var model = models.FirstOrDefault(m => m.ModelDetails.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
-                        if (model != null)
-                        {
-                            modelToPreselect = model.ModelDetails;
-                        }
-                    }
+        //    if (modelToPreselect == null && modelOrApiUsageHistory != default)
+        //    {
+        //        var models = AvailableModels.Where(am => am.ModelDetails.Id == modelOrApiUsageHistory.Id).ToList();
+        //        if (models.Count > 0)
+        //        {
+        //            if (modelOrApiUsageHistory.HardwareAccelerator != null)
+        //            {
+        //                var model = models.FirstOrDefault(m => m.ModelDetails.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
+        //                if (model != null)
+        //                {
+        //                    modelToPreselect = model.ModelDetails;
+        //                }
+        //            }
 
-                    if (modelToPreselect == null)
-                    {
-                        modelToPreselect = models.FirstOrDefault()?.ModelDetails;
-                    }
-                }
-            }
+        //            if (modelToPreselect == null)
+        //            {
+        //                modelToPreselect = models.FirstOrDefault()?.ModelDetails;
+        //            }
+        //        }
+        //    }
 
-            if (modelToPreselect == null)
-            {
-                modelToPreselect = AvailableModels[0].ModelDetails;
-            }
+        //    if (modelToPreselect == null)
+        //    {
+        //        modelToPreselect = AvailableModels[0].ModelDetails;
+        //    }
 
-            SetSelectedModel(modelToPreselect);
-        }
-        else
-        {
-            // No downloaded models
-            SetSelectedModel(null);
-        }
+        //    SetSelectedModel(modelToPreselect);
+        //}
+        //else
+        //{
+        //    // No downloaded models
+        //    SetSelectedModel(null);
+        //}
     }
 
     private void PopulateModelDetailsLists()
@@ -190,56 +189,64 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         //SetHeaderVisibilityStates();
     }
 
-    private void SetSelectedModel(ModelDetails? modelDetails, HardwareAccelerator? accelerator = null)
-    {
-        if (modelDetails != null)
-        {
-            if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible && !modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
-            {
-                if (Selected != null)
-                {
-                    // if the selected model is not compatible, we should not allow the user to select it, so we select the previous model
-                    SetViewSelection(Selected);
-                }
+    //private void SetSelectedModel(ModelDetails? modelDetails, HardwareAccelerator? accelerator = null)
+    //{
+    //    if (modelDetails != null)
+    //    {
+    //        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible && !modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
+    //        {
+    //            if (Selected != null)
+    //            {
+    //                // if the selected model is not compatible, we should not allow the user to select it, so we select the previous model
+    //                SetViewSelection(Selected);
+    //            }
 
-                return;
-            }
+    //            return;
+    //        }
 
-            Selected = modelDetails;
-            SetViewSelection(modelDetails);
-            OnSelectedModelChanged(this, modelDetails);
-        }
-        else
-        {
-            Selected = null;
+    //        Selected = modelDetails;
+    //        SetViewSelection(modelDetails);
+    //        OnSelectedModelChanged(this, modelDetails);
+    //    }
+    //    else
+    //    {
+    //        Selected = null;
 
-            // model not available
-            OnSelectedModelChanged(this, null);
-        }
-    }
-
-    private void SetViewSelection(ModelDetails modelDetails)
-    {
-        ModelSelectionItemsView.DeselectAll();
-
-        var models = AvailableModels.Where(a => a.ModelDetails == modelDetails).ToList();
-
-        if (models.Count != 0)
-        {
-            ModelSelectionItemsView.Select(AvailableModels.IndexOf(models.First()));
-        }
-    }
+    //        // model not available
+    //        OnSelectedModelChanged(this, null);
+    //    }
+    //}
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
         PopulateModelDetailsLists();
     }
 
-    private void ModelSelectionItemsView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (args.InvokedItem is AvailableModel model)
+        if (sender.SelectedItem is AvailableModel model)
         {
-            SetSelectedModel(model.ModelDetails);
+            OnSelectedModelChanged(this, model.ModelDetails);
+        }
+    }
+
+    public override void SelectModel(ModelDetails? modelDetails)
+    {
+        if (modelDetails != null)
+        {
+            var availableModel = AvailableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
+            if (availableModel != null)
+            {
+                ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel));
+            }
+            else
+            {
+                ModelSelectionItemsView.DeselectAll();
+            }
+        }
+        else
+        {
+            ModelSelectionItemsView.DeselectAll();
         }
     }
 
@@ -281,25 +288,6 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             {
                 model.OptionsVisible = false;
             }
-        }
-    }
-
-    private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(OllamaHelper.GetOllamaUrl());
-        Clipboard.SetContentWithOptions(dataPackage, null);
-    }
-
-    private void OllamaViewModelDetails_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
-        {
-            Process.Start(new ProcessStartInfo()
-            {
-                FileName = $"https://ollama.com/library/{details.Name}",
-                UseShellExecute = true
-            });
         }
     }
 

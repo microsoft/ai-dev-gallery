@@ -5,7 +5,7 @@ using AIDevGallery.Models;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 
-namespace AIDevGallery.Controls.LanguageModelPickerViews;
+namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal abstract partial class BaseModelPickerView : UserControl
 {
@@ -15,6 +15,11 @@ internal abstract partial class BaseModelPickerView : UserControl
 
     protected void OnSelectedModelChanged(object sender, ModelDetails? args)
     {
-        SelectedModelChanged?.Invoke(sender, args);
+        if (args != null)
+        {
+            SelectedModelChanged?.Invoke(sender, args);
+        }
     }
+
+    public abstract void SelectModel(ModelDetails? modelDetails);
 }

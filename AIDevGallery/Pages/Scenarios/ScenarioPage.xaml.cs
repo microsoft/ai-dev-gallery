@@ -30,8 +30,6 @@ internal sealed partial class ScenarioPage : Page
     private List<Sample>? samples;
     private Sample? sample;
     private ObservableCollection<ModelDetails?> modelDetails = new();
-    //private ModelDetails? selectedModelDetails;
-    //private ModelDetails? selectedModelDetails2;
 
     public ScenarioPage()
     {
@@ -44,81 +42,16 @@ internal sealed partial class ScenarioPage : Page
         if (e.Parameter is Scenario scenario)
         {
             this.scenario = scenario;
-            //PopulateModelControls();
             LoadPicker();
         }
         else if (e.Parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-            //PopulateModelControls(sampleArgs.ModelDetails);
-            LoadPicker(sampleArgs.ModelDetails); // TODO: handle model to load
+            LoadPicker(sampleArgs.ModelDetails);
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == this.scenario!.ScenarioType).ToList();
     }
-
-    //private void PopulateModelControls(ModelDetails? initialModelToLoad = null)
-    //{
-    //    if (scenario == null)
-    //    {
-    //        return;
-    //    }
-
-    //    samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
-
-    //    if (samples.Count == 0)
-    //    {
-    //        return;
-    //    }
-
-    //    List<ModelDetails> modelDetailsList = new();
-    //    List<ModelDetails> modelDetailsList2 = new();
-
-    //    foreach (var s in samples)
-    //    {
-    //        var models = ModelDetailsHelper.GetModelDetails(s);
-
-    //        // Model1Types
-    //        if (models.Count > 0)
-    //        {
-    //            modelDetailsList.AddRange(models.First().Values.SelectMany(list => list).ToList());
-
-    //            // Model2Types
-    //            if (models.Count > 1)
-    //            {
-    //                modelDetailsList2.AddRange(models[1].Values.SelectMany(list => list).ToList());
-    //            }
-    //        }
-
-    //        if (s.Model1Types.Contains(ModelType.LanguageModels))
-    //        {
-    //            // add ollama models
-    //            var ollamaModels = OllamaHelper.GetOllamaModels();
-
-    //            if (ollamaModels != null)
-    //            {
-    //                modelDetailsList.AddRange(ollamaModels);
-    //            }
-    //        }
-    //    }
-
-    //    if (modelDetailsList.Count == 0)
-    //    {
-    //        return;
-    //    }
-
-    //    if (modelDetailsList2.Count > 0)
-    //    {
-    //        modelDetailsList2 = modelDetailsList2.DistinctBy(m => m.Id).ToList();
-    //        selectedModelDetails2 = SelectLatestOrDefault(modelDetailsList2);
-    //        modelSelectionControl2.SetModels(modelDetailsList2, initialModelToLoad);
-    //    }
-
-    //    modelDetailsList = modelDetailsList.DistinctBy(m => m.Id).ToList();
-    //    selectedModelDetails = SelectLatestOrDefault(modelDetailsList);
-    //    modelSelectionControl.SetModels(modelDetailsList, initialModelToLoad);
-    //    UpdateModelSelectionPlaceholderControl();
-    //}
 
     private void LoadPicker(ModelDetails? initialModelToLoad = null)
     {
@@ -151,7 +84,7 @@ internal sealed partial class ScenarioPage : Page
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
             // user needs to select a model
-            modelOrApiPicker.Show();
+            modelOrApiPicker.Show(selectedModels);
             return;
         }
 
@@ -170,26 +103,44 @@ internal sealed partial class ScenarioPage : Page
 
         if (viableSamples.Count == 0)
         {
-            // TODO: this should never happen
-            throw new Exception("No sample found for the selected models - this should never happen");
+            // this should never happen
+            modelOrApiPicker.Show(selectedModels);
+            return;
         }
 
-        // TODO: handle multiple viable samples
-        sample = viableSamples[0];
+        if (viableSamples.Count > 1)
+        {
+            SampleSelection.Items.Clear();
+            foreach (var sample in viableSamples)
+            {
+                SampleSelection.Items.Add(sample);
+            }
+
+            SampleSelection.SelectedItem = viableSamples[0];
+            SampleSelection.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            SampleSelection.Visibility = Visibility.Collapsed;
+            LoadSample(viableSamples[0]);
+        }
+    }
+
+    private void LoadSample(Sample? sampleToLoad)
+    {
+        sample = sampleToLoad;
+
+        if (sample == null)
+        {
+            return;
+        }
 
         ModelSelectionPlaceholderControl.HideDownloadDialog();
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
-        // TODO: we should be adding all models to MRU
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        if (selectedModels[1] == null)
-        {
-            // remove the second model if null for the sample container
-            selectedModels = [selectedModels[0]];
-        }
-
-        _ = SampleContainer.LoadSampleAsync(viableSamples[0], [..selectedModels]);
+        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails]);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -197,11 +148,10 @@ internal sealed partial class ScenarioPage : Page
                 ItemId = scenario!.Id,
                 Icon = scenario.Icon,
                 Description = scenario.Description,
-                SubItemId = selectedModels[0]!.Id,
+                SubItemId = modelDetails[0]!.Id,
                 DisplayName = scenario.Name
             },
-            selectedModels[0].Id,
-            selectedModels[0].HardwareAccelerators.First());
+            modelDetails.Select(m => (m!.Id, m.HardwareAccelerators.First())).ToList());
     }
 
     private bool IsModelFromTypes(List<ModelType>? types, ModelDetails? model)
@@ -216,8 +166,7 @@ internal sealed partial class ScenarioPage : Page
             return false;
         }
 
-        if (types.Contains(ModelType.LanguageModels)
-            && (model.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))) // TODO: Add phisilica and others
+        if (types.Contains(ModelType.LanguageModels) && model.IsLanguageModel())
         {
             return true;
         }
@@ -231,126 +180,6 @@ internal sealed partial class ScenarioPage : Page
 
         return models.Any(m => m.Id == model.Id);
     }
-
-    //private static ModelDetails? SelectLatestOrDefault(List<ModelDetails> models)
-    //{
-    //    var latestModelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => models.Any(m => m.Id == u.Id));
-
-    //    if (latestModelOrApiUsageHistory != default)
-    //    {
-    //        // select most recently used if there is one
-    //        return models.First(m => m.Id == latestModelOrApiUsageHistory.Id);
-    //    }
-
-    //    return models.FirstOrDefault();
-    //}
-
-    //private async void ModelSelectionControl_SelectedModelChanged(object sender, ModelDetails? modelDetails)
-    //{
-    //    ModelDropDown.HideFlyout();
-    //    ModelDropDown2.HideFlyout();
-
-    //    if (samples == null)
-    //    {
-    //        return;
-    //    }
-
-    //    if ((ModelSelectionControl)sender == modelSelectionControl)
-    //    {
-    //        selectedModelDetails = modelDetails;
-    //    }
-    //    else
-    //    {
-    //        selectedModelDetails2 = modelDetails;
-    //    }
-
-    //    if (selectedModelDetails != null)
-    //    {
-    //        foreach (var s in samples)
-    //        {
-    //            if (selectedModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
-    //            {
-    //                if (s.Model1Types.Contains(ModelType.LanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
-    //                {
-    //                    sample = s;
-    //                    break;
-    //                }
-    //            }
-
-    //            var extDict = ModelDetailsHelper.GetModelDetails(s).FirstOrDefault(dict => dict.Values.Any(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id)))?.Values;
-    //            if (extDict != null)
-    //            {
-    //                var dict = extDict.FirstOrDefault(listOfmd => listOfmd.Any(md => md.Id == selectedModelDetails.Id));
-    //                if (dict != null)
-    //                {
-    //                    sample = s;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        sample = null;
-    //    }
-
-    //    if (sample == null)
-    //    {
-    //        return;
-    //    }
-
-    //    if ((sample.Model2Types == null && selectedModelDetails == null) ||
-    //        (sample.Model2Types != null && (selectedModelDetails == null || selectedModelDetails2 == null)))
-    //    {
-    //        UpdateModelSelectionPlaceholderControl();
-
-    //        VisualStateManager.GoToState(this, "NoModelSelected", true);
-    //        return;
-    //    }
-    //    else
-    //    {
-    //        ModelSelectionPlaceholderControl.HideDownloadDialog();
-    //        VisualStateManager.GoToState(this, "ModelSelected", true);
-    //        ModelDropDown2.Visibility = Visibility.Collapsed;
-
-    //        ModelDropDown.Model = selectedModelDetails;
-    //        List<ModelDetails> models = [selectedModelDetails!];
-
-    //        if (sample.Model2Types != null)
-    //        {
-    //            models.Add(selectedModelDetails2!);
-    //            ModelDropDown2.Model = selectedModelDetails2;
-    //            ModelDropDown2.Visibility = Visibility.Visible;
-    //        }
-
-    //        await SampleContainer.LoadSampleAsync(sample, models);
-
-    //        await App.AppData.AddMru(
-    //            new MostRecentlyUsedItem()
-    //            {
-    //                Type = MostRecentlyUsedItemType.Scenario,
-    //                ItemId = scenario!.Id,
-    //                Icon = scenario.Icon,
-    //                Description = scenario.Description,
-    //                SubItemId = selectedModelDetails!.Id,
-    //                DisplayName = scenario.Name
-    //            },
-    //            selectedModelDetails.Id,
-    //            selectedModelDetails.HardwareAccelerators.First());
-    //    }
-    //}
-
-    //private void UpdateModelSelectionPlaceholderControl()
-    //{
-    //    if (sample == null || (sample.Model2Types == null && selectedModelDetails == null))
-    //    {
-    //        ModelSelectionPlaceholderControl.SetModels(modelSelectionControl.Models);
-    //    }
-    //    else
-    //    {
-    //        ModelSelectionPlaceholderControl.SetModels(modelSelectionControl2.Models);
-    //    }
-    //}
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
     {
@@ -381,10 +210,7 @@ internal sealed partial class ScenarioPage : Page
 
     private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button button ||
-            sample == null) // ||
-            //selectedModelDetails == null ||
-            //(sample.Model2Types != null && selectedModelDetails2 == null))
+        if (sender is not Button button || sample == null)
         {
             return;
         }
@@ -499,11 +325,6 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void ModelSelectionControl_ModelCollectionChanged(object sender)
-    {
-        //PopulateModelControls();
-    }
-
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Calculate if the modelselectors collide with the export/code buttons
@@ -519,11 +340,23 @@ internal sealed partial class ScenarioPage : Page
 
     private void Button_Click(object sender, RoutedEventArgs e)
     {
-        modelOrApiPicker.Show();
+        modelOrApiPicker.Show(modelDetails.ToList());
     }
 
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
+    }
+
+    private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedSample = e.AddedItems
+            .OfType<Sample>()
+            .ToList().FirstOrDefault();
+
+        if (selectedSample != sample)
+        {
+            LoadSample(selectedSample);
+        }
     }
 }
