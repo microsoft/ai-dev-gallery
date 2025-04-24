@@ -151,12 +151,6 @@
                     MinWidth="360"
                     ModelCardVisibility="Visible"
                     ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged" />
-                <Button 
-                    x:Name="AddLocalModelButton"
-                    Grid.Row="2"
-                    Click="AddLocalModelButton_Click"
-                    HorizontalAlignment="Center" 
-                    Content="Add Local Model"/>
             </Grid>
         </Grid>
         <ContentDialog

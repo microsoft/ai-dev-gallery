@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Controls;
@@ -21,6 +22,7 @@ namespace AIDevGallery.Controls;
 internal partial class ModelSelectionControl : UserControl
 {
     public List<ModelDetails>? Models { get; private set; }
+    public Scenario Scenario { get; set; }
     public ModelDetails? Selected { get; private set; }
 
     public static readonly DependencyProperty DownloadableModelsTitleProperty = DependencyProperty.Register(nameof(DownloadableModelsTitle), typeof(string), typeof(ModelSelectionControl), new PropertyMetadata(defaultValue: null));
@@ -594,5 +596,26 @@ internal partial class ModelSelectionControl : UserControl
                 UseShellExecute = true
             });
         }
+    }
+
+    private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool success = false;
+        var samples = Samples.SampleDetails.Samples.Where(sample => sample.Scenario == Scenario.ScenarioType).ToList();
+
+        if (samples != null)
+        {
+            success = await UserAddedModelUtil.OpenAddModelFlow(this.Content.XamlRoot, samples);
+        }
+
+        if(success)
+        {
+            OnModelCollectionChanged();
+        }
+    }
+
+    public void DisableAddLocalModelButton()
+    {
+        AddLocalModelButton.Visibility = Visibility.Collapsed;
     }
 }
