@@ -48,7 +48,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    // TODO: handle error
+                    ShowException(null, $"Phi-Silica is not available");
                 }
             }
 

@@ -69,14 +69,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                 }
             }
 
-            if (ImageDescriptionGenerator.GetReadyState() == AIFeatureReadyState.Ready)
-            {
-                _ = LoadDefaultImage();
-            }
-            else
-            {
-                ShowException(null, "Image Description is not available");
-            }
+            _ = LoadDefaultImage();
         }
         else
         {

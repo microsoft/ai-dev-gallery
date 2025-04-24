@@ -147,7 +147,7 @@ internal class ModelCache
 
     public async Task MoveCache(string path, CancellationToken ct)
     {
-        ModelCacheMovedEvent.Log(path);
+        ModelCacheMovedEvent.Log();
         var sourceFolder = GetCacheFolder();
         /* _movedSize = 0; */
 
