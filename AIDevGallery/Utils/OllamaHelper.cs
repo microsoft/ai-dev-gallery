@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Utils;
@@ -13,7 +15,7 @@ internal record OllamaModel(string Name, string Tag, string Id, string Size, str
 internal class OllamaHelper
 {
     private static bool? isOllamaAvailable;
-    public static List<OllamaModel>? GetOllamaModels()
+    public static List<ModelDetails>? GetOllamaModels()
     {
         if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
@@ -72,7 +74,17 @@ internal class OllamaHelper
                     isOllamaAvailable = false;
                 }
 
-                return models;
+                return models.Select(om => new ModelDetails()
+                {
+                    Id = $"ollama-{om.Id}",
+                    Name = om.Name,
+                    Url = $"ollama://{om.Name}:{om.Tag}",
+                    Description = $"{om.Name}:{om.Tag} running locally via Ollama",
+                    HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
+                    Size = AppUtils.StringToFileSize(om.Size),
+                    SupportedOnQualcomm = true,
+                    ParameterSize = om.Tag.ToUpperInvariant(),
+                }).ToList();
             }
         }
         catch

@@ -22,7 +22,7 @@
                  Text="Downloaded Models"/>
                 <ItemsView
                      x:Name="ModelSelectionItemsView"
-                     ItemsSource="{x:Bind Models, Mode=OneWay}"
+                     ItemsSource="{x:Bind models, Mode=OneWay}"
                     SelectionChanged="ModelSelectionItemsView_SelectionChanged"
                      SelectionMode="Single">
                     <ItemsView.Layout>

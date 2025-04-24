@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls.LanguageModelPickerViews;
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -17,9 +19,17 @@ internal sealed partial class ModelOrApiPicker : UserControl
 {
     private ObservableCollection<ModelSelectionItem> modelSelectionItems = new ObservableCollection<ModelSelectionItem>();
 
+    public delegate void SelectedModelsChangedEventHandler(object sender, List<ModelDetails?> modelDetails);
+    public event SelectedModelsChangedEventHandler? SelectedModelsChanged;
+
     public ModelOrApiPicker()
     {
         this.InitializeComponent();
+    }
+
+    private void OnSelectedModelsChanged(object sender, List<ModelDetails?> args)
+    {
+        SelectedModelsChanged?.Invoke(sender, args);
     }
 
     public void Show()
@@ -27,8 +37,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
-    public List<ModelDetails?> Load(List<List<ModelType>> modelOrApiTypes, List<ModelDetails> initialSelectedModels = null)
+    public List<ModelDetails?> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
     {
+        List<ModelDetails?> selectedModels = [];
+
         foreach (var modelOrApiType in modelOrApiTypes)
         {
             if (modelOrApiType != null)
@@ -38,10 +50,71 @@ internal sealed partial class ModelOrApiPicker : UserControl
             }
         }
 
+        foreach (var types in modelOrApiTypes)
+        {
+            var models = GetAllModels(types);
+
+            ModelDetails? modelToPreselect = null;
+
+            if (initialModelToLoad != null)
+            {
+                modelToPreselect = models.FirstOrDefault(m => m.Id == initialModelToLoad.Id);
+            }
+
+            var modelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => models.Any(m => m.Id == u.Id));
+            if (modelToPreselect == null && modelOrApiUsageHistory != default)
+            {
+                var matchedModels = models.Where(m => m.Id == modelOrApiUsageHistory.Id).ToList();
+                if (matchedModels.Count > 0)
+                {
+                    if (modelOrApiUsageHistory.HardwareAccelerator != null)
+                    {
+                        var model = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
+                        if (model != null)
+                        {
+                            modelToPreselect = model;
+                        }
+                    }
+
+                    if (modelToPreselect == null)
+                    {
+                        modelToPreselect = matchedModels.FirstOrDefault();
+                    }
+                }
+            }
+
+            selectedModels.Add(modelToPreselect);
+        }
+
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
 
         ValidateSaveButton();
+
+        return selectedModels;
+    }
+
+    private List<ModelDetails> GetAllModels(List<ModelType> modelOrApiTypes)
+    {
+        List<ModelDetails> models = [];
+
+        if (modelOrApiTypes.Contains(ModelType.LanguageModels))
+        {
+            // get all onnx, ollama, wcr, etc modelDetails
+            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
+            models.AddRange(OllamaHelper.GetOllamaModels() ?? []);
+            // TODO: add other model types
+        }
+        else
+        {
+            // get all the models (we assume it's just onnx for now)
+            foreach (var type in modelOrApiTypes)
+            {
+                models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
+            }
+        }
+
+        return models;
     }
 
     private void ModelSelectionItemChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
@@ -100,12 +173,18 @@ internal sealed partial class ModelOrApiPicker : UserControl
         modelsGrid.Children.Add(modelPickerView);
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private void OnSave_Clicked(object sender, RoutedEventArgs e)
     {
         this.Visibility = Visibility.Collapsed;
+
+        var selectedModels = modelSelectionItems
+            .Select(item => item.SelectedModel)
+            .ToList();
+
+        OnSelectedModelsChanged(this, selectedModels);
     }
 
-    private void myLLMTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void MyLLMTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
         var selectedItem = sender.SelectedItem;
         modelsGrid.Children.Clear();

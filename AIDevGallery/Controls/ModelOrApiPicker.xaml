@@ -36,7 +36,7 @@
                     </Grid.RowDefinitions>
 
                     <SelectorBar x:Name="myLLMTypeSelector" 
-                                 SelectionChanged="myLLMTypeSelector_SelectionChanged">
+                                 SelectionChanged="MyLLMTypeSelector_SelectionChanged">
                     </SelectorBar>
 
                     <Grid x:Name="modelsGrid"
@@ -86,8 +86,8 @@
                              Padding="12">
                     <Button x:Name="SaveButton"
                             Style="{StaticResource AccentButtonStyle}"
-                            Click="Button_Click" 
-                            Content="Close"></Button>
+                            Click="OnSave_Clicked" 
+                            Content="Save"></Button>
                 </StackPanel>
             </Grid>
         </Grid>

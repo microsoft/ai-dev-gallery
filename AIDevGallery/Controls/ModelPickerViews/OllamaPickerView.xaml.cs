@@ -3,21 +3,19 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Utils;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
-using AIDevGallery.ViewModels;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace AIDevGallery.Controls.LanguageModelPickerViews;
 
 internal sealed partial class OllamaPickerView : BaseModelPickerView
 {
-    ObservableCollection<ModelDetails> Models = new ObservableCollection<ModelDetails>();
+    private ObservableCollection<ModelDetails> models = new ObservableCollection<ModelDetails>();
 
     public OllamaPickerView()
     {
@@ -27,29 +25,15 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
     public override void Load(List<ModelType> types)
     {
         // add ollama models
-        var ollamaModels = OllamaHelper.GetOllamaModels();
-
-        if (ollamaModels != null)
-        {
-            ollamaModels.Select(om => new ModelDetails()
-            {
-                Id = $"ollama-{om.Id}",
-                Name = om.Name,
-                Url = $"ollama://{om.Name}:{om.Tag}",
-                Description = $"{om.Name}:{om.Tag} running locally via Ollama",
-                HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
-                Size = AppUtils.StringToFileSize(om.Size),
-                SupportedOnQualcomm = true,
-                ParameterSize = om.Tag.ToUpperInvariant(),
-            }).ToList().ForEach(m => Models.Add(m));
-        }
+        var ollamaModels = OllamaHelper.GetOllamaModels() ?? [];
+        ollamaModels.ForEach(models.Add);
     }
 
     private void SetSelectedModel(ModelDetails? modelDetails)
     {
         if (modelDetails != null)
         {
-            ModelSelectionItemsView.Select(Models.IndexOf(modelDetails));
+            ModelSelectionItemsView.Select(models.IndexOf(modelDetails));
         }
         else
         {
