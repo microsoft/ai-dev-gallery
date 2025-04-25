@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using Microsoft.UI.Xaml;
@@ -135,14 +136,24 @@ internal static class ModelDetailsHelper
     public static bool IsApi(this ModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ||
-               modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
+               modelDetails.IsHttpApi() ||
                modelDetails.Size == 0;
+    }
+
+    public static bool IsHttpApi(this ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Any(h => ExternalModelHelper.HardwareAccelerators.Contains(h));
     }
 
     public static bool IsApi(this ExpandedModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerator == HardwareAccelerator.WCRAPI ||
-            modelDetails.HardwareAccelerator == HardwareAccelerator.OLLAMA;
+            modelDetails.IsHttpApi();
+    }
+
+    public static bool IsHttpApi(this ExpandedModelDetails modelDetails)
+    {
+        return ExternalModelHelper.HardwareAccelerators.Contains(modelDetails.HardwareAccelerator);
     }
 
     public static bool IsLanguageModel(this ModelDetails modelDetails)
@@ -156,9 +167,19 @@ internal static class ModelDetailsHelper
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public static Visibility ShowWhenOllama(ModelDetails modelDetails)
+    public static Visibility ShowWhenHttpApi(ModelDetails modelDetails)
     {
-        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ? Visibility.Visible : Visibility.Collapsed;
+        return modelDetails.IsHttpApi() ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility ShowWhenHttpWithSize(ModelDetails modelDetails)
+    {
+        return modelDetails.IsHttpApi() && modelDetails.Size != 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static string GetHttpApiUrl(ModelDetails modelDetails)
+    {
+        return ExternalModelHelper.GetModelUrl(modelDetails) ?? string.Empty;
     }
 
     public static bool IsOnnxModel(this ModelDetails modelDetails)

@@ -57,6 +57,11 @@ internal static class WcrApiHelpers
         }
     };
 
+    // this is a workaround for GetReadyState not returning Ready after EnsureReadyAsync is called
+    // for now, we will track when EnsureReadyAsync succeeds for each model to ensure we are not
+    // blocking the samples from running until this bug is fixed
+    public static readonly Dictionary<ModelType, bool> IsModelReadyWorkaround = new();
+
     public static AIFeatureReadyState GetApiAvailability(ModelType type)
     {
         if (!CompatibilityCheckers.TryGetValue(type, out var getReadyStateFunction))
