@@ -1,4 +1,7 @@
-﻿using AIDevGallery.Helpers;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
@@ -9,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
-using Windows.UI.ViewManagement;
 
 namespace AIDevGallery.Utils;
 
@@ -258,23 +260,5 @@ internal static class UserAddedModelUtil
         }
 
         return false;
-    }
-
-    // Leave unreferenced util for getting dimensions of models added in the future.
-    public static void LogDimensionsInfo(InferenceSession inferenceSession, string modelHeader)
-    {
-        System.Diagnostics.Debug.WriteLine(modelHeader + " Dimensions");
-        System.Diagnostics.Debug.WriteLine("Input: ");
-
-        foreach (string inputName in inferenceSession.InputNames)
-        {
-            System.Diagnostics.Debug.WriteLine(inputName + ": " + string.Join(" ", inferenceSession.InputMetadata[inputName].Dimensions.Select(d => d.ToString()).ToList()));
-        }
-
-        System.Diagnostics.Debug.WriteLine("Output: ");
-        foreach (string outputName in inferenceSession.OutputNames)
-        {
-            System.Diagnostics.Debug.WriteLine(outputName + ": " + string.Join(" ", inferenceSession.OutputMetadata[outputName].Dimensions.Select(d => d.ToString()).ToList()));
-        }
     }
 }
