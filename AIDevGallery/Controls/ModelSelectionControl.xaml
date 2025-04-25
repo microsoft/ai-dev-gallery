@@ -612,11 +612,11 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
-                <Button 
+                <!--<Button 
                     x:Name="AddLocalModelButton"
                     Click="AddLocalModelButton_Click"
                     HorizontalAlignment="Center" 
-                    Content="Add Local Model"/>
+                    Content="Add Local Model"/>-->
             </StackPanel>
         </ScrollViewer>
         <ContentDialog

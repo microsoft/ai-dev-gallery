@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
@@ -17,7 +18,135 @@ namespace AIDevGallery.Utils;
 
 internal static class UserAddedModelUtil
 {
-    public static async Task<bool> OpenAddModelFlow(XamlRoot targetRoot, List<Sample>? samples)
+    public static async Task OpenAddLanguageModelFlow(XamlRoot root)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            var files = Directory.GetFiles(folder.Path);
+            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
+            {
+                var message = string.IsNullOrEmpty(config) ?
+                    "The folder does not contain a model you can add. Ensure \"genai_config.json\" is present in the selected directory" :
+                    "This model is already added";
+
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't add model",
+                    Content = message,
+                    XamlRoot = root,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+
+            try
+            {
+                string configContents = string.Empty;
+                configContents = await File.ReadAllTextAsync(config);
+                accelerator = UserAddedModelUtil.GetHardwareAcceleratorFromConfig(configContents);
+            }
+            catch (Exception ex)
+            {
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't read genai_config.json",
+                    Content = ex.Message,
+                    XamlRoot = root,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            var nameTextBox = new TextBox()
+            {
+                Text = Path.GetFileName(folder.Path),
+                Width = 300,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 10),
+                Header = "Model name"
+            };
+
+            ContentDialog nameModelDialog = new()
+            {
+                Title = "Add model",
+                Content = new StackPanel()
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock()
+                        {
+                            Text = $"Adding ONNX model from \n \"{folder.Path}\"",
+                            TextWrapping = TextWrapping.WrapWholeWords
+                        },
+                        nameTextBox
+                    }
+                },
+                XamlRoot = root,
+                CloseButtonText = "Cancel",
+                PrimaryButtonText = "Add",
+                DefaultButton = ContentDialogButton.Primary,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+            };
+
+            string modelName = nameTextBox.Text;
+
+            nameTextBox.TextChanged += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(nameTextBox.Text))
+                {
+                    nameModelDialog.IsPrimaryButtonEnabled = false;
+                }
+                else
+                {
+                    modelName = nameTextBox.Text;
+                    nameModelDialog.IsPrimaryButtonEnabled = true;
+                }
+            };
+
+            var result = await nameModelDialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
+            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
+
+            var details = new ModelDetails()
+            {
+                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
+                Name = modelName,
+                Url = $"local-file:///{folder.Path}",
+                Description = "Localy added GenAI Model",
+                HardwareAccelerators = [accelerator],
+                IsUserAdded = true,
+                PromptTemplate = ModelDetailsHelper.GetTemplateFromName(folder.Path),
+                Size = dirSize,
+                ReadmeUrl = null,
+                License = "unknown"
+            };
+
+            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+        }
+    }
+
+    public static async Task<bool> OpenAddModelFlow(XamlRoot targetRoot, List<ModelType> modelTypes)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         var picker = new FileOpenPicker();
@@ -83,7 +212,7 @@ internal static class UserAddedModelUtil
                 return false;
             }
 
-            List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(file.Path, samples);
+            List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(file.Path, modelTypes);
             if (validatedModelTypes.Count > 0)
             {
                 string id = "useradded-local-model-" + Guid.NewGuid().ToString();
@@ -119,27 +248,15 @@ internal static class UserAddedModelUtil
         return false;
     }
 
-    private static List<ModelType> GetValidatedModelTypesForUploadedOnnxModel(string modelFilepath, List<Sample>? samples)
+    private static List<ModelType> GetValidatedModelTypesForUploadedOnnxModel(string modelFilepath, List<ModelType> modelTypes)
     {
-        if (samples is null)
-        {
-            return [];
-        }
-
         List<ModelType> validatedModelTypes = new();
 
-        foreach (var s in samples)
+        foreach (var (type, models) in ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes))
         {
-            var models = ModelDetailsHelper.GetModelDetails(s);
-            foreach (var modelTypeDict in models)
+            if (ValidateUserAddedModelDimensionsForModelTypeModelDetails(models, modelFilepath))
             {
-                foreach (ModelType modelType in modelTypeDict.Keys)
-                {
-                    if (ValidateUserAddedModelDimensionsForModelTypeModelDetails(modelTypeDict[modelType], modelFilepath))
-                    {
-                        validatedModelTypes.Add(modelType);
-                    }
-                }
+                validatedModelTypes.Add(type);
             }
         }
 
@@ -260,5 +377,26 @@ internal static class UserAddedModelUtil
         }
 
         return false;
+    }
+
+    public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
+    {
+        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
+        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+        if (config == null)
+        {
+            throw new FileLoadException("genai_config.json is not valid");
+        }
+
+        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+        {
+            return HardwareAccelerator.DML;
+        }
+
+        return HardwareAccelerator.CPU;
     }
 }

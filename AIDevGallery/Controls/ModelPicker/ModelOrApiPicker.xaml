@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="AIDevGallery.Controls.ModelOrApiPicker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Controls"
+    xmlns:utils="using:AIDevGallery.Utils"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Visibility="Collapsed">
+
+    <Grid Background="{ThemeResource SmokeFillColorDefaultBrush}">
+        <Grid Height="400"
+              Width="800" 
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center" 
+              Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  Padding="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+
+                    <SelectorBar x:Name="modelTypeSelector" 
+                                 SelectionChanged="ModelTypeSelector_SelectionChanged">
+                    </SelectorBar>
+
+                    <Grid x:Name="modelsGrid"
+                          Grid.Row="1"></Grid>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="1"
+                  Width="200">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Vertical"
+                            Padding="24">
+                    <TextBlock>Selected models</TextBlock>
+                    <ItemsView x:Name="SelectedModelsItemsView"
+                               ItemsSource="modelSelectionItems"
+                               SelectionMode="Single"
+                               SelectionChanged="ModelSelectionItemChanged">
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="local:ModelSelectionItem">
+                                <ItemContainer>
+                                    <StackPanel Spacing="4" Margin="0,0,0,8">
+                                        <TextBlock>Model</TextBlock>
+                                        <Grid Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNull(SelectedModel), Mode=OneWay}">
+                                            <TextBlock>No model selected</TextBlock>
+                                        </Grid>
+                                        <Grid Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(SelectedModel), Mode=OneWay}">
+                                            <TextBlock Text="{x:Bind SelectedModel.Name, Mode=OneWay}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" 
+                            Orientation="Horizontal"
+                             VerticalAlignment="Bottom"
+                             HorizontalAlignment="Right"
+                             Padding="12">
+                    <Button x:Name="SaveButton"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Click="OnSave_Clicked" 
+                            Content="Save"></Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

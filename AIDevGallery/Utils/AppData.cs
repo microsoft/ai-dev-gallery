@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.Data.Xml.Dom;
 using Windows.Storage;
 
 namespace AIDevGallery.Utils;
@@ -27,7 +28,7 @@ internal class AppData
     public bool IsFirstRun { get; set; }
 
     public bool IsDiagnosticsMessageDismissed { get; set; }
-    public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
+    private Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
     public AppData()
     {
@@ -73,7 +74,7 @@ internal class AppData
         await File.WriteAllTextAsync(GetConfigFilePath(), str);
     }
 
-    public async Task AddMru(MostRecentlyUsedItem item, string? modelOrApiId = null, HardwareAccelerator? hardwareAccelerator = null)
+    public async Task AddMru(MostRecentlyUsedItem item, List<(string Id, HardwareAccelerator HardwareAccelerator)>? modelOrApiUsage)
     {
         UsageHistoryV2 ??= new LinkedList<UsageHistory>();
 
@@ -87,7 +88,29 @@ internal class AppData
             MostRecentlyUsedItems.RemoveLast();
         }
 
-        if (!string.IsNullOrWhiteSpace(modelOrApiId))
+        if (modelOrApiUsage != null)
+        {
+            foreach (var (modelOrApiId, hardwareAccelerator) in modelOrApiUsage)
+            {
+                var existingItem = UsageHistoryV2.Where(u => u.Id == modelOrApiId).FirstOrDefault();
+                if (existingItem != default)
+                {
+                    UsageHistoryV2.Remove(existingItem);
+                }
+
+                UsageHistoryV2.AddFirst(new UsageHistory(modelOrApiId, hardwareAccelerator));
+            }
+        }
+
+        MostRecentlyUsedItems.AddFirst(item);
+        await SaveAsync();
+    }
+
+    public async Task AddModelUsage(List<(string Id, HardwareAccelerator HardwareAccelerator)> usage)
+    {
+        UsageHistoryV2 ??= new LinkedList<UsageHistory>();
+
+        foreach (var (modelOrApiId, hardwareAccelerator) in usage)
         {
             var existingItem = UsageHistoryV2.Where(u => u.Id == modelOrApiId).FirstOrDefault();
             if (existingItem != default)
@@ -98,7 +121,6 @@ internal class AppData
             UsageHistoryV2.AddFirst(new UsageHistory(modelOrApiId, hardwareAccelerator));
         }
 
-        MostRecentlyUsedItems.AddFirst(item);
         await SaveAsync();
     }
 
@@ -134,6 +156,17 @@ internal class AppData
         }
 
         await SaveAsync();
+    }
+
+    public bool TryGetUserAddedModelIds(ModelType type, out List<string>? modelIds)
+    {
+        if (ModelTypeToUserAddedModelsMapping == null)
+        {
+            modelIds = null;
+            return false;
+        }
+
+        return ModelTypeToUserAddedModelsMapping.TryGetValue(type.ToString(), out modelIds);
     }
 
     private static AppData GetDefault()

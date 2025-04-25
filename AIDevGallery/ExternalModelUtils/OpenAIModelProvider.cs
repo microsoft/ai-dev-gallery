@@ -16,7 +16,7 @@ namespace AIDevGallery.ExternalModelUtils;
 
 internal class OpenAIModelProvider : IExternalModelProvider
 {
-    private const string KeyName = "OPENAI_API_KEY";
+    private const string KeyName = "AI_DEV_GALLERY_OPENAI_API_KEY";
     private IEnumerable<ModelDetails>? _cachedModels;
 
     public static string? OpenAIKey
@@ -30,6 +30,10 @@ internal class OpenAIModelProvider : IExternalModelProvider
             if (value != null)
             {
                 CredentialManager.WriteCredential(KeyName, value);
+            }
+            else
+            {
+                CredentialManager.DeleteCredential(KeyName);
             }
         }
     }
@@ -69,6 +73,11 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
         // TODO
         return $"new OpenAIClient(\"OPENAI_API_KEY\").GetChatClient(\"{modelId}\").AsIChatClient()";
+    }
+
+    public void ClearCachedModels()
+    {
+        _cachedModels = null;
     }
 
     public async Task InitializeAsync(CancellationToken cancelationToken = default)

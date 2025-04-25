@@ -40,36 +40,12 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
     {
-        var ollamaModels = await GetOllamaModelsAsync(cancelationToken);
-
-        if (ollamaModels == null)
-        {
-            return [];
-        }
-
-        return ollamaModels.Select(ToModelDetails)
-            .Where(modelDetails => modelDetails != null)
-            .ToList();
-
-        ModelDetails ToModelDetails(OllamaModel om)
-        {
-            return new ModelDetails()
-            {
-                Id = $"ollama-{om.Id}",
-                Name = om.Name,
-                Url = $"{UrlPrefix}{om.Name}:{om.Tag}",
-                Description = $"{om.Name}:{om.Tag} running locally via Ollama",
-                HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
-                Size = AppUtils.StringToFileSize(om.Size),
-                SupportedOnQualcomm = true,
-                ParameterSize = om.Tag.ToUpperInvariant(),
-            };
-        }
+        return await GetOllamaModelsAsync(cancelationToken) ?? [];
     }
 
     private static bool? isOllamaAvailable;
 
-    public static async Task<List<OllamaModel>?> GetOllamaModelsAsync(CancellationToken cancelationToken)
+    public static async Task<IEnumerable<ModelDetails>?> GetOllamaModelsAsync(CancellationToken cancelationToken = default)
     {
         if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
@@ -130,7 +106,17 @@ internal class OllamaModelProvider : IExternalModelProvider
                     isOllamaAvailable = false;
                 }
 
-                return models;
+                return models.Select(om => new ModelDetails()
+                {
+                    Id = $"ollama-{om.Id}",
+                    Name = $"{om.Name}:{om.Tag}",
+                    Url = $"ollama://{om.Name}:{om.Tag}",
+                    Description = $"{om.Name}:{om.Tag} running locally via Ollama",
+                    HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
+                    Size = AppUtils.StringToFileSize(om.Size),
+                    SupportedOnQualcomm = true,
+                    ParameterSize = om.Tag.ToUpperInvariant(),
+                });
             }
         }
         catch

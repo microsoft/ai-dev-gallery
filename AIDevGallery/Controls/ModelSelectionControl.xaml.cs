@@ -614,29 +614,29 @@ internal partial class ModelSelectionControl : UserControl
         }
     }
 
-    private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
-    {
-        if(Scenario == null)
-        {
-            return;
-        }
+    //private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
+    //{
+    //    if(Scenario == null)
+    //    {
+    //        return;
+    //    }
 
-        bool success = false;
-        var samples = Samples.SampleDetails.Samples.Where(sample => sample.Scenario == Scenario.ScenarioType).ToList();
+    //    bool success = false;
+    //    var samples = Samples.SampleDetails.Samples.Where(sample => sample.Scenario == Scenario.ScenarioType).ToList();
 
-        if (samples != null)
-        {
-            success = await UserAddedModelUtil.OpenAddModelFlow(this.Content.XamlRoot, samples);
-        }
+    //    if (samples != null)
+    //    {
+    //        success = await UserAddedModelUtil.OpenAddModelFlow(this.Content.XamlRoot, samples);
+    //    }
 
-        if(success)
-        {
-            OnModelCollectionChanged();
-        }
-    }
+    //    if(success)
+    //    {
+    //        OnModelCollectionChanged();
+    //    }
+    //}
 
-    public void DisableAddLocalModelButton()
-    {
-        AddLocalModelButton.Visibility = Visibility.Collapsed;
-    }
+    //public void DisableAddLocalModelButton()
+    //{
+    //    AddLocalModelButton.Visibility = Visibility.Collapsed;
+    //}
 }
