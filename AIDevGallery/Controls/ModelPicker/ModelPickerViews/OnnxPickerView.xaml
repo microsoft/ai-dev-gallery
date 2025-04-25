@@ -7,6 +7,7 @@
     xmlns:models="using:AIDevGallery.Models"
     xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:mpControls="using:AIDevGallery.Controls.ModelPicker"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
     xmlns:helpers="using:AIDevGallery.Helpers"
@@ -15,8 +16,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24">
-        <ScrollViewer>
+    <Grid>
+        <ScrollViewer x:Name="ModelView">
             <StackPanel Orientation="Vertical" Spacing="8">
                 <TextBlock
                     x:Name="AvailableModelsTxt"
@@ -199,6 +200,16 @@
                         </DataTemplate>
                     </ItemsView.ItemTemplate>
                 </ItemsView>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="AddHFModelButton"
+                            Visibility="Collapsed"
+                            Content="Add model from HuggingFace" 
+                            Click="AddHFModelButton_Click" />
+                    <Button x:Name="AddLocalModelButton"
+                            Visibility="Collapsed"
+                            Content="Add Onnx Model from Disk"
+                            Click="AddLocalModelButton_Click" />
+                </StackPanel>
                 <TextBlock
                     x:Name="DownloadableModelsTxt"
                     Margin="0,8,0,0"
@@ -567,6 +578,9 @@
                 </ItemsRepeater>
             </StackPanel>
         </ScrollViewer>
+        <mpControls:AddHFModelView x:Name="AddHFModelView"
+                                   CloseRequested="AddHFModelView_CloseRequested"
+                                   Visibility="Collapsed"/>
         <ContentDialog
             x:Name="DownloadDialog"
             Title="Download model"

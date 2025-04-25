@@ -160,6 +160,8 @@ internal static class ModelDetailsHelper
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OPENAI) ||
+            modelDetails.Url.StartsWith("useradded-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
+            modelDetails.Url.StartsWith("useradded-local-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
             modelDetails.Url == "file://PhiSilica";
     }
 
@@ -199,5 +201,26 @@ internal static class ModelDetailsHelper
     {
         return IsOnnxModel(modelDetails) && !modelDetails.IsUserAdded
             ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static PromptTemplate? GetTemplateFromName(string name)
+    {
+        switch (name.ToLower(System.Globalization.CultureInfo.InvariantCulture))
+        {
+            case string p when p.Contains("phi"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
+            case string d when d.Contains("deepseek"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.DeepSeekR1];
+            case string l when l.Contains("llama") || l.Contains("nemotron"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
+            case string m when m.Contains("mistral"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Mistral];
+            case string q when q.Contains("qwen"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Qwen];
+            case string g when g.Contains("gemma"):
+                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Gemma];
+            default:
+                return null;
+        }
     }
 }

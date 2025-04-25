@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OnnxPickerView : BaseModelPickerView
@@ -32,12 +33,23 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         this.InitializeComponent();
 
         App.ModelCache.CacheStore.ModelsChanged += CacheStore_ModelsChanged;
-        Unloaded += (sender, e) => App.ModelCache.CacheStore.ModelsChanged -= CacheStore_ModelsChanged;
     }
 
     public override Task Load(List<ModelType> types)
     {
         Models = Models ?? new();
+
+        if (types.Contains(ModelType.LanguageModels))
+        {
+            AddHFModelButton.Visibility = Visibility.Visible;
+        }
+
+        // local models supported for types
+        // TODO: check which models support it
+        if (types.Contains(ModelType.LanguageModels) || true)
+        {
+            AddLocalModelButton.Visibility = Visibility.Visible;
+        }
 
         foreach (ModelType type in types)
         {
@@ -61,52 +73,6 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
 
         PopulateModelDetailsLists();
-
-        //if (AvailableModels.Count > 0)
-        //{
-        //    var modelIds = AvailableModels.Select(s => s.ModelDetails.Id);
-        //    var modelOrApiUsageHistory = App.AppData.UsageHistoryV2?.FirstOrDefault(u => modelIds.Contains(u.Id));
-
-        //    ModelDetails? modelToPreselect = null;
-
-        //    if (selectedModel != null)
-        //    {
-        //        modelToPreselect = AvailableModels.Where(m => m.ModelDetails.Id == selectedModel.Id).FirstOrDefault()?.ModelDetails;
-        //    }
-
-        //    if (modelToPreselect == null && modelOrApiUsageHistory != default)
-        //    {
-        //        var models = AvailableModels.Where(am => am.ModelDetails.Id == modelOrApiUsageHistory.Id).ToList();
-        //        if (models.Count > 0)
-        //        {
-        //            if (modelOrApiUsageHistory.HardwareAccelerator != null)
-        //            {
-        //                var model = models.FirstOrDefault(m => m.ModelDetails.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
-        //                if (model != null)
-        //                {
-        //                    modelToPreselect = model.ModelDetails;
-        //                }
-        //            }
-
-        //            if (modelToPreselect == null)
-        //            {
-        //                modelToPreselect = models.FirstOrDefault()?.ModelDetails;
-        //            }
-        //        }
-        //    }
-
-        //    if (modelToPreselect == null)
-        //    {
-        //        modelToPreselect = AvailableModels[0].ModelDetails;
-        //    }
-
-        //    SetSelectedModel(modelToPreselect);
-        //}
-        //else
-        //{
-        //    // No downloaded models
-        //    SetSelectedModel(null);
-        //}
     }
 
     private void PopulateModelDetailsLists()
@@ -427,6 +393,145 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
     {
         App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
-        //OnModelCollectionChanged(); // TODO
+    }
+
+    private void AddHFModelButton_Click(object sender, RoutedEventArgs e)
+    {
+        AddHFModelView.Visibility = Visibility.Visible;
+        ModelView.Visibility = Visibility.Collapsed;
+    }
+
+    private void AddHFModelView_CloseRequested(object sender)
+    {
+        AddHFModelView.Visibility = Visibility.Collapsed;
+        ModelView.Visibility = Visibility.Visible;
+    }
+
+    private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        var picker = new FolderPicker();
+        picker.FileTypeFilter.Add("*");
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        var folder = await picker.PickSingleFolderAsync();
+
+        if (folder != null)
+        {
+            var files = Directory.GetFiles(folder.Path);
+            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
+            {
+                var message = string.IsNullOrEmpty(config) ?
+                    "The folder does not contain a model you can add. Ensure \"genai_config.json\" is present in the selected directory" :
+                    "This model is already added";
+
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't add model",
+                    Content = message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+
+            try
+            {
+                string configContents = string.Empty;
+                configContents = await File.ReadAllTextAsync(config);
+                accelerator = UserAddedModelUtilsTemp.GetHardwareAcceleratorFromConfig(configContents);
+            }
+            catch (Exception ex)
+            {
+                ContentDialog confirmFolderDialog = new()
+                {
+                    Title = "Can't read genai_config.json",
+                    Content = ex.Message,
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                };
+
+                await confirmFolderDialog.ShowAsync();
+                return;
+            }
+
+            var nameTextBox = new TextBox()
+            {
+                Text = Path.GetFileName(folder.Path),
+                Width = 300,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 10),
+                Header = "Model name"
+            };
+
+            ContentDialog nameModelDialog = new()
+            {
+                Title = "Add model",
+                Content = new StackPanel()
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock()
+                        {
+                            Text = $"Adding ONNX model from \n \"{folder.Path}\"",
+                            TextWrapping = TextWrapping.WrapWholeWords
+                        },
+                        nameTextBox
+                    }
+                },
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "Cancel",
+                PrimaryButtonText = "Add",
+                DefaultButton = ContentDialogButton.Primary,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+            };
+
+            string modelName = nameTextBox.Text;
+
+            nameTextBox.TextChanged += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(nameTextBox.Text))
+                {
+                    nameModelDialog.IsPrimaryButtonEnabled = false;
+                }
+                else
+                {
+                    modelName = nameTextBox.Text;
+                    nameModelDialog.IsPrimaryButtonEnabled = true;
+                }
+            };
+
+            var result = await nameModelDialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
+            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
+
+            var details = new ModelDetails()
+            {
+                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
+                Name = modelName,
+                Url = $"local-file:///{folder.Path}",
+                Description = "Localy added GenAI Model",
+                HardwareAccelerators = [accelerator],
+                IsUserAdded = true,
+                PromptTemplate = ModelDetailsHelper.GetTemplateFromName(folder.Path),
+                Size = dirSize,
+                ReadmeUrl = null,
+                License = "unknown"
+            };
+
+            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+        }
     }
 }

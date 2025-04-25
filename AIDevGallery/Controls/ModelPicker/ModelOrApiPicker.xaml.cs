@@ -16,6 +16,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls;
+
+// TODO: Add telemetry
 internal sealed partial class ModelOrApiPicker : UserControl
 {
     private ObservableCollection<ModelSelectionItem> modelSelectionItems = new ObservableCollection<ModelSelectionItem>();
