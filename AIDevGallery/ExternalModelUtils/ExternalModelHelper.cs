@@ -16,8 +16,9 @@ namespace AIDevGallery.ExternalModelUtils;
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
+        new FoundryLocalModelProvider(),
         new OllamaModelProvider(),
-        new OpenAIModelProvider()
+        new OpenAIModelProvider(),
     ];
 
     public static async Task InitializeAsync()

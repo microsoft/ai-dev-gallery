@@ -492,7 +492,7 @@ internal sealed partial class AddModelPage : Page
         // Ask for OPENAI key
         ContentDialog keyDialog = new()
         {
-            Title = "Add OpenAI model",
+            Title = "Add remote model",
             Content = new StackPanel
             {
                 Orientation = Orientation.Vertical,

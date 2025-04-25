@@ -174,7 +174,8 @@ internal enum HardwareAccelerator
     QNN,
     WCRAPI,
     OLLAMA,
-    OPENAI
+    OPENAI,
+    FOUNDRYLOCAL
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
