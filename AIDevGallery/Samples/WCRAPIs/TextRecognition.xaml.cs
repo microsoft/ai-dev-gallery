@@ -59,14 +59,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
                 }
             }
 
-            if (TextRecognizer.GetReadyState() == AIFeatureReadyState.Ready)
-            {
-                _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
-            }
-            else
-            {
-                ShowException(null, "Text Recognition is not available.");
-            }
+            _ = SetImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "OCR.png"));
         }
         else
         {
