@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
 
@@ -21,7 +22,7 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
         this.InitializeComponent();
     }
 
-    public override void Load(List<ModelType> types)
+    public override Task Load(List<ModelType> types)
     {
         List<ModelDetails> modelDetails = [];
 
@@ -40,6 +41,8 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
         }
 
         modelDetails.DistinctBy(m => m.Id).ToList().ForEach(models.Add);
+
+        return Task.CompletedTask;
     }
 
     private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)

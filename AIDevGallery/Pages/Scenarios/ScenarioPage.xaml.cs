@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
-using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
@@ -44,18 +43,18 @@ internal sealed partial class ScenarioPage : Page
         if (e.Parameter is Scenario scenario)
         {
             this.scenario = scenario;
-            LoadPicker();
+            await LoadPicker();
         }
         else if (e.Parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-            LoadPicker(sampleArgs.ModelDetails);
+            await LoadPicker(sampleArgs.ModelDetails);
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == this.scenario!.ScenarioType).ToList();
     }
 
-    private void LoadPicker(ModelDetails? initialModelToLoad = null)
+    private async Task LoadPicker(ModelDetails? initialModelToLoad = null)
     {
         if (scenario == null)
         {
@@ -77,7 +76,7 @@ internal sealed partial class ScenarioPage : Page
             modelDetailsList.Add(samples.SelectMany(s => s.Model2Types!).ToList());
         }
 
-        var preSelectedModels = modelOrApiPicker.Load(modelDetailsList, initialModelToLoad);
+        var preSelectedModels = await modelOrApiPicker.Load(modelDetailsList, initialModelToLoad);
         HandleModelSelectionChanged(preSelectedModels);
     }
 
@@ -88,32 +87,6 @@ internal sealed partial class ScenarioPage : Page
             // user needs to select a model
             modelOrApiPicker.Show(selectedModels);
             return;
-        }
-                    {
-                        Id = $"ollama-{om.Id}",
-                        Name = om.Name,
-                        Url = $"ollama://{om.Name}:{om.Tag}",
-                        Description = $"{om.Name}:{om.Tag} running locally via Ollama",
-                        HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
-                        Size = AppUtils.StringToFileSize(om.Size),
-                        SupportedOnQualcomm = true,
-                        ParameterSize = om.Tag.ToUpperInvariant(),
-                    }));
-                }
-            }
-        }
-                    {
-                        Id = $"ollama-{om.Id}",
-                        Name = om.Name,
-                        Url = $"ollama://{om.Name}:{om.Tag}",
-                        Description = $"{om.Name}:{om.Tag} running locally via Ollama",
-                        HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
-                        Size = AppUtils.StringToFileSize(om.Size),
-                        SupportedOnQualcomm = true,
-                        ParameterSize = om.Tag.ToUpperInvariant(),
-                    }));
-                }
-            }
         }
 
         modelDetails.Clear();
@@ -126,7 +99,19 @@ internal sealed partial class ScenarioPage : Page
         }
 
         List<Sample> viableSamples = samples!.Where(s =>
-    }
+            IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
+            IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
+
+        if (viableSamples.Count == 0)
+        {
+            // this should never happen
+            modelOrApiPicker.Show(selectedModels);
+            return;
+        }
+
+        if (viableSamples.Count > 1)
+        {
+            SampleSelection.Items.Clear();
             foreach (var sample in viableSamples)
             {
                 SampleSelection.Items.Add(sample);
@@ -140,19 +125,7 @@ internal sealed partial class ScenarioPage : Page
             SampleSelection.Visibility = Visibility.Collapsed;
             LoadSample(viableSamples[0]);
         }
-
-        if (selectedModelDetails != null)
-        {
-            foreach (var s in samples)
-            {
-                if (selectedModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
-                {
-                    if (s.Model1Types.Contains(ModelType.LanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
-                    {
-                        sample = s;
-                        break;
-                    }
-                }
+    }
 
     private void LoadSample(Sample? sampleToLoad)
     {
@@ -325,6 +298,11 @@ internal sealed partial class ScenarioPage : Page
             dialog?.Hide();
 
             var message = "Please try again, or report this issue.";
+            if (ex is IOException)
+            {
+                message = ex.Message;
+            }
+
             var errorDialog = new ContentDialog
             {
                 XamlRoot = this.XamlRoot,
@@ -346,11 +324,6 @@ internal sealed partial class ScenarioPage : Page
                 Clipboard.SetContentWithOptions(dataPackage, null);
             }
         }
-    }
-
-    private void ModelSelectionControl_ModelCollectionChanged(object sender)
-    {
-        PopulateModelControls();
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)

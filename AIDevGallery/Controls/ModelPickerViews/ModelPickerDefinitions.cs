@@ -32,6 +32,14 @@ internal class ModelPickerDefinition
                 Id = "ollama",
                 CreatePicker = () => new OllamaPickerView()
             }
+        },
+        {
+            "openai", new ModelPickerDefinition()
+            {
+                Name = "OpenAI",
+                Id = "openai",
+                CreatePicker = () => new OpenAIPickerView()
+            }
         }
     };
     public required string Name { get; set; }

@@ -159,6 +159,7 @@ internal static class ModelDetailsHelper
     public static bool IsLanguageModel(this ModelDetails modelDetails)
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
+            modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OPENAI) ||
             modelDetails.Url == "file://PhiSilica";
     }
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls.ModelPickerViews;
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Utils;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls;
 internal sealed partial class ModelOrApiPicker : UserControl
@@ -44,7 +46,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
-    public List<ModelDetails?> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
+    public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
     {
         List<ModelDetails?> selectedModels = [];
 
@@ -59,7 +61,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var types in modelOrApiTypes)
         {
-            var models = GetAllModels(types);
+            var models = await GetAllModels(types);
 
             ModelDetails? modelToPreselect = null;
 
@@ -101,7 +103,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         return selectedModels;
     }
 
-    private List<ModelDetails> GetAllModels(List<ModelType> modelOrApiTypes)
+    private async Task<List<ModelDetails>> GetAllModels(List<ModelType> modelOrApiTypes)
     {
         List<ModelDetails> models = [];
 
@@ -110,7 +112,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
-            models.AddRange(OllamaHelper.GetOllamaModels() ?? []);
+            models.AddRange(await OllamaModelProvider.GetOllamaModelsAsync() ?? []);
             // TODO: add other model types
         }
         else
@@ -133,10 +135,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
             return;
         }
 
-        LoadModels(selectedItem.ModelTypes);
+        _ = LoadModels(selectedItem.ModelTypes);
     }
 
-    private void LoadModels(List<ModelType> types)
+    private async Task LoadModels(List<ModelType> types)
     {
         modelTypeSelector.Items.Clear();
         modelsGrid.Children.Clear();
@@ -149,7 +151,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         }
         else
         {
-            List<ModelDetails> models = GetAllModels(types);
+            List<ModelDetails> models = await GetAllModels(types);
 
             if (models.Any(m => m.IsOnnxModel()) && ModelPickerDefinition.Definitions.TryGetValue("onnx", out var def))
             {

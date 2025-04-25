@@ -14,23 +14,40 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
 
-internal sealed partial class OllamaPickerView : BaseModelPickerView
+internal sealed partial class OpenAIPickerView : BaseModelPickerView
 {
     private ObservableCollection<ModelDetails> models = new ObservableCollection<ModelDetails>();
-
-    public OllamaPickerView()
+    private OpenAIModelProvider openAIModelProvider = new();
+    public OpenAIPickerView()
     {
         this.InitializeComponent();
     }
 
-    public override async Task Load(List<ModelType> types)
+    public override Task Load(List<ModelType> types)
     {
-        // add ollama models
-        var ollamaModels = await OllamaModelProvider.GetOllamaModelsAsync() ?? [];
-        ollamaModels.ToList().ForEach(models.Add);
+        return Load();
     }
 
-    private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
+    private async Task Load()
+    {
+        VisualStateManager.GoToState(this, "ShowLoading", true);
+
+        await openAIModelProvider.InitializeAsync();
+
+        var openAIModels = await openAIModelProvider.GetModelsAsync();
+
+        if (openAIModels == null || !openAIModels.Any())
+        {
+            VisualStateManager.GoToState(this, "ShowInput", true);
+        }
+        else
+        {
+            openAIModels.ToList().ForEach(models.Add);
+            VisualStateManager.GoToState(this, "ShowModels", true);
+        }
+    }
+
+    private void CopyUrl_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
@@ -46,7 +63,7 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
         }
     }
 
-    private void OllamaViewModelDetails_Click(object sender, RoutedEventArgs e)
+    private void ViewModelDetails_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
@@ -87,5 +104,23 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
         {
             ModelSelectionItemsView.DeselectAll();
         }
+    }
+
+    private void SaveKeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(OpenAIKeyTextBox.Text))
+        {
+            return;
+        }
+
+        OpenAIModelProvider.OpenAIKey = OpenAIKeyTextBox.Text;
+        _ = Load();
+    }
+
+    private void RemoveKeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenAIModelProvider.OpenAIKey = null;
+        openAIModelProvider.ClearCachedModels();
+        _ = Load();
     }
 }

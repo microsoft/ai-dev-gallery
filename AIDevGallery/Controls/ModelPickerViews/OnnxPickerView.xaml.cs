@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
@@ -34,7 +35,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         Unloaded += (sender, e) => App.ModelCache.CacheStore.ModelsChanged -= CacheStore_ModelsChanged;
     }
 
-    public override void Load(List<ModelType> types)
+    public override Task Load(List<ModelType> types)
     {
         Models = Models ?? new();
 
@@ -43,7 +44,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             Models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
         }
 
-        ResetAndLoadModelList(); // TODO: initialSelectedModel);
+        ResetAndLoadModelList();
+
+        return Task.CompletedTask;
     }
 
     private void ResetAndLoadModelList()

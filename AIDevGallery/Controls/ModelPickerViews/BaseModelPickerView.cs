@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
 
@@ -11,7 +12,7 @@ internal abstract partial class BaseModelPickerView : UserControl
 {
     public delegate void SelectedModelChangedEventHandler(object sender, ModelDetails? modelDetails);
     public event SelectedModelChangedEventHandler? SelectedModelChanged;
-    public abstract void Load(List<ModelType> types);
+    public abstract Task Load(List<ModelType> types);
 
     protected void OnSelectedModelChanged(object sender, ModelDetails? args)
     {
