@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
@@ -579,20 +580,35 @@ internal partial class ModelSelectionControl : UserControl
         DownloadDialog?.Hide();
     }
 
-    private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(OllamaHelper.GetOllamaUrl());
-        Clipboard.SetContentWithOptions(dataPackage, null);
-    }
-
-    private void OllamaViewModelDetails_Click(object sender, RoutedEventArgs e)
+    private void CopyUrl_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            Process.Start(new ProcessStartInfo()
+            var url = ExternalModelHelper.GetModelUrl(details);
+            if (string.IsNullOrEmpty(url))
             {
-                FileName = $"https://ollama.com/library/{details.Name}",
+                return;
+            }
+
+            var dataPackage = new DataPackage();
+            dataPackage.SetText(url);
+            Clipboard.SetContentWithOptions(dataPackage, null);
+        }
+    }
+
+    private void ViewModelDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
+        {
+            var modelDetailsUrl = ExternalModelHelper.GetModelDetailsUrl(details);
+            if (string.IsNullOrEmpty(modelDetailsUrl))
+            {
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = modelDetailsUrl,
                 UseShellExecute = true
             });
         }

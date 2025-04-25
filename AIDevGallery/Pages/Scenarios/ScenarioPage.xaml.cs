@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
@@ -18,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 
@@ -36,18 +38,18 @@ internal sealed partial class ScenarioPage : Page
         this.InitializeComponent();
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         if (e.Parameter is Scenario scenario)
         {
             this.scenario = scenario;
-            PopulateModelControls();
+            await PopulateModelControls();
         }
         else if (e.Parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
-            PopulateModelControls(sampleArgs.ModelDetails);
+            await PopulateModelControls(sampleArgs.ModelDetails);
         }
 
         if(this.scenario != null)
@@ -58,7 +60,7 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void PopulateModelControls(ModelDetails? initialModelToLoad = null)
+    private async Task PopulateModelControls(ModelDetails? initialModelToLoad = null)
     {
         if (scenario == null)
         {
@@ -104,23 +106,9 @@ internal sealed partial class ScenarioPage : Page
 
             if (s.Model1Types.Contains(ModelType.LanguageModels))
             {
-                // add ollama models
-                var ollamaModels = OllamaHelper.GetOllamaModels();
-
-                if (ollamaModels != null)
-                {
-                    modelDetailsList.AddRange(ollamaModels.Select(om => new ModelDetails()
-                    {
-                        Id = $"ollama-{om.Id}",
-                        Name = om.Name,
-                        Url = $"ollama://{om.Name}:{om.Tag}",
-                        Description = $"{om.Name}:{om.Tag} running locally via Ollama",
-                        HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
-                        Size = AppUtils.StringToFileSize(om.Size),
-                        SupportedOnQualcomm = true,
-                        ParameterSize = om.Tag.ToUpperInvariant(),
-                    }));
-                }
+                // add external models
+                var externalModels = await ExternalModelHelper.GetAllModelsAsync();
+                modelDetailsList.AddRange(externalModels);
             }
         }
 
@@ -178,7 +166,7 @@ internal sealed partial class ScenarioPage : Page
         {
             foreach (var s in samples)
             {
-                if (selectedModelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA))
+                if (selectedModelDetails.IsHttpApi())
                 {
                     if (s.Model1Types.Contains(ModelType.LanguageModels) || (s.Model2Types != null && s.Model2Types.Contains(ModelType.LanguageModels)))
                     {
@@ -409,9 +397,9 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void ModelSelectionControl_ModelCollectionChanged(object sender)
+    private async void ModelSelectionControl_ModelCollectionChanged(object sender)
     {
-        PopulateModelControls();
+        await PopulateModelControls();
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)

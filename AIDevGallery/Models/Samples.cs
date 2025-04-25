@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -113,16 +114,10 @@ internal class ModelDetails
                         icon = "GitHub.dark.svg";
                     }
                 }
-                else if (Url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
+
+                if (ExternalModelHelper.IsUrlFromExternalProvider(Url))
                 {
-                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                    {
-                        icon = "ollama.light.svg";
-                    }
-                    else
-                    {
-                        icon = "ollama.dark.svg";
-                    }
+                    icon = ExternalModelHelper.GetIcon(Url);
                 }
                 else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
                 {
@@ -180,7 +175,8 @@ internal enum HardwareAccelerator
     DML,
     QNN,
     WCRAPI,
-    OLLAMA
+    OLLAMA,
+    OPENAI
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
