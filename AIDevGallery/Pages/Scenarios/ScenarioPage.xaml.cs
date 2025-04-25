@@ -429,7 +429,23 @@ internal sealed partial class ScenarioPage : Page
 
     private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
     {
-        await UserAddedModelUtil.OpenAddModelFlow(this.Content.XamlRoot, samples);
-        PopulateModelControls();
+        bool success = await UserAddedModelUtil.OpenAddModelFlow(this.Content.XamlRoot, samples);
+
+        if(success)
+        {
+            ContentDialog failedToUploadDialog = new()
+            {
+                Title = "Failed to add model",
+                Content = "Could not upload model. Double check that your model has a matching format/dimensionality to the other models in this scenario.",
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "Close"
+            };
+
+            await failedToUploadDialog.ShowAsync();
+        }
+        else
+        {
+            PopulateModelControls();
+        }
     }
 }
