@@ -123,9 +123,9 @@
                 <TextBlock
                     FontWeight="SemiBold"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="Windows Copilot Runtime"
+                    Text="Windows AI Foundry"
                     TextWrapping="Wrap" />
-                <TextBlock Text="Experience the full potential of the Windows Copilot Runtime APIs" TextWrapping="Wrap" />
+                <TextBlock Text="Experience the full potential of the Windows AI Foundry APIs" TextWrapping="Wrap" />
                 <HyperlinkButton
                     x:Name="APIButton"
                     Grid.Row="1"

@@ -100,7 +100,7 @@
                     Icon="{ui:FontIcon Glyph=&#xF158;}"
                     Tag="Models" />
                 <NavigationViewItem
-                    Content="WCR APIs"
+                    Content="AI APIs"
                     Icon="{ui:FontIcon Glyph=&#xE81E;}"
                     Tag="APIs" />
             </NavigationView.MenuItems>
