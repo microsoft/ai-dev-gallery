@@ -26,6 +26,14 @@ internal class ModelPickerDefinition
             }
         },
         {
+            "fl", new ModelPickerDefinition()
+            {
+                Name = "Foundry Local",
+                Id = "fl",
+                CreatePicker = () => new FoundryLocalPickerView()
+            }
+        },
+        {
             "ollama", new ModelPickerDefinition()
             {
                 Name = "ollama",

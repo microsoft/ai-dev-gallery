@@ -160,6 +160,7 @@ internal static class ModelDetailsHelper
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OPENAI) ||
+            modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.FOUNDRYLOCAL) ||
             modelDetails.Url.StartsWith("useradded-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
             modelDetails.Url.StartsWith("useradded-local-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
             modelDetails.Url == "file://PhiSilica";
