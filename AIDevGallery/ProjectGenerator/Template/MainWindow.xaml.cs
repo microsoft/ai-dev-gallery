@@ -23,96 +23,64 @@ public sealed partial class MainWindow : Window
         ProgressRingGrid.Visibility = Visibility.Collapsed;
     }
 
-    internal async void ShowException(Exception ex, string? optionalMessage = null)
+    internal async void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = optionalMessage ?? ex switch
         {
             COMException
                 when ex.Message.Contains("the rpc server is unavailable", StringComparison.CurrentCultureIgnoreCase) =>
                     "The WCL is in an unstable state.\nRebooting the machine will restart the WCL.",
-            _ => $"Error:\n{ex.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
+            _ => $"Error:\n{ex?.Message ?? string.Empty}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
         };
-        var contenText = new TextBlock
+
+        var errorText = new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
             Text = msg,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            IsTextSelectionEnabled = true,
         };
 
-        var copyTextButton = new Button
-        {
-            Content = new FontIcon
-            {
-                FontSize = 16,
-                Glyph = "\uF0E3"
-            },
-            Tag = (ex, optionalMessage),
-        };
-        ToolTipService.SetToolTip(copyTextButton, "Copy exception info to clipboard");
-        copyTextButton.Click += CopyText_Click;
-        var copyTextStack = new StackPanel
-        {
-            Margin = new Thickness(8),
-            Padding = new Thickness(8),
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Top,
-            Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorDefaultBrush"],
-            CornerRadius = (CornerRadius)Application.Current.Resources["ControlCornerRadius"],
-            Orientation = Orientation.Horizontal,
-            Spacing = 8
-        };
-        copyTextStack.Children.Add(copyTextButton);
-        var contentControl = new Grid
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch,
-            Width = 250,
-            Height = 160
-        };
-        contentControl.Children.Add(contenText);
-        contentControl.Children.Add(copyTextStack);
         ContentDialog exceptionDialog = new()
         {
-            Title = "Error",
-            Content = contentControl,
-            PrimaryButtonText = "OK",
-            SecondaryButtonText = "Reload Sample",
+            Title = "Something went wrong",
+            Content = errorText,
+            PrimaryButtonText = "Copy error details",
+            SecondaryButtonText = "Reload",
             XamlRoot = Content.XamlRoot,
+            CloseButtonText = "Close",
             PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
         };
 
         var result = await exceptionDialog.ShowAsync();
-        if (result == ContentDialogResult.Secondary)
+
+        if (result == ContentDialogResult.Primary)
+        {
+            CopyExceptionToClipboard(ex, optionalMessage);
+        }
+        else if (result == ContentDialogResult.Secondary)
         {
             RootFrame.Navigate(typeof(Sample));
         }
     }
 
-    private static void CopyText_Click(object sender, RoutedEventArgs e)
+    public static void CopyExceptionToClipboard(Exception? ex, string? optionalMessage)
     {
-        if (sender is Button button && button.Tag is (Exception,string))
-        {
-            var (ex, optionalMessage) = ((Exception, string))button.Tag;
-            CopyExceptionToClipboard(ex, optionalMessage);
-        }
-    }
+        string exceptionDetails = string.IsNullOrWhiteSpace(optionalMessage) ? string.Empty : optionalMessage + "\n";
 
-    public static void CopyExceptionToClipboard(Exception ex, string optionalMessage)
-    {
-        string exceptionDetails = (string.IsNullOrWhiteSpace(optionalMessage) ? string.Empty : optionalMessage + "\n") +
-            GetExceptionDetails(ex, optionalMessage);
+        if (ex != null)
+        {
+            exceptionDetails += GetExceptionDetails(ex);
+        }
 
         DataPackage dataPackage = new DataPackage();
         dataPackage.SetText(exceptionDetails);
-
         Clipboard.SetContent(dataPackage);
     }
 
-    private static string GetExceptionDetails(Exception ex, string optionalMessage)
+    private static string GetExceptionDetails(Exception ex)
     {
         var innerExceptionData = ex.InnerException == null ? "" :
-            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException, optionalMessage)}";
+            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException)}";
         string details = $@"Message: {ex.Message}
 StackTrace: {ex.StackTrace}
 {innerExceptionData}";

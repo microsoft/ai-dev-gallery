@@ -9,7 +9,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI.ContentModeration;
-using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -34,8 +33,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private readonly float defaultTemperature = 1;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
-    private readonly LanguageModelSkill defaultSkill = LanguageModelSkill.General;
-    private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.None;
+    private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.Minimum;
     private readonly string defaultSystemPrompt = "You are a helpful assistant.";
     private ChatOptions? chatOptions;
     private IChatClient? chatClient;
@@ -43,15 +41,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public LanguageModelSkill LanguageModelSkill { get; set; } = LanguageModelSkill.General;
+    public SeverityLevel InputModerationLevel { get; set; } = SeverityLevel.Minimum;
 
-    public List<LanguageModelSkill> LanguageModelSkills { get; } = [LanguageModelSkill.General, LanguageModelSkill.TextToTable, LanguageModelSkill.Summarize, LanguageModelSkill.Rewrite];
+    public SeverityLevel OutputModerationLevel { get; set; } = SeverityLevel.Minimum;
 
-    public SeverityLevel InputModerationLevel { get; set; } = SeverityLevel.None;
-
-    public SeverityLevel OutputModerationLevel { get; set; } = SeverityLevel.None;
-
-    public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.None, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
+    public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.Minimum, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
 
     public bool IsPhiSilica
     {
@@ -109,9 +103,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             TopPSlider.Value = lastState.TopP ?? defaultTopP;
             SystemPromptInputTextBox.Text = lastState.SystemPrompt ?? defaultSystemPrompt;
             InputTextBox.Text = lastState.UserPrompt ?? string.Empty;
-            SkillCombo.SelectedItem = lastState.ModelSkill ?? LanguageModelSkill.General;
-            InputModerationCombo.SelectedItem = lastState.InputContentModeration ?? SeverityLevel.None;
-            OutputModerationCombo.SelectedItem = lastState.OutputContentModeration ?? SeverityLevel.None;
+            InputModerationCombo.SelectedItem = lastState.InputContentModeration ?? SeverityLevel.Minimum;
+            OutputModerationCombo.SelectedItem = lastState.OutputContentModeration ?? SeverityLevel.Minimum;
         }
     }
 
@@ -127,7 +120,6 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             Temperature = (float)TemperatureSlider.Value,
             SystemPrompt = SystemPromptInputTextBox.Text,
             UserPrompt = InputTextBox.Text,
-            ModelSkill = LanguageModelSkill,
             InputContentModeration = InputModerationLevel,
             OutputContentModeration = OutputModerationLevel
         };
@@ -277,7 +269,6 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         chatOptions.TopK = (int)TopKSlider.Value;
         chatOptions.TopP = (float)TopPSlider.Value;
         chatOptions.AdditionalProperties!["do_sample"] = DoSampleToggle.IsOn;
-        chatOptions.AdditionalProperties!["skill"] = LanguageModelSkill;
         chatOptions.AdditionalProperties!["input_moderation"] = InputModerationLevel;
         chatOptions.AdditionalProperties!["output_moderation"] = OutputModerationLevel;
     }
@@ -339,7 +330,6 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         TopKSlider.Value = defaultTopK;
         TemperatureSlider.Value = defaultTemperature;
         DoSampleToggle.IsOn = defaultDoSample;
-        LanguageModelSkill = defaultSkill;
         InputModerationLevel = defaultSeverityLevel;
         OutputModerationLevel = defaultSeverityLevel;
     }

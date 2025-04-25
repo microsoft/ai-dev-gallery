@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    x:Class="AIDevGallery.Samples.WCRAPIs.BackgroundRemover"
+    x:Class="AIDevGallery.Samples.WCRAPIs.MagicEraser"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -28,10 +28,39 @@
                 VerticalAlignment="Stretch"
                 Stretch="Uniform">
                 <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
-                    <Image x:Name="CanvasImage" PointerPressed="CanvasImage_PointerPressed" />
-                    <Canvas x:Name="PointsCanvas" IsHitTestVisible="False" />
+                    <Image
+                        x:Name="CanvasImage"
+                        PointerMoved="CanvasImage_PointerMoved"
+                        PointerPressed="CanvasImage_PointerPressed"
+                        PointerReleased="CanvasImage_PointerReleased" />
+                    <Canvas x:Name="DrawCanvas" IsHitTestVisible="False">
+                        <Rectangle
+                            x:Name="InputImageRectangle"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Fill="{ThemeResource FocusStrokeColorInnerBrush}"
+                            Stroke="{ThemeResource FocusStrokeColorOuterBrush}"
+                            StrokeThickness="2"
+                            Visibility="Collapsed" />
+                    </Canvas>
                 </Grid>
             </Viewbox>
+
+            <Grid
+                x:Name="RevertButton"
+                Margin="8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Visibility="Collapsed">
+                <Button
+                    AutomationProperties.Name="Revert"
+                    Click="RevertButton_Click"
+                    ToolTipService.ToolTip="Undo erase">
+                    <FontIcon FontSize="16" Glyph="&#xE7A7;" />
+                </Button>
+            </Grid>
             <Grid
                 Margin="8"
                 HorizontalAlignment="Right"
@@ -50,7 +79,7 @@
                             <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
-                    <FontIcon Glyph="&#xEE71;" FontSize="16" />
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
                 </DropDownButton>
             </Grid>
         </Grid>
@@ -62,27 +91,22 @@
             Orientation="Vertical"
             Spacing="8">
             <Button
-                x:Name="RevertButton"
-                Click="RevertButton_Click"
-                Content="Revert"
-                Style="{ThemeResource AccentButtonStyle}"
-                Visibility="Collapsed" />
-            <Button
-                x:Name="RemoveBackgroundButton"
-                Click="RemoveBackground_Click"
-                Content="Remove background"
+                x:Name="EraseObjectButton"
+                Click="EraseObject_Click"
+                Content="Erase object"
                 IsEnabled="False"
                 Style="{ThemeResource AccentButtonStyle}" />
             <Button
-                x:Name="ClearSelectionButton"
-                Click="CleanSelection_Click"
-                Content="Clear selected points" />
+                x:Name="ClearRectangleButton"
+                Click="CleanRectangle_Click"
+                Content="Clear rectangle"
+                IsEnabled="False" />
             <TextBlock
                 x:Name="InstructionText"
                 Margin="0,12,0,0"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Click on the image to select objects you wish to be included after background removal. 0 of 31 maximum points currently selected."
+                Text="Draw a rectangle on the image to select objects you wish to be removed."
                 TextWrapping="Wrap" />
         </StackPanel>
     </Grid>
