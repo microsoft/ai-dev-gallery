@@ -22,7 +22,7 @@ namespace AIDevGallery.Controls;
 internal partial class ModelSelectionControl : UserControl
 {
     public List<ModelDetails>? Models { get; private set; }
-    public Scenario Scenario { get; set; }
+    public Scenario? Scenario { get; set; }
     public ModelDetails? Selected { get; private set; }
 
     public static readonly DependencyProperty DownloadableModelsTitleProperty = DependencyProperty.Register(nameof(DownloadableModelsTitle), typeof(string), typeof(ModelSelectionControl), new PropertyMetadata(defaultValue: null));
@@ -600,6 +600,11 @@ internal partial class ModelSelectionControl : UserControl
 
     private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
     {
+        if(Scenario == null)
+        {
+            return;
+        }
+
         bool success = false;
         var samples = Samples.SampleDetails.Samples.Where(sample => sample.Scenario == Scenario.ScenarioType).ToList();
 

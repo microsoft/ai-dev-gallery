@@ -91,11 +91,19 @@ internal sealed partial class ScenarioPage : Page
                 }
             }
 
-            if (s.Model1Types.Contains(ModelType.LanguageModels))
+            if(!modelDetailsList.IsModelsDetailsListUploadCompatible())
             {
                 modelSelectionControl.DisableAddLocalModelButton();
                 ModelSelectionPlaceholderControl.DisableAddLocalModelButton();
+            }
 
+            if (!modelDetailsList2.IsModelsDetailsListUploadCompatible())
+            {
+                modelSelectionControl2.DisableAddLocalModelButton();
+            }
+
+            if (s.Model1Types.Contains(ModelType.LanguageModels))
+            {
                 // add ollama models
                 var ollamaModels = OllamaHelper.GetOllamaModels();
 

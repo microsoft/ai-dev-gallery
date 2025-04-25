@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
+using Windows.UI.ViewManagement;
 
 namespace AIDevGallery.Utils;
 
@@ -244,5 +245,36 @@ internal static class UserAddedModelUtil
         while (leafs.Count > 0 && added);
 
         return leafs.ToList();
+    }
+
+    public static bool IsModelsDetailsListUploadCompatible(this IEnumerable<ModelDetails> modelDetailsList)
+    {
+        foreach(ModelDetails modelDetails in modelDetailsList)
+        {
+            if(modelDetails.InputDimensions != null && modelDetails.OutputDimensions != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Leave unreferenced util for getting dimensions of models added in the future.
+    public static void LogDimensionsInfo(InferenceSession inferenceSession, string modelHeader)
+    {
+        System.Diagnostics.Debug.WriteLine(modelHeader + " Dimensions");
+        System.Diagnostics.Debug.WriteLine("Input: ");
+
+        foreach (string inputName in inferenceSession.InputNames)
+        {
+            System.Diagnostics.Debug.WriteLine(inputName + ": " + string.Join(" ", inferenceSession.InputMetadata[inputName].Dimensions.Select(d => d.ToString()).ToList()));
+        }
+
+        System.Diagnostics.Debug.WriteLine("Output: ");
+        foreach (string outputName in inferenceSession.OutputNames)
+        {
+            System.Diagnostics.Debug.WriteLine(outputName + ": " + string.Join(" ", inferenceSession.OutputMetadata[outputName].Dimensions.Select(d => d.ToString()).ToList()));
+        }
     }
 }
