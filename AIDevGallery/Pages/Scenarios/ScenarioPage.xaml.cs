@@ -433,7 +433,7 @@ internal sealed partial class ScenarioPage : Page
         }
         else
         {
-            PopulateModelControls();
+            await PopulateModelControls();
         }
     }
 }
