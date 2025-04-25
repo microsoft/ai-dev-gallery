@@ -68,10 +68,10 @@
                         IsEnabled="{Binding ElementName=SearchTextBox, Path=Text, Converter={StaticResource EmptyStringToObjectConverter}}"
                         Style="{StaticResource AccentButtonStyle}" />
                 </Grid>
-                <HyperlinkButton Content="or add a local model"
-                                 Margin="0,8,0,0"
-                                 HorizontalAlignment="Center"
-                                 Click="AddLocalClicked"></HyperlinkButton>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0" HorizontalAlignment="Center">
+                    <HyperlinkButton Content="or add a local model" Click="AddLocalClicked" />
+                    <HyperlinkButton Content="or a cloud model" Click="AddCloudClicked" />
+                </StackPanel>
             </StackPanel>
 
             <ProgressBar
