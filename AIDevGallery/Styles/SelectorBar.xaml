@@ -110,7 +110,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="SelectorBarItem">
+    <Style x:Key="TokenViewSelectorBarItemStyle" TargetType="SelectorBarItem">
         <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
         <Setter Property="Background" Value="{ThemeResource TokenItemBackground}" />
         <Setter Property="Foreground" Value="{ThemeResource TokenItemForeground}" />

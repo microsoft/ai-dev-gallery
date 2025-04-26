@@ -245,8 +245,13 @@
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
+    <None Remove="Assets\ModelIcons\ollama.dark.png" />
+    <None Remove="Assets\ModelIcons\ollama.light.png" />
+    <None Remove="Assets\ModelIcons\Onnx.png" />
     <None Remove="Assets\ModelIcons\onnx.svg" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
+    <None Remove="Assets\ModelIcons\OpenAI.svg" />
+    <None Remove="Assets\ModelIcons\WCRAPI.png" />
     <None Remove="Assets\TileImages\Chat.png" />
     <None Remove="Assets\TileImages\ClassifyImage.png" />
     <None Remove="Assets\TileImages\DetectObjects.png" />
