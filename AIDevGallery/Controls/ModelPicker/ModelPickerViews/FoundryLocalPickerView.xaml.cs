@@ -3,6 +3,7 @@
 
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
+using AIDevGallery.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -16,8 +17,10 @@ namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
-    private ObservableCollection<ModelDetails> models = new ObservableCollection<ModelDetails>();
-    private FoundryLocalModelProvider provider;
+    private ObservableCollection<ModelDetails> AvailableModels { get; } = [];
+    private ObservableCollection<ModelDetails> DownloadableModels { get; } = [];
+
+    private FoundryLocalModelProvider? provider;
     public FoundryLocalPickerView()
     {
         this.InitializeComponent();
@@ -25,23 +28,24 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     public override async Task Load(List<ModelType> types)
     {
-
         provider = new FoundryLocalModelProvider();
         await provider.InitializeAsync();
 
-        var foundryModels = await provider.GetModelsAsync() ?? [];
+        (await provider.GetModelsAsync() ?? [])
+            .ToList()
+            .ForEach(AvailableModels.Add);
 
-        foreach (var model in foundryModels)
-        {
-            models.Add(model);
-        }
+        provider.GetAllModelsInCatalog()
+            .Where(m => !AvailableModels.Any(cm => cm.Id == m.Id))
+            .ToList()
+            .ForEach(DownloadableModels.Add);
     }
 
     private void CopyUrl_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            var url = provider.Url;
+            var url = provider?.Url;
             if (string.IsNullOrEmpty(url))
             {
                 return;
@@ -57,7 +61,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            var modelDetailsUrl = provider.GetDetailsUrl(details);
+            var modelDetailsUrl = provider?.GetDetailsUrl(details);
             if (string.IsNullOrEmpty(modelDetailsUrl))
             {
                 return;
@@ -78,12 +82,12 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     public override void SelectModel(ModelDetails? modelDetails)
     {
-        if (modelDetails != null && models.Contains(modelDetails))
+        if (modelDetails != null && AvailableModels.Contains(modelDetails))
         {
-            var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
+            var foundModel = AvailableModels.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
+                ModelSelectionItemsView.Select(AvailableModels.IndexOf(foundModel));
             }
             else
             {
@@ -94,5 +98,10 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         {
             ModelSelectionItemsView.DeselectAll();
         }
+    }
+
+    private void DownloadModelButton_Click(object sender, RoutedEventArgs e)
+    {
+        provider?.DownloadModel(((sender as Button)?.Tag as ModelDetails).Name);
     }
 }

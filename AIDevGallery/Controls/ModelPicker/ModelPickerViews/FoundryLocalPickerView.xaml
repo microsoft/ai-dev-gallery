@@ -22,7 +22,7 @@
                  Text="Downloaded Models"/>
                 <ItemsView
                      x:Name="ModelSelectionItemsView"
-                     ItemsSource="{x:Bind models, Mode=OneWay}"
+                     ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
                     SelectionChanged="ModelSelectionItemsView_SelectionChanged"
                      SelectionMode="Single">
                     <ItemsView.Layout>
@@ -69,8 +69,9 @@
                                                  Orientation="Horizontal"
                                                  VerticalSpacing="2">
                                                 <TextBlock VerticalAlignment="Center">
-                                                     <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
+                                                     <Run Text="{x:Bind ParameterSize}" />
                                                      <Run Text=" • " />
+                                                     <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
                                                 </TextBlock>
                                                 <Image
                                                      Height="12"
@@ -120,6 +121,133 @@
                         </DataTemplate>
                     </ItemsView.ItemTemplate>
                 </ItemsView>
+                <TextBlock
+                    x:Name="DownloadableModelsTxt"
+                    Margin="0,8,0,0"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Downloadable Models" />
+                <ItemsRepeater
+                    Grid.Row="1"
+                    IsTabStop="False"
+                    ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:ModelDetails">
+                            <toolkit:SettingsCard
+                                MinHeight="48"
+                                Padding="14,10,14,10"
+                                CornerRadius="{StaticResource OverlayCornerRadius}"
+                                Tag="{x:Bind}">
+                                <toolkit:SettingsCard.Resources>
+                                    <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
+                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                </toolkit:SettingsCard.Resources>
+                                <toolkit:SettingsCard.Header>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            MaxWidth="268"
+                                            VerticalAlignment="Center"
+                                            Text="{x:Bind Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTipService.ToolTip="{x:Bind Name}" />
+                                    </Grid>
+                                </toolkit:SettingsCard.Header>
+                                <toolkit:SettingsCard.HeaderIcon>
+                                    <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="{x:Bind Icon}" />
+                                </toolkit:SettingsCard.HeaderIcon>
+                                <toolkit:SettingsCard.Description>
+                                    <StackPanel>
+                                        <toolkit:WrapPanel
+                                            HorizontalSpacing="4"
+                                            Orientation="Horizontal"
+                                            VerticalSpacing="2">
+                                            <TextBlock>
+                                                <Run Text="{x:Bind ParameterSize}" />
+                                                <Run Text="params" />
+                                                <Run Text=" • " />
+                                                <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
+                                                <Run Text=" • " />
+                                            </TextBlock>
+                                            <Image
+                                                Height="12"
+                                                Margin="0,2,0,0"
+                                                Source="{x:Bind utils:AppUtils.GetModelSourceImageFromUrl(Url)}">
+                                                <ToolTipService.ToolTip>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                        <Run Text="{x:Bind utils:AppUtils.GetModelSourceOriginFromUrl(Url)}" />
+                                                    </TextBlock>
+                                                </ToolTipService.ToolTip>
+                                            </Image>
+                                        </toolkit:WrapPanel>
+                                    </StackPanel>
+                                </toolkit:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border
+                                        Width="28"
+                                        Height="28"
+                                        Margin="0,0,1,0"
+                                        Padding="0">
+                                        <Button
+                                            Width="28"
+                                            Height="28"
+                                            Padding="0"
+                                            ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                            AutomationProperties.Name="More options"
+                                            Content="{ui:FontIcon Glyph=&#xE712;,
+                                                                  FontSize=16}"
+                                            Style="{StaticResource SubtleButtonStyle}"
+                                            ToolTipService.ToolTip="More options">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="Bottom">
+                                                    <MenuFlyoutItem
+                                                        Click="CopyUrl_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind}"
+                                                        Text="Copy Url" />  
+                                                    <MenuFlyoutItem
+                                                        Click="ViewModelDetails_Click"
+                                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                                        Tag="{x:Bind}"
+                                                        Text="Open Model Details"/>
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Border>
+                                    <Grid>
+                                        <Button
+                                            Width="28"
+                                            Height="28"
+                                            Padding="0"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.HelpText="Download model"
+                                            AutomationProperties.Name="{x:Bind Name}"
+                                            Click="DownloadModelButton_Click"
+                                            Content="{ui:FontIcon Glyph=&#xE896;,FontSize=14}"
+                                            HighContrastAdjustment="None"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Tag="{x:Bind}"
+                                            ToolTipService.ToolTip="Download model" />
+
+                                        <!--<ProgressRing
+                                            Width="24"
+                                            Height="24"
+                                            Background="{ThemeResource ControlStrongStrokeColorDisabledBrush}"
+                                            IsIndeterminate="False"
+                                            Visibility="{x:Bind vm:DownloadableModel.BoolToVisibilityInverse(CanDownload), Mode=OneWay}"
+                                            Value="{x:Bind Progress, Mode=OneWay}" />-->
+                                    </Grid>
+                                </StackPanel>
+                            </toolkit:SettingsCard>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -12,6 +12,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Windows.UI.WebUI;
 
 namespace AIDevGallery.ExternalModelUtils;
 
@@ -22,7 +24,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 {
     private static bool? isAvailable;
 
-    private IEnumerable<ModelDetails>? _cachedModels;
+    private IEnumerable<ModelDetails>? _downloadedModels;
+    private IEnumerable<FoundryLocalModel>? _catalogModels;
 
     public string Name => "FoundryLocal";
 
@@ -65,16 +68,39 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         await InitializeAsync(cancelationToken);
 
-        return _cachedModels != null && _cachedModels.Any() ? _cachedModels : [];
+        return _downloadedModels != null && _downloadedModels.Any() ? _downloadedModels : [];
     }
 
-    private static List<FoundryLocalModel>? GetModelListViaCli()
+    public IEnumerable<ModelDetails> GetAllModelsInCatalog()
     {
-        var cachedModels = GetCachedModelsViaCli();
+        var models = GetModelListViaCli() ?? [];
 
+        foreach (var model in models)
+        {
+            yield return new ModelDetails()
+            {
+                Id = $"fl-{model.Name}",
+                Name = model.Name,
+                Url = $"fl://{model.Id}",
+                Description = $"{model.Name} running localy with Foundry Local",
+                HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
+                Size = AppUtils.StringToFileSize(model.Size),
+                SupportedOnQualcomm = true,
+                ParameterSize = model.ParamSize,
+            };
+        }
+    }
+
+    private IEnumerable<FoundryLocalModel>? GetModelListViaCli()
+    {
         if (isAvailable != null && !isAvailable.Value)
         {
             return null;
+        }
+
+        if (_catalogModels != null && _catalogModels.Any())
+        {
+            return _catalogModels;
         }
 
         try
@@ -109,9 +135,9 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                             continue;
                         }
 
-                        var cachedModel = cachedModels?.FirstOrDefault(cachedModels => cachedModels.Name == tokens[0]);
+                        //var cachedModel = cachedModels?.FirstOrDefault(cachedModels => cachedModels.Name == tokens[0]);
 
-                        models.Add(new FoundryLocalModel(tokens[0], tokens[1], tokens[3], tokens[4], tokens[5], cachedModel?.Id));
+                        models.Add(new FoundryLocalModel(tokens[0], tokens[1], tokens[3], tokens[4], tokens[5], null)); //, cachedModel?.Id));
                     }
 
                     isAvailable = true;
@@ -121,6 +147,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                     isAvailable = false;
                 }
 
+                _catalogModels = models;
                 return models;
             }
         }
@@ -189,36 +216,81 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
     }
 
+    public async Task DownloadModel(string name, CancellationToken cancellationToken = default)
+    {
+        using (var p = new Process())
+        {
+            p.StartInfo.FileName = "foundry";
+            p.StartInfo.Arguments = $"model download {name}";
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+
+            p.Start();
+            while (!p.StandardOutput.EndOfStream && !cancellationToken.IsCancellationRequested)
+            {
+                string? line = p.StandardOutput.ReadLine();
+                if (line != null)
+                {
+                    // Process the line
+                    Debug.WriteLine(line);
+                }
+                else
+                {
+                    Debug.WriteLine("No line");
+                }
+            }
+
+            //string output = p.StandardOutput.ReadToEnd();
+            //string error = p.StandardError.ReadToEnd();
+
+            p.WaitForExit();
+        }
+    }
+
     public async Task InitializeAsync(CancellationToken cancelationToken = default)
     {
-        if (_cachedModels != null && _cachedModels.Any())
+        if (_downloadedModels != null && _downloadedModels.Any())
         {
             return;
         }
 
-        var allModels = GetModelListViaCli();
+        var allModels = GetModelListViaCli() ?? [];
+        var cachedModels = GetCachedModelsViaCli() ?? [];
 
-        if (allModels == null || allModels.Count == 0)
+        List<ModelDetails> downloadedModels = [];
+
+        foreach (var model in allModels)
         {
-            return;
+            var cachedModel = cachedModels.FirstOrDefault(m => m.Name == model.Name);
+
+            if (cachedModel != null)
+            {
+                downloadedModels.Add(ToModelDetails(model.Name, cachedModel.Id, model.Size, model.ParamSize));
+                cachedModels.Remove(cachedModel);
+            }
         }
 
-        _cachedModels = allModels.Where(m => m.Id != null)
-            .Select(ToModelDetails)
-            .ToList();
+        foreach (var model in cachedModels)
+        {
+            downloadedModels.Add(ToModelDetails(model.Id, model.Id, null, model.Name));
+        }
 
-        static ModelDetails ToModelDetails(FoundryLocalModel model)
+        _downloadedModels = downloadedModels;
+
+        static ModelDetails ToModelDetails(string name, string id, string? size = null, string? paramSize = null)
         {
             return new ModelDetails()
             {
-                Id = $"fl-{model.Name}",
-                Name = model.Name,
-                Url = $"fl://{model.Id}",
-                Description = $"{model.Name} running localy with Foundry Local",
+                Id = $"fl-{name}",
+                Name = name,
+                Url = $"fl://{id}",
+                Description = $"{name} running localy with Foundry Local",
                 HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
-                Size = AppUtils.StringToFileSize(model.Size),
+                Size = size != null ? AppUtils.StringToFileSize(size) : 0,
                 SupportedOnQualcomm = true,
-                ParameterSize = model.ParamSize,
+                ParameterSize = paramSize,
             };
         }
     }
