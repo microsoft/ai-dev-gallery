@@ -33,6 +33,7 @@ internal class ModelPickerDefinition
             {
                 Name = "Foundry Local",
                 Id = "fl",
+                Icon = "ms-appx:///Assets/ModelIcons/azure-ai-foundry.png", // TO DO : theme aware
                 CreatePicker = () => new FoundryLocalPickerView()
             }
         },

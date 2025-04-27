@@ -240,6 +240,7 @@
     <None Remove="Assets\AppIcon\WideTile.scale-200_altform-colorful_theme-light.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400_altform-colorful_theme-light.png" />
+    <None Remove="Assets\ModelIcons\azure-ai-foundry.png" />
     <None Remove="Assets\ModelIcons\azure-ai-foundry.svg" />
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
@@ -288,6 +289,9 @@
   <ItemGroup>
     <Content Update="Assets\cliptokenizer.onnx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Assets\ModelIcons\azure-ai-foundry.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Assets\TileBrush.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

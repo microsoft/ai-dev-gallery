@@ -167,7 +167,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
-            modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
+            modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)), Height = 20 },  Text = def.Name, Tag = def });
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
