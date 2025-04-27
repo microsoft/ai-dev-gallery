@@ -4,6 +4,7 @@
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ViewModels;
+using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements.Html;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -45,9 +46,12 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
         return Task.CompletedTask;
     }
 
-    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        OnSelectedModelChanged(this, sender.SelectedItem as ModelDetails);
+        if (sender is ListView modelView && modelView.SelectedItem is ModelDetails details)
+        {
+            OnSelectedModelChanged(this, details);
+        }
     }
 
     private void ApiDocumentation_Click(object sender, RoutedEventArgs e)
@@ -65,16 +69,21 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
+                ModelSelectionView.SelectedIndex = models.IndexOf(foundModel);
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                ModelSelectionView.SelectedItem = null;
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            ModelSelectionView.SelectedItem = null;
         }
+    }
+
+    private void HyperlinkButton_Click(object sender, RoutedEventArgs e)
+    {
+        App.MainWindow.Navigate("apis");
     }
 }

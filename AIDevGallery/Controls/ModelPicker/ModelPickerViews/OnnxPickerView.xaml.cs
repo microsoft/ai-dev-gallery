@@ -191,9 +191,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         PopulateModelDetailsLists();
     }
 
-    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender.SelectedItem is AvailableModel model)
+        if (sender is ListView modelView && modelView.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
         }
@@ -206,16 +206,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             var availableModel = AvailableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
             if (availableModel != null)
             {
-                ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel));
+                ModelSelectionView.SelectedIndex = AvailableModels.IndexOf(availableModel);
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                ModelSelectionView.SelectedItem = null;
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            ModelSelectionView.SelectedItem = null;
         }
     }
 
