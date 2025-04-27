@@ -64,9 +64,12 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
         }
     }
 
-    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        OnSelectedModelChanged(this, sender.SelectedItem as ModelDetails);
+        if (sender is ListView modelView && modelView.SelectedItem is ModelDetails details)
+        {
+            OnSelectedModelChanged(this, details);
+        }
     }
 
     public override void SelectModel(ModelDetails? modelDetails)
@@ -76,16 +79,16 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
+                ModelSelectionView.SelectedIndex = models.IndexOf(foundModel);
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                ModelSelectionView.SelectedItem = null;
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            ModelSelectionView.SelectedItem = null;
         }
     }
 }

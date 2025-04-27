@@ -80,12 +80,13 @@ internal sealed partial class ScenarioPage : Page
         HandleModelSelectionChanged(preSelectedModels);
     }
 
-    private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
+    private async void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
     {
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
             // user needs to select a model
             modelOrApiPicker.Show(selectedModels);
+            await ModelOrApiPickerDialog.ShowAsync();
             return;
         }
 
@@ -106,6 +107,8 @@ internal sealed partial class ScenarioPage : Page
         {
             // this should never happen
             modelOrApiPicker.Show(selectedModels);
+
+            await ModelOrApiPickerDialog.ShowAsync();
             return;
         }
 
@@ -343,14 +346,16 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private async void Button_Click(object sender, RoutedEventArgs e)
     {
         modelOrApiPicker.Show(modelDetails.ToList());
+        await ModelOrApiPickerDialog.ShowAsync();
     }
 
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
+        ModelOrApiPickerDialog.Hide();
     }
 
     private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)

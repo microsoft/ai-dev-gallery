@@ -9,6 +9,7 @@ using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -44,8 +45,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 modelSelectionItems[i].SelectedModel = selectedModels[i];
             }
         }
-
-        this.Visibility = Visibility.Visible;
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
@@ -168,7 +167,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
-            modelTypeSelector.Items.Add(new SelectorBarItem() { Text = def.Name, Tag = def });
+            modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
@@ -176,7 +175,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void OnSave_Clicked(object sender, RoutedEventArgs e)
     {
-        this.Visibility = Visibility.Collapsed;
+     
 
         var selectedModels = modelSelectionItems
             .Select(item => item.SelectedModel)
