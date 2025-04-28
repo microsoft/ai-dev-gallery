@@ -175,6 +175,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
                     continue;
                 }
             }
+
             modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
         }
 
