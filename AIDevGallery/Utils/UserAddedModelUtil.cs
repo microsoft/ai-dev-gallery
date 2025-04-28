@@ -167,6 +167,22 @@ internal static class UserAddedModelUtil
                 Header = "Model name"
             };
 
+            if(App.ModelCache.IsModelCached($"local-file:///{file.Path}"))
+            {
+                ContentDialog modelAlreadyAddedDialog = new()
+                {
+                    Title = "Model already added",
+                    Content = $"A model at path \"{file.Path}\" has already been added. Please try a different model.",
+                    XamlRoot = targetRoot,
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close,
+                    Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+                };
+
+                await modelAlreadyAddedDialog.ShowAsync();
+                return false;
+            }
+
             ContentDialog nameModelDialog = new()
             {
                 Title = "Add model",
@@ -229,7 +245,7 @@ internal static class UserAddedModelUtil
                     Id = id,
                     Name = modelName,
                     Url = $"local-file:///{file.Path}",
-                    Description = "Localy added GenAI Model",
+                    Description = "Localy added ONNX model",
                     HardwareAccelerators = [accelerator],
                     IsUserAdded = true,
                     Size = new FileInfo(file.Path).Length,
@@ -324,43 +340,6 @@ internal static class UserAddedModelUtil
         }
 
         return true;
-    }
-
-    private static List<ModelType> GetLeafModelTypesFromParent(ModelType parentType)
-    {
-        Queue<ModelType> leafs = new();
-        leafs.Enqueue(parentType);
-        bool added = true;
-
-        do
-        {
-            added = false;
-            int initialCount = leafs.Count;
-
-            for (int i = 0; i < initialCount; i++)
-            {
-                var leaf = leafs.Dequeue();
-                if (Samples.ModelTypeHelpers.ParentMapping.TryGetValue(leaf, out List<ModelType>? values))
-                {
-                    if (values.Count > 0)
-                    {
-                        added = true;
-
-                        foreach (var value in values)
-                        {
-                            leafs.Enqueue(value);
-                        }
-                    }
-                }
-                else
-                {
-                    leafs.Enqueue(leaf);
-                }
-            }
-        }
-        while (leafs.Count > 0 && added);
-
-        return leafs.ToList();
     }
 
     public static bool IsModelsDetailsListUploadCompatible(this IEnumerable<ModelDetails> modelDetailsList)
