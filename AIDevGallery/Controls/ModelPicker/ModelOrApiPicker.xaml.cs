@@ -6,6 +6,7 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -45,6 +46,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             }
         }
 
+        ValidateSaveButton();
         this.Visibility = Visibility.Visible;
     }
 
@@ -100,8 +102,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
-
-        ValidateSaveButton();
 
         return selectedModels;
     }
@@ -185,6 +185,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Collapsed;
     }
 
+    private void OnCancel_Clicked(object sender, RoutedEventArgs e)
+    {
+        this.Visibility = Visibility.Collapsed;
+    }
+
     private void ModelTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
         var selectedItem = sender.SelectedItem;
@@ -233,16 +238,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ValidateSaveButton()
     {
-        foreach (var item in modelSelectionItems)
-        {
-            if (item.SelectedModel == null)
-            {
-                SaveButton.IsEnabled = false;
-                return;
-            }
-        }
+        bool isEnabled = modelSelectionItems.All(ms => ms.SelectedModel != null);
 
-        SaveButton.IsEnabled = true;
+        CancelButton.IsEnabled = isEnabled;
+        SaveButton.IsEnabled = isEnabled;
     }
 }
 
