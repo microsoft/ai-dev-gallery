@@ -5,7 +5,6 @@ using AIDevGallery.Controls.ModelPickerViews;
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
-using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -45,11 +44,14 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 modelSelectionItems[i].SelectedModel = selectedModels[i];
             }
         }
+
+        this.Visibility = Visibility.Visible;
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
     {
         List<ModelDetails?> selectedModels = [];
+        modelSelectionItems.Clear();
 
         foreach (var modelOrApiType in modelOrApiTypes)
         {
@@ -175,13 +177,12 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void OnSave_Clicked(object sender, RoutedEventArgs e)
     {
-     
-
         var selectedModels = modelSelectionItems
             .Select(item => item.SelectedModel)
             .ToList();
 
         OnSelectedModelsChanged(this, selectedModels);
+        this.Visibility = Visibility.Collapsed;
     }
 
     private void ModelTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
