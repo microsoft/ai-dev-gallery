@@ -7,6 +7,7 @@ using AIDevGallery.Samples;
 using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.Data.Xml.Dom;
 
 namespace AIDevGallery.Helpers;
 
@@ -137,23 +138,21 @@ internal static class ModelDetailsHelper
             {
                 allModelDetails.Add(GetModelDetailsFromApiDefinition(modelType, apiDefinition));
             }
+        }
 
-            System.Diagnostics.Debug.WriteLine(modelType.ToString());
-            if (initialModelType != ModelType.LanguageModels && App.AppData.TryGetUserAddedModelIds(modelType, out List<string>? modelIds))
+        if (initialModelType != ModelType.LanguageModels && App.AppData.TryGetUserAddedModelIds(initialModelType, out List<string>? modelIds))
+        {
+            foreach (string id in modelIds!)
             {
-                foreach (string id in modelIds!)
+                ModelDetails? details = App.ModelCache.Models.Where(m => m.Details.Id == id).FirstOrDefault()?.Details;
+                if (!addedUserModels.Contains(id) && details != null)
                 {
-                    ModelDetails? details = App.ModelCache.Models.Where(m => m.Details.Id == id).FirstOrDefault()?.Details;
-                    if (!addedUserModels.Contains(id) && details != null)
-                    {
-                        allModelDetails.Add(details);
-                        addedUserModels.Add(id);
-                    }
+                    allModelDetails.Add(details);
+                    addedUserModels.Add(id);
                 }
             }
         }
-
-        if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
+        else if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
         {
             var userAddedModels = App.ModelCache.Models.Where(m => m.Details.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.OrdinalIgnoreCase)).ToList();
             allModelDetails.AddRange(userAddedModels.Select(c => c.Details));

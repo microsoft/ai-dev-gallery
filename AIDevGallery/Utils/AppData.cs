@@ -28,7 +28,7 @@ internal class AppData
     public bool IsFirstRun { get; set; }
 
     public bool IsDiagnosticsMessageDismissed { get; set; }
-    private Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
+    public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
     public AppData()
     {
@@ -64,6 +64,15 @@ internal class AppData
         {
             appData ??= GetDefault();
         }
+
+        //foreach ((string key, List<string> value) in appData.ModelTypeToUserAddedModelsMapping)
+        //{
+        //    System.Diagnostics.Debug.WriteLine(key);
+        //    foreach (string v in value)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine(v);
+        //    }
+        //}
 
         return appData;
     }

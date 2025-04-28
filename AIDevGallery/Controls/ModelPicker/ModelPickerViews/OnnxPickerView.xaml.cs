@@ -41,10 +41,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         modelTypes = types;
         models = models ?? new();
 
-        foreach (ModelType type in types)
-        {
-            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
-        }
+        ResetAndLoadModelList();
 
         if (types.Contains(ModelType.LanguageModels))
         {
@@ -57,16 +54,25 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             AddLocalModelButton.Visibility = Visibility.Visible;
         }
 
-        ResetAndLoadModelList();
-
         return Task.CompletedTask;
     }
 
     private void ResetAndLoadModelList()
     {
+        if(modelTypes == null)
+        {
+            return;
+        }
+
         AvailableModels.Clear();
         DownloadableModels.Clear();
         UnavailableModels.Clear();
+        models = new();
+
+        foreach (ModelType type in modelTypes)
+        {
+            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
+        }
 
         if (models == null || models.Count == 0)
         {
@@ -303,7 +309,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             if (result == ContentDialogResult.Primary)
             {
                 await App.ModelCache.DeleteModelFromCache(details.Url);
-                //OnModelCollectionChanged(); // TODO
+                ResetAndLoadModelList();
             }
         }
     }
@@ -408,7 +414,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         ModelView.Visibility = Visibility.Visible;
     }
 
-    private void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
+    private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
     {
         if (modelTypes == null)
         {
@@ -417,11 +423,13 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         if (modelTypes.Contains(ModelType.LanguageModels))
         {
-            _ = UserAddedModelUtil.OpenAddLanguageModelFlow(Content.XamlRoot);
+            await UserAddedModelUtil.OpenAddLanguageModelFlow(Content.XamlRoot);
         }
         else
         {
-            _ = UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, modelTypes);
+            await UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, modelTypes);
         }
+
+        ResetAndLoadModelList();
     }
 }

@@ -219,10 +219,7 @@ internal static class UserAddedModelUtil
 
                 foreach (ModelType modelType in validatedModelTypes)
                 {
-                    foreach (ModelType leaf in GetLeafModelTypesFromParent(modelType))
-                    {
-                        App.AppData.AddModelTypeToUserAddedModelsMappingEntry(leaf, id);
-                    }
+                    App.AppData.AddModelTypeToUserAddedModelsMappingEntry(modelType, id);
                 }
 
                 await App.AppData.SaveAsync();
