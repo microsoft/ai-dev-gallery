@@ -113,7 +113,6 @@ public partial class App : Application
         TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = AppData.IsDiagnosticDataEnabled;
         ModelCache = await ModelCache.CreateForApp(AppData);
         GenerateSearchIndex();
-        _ = ExternalModelHelper.InitializeAsync();
     }
 
     private void GenerateSearchIndex()

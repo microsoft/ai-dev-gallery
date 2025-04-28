@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UglyToad.PdfPig.Outline;
 
 namespace AIDevGallery.ExternalModelUtils;
 
@@ -17,6 +18,10 @@ internal record OllamaModel(string Name, string Tag, string Id, string Size, str
 
 internal class OllamaModelProvider : IExternalModelProvider
 {
+    private IEnumerable<ModelDetails>? _cachedModels;
+
+    public static OllamaModelProvider Instance { get; } = new OllamaModelProvider();
+
     public string Name => "Ollama";
 
     public HardwareAccelerator ModelHardwareAccelerator => HardwareAccelerator.OLLAMA;
@@ -33,23 +38,22 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
-    public Task InitializeAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
     {
-        return Task.CompletedTask;
-    }
+        if (ignoreCached)
+        {
+            isOllamaAvailable = null;
+            _cachedModels = null;
+        }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
-    {
-        return await GetOllamaModelsAsync(cancelationToken) ?? [];
-    }
-
-    private static bool? isOllamaAvailable;
-
-    public static async Task<IEnumerable<ModelDetails>?> GetOllamaModelsAsync(CancellationToken cancelationToken = default)
-    {
         if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
-            return null;
+            return [];
+        }
+
+        if (_cachedModels != null && _cachedModels.Any())
+        {
+            return _cachedModels;
         }
 
         try
@@ -106,7 +110,7 @@ internal class OllamaModelProvider : IExternalModelProvider
                     isOllamaAvailable = false;
                 }
 
-                return models.Select(om => new ModelDetails()
+                _cachedModels = models.Select(om => new ModelDetails()
                 {
                     Id = $"ollama-{om.Id}",
                     Name = $"{om.Name}:{om.Tag}",
@@ -117,13 +121,23 @@ internal class OllamaModelProvider : IExternalModelProvider
                     SupportedOnQualcomm = true,
                     ParameterSize = om.Tag.ToUpperInvariant(),
                 });
+
+                return _cachedModels;
             }
         }
         catch
         {
             isOllamaAvailable = false;
-            return null;
+            return [];
         }
+    }
+
+    private static bool? isOllamaAvailable;
+
+    public async Task<bool> IsAvailable()
+    {
+        await GetModelsAsync();
+        return isOllamaAvailable ?? false;
     }
 
     public IChatClient? GetIChatClient(string url)

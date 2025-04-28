@@ -6,7 +6,6 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -115,8 +114,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
-            models.AddRange(await OllamaModelProvider.GetOllamaModelsAsync() ?? []);
-            // TODO: add other model types
+            models.AddRange(await ExternalModelHelper.GetAllModelsAsync() ?? []);
         }
         else
         {
@@ -169,6 +167,14 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
+            if (def.Id == "ollama")
+            {
+                // don't add ollama if not available
+                if (!await OllamaModelProvider.Instance.IsAvailable())
+                {
+                    continue;
+                }
+            }
             modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
         }
 

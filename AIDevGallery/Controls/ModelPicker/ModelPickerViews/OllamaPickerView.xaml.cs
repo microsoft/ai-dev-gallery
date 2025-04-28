@@ -26,7 +26,7 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
     public override async Task Load(List<ModelType> types)
     {
         // add ollama models
-        var ollamaModels = await OllamaModelProvider.GetOllamaModelsAsync() ?? [];
+        var ollamaModels = await OllamaModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [];
         ollamaModels.ToList().ForEach(models.Add);
     }
 
