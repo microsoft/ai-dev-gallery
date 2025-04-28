@@ -20,6 +20,8 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
+    public ModelOrApiPicker ModelPicker => modelOrApiPicker;
+
     public MainWindow(object? obj = null)
     {
         this.InitializeComponent();

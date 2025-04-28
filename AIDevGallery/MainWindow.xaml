@@ -198,5 +198,8 @@
                 </StackPanel>
             </TitleBar.RightHeader>
         </TitleBar>
+        <controls:ModelOrApiPicker
+            x:Name="modelOrApiPicker"
+            Grid.Row="1" />
     </Grid>
 </winuiex:WindowEx>

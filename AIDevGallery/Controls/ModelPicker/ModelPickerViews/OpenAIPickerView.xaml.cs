@@ -17,7 +17,7 @@ namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OpenAIPickerView : BaseModelPickerView
 {
     private ObservableCollection<ModelDetails> models = new ObservableCollection<ModelDetails>();
-    private OpenAIModelProvider openAIModelProvider = new();
+
     public OpenAIPickerView()
     {
         this.InitializeComponent();
@@ -32,9 +32,7 @@ internal sealed partial class OpenAIPickerView : BaseModelPickerView
     {
         VisualStateManager.GoToState(this, "ShowLoading", true);
 
-        await openAIModelProvider.InitializeAsync();
-
-        var openAIModels = await openAIModelProvider.GetModelsAsync();
+        var openAIModels = await OpenAIModelProvider.Instance.GetModelsAsync();
 
         if (openAIModels == null || !openAIModels.Any())
         {
@@ -123,7 +121,7 @@ internal sealed partial class OpenAIPickerView : BaseModelPickerView
     private void RemoveKeyButton_Click(object sender, RoutedEventArgs e)
     {
         OpenAIModelProvider.OpenAIKey = null;
-        openAIModelProvider.ClearCachedModels();
+        OpenAIModelProvider.Instance.ClearCachedModels();
         _ = Load();
     }
 }

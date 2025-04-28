@@ -20,6 +20,8 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
     private ObservableCollection<ModelDetails> AvailableModels { get; } = [];
     private ObservableCollection<DownloadableModel> DownloadableModels { get; } = [];
 
+    private string FoundryLocalUrl => FoundryLocalModelProvider.Instance?.Url ?? string.Empty;
+
     public FoundryLocalPickerView()
     {
         this.InitializeComponent();
@@ -37,7 +39,6 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         AvailableModels.Clear();
         DownloadableModels.Clear();
 
-        await FoundryLocalModelProvider.Instance.InitializeAsync();
         (await FoundryLocalModelProvider.Instance.GetModelsAsync() ?? [])
             .ToList()
             .ForEach(AvailableModels.Add);
@@ -86,9 +87,12 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         }
     }
 
-    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        OnSelectedModelChanged(this, sender.SelectedItem as ModelDetails);
+        if (sender is ListView modelView && modelView.SelectedItem is ModelDetails model)
+        {
+            OnSelectedModelChanged(this, model);
+        }
     }
 
     public override void SelectModel(ModelDetails? modelDetails)
@@ -98,16 +102,16 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             var foundModel = AvailableModels.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionItemsView.Select(AvailableModels.IndexOf(foundModel));
+                ModelSelectionItemsView.SelectedIndex = AvailableModels.IndexOf(foundModel);
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                ModelSelectionItemsView.SelectedItem = null;
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            ModelSelectionItemsView.SelectedItem = null;
         }
     }
 
@@ -118,4 +122,6 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             downloadableModel.StartDownload();
         }
     }
+
+    
 }

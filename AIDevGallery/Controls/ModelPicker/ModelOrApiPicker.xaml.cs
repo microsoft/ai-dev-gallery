@@ -5,7 +5,6 @@ using AIDevGallery.Controls.ModelPickerViews;
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
-using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -45,11 +44,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 modelSelectionItems[i].SelectedModel = selectedModels[i];
             }
         }
+
+        ValidateSaveButton();
+        this.Visibility = Visibility.Visible;
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
     {
         List<ModelDetails?> selectedModels = [];
+        modelSelectionItems.Clear();
 
         foreach (var modelOrApiType in modelOrApiTypes)
         {
@@ -99,8 +102,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
 
-        ValidateSaveButton();
-
         return selectedModels;
     }
 
@@ -113,8 +114,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
-            models.AddRange(await OllamaModelProvider.GetOllamaModelsAsync() ?? []);
-            // TODO: add other model types
+            models.AddRange(await ExternalModelHelper.GetAllModelsAsync() ?? []);
         }
         else
         {
@@ -167,6 +167,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
+            if (def.Id == "ollama")
+            {
+                // don't add ollama if not available
+                if (!await OllamaModelProvider.Instance.IsAvailable())
+                {
+                    continue;
+                }
+            }
+
             modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)), Height = 20 },  Text = def.Name, Tag = def });
         }
 
@@ -175,13 +184,17 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void OnSave_Clicked(object sender, RoutedEventArgs e)
     {
-     
-
         var selectedModels = modelSelectionItems
             .Select(item => item.SelectedModel)
             .ToList();
 
         OnSelectedModelsChanged(this, selectedModels);
+        this.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnCancel_Clicked(object sender, RoutedEventArgs e)
+    {
+        this.Visibility = Visibility.Collapsed;
     }
 
     private void ModelTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
@@ -232,16 +245,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ValidateSaveButton()
     {
-        foreach (var item in modelSelectionItems)
-        {
-            if (item.SelectedModel == null)
-            {
-                SaveButton.IsEnabled = false;
-                return;
-            }
-        }
+        bool isEnabled = modelSelectionItems.All(ms => ms.SelectedModel != null);
 
-        SaveButton.IsEnabled = true;
+        CancelButton.IsEnabled = isEnabled;
+        SaveButton.IsEnabled = isEnabled;
     }
 }
 

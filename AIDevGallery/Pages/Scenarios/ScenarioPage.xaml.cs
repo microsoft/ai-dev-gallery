@@ -35,6 +35,8 @@ internal sealed partial class ScenarioPage : Page
     public ScenarioPage()
     {
         this.InitializeComponent();
+        this.Loaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged += ModelOrApiPicker_SelectedModelsChanged;
+        this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -76,17 +78,16 @@ internal sealed partial class ScenarioPage : Page
             modelDetailsList.Add(samples.SelectMany(s => s.Model2Types!).ToList());
         }
 
-        var preSelectedModels = await modelOrApiPicker.Load(modelDetailsList, initialModelToLoad);
+        var preSelectedModels = await App.MainWindow.ModelPicker.Load(modelDetailsList, initialModelToLoad);
         HandleModelSelectionChanged(preSelectedModels);
     }
 
-    private async void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
+    private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
     {
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
             // user needs to select a model
-            modelOrApiPicker.Show(selectedModels);
-            await ModelOrApiPickerDialog.ShowAsync();
+            App.MainWindow.ModelPicker.Show(selectedModels);
             return;
         }
 
@@ -106,9 +107,7 @@ internal sealed partial class ScenarioPage : Page
         if (viableSamples.Count == 0)
         {
             // this should never happen
-            modelOrApiPicker.Show(selectedModels);
-
-            await ModelOrApiPickerDialog.ShowAsync();
+            App.MainWindow.ModelPicker.Show(selectedModels);
             return;
         }
 
@@ -342,16 +341,14 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private async void Button_Click(object sender, RoutedEventArgs e)
+    private void Button_Click(object sender, RoutedEventArgs e)
     {
-        modelOrApiPicker.Show(modelDetails.ToList());
-        await ModelOrApiPickerDialog.ShowAsync();
+        App.MainWindow.ModelPicker.Show(modelDetails.ToList());
     }
 
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
-        ModelOrApiPickerDialog.Hide();
     }
 
     private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)

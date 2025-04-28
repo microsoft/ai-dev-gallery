@@ -20,12 +20,10 @@ internal record FoundryLocalModel(string Name, string Variant, string Size, stri
 internal record FoundryLocalCachedModel(string Id, string Name);
 
 // FoundryLocal TODOs:
-// Get url from foundry service status
-// Start service if not already running
 // Use the Foundry Local IChatClient
 internal class FoundryLocalModelProvider : IExternalModelProvider
 {
-    private static bool? isAvailable;
+    private bool? isAvailable;
 
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<FoundryLocalModel>? _catalogModels;
@@ -46,7 +44,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public string DarkIcon => LightIcon;
 
-    public string Url => "http://localhost:5272/v1";
+    public string Url { get; private set; } = "http://localhost:5272/v1";
 
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";
     public string? GetDetailsUrl(ModelDetails details)
@@ -60,17 +58,24 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
         {
             Endpoint = new Uri(Url)
-        }).AsChatClient(modelId);
+        }).GetChatClient(modelId).AsIChatClient();
     }
 
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{Url}\") }}).AsChatClient(\"{modelId}\")";
+        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{Url}\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
     {
+        if (ignoreCached)
+        {
+            isAvailable = null;
+            _downloadedModels = null;
+            _catalogModels = null;
+        }
+
         await InitializeAsync(cancelationToken);
 
         return _downloadedModels != null && _downloadedModels.Any() ? _downloadedModels : [];
@@ -86,7 +91,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             {
                 Id = $"fl-{model.Name}",
                 Name = model.Name,
-                Url = $"fl://{model.Id}",
+                Url = $"fl://{model.Name}",
                 Description = $"{model.Name} running localy with Foundry Local",
                 HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
                 Size = AppUtils.StringToFileSize(model.Size),
@@ -140,9 +145,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                             continue;
                         }
 
-                        //var cachedModel = cachedModels?.FirstOrDefault(cachedModels => cachedModels.Name == tokens[0]);
-
-                        models.Add(new FoundryLocalModel(tokens[0], tokens[1], tokens[3], tokens[4], tokens[5], null)); //, cachedModel?.Id));
+                        models.Add(new FoundryLocalModel(tokens[0], tokens[1], tokens[3], tokens[4], tokens[5], null));
                     }
 
                     isAvailable = true;
@@ -163,7 +166,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
     }
 
-    private static List<FoundryLocalCachedModel>? GetCachedModelsViaCli()
+    private List<FoundryLocalCachedModel>? GetCachedModelsViaCli()
     {
         if (isAvailable != null && !isAvailable.Value)
         {
@@ -290,7 +293,89 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         InitializeAsync();
     }
 
-    public Task InitializeAsync(CancellationToken cancelationToken = default)
+    private void StartServiceAndUpdateUrl()
+    {
+        if (isAvailable != null && !isAvailable.Value)
+        {
+            return;
+        }
+
+        var status = RunFoundryWithArguments("service status");
+
+        if (status.ExitCode != 0)
+        {
+            return;
+        }
+
+        var url = GetUrlFromString(status.Output);
+
+        if (url != null)
+        {
+            Url = $"{url}/v1";
+            return;
+        }
+
+        status = RunFoundryWithArguments("service start");
+
+        url = GetUrlFromString(status.Output);
+
+        if (url != null)
+        {
+            Url = $"{url}/v1";
+            return;
+        }
+
+        isAvailable = false;
+    }
+
+    private string? GetUrlFromString(string? str)
+    {
+        if (string.IsNullOrEmpty(str))
+        {
+            return null;
+        }
+
+        var match = Regex.Match(str, @"https?:\/\/[^\/]+:\d+");
+        if (match.Success)
+        {
+            return match.Value;
+        }
+
+        return null;
+    }
+
+    private (string? Output, string? Error, int ExitCode) RunFoundryWithArguments(string arguments)
+    {
+        try
+        {
+            using (var p = new Process())
+            {
+                p.StartInfo.FileName = "foundry";
+                p.StartInfo.Arguments = "service status";
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+
+                p.Start();
+
+                string output = p.StandardOutput.ReadToEnd();
+                string error = p.StandardError.ReadToEnd();
+
+                p.WaitForExit();
+
+                isAvailable = true;
+                return (output, error, p.ExitCode);
+            }
+        }
+        catch
+        {
+            isAvailable = false;
+            return (null, null, -1);
+        }
+    }
+
+    private Task InitializeAsync(CancellationToken cancelationToken = default)
     {
         if (_downloadedModels != null && _downloadedModels.Any())
         {
@@ -299,6 +384,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         var allModels = GetModelListViaCli() ?? [];
         var cachedModels = GetCachedModelsViaCli() ?? [];
+
+        StartServiceAndUpdateUrl();
 
         List<ModelDetails> downloadedModels = [];
 
@@ -320,21 +407,21 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         _downloadedModels = downloadedModels;
 
-        static ModelDetails ToModelDetails(string name, string id, string? size = null, string? paramSize = null)
-        {
-            return new ModelDetails()
-            {
-                Id = $"fl-{name}",
-                Name = name,
-                Url = $"fl://{name}",
-                Description = $"{name} running localy with Foundry Local",
-                HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
-                Size = size != null ? AppUtils.StringToFileSize(size) : 0,
-                SupportedOnQualcomm = true,
-                ParameterSize = paramSize,
-            };
-        }
-
         return Task.CompletedTask;
+    }
+
+    private ModelDetails ToModelDetails(string name, string id, string? size = null, string? paramSize = null)
+    {
+        return new ModelDetails()
+        {
+            Id = $"fl-{name}",
+            Name = name,
+            Url = $"{UrlPrefix}{id}",
+            Description = $"{name} running localy with Foundry Local",
+            HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
+            Size = size != null ? AppUtils.StringToFileSize(size) : 0,
+            SupportedOnQualcomm = true,
+            ParameterSize = paramSize,
+        };
     }
 }
