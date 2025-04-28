@@ -13,13 +13,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.UI.Popups;
 
 namespace AIDevGallery.ExternalModelUtils;
 
 internal record FoundryLocalModel(string Name, string Variant, string Size, string ParamSize, string Description, string? Id);
 internal record FoundryLocalCachedModel(string Id, string Name);
 
+// FoundryLocal TODOs:
+// Get url from foundry service status
+// Start service if not already running
+// Use the Foundry Local IChatClient
 internal class FoundryLocalModelProvider : IExternalModelProvider
 {
     private static bool? isAvailable;
