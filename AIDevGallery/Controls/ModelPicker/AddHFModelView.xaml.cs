@@ -154,7 +154,7 @@ internal sealed partial class AddHFModelView : UserControl
                 {
                     state = ResultState.Downloaded;
                 }
-                else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
+                else if (App.ModelDownloadQueue.GetDownload(details.Url) != null)
                 {
                     state = ResultState.Downloading;
                 }
@@ -246,7 +246,7 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (output == ContentDialogResult.Primary)
         {
-            App.ModelCache.AddModelToDownloadQueue(result!.Details);
+            App.ModelDownloadQueue.AddModel(result!.Details);
             result.State = ResultState.Downloading;
         }
     }

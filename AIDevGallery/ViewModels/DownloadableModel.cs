@@ -31,23 +31,28 @@ internal partial class DownloadableModel : BaseModel
         get => _modelDownload;
         set
         {
-            App.ModelCache.DownloadQueue.ModelDownloadProgressChanged -= ModelDownloadQueue_ModelDownloadProgressChanged;
-            if (_modelDownload == null && value != null)
+            if (value != null && value == _modelDownload)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadProgressChanged += ModelDownloadQueue_ModelDownloadProgressChanged;
+                return;
+            }
+
+            if (_modelDownload != null)
+            {
+                _modelDownload.StateChanged -= ModelDownload_StateChanged;
             }
 
             _modelDownload = value;
-            if (_modelDownload != null)
-            {
-                Status = _modelDownload.DownloadStatus;
-                Progress = _modelDownload.DownloadProgress;
-                CanDownload = false;
-            }
-            else
+
+            if (_modelDownload == null)
             {
                 CanDownload = true;
+                return;
             }
+
+            _modelDownload.StateChanged += ModelDownload_StateChanged;
+            Status = _modelDownload.DownloadStatus;
+            Progress = _modelDownload.DownloadProgress;
+            CanDownload = false;
         }
     }
 
@@ -63,7 +68,7 @@ internal partial class DownloadableModel : BaseModel
     }
 
     public DownloadableModel(ModelDetails modelDetails)
-        : this(modelDetails, App.ModelCache.DownloadQueue.GetDownload(modelDetails.Url))
+        : this(modelDetails, App.ModelDownloadQueue.GetDownload(modelDetails.Url))
     {
     }
 
@@ -74,39 +79,32 @@ internal partial class DownloadableModel : BaseModel
 
     public void StartDownload()
     {
-        ModelDownload ??= App.ModelCache.AddModelToDownloadQueue(ModelDetails);
+        ModelDownload ??= App.ModelDownloadQueue.AddModel(ModelDetails);
     }
 
     public void CancelDownload()
     {
-        if (ModelDownload != null)
-        {
-            App.ModelCache.DownloadQueue.CancelModelDownload(ModelDownload);
-        }
+        ModelDownload?.CancelDownload();
     }
 
-    private void ModelDownloadQueue_ModelDownloadProgressChanged(object? sender, ModelDownloadProgressEventArgs e)
+    private void ModelDownload_StateChanged(object? sender, ModelDownloadEventArgs e)
     {
-        if (e.ModelUrl == ModelDownload?.Details.Url)
+        if (!_progressTimer.IsEnabled)
         {
-            if (!_progressTimer.IsEnabled)
-            {
-                _progressTimer.Start();
-            }
+            _progressTimer.Start();
+        }
 
-            if (e.Progress == 1)
-            {
-                Status = DownloadStatus.Completed;
-                App.ModelCache.DownloadQueue.ModelDownloadProgressChanged -= ModelDownloadQueue_ModelDownloadProgressChanged;
-            }
+        if (e.Progress == 1)
+        {
+            Status = DownloadStatus.Completed;
+            ModelDownload = null;
+        }
 
-            if (e.Status == DownloadStatus.Canceled)
-            {
-                Status = DownloadStatus.Canceled;
-                App.ModelCache.DownloadQueue.ModelDownloadProgressChanged -= ModelDownloadQueue_ModelDownloadProgressChanged;
-                ModelDownload = null;
-                Progress = 0;
-            }
+        if (e.Status == DownloadStatus.Canceled)
+        {
+            Status = DownloadStatus.Canceled;
+            ModelDownload = null;
+            Progress = 0;
         }
     }
 

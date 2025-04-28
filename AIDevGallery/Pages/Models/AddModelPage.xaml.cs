@@ -156,7 +156,7 @@ internal sealed partial class AddModelPage : Page
                 {
                     state = ResultState.Downloaded;
                 }
-                else if (App.ModelCache.DownloadQueue.GetDownload(details.Url) != null)
+                else if (App.ModelDownloadQueue.GetDownload(details.Url) != null)
                 {
                     state = ResultState.Downloading;
                 }
@@ -269,7 +269,7 @@ internal sealed partial class AddModelPage : Page
 
         if (output == ContentDialogResult.Primary)
         {
-            App.ModelCache.AddModelToDownloadQueue(result!.Details);
+            App.ModelDownloadQueue.AddModel(result!.Details);
             result.State = ResultState.Downloading;
         }
     }

@@ -10,10 +10,10 @@ using System.ClientModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Windows.UI.WebUI;
+using Windows.UI.Popups;
 
 namespace AIDevGallery.ExternalModelUtils;
 
@@ -26,6 +26,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<FoundryLocalModel>? _catalogModels;
+
+    public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
 
     public string Name => "FoundryLocal";
 
@@ -216,44 +218,80 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
     }
 
-    public async Task DownloadModel(string name, CancellationToken cancellationToken = default)
+    public Task<bool> DownloadModel(string name, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
-        using (var p = new Process())
-        {
-            p.StartInfo.FileName = "foundry";
-            p.StartInfo.Arguments = $"model download {name}";
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-
-            p.Start();
-            while (!p.StandardOutput.EndOfStream && !cancellationToken.IsCancellationRequested)
+        return Task<bool>.Run(
+            bool () =>
             {
-                string? line = p.StandardOutput.ReadLine();
-                if (line != null)
+                using (var p = new Process())
                 {
-                    // Process the line
-                    Debug.WriteLine(line);
-                }
-                else
-                {
-                    Debug.WriteLine("No line");
-                }
-            }
+                    p.StartInfo.FileName = "foundry";
+                    p.StartInfo.Arguments = $"model download {name}";
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.RedirectStandardError = true;
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.CreateNoWindow = true;
 
-            //string output = p.StandardOutput.ReadToEnd();
-            //string error = p.StandardError.ReadToEnd();
+                    p.Start();
+                    while (!p.StandardOutput.EndOfStream && !cancellationToken.IsCancellationRequested)
+                    {
+                        string? line = p.StandardOutput.ReadLine();
+                        if (line != null)
+                        {
+                            // find the percentage with regex and extract the number
+                            var match = Regex.Match(line, @"\d+(\.\d+)?%");
+                            if (match.Success)
+                            {
+                                var percentage = match.Value;
+                                if (float.TryParse(percentage.TrimEnd('%'), out float progressValue))
+                                {
+                                    progress?.Report(progressValue / 100);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Debug.WriteLine("No line");
+                        }
+                    }
 
-            p.WaitForExit();
-        }
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        p.Kill();
+                        return false;
+                    }
+
+                    string error = p.StandardError.ReadToEnd();
+
+                    p.WaitForExit();
+
+                    if (p.ExitCode != 0)
+                    {
+                        // TODO: do we surface this to the user
+                        Debug.WriteLine($"Error downloading Foundry Local model : {error}");
+                        return false;
+                    }
+                }
+
+                // TODO capture errors
+                Reset();
+                return true;
+            });
     }
 
-    public async Task InitializeAsync(CancellationToken cancelationToken = default)
+    private void Reset()
+    {
+        isAvailable = null;
+        _downloadedModels = null;
+        _catalogModels = null;
+        InitializeAsync();
+    }
+
+    public Task InitializeAsync(CancellationToken cancelationToken = default)
     {
         if (_downloadedModels != null && _downloadedModels.Any())
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var allModels = GetModelListViaCli() ?? [];
@@ -285,7 +323,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             {
                 Id = $"fl-{name}",
                 Name = name,
-                Url = $"fl://{id}",
+                Url = $"fl://{name}",
                 Description = $"{name} running localy with Foundry Local",
                 HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
                 Size = size != null ? AppUtils.StringToFileSize(size) : 0,
@@ -293,5 +331,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 ParameterSize = paramSize,
             };
         }
+
+        return Task.CompletedTask;
     }
 }

@@ -18,34 +18,45 @@ namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
     private ObservableCollection<ModelDetails> AvailableModels { get; } = [];
-    private ObservableCollection<ModelDetails> DownloadableModels { get; } = [];
+    private ObservableCollection<DownloadableModel> DownloadableModels { get; } = [];
 
-    private FoundryLocalModelProvider? provider;
     public FoundryLocalPickerView()
     {
         this.InitializeComponent();
+
+        App.ModelDownloadQueue.ModelDownloadCompleted += ModelDownloadQueue_ModelDownloadCompleted;
+    }
+
+    private void ModelDownloadQueue_ModelDownloadCompleted(object? sender, Utils.ModelDownloadCompletedEventArgs e)
+    {
+        _ = Load([]);
     }
 
     public override async Task Load(List<ModelType> types)
     {
-        provider = new FoundryLocalModelProvider();
-        await provider.InitializeAsync();
+        AvailableModels.Clear();
+        DownloadableModels.Clear();
 
-        (await provider.GetModelsAsync() ?? [])
+        await FoundryLocalModelProvider.Instance.InitializeAsync();
+        (await FoundryLocalModelProvider.Instance.GetModelsAsync() ?? [])
             .ToList()
             .ForEach(AvailableModels.Add);
 
-        provider.GetAllModelsInCatalog()
+        var catalogModels = FoundryLocalModelProvider.Instance.GetAllModelsInCatalog()
             .Where(m => !AvailableModels.Any(cm => cm.Id == m.Id))
-            .ToList()
-            .ForEach(DownloadableModels.Add);
+            .ToList();
+
+        foreach (var m in catalogModels)
+        {
+            DownloadableModels.Add(new DownloadableModel(m));
+        }
     }
 
     private void CopyUrl_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            var url = provider?.Url;
+            var url = FoundryLocalModelProvider.Instance?.Url;
             if (string.IsNullOrEmpty(url))
             {
                 return;
@@ -61,7 +72,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            var modelDetailsUrl = provider?.GetDetailsUrl(details);
+            var modelDetailsUrl = FoundryLocalModelProvider.Instance?.GetDetailsUrl(details);
             if (string.IsNullOrEmpty(modelDetailsUrl))
             {
                 return;
@@ -102,6 +113,9 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     private void DownloadModelButton_Click(object sender, RoutedEventArgs e)
     {
-        provider?.DownloadModel(((sender as Button)?.Tag as ModelDetails).Name);
+        if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
+        {
+            downloadableModel.StartDownload();
+        }
     }
 }

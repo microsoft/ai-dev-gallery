@@ -21,10 +21,10 @@ internal static class ExternalModelHelper
         new OpenAIModelProvider(),
     ];
 
-    public static async Task InitializeAsync()
-    {
-        await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
-    }
+    //public static async Task InitializeAsync()
+    //{
+    //    await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
+    //}
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
     {

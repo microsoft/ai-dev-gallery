@@ -256,6 +256,10 @@ public static class UrlHelpers
         {
             return url;
         }
+        else if (url.Contains("://"))
+        {
+            return url;
+        }
         else
         {
             return new HuggingFaceUrl(url).FullUrl;

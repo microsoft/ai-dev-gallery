@@ -384,15 +384,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
             if (output == ContentDialogResult.Primary)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
             }
         }
-    }
-
-    private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
-    {
-        App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
     }
 
     private void AddHFModelButton_Click(object sender, RoutedEventArgs e)

@@ -224,4 +224,29 @@ internal static class ModelDetailsHelper
                 return null;
         }
     }
+
+    //public static ModelProvider GetModelProvider(this ModelDetails modelDetails)
+    //{
+    //    // get first part of the url until the first :
+    //    var url = modelDetails.Url.Split(':').FirstOrDefault();
+    //    if (url == null || url == modelDetails.Url || url == "http")
+    //    {
+    //        return ModelProvider.ONNX;
+    //    }
+
+    //    switch (url.ToLowerInvariant())
+    //    {
+    //        case OllamaModelProvider.
+    //    }
+
+    //}
 }
+
+//internal enum ModelProvider
+//{
+//    Ollama,
+//    OpenAI,
+//    FoundryLocal,
+//    ONNX,
+//    WinAI
+//}

@@ -24,7 +24,7 @@ internal sealed partial class MainWindow : WindowEx
     {
         this.InitializeComponent();
         SetTitleBar();
-        App.ModelCache.DownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
+        App.ModelDownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
 
         this.NavView.Loaded += (sender, args) =>
         {
