@@ -170,18 +170,6 @@
                 </StackPanel>
             </ContentDialog.Content>
         </ContentDialog>
-        <ContentDialog
-            x:Name="ModelOrApiPickerDialog"
-            Padding="0"
-            Background="Transparent">
-            <ContentDialog.Resources>
-                <Thickness x:Key="ContentDialogPadding">0</Thickness>
-                <Thickness x:Key="ContentDialogMaxWidth">2000</Thickness>
-                <Thickness x:Key="ContentDialogMaxHeight">1000</Thickness>
-            </ContentDialog.Resources>
-            <controls:ModelOrApiPicker x:Name="modelOrApiPicker" SelectedModelsChanged="ModelOrApiPicker_SelectedModelsChanged" />
-        </ContentDialog>
-
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
