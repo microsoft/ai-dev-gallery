@@ -6,6 +6,7 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -176,10 +177,19 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 }
             }
 
-            modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
+            modelTypeSelector.Items.Add(new SegmentedItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Content = def.Name, Tag = def });
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
+
+        if (modelTypeSelector.Items.Count <= 1)
+        {
+            modelTypeSelector.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            modelTypeSelector.Visibility = Visibility.Visible;
+        }
     }
 
     private void OnSave_Clicked(object sender, RoutedEventArgs e)
@@ -197,9 +207,9 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Collapsed;
     }
 
-    private void ModelTypeSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
-        var selectedItem = sender.SelectedItem;
+        var selectedItem = (SegmentedItem)((sender as Segmented).SelectedItem);
         modelsGrid.Children.Clear();
 
         BaseModelPickerView? modelPickerView = null;
@@ -249,6 +259,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         CancelButton.IsEnabled = isEnabled;
         SaveButton.IsEnabled = isEnabled;
+    }
+
+    private void ShadowGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        DialogShadow.Receivers.Add(sender as UIElement);
     }
 }
 
