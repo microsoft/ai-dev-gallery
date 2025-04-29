@@ -3,6 +3,7 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -23,6 +24,7 @@ internal sealed partial class APIPage : Page
     public ModelFamily? ModelFamily { get; set; }
     private ModelType? modelFamilyType;
     private ModelDetails? modelDetails;
+    private Sample? sample;
     private string? readmeContents;
     private string? codeSnippet;
 
@@ -81,7 +83,7 @@ internal sealed partial class APIPage : Page
 
             if (!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs))
             {
-                var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == apiDefinition.SampleIdToShowInDocs);
+                sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == apiDefinition.SampleIdToShowInDocs);
                 if (sample != null)
                 {
                     _ = sampleContainer.LoadSampleAsync(sample, [modelDetails]);
@@ -200,5 +202,15 @@ internal sealed partial class APIPage : Page
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         BackgroundShadow.Receivers.Add(ShadowCastGrid);
+    }
+
+    private void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || sample == null || modelDetails == null)
+        {
+            return;
+        }
+
+        _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], this.XamlRoot);
     }
 }

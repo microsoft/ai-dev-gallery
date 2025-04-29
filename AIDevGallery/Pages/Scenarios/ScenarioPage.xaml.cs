@@ -12,16 +12,11 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
 
@@ -211,121 +206,14 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
+    private void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || sample == null)
         {
             return;
         }
 
-        var cachedModels = sample.GetCacheModelDetailsDictionary(modelDetails.ToArray());
-
-        if (cachedModels == null)
-        {
-            return;
-        }
-
-        ContentDialog? dialog = null;
-        var generator = new Generator();
-        try
-        {
-            var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
-            if (totalSize == 0)
-            {
-                copyRadioButtons.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                copyRadioButtons.Visibility = Visibility.Visible;
-                ModelExportSizeTxt.Text = AppUtils.FileSizeToString(totalSize);
-            }
-
-            var output = await ExportDialog.ShowAsync();
-
-            if (output == ContentDialogResult.Primary)
-            {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-                var picker = new FolderPicker();
-                picker.FileTypeFilter.Add("*");
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-                var folder = await picker.PickSingleFolderAsync();
-                if (folder != null)
-                {
-                    dialog = new ContentDialog
-                    {
-                        XamlRoot = this.XamlRoot,
-                        Title = "Creating Visual Studio project..",
-                        Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
-                    };
-                    _ = dialog.ShowAsync();
-
-                    var projectPath = await generator.GenerateAsync(
-                        sample,
-                        cachedModels,
-                        copyRadioButton.IsChecked == true && copyRadioButtons.Visibility == Visibility.Visible,
-                        folder.Path,
-                        CancellationToken.None);
-
-                    dialog.Closed += async (_, _) =>
-                    {
-                        var confirmationDialog = new ContentDialog
-                        {
-                            XamlRoot = this.XamlRoot,
-                            Title = "Project exported",
-                            Content = new TextBlock
-                            {
-                                Text = "The project has been successfully exported to the selected folder.",
-                                TextWrapping = TextWrapping.WrapWholeWords
-                            },
-                            PrimaryButtonText = "Open folder",
-                            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
-                            CloseButtonText = "Close"
-                        };
-
-                        var shouldOpenFolder = await confirmationDialog.ShowAsync();
-                        if (shouldOpenFolder == ContentDialogResult.Primary)
-                        {
-                            await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
-                        }
-                    };
-                    dialog.Hide();
-                    dialog = null;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            generator.CleanUp();
-            dialog?.Hide();
-
-            var message = "Please try again, or report this issue.";
-            if (ex is IOException)
-            {
-                message = ex.Message;
-            }
-
-            var errorDialog = new ContentDialog
-            {
-                XamlRoot = this.XamlRoot,
-                Title = "Error while exporting project",
-                Content = new TextBlock
-                {
-                    Text = $"An error occurred while exporting the project. {message}",
-                    TextWrapping = TextWrapping.WrapWholeWords
-                },
-                PrimaryButtonText = "Copy details",
-                CloseButtonText = "Close"
-            };
-
-            var result = await errorDialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                var dataPackage = new DataPackage();
-                dataPackage.SetText(ex.ToString());
-                Clipboard.SetContentWithOptions(dataPackage, null);
-            }
-        }
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)

@@ -154,26 +154,6 @@
                     ModelCardVisibility="Visible" />
             </Grid>
         </Grid>
-        <ContentDialog
-            x:Name="ExportDialog"
-            Title="Export Visual Studio project"
-            CloseButtonText="Cancel"
-            DefaultButton="Primary"
-            PrimaryButtonText="Export">
-            <ContentDialog.Content>
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Margin="0,0,0,16" Text="Create a standalone VS project based on this sample." />
-                    <RadioButtons x:Name="copyRadioButtons">
-                        <RadioButton Content="Reference model from model cache" IsChecked="True" />
-                        <RadioButton x:Name="copyRadioButton">
-                            <TextBlock>
-                                <Run Text="Copy model (" /><Run x:Name="ModelExportSizeTxt" FontWeight="SemiBold" /><Run Text=") to project directory" />
-                            </TextBlock>
-                        </RadioButton>
-                    </RadioButtons>
-                </StackPanel>
-            </ContentDialog.Content>
-        </ContentDialog>
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
