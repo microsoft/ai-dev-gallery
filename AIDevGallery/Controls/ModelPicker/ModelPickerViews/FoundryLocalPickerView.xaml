@@ -19,9 +19,11 @@
             <StackPanel Orientation="Vertical" Spacing="8">
                 <TextBlock
                      Margin="16"
+                    IsTextSelectionEnabled="True"
                      x:Name="AvailableModelsTxt"
-                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                     Text="Downloaded Models"/>
+                     Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                    <Run Text="Cached Models (" /><Run Text="{x:Bind FoundryLocalUrl}" /><Run Text=")" />
+                </TextBlock>
                 <ListView
                      x:Name="ModelSelectionItemsView"
                      ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
@@ -68,8 +70,6 @@
                                                     <Run Text="{x:Bind ParameterSize}" />
                                                     <Run Text=" • " />
                                                     <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
-                                                    <Run Text=" • Running on" />
-                                                    <Run Text="{Binding ElementName=Root, Path=FoundryLocalUrl}" />
                                             </TextBlock>
                                         </toolkit:WrapPanel>
                                     </StackPanel>
@@ -162,7 +162,6 @@
                                                 <Run Text="params" />
                                                 <Run Text=" • " />
                                                 <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
-                                                <Run Text=" • " />
                                             </TextBlock>
                                         </toolkit:WrapPanel>
                                     </StackPanel>
