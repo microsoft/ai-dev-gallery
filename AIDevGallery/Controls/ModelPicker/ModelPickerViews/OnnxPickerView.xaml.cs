@@ -161,37 +161,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 }
             }
         }
-
-        //SetHeaderVisibilityStates();
     }
-
-    //private void SetSelectedModel(ModelDetails? modelDetails, HardwareAccelerator? accelerator = null)
-    //{
-    //    if (modelDetails != null)
-    //    {
-    //        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible && !modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI))
-    //        {
-    //            if (Selected != null)
-    //            {
-    //                // if the selected model is not compatible, we should not allow the user to select it, so we select the previous model
-    //                SetViewSelection(Selected);
-    //            }
-
-    //            return;
-    //        }
-
-    //        Selected = modelDetails;
-    //        SetViewSelection(modelDetails);
-    //        OnSelectedModelChanged(this, modelDetails);
-    //    }
-    //    else
-    //    {
-    //        Selected = null;
-
-    //        // model not available
-    //        OnSelectedModelChanged(this, null);
-    //    }
-    //}
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {

@@ -45,6 +45,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             }
         }
 
+        ValidateSaveButton();
         this.Visibility = Visibility.Visible;
     }
 
@@ -101,8 +102,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
 
-        ValidateSaveButton();
-
         return selectedModels;
     }
 
@@ -115,8 +114,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
-            models.AddRange(await OllamaModelProvider.GetOllamaModelsAsync() ?? []);
-            // TODO: add other model types
+            models.AddRange(await ExternalModelHelper.GetAllModelsAsync() ?? []);
         }
         else
         {
@@ -169,6 +167,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
+            if (def.Id == "ollama")
+            {
+                // don't add ollama if not available
+                if (!await OllamaModelProvider.Instance.IsAvailable())
+                {
+                    continue;
+                }
+            }
+
             modelTypeSelector.Items.Add(new SelectorBarItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Text = def.Name, Tag = def });
         }
 
@@ -182,6 +189,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
             .ToList();
 
         OnSelectedModelsChanged(this, selectedModels);
+        this.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnCancel_Clicked(object sender, RoutedEventArgs e)
+    {
         this.Visibility = Visibility.Collapsed;
     }
 
@@ -233,16 +245,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ValidateSaveButton()
     {
-        foreach (var item in modelSelectionItems)
-        {
-            if (item.SelectedModel == null)
-            {
-                SaveButton.IsEnabled = false;
-                return;
-            }
-        }
+        bool isEnabled = modelSelectionItems.All(ms => ms.SelectedModel != null);
 
-        SaveButton.IsEnabled = true;
+        CancelButton.IsEnabled = isEnabled;
+        SaveButton.IsEnabled = isEnabled;
     }
 }
 

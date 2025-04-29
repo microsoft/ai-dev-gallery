@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 
@@ -48,7 +47,7 @@ internal class ModelPickerDefinition
         }
     };
     public required string Name { get; set; }
-    public string? Icon { get; set; }
+    public string Icon { get; set; }
     public required string Id { get; set; }
     public required Func<BaseModelPickerView> CreatePicker { get; set; }
 }

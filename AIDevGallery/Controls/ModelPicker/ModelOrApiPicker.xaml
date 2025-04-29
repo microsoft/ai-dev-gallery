@@ -118,15 +118,23 @@
                     </DataTemplate>
                 </ItemsView.ItemTemplate>
             </ItemsView>
-            <Button
-                x:Name="SaveButton"
-                Grid.Row="2"
-                Grid.Column="1"
-                Margin="12"
-                HorizontalAlignment="Stretch"
-                Click="OnSave_Clicked"
-                Content="Save"
-                Style="{StaticResource AccentButtonStyle}" />
+            <StackPanel Orientation="Horizontal"
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="12"
+                        HorizontalAlignment="Right"
+                        Spacing="8">
+                <Button
+                    x:Name="CancelButton"
+                    Click="OnCancel_Clicked"
+                    Content="Cancel" />
+                <Button
+                    x:Name="SaveButton"
+                    Click="OnSave_Clicked"
+                    Content="Save"
+                    Width="150"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
 
         </Grid>
     </Grid>

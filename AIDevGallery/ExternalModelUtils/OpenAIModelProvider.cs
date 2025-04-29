@@ -16,6 +16,8 @@ namespace AIDevGallery.ExternalModelUtils;
 
 internal class OpenAIModelProvider : IExternalModelProvider
 {
+    public static OpenAIModelProvider Instance { get; } = new OpenAIModelProvider();
+
     private const string KeyName = "AI_DEV_GALLERY_OPENAI_API_KEY";
     private IEnumerable<ModelDetails>? _cachedModels;
 
@@ -71,7 +73,6 @@ internal class OpenAIModelProvider : IExternalModelProvider
     {
         var modelId = url.Split('/').LastOrDefault();
 
-        // TODO
         return $"new OpenAIClient(\"OPENAI_API_KEY\").GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
@@ -80,12 +81,19 @@ internal class OpenAIModelProvider : IExternalModelProvider
         _cachedModels = null;
     }
 
-    public async Task InitializeAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCache = false, CancellationToken cancelationToken = default)
     {
+        if (ignoreCache)
+        {
+            _cachedModels = null;
+        }
+
         if (_cachedModels != null && _cachedModels.Any())
         {
-            return;
+            return _cachedModels;
         }
+
+        _cachedModels = [];
 
         try
         {
@@ -95,7 +103,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
             if (models?.Value == null)
             {
-                return;
+                return _cachedModels;
             }
 
             _cachedModels = [.. models.Value
@@ -108,29 +116,24 @@ internal class OpenAIModelProvider : IExternalModelProvider
         }
         catch
         {
-            return;
+            return _cachedModels;
         }
-
-        static ModelDetails ToModelDetails(OpenAIModel model)
-        {
-            return new ModelDetails()
-            {
-                Id = $"openai-{model.Id}",
-                Name = model.Id,
-                Url = $"openai://{model.Id}",
-                Description = $"{model.Id} running on the cloud via OpenAI",
-                HardwareAccelerators = [HardwareAccelerator.OPENAI],
-                Size = 0,
-                SupportedOnQualcomm = true,
-                ParameterSize = string.Empty,
-            };
-        }
-    }
-
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
-    {
-        await InitializeAsync(cancelationToken);
 
         return _cachedModels != null && _cachedModels.Any() ? _cachedModels : [];
+    }
+
+    private ModelDetails ToModelDetails(OpenAIModel model)
+    {
+        return new ModelDetails()
+        {
+            Id = $"openai-{model.Id}",
+            Name = model.Id,
+            Url = $"{UrlPrefix}{model.Id}",
+            Description = $"{model.Id} running on the cloud via OpenAI",
+            HardwareAccelerators = [HardwareAccelerator.OPENAI],
+            Size = 0,
+            SupportedOnQualcomm = true,
+            ParameterSize = string.Empty,
+        };
     }
 }

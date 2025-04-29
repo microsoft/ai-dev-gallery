@@ -3,8 +3,6 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
-using AIDevGallery.ViewModels;
-using CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements.Html;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
