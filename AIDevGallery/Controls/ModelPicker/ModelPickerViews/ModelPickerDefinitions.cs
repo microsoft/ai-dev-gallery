@@ -47,7 +47,7 @@ internal class ModelPickerDefinition
         }
     };
     public required string Name { get; set; }
-    public string Icon { get; set; }
+    public required string Icon { get; set; }
     public required string Id { get; set; }
     public required Func<BaseModelPickerView> CreatePicker { get; set; }
 }
