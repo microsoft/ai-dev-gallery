@@ -34,7 +34,7 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Available ONNX models"
                     TextWrapping="Wrap" />
-                <DropDownButton Grid.Column="1" Margin="8,8,16,8">
+                <DropDownButton Grid.Column="1" Margin="8,8,16,0">
                     <DropDownButton.Content>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon FontSize="16" Glyph="&#xF158;" />
