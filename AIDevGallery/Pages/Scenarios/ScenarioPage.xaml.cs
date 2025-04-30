@@ -46,6 +46,12 @@ internal sealed partial class ScenarioPage : Page
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
             await LoadPicker(sampleArgs.ModelDetails);
+
+            if (sampleArgs.OpenCodeView is not null & true)
+            {
+                CodeToggle.IsChecked = true;
+                HandleCodePane();
+            }
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == this.scenario!.ScenarioType).ToList();
@@ -188,23 +194,26 @@ internal sealed partial class ScenarioPage : Page
 
     private void CodeToggle_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is ToggleButton btn)
-        {
-            if (sample != null)
-            {
-                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
-            }
+        HandleCodePane();
+    }
 
-            if (btn.IsChecked == true)
-            {
-                SampleContainer.ShowCode();
-            }
-            else
-            {
-                SampleContainer.HideCode();
-            }
+    private void HandleCodePane()
+    {
+        if (sample != null)
+        {
+            ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, CodeToggle.IsChecked == true);
+        }
+
+        if (CodeToggle.IsChecked == true)
+        {
+            SampleContainer.ShowCode();
+        }
+        else
+        {
+            SampleContainer.HideCode();
         }
     }
+
 
     private void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {

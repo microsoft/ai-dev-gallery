@@ -57,6 +57,15 @@ internal sealed partial class Card : UserControl
         set => SetValue(IconProperty, value);
     }
 
+    public static readonly DependencyProperty IsMinimizedProperty = DependencyProperty.Register(nameof(IsMinimized), typeof(bool), typeof(Card), new PropertyMetadata(defaultValue: false, OnVisualPropertyChanged));
+
+    public bool IsMinimized
+    {
+        get => (bool)GetValue(IsMinimizedProperty);
+        set => SetValue(IsMinimizedProperty, value);
+    }
+
+
     public Card()
     {
         this.InitializeComponent();
@@ -84,6 +93,24 @@ internal sealed partial class Card : UserControl
         {
             VisualStateManager.GoToState(this, "TitleGridVisible", true);
             DividerVisibility = Visibility.Visible;
+        }
+
+        if (IsMinimized)
+        {
+            ExpandBtn.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            ExpandBtn.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button b)
+        {
+            this.MaxHeight = double.PositiveInfinity;
+            b.Visibility = Visibility.Collapsed;
         }
     }
 }

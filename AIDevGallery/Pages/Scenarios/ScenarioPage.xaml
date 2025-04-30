@@ -54,7 +54,6 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-
                 <StackPanel
                     x:Name="ModelPanel"
                     Padding="0,0,12,0"

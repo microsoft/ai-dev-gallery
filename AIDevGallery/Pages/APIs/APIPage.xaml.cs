@@ -211,6 +211,7 @@ internal sealed partial class APIPage : Page
             return;
         }
 
+       // App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, modelDetails));
         _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], this.XamlRoot);
     }
 }
