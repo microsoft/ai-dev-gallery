@@ -22,7 +22,7 @@
             Description=" "
             KeyUp="TextBox_KeyUp"
             PlaceholderText="Enter a topic to generate text on.."
-            Text="Tell me about yourself"
+            Text="Tell me a fun fact about space."
             TextChanged="InputBox_Changed" />
         <StackPanel
             Grid.Column="1"
