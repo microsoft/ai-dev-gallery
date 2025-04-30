@@ -95,7 +95,7 @@
                     </Grid.RowDefinitions>
                     <controls:SampleContainer
                         x:Name="sampleContainer"
-                        MinHeight="240"
+                        Height="360"
                         DisclaimerHorizontalAlignment="Left" />
                 </Grid>
 
