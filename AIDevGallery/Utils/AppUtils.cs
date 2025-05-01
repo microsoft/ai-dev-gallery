@@ -163,7 +163,7 @@ internal static class AppUtils
             case HardwareAccelerator.QNN:
                 return "This model will run on Qualcomm NPUs";
             case HardwareAccelerator.WCRAPI:
-                return "The model used by this Windows Copilot Runtime API will run on NPU";
+                return "The model used by this Windows AI API will run on NPU";
             case HardwareAccelerator.OLLAMA:
                 return "The model will run localy via Ollama";
         }
