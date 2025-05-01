@@ -20,6 +20,7 @@
         <Grid
             x:Name="ShadowGrid"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Tapped="ShadowGrid_Tapped"
             Loaded="ShadowGrid_Loaded" />
         <Grid
             Width="920"

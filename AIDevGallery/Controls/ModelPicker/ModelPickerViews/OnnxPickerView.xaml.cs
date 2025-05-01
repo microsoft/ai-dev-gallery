@@ -21,7 +21,8 @@ using Windows.Storage.Pickers;
 namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OnnxPickerView : BaseModelPickerView
 {
-    private List<ModelDetails>? Models { get; set; }
+    private List<ModelDetails> Models { get; set; } = new();
+    private List<ModelType>? ModelTypes { get; set; }
     public ModelDetails? Selected { get; private set; }
 
     private ObservableCollection<AvailableModel> AvailableModels { get; } = [];
@@ -37,7 +38,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     public override Task Load(List<ModelType> types)
     {
-        Models = Models ?? new();
+        ModelTypes = types;
 
         if (types.Contains(ModelType.LanguageModels))
         {
@@ -51,11 +52,6 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             AddLocalModelButton.Visibility = Visibility.Visible;
         }
 
-        foreach (ModelType type in types)
-        {
-            Models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
-        }
-
         ResetAndLoadModelList();
 
         return Task.CompletedTask;
@@ -63,20 +59,21 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void ResetAndLoadModelList()
     {
+        Models.Clear();
         AvailableModels.Clear();
         DownloadableModels.Clear();
         UnavailableModels.Clear();
 
-        if (Models == null || Models.Count == 0)
+        if (ModelTypes == null || ModelTypes.Count == 0)
         {
             return;
         }
 
-        PopulateModelDetailsLists();
-    }
+        foreach (ModelType type in ModelTypes)
+        {
+            Models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
+        }
 
-    private void PopulateModelDetailsLists()
-    {
         if (Models == null || Models.Count == 0)
         {
             return;
@@ -158,7 +155,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        PopulateModelDetailsLists();
+        ResetAndLoadModelList();
     }
 
     private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -33,15 +33,21 @@ internal sealed partial class ScenarioPage : Page
         this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
     }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    protected override void OnNavigatedTo(NavigationEventArgs e)
     {
+        VisualStateManager.GoToState(this, "PageLoading", true);
         base.OnNavigatedTo(e);
-        if (e.Parameter is Scenario scenario)
+        _ = LoadPage(e.Parameter);
+    }
+
+    private async Task LoadPage(object parameter)
+    {
+        if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
             await LoadPicker();
         }
-        else if (e.Parameter is SampleNavigationArgs sampleArgs)
+        else if (parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
             await LoadPicker(sampleArgs.ModelDetails);
@@ -80,6 +86,13 @@ internal sealed partial class ScenarioPage : Page
 
         var preSelectedModels = await App.MainWindow.ModelPicker.Load(modelDetailsList, initialModelToLoad);
         HandleModelSelectionChanged(preSelectedModels);
+
+        if (preSelectedModels.Contains(null) || preSelectedModels.Count == 0)
+        {
+            // user needs to select a model if one is not selected at first
+            App.MainWindow.ModelPicker.Show(preSelectedModels);
+            return;
+        }
     }
 
     private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
@@ -87,7 +100,7 @@ internal sealed partial class ScenarioPage : Page
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
             // user needs to select a model
-            App.MainWindow.ModelPicker.Show(selectedModels);
+            VisualStateManager.GoToState(this, "NoModelSelected", true);
             return;
         }
 
@@ -138,7 +151,6 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        ModelSelectionPlaceholderControl.HideDownloadDialog();
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
