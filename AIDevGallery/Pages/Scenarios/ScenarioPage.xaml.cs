@@ -10,7 +10,6 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -213,7 +212,6 @@ internal sealed partial class ScenarioPage : Page
             SampleContainer.HideCode();
         }
     }
-
 
     private void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {

@@ -65,7 +65,6 @@ internal sealed partial class Card : UserControl
         set => SetValue(IsMinimizedProperty, value);
     }
 
-
     public Card()
     {
         this.InitializeComponent();
