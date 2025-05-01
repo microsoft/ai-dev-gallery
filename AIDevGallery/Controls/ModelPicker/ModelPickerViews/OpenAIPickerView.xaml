@@ -57,57 +57,55 @@
                 Style="{StaticResource AccentButtonStyle}" />
         </StackPanel>
 
-        <ScrollViewer x:Name="ModelsView" Visibility="Collapsed">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
+        <Grid x:Name="ModelsView" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
                     Margin="16"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Available models on OpenAI"
                     TextWrapping="Wrap" />
-                <HyperlinkButton
+            <HyperlinkButton
                     Grid.Column="1"
                     Margin="8"
                     HorizontalAlignment="Left"
                     Click="RemoveKeyButton_Click"
                     Content="Remove API key"
                     FontSize="12" />
-                <ListView
+            <ListView
                     x:Name="ModelSelectionView"
                     Grid.Row="1"
                     Grid.ColumnSpan="2"
                     ItemsSource="{x:Bind models, Mode=OneWay}"
-                    ScrollViewer.VerticalScrollMode="Disabled"
                     SelectionChanged="ModelSelectionView_SelectionChanged"
                     SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ModelDetails">
-                            <toolkit:SettingsCard
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ModelDetails">
+                        <toolkit:SettingsCard
                                 MinHeight="48"
                                 Padding="4,10,14,10"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="0"
                                 Header="{x:Bind Name}">
-                                <toolkit:SettingsCard.Resources>
-                                    <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
-                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
-                                    <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
-                                </toolkit:SettingsCard.Resources>
-                                <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon
+                            <toolkit:SettingsCard.Resources>
+                                <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
+                                <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
+                            </toolkit:SettingsCard.Resources>
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <ImageIcon
                                         AutomationProperties.AccessibilityView="Control"
                                         AutomationProperties.Name="Model source icon"
                                         Source="{x:Bind Icon}" />
-                                </toolkit:SettingsCard.HeaderIcon>
-                                <Button
+                            </toolkit:SettingsCard.HeaderIcon>
+                            <Button
                                     Grid.Column="2"
                                     Width="28"
                                     Height="28"
@@ -119,27 +117,26 @@
                                                           FontSize=16}"
                                     Style="{StaticResource SubtleButtonStyle}"
                                     ToolTipService.ToolTip="More options">
-                                    <Button.Flyout>
-                                        <MenuFlyout Placement="Bottom">
-                                            <MenuFlyoutItem
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="Bottom">
+                                        <MenuFlyoutItem
                                                 Click="CopyUrl_Click"
                                                 Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                 Tag="{x:Bind}"
                                                 Text="Copy URL" />
-                                            <MenuFlyoutItem
+                                        <MenuFlyoutItem
                                                 Click="ViewModelDetails_Click"
                                                 Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                 Tag="{x:Bind}"
                                                 Text="Open model details" />
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                </Button>
-                            </toolkit:SettingsCard>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
-        </ScrollViewer>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </toolkit:SettingsCard>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="StateGroup">
                 <VisualState x:Name="ShowLoading" />

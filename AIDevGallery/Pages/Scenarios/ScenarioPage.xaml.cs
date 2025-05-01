@@ -10,18 +10,12 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
 
@@ -39,18 +33,30 @@ internal sealed partial class ScenarioPage : Page
         this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
     }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    protected override void OnNavigatedTo(NavigationEventArgs e)
     {
+        VisualStateManager.GoToState(this, "PageLoading", true);
         base.OnNavigatedTo(e);
-        if (e.Parameter is Scenario scenario)
+        _ = LoadPage(e.Parameter);
+    }
+
+    private async Task LoadPage(object parameter)
+    {
+        if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
             await LoadPicker();
         }
-        else if (e.Parameter is SampleNavigationArgs sampleArgs)
+        else if (parameter is SampleNavigationArgs sampleArgs)
         {
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
             await LoadPicker(sampleArgs.ModelDetails);
+
+            if (sampleArgs.OpenCodeView is not null & true)
+            {
+                CodeToggle.IsChecked = true;
+                HandleCodePane();
+            }
         }
 
         samples = SampleDetails.Samples.Where(sample => sample.Scenario == this.scenario!.ScenarioType).ToList();
@@ -80,6 +86,13 @@ internal sealed partial class ScenarioPage : Page
 
         var preSelectedModels = await App.MainWindow.ModelPicker.Load(modelDetailsList, initialModelToLoad);
         HandleModelSelectionChanged(preSelectedModels);
+
+        if (preSelectedModels.Contains(null) || preSelectedModels.Count == 0)
+        {
+            // user needs to select a model if one is not selected at first
+            App.MainWindow.ModelPicker.Show(preSelectedModels);
+            return;
+        }
     }
 
     private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
@@ -87,7 +100,7 @@ internal sealed partial class ScenarioPage : Page
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
             // user needs to select a model
-            App.MainWindow.ModelPicker.Show(selectedModels);
+            VisualStateManager.GoToState(this, "NoModelSelected", true);
             return;
         }
 
@@ -138,7 +151,6 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        ModelSelectionPlaceholderControl.HideDownloadDialog();
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
@@ -197,139 +209,34 @@ internal sealed partial class ScenarioPage : Page
 
     private void CodeToggle_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is ToggleButton btn)
-        {
-            if (sample != null)
-            {
-                ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, btn.IsChecked == true);
-            }
+        HandleCodePane();
+    }
 
-            if (btn.IsChecked == true)
-            {
-                SampleContainer.ShowCode();
-            }
-            else
-            {
-                SampleContainer.HideCode();
-            }
+    private void HandleCodePane()
+    {
+        if (sample != null)
+        {
+            ToggleCodeButtonEvent.Log(sample.Name ?? string.Empty, CodeToggle.IsChecked == true);
+        }
+
+        if (CodeToggle.IsChecked == true)
+        {
+            SampleContainer.ShowCode();
+        }
+        else
+        {
+            SampleContainer.HideCode();
         }
     }
 
-    private async void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
+    private void ExportSampleToggle_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || sample == null)
         {
             return;
         }
 
-        var cachedModels = sample.GetCacheModelDetailsDictionary(modelDetails.ToArray());
-
-        if (cachedModels == null)
-        {
-            return;
-        }
-
-        ContentDialog? dialog = null;
-        var generator = new Generator();
-        try
-        {
-            var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
-            if (totalSize == 0)
-            {
-                copyRadioButtons.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                copyRadioButtons.Visibility = Visibility.Visible;
-                ModelExportSizeTxt.Text = AppUtils.FileSizeToString(totalSize);
-            }
-
-            var output = await ExportDialog.ShowAsync();
-
-            if (output == ContentDialogResult.Primary)
-            {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-                var picker = new FolderPicker();
-                picker.FileTypeFilter.Add("*");
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-                var folder = await picker.PickSingleFolderAsync();
-                if (folder != null)
-                {
-                    dialog = new ContentDialog
-                    {
-                        XamlRoot = this.XamlRoot,
-                        Title = "Creating Visual Studio project..",
-                        Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
-                    };
-                    _ = dialog.ShowAsync();
-
-                    var projectPath = await generator.GenerateAsync(
-                        sample,
-                        cachedModels,
-                        copyRadioButton.IsChecked == true && copyRadioButtons.Visibility == Visibility.Visible,
-                        folder.Path,
-                        CancellationToken.None);
-
-                    dialog.Closed += async (_, _) =>
-                    {
-                        var confirmationDialog = new ContentDialog
-                        {
-                            XamlRoot = this.XamlRoot,
-                            Title = "Project exported",
-                            Content = new TextBlock
-                            {
-                                Text = "The project has been successfully exported to the selected folder.",
-                                TextWrapping = TextWrapping.WrapWholeWords
-                            },
-                            PrimaryButtonText = "Open folder",
-                            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
-                            CloseButtonText = "Close"
-                        };
-
-                        var shouldOpenFolder = await confirmationDialog.ShowAsync();
-                        if (shouldOpenFolder == ContentDialogResult.Primary)
-                        {
-                            await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
-                        }
-                    };
-                    dialog.Hide();
-                    dialog = null;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            generator.CleanUp();
-            dialog?.Hide();
-
-            var message = "Please try again, or report this issue.";
-            if (ex is IOException)
-            {
-                message = ex.Message;
-            }
-
-            var errorDialog = new ContentDialog
-            {
-                XamlRoot = this.XamlRoot,
-                Title = "Error while exporting project",
-                Content = new TextBlock
-                {
-                    Text = $"An error occurred while exporting the project. {message}",
-                    TextWrapping = TextWrapping.WrapWholeWords
-                },
-                PrimaryButtonText = "Copy details",
-                CloseButtonText = "Close"
-            };
-
-            var result = await errorDialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                var dataPackage = new DataPackage();
-                dataPackage.SetText(ex.ToString());
-                Clipboard.SetContentWithOptions(dataPackage, null);
-            }
-        }
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)

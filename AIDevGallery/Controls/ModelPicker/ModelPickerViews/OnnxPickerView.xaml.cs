@@ -20,7 +20,7 @@ using Windows.ApplicationModel.DataTransfer;
 namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OnnxPickerView : BaseModelPickerView
 {
-    private List<ModelDetails>? models { get; set; }
+    private List<ModelDetails> models { get; set; } = new();
     private List<ModelType>? modelTypes;
 
     public ModelDetails? Selected { get; private set; }
@@ -39,7 +39,6 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     public override Task Load(List<ModelType> types)
     {
         modelTypes = types;
-        models = models ?? new();
 
         ResetAndLoadModelList();
 
@@ -59,31 +58,21 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void ResetAndLoadModelList()
     {
-        if(modelTypes == null)
-        {
-            return;
-        }
-
+        models.Clear();
         AvailableModels.Clear();
         DownloadableModels.Clear();
         UnavailableModels.Clear();
-        models = new();
+
+        if (modelTypes == null || modelTypes.Count == 0)
+        {
+            return;
+        }
 
         foreach (ModelType type in modelTypes)
         {
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
         }
 
-        if (models == null || models.Count == 0)
-        {
-            return;
-        }
-
-        PopulateModelDetailsLists();
-    }
-
-    private void PopulateModelDetailsLists()
-    {
         if (models == null || models.Count == 0)
         {
             return;
@@ -165,7 +154,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        PopulateModelDetailsLists();
+        ResetAndLoadModelList();
     }
 
     private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
