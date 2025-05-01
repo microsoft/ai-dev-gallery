@@ -20,8 +20,8 @@ using Windows.ApplicationModel.DataTransfer;
 namespace AIDevGallery.Controls.ModelPickerViews;
 internal sealed partial class OnnxPickerView : BaseModelPickerView
 {
-    private List<ModelDetails> models { get; set; } = new();
-    private List<ModelType>? modelTypes;
+    private List<ModelDetails> Models { get; set; } = new();
+    private List<ModelType>? ModelTypes;
 
     public ModelDetails? Selected { get; private set; }
 
@@ -38,7 +38,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     public override Task Load(List<ModelType> types)
     {
-        modelTypes = types;
+        ModelTypes = types;
 
         ResetAndLoadModelList();
 
@@ -48,7 +48,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
 
         // local models supported for types
-        if (types.Contains(ModelType.LanguageModels) || models.IsModelsDetailsListUploadCompatible())
+        if (types.Contains(ModelType.LanguageModels) || Models.IsModelsDetailsListUploadCompatible())
         {
             AddLocalModelButton.Visibility = Visibility.Visible;
         }
@@ -58,27 +58,27 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void ResetAndLoadModelList()
     {
-        models.Clear();
+        Models.Clear();
         AvailableModels.Clear();
         DownloadableModels.Clear();
         UnavailableModels.Clear();
 
-        if (modelTypes == null || modelTypes.Count == 0)
+        if (ModelTypes == null || ModelTypes.Count == 0)
         {
             return;
         }
 
-        foreach (ModelType type in modelTypes)
+        foreach (ModelType type in ModelTypes)
         {
-            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
+            Models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
         }
 
-        if (models == null || models.Count == 0)
+        if (Models == null || Models.Count == 0)
         {
             return;
         }
 
-        foreach (var model in models)
+        foreach (var model in Models)
         {
             if (!model.IsOnnxModel())
             {
@@ -375,18 +375,18 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private async void AddLocalModelButton_Click(object sender, RoutedEventArgs e)
     {
-        if (modelTypes == null)
+        if (ModelTypes == null)
         {
             return;
         }
 
-        if (modelTypes.Contains(ModelType.LanguageModels))
+        if (ModelTypes.Contains(ModelType.LanguageModels))
         {
             await UserAddedModelUtil.OpenAddLanguageModelFlow(Content.XamlRoot);
         }
         else
         {
-            await UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, modelTypes);
+            await UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, ModelTypes);
         }
 
         ResetAndLoadModelList();
