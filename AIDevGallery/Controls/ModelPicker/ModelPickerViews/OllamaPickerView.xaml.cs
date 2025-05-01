@@ -29,7 +29,6 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
         var ollamaModels = await OllamaModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [];
         ollamaModels.ToList().ForEach(models.Add);
         VisualStateManager.GoToState(this, "ShowModels", true);
-
     }
 
     private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
