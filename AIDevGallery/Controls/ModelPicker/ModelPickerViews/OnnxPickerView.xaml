@@ -69,7 +69,7 @@
                         <DataTemplate x:DataType="vm:AvailableModel">
                             <toolkit:SettingsCard
                                 MinHeight="48"
-                                Padding="4,10,14,10"
+                                Padding="4,10,4,10"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="0">
@@ -223,7 +223,7 @@
                     x:Name="DownloadableModelsTxt"
                     Grid.Row="2"
                     Grid.ColumnSpan="2"
-                    Margin="16,32,0,8"
+                    Margin="16,24,0,16"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Other recommended models" />
                 <ItemsRepeater
@@ -370,18 +370,19 @@
                                     </Border>
                                     <Grid>
                                         <Button
-                                            Width="28"
-                                            Height="28"
+                                            Width="24"
+                                            Height="24"
                                             Padding="0"
                                             VerticalAlignment="Center"
                                             AutomationProperties.HelpText="Download model"
                                             AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                             Click="DownloadModelButton_Click"
                                             Content="{ui:FontIcon Glyph=&#xE896;,
-                                                                  FontSize=16}"
+                                                                  FontSize=14}"
+                                            CornerRadius="14"
                                             HighContrastAdjustment="None"
                                             IsEnabled="{x:Bind IsDownloadEnabled}"
-                                            Style="{StaticResource SubtleButtonStyle}"
+                                            Style="{StaticResource AccentButtonStyle}"
                                             Tag="{x:Bind}"
                                             ToolTipService.ToolTip="Download model"
                                             Visibility="{x:Bind CanDownload, Mode=OneWay}" />

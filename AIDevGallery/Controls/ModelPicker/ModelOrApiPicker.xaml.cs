@@ -209,32 +209,34 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
-        var selectedItem = (SegmentedItem)((sender as Segmented).SelectedItem);
-        modelsGrid.Children.Clear();
-
-        BaseModelPickerView? modelPickerView = null;
-
-        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
-
-        if (modelSelectionItem == null)
+        if (sender is Segmented segmented && segmented.SelectedItem is SegmentedItem selectedItem)
         {
-            return;
-        }
+            modelsGrid.Children.Clear();
 
-        if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
-        {
-            if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
+            BaseModelPickerView? modelPickerView = null;
+
+            var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+
+            if (modelSelectionItem == null)
             {
-                modelPickerView = pickerDefinition.CreatePicker();
-                modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
-                modelPickerView!.Load(modelSelectionItem.ModelTypes);
-                modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
+                return;
             }
 
-            if (modelPickerView != null)
+            if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
             {
-                modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
-                modelsGrid.Children.Add(modelPickerView);
+                if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
+                {
+                    modelPickerView = pickerDefinition.CreatePicker();
+                    modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
+                    modelPickerView!.Load(modelSelectionItem.ModelTypes);
+                    modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
+                }
+
+                if (modelPickerView != null)
+                {
+                    modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
+                    modelsGrid.Children.Add(modelPickerView);
+                }
             }
         }
     }

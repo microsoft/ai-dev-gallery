@@ -31,7 +31,8 @@
                 <HyperlinkButton
                     Grid.Column="1"
                     Margin="8"
-                    HorizontalAlignment="Left" Click="HyperlinkButton_Click"
+                    HorizontalAlignment="Left"
+                    Click="HyperlinkButton_Click"
                     Content="Learn more about WCR"
                     FontSize="12" />
                 <ListView
@@ -62,7 +63,7 @@
                                         Source="{x:Bind Icon}" />
                                 </toolkit:SettingsCard.HeaderIcon>
                                 <toolkit:SettingsCard.Header>
-                                    <Grid>
+                                    <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />

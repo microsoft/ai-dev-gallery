@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
         <Style
@@ -62,15 +63,41 @@
                     Spacing="8"
                     Visibility="Collapsed">
                     <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Selected model" />
-                    <Button Click="Button_Click">
+                    <Button Padding="8,6,8,6" Click="Button_Click">
                         <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Vertical" Spacing="12" />
+                            </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="models:ModelDetails">
-                                    <StackPanel Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
                                         <Image Width="16" Source="{x:Bind Icon}" />
                                         <TextBlock Text="{x:Bind Name}" />
+                                        <ItemsRepeater
+                                            Grid.Column="1"
+                                            Margin="4,0,4,0"
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                    <Border
+                                                        Padding="2,0,2,0"
+                                                        BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="{StaticResource ControlCornerRadius}">
+                                                        <TextBlock
+                                                            AutomationProperties.AccessibilityView="Raw"
+                                                            FontSize="10"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
                                     </StackPanel>
-
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
