@@ -160,9 +160,8 @@ internal class Scenario
 {
     public string Name { get; init; } = null!;
     public string Description { get; init; } = null!;
-    public string? Instructions { get; init; }
+    public string Instructions { get; init; } = null!;
     public string Id { get; init; } = null!;
-
     public string? Icon { get; init; }
     public ScenarioType ScenarioType { get; set; }
 }
