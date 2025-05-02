@@ -118,7 +118,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         }
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool toolCallingModelsOnly = false, CancellationToken cancelationToken = default)
     {
         await InitializeAsync(cancelationToken);
 

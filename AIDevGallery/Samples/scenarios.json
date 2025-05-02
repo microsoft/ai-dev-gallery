@@ -71,6 +71,12 @@
         "Description": "Use existing data to improve responses given by a local language model. Select a PDF to use as reference material, and wait for a local embeddings model to index it. Once indexed, query a local language model about the source material to recieve answers that reference that material.",
         "Id": "retrieval-augmented-generation",
         "Icon": "\uF571"
+      },
+      "ToolCalling": {
+        "Name": "Tool Calling",
+        "Description": "Interact with language models that can call custom functionality via tool calling support.",
+        "Id": "tool-calling",
+        "Icon": "\uEC7A"
       }
     }
   },

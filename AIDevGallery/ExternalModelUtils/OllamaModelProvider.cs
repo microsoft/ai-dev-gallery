@@ -33,14 +33,21 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
+    public static List<string> ToolCallingModelNames =>
+    [
+        "Llama3.1",
+        "Llama3.2",
+        "Mistral-Small"
+    ];
+
     public Task InitializeAsync(CancellationToken cancelationToken = default)
     {
         return Task.CompletedTask;
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool useToolCalling = false, CancellationToken cancelationToken = default)
     {
-        var ollamaModels = await GetOllamaModelsAsync(cancelationToken);
+        var ollamaModels = await GetOllamaModelsAsync(useToolCalling, cancelationToken);
 
         if (ollamaModels == null)
         {
@@ -69,7 +76,7 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     private static bool? isOllamaAvailable;
 
-    public static async Task<List<OllamaModel>?> GetOllamaModelsAsync(CancellationToken cancelationToken)
+    public static async Task<List<OllamaModel>?> GetOllamaModelsAsync(bool toolCallingModelsOnly = false, CancellationToken cancelationToken = default)
     {
         if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
@@ -120,7 +127,14 @@ internal class OllamaModelProvider : IExternalModelProvider
 
                         var nameTag = tokens[0].Split(':');
 
-                        models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
+                        if (!toolCallingModelsOnly)
+                        {
+                            models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
+                        }
+                        else if (ToolCallingModelNames.Count > 0 && ToolCallingModelNames.Any(name => nameTag[0].Contains(name, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
+                        }
                     }
 
                     isOllamaAvailable = true;
