@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ internal sealed partial class APIPage : Page
     private ModelDetails? modelDetails;
     private string? readmeContents;
     private string? codeSnippet;
+    private ObservableCollection<Sample> samples = [];
 
     public APIPage()
     {
@@ -118,14 +120,20 @@ internal sealed partial class APIPage : Page
         // if we don't have a modelType, we are in a user added language model, use same samples as Phi
         var modelType = modelFamilyType ?? ModelType.Phi3Mini;
 
-        var samples = SampleDetails.Samples.Where(s => s.Model1Types.Contains(modelType) || s.Model2Types?.Contains(modelType) == true).ToList();
+        samples.Clear();
+        foreach (var sample in SampleDetails.Samples.Where(s => s.Model1Types.Contains(modelType) || s.Model2Types?.Contains(modelType) == true))
+        {
+            samples.Add(sample);
+        }
+
         if (ModelTypeHelpers.ParentMapping.Values.Any(parent => parent.Contains(modelType)))
         {
             var parent = ModelTypeHelpers.ParentMapping.FirstOrDefault(parent => parent.Value.Contains(modelType)).Key;
-            samples.AddRange(SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true));
+            foreach (var sample in SampleDetails.Samples.Where(s => s.Model1Types.Contains(parent) || s.Model2Types?.Contains(parent) == true))
+            {
+                samples.Add(sample);
+            }
         }
-
-        SampleList.ItemsSource = samples;
     }
 
     private void LoadCodeSnippet(string? snippet)

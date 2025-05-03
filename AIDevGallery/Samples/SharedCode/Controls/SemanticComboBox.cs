@@ -8,11 +8,13 @@ using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode;
 
+[WinRT.GeneratedBindableCustomProperty]
 internal sealed partial class SemanticComboBox : Control
 {
     private IVectorStore? _vectorStore;
@@ -30,6 +32,8 @@ internal sealed partial class SemanticComboBox : Control
             typeof(IEmbeddingGenerator<string, Embedding<float>>),
             typeof(SemanticComboBox),
             new PropertyMetadata(null, OnEmbeddingGeneratorChanged));
+
+    public ObservableCollection<string> SearchResults { get; } = [];
 
     public List<string> Items
     {
@@ -98,8 +102,11 @@ internal sealed partial class SemanticComboBox : Control
         // only listen to changes caused by user entering text.
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            var searchResults = await Search(sender.Text);
-            sender.ItemsSource = searchResults.Select(item => item.Text);
+            SearchResults.Clear();
+            foreach (var item in await Search(sender.Text))
+            {
+                SearchResults.Add(item.Text);
+            }
         }
     }
 

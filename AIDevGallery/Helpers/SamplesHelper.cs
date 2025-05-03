@@ -41,7 +41,8 @@ internal static partial class SamplesHelper
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils))
         {
-            AddUnique(SharedCodeEnum.NativeMethods);
+            AddUnique(SharedCodeEnum.NativeMethods_Txt);
+            AddUnique(SharedCodeEnum.NativeMethods_Json);
         }
 
         return sharedCode;
@@ -89,7 +90,8 @@ internal static partial class SamplesHelper
 
         var sharedCode = sample.GetAllSharedCode(models);
 
-        if (sharedCode.Contains(SharedCodeEnum.NativeMethods))
+        if (sharedCode.Contains(SharedCodeEnum.NativeMethods_Txt) ||
+            sharedCode.Contains(SharedCodeEnum.NativeMethods_Json))
         {
             AddUnique("Microsoft.Windows.CsWin32");
         }
