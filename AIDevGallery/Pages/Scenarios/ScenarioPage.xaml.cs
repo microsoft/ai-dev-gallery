@@ -112,6 +112,10 @@ internal sealed partial class ScenarioPage : Page
             // padd the second model with null
             selectedModels = [selectedModels[0], null];
         }
+        else if (selectedModels.Count > 1)
+        {
+            modelText.Text = "Selected models for this sample";
+        }
 
         List<Sample> viableSamples = samples!.Where(s =>
             IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
