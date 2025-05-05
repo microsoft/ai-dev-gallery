@@ -13,74 +13,93 @@
     mc:Ignorable="d">
 
     <Grid>
-        <ScrollViewer>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Margin="16"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Available models on Ollama"
-                    TextWrapping="Wrap" />
-                <ListView
-                    x:Name="ModelSelectionView"
-                    Grid.Row="1"
-                    ItemsSource="{x:Bind models, Mode=OneWay}"
-                    SelectionChanged="ModelSelectionView_SelectionChanged"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ModelDetails">
-                            <toolkit:SettingsCard
-                                MinHeight="48"
-                                Padding="4,10,14,10"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="0"
-                                Description="{x:Bind utils:AppUtils.FileSizeToString(Size)}"
-                                Header="{x:Bind Name}">
-                                <toolkit:SettingsCard.Resources>
-                                    <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
-                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
-                                </toolkit:SettingsCard.Resources>
-                                <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon
-                                        AutomationProperties.AccessibilityView="Control"
-                                        AutomationProperties.Name="Model source icon"
-                                        Source="{x:Bind Icon}" />
-                                </toolkit:SettingsCard.HeaderIcon>
+        <ProgressRing
+            x:Name="LoadingIndicator"
+            Width="36"
+            Height="36"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="True" />
+        <Grid x:Name="ModelsView" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Margin="16"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Available models on Ollama"
+                TextWrapping="Wrap" />
+            <ListView
+                x:Name="ModelSelectionView"
+                Grid.Row="1"
+                ItemsSource="{x:Bind models, Mode=OneWay}"
+                SelectionChanged="ModelSelectionView_SelectionChanged"
+                SelectionMode="Single">
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection />
+                </ListView.ItemContainerTransitions>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ModelDetails">
+                        <toolkit:SettingsCard
+                            MinHeight="48"
+                            Padding="4,10,14,10"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            CornerRadius="0"
+                            Description="{x:Bind utils:AppUtils.FileSizeToString(Size)}"
+                            Header="{x:Bind Name}">
+                            <toolkit:SettingsCard.Resources>
+                                <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
+                                <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                            </toolkit:SettingsCard.Resources>
+                            <toolkit:SettingsCard.HeaderIcon>
+                                <ImageIcon
+                                    AutomationProperties.AccessibilityView="Control"
+                                    AutomationProperties.Name="Model source icon"
+                                    Source="{x:Bind Icon}" />
+                            </toolkit:SettingsCard.HeaderIcon>
 
-                                <Button
-                                    Width="28"
-                                    Height="28"
-                                    Padding="0"
-                                    ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
-                                    AutomationProperties.Name="More options"
-                                    Content="{ui:FontIcon Glyph=&#xE712;,
-                                                          FontSize=16}"
-                                    Style="{StaticResource SubtleButtonStyle}"
-                                    ToolTipService.ToolTip="More options">
-                                    <Button.Flyout>
-                                        <MenuFlyout Placement="Bottom">
-                                            <MenuFlyoutItem
-                                                Click="OllamaCopyUrl_Click"
-                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
-                                                Tag="{x:Bind}"
-                                                Text="Copy URL" />
-                                            <MenuFlyoutItem
-                                                Click="OllamaViewModelDetails_Click"
-                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
-                                                Tag="{x:Bind}"
-                                                Text="Model details" />
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                </Button>
-                            </toolkit:SettingsCard>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
-        </ScrollViewer>
+                            <Button
+                                Width="28"
+                                Height="28"
+                                Padding="0"
+                                ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                                AutomationProperties.Name="More options"
+                                Content="{ui:FontIcon Glyph=&#xE712;,
+                                                      FontSize=16}"
+                                Style="{StaticResource SubtleButtonStyle}"
+                                ToolTipService.ToolTip="More options">
+                                <Button.Flyout>
+                                    <MenuFlyout Placement="Bottom">
+                                        <MenuFlyoutItem
+                                            Click="OllamaCopyUrl_Click"
+                                            Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                            Tag="{x:Bind}"
+                                            Text="Copy URL" />
+                                        <MenuFlyoutItem
+                                            Click="OllamaViewModelDetails_Click"
+                                            Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                            Tag="{x:Bind}"
+                                            Text="Model details" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </toolkit:SettingsCard>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="StateGroup">
+                <VisualState x:Name="ShowLoading" />
+                <VisualState x:Name="ShowModels">
+                    <VisualState.Setters>
+                        <Setter Target="LoadingIndicator.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelsView.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </local:BaseModelPickerView>

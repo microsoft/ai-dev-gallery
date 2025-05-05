@@ -13,108 +13,108 @@
     mc:Ignorable="d">
 
     <Grid>
-        <ScrollViewer>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Margin="16"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Available Windows Copilot Runtime APIs"
-                    TextWrapping="Wrap" />
-                <HyperlinkButton
-                    Grid.Column="1"
-                    Margin="8"
-                    HorizontalAlignment="Left" Click="HyperlinkButton_Click"
-                    Content="Learn more about WCR"
-                    FontSize="12" />
-                <ListView
-                    x:Name="ModelSelectionView"
-                    Grid.Row="1"
-                    Grid.ColumnSpan="2"
-                    ItemsSource="{x:Bind models, Mode=OneWay}"
-                    ScrollViewer.VerticalScrollMode="Disabled"
-                    SelectionChanged="ModelSelectionView_SelectionChanged"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ModelDetails">
-                            <toolkit:SettingsCard
-                                MinHeight="48"
-                                Padding="4,10,14,10"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="0">
-                                <toolkit:SettingsCard.Resources>
-                                    <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
-                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
-                                    <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
-                                </toolkit:SettingsCard.Resources>
-                                <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon
-                                        AutomationProperties.AccessibilityView="Control"
-                                        AutomationProperties.Name="Model source icon"
-                                        Source="{x:Bind Icon}" />
-                                </toolkit:SettingsCard.HeaderIcon>
-                                <toolkit:SettingsCard.Header>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            VerticalAlignment="Center"
-                                            Text="{x:Bind Name}"
-                                            TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind Name}" />
-                                        <Button
-                                            Grid.Column="1"
-                                            VerticalAlignment="Center"
-                                            AutomationProperties.Name="More info"
-                                            Content="WCR"
-                                            Style="{StaticResource TertiaryButtonStyle}"
-                                            ToolTipService.ToolTip="More info">
-                                            <Button.Flyout>
-                                                <Flyout ShouldConstrainToRootBounds="False">
-                                                    <TextBlock
-                                                        MaxWidth="360"
-                                                        Text="This is a WCR API"
-                                                        TextWrapping="Wrap" />
-                                                </Flyout>
-                                            </Button.Flyout>
-                                        </Button>
-                                    </Grid>
-                                </toolkit:SettingsCard.Header>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock
+            Margin="16"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Text="Available Windows Copilot Runtime APIs"
+            TextWrapping="Wrap" />
+        <HyperlinkButton
+            Grid.Column="1"
+            Margin="8"
+            HorizontalAlignment="Left"
+            Click="HyperlinkButton_Click"
+            Content="Learn more about WCR"
+            FontSize="12" />
+        <ListView
+            x:Name="ModelSelectionView"
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            ItemsSource="{x:Bind models, Mode=OneWay}"
+            ScrollViewer.VerticalScrollMode="Disabled"
+            SelectionChanged="ModelSelectionView_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection />
+            </ListView.ItemContainerTransitions>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:ModelDetails">
+                    <toolkit:SettingsCard
+                        MinHeight="48"
+                        Padding="4,10,14,10"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0">
+                        <toolkit:SettingsCard.Resources>
+                            <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,14,0</Thickness>
+                            <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                            <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
+                        </toolkit:SettingsCard.Resources>
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <ImageIcon
+                                AutomationProperties.AccessibilityView="Control"
+                                AutomationProperties.Name="Model source icon"
+                                Source="{x:Bind Icon}" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <toolkit:SettingsCard.Header>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind Name}" />
                                 <Button
-                                    Width="28"
-                                    Height="28"
-                                    Padding="0"
-                                    ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
-                                    AutomationProperties.Name="More options"
-                                    Content="{ui:FontIcon Glyph=&#xE712;,
-                                                          FontSize=16}"
-                                    Style="{StaticResource SubtleButtonStyle}"
-                                    ToolTipService.ToolTip="More options">
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="More info"
+                                    Content="WCR"
+                                    Style="{StaticResource TertiaryButtonStyle}"
+                                    ToolTipService.ToolTip="More info">
                                     <Button.Flyout>
-                                        <MenuFlyout Placement="Bottom">
-                                            <MenuFlyoutItem
-                                                Click="ApiDocumentation_Click"
-                                                Icon="{ui:FontIcon Glyph=&#xE8A5;}"
-                                                Tag="{x:Bind}"
-                                                Text="View API documentation" />
-                                        </MenuFlyout>
+                                        <Flyout ShouldConstrainToRootBounds="False">
+                                            <TextBlock
+                                                MaxWidth="360"
+                                                Text="This is a WCR API"
+                                                TextWrapping="Wrap" />
+                                        </Flyout>
                                     </Button.Flyout>
                                 </Button>
-                            </toolkit:SettingsCard>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
-        </ScrollViewer>
+                            </Grid>
+                        </toolkit:SettingsCard.Header>
+                        <Button
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            ui:FrameworkElementExtensions.AncestorType="toolkit:SettingsCard"
+                            AutomationProperties.Name="More options"
+                            Content="{ui:FontIcon Glyph=&#xE712;,
+                                                  FontSize=16}"
+                            Style="{StaticResource SubtleButtonStyle}"
+                            ToolTipService.ToolTip="More options">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="Bottom">
+                                    <MenuFlyoutItem
+                                        Click="ApiDocumentation_Click"
+                                        Icon="{ui:FontIcon Glyph=&#xE8A5;}"
+                                        Tag="{x:Bind}"
+                                        Text="View API documentation" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                    </toolkit:SettingsCard>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </local:BaseModelPickerView>

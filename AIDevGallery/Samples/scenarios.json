@@ -139,7 +139,8 @@
       "ClassifyImage": {
         "Name": "Classify Image",
         "Description": "Label the main object in a photo with an image classification model. Upload a photo to get potential labels along with a confidence score associated with each label.",
-        "Id": "classify-image"
+        "Id": "classify-image",
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -170,27 +171,32 @@
       "MagicEraser": {
         "Name": "Remove Objects",
         "Description": "Remove objects from an image. Upload an image and select the objects in the image you want to remove by drawing a rectangle around them. Select erase to get the image without the erased objects.",
-        "Id": "object-eraser"
+        "Id": "object-eraser",
+        "Icon": "\uED60"
       },
       "DetectPose": {
         "Name": "Detect Human Pose",
         "Description": "Model human posture with a pose detection model. Upload an image including a clearly visible person to see pose estimate drawn onto the image.",
-        "Id": "detect-pose"
+        "Id": "detect-pose",
+        "Icon": "\uE805"
       },
       "DetectPoses": {
         "Name": "Detect Multiple Human Poses",
         "Description": "Model multiple humans' posture with a pose detection model. Upload an image including multiple clearly visible persons to see pose estimates drawn onto the image.",
-        "Id": "detect-poses"
+        "Id": "detect-poses",
+        "Icon": "\uE902"
       },
       "SegmentStreet": {
         "Name": "Segment Street",
         "Description": "Segment photos of streets into detectable zones with a street segmentation model. Upload a photo of a clearly visible street to have it segmented into color-coded regions.",
-        "Id": "segment-street"
+        "Id": "segment-street",
+        "Icon": "\uE913"
       },
       "DetectFace": {
         "Name": "Detect Face",
         "Description": "Models in this scenario detect human faces from a specified image or video.",
-        "Id": "detect-face"
+        "Id": "detect-face",
+        "Icon": "\uE8D4"
       }
     }
   },
