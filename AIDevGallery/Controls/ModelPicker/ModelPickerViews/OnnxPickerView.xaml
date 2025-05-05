@@ -30,7 +30,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock
-                    Margin="16"
+                    Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(AvailableModels), Mode=OneWay}"
+                    Margin="16, 16, 16, 0"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Available ONNX models"
                     TextWrapping="Wrap" />
@@ -58,6 +59,17 @@
                         </MenuFlyout>
                     </DropDownButton.Flyout>
                 </DropDownButton>
+                <TextBlock Grid.Row="1"
+                           Grid.ColumnSpan="2"
+                           Margin="32, 64"
+                           HorizontalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextAlignment="Center"
+                           Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(AvailableModels), Mode=OneWay}" >
+                    <Run>No models downloaded</Run>
+                    <LineBreak></LineBreak>
+                    <Run>download or add a model to use</Run>
+                </TextBlock>
                 <ListView
                     x:Name="ModelSelectionView"
                     Grid.Row="1"
@@ -69,7 +81,7 @@
                         <DataTemplate x:DataType="vm:AvailableModel">
                             <toolkit:SettingsCard
                                 MinHeight="48"
-                                Padding="4,10,14,10"
+                                Padding="4,10,4,10"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="0">
@@ -221,11 +233,12 @@
 
                 <TextBlock
                     x:Name="DownloadableModelsTxt"
+                    Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(DownloadableModels), Mode=OneWay}"
                     Grid.Row="2"
                     Grid.ColumnSpan="2"
-                    Margin="16,32,0,8"
+                    Margin="16,24,16,8"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Other recommended models" />
+                    Text="Downloadable models" />
                 <ItemsRepeater
                     Grid.Row="3"
                     Grid.ColumnSpan="2"
@@ -370,18 +383,19 @@
                                     </Border>
                                     <Grid>
                                         <Button
-                                            Width="28"
-                                            Height="28"
+                                            Width="24"
+                                            Height="24"
                                             Padding="0"
                                             VerticalAlignment="Center"
                                             AutomationProperties.HelpText="Download model"
                                             AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                             Click="DownloadModelButton_Click"
                                             Content="{ui:FontIcon Glyph=&#xE896;,
-                                                                  FontSize=16}"
+                                                                  FontSize=14}"
+                                            CornerRadius="14"
                                             HighContrastAdjustment="None"
                                             IsEnabled="{x:Bind IsDownloadEnabled}"
-                                            Style="{StaticResource SubtleButtonStyle}"
+                                            Style="{StaticResource AccentButtonStyle}"
                                             Tag="{x:Bind}"
                                             ToolTipService.ToolTip="Download model"
                                             Visibility="{x:Bind CanDownload, Mode=OneWay}" />

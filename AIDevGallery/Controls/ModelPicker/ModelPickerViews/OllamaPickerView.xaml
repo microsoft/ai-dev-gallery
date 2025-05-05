@@ -13,7 +13,15 @@
     mc:Ignorable="d">
 
     <Grid>
-        <ScrollViewer>
+        <ProgressRing
+            x:Name="LoadingIndicator"
+            Width="36"
+            Height="36"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="True" />
+        <ScrollViewer x:Name="ModelsView"
+                      Visibility="Collapsed">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -82,5 +90,16 @@
                 </ListView>
             </Grid>
         </ScrollViewer>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="StateGroup">
+                <VisualState x:Name="ShowLoading" />
+                <VisualState x:Name="ShowModels">
+                    <VisualState.Setters>
+                        <Setter Target="LoadingIndicator.Visibility" Value="Collapsed" />
+                        <Setter Target="ModelsView.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </local:BaseModelPickerView>

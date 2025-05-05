@@ -50,6 +50,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
+    private void Hide()
+    {
+        this.Visibility = Visibility.Collapsed;
+    }
+
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
     {
         List<ModelDetails?> selectedModels = [];
@@ -67,6 +72,9 @@ internal sealed partial class ModelOrApiPicker : UserControl
         foreach (var types in modelOrApiTypes)
         {
             var models = await GetAllModels(types);
+
+            // include only cached models if onnx
+            models = models.Where(m => !m.IsOnnxModel() || (m.IsOnnxModel() && App.ModelCache.IsModelCached(m.Url))).ToList();
 
             ModelDetails? modelToPreselect = null;
 
@@ -86,13 +94,46 @@ internal sealed partial class ModelOrApiPicker : UserControl
                         var model = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
                         if (model != null)
                         {
-                            modelToPreselect = model;
+                            modelToPreselect = new ModelDetails
+                            {
+                                Id = model.Id,
+                                Name = model.Name,
+                                Url = model.Url,
+                                Description = model.Description,
+                                HardwareAccelerators = [modelOrApiUsageHistory.HardwareAccelerator.Value],
+                                SupportedOnQualcomm = model.SupportedOnQualcomm,
+                                Size = model.Size,
+                                Icon = model.Icon,
+                                ParameterSize = model.ParameterSize,
+                                IsUserAdded = model.IsUserAdded,
+                                PromptTemplate = model.PromptTemplate,
+                                ReadmeUrl = model.ReadmeUrl,
+                                License = model.License,
+                                FileFilters = model.FileFilters
+                            };
                         }
                     }
 
                     if (modelToPreselect == null)
                     {
-                        modelToPreselect = matchedModels.FirstOrDefault();
+                        var model = matchedModels[0];
+                        modelToPreselect = new ModelDetails
+                        {
+                            Id = model.Id,
+                            Name = model.Name,
+                            Url = model.Url,
+                            Description = model.Description,
+                            HardwareAccelerators = [model.HardwareAccelerators[0]],
+                            SupportedOnQualcomm = model.SupportedOnQualcomm,
+                            Size = model.Size,
+                            Icon = model.Icon,
+                            ParameterSize = model.ParameterSize,
+                            IsUserAdded = model.IsUserAdded,
+                            PromptTemplate = model.PromptTemplate,
+                            ReadmeUrl = model.ReadmeUrl,
+                            License = model.License,
+                            FileFilters = model.FileFilters
+                        };
                     }
                 }
             }
@@ -199,42 +240,44 @@ internal sealed partial class ModelOrApiPicker : UserControl
             .ToList();
 
         OnSelectedModelsChanged(this, selectedModels);
-        this.Visibility = Visibility.Collapsed;
+        Hide();
     }
 
     private void OnCancel_Clicked(object sender, RoutedEventArgs e)
     {
-        this.Visibility = Visibility.Collapsed;
+        Hide();
     }
 
     private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
-        var selectedItem = (SegmentedItem)((sender as Segmented).SelectedItem);
-        modelsGrid.Children.Clear();
-
-        BaseModelPickerView? modelPickerView = null;
-
-        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
-
-        if (modelSelectionItem == null)
+        if (sender is Segmented segmented && segmented.SelectedItem is SegmentedItem selectedItem)
         {
-            return;
-        }
+            modelsGrid.Children.Clear();
 
-        if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
-        {
-            if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
+            BaseModelPickerView? modelPickerView = null;
+
+            var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+
+            if (modelSelectionItem == null)
             {
-                modelPickerView = pickerDefinition.CreatePicker();
-                modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
-                modelPickerView!.Load(modelSelectionItem.ModelTypes);
-                modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
+                return;
             }
 
-            if (modelPickerView != null)
+            if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
             {
-                modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
-                modelsGrid.Children.Add(modelPickerView);
+                if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
+                {
+                    modelPickerView = pickerDefinition.CreatePicker();
+                    modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
+                    modelPickerView!.Load(modelSelectionItem.ModelTypes);
+                    modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
+                }
+
+                if (modelPickerView != null)
+                {
+                    modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
+                    modelsGrid.Children.Add(modelPickerView);
+                }
             }
         }
     }
@@ -257,13 +300,17 @@ internal sealed partial class ModelOrApiPicker : UserControl
     {
         bool isEnabled = modelSelectionItems.All(ms => ms.SelectedModel != null);
 
-        CancelButton.IsEnabled = isEnabled;
         SaveButton.IsEnabled = isEnabled;
     }
 
     private void ShadowGrid_Loaded(object sender, RoutedEventArgs e)
     {
         DialogShadow.Receivers.Add(sender as UIElement);
+    }
+
+    private void ShadowGrid_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        Hide();
     }
 }
 
