@@ -62,7 +62,11 @@
                     Spacing="8">
                     <Button Padding="8,6,8,6" Click="Button_Click">
                         <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Selected model:" />
+                            <TextBlock
+                                x:Name="modelText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="Selected model for this sample" />
                             <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
                             <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
                                 <ItemsRepeater.Layout>
@@ -75,7 +79,6 @@
                                             <TextBlock Text="{x:Bind Name}" />
                                             <ItemsRepeater
                                                 Grid.Column="1"
-                                                Margin="4,0,4,0"
                                                 VerticalAlignment="Center"
                                                 ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
                                                 <ItemsRepeater.Layout>
@@ -177,8 +180,11 @@
                 </TextBlock>
             </Grid>
         </Grid>
-        <Grid x:Name="LoadingGrid" Grid.RowSpan="2" Visibility="Collapsed">
-            <ProgressRing x:Name="LoadingRing" IsActive="False"></ProgressRing>
+        <Grid
+            x:Name="LoadingGrid"
+            Grid.RowSpan="2"
+            Visibility="Collapsed">
+            <ProgressRing x:Name="LoadingRing" IsActive="False" />
         </Grid>
 
         <VisualStateManager.VisualStateGroups>

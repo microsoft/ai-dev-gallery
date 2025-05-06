@@ -6,6 +6,7 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Animations;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -144,6 +145,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
 
+        if (modelSelectionItems.Count > 1)
+        {
+            modelText.Text = "Select models for this sample";
+        }
+
         return selectedModels;
     }
 
@@ -276,6 +282,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 if (modelPickerView != null)
                 {
                     modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
+
+                    Implicit.SetShowAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultShowAnimationsSet"]);
+                    Implicit.SetHideAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultHideAnimationsSet"]);
+
                     modelsGrid.Children.Add(modelPickerView);
                 }
             }

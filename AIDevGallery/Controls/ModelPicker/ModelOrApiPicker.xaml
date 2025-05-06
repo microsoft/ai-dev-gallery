@@ -15,13 +15,14 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <ThemeShadow x:Name="DialogShadow" />
+
     </UserControl.Resources>
     <Grid>
         <Grid
             x:Name="ShadowGrid"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
-            Tapped="ShadowGrid_Tapped"
-            Loaded="ShadowGrid_Loaded" />
+            Loaded="ShadowGrid_Loaded"
+            Tapped="ShadowGrid_Tapped" />
         <Grid
             Width="920"
             Height="560"
@@ -62,18 +63,33 @@
                     Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />-->
                 <Grid x:Name="modelsGrid" Grid.RowSpan="2" />
             </Grid>
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" Padding="12">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-
+                <Button
+                    x:Name="CancelButton"
+                    Margin="-8"
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Click="OnCancel_Clicked"
+                    Content="{ui:FontIcon Glyph=&#xE894;,
+                                          FontSize=16}"
+                    Style="{StaticResource SubtleButtonStyle}" />
+                <TextBlock
+                    x:Name="modelText"
+                    Grid.Row="1"
+                    Margin="0,24,0,8"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Selected model for this sample" />
                 <ItemsView
                     x:Name="SelectedModelsItemsView"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Grid.Column="1"
-                    Margin="12,24,12,12"
                     SelectionChanged="ModelSelectionItemChanged"
                     SelectionMode="Single">
                     <ItemsView.Layout>
@@ -136,20 +152,10 @@
                         </DataTemplate>
                     </ItemsView.ItemTemplate>
                 </ItemsView>
-                <Button
-                    x:Name="CancelButton"
-                    Margin="4"
-                    Padding="8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Click="OnCancel_Clicked"
-                    Content="{ui:FontIcon Glyph=&#xE894;,
-                                          FontSize=16}"
-                    Style="{StaticResource SubtleButtonStyle}" />
+
                 <Button
                     x:Name="SaveButton"
-                    Grid.Row="2"
-                    Margin="12"
+                    Grid.Row="3"
                     HorizontalAlignment="Stretch"
                     Click="OnSave_Clicked"
                     Content="Save"
