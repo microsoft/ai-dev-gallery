@@ -67,9 +67,23 @@
                                                 Orientation="Horizontal"
                                                 VerticalSpacing="2">
                                             <TextBlock VerticalAlignment="Center">
-                                                    <Run Text="{x:Bind ParameterSize}" />
-                                                    <Run Text=" • " />
-                                                    <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
+                                                <Run Text="{x:Bind ParameterSize}" />
+                                                
+                                                <Run Text="parameters • " />
+                                                <Run Text="{x:Bind utils:AppUtils.FileSizeToString(Size)}" />
+                                            </TextBlock>
+                                            <TextBlock Text="• " Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(License)}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(License)}"
+                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(License)}">
+                                                <ToolTipService.ToolTip>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                        <Run Text="This model is under the" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetLicenseTitleFromString(License)}" />
+                                                        <Run Text="license" />
+                                                    </TextBlock>
+                                                </ToolTipService.ToolTip>
                                             </TextBlock>
                                         </toolkit:WrapPanel>
                                     </StackPanel>
@@ -162,6 +176,19 @@
                                                 <Run Text="params" />
                                                 <Run Text=" • " />
                                                 <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
+                                            </TextBlock>
+                                            <TextBlock Text="• " Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(ModelDetails.License)}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind utils:AppUtils.GetLicenseShortNameFromString(ModelDetails.License)}"
+                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(ModelDetails.License)}">
+                                                <ToolTipService.ToolTip>
+                                                    <TextBlock TextWrapping="Wrap">
+                                                        <Run Text="This model is under the" />
+                                                        <Run Text="{x:Bind utils:AppUtils.GetLicenseTitleFromString(ModelDetails.License)}" />
+                                                        <Run Text="license" />
+                                                    </TextBlock>
+                                                </ToolTipService.ToolTip>
                                             </TextBlock>
                                         </toolkit:WrapPanel>
                                     </StackPanel>

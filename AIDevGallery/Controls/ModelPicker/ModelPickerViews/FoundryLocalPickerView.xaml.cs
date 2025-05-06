@@ -44,7 +44,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             .ForEach(AvailableModels.Add);
 
         var catalogModels = FoundryLocalModelProvider.Instance.GetAllModelsInCatalog()
-            .Where(m => !AvailableModels.Any(cm => cm.Id == m.Id))
+            .Where(m => !AvailableModels.Any(cm => cm.Name == m.Name))
             .ToList();
 
         foreach (var m in catalogModels)
@@ -122,6 +122,4 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             downloadableModel.StartDownload();
         }
     }
-
-    
 }
