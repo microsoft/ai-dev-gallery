@@ -17,6 +17,10 @@ internal record OllamaModel(string Name, string Tag, string Id, string Size, str
 
 internal class OllamaModelProvider : IExternalModelProvider
 {
+    private IEnumerable<ModelDetails>? _cachedModels;
+
+    public static OllamaModelProvider Instance { get; } = new OllamaModelProvider();
+
     public string Name => "Ollama";
 
     public HardwareAccelerator ModelHardwareAccelerator => HardwareAccelerator.OLLAMA;
@@ -33,111 +37,104 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
-    public Task InitializeAsync(CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
     {
-        return Task.CompletedTask;
-    }
+        if (ignoreCached)
+        {
+            isOllamaAvailable = null;
+            _cachedModels = null;
+        }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
-    {
-        var ollamaModels = await GetOllamaModelsAsync(cancelationToken);
-
-        if (ollamaModels == null)
+        if (isOllamaAvailable != null && !isOllamaAvailable.Value)
         {
             return [];
         }
 
-        return ollamaModels.Select(ToModelDetails)
-            .Where(modelDetails => modelDetails != null)
-            .ToList();
-
-        ModelDetails ToModelDetails(OllamaModel om)
+        if (_cachedModels != null && _cachedModels.Any())
         {
-            return new ModelDetails()
+            return _cachedModels;
+        }
+
+        try
+        {
+            var lines = new List<string>();
+
+            await Task.WhenAny(
+                Task.Run(
+                    async () =>
+                    {
+                        using var p = new Process();
+                        p.StartInfo.FileName = "ollama";
+                        p.StartInfo.Arguments = "list";
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.RedirectStandardError = true;
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.CreateNoWindow = true;
+
+                        p.Start();
+                        await p.WaitForExitAsync(cancelationToken).ConfigureAwait(false);
+
+                        while (p.StandardOutput.Peek() > -1)
+                        {
+                            var line = await p.StandardOutput.ReadLineAsync(cancelationToken).ConfigureAwait(false);
+                            lines.Add(line ?? string.Empty);
+                        }
+                    },
+                    cancelationToken),
+                Task.Delay(1000, cancelationToken)).ConfigureAwait(false);
+
+            List<OllamaModel> models = [];
+
+            if (lines.Count > 1)
+            {
+                for (var i = 1; i < lines.Count; ++i)
+                {
+                    var line = lines[i];
+                    var tokens = line.Split("  ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (tokens.Length != 4)
+                    {
+                        continue;
+                    }
+
+                    var nameTag = tokens[0].Split(':');
+
+                    models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
+                }
+
+                isOllamaAvailable = true;
+            }
+            else
+            {
+                isOllamaAvailable = false;
+            }
+
+            _cachedModels = models.Select(om => new ModelDetails()
             {
                 Id = $"ollama-{om.Id}",
-                Name = om.Name,
-                Url = $"{UrlPrefix}{om.Name}:{om.Tag}",
+                Name = $"{om.Name}:{om.Tag}",
+                Url = $"ollama://{om.Name}:{om.Tag}",
                 Description = $"{om.Name}:{om.Tag} running locally via Ollama",
                 HardwareAccelerators = new List<HardwareAccelerator>() { HardwareAccelerator.OLLAMA },
                 Size = AppUtils.StringToFileSize(om.Size),
                 SupportedOnQualcomm = true,
                 ParameterSize = om.Tag.ToUpperInvariant(),
-            };
+            });
+
+            return _cachedModels;
+        }
+        catch
+        {
+            isOllamaAvailable = false;
+            return [];
         }
     }
 
     private static bool? isOllamaAvailable;
 
-    public static async Task<List<OllamaModel>?> GetOllamaModelsAsync(CancellationToken cancelationToken)
+    public async Task<bool> IsAvailable()
     {
-        if (isOllamaAvailable != null && !isOllamaAvailable.Value)
-        {
-            return null;
-        }
-
-        try
-        {
-            using (var p = new Process())
-            {
-                p.StartInfo.FileName = "ollama";
-                p.StartInfo.Arguments = "list";
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.RedirectStandardError = true;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = true;
-
-                p.Start();
-                await p.WaitForExitAsync(cancelationToken).ConfigureAwait(false);
-
-                var lines = new List<string>();
-
-                await Task.WhenAny(
-                    Task.Run(
-                        async () =>
-                        {
-                            while (p.StandardOutput.Peek() > -1)
-                            {
-                                var line = await p.StandardOutput.ReadLineAsync(cancelationToken).ConfigureAwait(false);
-                                lines.Add(line ?? string.Empty);
-                            }
-                        },
-                        cancelationToken),
-                    Task.Delay(10, cancelationToken)).ConfigureAwait(false);
-
-                List<OllamaModel> models = [];
-
-                if (lines.Count > 1)
-                {
-                    for (var i = 1; i < lines.Count; ++i)
-                    {
-                        var line = lines[i];
-                        var tokens = line.Split("  ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                        if (tokens.Length != 4)
-                        {
-                            continue;
-                        }
-
-                        var nameTag = tokens[0].Split(':');
-
-                        models.Add(new OllamaModel(nameTag[0], nameTag[1], tokens[1], tokens[2], tokens[3]));
-                    }
-
-                    isOllamaAvailable = true;
-                }
-                else
-                {
-                    isOllamaAvailable = false;
-                }
-
-                return models;
-            }
-        }
-        catch
-        {
-            isOllamaAvailable = false;
-            return null;
-        }
+        await GetModelsAsync();
+        return isOllamaAvailable ?? false;
     }
 
     public IChatClient? GetIChatClient(string url)
