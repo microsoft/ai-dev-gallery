@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageVersion Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.CameraPreview" Version="8.2.250402" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.4.0-preview.1.25207.5" />

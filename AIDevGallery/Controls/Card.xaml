@@ -63,12 +63,23 @@
             Fill="{ThemeResource DividerStrokeColorDefaultBrush}"
             Visibility="{x:Bind DividerVisibility, Mode=OneWay}" />
 
+
         <ContentPresenter
             Grid.Row="2"
             Margin="{x:Bind Padding, Mode=OneWay}"
             HorizontalAlignment="{x:Bind HorizontalContentAlignment, Mode=OneWay}"
             VerticalAlignment="{x:Bind VerticalContentAlignment, Mode=OneWay}"
             Content="{x:Bind Content, Mode=OneWay}" />
+
+        <Button
+            x:Name="ExpandBtn"
+            Grid.Row="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Click="Button_Click"
+            Content="View code"
+            Style="{StaticResource FadedButtonStyle}"
+            Visibility="Collapsed" />
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="IconVisibilityStates">
                 <VisualState x:Name="IconVisible" />

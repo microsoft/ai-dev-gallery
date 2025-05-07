@@ -16,14 +16,9 @@ namespace AIDevGallery.ExternalModelUtils;
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
-        new OllamaModelProvider(),
-        new OpenAIModelProvider()
+        OllamaModelProvider.Instance,
+        OpenAIModelProvider.Instance
     ];
-
-    public static async Task InitializeAsync()
-    {
-        await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
-    }
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
     {
