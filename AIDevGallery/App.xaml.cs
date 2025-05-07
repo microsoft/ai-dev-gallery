@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
@@ -112,6 +113,7 @@ public partial class App : Application
         TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = AppData.IsDiagnosticDataEnabled;
         ModelCache = await ModelCache.CreateForApp(AppData);
         GenerateSearchIndex();
+        _ = ExternalModelHelper.InitializeAsync();
     }
 
     private void GenerateSearchIndex()

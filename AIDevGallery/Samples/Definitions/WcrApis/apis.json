@@ -1,7 +1,7 @@
 ﻿{
   "WCRAPIs": {
     "Id": "813b4497-a9b2-445a-832a-5dd8bc6d6158",
-    "Name": "Windows Copilot Runtime APIs",
+    "Name": "Windows AI APIs",
     "Icon": "\uF4A5",
     "Apis": {
       "PhiSilica": {
