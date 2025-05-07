@@ -12,12 +12,12 @@ internal static class WcrApiCodeSnippet
     {
         {
             ModelType.PhiSilica, """"
-            using Microsoft.Windows.AI.Generative;
+            using Microsoft.Windows.AI.Text;
             
             var readyState = LanguageModel.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await LanguageModel.EnsureReadyAsync();
                 }
@@ -33,14 +33,46 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.PhiSilicaLora, """"
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.Text.Experimental;
+
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+            
+                using LanguageModel languageModel = LanguageModel.CreateAsync();
+                using LanguageModelExperimental loraModel = new LanguageModelExperimental(languageModel);
+              
+                string adapterFilePath = "path_to_your_adapter_file";
+                LowRankAdaptation loraAdapter = loraModel.LoadAdapter(adapterFilePath);
+
+                var options = new LanguageModelOptionsExperimental
+                {
+                    LoraAdapter = loraAdapter
+                };
+            
+                string prompt = "Provide the molecular formula for glucose.";
+            
+                var result = await loraModel.GenerateResponseAsync(prompt, options);
+            
+                Console.WriteLine(result.Response);
+            }
+            """"
+        },
+        {
             ModelType.TextRecognitionOCR, """"
             using Microsoft.Windows.Vision;
             using Microsoft.Graphics.Imaging;
 
             var readyState = TextRecognizer.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await TextRecognizer.EnsureReadyAsync();
                 }
@@ -60,9 +92,9 @@ internal static class WcrApiCodeSnippet
             using Windows.Graphics.Imaging;
 
             var readyState = ImageScaler.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await ImageScaler.EnsureReadyAsync();
                 }
@@ -78,9 +110,9 @@ internal static class WcrApiCodeSnippet
             using Windows.Graphics.Imaging;
 
             var readyState = ImageObjectExtractor.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await ImageObjectExtractor.EnsureReadyAsync();
                 }
@@ -104,9 +136,9 @@ internal static class WcrApiCodeSnippet
             using Windows.Graphics.Imaging;
 
             var readyState = ImageObjectRemover.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await ImageObjectRemover.EnsureReadyAsync();
                 }
@@ -126,14 +158,14 @@ internal static class WcrApiCodeSnippet
         {
             ModelType.ImageDescription, """"
             using Microsoft.Graphics.Imaging;
-            using Microsoft.Windows.AI.Generative;
-            using Microsoft.Windows.AI.ContentModeration;
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.ContentSafety;
             using Windows.Graphics.Imaging;
             
             var readyState = ImageDescriptionGenerator.GetReadyState();
-            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                if (readyState == AIFeatureReadyState.EnsureNeeded)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
                     var op = await ImageDescriptionGenerator.EnsureReadyAsync();
                 }

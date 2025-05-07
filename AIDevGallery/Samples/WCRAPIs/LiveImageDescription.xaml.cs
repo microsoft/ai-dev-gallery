@@ -8,8 +8,8 @@ using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.ContentModeration;
-using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.AI.ContentSafety;
+using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,9 +59,9 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         var readyState = ImageDescriptionGenerator.GetReadyState();
-        if (readyState is AIFeatureReadyState.Ready or not AIFeatureReadyState.EnsureNeeded)
+        if (readyState is AIFeatureReadyState.Ready or not AIFeatureReadyState.NotReady)
         {
-            if (readyState == AIFeatureReadyState.EnsureNeeded)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
                 var operation = await ImageDescriptionGenerator.EnsureReadyAsync();
 
@@ -132,7 +132,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
         var isFirstWord = true;
         try
         {
-            using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+            using var bitmapBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
             _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
 
             var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, descriptionKind, new ContentFilterOptions());
