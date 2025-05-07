@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
 using ColorCode.Common;
@@ -136,6 +137,15 @@ internal static class AppUtils
 
     public static string GetHardwareAcceleratorString(HardwareAccelerator hardwareAccelerator)
     {
+        if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))
+        {
+            var name = ExternalModelHelper.GetName(hardwareAccelerator);
+            if (!string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+        }
+
         switch (hardwareAccelerator)
         {
             case HardwareAccelerator.DML:
@@ -143,9 +153,7 @@ internal static class AppUtils
             case HardwareAccelerator.QNN:
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
-                return "WCR";
-            case HardwareAccelerator.OLLAMA:
-                return "Ollama";
+                return "Windows AI API";
             default:
                 return hardwareAccelerator.ToString();
         }
@@ -153,6 +161,15 @@ internal static class AppUtils
 
     public static string GetHardwareAcceleratorDescription(HardwareAccelerator hardwareAccelerator)
     {
+        if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))
+        {
+            var description = ExternalModelHelper.GetDescription(hardwareAccelerator);
+            if (!string.IsNullOrEmpty(description))
+            {
+                return description;
+            }
+        }
+
         switch (hardwareAccelerator)
         {
             default:
@@ -229,23 +246,17 @@ internal static class AppUtils
                 return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
             }
         }
-        else if (url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
-        {
-            if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/ollama.light.svg"));
-            }
-            else
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/ollama.dark.svg"));
-            }
-        }
         else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
             return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/onnx.svg"));
         }
         else
         {
+            if (ExternalModelHelper.IsUrlFromExternalProvider(url))
+            {
+                return ExternalModelHelper.GetBitmapIcon(url);
+            }
+
             return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/HuggingFace.svg"));
         }
     }

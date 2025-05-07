@@ -146,7 +146,7 @@
                                                 HorizontalSpacing="6"
                                                 Orientation="Horizontal"
                                                 VerticalSpacing="2"
-                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}">
+                                                Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenHttpWithSize(ModelDetails)}">
                                                 <TextBlock VerticalAlignment="Center" Visibility="{x:Bind ModelDetails.ParameterSize, Converter={StaticResource StringVisibilityConverter}}">
                                                     <Run Text="{x:Bind ModelDetails.ParameterSize}" />
                                                     <Run Text="params" />
@@ -157,10 +157,10 @@
                                                     <Run Text=" • " />
                                                 </TextBlock>
                                                 <TextBlock VerticalAlignment="Center">
-                                                    <Run Text="{x:Bind utils:OllamaHelper.GetOllamaUrl()}" />
+                                                    <Run Text="{x:Bind helpers:ModelDetailsHelper.GetHttpApiUrl(ModelDetails)}" />
                                                 </TextBlock>
                                             </toolkit:WrapPanel>
-                                            <TextBlock Text="Windows AI APIs" Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
+                                            <TextBlock Text="Windows AI APIs" Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
                                         </StackPanel>
 
                                     </toolkit:SettingsCard.Description>
@@ -196,17 +196,17 @@
                                                         Text="View API documentation"
                                                         Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
                                                     <MenuFlyoutItem
-                                                        Click="OllamaCopyUrl_Click"
+                                                        Click="CopyUrl_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Copy Url"
-                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenHttpApi(ModelDetails)}" />
                                                     <MenuFlyoutItem
-                                                        Click="OllamaViewModelDetails_Click"
+                                                        Click="ViewModelDetails_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="Open Model Details"
-                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenOllama(ModelDetails)}" />
+                                                        Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenHttpApi(ModelDetails)}" />
                                                     <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
