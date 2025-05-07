@@ -22,7 +22,7 @@ internal sealed partial class ScenarioSelectionPage : Page
         new(null, "All" ),
         new("npu", "NPU" ),
         new("gpu", "GPU" ),
-        new("wcr-api", "WCR API" )
+        new("windows-ai-api", "Windows AI API" )
     ];
 
     private Scenario? selectedScenario;
@@ -129,7 +129,7 @@ internal sealed partial class ScenarioSelectionPage : Page
                         continue;
                     }
 
-                    if (filter == "wcr-api" && !models.Any(m => m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
+                    if (filter == "windows-ai-api" && !models.Any(m => m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
                     {
                         continue;
                     }

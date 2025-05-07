@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
-using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -66,9 +66,19 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.OLLAMA))
+            if (models.Values.Any(m => m.IsHttpApi()))
             {
-                AddUnique("Microsoft.Extensions.AI.Ollama");
+                foreach (var m in models)
+                {
+                    if (m.Value.IsHttpApi())
+                    {
+                        var nugetPackages = ExternalModelHelper.GetPackageReferences(m.Value.HardwareAccelerator);
+                        foreach (var nugetPackage in nugetPackages)
+                        {
+                            AddUnique(nugetPackage);
+                        }
+                    }
+                }
             }
             else
             {
@@ -97,6 +107,9 @@ internal static partial class SamplesHelper
 
     [GeneratedRegex(@"(\s*)this.InitializeComponent\(\);")]
     private static partial Regex RegexInitializeComponent();
+
+    [GeneratedRegex(@"(using .+;\s)+", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    private static partial Regex RegexUsingBlocks();
 
     private static string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
     {
@@ -173,26 +186,24 @@ internal static partial class SamplesHelper
         return modelPromptTemplateSb.ToString();
     }
 
-    private static string? GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
+    private static (string? ChatClientLoaderString, string? ChatClientNamespace) GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
         if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
         {
-            return null;
+            return (null, null);
         }
 
         if (isPhiSilica)
         {
-            return "await PhiSilicaClient.CreateAsync()";
+            return ("await PhiSilicaClient.CreateAsync()", null);
         }
-        else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        else if (ExternalModelHelper.IsUrlFromExternalProvider(modelPath[2..^1]))
         {
-            var modelId = modelPath[2..^1].Split('/').LastOrDefault();
-
-            return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
+            return (ExternalModelHelper.GetIChatClientString(modelPath[2..^1]), ExternalModelHelper.GetIChatClientNamespace(modelPath[2..^1]));
         }
 
-        return $"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
+        return ($"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})", null);
     }
 
     public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
@@ -253,10 +264,21 @@ internal static partial class SamplesHelper
             }
 
             var promptTemplate = GetPromptTemplateString(modelPromptTemplate, spaceCount);
-            var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
-            if (chatClientLoader != null)
+            var (chatClientLoaderString, chatClientNamespace) = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
+            if (chatClientLoaderString != null)
             {
-                cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
+                cleanCsSource = cleanCsSource.Replace(search, chatClientLoaderString);
+            }
+
+            if (!string.IsNullOrEmpty(chatClientNamespace))
+            {
+                var matches = RegexUsingBlocks().Matches(cleanCsSource);
+                var lastMatch = matches.LastOrDefault();
+                if (lastMatch != null)
+                {
+                    var usingNamespaces = $"using {chatClientNamespace};";
+                    cleanCsSource = cleanCsSource.Insert(lastMatch.Index + lastMatch.Length, usingNamespaces);
+                }
             }
         }
 
