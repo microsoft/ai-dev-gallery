@@ -18,8 +18,7 @@ internal interface IExternalModelProvider
     HardwareAccelerator ModelHardwareAccelerator { get; }
     List<string> NugetPackageReferences { get; }
     string ProviderDescription { get; }
-    Task InitializeAsync(CancellationToken cancelationToken = default);
-    Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default);
+    Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default);
     IChatClient? GetIChatClient(string url);
     string? IChatClientImplementationNamespace { get; }
     string? GetIChatClientString(string url);

@@ -7,7 +7,9 @@
     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AIDevGallery.Models"
     xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
         <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
@@ -54,39 +56,70 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+
                 <StackPanel
                     x:Name="ModelPanel"
                     Padding="0,0,12,0"
                     HorizontalAlignment="Left"
-                    Orientation="Horizontal"
-                    Spacing="8"
-                    Visibility="Collapsed">
-                    <controls:ModelDropDownButton x:Name="ModelDropDown">
-                        <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
-                                x:Name="modelSelectionControl"
-                                AvailableModelsTitle="Available implementations"
-                                DownloadableModelsTitle="Downloadable models"
-                                IsSelectionEnabled="True"
-                                ModelCardVisibility="Visible"
-                                ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged"
-                                SelectedModelChanged="ModelSelectionControl_SelectedModelChanged"
-                                UnavailableModelsTitle="Not supported on this device" />
-                        </controls:ModelDropDownButton.FlyoutContent>
-                    </controls:ModelDropDownButton>
-                    <controls:ModelDropDownButton x:Name="ModelDropDown2">
-                        <controls:ModelDropDownButton.FlyoutContent>
-                            <controls:ModelSelectionControl
-                                x:Name="modelSelectionControl2"
-                                AvailableModelsTitle="Available implementations"
-                                DownloadableModelsTitle="Downloadable models"
-                                IsSelectionEnabled="True"
-                                ModelCardVisibility="Visible"
-                                ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged"
-                                SelectedModelChanged="ModelSelectionControl_SelectedModelChanged"
-                                UnavailableModelsTitle="Not supported on this device" />
-                        </controls:ModelDropDownButton.FlyoutContent>
-                    </controls:ModelDropDownButton>
+                    Orientation="Vertical"
+                    Spacing="8">
+                    <Button Padding="8,6,8,6" Click="Button_Click">
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                x:Name="modelText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="Selected model for this sample" />
+                            <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
+                            <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Vertical" Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ModelDetails">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Image Width="16" Source="{x:Bind Icon}" />
+                                            <TextBlock Text="{x:Bind Name}" />
+                                            <ItemsRepeater
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                        <Border
+                                                            Padding="2,0,2,0"
+                                                            BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="{StaticResource ControlCornerRadius}">
+                                                            <TextBlock
+                                                                AutomationProperties.AccessibilityView="Raw"
+                                                                FontSize="10"
+                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Button>
+                    <ComboBox
+                        x:Name="SampleSelection"
+                        SelectionChanged="SampleSelection_SelectionChanged"
+                        Visibility="Collapsed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:Sample">
+                                <TextBlock Text="{x:Bind Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+
+                    </ComboBox>
                 </StackPanel>
                 <StackPanel
                     x:Name="ButtonsPanel"
@@ -159,39 +192,20 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock>
-                    <Run FontWeight="SemiBold" Text="It looks like you don't have any local models installed." />
+                    <Run FontWeight="SemiBold" Text="It looks like you don't have a model or API selected." />
                     <LineBreak />
                     <LineBreak />
-                    <Run Text="Consider one of these to get started:" />
+                    <Run Text="Select a model or API to load a sample" />
                 </TextBlock>
-                <controls:ModelSelectionControl
-                    x:Name="ModelSelectionPlaceholderControl"
-                    Grid.Row="1"
-                    MinWidth="360"
-                    ModelCardVisibility="Visible"
-                    ModelCollectionChanged="ModelSelectionControl_ModelCollectionChanged" />
             </Grid>
         </Grid>
-        <ContentDialog
-            x:Name="ExportDialog"
-            Title="Export Visual Studio project"
-            CloseButtonText="Cancel"
-            DefaultButton="Primary"
-            PrimaryButtonText="Export">
-            <ContentDialog.Content>
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Margin="0,0,0,16" Text="Create a standalone VS project based on this sample." />
-                    <RadioButtons x:Name="copyRadioButtons">
-                        <RadioButton Content="Reference model from model cache" IsChecked="True" />
-                        <RadioButton x:Name="copyRadioButton">
-                            <TextBlock>
-                                <Run Text="Copy model (" /><Run x:Name="ModelExportSizeTxt" FontWeight="SemiBold" /><Run Text=") to project directory" />
-                            </TextBlock>
-                        </RadioButton>
-                    </RadioButtons>
-                </StackPanel>
-            </ContentDialog.Content>
-        </ContentDialog>
+        <Grid
+            x:Name="LoadingGrid"
+            Grid.RowSpan="2"
+            Visibility="Collapsed">
+            <ProgressRing x:Name="LoadingRing" IsActive="False" />
+        </Grid>
+
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout" />
@@ -204,13 +218,20 @@
                 </VisualState>
             </VisualStateGroup>
             <VisualStateGroup x:Name="ModelSelectionStates">
+                <VisualState x:Name="PageLoading">
+                    <VisualState.Setters>
+                        <Setter Target="LoadingGrid.Visibility" Value="Visible" />
+                        <Setter Target="LoadingRing.IsActive" Value="True" />
+                        <Setter Target="NoModelSelectedGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="ActionButtonsGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="SampleContainer.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
                 <VisualState x:Name="NoModelSelected">
                     <VisualState.Setters>
                         <Setter Target="NoModelSelectedGrid.Visibility" Value="Visible" />
                         <Setter Target="SampleContainer.Visibility" Value="Collapsed" />
                         <Setter Target="ButtonsPanel.Visibility" Value="Collapsed" />
-                        <Setter Target="ModelDropDown.Visibility" Value="Collapsed" />
-                        <Setter Target="ModelDropDown2.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="ModelSelected">
@@ -218,7 +239,6 @@
                         <Setter Target="NoModelSelectedGrid.Visibility" Value="Collapsed" />
                         <Setter Target="SampleContainer.Visibility" Value="Visible" />
                         <Setter Target="ButtonsPanel.Visibility" Value="Visible" />
-                        <Setter Target="ModelPanel.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
