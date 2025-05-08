@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -44,7 +43,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private LanguageModel? _languageModel;
     private LanguageModelExperimental? _loraModel;
     private CancellationTokenSource? _cts;
-    private IAsyncOperationWithProgress<LanguageModelResponseResult, string> operation;
+    private IAsyncOperationWithProgress<LanguageModelResponseResult, string>? operation;
     private string _adapterFilePath = string.Empty;
     private GenerationType _generationType = GenerationType.All;
 
@@ -130,11 +129,17 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         if (options == null)
         {
-            operation = _languageModel.GenerateResponseAsync(prompt);
+            operation = _languageModel?.GenerateResponseAsync(prompt);
         }
         else
         {
-            operation = _loraModel.GenerateResponseAsync(prompt, options);
+            operation = _loraModel?.GenerateResponseAsync(prompt, options);
+        }
+
+        if (operation == null)
+        {
+            NarratorHelper.Announce(InputTextBox, "Error generating content.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
+            return;
         }
 
         operation.Progress = (asyncInfo, delta) =>
@@ -178,7 +183,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             return;
         }
 
-        if (this.InputTextBox.Text.Length > 0)
+        if (this.InputTextBox.Text.Length > 0 && _loraModel != null)
         {
             LowRankAdaptation loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
 
@@ -304,7 +309,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         if (sender is ToggleMenuFlyoutItem item)
         {
             item.IsChecked = true;
-            _generationType = (GenerationType)Enum.Parse(typeof(GenerationType), item.Tag.ToString() ?? string.Empty);
+            _generationType = Enum.Parse<GenerationType>(item.Tag.ToString() ?? string.Empty);
         }
     }
 }

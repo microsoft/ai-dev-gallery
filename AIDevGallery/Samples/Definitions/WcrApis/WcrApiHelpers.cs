@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
-using Microsoft.Graphics.Imaging;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.Text;
 using Microsoft.Windows.AI.Imaging;
+using Microsoft.Windows.AI.Text;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
