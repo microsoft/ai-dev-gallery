@@ -66,4 +66,9 @@ internal static class CredentialManager
             }
         }
     }
+
+    public static unsafe bool DeleteCredential(string name)
+    {
+        return PInvoke.CredDelete(GetTargetName(name), CRED_TYPE.CRED_TYPE_GENERIC);
+    }
 }
