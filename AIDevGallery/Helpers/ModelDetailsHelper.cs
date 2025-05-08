@@ -7,7 +7,6 @@ using AIDevGallery.Samples;
 using Microsoft.UI.Xaml;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.Data.Xml.Dom;
 
 namespace AIDevGallery.Helpers;
 
