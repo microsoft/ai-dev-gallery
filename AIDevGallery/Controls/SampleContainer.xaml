@@ -61,7 +61,7 @@
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
-                    Padding="24,24,24,0"
+                    Padding="16,16,16,0"
                     Visibility="Collapsed" />
                 <InfoBar
                     x:Name="warningInfoBar"
@@ -122,6 +122,9 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,0,0,0"
                 Visibility="Collapsed">
+                <Grid.Resources>
+                    <StaticResource x:Key="TabViewItemHeaderBackground" ResourceKey="CardBackgroundFillColorDefaultBrush" />
+                </Grid.Resources>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -138,7 +141,10 @@
                         IsAddTabButtonVisible="False"
                         SelectionChanged="CodeTabView_SelectionChanged"
                         TabWidthMode="SizeToContent" />
-                    <Grid Grid.Row="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
+                    <Grid
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />

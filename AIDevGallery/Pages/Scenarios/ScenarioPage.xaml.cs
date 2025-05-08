@@ -112,10 +112,6 @@ internal sealed partial class ScenarioPage : Page
             // padd the second model with null
             selectedModels = [selectedModels[0], null];
         }
-        else if (selectedModels.Count > 1)
-        {
-            modelText.Text = "Selected models for this sample";
-        }
 
         List<Sample> viableSamples = samples!.Where(s =>
             IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
@@ -237,19 +233,6 @@ internal sealed partial class ScenarioPage : Page
         }
 
         _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), XamlRoot);
-    }
-
-    private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        // Calculate if the modelselectors collide with the export/code buttons
-        if ((ModelPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
-        {
-            VisualStateManager.GoToState(this, "NarrowLayout", true);
-        }
-        else
-        {
-            VisualStateManager.GoToState(this, "WideLayout", true);
-        }
     }
 
     private void Button_Click(object sender, RoutedEventArgs e)
