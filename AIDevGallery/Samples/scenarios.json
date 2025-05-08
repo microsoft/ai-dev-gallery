@@ -197,6 +197,12 @@
         "Description": "Models in this scenario detect human faces from a specified image or video.",
         "Id": "detect-face",
         "Icon": "\uE8D4"
+      },
+      "CompareFace": {
+        "Name": "Compare Face",
+        "Description": "Samples that can tell one face from another.",
+        "Id": "compare-face",
+        "Icon": "\uF1CB"
       }
     }
   },
