@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Utils;
-using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +15,7 @@ internal class ModelPickerDefinition
             {
                 Name = "ONNX",
                 Id = "onnx",
-                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png", // TO DO : theme aware
+                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
                 CreatePicker = () => new OnnxPickerView()
             }
         },
@@ -34,7 +33,7 @@ internal class ModelPickerDefinition
             {
                 Name = "Ollama",
                 Id = "ollama",
-                Icon =  $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png",
+                Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png",
                 CreatePicker = () => new OllamaPickerView()
             }
         },
