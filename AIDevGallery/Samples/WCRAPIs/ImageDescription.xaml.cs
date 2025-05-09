@@ -40,7 +40,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
     {
         { "Accessible", ImageDescriptionKind.AccessibleDescription },
         { "Caption", ImageDescriptionKind.BriefDescription },
-        { "Detailed", ImageDescriptionKind.DetailedDescrition },
+        { "Detailed", ImageDescriptionKind.DetailedDescription},
         { "OfficeCharts", ImageDescriptionKind.DiagramDescription },
     };
 

@@ -30,6 +30,8 @@ internal class AppData
 
     public string LastAdapterPath { get; set; }
 
+    public string LastSystemPrompt { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();

@@ -11,44 +11,54 @@
         x:Name="MainGrid"
         MinHeight="300"
         ColumnSpacing="8"
-        RowSpacing="16">
+        RowSpacing="8">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock
-                Grid.Column="0"
-                VerticalAlignment="Center"
-                Text="Adapter" />
-            <HyperlinkButton
-                x:Name="AdapterHyperLink"
-                Grid.Column="1"
-                Padding="0"
-                Click="AdapterHyperLink_Click" />
-            <Button
-                Grid.Column="2"
-                Click="SelectFile_Click"
-                Content="Select file" />
+            <TextBlock Text="Adapter" Margin="10,0" Width="120" VerticalAlignment="Center"
+                    Grid.Column="0" />
+            <HyperlinkButton x:Name="AdapterHyperLink" Grid.Column="1" 
+                    Click="AdapterHyperLink_Click" />
+            <Button Content="Select file" Click="SelectFile_Click" Grid.Column="2" Width="100" />
         </Grid>
-        <Grid Grid.Row="1" ColumnSpacing="8">
+		<Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="System Prompt" Margin="10,0" Width="120" VerticalAlignment="Center"
+                    Grid.Column="0" />
+			<TextBox x:Name="SystemPromptBox" Grid.Column="1" Margin="0,0,110,0" AcceptsReturn="True" TextWrapping ="Wrap" MaxHeight="100"/>
+		</Grid>
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" MinWidth="124" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="InputTextBox" Header="Prompt" />
+            <TextBlock Text="Prompt" Margin="10,0" Width="120"
+                    VerticalAlignment="Center" Grid.Column="0" />
+            <TextBox x:Name="InputTextBox" Grid.Column="1" />
             <DropDownButton
                 x:Name="GenerateButton"
-                Grid.Column="1"
+                Grid.Column="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Bottom"
-                Content="Generate">
+                Content="Generate" Width="100">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
                         <MenuFlyoutItem Click="GenerateAll_Click" Text="Generate all" />
@@ -59,7 +69,7 @@
             </DropDownButton>
             <Button
                 x:Name="StopBtn"
-                Grid.Column="1"
+                Grid.Column="2" Width="100"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Bottom"
                 AutomationProperties.Name="Stop"
@@ -85,9 +95,10 @@
 
         <Grid
             x:Name="OutputGrid"
-            Grid.Row="2"
+            Grid.Row="3"
             Margin="0,24,0,0"
             ColumnSpacing="24"
+            Grid.ColumnSpan="2"
             Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
