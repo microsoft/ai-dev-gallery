@@ -16,7 +16,7 @@
       },
       "PhiSilicaLora": {
         "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
-        "Name": "Phi Silica LoRa",
+        "Name": "Phi Silica LoRA",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEA54",
         "Description": "Generate text using adapter.",

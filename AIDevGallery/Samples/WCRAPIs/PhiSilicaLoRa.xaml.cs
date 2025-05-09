@@ -23,7 +23,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Generate with Phi Silica with Adapter",
     Model1Types = [ModelType.PhiSilicaLora],
     Id = "3e392b7f-02a8-45e0-bed1-f75186368f12",
-    Scenario = ScenarioType.TextGenerateText,
+    Scenario = ScenarioType.TextLoRAAdapters,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
     ],
@@ -86,7 +86,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private void Page_Loaded()
     {
         GenerateButton.Focus(FocusState.Programmatic);
-        _adapterFilePath = App.AppData.LastAdapterPath;
+        _adapterFilePath = App.AppData.LastAdapterPath; // <exclude-line>
         if (!string.IsNullOrWhiteSpace(_adapterFilePath))
         {
             AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
@@ -279,8 +279,8 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         if (file != null)
         {
             _adapterFilePath = file.Path;
-            App.AppData.LastAdapterPath = _adapterFilePath;
-            await App.AppData.SaveAsync();
+            App.AppData.LastAdapterPath = _adapterFilePath; // <exclude-line>
+            await App.AppData.SaveAsync(); // <exclude-line>
             AdapterHyperLink.Content = Path.GetFileNameWithoutExtension(_adapterFilePath);
             GenerateButton.IsEnabled = !string.IsNullOrWhiteSpace(_adapterFilePath);
         }
