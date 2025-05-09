@@ -110,7 +110,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
         SoftwareBitmap keyFrame = e.VideoFrame!.SoftwareBitmap;
         keyFrame = SoftwareBitmap.Convert(keyFrame, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        await DescribeImageAsync(keyFrame, ImageDescriptionKind.DetailedDescrition);
+        await DescribeImageAsync(keyFrame, ImageDescriptionKind.DetailedDescription);
     }
 
     private async Task DescribeImageAsync(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)

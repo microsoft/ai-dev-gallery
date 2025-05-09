@@ -10,35 +10,44 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
-                ColumnSpacing="8">
+        <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Adapter" Margin="10" Width="50" VerticalAlignment="Center"
+            <TextBlock Text="Adapter" Margin="10,0" Width="120" VerticalAlignment="Center"
                     Grid.Column="0" />
-            <HyperlinkButton x:Name="AdapterHyperLink" Grid.Column="1" Margin="0,10"
+            <HyperlinkButton x:Name="AdapterHyperLink" Grid.Column="1" 
                     Click="AdapterHyperLink_Click" />
             <Button Content="Select file" Click="SelectFile_Click" Width="150"
                     Grid.Column="2" />
         </Grid>
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="8">
+		<Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="System Prompt" Margin="10,0" Width="120" VerticalAlignment="Center"
+                    Grid.Column="0" />
+			<TextBox x:Name="SystemPromptBox" Grid.Column="1" Margin="0,10,160,0" AcceptsReturn="True" TextWrapping ="Wrap" MaxHeight="100"/>
+		</Grid>
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Prompt" Margin="10" Width="50" VerticalAlignment="Center"
+            <TextBlock Text="Prompt" Margin="10" Width="120" VerticalAlignment="Center"
                     Grid.Column="0" />
-            <TextBox x:Name="InputTextBox" Grid.Column="1" Margin="0,10" />
+            <TextBox x:Name="InputTextBox" Grid.Column="1" Margin="0,10" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="150"/>
             <SplitButton x:Name="GenerateButton" Content="Generate" Click="Generate_Click"
                     Width="150" Grid.Column="2">
                 <SplitButton.Flyout>
@@ -64,16 +73,16 @@
                 </StackPanel>
             </Button>
         </Grid>
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="With Adapter" Margin="10"
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="With Adapter" Margin="10"
                 FontWeight="Bold" />
-        <TextBlock Grid.Row="2" Grid.Column="1" Text="Without Adapter" Margin="10"
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="Without Adapter" Margin="10"
                 FontWeight="Bold" />
-        <ScrollViewer x:Name="LoraScroll" Grid.Row="3" Grid.Column="0"
+        <ScrollViewer x:Name="LoraScroll" Grid.Row="4" Grid.Column="0"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10">
             <TextBlock x:Name="LoraTxt" HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch" TextWrapping="Wrap" />
         </ScrollViewer>
-        <ScrollViewer x:Name="NoLoraScroll" Grid.Row="3" Grid.Column="1"
+        <ScrollViewer x:Name="NoLoraScroll" Grid.Row="4" Grid.Column="1"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10">
             <TextBlock x:Name="NoLoraTxt" HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch" TextWrapping="Wrap" />

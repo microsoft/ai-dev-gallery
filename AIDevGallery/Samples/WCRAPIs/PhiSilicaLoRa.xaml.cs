@@ -45,6 +45,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private CancellationTokenSource? _cts;
     private IAsyncOperationWithProgress<LanguageModelResponseResult, string>? operation;
     private string _adapterFilePath = string.Empty;
+    private string _systemPrompt = string.Empty;
     private GenerationType _generationType = GenerationType.All;
 
     public PhiSilicaLoRa()
@@ -97,12 +98,21 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         {
             GenerateButton.IsEnabled = false;
         }
+
+        _systemPrompt = App.AppData.LastSystemPrompt;
+        if (!string.IsNullOrWhiteSpace(_systemPrompt))
+        {
+            SystemPromptBox.Text = _systemPrompt;
+        }
     }
 
     // </exclude>
-    private void CleanUp()
+    private async void CleanUp()
     {
         CancelGeneration();
+        App.AppData.LastSystemPrompt = SystemPromptBox.Text;
+        App.AppData.LastAdapterPath = _adapterFilePath;
+        await App.AppData.SaveAsync();
         _languageModel?.Dispose();
     }
 
@@ -120,22 +130,17 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         }
     }
 
-    public async Task GenerateText(string prompt, TextBlock textBlock, LanguageModelOptionsExperimental? options = null)
+    public async Task GenerateText(string prompt, TextBlock textBlock, LanguageModelContext? context, LanguageModelOptionsExperimental? options = null)
     {
         textBlock.Text = string.Empty;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
-        if (options == null)
-        {
-            operation = _languageModel?.GenerateResponseAsync(prompt);
-        }
-        else
-        {
-            operation = _loraModel?.GenerateResponseAsync(prompt, options);
-        }
-
+        operation = context == null ?
+            options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
+            options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
+        
         if (operation == null)
         {
             NarratorHelper.Announce(InputTextBox, "Error generating content.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
@@ -160,7 +165,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
                     IsProgressVisible = false;
                 }
 
-                // This isn't working in this version
+                // This isn't working in this version for LoRa
                 textBlock.Text += delta;
                 if (_cts?.IsCancellationRequested == true)
                 {
@@ -185,6 +190,12 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         if (this.InputTextBox.Text.Length > 0 && _loraModel != null)
         {
+            LanguageModelContext? context = null;
+            if (SystemPromptBox.Text.Length > 0)
+            {
+                context = _languageModel.CreateContext(SystemPromptBox.Text);
+            }
+
             LowRankAdaptation loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
 
             var options = new LanguageModelOptionsExperimental
@@ -199,20 +210,29 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
-
-            switch (_generationType)
+            try
             {
-                case GenerationType.All:
-                    await Task.WhenAll(
-                        GenerateText(InputTextBox.Text, LoraTxt, options),
-                        GenerateText(InputTextBox.Text, NoLoraTxt));
-                    break;
-                case GenerationType.With:
-                    await GenerateText(InputTextBox.Text, LoraTxt, options);
-                    break;
-                case GenerationType.Without:
-                    await GenerateText(InputTextBox.Text, NoLoraTxt);
-                    break;
+                switch (_generationType)
+                {
+                    case GenerationType.All:
+                        await Task.WhenAll(
+                            GenerateText(InputTextBox.Text, LoraTxt, context, options),
+                            GenerateText(InputTextBox.Text, NoLoraTxt, context));
+                        break;
+                    case GenerationType.With:
+                        await GenerateText(InputTextBox.Text, LoraTxt, context, options);
+                        break;
+                    case GenerationType.Without:
+                        await GenerateText(InputTextBox.Text, NoLoraTxt, context);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!(ex is TaskCanceledException))
+                {
+                    ShowException(ex);
+                }
             }
 
             StopBtn.Visibility = Visibility.Collapsed;
