@@ -13,7 +13,6 @@ using Microsoft.Windows.AI.Text.Experimental;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -90,7 +89,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         _adapterFilePath = App.AppData.LastAdapterPath;
         if (!string.IsNullOrWhiteSpace(_adapterFilePath))
         {
-            AdapterHyperLink.Content = Path.GetFileNameWithoutExtension(_adapterFilePath);
+            AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = true;
         }
         else
@@ -123,6 +122,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     public async Task GenerateText(string prompt, TextBlock textBlock, LanguageModelOptionsExperimental? options = null)
     {
         textBlock.Text = string.Empty;
+        OutputGrid.Visibility = Visibility.Visible;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("GenerateText"); // <exclude-line>
@@ -294,22 +294,21 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         }
     }
 
-    private async void Generate_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    private async void GenerateAll_Click(object sender, RoutedEventArgs e)
     {
+        _generationType = GenerationType.All;
         await RunQuery();
     }
 
-    private void GenerateType_Click(object sender, RoutedEventArgs e)
+    private async void GenerateWith_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var flyoutItem in GenerateFlyout.Items.OfType<ToggleMenuFlyoutItem>())
-        {
-            flyoutItem.IsChecked = false;
-        }
+        _generationType = GenerationType.With;
+        await RunQuery();
+    }
 
-        if (sender is ToggleMenuFlyoutItem item)
-        {
-            item.IsChecked = true;
-            _generationType = Enum.Parse<GenerationType>(item.Tag.ToString() ?? string.Empty);
-        }
+    private async void GenerateWithout_Click(object sender, RoutedEventArgs e)
+    {
+        _generationType = GenerationType.Without;
+        await RunQuery();
     }
 }
