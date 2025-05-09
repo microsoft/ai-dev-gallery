@@ -3,6 +3,7 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.Pages;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -125,24 +126,7 @@ internal static class UserAddedModelUtil
                 return;
             }
 
-            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
-            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
-
-            var details = new ModelDetails()
-            {
-                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
-                Name = modelName,
-                Url = $"local-file:///{folder.Path}",
-                Description = "Localy added GenAI Model",
-                HardwareAccelerators = [accelerator],
-                IsUserAdded = true,
-                PromptTemplate = ModelDetailsHelper.GetTemplateFromName(folder.Path),
-                Size = dirSize,
-                ReadmeUrl = null,
-                License = "unknown"
-            };
-
-            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
+            await AddLanguageModelFromLocalFilepath(folder.Path, modelName, accelerator);
         }
     }
 
@@ -156,17 +140,6 @@ internal static class UserAddedModelUtil
 
         if (file != null)
         {
-            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
-
-            var nameTextBox = new TextBox()
-            {
-                Text = Path.GetFileName(file.Path),
-                Width = 300,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 0, 0, 10),
-                Header = "Model name"
-            };
-
             if(App.ModelCache.IsModelCached($"local-file:///{file.Path}"))
             {
                 ContentDialog modelAlreadyAddedDialog = new()
@@ -182,6 +155,15 @@ internal static class UserAddedModelUtil
                 await modelAlreadyAddedDialog.ShowAsync();
                 return false;
             }
+
+            var nameTextBox = new TextBox()
+            {
+                Text = Path.GetFileName(file.Path),
+                Width = 300,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 10),
+                Header = "Model name"
+            };
 
             ContentDialog nameModelDialog = new()
             {
@@ -228,34 +210,8 @@ internal static class UserAddedModelUtil
                 return false;
             }
 
-            List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(file.Path, modelTypes);
-            if (validatedModelTypes.Count > 0)
-            {
-                string id = "useradded-local-model-" + Guid.NewGuid().ToString();
-
-                foreach (ModelType modelType in validatedModelTypes)
-                {
-                    App.AppData.AddModelTypeToUserAddedModelsMappingEntry(modelType, id);
-                }
-
-                await App.AppData.SaveAsync();
-
-                var details = new ModelDetails()
-                {
-                    Id = id,
-                    Name = modelName,
-                    Url = $"local-file:///{file.Path}",
-                    Description = "Localy added ONNX model",
-                    HardwareAccelerators = [accelerator],
-                    IsUserAdded = true,
-                    Size = new FileInfo(file.Path).Length,
-                    ReadmeUrl = null,
-                    License = "unknown"
-                };
-
-                await App.ModelCache.AddLocalModelToCache(details, file.Path);
-                return true;
-            }
+            await AddModelFromLocalFilePath(file.Path, modelName, modelTypes);
+            return true;
         }
 
         return false;
@@ -374,5 +330,64 @@ internal static class UserAddedModelUtil
         }
 
         return HardwareAccelerator.CPU;
+    }
+
+    public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)
+    {
+        List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(filepath, modelTypes);
+        if (validatedModelTypes.Count > 0)
+        {
+            string id = "useradded-local-model-" + Guid.NewGuid().ToString();
+
+            foreach (ModelType modelType in validatedModelTypes)
+            {
+                App.AppData.AddModelTypeToUserAddedModelsMappingEntry(modelType, id);
+            }
+
+            await App.AppData.SaveAsync();
+
+            var details = new ModelDetails()
+            {
+                Id = id,
+                Name = name,
+                Url = $"local-file:///{filepath}",
+                Description = "Localy added ONNX model",
+                HardwareAccelerators = [HardwareAccelerator.CPU],
+                IsUserAdded = true,
+                Size = new FileInfo(filepath).Length,
+                ReadmeUrl = null,
+                License = "unknown"
+            };
+
+            await App.ModelCache.AddLocalModelToCache(details, filepath);
+
+            return details;
+        }
+
+        return null;
+    }
+
+    public static async Task<ModelDetails?> AddLanguageModelFromLocalFilepath(string filepath, string name, HardwareAccelerator accelerator)
+    {
+        DirectoryInfo dirInfo = new DirectoryInfo(filepath);
+        long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
+
+        var details = new ModelDetails()
+        {
+            Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
+            Name = name,
+            Url = $"local-file:///{filepath}",
+            Description = "Localy added GenAI Model",
+            HardwareAccelerators = [accelerator],
+            IsUserAdded = true,
+            PromptTemplate = ModelDetailsHelper.GetTemplateFromName(filepath),
+            Size = dirSize,
+            ReadmeUrl = null,
+            License = "unknown"
+        };
+
+        await App.ModelCache.AddLocalModelToCache(details, filepath);
+
+        return details;
     }
 }

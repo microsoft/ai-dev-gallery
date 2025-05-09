@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Windows.Data.Xml.Dom;
 using Windows.Storage;
 
 namespace AIDevGallery.Utils;
@@ -64,15 +63,6 @@ internal class AppData
         {
             appData ??= GetDefault();
         }
-
-        //foreach ((string key, List<string> value) in appData.ModelTypeToUserAddedModelsMapping)
-        //{
-        //    System.Diagnostics.Debug.WriteLine(key);
-        //    foreach (string v in value)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(v);
-        //    }
-        //}
 
         return appData;
     }
