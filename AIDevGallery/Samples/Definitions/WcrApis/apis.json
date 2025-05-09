@@ -18,7 +18,7 @@
         "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
         "Name": "Phi Silica LoRa",
         "Icon": "WCRAPI.svg",
-        "IconGlyph": "\uE8F2",
+        "IconGlyph": "\uEA54",
         "Description": "Generate text using adapter.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
