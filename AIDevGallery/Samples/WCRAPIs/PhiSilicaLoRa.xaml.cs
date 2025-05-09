@@ -98,7 +98,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             GenerateButton.IsEnabled = false;
         }
 
-        _systemPrompt = App.AppData.LastSystemPrompt;
+        _systemPrompt = App.AppData.LastSystemPrompt; // <exclude-line>
         if (!string.IsNullOrWhiteSpace(_systemPrompt))
         {
             SystemPromptBox.Text = _systemPrompt;
@@ -109,9 +109,9 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private async void CleanUp()
     {
         CancelGeneration();
-        App.AppData.LastSystemPrompt = SystemPromptBox.Text;
-        App.AppData.LastAdapterPath = _adapterFilePath;
-        await App.AppData.SaveAsync();
+        App.AppData.LastSystemPrompt = SystemPromptBox.Text; // <exclude-line>
+        App.AppData.LastAdapterPath = _adapterFilePath; // <exclude-line>
+        await App.AppData.SaveAsync(); // <exclude-line>
         _languageModel?.Dispose();
     }
 
@@ -131,6 +131,12 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
     public async Task GenerateText(string prompt, TextBlock textBlock, LanguageModelContext? context, LanguageModelOptionsExperimental? options = null)
     {
+        if (_languageModel == null || _loraModel == null)
+        {
+            ShowException(null, "Phi-Silica is not available.");
+            return;
+        }
+
         textBlock.Text = string.Empty;
         OutputGrid.Visibility = Visibility.Visible;
         var contentStartedBeingGenerated = false; // <exclude-line>
@@ -140,7 +146,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         operation = context == null ?
             options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
             options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
-        
+
         if (operation == null)
         {
             NarratorHelper.Announce(InputTextBox, "Error generating content.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
@@ -185,6 +191,12 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         if (!File.Exists(_adapterFilePath))
         {
             ShowException(null, "Phi-Silica Lora adapter not found.");
+            return;
+        }
+
+        if (_languageModel == null)
+        {
+            ShowException(null, "Phi-Silica is not available.");
             return;
         }
 

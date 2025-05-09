@@ -38,6 +38,7 @@ internal class AppData
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
+        LastSystemPrompt = string.Empty;
     }
 
     private static string GetConfigFilePath()
