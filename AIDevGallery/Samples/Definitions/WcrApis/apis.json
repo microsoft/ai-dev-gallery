@@ -14,6 +14,16 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d"
       },
+      "PhiSilicaLora": {
+        "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
+        "Name": "Phi Silica LoRA",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEA54",
+        "Description": "Generate text using adapter.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12"
+      },
       "TextRecognitionOCR": {
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
         "Name": "Text Recognition (OCR)",
