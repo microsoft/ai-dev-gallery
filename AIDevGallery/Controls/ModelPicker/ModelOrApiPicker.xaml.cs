@@ -148,7 +148,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         if (modelSelectionItems.Count > 1)
         {
-            modelText.Text = "Select models for this sample";
+            modelText.Text = "Selected models for this sample";
         }
 
         return selectedModels;
