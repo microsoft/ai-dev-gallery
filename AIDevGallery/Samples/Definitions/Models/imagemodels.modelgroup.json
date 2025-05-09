@@ -257,6 +257,28 @@
           }
         },
         "ReadmeUrl": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/blob/main/README.md"
+      },
+      "FacialAttributeDetection": {
+        "Id": "FacialAttributeDetection",
+        "Name": "FacialAttributeDetection",
+        "Description": "Facial feature extraction and additional attributes including liveness, eyeclose, mask and glasses detection for face recognition.",
+        "DocsUrl": "https://huggingface.co/qualcomm/Facial-Attribute-Detection",
+        "Models": {
+          "FaceDetLite": {
+            "Id": "b7cae123-478f-1177-9659-709df5dfe703",
+            "Name": "FacialAttributeDetection",
+            "Url": "https://huggingface.co/qualcomm/Facial-Attribute-Detection/blob/main/Facial-Attribute-Detection.onnx",
+            "Description": "Facial feature extraction and additional attributes including liveness, eyeclose, mask and glasses detection for face recognition.",
+            "HardwareAccelerator": [
+              "CPU",
+              "DML",
+              "QNN"
+            ],
+            "Size": 48598666,
+            "License": "bsd-3-clause"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/qualcomm/Facial-Attribute-Detection/blob/main/README.md"
       }
     }
   }

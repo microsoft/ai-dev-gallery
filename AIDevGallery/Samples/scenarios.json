@@ -160,7 +160,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -227,6 +227,20 @@
         "Instructions": "Select an image or video.",
         "Id": "detect-face",
         "Icon": "\uE8D4"
+      },
+      "DetectFeatures": {
+        "Name": "Detect Features",
+        "Description": "Models that can detect features from human faces.",
+        "Instructions": "Use live camera feed and use toggle button to turn on/off inferencing.",
+        "Id": "detect-features",
+        "Icon": "\uF19D"
+      },
+      "DetectFeaturesStill": {
+        "Name": "Detect Features (Still image)",
+        "Description": "Models that can detect features from human faces in a specified image.",
+        "Instructions": "Select an image.",
+        "Id": "detect-features-still",
+        "Icon": "\uF19D"
       }
     }
   },
