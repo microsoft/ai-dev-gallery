@@ -52,7 +52,7 @@ internal sealed partial class ScenarioPage : Page
             this.scenario = ScenarioCategoryHelpers.AllScenarioCategories.SelectMany(sc => sc.Scenarios).FirstOrDefault(s => s.ScenarioType == sampleArgs.Sample.Scenario);
             await LoadPicker(sampleArgs.ModelDetails);
 
-            if (sampleArgs.OpenCodeView is not null & true)
+            if (sampleArgs.OpenCodeView.HasValue && sampleArgs.OpenCodeView.Value)
             {
                 CodeToggle.IsChecked = true;
                 HandleCodePane();
