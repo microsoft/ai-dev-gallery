@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:AIDevGallery.Models"
@@ -11,6 +12,7 @@
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
+        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
         <Style
             x:Key="CustomFlyoutPresenterStyle"
             BasedOn="{StaticResource DefaultFlyoutPresenterStyle}"
@@ -44,7 +46,6 @@
                 Content="{ui:FontIcon Glyph=&#xE71B;,
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
-
             <Grid
                 x:Name="ActionButtonsGrid"
                 Grid.Row="2"
@@ -125,6 +126,23 @@
                     Orientation="Horizontal"
                     Spacing="8"
                     Visibility="Collapsed">
+                    <Button
+                        Padding="8,6,8,6"
+                        AutomationProperties.Name="Instructions"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Instructions"
+                        Visibility="{x:Bind scenario.Instructions, Converter={StaticResource StringVisibilityConverter}}">
+                        <Button.Flyout>
+                            <Flyout>
+                                <TextBlock MaxWidth="360" TextWrapping="WrapWholeWords">
+                                    <Run FontWeight="SemiBold" Text="Instructions" />
+                                    <LineBreak />
+                                    <Run Text="{x:Bind scenario.Instructions}" />
+                                </TextBlock>
+                            </Flyout>
+                        </Button.Flyout>
+                        <FontIcon FontSize="16" Glyph="&#xE946;" />
+                    </Button>
                     <ToggleButton
                         x:Name="CodeToggle"
                         Padding="8,6,8,6"
@@ -169,6 +187,7 @@
                 VerticalAlignment="Center"
                 RowSpacing="8">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>

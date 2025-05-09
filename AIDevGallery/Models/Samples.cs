@@ -79,6 +79,8 @@ internal class ModelDetails
     public List<AIToolkitAction>? AIToolkitActions { get; set; }
     public string? AIToolkitId { get; set; }
     public string? AIToolkitFinetuningId { get; set; }
+    public List<int[]>? InputDimensions { get; set; }
+    public List<int[]>? OutputDimensions { get; set; }
 
     private ModelCompatibility? compatibility;
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
@@ -160,8 +162,8 @@ internal class Scenario
 {
     public string Name { get; init; } = null!;
     public string Description { get; init; } = null!;
+    public string Instructions { get; init; } = null!;
     public string Id { get; init; } = null!;
-
     public string? Icon { get; init; }
     public ScenarioType ScenarioType { get; set; }
 }

@@ -71,6 +71,20 @@ internal static class ModelDetailsHelper
         return listModelDetails;
     }
 
+    public static Dictionary<ModelType, List<ModelDetails>> GetModelDetailsForModelTypes(List<ModelType> modelType)
+    {
+        Dictionary<ModelType, List<ModelDetails>> modelDetails = new();
+        foreach (ModelType type in modelType)
+        {
+            if (!modelDetails.ContainsKey(type))
+            {
+                modelDetails[type] = GetModelDetailsForModelType(type);
+            }
+        }
+
+        return modelDetails;
+    }
+
     public static List<ModelDetails> GetModelDetailsForModelType(ModelType initialModelType)
     {
         Queue<ModelType> leafs = new();
@@ -112,6 +126,7 @@ internal static class ModelDetailsHelper
         while (leafs.Count > 0 && added);
 
         var allModelDetails = new List<ModelDetails>();
+        List<string> addedUserModels = new();
         foreach (var modelType in leafs.ToList())
         {
             if (ModelTypeHelpers.ModelDetails.TryGetValue(modelType, out ModelDetails? modelDetails))
@@ -124,9 +139,21 @@ internal static class ModelDetailsHelper
             }
         }
 
-        if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
+        if (initialModelType != ModelType.LanguageModels && App.AppData.TryGetUserAddedModelIds(initialModelType, out List<string>? modelIds))
         {
-            var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
+            foreach (string id in modelIds!)
+            {
+                ModelDetails? details = App.ModelCache.Models.Where(m => m.Details.Id == id).FirstOrDefault()?.Details;
+                if (!addedUserModels.Contains(id) && details != null)
+                {
+                    allModelDetails.Add(details);
+                    addedUserModels.Add(id);
+                }
+            }
+        }
+        else if (initialModelType == ModelType.LanguageModels && App.ModelCache != null)
+        {
+            var userAddedModels = App.ModelCache.Models.Where(m => m.Details.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.OrdinalIgnoreCase)).ToList();
             allModelDetails.AddRange(userAddedModels.Select(c => c.Details));
         }
 

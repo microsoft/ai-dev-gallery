@@ -30,16 +30,6 @@
                     Margin="16,12,0,12"
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="Models" />
-                <Button
-                    Margin="12,8,12,12"
-                    HorizontalAlignment="Stretch"
-                    AutomationProperties.Name="Add model"
-                    Click="AddModelClicked">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon FontSize="16" Glyph="&#xE710;" />
-                        <TextBlock Text="Add model" />
-                    </StackPanel>
-                </Button>
             </StackPanel>
         </NavigationView.PaneHeader>
         <NavigationView.Content>
