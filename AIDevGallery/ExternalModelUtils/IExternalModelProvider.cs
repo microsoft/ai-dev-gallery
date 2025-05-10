@@ -13,8 +13,7 @@ internal interface IExternalModelProvider
 {
     string Name { get; }
     string UrlPrefix { get; }
-    string LightIcon { get; }
-    string DarkIcon { get; }
+    string Icon { get; }
     HardwareAccelerator ModelHardwareAccelerator { get; }
     List<string> NugetPackageReferences { get; }
     string ProviderDescription { get; }
