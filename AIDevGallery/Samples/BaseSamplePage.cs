@@ -100,7 +100,6 @@ internal partial class BaseSamplePage : Page
                 await LoadSample(SampleParams);
             }
         });
-
     }
 
     public void CopyExceptionToClipboard(Exception? ex, string? optionalMessage)

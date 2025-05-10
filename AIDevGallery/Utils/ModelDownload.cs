@@ -241,7 +241,7 @@ internal class FoundryLocalModelDownload : ModelDownload
         {
             result = await FoundryLocalModelProvider.Instance.DownloadModel(Details.Name, internalProgress, CancellationTokenSource.Token);
         }
-        catch (Exception e)
+        catch
         {
         }
 
