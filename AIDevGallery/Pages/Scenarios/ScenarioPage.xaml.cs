@@ -266,9 +266,6 @@ internal sealed partial class ScenarioPage : Page
             .OfType<Sample>()
             .ToList().FirstOrDefault();
 
-        if (selectedSample != sample)
-        {
-            LoadSample(selectedSample);
-        }
+        LoadSample(selectedSample);
     }
 }
