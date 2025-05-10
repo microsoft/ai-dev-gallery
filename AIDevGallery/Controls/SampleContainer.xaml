@@ -30,38 +30,14 @@
                 <ColumnDefinition Width="*" MinWidth="100" />
                 <ColumnDefinition x:Name="CodeColumn" Width="0" />
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <StackPanel
-                x:Name="AIContentWarningPanel"
-                Grid.Row="1"
-                Margin="24,16,24,16"
-                HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
-                Orientation="Horizontal"
-                Spacing="4"
-                Visibility="Collapsed">
-                <FontIcon
-                    AutomationProperties.AccessibilityView="Raw"
-                    FontSize="11"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Glyph="&#xE946;" />
-                <TextBlock
-                    Margin="0,-1,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="10"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="AI-generated content might be incorrect, offensive, or biased."
-                    TextAlignment="Center"
-                    Visibility="Visible" />
-            </StackPanel>
 
-            <Grid x:Name="ContentPageHolder" VerticalAlignment="Stretch">
+            <Grid
+                x:Name="ContentPageHolder"
+                Padding="16"
+                VerticalAlignment="Stretch">
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
-                    Padding="24,24,24,0"
                     Visibility="Collapsed" />
                 <InfoBar
                     x:Name="warningInfoBar"
@@ -157,9 +133,7 @@
                                 FontSize="14"
                                 Foreground="{ThemeResource TextFillColorDisabledBrush}"
                                 IsTextSelectionEnabled="False"
-                                LineHeight="16">
-                                0
-                            </TextBlock>
+                                LineHeight="16" />
                         </ScrollViewer>
                         <ScrollViewer
                             Grid.Column="1"
@@ -260,7 +234,6 @@
                 <VisualState x:Name="SampleLoaded">
                     <VisualState.Setters>
                         <Setter Target="SampleFrame.Visibility" Value="Visible" />
-                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

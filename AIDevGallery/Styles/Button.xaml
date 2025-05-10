@@ -290,7 +290,6 @@
                         <ContentPresenter.BackgroundTransition>
                             <BrushTransition Duration="0:0:0.083" />
                         </ContentPresenter.BackgroundTransition>
-
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -352,7 +351,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-
 
     <Style x:Key="FadedButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{ThemeResource FadedButtonBackground}" />
