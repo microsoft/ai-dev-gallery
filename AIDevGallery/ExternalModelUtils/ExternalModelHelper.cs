@@ -110,9 +110,7 @@ internal static class ExternalModelHelper
         var provider = GetProvider(url);
         return provider == null
                 ? "HuggingFace.svg"
-            : Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light
-                ? provider.LightIcon
-                : provider.DarkIcon;
+            : provider.Icon;
     }
 
     public static IChatClient? GetIChatClient(string url)

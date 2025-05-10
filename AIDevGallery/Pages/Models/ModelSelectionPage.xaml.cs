@@ -305,12 +305,6 @@ internal sealed partial class ModelSelectionPage : Page
         }
     }
 
-    private void AddModelClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        NavView.SelectedItem = null;
-        NavFrame.Navigate(typeof(AddModelPage));
-    }
-
     private void ManageModelsClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         App.MainWindow.Navigate("settings", "ModelManagement");
