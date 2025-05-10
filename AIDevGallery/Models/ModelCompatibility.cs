@@ -34,14 +34,14 @@ internal class ModelCompatibility
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
             var availbility = WcrApiHelpers.GetApiAvailability(apiType);
-            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"{availbility.GetStringDescription()} This Windows Copilot Runtime API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073.";
+                description = $"{availbility.GetStringDescription()} This Windows AI API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073.";
             }
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
