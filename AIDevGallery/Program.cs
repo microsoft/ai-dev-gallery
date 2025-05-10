@@ -83,9 +83,9 @@ public class Program
         SetForegroundWindow(process.MainWindowHandle);
     }
 
-    private static void OnActivated(object? sender, AppActivationArguments args)
+    private async static void OnActivated(object? sender, AppActivationArguments args)
     {
-        var activationParam = ActivationHelper.GetActivationParam(args);
+        var activationParam = await ActivationHelper.GetActivationParam(args);
         if (App.MainWindow is MainWindow mainWindow)
         {
             mainWindow.NavigateToPage(activationParam);

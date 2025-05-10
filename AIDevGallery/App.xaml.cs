@@ -41,7 +41,7 @@ public partial class App : Application
     {
         await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
-        var activationParam = ActivationHelper.GetActivationParam(appActivationArguments);
+        var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
         MainWindow = new MainWindow(activationParam);
 
         MainWindow.Activate();

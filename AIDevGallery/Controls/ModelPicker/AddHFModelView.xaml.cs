@@ -99,7 +99,7 @@ internal sealed partial class AddHFModelView : UserControl
 
                 try
                 {
-                    accelerator = UserAddedModelUtilsTemp.GetHardwareAcceleratorFromConfig(configContents);
+                    accelerator = UserAddedModelUtil.GetHardwareAcceleratorFromConfig(configContents);
                 }
                 catch (JsonException)
                 {

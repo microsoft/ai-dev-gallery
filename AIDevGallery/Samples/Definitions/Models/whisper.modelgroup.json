@@ -19,6 +19,20 @@
             "Description": "Whisper Tiny Int8 CPU",
             "Icon": "OpenAI.png",
             "HardwareAccelerator": "CPU",
+            "InputDimensions": [
+              [ 1, -1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ -1, -1 ],
+              [ 1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1]
+            ],
             "Size": 77356551,
             "License": "apache-2.0"
           },
@@ -29,6 +43,20 @@
             "Description": "Whisper Small Int8 CPU",
             "Icon": "OpenAI.png",
             "HardwareAccelerator": "CPU",
+            "InputDimensions": [
+              [ 1, -1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ -1, -1 ],
+              [ 1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1 ]
+            ],
             "Size": 443051369,
             "License": "apache-2.0"
           },
@@ -39,6 +67,20 @@
             "Description": "Whisper Medium Int8 CPU",
             "Icon": "OpenAI.png",
             "HardwareAccelerator": "CPU",
+            "InputDimensions": [
+              [ 1, -1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ 1 ],
+              [ -1, -1 ],
+              [ 1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1 ]
+            ],
             "Size": 1366071277,
             "License": "apache-2.0"
           }

@@ -122,7 +122,7 @@ internal class ModelCache
 
         if (model.Url.StartsWith("local", System.StringComparison.OrdinalIgnoreCase))
         {
-            // do not delete models added by user that are not in the cache folder
+            await App.AppData.DeleteUserAddedModelMapping(model.Details.Id);
             return;
         }
 
