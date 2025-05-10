@@ -27,13 +27,11 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public List<string> NugetPackageReferences => ["Microsoft.Extensions.AI.Ollama"];
 
-    public string ProviderDescription => "The model will run localy via Ollama";
+    public string ProviderDescription => "The model will run locally via Ollama";
 
     public string UrlPrefix => "ollama://";
 
-    public string LightIcon => "ollama.light.svg";
-
-    public string DarkIcon => "ollama.dark.svg";
+    public string Icon => $"Ollama{AppUtils.GetThemeAssetSuffix()}.svg";
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 

@@ -50,9 +50,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
     public string UrlPrefix => "openai://";
 
-    public string LightIcon => "OpenAI.png";
-
-    public string DarkIcon => LightIcon;
+    public string Icon => $"OpenAI{AppUtils.GetThemeAssetSuffix()}.svg";
 
     public string Url => "https://api.openai.com/v1";
 
