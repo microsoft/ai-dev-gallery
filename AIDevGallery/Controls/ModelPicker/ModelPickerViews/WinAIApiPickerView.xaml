@@ -24,14 +24,14 @@
         <TextBlock
             Margin="16"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="Available Windows Copilot Runtime APIs"
+            Text="Available Windows AI APIs"
             TextWrapping="Wrap" />
         <HyperlinkButton
             Grid.Column="1"
             Margin="8"
             HorizontalAlignment="Left"
             Click="HyperlinkButton_Click"
-            Content="Learn more about WCR"
+            Content="Learn more about Windows AI APIs"
             FontSize="12" />
         <ListView
             x:Name="ModelSelectionView"
@@ -74,22 +74,6 @@
                                     Text="{x:Bind Name}"
                                     TextTrimming="CharacterEllipsis"
                                     ToolTipService.ToolTip="{x:Bind Name}" />
-                                <Button
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.Name="More info"
-                                    Content="WCR"
-                                    Style="{StaticResource TertiaryButtonStyle}"
-                                    ToolTipService.ToolTip="More info">
-                                    <Button.Flyout>
-                                        <Flyout ShouldConstrainToRootBounds="False">
-                                            <TextBlock
-                                                MaxWidth="360"
-                                                Text="This is a WCR API"
-                                                TextWrapping="Wrap" />
-                                        </Flyout>
-                                    </Button.Flyout>
-                                </Button>
                             </Grid>
                         </toolkit:SettingsCard.Header>
                         <Button

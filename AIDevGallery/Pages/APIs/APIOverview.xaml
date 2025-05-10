@@ -21,16 +21,16 @@
                 <controls:OverviewPageHeader
                     Title="Overview"
                     Background="{ThemeResource CardGradient2Brush}"
-                    Description="The Windows Copilot Runtime provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models.">
+                    Description="Windows AI Foundry provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models.">
                     <controls:OverviewPageHeader.ActionContent>
-                        <Button AutomationProperties.Name="Learn more about WCR">
+                        <Button AutomationProperties.Name="Learn more about Windows AI Foundry">
                             <Button.Content>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon
                                         FontSize="16"
                                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                         Glyph="&#xE7C3;" />
-                                    <TextBlock Text="Learn more about WCR" />
+                                    <TextBlock Text="Learn more about Windows AI Foundry" />
                                 </StackPanel>
                             </Button.Content>
                             <interactivity:Interaction.Behaviors>
@@ -109,7 +109,7 @@
                         Margin="2,0,0,0"
                         FontSize="18"
                         Style="{StaticResource SubtitleTextBlockStyle}"
-                        Text="Explore Windows Copilot Runtime APIs" />
+                        Text="Explore Windows AI APIs" />
 
                     <ItemsView
                         x:Name="APIViewer"

@@ -8,7 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.AI.ContentModeration;
+using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

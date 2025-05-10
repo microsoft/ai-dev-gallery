@@ -3,7 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
-using Microsoft.Windows.AI.ContentModeration;
+using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,11 +29,17 @@ internal class AppData
     public bool IsDiagnosticsMessageDismissed { get; set; }
     public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
+    public string LastAdapterPath { get; set; }
+
+    public string LastSystemPrompt { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
+        LastAdapterPath = string.Empty;
+        LastSystemPrompt = string.Empty;
     }
 
     private static string GetConfigFilePath()

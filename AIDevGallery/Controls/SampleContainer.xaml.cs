@@ -186,7 +186,7 @@ internal sealed partial class SampleContainer : UserControl
                 {
                     modelDownloader.State = state switch
                     {
-                        AIFeatureReadyState.EnsureNeeded => WcrApiDownloadState.NotStarted,
+                        AIFeatureReadyState.NotReady => WcrApiDownloadState.NotStarted,
                         _ => WcrApiDownloadState.Error
                     };
 

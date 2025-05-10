@@ -210,7 +210,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
             {
-                pickers.Add(ModelPickerDefinition.Definitions["wcr"]);
+                pickers.Add(ModelPickerDefinition.Definitions["winai"]);
             }
         }
 
