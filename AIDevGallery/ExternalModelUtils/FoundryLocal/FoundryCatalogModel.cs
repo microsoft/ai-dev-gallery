@@ -32,7 +32,18 @@ internal record ModelSettings
     public List<JsonElement> Parameters { get; init; } = [];
 }
 
-internal record FoundryCachedModel(string Name, string Id);
+internal record FoundryCachedModel(string Name, string? Id);
+
+internal record FoundryDownloadResult(bool Success, string? ErrorMessage);
+
+internal record FoundryModelDownload(
+    string Name,
+    string Uri,
+    string Path,
+    string ProviderType,
+    PromptTemplate PromptTemplate);
+
+internal record FoundryDownloadBody(FoundryModelDownload Model, bool IgnorePipeReport);
 
 internal record FoundryCatalogModel
 {
@@ -67,7 +78,7 @@ internal record FoundryCatalogModel
     public Runtime Runtime { get; init; } = default!;
 
     [JsonPropertyName("fileSizeMb")]
-    public int FileSizeMb { get; init; }
+    public long FileSizeMb { get; init; }
 
     [JsonPropertyName("modelSettings")]
     public ModelSettings ModelSettings { get; init; } = default!;

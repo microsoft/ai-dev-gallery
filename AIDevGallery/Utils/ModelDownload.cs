@@ -239,7 +239,7 @@ internal class FoundryLocalModelDownload : ModelDownload
 
         try
         {
-            result = await FoundryLocalModelProvider.Instance.DownloadModel(Details.Name, internalProgress, CancellationTokenSource.Token);
+            result = await FoundryLocalModelProvider.Instance.DownloadModel(Details, internalProgress, CancellationTokenSource.Token);
         }
         catch
         {

@@ -20,6 +20,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
     private FoundryClient? _foundryManager;
+    private string? url;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
 
@@ -37,7 +38,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public string DarkIcon => LightIcon;
 
-    public string Url { get; private set; } = "http://localhost:5272/v1";
+    public string Url => url ?? string.Empty;
 
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";
     public string? GetDetailsUrl(ModelDetails details)
@@ -50,14 +51,14 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var modelId = url.Split('/').LastOrDefault();
         return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
         {
-            Endpoint = new Uri(Url)
+            Endpoint = new Uri($"{Url}/v1")
         }).GetChatClient(modelId).AsIChatClient();
     }
 
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{Url}\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
+        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{Url}/v1\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
@@ -77,14 +78,19 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         return _catalogModels ?? [];
     }
 
-    public Task<bool> DownloadModel(string name, IProgress<float>? progress, CancellationToken cancellationToken = default)
+    public async Task<bool> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
         if (_foundryManager == null)
         {
-            return Task.FromResult(false);
+            return false;
         }
 
-        return _foundryManager.DownloadModel(name, progress, cancellationToken);
+        if (modelDetails.ProviderModelDetails is not FoundryCatalogModel model)
+        {
+            return false;
+        }
+
+        return (await _foundryManager.DownloadModel(model, progress, cancellationToken)).Success;
     }
 
     private void Reset()
@@ -107,9 +113,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return;
         }
 
+        url = await _foundryManager.ServiceManager.GetServiceUrl();
+
         if (_catalogModels == null || !_catalogModels.Any())
         {
-            _catalogModels = (await _foundryManager.ListCatalogModels()).Select(m => ToModelDetails(m.Name, null, null, m.License));
+            _catalogModels = (await _foundryManager.ListCatalogModels()).Select(m => ToModelDetails(m));
         }
 
         var cachedModels = await _foundryManager.ListCachedModels();
@@ -130,7 +138,16 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         foreach (var model in cachedModels)
         {
-            downloadedModels.Add(ToModelDetails(model.Id, null, model.Name));
+            downloadedModels.Add(new ModelDetails()
+            {
+                Id = $"fl-{model.Name}",
+                Name = model.Name,
+                Url = $"{UrlPrefix}{model.Name}",
+                Description = $"{model.Name} running localy with Foundry Local",
+                HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
+                SupportedOnQualcomm = true,
+                ProviderModelDetails = model
+            });
         }
 
         _downloadedModels = downloadedModels;
@@ -138,19 +155,19 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         return;
     }
 
-    private ModelDetails ToModelDetails(string name, string? size = null, string? paramSize = null, string? license = null)
+    private ModelDetails ToModelDetails(FoundryCatalogModel model)
     {
         return new ModelDetails()
         {
-            Id = $"fl-{name}",
-            Name = name,
-            Url = $"{UrlPrefix}{name}",
-            Description = $"{name} running localy with Foundry Local",
+            Id = $"fl-{model.Name}",
+            Name = model.Name,
+            Url = $"{UrlPrefix}{model.Name}",
+            Description = $"{model.Alias} running localy with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
-            Size = size != null ? AppUtils.StringToFileSize(size) : 0,
+            Size = model.FileSizeMb * 1024 * 1024,
             SupportedOnQualcomm = true,
-            ParameterSize = paramSize,
-            License = license?.ToLowerInvariant()
+            License = model.License?.ToLowerInvariant(),
+            ProviderModelDetails = model
         };
     }
 }

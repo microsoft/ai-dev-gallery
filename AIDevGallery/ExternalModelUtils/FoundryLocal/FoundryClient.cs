@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -51,8 +50,6 @@ internal class FoundryClient
     private string _baseUrl;
     private List<FoundryCatalogModel> _catalogModels = [];
 
-    private record DownloadResult(bool Success, string? ErrorMessage);
-
     private FoundryClient(string baseUrl, FoundryServiceManager serviceManager, HttpClient httpClient)
     {
         this.ServiceManager = serviceManager;
@@ -81,21 +78,19 @@ internal class FoundryClient
                 models.ForEach(_catalogModels.Add);
             }
         }
-        catch (Exception e)
+        catch
         {
         }
 
         return _catalogModels;
     }
 
-    //public async Task<string> GetCacheLocation()
-    //{
+    // public async Task<string> GetCacheLocation()
+    // {
     //    var response = await _httpClient.GetAsync($"{_baseUrl}/openai/status");
     //    response.EnsureSuccessStatusCode();
-
     //    return await response.Content.ReadAsStringAsync();
-    //}
-
+    // }
     public async Task<List<FoundryCachedModel>> ListCachedModels()
     {
         // TODO: no way to match returned ids with catalog models yet
@@ -126,82 +121,114 @@ internal class FoundryClient
         return models;
     }
 
-    public async Task<bool> DownloadModel(string modelName, IProgress<float>? progress = null, CancellationToken cancellationToken = default)
+    public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel model, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
         var models = await ListCachedModels();
 
-        if (models.Any(m => m.Name == modelName))
+        if (models.Any(m => m.Name == model.Name))
         {
-            return true;
+            return new(true, "Model already downloaded");
         }
 
-        var body = JsonSerializer.Serialize(new
+        return await Task.Run(async () =>
         {
-            model = new
+            try
             {
-                Name = modelName
+                var uploadBody = new FoundryDownloadBody(
+                    new FoundryModelDownload(
+                        Name: model.Name,
+                        Uri: model.Uri,
+                        Path: await GetModelPath(model.Uri), // temporary
+                        ProviderType: model.ProviderType,
+                        PromptTemplate: model.PromptTemplate),
+                    IgnorePipeReport: true);
+
+                string body = JsonSerializer.Serialize(
+                     uploadBody,
+                     FoundryJsonContext.Default.FoundryDownloadBody);
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/openai/download")
+                {
+                    Content = new StringContent(body, Encoding.UTF8, "application/json")
+                };
+
+                using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+                response.EnsureSuccessStatusCode();
+
+                using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                using var reader = new StreamReader(stream);
+
+                string? finalJson = null;
+                var line = await reader.ReadLineAsync(cancellationToken);
+
+                while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    line = await reader.ReadLineAsync(cancellationToken);
+                    if (line is null)
+                    {
+                        continue;
+                    }
+
+                    line = line.Trim();
+
+                    // Final response starts with '{'
+                    if (finalJson != null || line.StartsWith('{'))
+                    {
+                        finalJson += line;
+                        continue;
+                    }
+
+                    var match = Regex.Match(line, @"\d+(\.\d+)?%");
+                    if (match.Success)
+                    {
+                        var percentage = match.Value;
+                        if (float.TryParse(percentage.TrimEnd('%'), out float progressValue))
+                        {
+                            progress?.Report(progressValue / 100);
+                        }
+                    }
+                }
+
+                // Parse closing JSON; default if malformed
+                var result = finalJson is not null
+                       ? JsonSerializer.Deserialize(finalJson, FoundryJsonContext.Default.FoundryDownloadResult)!
+                       : new FoundryDownloadResult(false, "Missing final result from server.");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                return new FoundryDownloadResult(false, e.Message);
             }
         });
+    }
 
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/openai/download")
-            {
-                Content = new StringContent(body, Encoding.UTF8, "application/json")
-            };
+    // this is a temporary function to get the model path from the blob storage
+    //  it will be removed once the tag is available in the list response
+    private async Task<string> GetModelPath(string assetId)
+    {
+        var registryUri =
+           $"https://eastus.api.azureml.ms/modelregistry/v1.0/registry/models/nonazureaccount?assetId={Uri.EscapeDataString(assetId)}";
 
-            _httpClient.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
+        using var resp = await _httpClient.GetAsync(registryUri);
+        resp.EnsureSuccessStatusCode();
 
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        await using var jsonStream = await resp.Content.ReadAsStreamAsync();
+        var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
+        var blobSasUri = jsonRoot.RootElement.GetProperty("blobSasUri").GetString()!;
 
-            response.EnsureSuccessStatusCode();
+        var uriBuilder = new UriBuilder(blobSasUri);
+        var existingQuery = string.IsNullOrWhiteSpace(uriBuilder.Query)
+            ? string.Empty
+            : uriBuilder.Query.TrimStart('?') + "&";
 
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var reader = new StreamReader(stream);
+        uriBuilder.Query = existingQuery + "restype=container&comp=list&delimiter=/";
 
-            string? finalJson = null;
-            var line = await reader.ReadLineAsync(cancellationToken);
+        var listXml = await _httpClient.GetStringAsync(uriBuilder.Uri);
 
-            while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
-            {
-                line = await reader.ReadLineAsync(cancellationToken);
-                if (line is null)
-                {
-                    continue;
-                }
-
-                line = line.Trim();
-
-                // Final response starts with '{'
-                if (line.StartsWith('{'))
-                {
-                    finalJson = line;
-                    break;
-                }
-
-                // Progress tuple: ("file", 0.42)
-                var m = _tupleRegex.Match(line);
-                if (m.Success &&
-                    float.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var pct))
-                {
-                    progress?.Report(pct);          // pct is 0‑1
-                }
-            }
-
-            // Parse closing JSON; default if malformed
-            var result = finalJson is not null
-                   ? JsonSerializer.Deserialize<DownloadResult>(finalJson,
-                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!
-                   : new DownloadResult(false, "Missing final result from server.");
-
-            return result.Success;
-        }
-        catch (Exception e)
-        {
-            //var errorMessage = await response.Content.ReadAsStringAsync(cancellationToken)
-            //                                  .ConfigureAwait(false);
-            //throw new Exception($"Error downloading model: {errorMessage}", e);
-            return false;
-        }
+        var match = Regex.Match(listXml, @"<Name>(.*?)\/<\/Name>");
+        return match.Success ? match.Groups[1].Value : string.Empty;
     }
 }
