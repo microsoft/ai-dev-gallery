@@ -168,7 +168,7 @@
                 </ListView>
                 <TextBlock
                     x:Name="DownloadableModelsTxt"
-                    Margin="16,32,0,8"
+                    Margin="16,32,0,0"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Foundry Local Catalog" />
                 <ItemsRepeater
@@ -182,7 +182,7 @@
                         <DataTemplate x:DataType="local:FoundryCatalogModelGroup">
                             <toolkit:SettingsCard
                                 MinHeight="48"
-                                Padding="20,8,16,6"
+                                Padding="20,8,28,6"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 CornerRadius="0"
@@ -341,13 +341,45 @@
                 </ItemsRepeater>
             </StackPanel>
         </ScrollViewer>
+        <Grid x:Name="NotAvailableGrid"
+              Visibility="Collapsed">
+            <StackPanel
+                 Margin="48,0,48,48"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Orientation="Vertical"
+                 Spacing="8">
+                <Image Width="36" Source="ms-appx:///Assets/ModelIcons/azure-ai-foundry.svg" />
+                <TextBlock
+                     FontWeight="SemiBold"
+                     Text="Foundry Local is not installed on this machine"
+                     TextAlignment="Center" />
+                <TextBlock
+                     FontSize="12"
+                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                     IsTextSelectionEnabled="True"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap">
+                     <Run Text="" /> <LineBreak /><Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Install Foundry Local</Hyperlink> <LineBreak />  <LineBreak />
+                     <Run Text="You will be able to download and use models once Foundry Local is installed on this machine" />
+                </TextBlock>
+            </StackPanel>
+        </Grid>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="StateGroup">
                 <VisualState x:Name="ShowLoading" />
                 <VisualState x:Name="ShowModels">
                     <VisualState.Setters>
                         <Setter Target="LoadingIndicator.Visibility" Value="Collapsed" />
+                        <Setter Target="NotAvailableGrid.Visibility" Value="Collapsed" />
                         <Setter Target="ModelsView.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ShowNotAvailable">
+                    <VisualState.Setters>
+                        <Setter Target="LoadingIndicator.Visibility" Value="Collapsed" />
+                        <Setter Target="NotAvailableGrid.Visibility" Value="Visible" />
+                        <Setter Target="ModelsView.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

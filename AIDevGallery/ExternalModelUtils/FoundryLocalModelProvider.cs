@@ -106,14 +106,14 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return;
         }
 
-        _foundryManager = await FoundryClient.CreateAsync();
+        _foundryManager = _foundryManager ?? await FoundryClient.CreateAsync();
 
         if (_foundryManager == null)
         {
             return;
         }
 
-        url = await _foundryManager.ServiceManager.GetServiceUrl();
+        url = url ?? await _foundryManager.ServiceManager.GetServiceUrl();
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
@@ -169,5 +169,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             License = model.License?.ToLowerInvariant(),
             ProviderModelDetails = model
         };
+    }
+
+    public async Task<bool> IsAvailable()
+    {
+        await InitializeAsync();
+        return _foundryManager != null;
     }
 }

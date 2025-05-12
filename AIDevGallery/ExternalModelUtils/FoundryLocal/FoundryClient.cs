@@ -16,8 +16,6 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient
 {
-    private static readonly Regex _tupleRegex = new Regex(@"\(\s*""[^""]*""\s*,\s*([0-9]*\.?[0-9]+)\s*\)", RegexOptions.Compiled);
-
     public static async Task<FoundryClient?> CreateAsync(HttpClient? httpClient = null)
     {
         var serviceManager = FoundryServiceManager.TryCreate();
@@ -93,8 +91,6 @@ internal class FoundryClient
     // }
     public async Task<List<FoundryCachedModel>> ListCachedModels()
     {
-        // TODO: no way to match returned ids with catalog models yet
-        // fallback to calling cli
         var response = await _httpClient.GetAsync($"{_baseUrl}/openai/models");
         response.EnsureSuccessStatusCode();
 

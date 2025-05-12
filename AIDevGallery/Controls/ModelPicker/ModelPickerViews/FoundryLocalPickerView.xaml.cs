@@ -40,6 +40,12 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
     {
         VisualStateManager.GoToState(this, "ShowLoading", true);
 
+        if (!await FoundryLocalModelProvider.Instance.IsAvailable())
+        {
+            VisualStateManager.GoToState(this, "ShowNotAvailable", true);
+            return;
+        }
+
         AvailableModels.Clear();
         CatalogModels.Clear();
 
