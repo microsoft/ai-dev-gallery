@@ -184,9 +184,35 @@
             </Grid.Shadow>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" MinHeight="32" />
             </Grid.RowDefinitions>
-            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed" />
+            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed">
+                <controls:SampleContainer.FooterContent>
+                    <StackPanel
+                        x:Name="SampleSelectionPanel"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="4">
+                        <FontIcon
+                            AutomationProperties.AccessibilityView="Raw"
+                            FontSize="14"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE754;"
+                            ToolTipService.ToolTip="Select a sample version" />
+                        <ComboBox
+                            x:Name="SampleSelection"
+                            MinWidth="96"
+                            AutomationProperties.Name="Select a sample version"
+                            SelectionChanged="SampleSelection_SelectionChanged"
+                            Style="{StaticResource SubtleComboBoxStyle}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:Sample">
+                                    <TextBlock Text="{x:Bind Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </controls:SampleContainer.FooterContent>
+            </controls:SampleContainer>
             <Grid
                 x:Name="NoModelSelectedGrid"
                 MaxWidth="480"
@@ -203,59 +229,6 @@
                     <LineBreak />
                     <Run Text="Select a model or API to load a sample" />
                 </TextBlock>
-            </Grid>
-
-            <Grid
-                Grid.Row="1"
-                Padding="12,0,0,0"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                BorderThickness="0,1,0,0">
-                <StackPanel
-                    x:Name="AIContentWarningPanel"
-                    Orientation="Horizontal"
-                    Spacing="4"
-                    Visibility="Visible">
-                    <FontIcon
-                        AutomationProperties.AccessibilityView="Raw"
-                        FontSize="11"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Glyph="&#xE946;" />
-                    <TextBlock
-                        Margin="0,-1,0,0"
-                        VerticalAlignment="Center"
-                        FontSize="10"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Text="AI-generated content might be incorrect, offensive, or biased."
-                        TextAlignment="Center"
-                        Visibility="Visible" />
-                </StackPanel>
-
-                <StackPanel
-                    x:Name="SampleSelectionPanel"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    Spacing="4"
-                    Visibility="Collapsed">
-                    <FontIcon
-                        AutomationProperties.AccessibilityView="Raw"
-                        FontSize="14"
-                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                        Glyph="&#xE754;"
-                        ToolTipService.ToolTip="Select a sample version" />
-                    <ComboBox
-                        x:Name="SampleSelection"
-                        MinWidth="96"
-                        AutomationProperties.Name="Select a sample version"
-                        SelectionChanged="SampleSelection_SelectionChanged"
-                        Style="{StaticResource SubtleComboBoxStyle}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:Sample">
-                                <TextBlock Text="{x:Bind Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
             </Grid>
         </Grid>
         <Grid

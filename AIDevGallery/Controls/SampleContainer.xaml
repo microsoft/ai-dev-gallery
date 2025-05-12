@@ -30,7 +30,10 @@
                 <ColumnDefinition Width="*" MinWidth="100" />
                 <ColumnDefinition x:Name="CodeColumn" Width="0" />
             </Grid.ColumnDefinitions>
-
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid
                 x:Name="ContentPageHolder"
                 Padding="16"
@@ -90,6 +93,42 @@
                     </TextBlock>
                 </StackPanel>
             </Grid>
+            <Grid
+                x:Name="FooterGrid"
+                Grid.Row="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                SizeChanged="FooterGrid_SizeChanged">
+                <StackPanel
+                    x:Name="AIContentWarningPanel"
+                    Margin="12,8,8,8"
+                    HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
+                    Orientation="Horizontal"
+                    Spacing="4"
+                    Visibility="Visible">
+                    <FontIcon
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Glyph="&#xE946;"
+                        ToolTipService.ToolTip="AI-generated content might be incorrect, offensive, or biased." />
+                    <TextBlock
+                        x:Name="WarningText"
+                        Margin="0,-1,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="10"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Text="AI-generated content might be incorrect, offensive, or biased."
+                        TextAlignment="Center"
+                        Visibility="Visible" />
+                </StackPanel>
+                <ContentPresenter
+                    x:Name="FooterContentPresenter"
+                    HorizontalAlignment="Right"
+                    Content="{x:Bind FooterContent, Mode=OneWay}" />
+            </Grid>
+
             <Grid
                 x:Name="CodeGrid"
                 Grid.RowSpan="2"
@@ -247,6 +286,24 @@
                     <VisualState.Setters>
                         <Setter Target="CodeGrid.Visibility" Value="Visible" />
                         <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="FooterContentStates">
+                <VisualState x:Name="FooterVisible" />
+                <VisualState x:Name="FooterHidden">
+                    <VisualState.Setters>
+                        <Setter Target="FooterGrid.Background" Value="Transparent" />
+                        <Setter Target="FooterGrid.BorderThickness" Value="0" />
+                        <Setter Target="FooterContentPresenter.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="WarningStates">
+                <VisualState x:Name="WarningExpanded" />
+                <VisualState x:Name="WarningCollapsed">
+                    <VisualState.Setters>
+                        <Setter Target="WarningText.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

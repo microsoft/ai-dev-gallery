@@ -135,11 +135,11 @@ internal sealed partial class ScenarioPage : Page
             }
 
             SampleSelection.SelectedItem = viableSamples[0];
-            SampleSelectionPanel.Visibility = Visibility.Visible;
+            SampleContainer.ShowFooter = true;
         }
         else
         {
-            SampleSelectionPanel.Visibility = Visibility.Collapsed;
+            SampleContainer.ShowFooter = false;
             LoadSample(viableSamples[0]);
         }
     }
