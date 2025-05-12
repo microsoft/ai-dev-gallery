@@ -34,8 +34,6 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public string UrlPrefix => "fl://";
 
-
-
     public string Icon => $"fl{AppUtils.GetThemeAssetSuffix()}.svg";
     public string Url => url ?? string.Empty;
 
