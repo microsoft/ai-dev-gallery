@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.ExternalModelUtils;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -105,14 +106,7 @@ internal class ModelDetails
             {
                 if (Url.StartsWith("https://github", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                    {
-                        icon = "GitHub.light.svg";
-                    }
-                    else
-                    {
-                        icon = "GitHub.dark.svg";
-                    }
+                    icon = $"GitHub{AppUtils.GetThemeAssetSuffix()}.svg";
                 }
 
                 if (ExternalModelHelper.IsUrlFromExternalProvider(Url))
@@ -121,7 +115,7 @@ internal class ModelDetails
                 }
                 else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
                 {
-                    icon = "onnx.svg";
+                    icon = "Onnx.svg";
                 }
                 else
                 {
