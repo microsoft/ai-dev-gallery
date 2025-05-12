@@ -237,18 +237,11 @@ internal static class AppUtils
     {
         if (url.StartsWith("https://github", StringComparison.OrdinalIgnoreCase))
         {
-            if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.light.svg"));
-            }
-            else
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
-            }
+            return new SvgImageSource(new Uri($"ms-appx:///Assets/ModelIcons/GitHub{GetThemeAssetSuffix()}.svg"));
         }
         else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
-            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/onnx.svg"));
+            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/Onnx.svg"));
         }
         else
         {
@@ -259,6 +252,11 @@ internal static class AppUtils
 
             return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/HuggingFace.svg"));
         }
+    }
+
+    public static string GetThemeAssetSuffix()
+    {
+        return App.Current.RequestedTheme == ApplicationTheme.Dark ? ".dark" : ".light";
     }
 
     public static StyleDictionary GetCodeHighlightingStyleFromElementTheme(ElementTheme theme)
