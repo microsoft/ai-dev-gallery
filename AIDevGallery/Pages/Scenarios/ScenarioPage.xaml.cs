@@ -29,7 +29,9 @@ internal sealed partial class ScenarioPage : Page
     public ScenarioPage()
     {
         this.InitializeComponent();
-        this.Loaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged += ModelOrApiPicker_SelectedModelsChanged;
+        this.Loaded += (s, e) =>
+        BackgroundShadow.Receivers.Add(ShadowCastGrid);
+        App.MainWindow.ModelPicker.SelectedModelsChanged += ModelOrApiPicker_SelectedModelsChanged;
         this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
     }
 
@@ -109,12 +111,8 @@ internal sealed partial class ScenarioPage : Page
 
         if (selectedModels.Count == 1)
         {
-            // padd the second model with null
+            // add the second model with null
             selectedModels = [selectedModels[0], null];
-        }
-        else if (selectedModels.Count > 1)
-        {
-            modelText.Text = "Selected models for this sample";
         }
 
         List<Sample> viableSamples = samples!.Where(s =>
@@ -137,11 +135,11 @@ internal sealed partial class ScenarioPage : Page
             }
 
             SampleSelection.SelectedItem = viableSamples[0];
-            SampleSelection.Visibility = Visibility.Visible;
+            SampleContainer.ShowFooter = true;
         }
         else
         {
-            SampleSelection.Visibility = Visibility.Collapsed;
+            SampleContainer.ShowFooter = false;
             LoadSample(viableSamples[0]);
         }
     }
@@ -242,7 +240,7 @@ internal sealed partial class ScenarioPage : Page
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Calculate if the modelselectors collide with the export/code buttons
-        if ((ModelPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
+        if ((ModelBtn.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
         {
             VisualStateManager.GoToState(this, "NarrowLayout", true);
         }
@@ -252,7 +250,7 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private void ModelBtn_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindow.ModelPicker.Show(modelDetails.ToList());
     }
@@ -268,9 +266,6 @@ internal sealed partial class ScenarioPage : Page
             .OfType<Sample>()
             .ToList().FirstOrDefault();
 
-        if (selectedSample != sample)
-        {
-            LoadSample(selectedSample);
-        }
+        LoadSample(selectedSample);
     }
 }
