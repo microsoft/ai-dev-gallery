@@ -524,7 +524,6 @@ internal sealed partial class SampleContainer : UserControl
     private void FooterGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Calculate if the modelselectors collide with the export/code buttons
-
         if (FooterContent != null)
         {
             if ((AIContentWarningPanel.ActualWidth + FooterContentPresenter.ActualWidth) >= e.NewSize.Width)
