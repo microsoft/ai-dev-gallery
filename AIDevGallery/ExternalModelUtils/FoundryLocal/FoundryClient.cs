@@ -97,7 +97,7 @@ internal class FoundryClient
         var catalogModels = await ListCatalogModels();
 
         var content = await response.Content.ReadAsStringAsync();
-        var modelIds = content.Trim('[', ']').Split(',', StringSplitOptions.TrimEntries).Select(id => id.Trim('"'));
+        var modelIds = content.Trim('[', ']').Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(id => id.Trim('"'));
 
         List<FoundryCachedModel> models = [];
 

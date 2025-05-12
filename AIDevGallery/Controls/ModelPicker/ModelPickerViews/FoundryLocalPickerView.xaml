@@ -39,7 +39,8 @@
                     x:Name="AvailableModelsTxt"
                     Margin="16,0,16,0"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Cached models" />
+                    Text="Cached models"
+                    Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(AvailableModels)}"/>
                 <HyperlinkButton
                     Grid.Column="1"
                     Margin="0,0,16,0"
@@ -174,7 +175,7 @@
                     Grid.ColumnSpan="2"
                     Margin="16,32,16,8"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Foundry Local catalog" />
+                    Text="Available to download" />
                 <ItemsRepeater
                     Grid.Row="3"
                     Grid.ColumnSpan="2"
@@ -221,16 +222,16 @@
                                     <StackPanel>
                                         <toolkit:WrapPanel
                                             HorizontalSpacing="4"
+                                            Margin="0,4"
                                             Orientation="Horizontal"
                                             VerticalSpacing="2">
                                             <!--<TextBlock>
                                                 <Run Text="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}" />
                                             </TextBlock>
                                             <TextBlock Text="• " Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(License)}" />-->
-                                            <TextBlock Text="Variants: " />
                                             <ItemsRepeater
                                                 Grid.Column="1"
-                                                Margin="4,0,0,0"
+                                                Margin="0,0,0,0"
                                                 ItemsSource="{x:Bind Details}">
                                                 <ItemsRepeater.Layout>
                                                     <StackLayout Orientation="Horizontal" Spacing="4" />
@@ -282,7 +283,7 @@
                                             Width="24"
                                             Height="24"
                                             Padding="4"
-                                            VerticalAlignment="Center"
+                                            VerticalAlignment="Top"
                                             AutomationProperties.HelpText="Download model"
                                             AutomationProperties.Name="{x:Bind Alias}"
                                             Content="{ui:FontIcon Glyph=&#xE896;,
