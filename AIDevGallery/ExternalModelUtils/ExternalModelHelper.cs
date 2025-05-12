@@ -16,14 +16,9 @@ namespace AIDevGallery.ExternalModelUtils;
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
-        new OllamaModelProvider(),
-        new OpenAIModelProvider()
+        OllamaModelProvider.Instance,
+        OpenAIModelProvider.Instance
     ];
-
-    public static async Task InitializeAsync()
-    {
-        await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
-    }
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
     {
@@ -115,9 +110,7 @@ internal static class ExternalModelHelper
         var provider = GetProvider(url);
         return provider == null
                 ? "HuggingFace.svg"
-            : Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light
-                ? provider.LightIcon
-                : provider.DarkIcon;
+            : provider.Icon;
     }
 
     public static IChatClient? GetIChatClient(string url)
