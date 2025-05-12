@@ -30,7 +30,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public List<string> NugetPackageReferences => ["Microsoft.Extensions.AI.OpenAI"];
 
-    public string ProviderDescription => "The model will run localy via Foundry Local";
+    public string ProviderDescription => "The model will run locally via Foundry Local";
 
     public string UrlPrefix => "fl://";
 

@@ -12,7 +12,7 @@
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid Padding="2,24,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -22,17 +22,10 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <TextBlock
-            Margin="16"
+            Margin="16,0,16,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Text="Available Windows AI APIs"
             TextWrapping="Wrap" />
-        <HyperlinkButton
-            Grid.Column="1"
-            Margin="8"
-            HorizontalAlignment="Left"
-            Click="HyperlinkButton_Click"
-            Content="Learn more about Windows AI APIs"
-            FontSize="12" />
         <ListView
             x:Name="ModelSelectionView"
             Grid.Row="1"

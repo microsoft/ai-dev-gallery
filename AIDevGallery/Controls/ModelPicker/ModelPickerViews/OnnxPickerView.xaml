@@ -18,7 +18,7 @@
 
     <Grid>
         <ScrollViewer x:Name="ModelView">
-            <Grid>
+            <Grid Padding="2,24,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -30,16 +30,22 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock
-                    Margin="16,16,16,0"
+                    Margin="16,0,16,0"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Available ONNX models"
                     TextWrapping="Wrap"
                     Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(AvailableModels), Mode=OneWay}" />
-                <DropDownButton Grid.Column="1" Margin="8,8,16,0">
+                <DropDownButton
+                    Grid.Column="1"
+                    Margin="8,0,16,0"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
                     <DropDownButton.Content>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon FontSize="16" Glyph="&#xF158;" />
-                            <TextBlock Text="Add model" />
+                            <FontIcon FontSize="14" Glyph="&#xF158;" />
+                            <TextBlock FontSize="12" Text="Add model" />
                         </StackPanel>
                     </DropDownButton.Content>
                     <DropDownButton.Flyout>
@@ -67,8 +73,9 @@
                     Orientation="Vertical"
                     Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(AvailableModels), Mode=OneWay}">
                     <FontIcon
+                        Margin="0,0,0,12"
                         AutomationProperties.AccessibilityView="Raw"
-                        FontSize="28" Margin="0,0,0,12"
+                        FontSize="28"
                         Glyph="&#xF158;" />
                     <TextBlock
                         HorizontalAlignment="Center"
@@ -85,6 +92,7 @@
                     x:Name="ModelSelectionView"
                     Grid.Row="1"
                     Grid.ColumnSpan="2"
+                    Margin="0,4,0,0"
                     ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
                     SelectionChanged="ModelSelectionView_SelectionChanged"
                     SelectionMode="Single">
@@ -249,7 +257,7 @@
                     x:Name="DownloadableModelsTxt"
                     Grid.Row="2"
                     Grid.ColumnSpan="2"
-                    Margin="16,24,16,8"
+                    Margin="16,32,16,8"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Downloadable models"
                     Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(DownloadableModels), Mode=OneWay}" />
@@ -397,16 +405,13 @@
                                     </Border>
                                     <Grid>
                                         <Button
-                                            Width="24"
-                                            Height="24"
-                                            Padding="0"
+                                            Padding="4"
                                             VerticalAlignment="Center"
                                             AutomationProperties.HelpText="Download model"
                                             AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                             Click="DownloadModelButton_Click"
                                             Content="{ui:FontIcon Glyph=&#xE896;,
                                                                   FontSize=14}"
-                                            CornerRadius="14"
                                             HighContrastAdjustment="None"
                                             IsEnabled="{x:Bind IsDownloadEnabled}"
                                             Style="{StaticResource AccentButtonStyle}"

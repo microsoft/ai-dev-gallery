@@ -79,9 +79,4 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
             ModelSelectionView.SelectedItem = null;
         }
     }
-
-    private void HyperlinkButton_Click(object sender, RoutedEventArgs e)
-    {
-        App.MainWindow.Navigate("apis");
-    }
 }

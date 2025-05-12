@@ -20,19 +20,23 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             IsActive="True" />
-        <Grid x:Name="ModelsView" Visibility="Collapsed">
+        <Grid
+            x:Name="ModelsView"
+            Padding="2,24,0,0"
+            Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <TextBlock
-                Margin="16"
+                Margin="16,0,16,0"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Text="Available models on Ollama"
                 TextWrapping="Wrap" />
             <ListView
                 x:Name="ModelSelectionView"
                 Grid.Row="1"
+                Margin="0,4,0,0"
                 ItemsSource="{x:Bind models, Mode=OneWay}"
                 SelectionChanged="ModelSelectionView_SelectionChanged"
                 SelectionMode="Single">
