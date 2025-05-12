@@ -34,10 +34,9 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public string UrlPrefix => "fl://";
 
-    public string LightIcon => "azure-ai-foundry.svg";
 
-    public string DarkIcon => LightIcon;
 
+    public string Icon => $"fl{AppUtils.GetThemeAssetSuffix()}.svg";
     public string Url => url ?? string.Empty;
 
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";

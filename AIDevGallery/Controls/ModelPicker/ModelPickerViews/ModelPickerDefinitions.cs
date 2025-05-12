@@ -33,7 +33,7 @@ internal class ModelPickerDefinition
             {
                 Name = "Foundry Local",
                 Id = "fl",
-                Icon = "ms-appx:///Assets/ModelIcons/Foundry.png", // TO DO : theme aware
+                Icon = "ms-appx:///Assets/ModelIcons/Foundry.png",
                 CreatePicker = () => new FoundryLocalPickerView()
             }
         },

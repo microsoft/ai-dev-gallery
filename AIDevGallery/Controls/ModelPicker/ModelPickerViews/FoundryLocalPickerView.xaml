@@ -207,7 +207,7 @@
                                     </Grid>
                                 </toolkit:SettingsCard.Header>
                                 <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="/Assets/ModelIcons/azure-ai-foundry.svg" />
+                                    <ImageIcon AutomationProperties.AccessibilityView="Control" AutomationProperties.Name="Model source icon" Source="/Assets/ModelIcons/fl.light.svg" />
                                 </toolkit:SettingsCard.HeaderIcon>
                                 <toolkit:SettingsCard.Description>
                                     <StackPanel>
@@ -349,7 +349,7 @@
                  VerticalAlignment="Center"
                  Orientation="Vertical"
                  Spacing="8">
-                <Image Width="36" Source="ms-appx:///Assets/ModelIcons/azure-ai-foundry.svg" />
+                <Image Width="36" Source="ms-appx:///Assets/ModelIcons/fl.light.svg" />
                 <TextBlock
                      FontWeight="SemiBold"
                      Text="Foundry Local is not installed on this machine"

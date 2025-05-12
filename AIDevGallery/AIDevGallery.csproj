@@ -250,7 +250,8 @@
     <None Remove="Assets\AppIcon\WideTile.scale-200_altform-colorful_theme-light.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400_altform-colorful_theme-light.png" />
-    <None Remove="Assets\ModelIcons\azure-ai-foundry.svg" />
+    <None Remove="Assets\ModelIcons\fl.dark.svg" />
+    <None Remove="Assets\ModelIcons\fl.light.svg" />
     <None Remove="Assets\ModelIcons\Foundry.png" />
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
@@ -326,12 +327,6 @@
   <ItemGroup>
     <Folder Include="Pages\Models\" />
     <Folder Include="Pages\Scenarios\" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Content Update="Assets\ModelIcons\azure-ai-foundry.svg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   
   <ItemGroup>
