@@ -3,7 +3,6 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
-using AIDevGallery.Pages;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
