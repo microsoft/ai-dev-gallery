@@ -246,10 +246,12 @@
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
-    <None Remove="Assets\ModelIcons\ollama.dark.png" />
-    <None Remove="Assets\ModelIcons\ollama.light.png" />
+    <None Remove="Assets\ModelIcons\Ollama.dark.png" />
+    <None Remove="Assets\ModelIcons\Ollama.light.png" />
     <None Remove="Assets\ModelIcons\Onnx.png" />
-    <None Remove="Assets\ModelIcons\onnx.svg" />
+    <None Remove="Assets\ModelIcons\Onnx.svg" />
+    <None Remove="Assets\ModelIcons\OpenAI.dark.png" />
+    <None Remove="Assets\ModelIcons\OpenAI.dark.svg" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
     <None Remove="Assets\ModelIcons\OpenAI.svg" />
     <None Remove="Assets\ModelIcons\WCRAPI.png" />
