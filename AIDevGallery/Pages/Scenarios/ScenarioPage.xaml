@@ -20,12 +20,13 @@
             <Setter Property="MinWidth" Value="524" />
         </Style>
     </Page.Resources>
-    <Grid BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Padding="24,16,24,24" Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Grid x:Name="ShadowCastGrid" Grid.RowSpan="2" />
+        <Grid Padding="28,16,24,16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -55,79 +56,64 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-
-                <StackPanel
-                    x:Name="ModelPanel"
-                    Padding="0,0,12,0"
-                    HorizontalAlignment="Left"
-                    Orientation="Vertical"
-                    Spacing="8">
-                    <Button Padding="8,6,8,6" Click="Button_Click">
-                        <StackPanel Spacing="8">
-                            <TextBlock
-                                x:Name="modelText"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="Selected model for this sample" />
-                            <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
-                            <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Vertical" Spacing="12" />
-                                </ItemsRepeater.Layout>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate x:DataType="models:ModelDetails">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Image Width="16" Source="{x:Bind Icon}" />
-                                            <TextBlock Text="{x:Bind Name}" />
-                                            <ItemsRepeater
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
-                                                <ItemsRepeater.Layout>
-                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
-                                                </ItemsRepeater.Layout>
-                                                <ItemsRepeater.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
-                                                        <Border
-                                                            Padding="2,0,2,0"
-                                                            BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
-                                                            BorderThickness="1"
-                                                            CornerRadius="{StaticResource ControlCornerRadius}">
-                                                            <TextBlock
-                                                                AutomationProperties.AccessibilityView="Raw"
-                                                                FontSize="10"
-                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsRepeater.ItemTemplate>
-                                            </ItemsRepeater>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
-                        </StackPanel>
-                    </Button>
-                    <ComboBox
-                        x:Name="SampleSelection"
-                        SelectionChanged="SampleSelection_SelectionChanged"
-                        Visibility="Collapsed">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:Sample">
-                                <TextBlock Text="{x:Bind Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-
-                    </ComboBox>
-                </StackPanel>
+                <Button
+                    x:Name="ModelBtn"
+                    Padding="8,5,8,6"
+                    AutomationProperties.Name="Selected models"
+                    Click="ModelBtn_Click">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
+                        <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="24" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="models:ModelDetails">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Image Width="16" Source="{x:Bind Icon}" />
+                                        <TextBlock Text="{x:Bind Name}" />
+                                        <ItemsRepeater
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                    <Border
+                                                        Padding="2,0,2,0"
+                                                        Background="{ThemeResource TertiaryButtonBackground}"
+                                                        BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="{StaticResource ControlCornerRadius}">
+                                                        <TextBlock
+                                                            AutomationProperties.AccessibilityView="Raw"
+                                                            FontSize="10"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Button>
                 <StackPanel
                     x:Name="ButtonsPanel"
                     HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
                     Orientation="Horizontal"
-                    Spacing="8"
                     Visibility="Collapsed">
                     <Button
-                        Padding="8,6,8,6"
+                        Padding="12,6,12,6"
                         AutomationProperties.Name="Instructions"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="Instructions"
@@ -143,10 +129,16 @@
                         </Button.Flyout>
                         <FontIcon FontSize="16" Glyph="&#xE946;" />
                     </Button>
+                    <Rectangle
+                        Width="1"
+                        Margin="0,6"
+                        Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <ToggleButton
                         x:Name="CodeToggle"
-                        Padding="8,6,8,6"
+                        Padding="12,6,12,6"
                         AutomationProperties.Name="Show source code"
+                        Background="Transparent"
+                        BorderThickness="0"
                         Click="CodeToggle_Click"
                         ToolTipService.ToolTip="Show source code">
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -156,11 +148,16 @@
                             <TextBlock Margin="0,-1,0,0" Text="Code" />
                         </StackPanel>
                     </ToggleButton>
+                    <Rectangle
+                        Width="1"
+                        Margin="0,6"
+                        Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <Button
                         x:Name="ExportSampleToggle"
-                        Padding="8,6,8,6"
+                        Padding="12,6,12,6"
                         AutomationProperties.Name="Export sample"
                         Click="ExportSampleToggle_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="Export sample">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Image Width="16" Source="ms-appx:///Assets/VSIcon.svg" />
@@ -170,16 +167,51 @@
                 </StackPanel>
             </Grid>
         </Grid>
+
         <Grid
             x:Name="contentHost"
             Grid.Row="1"
-            HorizontalAlignment="Stretch">
-            <controls:SampleContainer
-                x:Name="SampleContainer"
-                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,1,0,0"
-                Visibility="Collapsed" />
+            Margin="12,4,4,4"
+            HorizontalAlignment="Stretch"
+            Background="{ThemeResource CardGradient2Brush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource OverlayCornerRadius}"
+            Translation="0,0,16">
+            <Grid.Shadow>
+                <ThemeShadow x:Name="BackgroundShadow" />
+            </Grid.Shadow>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed">
+                <controls:SampleContainer.FooterContent>
+                    <StackPanel
+                        x:Name="SampleSelectionPanel"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="4">
+                        <FontIcon
+                            AutomationProperties.AccessibilityView="Raw"
+                            FontSize="14"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE754;"
+                            ToolTipService.ToolTip="Select a sample version" />
+                        <ComboBox
+                            x:Name="SampleSelection"
+                            MinWidth="96"
+                            AutomationProperties.Name="Select a sample version"
+                            SelectionChanged="SampleSelection_SelectionChanged"
+                            Style="{StaticResource SubtleComboBoxStyle}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:Sample">
+                                    <TextBlock Text="{x:Bind Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </controls:SampleContainer.FooterContent>
+            </controls:SampleContainer>
             <Grid
                 x:Name="NoModelSelectedGrid"
                 MaxWidth="480"

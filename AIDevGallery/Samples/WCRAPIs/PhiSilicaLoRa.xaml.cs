@@ -208,7 +208,16 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
                 context = _languageModel.CreateContext(SystemPromptBox.Text);
             }
 
-            LowRankAdaptation loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
+            LowRankAdaptation? loraAdapter;
+            try
+            {
+                 loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex);
+                return;
+            }
 
             var options = new LanguageModelOptionsExperimental
             {

@@ -103,14 +103,7 @@
                     <Grid.Shadow>
                         <ThemeShadow x:Name="BackgroundShadow" />
                     </Grid.Shadow>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <controls:SampleContainer
-                        x:Name="sampleContainer"
-                        Height="360"
-                        DisclaimerHorizontalAlignment="Left" />
+                    <controls:SampleContainer x:Name="sampleContainer" Height="360" />
                 </Grid>
 
                 <controls:Card
