@@ -267,7 +267,14 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), XamlRoot);
+        ExecutionProviderDevicePolicy devicePolicy = ExecutionProviderDevicePolicy.DEFAULT;
+
+        if (WinMLEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && WinMLEpSelectionDevicePolicyComboBox.SelectedItem is string key)
+        {
+            devicePolicy = executionProviderDevicePolicies[key];
+        }
+
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), devicePolicy, XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)

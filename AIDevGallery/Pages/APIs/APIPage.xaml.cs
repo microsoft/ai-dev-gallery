@@ -212,7 +212,7 @@ internal sealed partial class APIPage : Page
         }
 
        // App.MainWindow.Navigate("Samples", new SampleNavigationArgs(sample, modelDetails));
-        _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], this.XamlRoot);
+        _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], default, this.XamlRoot);
     }
 
     private void CopyCodeButton_Click(object sender, RoutedEventArgs e)

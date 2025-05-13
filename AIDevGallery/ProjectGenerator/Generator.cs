@@ -7,6 +7,7 @@ using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.Build.Construction;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -380,9 +381,9 @@ internal partial class Generator
         return outputPath;
     }
 
-    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
+    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, ExecutionProviderDevicePolicy executionProviderDevicePolicy, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
     {
-        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), executionProviderDevicePolicy);
 
         if (cachedModels == null)
         {

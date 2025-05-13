@@ -61,7 +61,7 @@ internal sealed partial class SampleContainer : UserControl
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
     private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
-    private ExecutionProviderDevicePolicy? _currentExecutionPolicy;
+    private ExecutionProviderDevicePolicy _currentExecutionPolicy;
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
@@ -127,7 +127,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy? winMLExecutionPolicy = ExecutionProviderDevicePolicy.DEFAULT)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy winMLExecutionPolicy = default)
     {
         if (sample == null)
         {
@@ -136,7 +136,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         this.Visibility = Visibility.Visible;
-        if (!LoadSampleMetadata(sample, models))
+        if (!LoadSampleMetadata(sample, models, winMLExecutionPolicy))
         {
             return;
         }
@@ -299,12 +299,12 @@ internal sealed partial class SampleContainer : UserControl
     }
 
     [MemberNotNull(nameof(_sampleCache))]
-    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy? policy = null)
+    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy policy = default)
     {
         if (_sampleCache == sample &&
             _modelsCache != null &&
             models != null &&
-            policy != _currentExecutionPolicy)
+            policy == _currentExecutionPolicy)
         {
             var modelsAreEqual = true;
             if (_modelsCache.Count != models.Count)
@@ -335,7 +335,7 @@ internal sealed partial class SampleContainer : UserControl
 
         if (models != null)
         {
-            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentExecutionPolicy);
 
             if (_cachedModels != null)
             {
@@ -442,7 +442,7 @@ internal sealed partial class SampleContainer : UserControl
         var sample = _sampleCache;
         _modelsCache = null;
         _sampleCache = null;
-        _currentExecutionPolicy = null;
+        _currentExecutionPolicy = default;
 
         return LoadSampleAsync(sample, models);
     }

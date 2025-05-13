@@ -4,6 +4,7 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -217,6 +218,7 @@ internal static partial class SamplesHelper
             foreach (var modelInfo in modelInfos)
             {
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMLExecutionProviderDevicePolicy", $"ExecutionProviderDevicePolicy.{modelInfo.Value.ExpandedModelDetails.ExecutionProviderDevicePolicy}");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
                 i++;
             }
@@ -227,6 +229,7 @@ internal static partial class SamplesHelper
         {
             var modelInfo = modelInfos.Values.First();
             cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMLExecutionProviderDevicePolicy", $"ExecutionProviderDevicePolicy.{modelInfo.ExpandedModelDetails.ExecutionProviderDevicePolicy}");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
         }
@@ -290,7 +293,7 @@ internal static partial class SamplesHelper
         return cleanCsSource;
     }
 
-    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails)
+    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails, ExecutionProviderDevicePolicy executionProviderDevicePolicy = ExecutionProviderDevicePolicy.DEFAULT)
     {
         if (modelDetails.Length == 0 || modelDetails.Length > 2)
         {
@@ -311,7 +314,7 @@ internal static partial class SamplesHelper
 
         if (selectedModelDetails.IsApi())
         {
-            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), executionProviderDevicePolicy);
         }
         else
         {
@@ -321,7 +324,7 @@ internal static partial class SamplesHelper
                 return null;
             }
 
-            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), executionProviderDevicePolicy);
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
@@ -340,7 +343,7 @@ internal static partial class SamplesHelper
 
             if (selectedModelDetails2.Size == 0)
             {
-                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), executionProviderDevicePolicy);
             }
             else
             {
@@ -350,7 +353,7 @@ internal static partial class SamplesHelper
                     return null;
                 }
 
-                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), executionProviderDevicePolicy);
             }
 
             var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
