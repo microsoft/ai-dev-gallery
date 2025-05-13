@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -68,28 +69,56 @@ internal sealed partial class ImageClassification : BaseSamplePage
     // </exclude>
     private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                Debug.WriteLine("Downloading packages ...");
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
+
             if (hardwareAccelerator == HardwareAccelerator.DML)
             {
+                // this is temporary until a bug in WinML is fixed
                 sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                // Prefer the GPU
+                //sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_GPU);
             }
             else if (hardwareAccelerator == HardwareAccelerator.QNN)
             {
-                Dictionary<string, string> options = new()
-                    {
-                        { "backend_path", "QnnHtp.dll" },
-                        { "htp_performance_mode", "high_performance" },
-                        { "htp_graph_finalization_optimization_mode", "3" }
-                    };
-                sessionOptions.AppendExecutionProvider("QNN", options);
+                // Prefer the NPU
+                sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_NPU);
+            }
+
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath), Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
+
+            if (!File.Exists(compiledModelPath))
+            {
+                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+            }
+
+            if (File.Exists(compiledModelPath))
+            {
+                modelPath = compiledModelPath;
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
