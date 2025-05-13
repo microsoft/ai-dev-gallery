@@ -54,7 +54,7 @@
                 <ListView
                     x:Name="modelTypeSelector"
                     HorizontalAlignment="Stretch"
-                    SelectionChanged="modelTypeSelector_SelectionChanged">
+                    SelectionChanged="ModelTypeSelector_SelectionChanged">
                     <ListView.Header>
                         <TextBlock
                             Margin="16,24,8,8"

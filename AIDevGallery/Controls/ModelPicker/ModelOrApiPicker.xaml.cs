@@ -252,7 +252,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         Hide();
     }
 
-    private void modelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is ListView listView && listView.SelectedItem is ModelPickerDefinition pickerDefinition)
         {
