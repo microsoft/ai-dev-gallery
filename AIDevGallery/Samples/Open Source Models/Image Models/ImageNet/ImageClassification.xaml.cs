@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -24,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels;
     Scenario = ScenarioType.ImageClassifyImage,
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     SharedCode = [
@@ -53,8 +52,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
-        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+        await InitModel(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
         sampleParams.NotifyCompletion();
 
         await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
@@ -67,7 +65,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
     {
         return Task.Run(async () =>
         {
@@ -93,20 +91,9 @@ internal sealed partial class ImageClassification : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (hardwareAccelerator == HardwareAccelerator.DML)
-            {
-                // this is temporary until a bug in WinML is fixed
-                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-                // Prefer the GPU
-                //sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_GPU);
-            }
-            else if (hardwareAccelerator == HardwareAccelerator.QNN)
-            {
-                // Prefer the NPU
-                sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_NPU);
-            }
+            //sessionOptions.SetEpSelectionPolicy(policy);
 
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath), Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
 
             if (!File.Exists(compiledModelPath))
             {

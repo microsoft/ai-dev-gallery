@@ -8,6 +8,7 @@ using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -21,6 +22,17 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class ScenarioPage : Page
 {
+    private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
+    {
+        { "Default", ExecutionProviderDevicePolicy.DEFAULT },
+        { "Max Efficency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
+        { "Max Performance", ExecutionProviderDevicePolicy.MAX_PERFORMANCE },
+        { "Minimize Overall Power", ExecutionProviderDevicePolicy.MIN_OVERALL_POWER },
+        { "Prefer NPU", ExecutionProviderDevicePolicy.PREFER_NPU },
+        { "Prefer GPU", ExecutionProviderDevicePolicy.PREFER_GPU },
+        { "Prefer CPU", ExecutionProviderDevicePolicy.PREFER_CPU },
+    };
+
     private Scenario? scenario;
     private List<Sample>? samples;
     private Sample? sample;
@@ -44,6 +56,9 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
+        WinMLEpSelectionDevicePolicyComboBox.SelectedIndex = App.AppData.LastExecutionProviderDevicePolicyIndex;
+        WinMLEpSelectionDevicePolicyComboBox.SelectionChanged += WinMLEpSelectionDevicePolicyComboBox_SelectionChanged;
+
         if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
@@ -115,9 +130,20 @@ internal sealed partial class ScenarioPage : Page
             selectedModels = [selectedModels[0], null];
         }
 
+        // show for non language onnx models
+        // parameter size is only for language models
+        if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
+        {
+            WinMLEpSelectionDevicePolicyComboBox.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            WinMLEpSelectionDevicePolicyComboBox.Visibility = Visibility.Collapsed;
+        }
+
         List<Sample> viableSamples = samples!.Where(s =>
-            IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
-            IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
+                IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
+                IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
 
         if (viableSamples.Count == 0)
         {
@@ -155,9 +181,16 @@ internal sealed partial class ScenarioPage : Page
 
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
+        ExecutionProviderDevicePolicy devicePolicy = ExecutionProviderDevicePolicy.DEFAULT;
+
+        if (WinMLEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && WinMLEpSelectionDevicePolicyComboBox.SelectedItem is string key)
+        {
+            devicePolicy = executionProviderDevicePolicies[key];
+        }
+
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails]);
+        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], devicePolicy);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -267,5 +300,18 @@ internal sealed partial class ScenarioPage : Page
             .ToList().FirstOrDefault();
 
         LoadSample(selectedSample);
+    }
+
+    private async void WinMLEpSelectionDevicePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (WinMLEpSelectionDevicePolicyComboBox.SelectedIndex == -1 || WinMLEpSelectionDevicePolicyComboBox.SelectedIndex == App.AppData.LastExecutionProviderDevicePolicyIndex)
+        {
+            return;
+        }
+
+        LoadSample(sample);
+
+        App.AppData.LastExecutionProviderDevicePolicyIndex = WinMLEpSelectionDevicePolicyComboBox.SelectedIndex;
+        await App.AppData.SaveAsync();
     }
 }

@@ -3,6 +3,7 @@
 
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
+using Microsoft.ML.OnnxRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ internal class SampleNavigationParameters(
         HardwareAccelerator hardwareAccelerator,
         LlmPromptTemplate? promptTemplate,
         TaskCompletionSource sampleLoadedCompletionSource,
+        ExecutionProviderDevicePolicy? executionProviderDevicePolicy,
         CancellationToken loadingCanceledToken)
     : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
 {
@@ -25,6 +27,8 @@ internal class SampleNavigationParameters(
     protected override string ChatClientModelPath => ModelPath;
     protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerator;
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
+
+    public override ExecutionProviderDevicePolicy WinMLExecutionProviderDevicePolicy => executionProviderDevicePolicy ?? ExecutionProviderDevicePolicy.DEFAULT;
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)
     {

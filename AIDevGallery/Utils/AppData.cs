@@ -32,6 +32,8 @@ internal class AppData
 
     public string LastSystemPrompt { get; set; }
 
+    public int LastExecutionProviderDevicePolicyIndex { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();

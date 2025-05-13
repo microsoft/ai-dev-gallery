@@ -57,52 +57,56 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Button
-                    x:Name="ModelBtn"
-                    Padding="8,5,8,6"
-                    AutomationProperties.Name="Selected models"
-                    Click="ModelBtn_Click">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
-                        <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="24" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="models:ModelDetails">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Image Width="16" Source="{x:Bind Icon}" />
-                                        <TextBlock Text="{x:Bind Name}" />
-                                        <ItemsRepeater
-                                            Grid.Column="1"
-                                            VerticalAlignment="Center"
-                                            ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
-                                            <ItemsRepeater.Layout>
-                                                <StackLayout Orientation="Horizontal" Spacing="4" />
-                                            </ItemsRepeater.Layout>
-                                            <ItemsRepeater.ItemTemplate>
-                                                <DataTemplate x:DataType="models:HardwareAccelerator">
-                                                    <Border
-                                                        Padding="2,0,2,0"
-                                                        Background="{ThemeResource TertiaryButtonBackground}"
-                                                        BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
-                                                        BorderThickness="1"
-                                                        CornerRadius="{StaticResource ControlCornerRadius}">
-                                                        <TextBlock
-                                                            AutomationProperties.AccessibilityView="Raw"
-                                                            FontSize="10"
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsRepeater.ItemTemplate>
-                                        </ItemsRepeater>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Button>
+                <StackPanel Orientation="Horizontal" Padding="8,5,8,6">
+                    <Button
+                        x:Name="ModelBtn"
+                        AutomationProperties.Name="Selected models"
+                        Click="ModelBtn_Click">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
+                            <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Horizontal" Spacing="24" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ModelDetails">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Image Width="16" Source="{x:Bind Icon}" />
+                                            <TextBlock Text="{x:Bind Name}" />
+                                            <ItemsRepeater
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                ItemsSource="{x:Bind HardwareAccelerators, Mode=OneWay}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                        <Border
+                                                            Padding="2,0,2,0"
+                                                            Background="{ThemeResource TertiaryButtonBackground}"
+                                                            BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="{StaticResource ControlCornerRadius}">
+                                                            <TextBlock
+                                                                AutomationProperties.AccessibilityView="Raw"
+                                                                FontSize="10"
+                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Button>
+                    <ComboBox x:Name="WinMLEpSelectionDevicePolicyComboBox" 
+                              ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
+                              Visibility="Collapsed"></ComboBox>
+                </StackPanel>
                 <StackPanel
                     x:Name="ButtonsPanel"
                     HorizontalAlignment="Right"

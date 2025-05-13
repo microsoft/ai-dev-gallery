@@ -8,6 +8,7 @@ using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
@@ -60,6 +61,7 @@ internal sealed partial class SampleContainer : UserControl
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
     private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
+    private ExecutionProviderDevicePolicy? _currentExecutionPolicy;
     private List<ModelDetails>? _modelsCache;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
@@ -125,7 +127,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy? winMLExecutionPolicy = ExecutionProviderDevicePolicy.DEFAULT)
     {
         if (sample == null)
         {
@@ -247,6 +249,7 @@ internal sealed partial class SampleContainer : UserControl
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
+                winMLExecutionPolicy,
                 token);
         }
         else
@@ -266,6 +269,7 @@ internal sealed partial class SampleContainer : UserControl
                 [.. hardwareAccelerators],
                 [.. promptTemplates],
                 _sampleLoadedCompletionSource,
+                winMLExecutionPolicy,
                 token);
         }
 
@@ -295,11 +299,12 @@ internal sealed partial class SampleContainer : UserControl
     }
 
     [MemberNotNull(nameof(_sampleCache))]
-    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models)
+    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy? policy = null)
     {
         if (_sampleCache == sample &&
             _modelsCache != null &&
-            models != null)
+            models != null &&
+            policy != _currentExecutionPolicy)
         {
             var modelsAreEqual = true;
             if (_modelsCache.Count != models.Count)
@@ -326,6 +331,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
+        _currentExecutionPolicy = policy;
 
         if (models != null)
         {
@@ -436,6 +442,7 @@ internal sealed partial class SampleContainer : UserControl
         var sample = _sampleCache;
         _modelsCache = null;
         _sampleCache = null;
+        _currentExecutionPolicy = null;
 
         return LoadSampleAsync(sample, models);
     }
