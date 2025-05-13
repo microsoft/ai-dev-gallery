@@ -91,7 +91,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            //sessionOptions.SetEpSelectionPolicy(policy);
+            sessionOptions.SetEpSelectionPolicy(policy);
 
             var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
 
