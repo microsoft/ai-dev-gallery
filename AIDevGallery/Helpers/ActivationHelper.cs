@@ -91,9 +91,7 @@ internal static class ActivationHelper
         }
 
         string adjustedPath = $"local-file:///{modelPath}";
-        string directoryPath = Path.GetDirectoryName(modelPath) ?? string.Empty;
-        var files = Directory.GetFiles(directoryPath);
-        var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+        string? config = Directory.Exists(modelPath) ? Directory.GetFiles(modelPath).Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault() : string.Empty;
 
         ModelDetails? resultModelDetails;
         List<Sample> samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
@@ -102,7 +100,7 @@ internal static class ActivationHelper
         {
             resultModelDetails = App.ModelCache.Models.Select(cm => cm.Details).Where(modelDetails => modelDetails.Url == adjustedPath).FirstOrDefault();
         }
-        else if (!string.IsNullOrEmpty(config) && !string.IsNullOrEmpty(directoryPath))
+        else if (!string.IsNullOrEmpty(config))
         {
             HardwareAccelerator accelerator;
 
@@ -117,7 +115,7 @@ internal static class ActivationHelper
                 accelerator = HardwareAccelerator.CPU;
             }
 
-            resultModelDetails = await UserAddedModelUtil.AddLanguageModelFromLocalFilepath(directoryPath, Path.GetFileNameWithoutExtension(modelPath), accelerator);
+            resultModelDetails = await UserAddedModelUtil.AddLanguageModelFromLocalFilepath(modelPath, Path.GetFileNameWithoutExtension(modelPath), accelerator);
         }
         else
         {
