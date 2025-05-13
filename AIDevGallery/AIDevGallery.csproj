@@ -102,16 +102,6 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(Platform) == 'ARM64'">
-    <!--<PackageReference Include="Microsoft.ML.OnnxRuntime.QNN" />-->
-    <!--<PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />-->
-  </ItemGroup>
-	
-  <ItemGroup Condition="$(Platform) == 'x64'">
-    <!--<PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />-->
-    <!--<PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />-->
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\AIDevGallery.SourceGenerator\AIDevGallery.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\AIDevGallery.Utils\AIDevGallery.Utils.csproj" />
