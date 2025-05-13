@@ -175,7 +175,7 @@ internal partial class Generator
                 }
 
                 modelPathStr = $"System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, \"Models\", @\"{modelPath}\")";
-                modelInfo = modelInfo with { Path = modelPath };
+                modelInfo = modelInfo with { Path = modelInfo.Path };
             }
             else
             {
@@ -327,11 +327,11 @@ internal partial class Generator
                     var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.Value.ExpandedModelDetails.Path);
                     if (!cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{Path.GetFileName(modelInfo.Value.ExpandedModelDetails.Path)}");
                     }
                     else
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}\**");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{Path.GetFileName(modelInfo.Value.ExpandedModelDetails.Path)}\**");
                     }
                 }
             }
