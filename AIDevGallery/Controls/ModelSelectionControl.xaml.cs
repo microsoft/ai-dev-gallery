@@ -86,7 +86,7 @@ internal partial class ModelSelectionControl : UserControl
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        PopulateModelDetailsLists();
+        DispatcherQueue.TryEnqueue(PopulateModelDetailsLists);
     }
 
     private void ResetAndLoadModelList(ModelDetails? selectedModel = null)

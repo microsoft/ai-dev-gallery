@@ -154,7 +154,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        ResetAndLoadModelList();
+        DispatcherQueue.TryEnqueue(ResetAndLoadModelList);
     }
 
     private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
