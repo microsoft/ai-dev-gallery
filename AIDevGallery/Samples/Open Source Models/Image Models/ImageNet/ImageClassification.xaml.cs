@@ -78,7 +78,6 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
             try
             {
-                Debug.WriteLine("Downloading packages ...");
                 await infrastructure.DownloadPackagesAsync();
             }
             catch (Exception ex)
