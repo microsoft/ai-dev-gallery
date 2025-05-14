@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -16,6 +17,8 @@ namespace AIDevGallery.Utils;
 
 internal class AppData
 {
+    private static readonly SemaphoreSlim _saveSemaphore = new(1, 1);
+
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
     public CustomParametersState? LastCustomParamtersState { get; set; }
@@ -54,6 +57,7 @@ internal class AppData
         AppData? appData = null;
 
         var configFile = GetConfigFilePath();
+        await _saveSemaphore.WaitAsync();
 
         try
         {
@@ -69,6 +73,7 @@ internal class AppData
         finally
         {
             appData ??= GetDefault();
+            _saveSemaphore.Release();
         }
 
         return appData;
@@ -76,8 +81,16 @@ internal class AppData
 
     public async Task SaveAsync()
     {
-        var str = JsonSerializer.Serialize(this, AppDataSourceGenerationContext.Default.AppData);
-        await File.WriteAllTextAsync(GetConfigFilePath(), str);
+        await _saveSemaphore.WaitAsync();
+        try
+        {
+            var str = JsonSerializer.Serialize(this, AppDataSourceGenerationContext.Default.AppData);
+            await File.WriteAllTextAsync(GetConfigFilePath(), str);
+        }
+        finally
+        {
+            _saveSemaphore.Release();
+        }
     }
 
     public async Task AddMru(MostRecentlyUsedItem item, List<(string Id, HardwareAccelerator HardwareAccelerator)>? modelOrApiUsage)
