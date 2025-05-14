@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Pages;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Utils;
@@ -11,6 +12,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -69,54 +71,55 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.HardwareAccelerators[0], sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMLExecutionProviderDevicePolicy);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, HardwareAccelerator poseHardwareAccelerator, string detectionModelPath, HardwareAccelerator detectionHardwareAccelerator)
+    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy policy)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
-            if (_poseSession != null)
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
             {
-                return;
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
             }
 
-            SessionOptions poseOptions = new();
-            poseOptions.RegisterOrtExtensions();
-            if (poseHardwareAccelerator == HardwareAccelerator.DML)
-            {
-                poseOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-            }
-            else if (poseHardwareAccelerator == HardwareAccelerator.QNN)
-            {
-                Dictionary<string, string> options = new()
-                {
-                    { "backend_path", "QnnHtp.dll" },
-                    { "htp_performance_mode", "high_performance" },
-                    { "htp_graph_finalization_optimization_mode", "3" }
-                };
-                poseOptions.AppendExecutionProvider("QNN", options);
-            }
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
-            _poseSession = new InferenceSession(poseModelPath, poseOptions);
-
-            if (_detectionSession != null)
-            {
-                return;
-            }
-
-            SessionOptions detectionOptions = new();
-            detectionOptions.RegisterOrtExtensions();
-            if (detectionHardwareAccelerator == HardwareAccelerator.DML)
-            {
-                detectionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-            }
-
-            _detectionSession = new InferenceSession(detectionModelPath, detectionOptions);
+            _poseSession = GetInferenceSession(poseModelPath, policy);
+            _detectionSession = GetInferenceSession(detectionModelPath, policy);
         });
+    }
+
+    private InferenceSession GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy policy)
+    {
+        using SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+        sessionOptions.SetEpSelectionPolicy(policy);
+        var modelCompiledPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+        if (!File.Exists(modelCompiledPath))
+        {
+            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+            compilationOptions.SetInputModelPath(modelPath);
+            compilationOptions.SetOutputModelPath(modelCompiledPath);
+            compilationOptions.CompileModel();
+        }
+
+        if (File.Exists(modelCompiledPath))
+        {
+            modelPath = modelCompiledPath;
+        }
+
+        return new InferenceSession(modelPath, sessionOptions);
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
