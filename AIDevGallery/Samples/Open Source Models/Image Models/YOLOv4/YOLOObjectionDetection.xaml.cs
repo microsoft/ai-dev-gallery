@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -60,8 +61,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
-        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+        await InitModel(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
 
         sampleParams.NotifyCompletion();
 
@@ -69,20 +69,48 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
         await DetectObjects(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                Debug.WriteLine("Downloading packages ...");
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-            if (hardwareAccelerator == HardwareAccelerator.DML)
+
+            sessionOptions.SetEpSelectionPolicy(policy);
+
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+            if (!File.Exists(compiledModelPath))
             {
-                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+                modelPath = compiledModelPath;
+            }
+
+            if (File.Exists(compiledModelPath))
+            {
+                modelPath = compiledModelPath;
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);

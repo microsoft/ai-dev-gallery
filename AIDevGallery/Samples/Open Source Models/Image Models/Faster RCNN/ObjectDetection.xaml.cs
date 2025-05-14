@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -50,7 +51,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath);
+        await InitModel(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
 
         sampleParams.NotifyCompletion();
 
@@ -65,17 +66,49 @@ internal sealed partial class ObjectDetection : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                Debug.WriteLine("Downloading packages ...");
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
+
+            sessionOptions.SetEpSelectionPolicy(policy);
+
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+            if (!File.Exists(compiledModelPath))
+            {
+                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+                modelPath = compiledModelPath;
+            }
+
+            if (File.Exists(compiledModelPath))
+            {
+                modelPath = compiledModelPath;
+            }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
