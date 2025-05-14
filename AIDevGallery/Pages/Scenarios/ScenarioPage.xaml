@@ -103,8 +103,7 @@
                             </ItemsRepeater>
                         </StackPanel>
                     </Button>
-                    <ComboBox x:Name="WinMLEpSelectionDevicePolicyComboBox" 
-                              ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
+                    <ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox" 
                               Visibility="Collapsed"></ComboBox>
                 </StackPanel>
                 <StackPanel

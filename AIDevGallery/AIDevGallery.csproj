@@ -33,6 +33,7 @@
     <AppxBundle>Never</AppxBundle>
     <AppInstallerUri>F:\Projects\ai-dev-gallery-private\Publish</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
   <ItemGroup>

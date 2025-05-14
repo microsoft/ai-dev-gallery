@@ -149,8 +149,10 @@ internal static class AppUtils
         switch (hardwareAccelerator)
         {
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "GPU";
             case HardwareAccelerator.QNN:
+            case HardwareAccelerator.NPU:
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
                 return "Windows AI API";
@@ -176,9 +178,11 @@ internal static class AppUtils
             case HardwareAccelerator.CPU:
                 return "This model will run on CPU";
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "This model will run on supported GPUs with DirectML";
             case HardwareAccelerator.QNN:
-                return "This model will run on Qualcomm NPUs";
+            case HardwareAccelerator.NPU:
+                return "This model will run on NPUs";
             case HardwareAccelerator.WCRAPI:
                 return "The model used by this Windows AI API will run on NPU";
             case HardwareAccelerator.OLLAMA:

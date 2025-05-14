@@ -8,7 +8,6 @@ using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
@@ -61,8 +60,8 @@ internal sealed partial class SampleContainer : UserControl
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
     private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
-    private ExecutionProviderDevicePolicy _currentExecutionPolicy;
     private List<ModelDetails>? _modelsCache;
+    private string? _currentPreferedEp;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
@@ -127,7 +126,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy winMLExecutionPolicy = default)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, string? preferedEP = null)
     {
         if (sample == null)
         {
@@ -136,7 +135,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         this.Visibility = Visibility.Visible;
-        if (!LoadSampleMetadata(sample, models, winMLExecutionPolicy))
+        if (!LoadSampleMetadata(sample, models, preferedEP))
         {
             return;
         }
@@ -249,7 +248,8 @@ internal sealed partial class SampleContainer : UserControl
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
-                winMLExecutionPolicy,
+                preferedEP,
+                null,
                 token);
         }
         else
@@ -269,7 +269,8 @@ internal sealed partial class SampleContainer : UserControl
                 [.. hardwareAccelerators],
                 [.. promptTemplates],
                 _sampleLoadedCompletionSource,
-                winMLExecutionPolicy,
+                preferedEP,
+                null,
                 token);
         }
 
@@ -299,12 +300,12 @@ internal sealed partial class SampleContainer : UserControl
     }
 
     [MemberNotNull(nameof(_sampleCache))]
-    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, ExecutionProviderDevicePolicy policy = default)
+    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, string? preferedEP = null)
     {
         if (_sampleCache == sample &&
             _modelsCache != null &&
             models != null &&
-            policy == _currentExecutionPolicy)
+            preferedEP == _currentPreferedEp)
         {
             var modelsAreEqual = true;
             if (_modelsCache.Count != models.Count)
@@ -331,11 +332,11 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
-        _currentExecutionPolicy = policy;
+        _currentPreferedEp = preferedEP;
 
         if (models != null)
         {
-            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentExecutionPolicy);
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
 
             if (_cachedModels != null)
             {
@@ -442,7 +443,7 @@ internal sealed partial class SampleContainer : UserControl
         var sample = _sampleCache;
         _modelsCache = null;
         _sampleCache = null;
-        _currentExecutionPolicy = default;
+        _currentPreferedEp = default;
 
         return LoadSampleAsync(sample, models);
     }

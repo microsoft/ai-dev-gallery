@@ -12,5 +12,10 @@ internal enum HardwareAccelerator
     DML,
     QNN,
     WCRAPI,
-    OLLAMA
+    OLLAMA,
+    OPENAI,
+    NPU,
+    GPU,
+    VitisAI,
+    OpenVINO,
 }

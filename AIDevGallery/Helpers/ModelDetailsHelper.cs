@@ -189,6 +189,8 @@ internal static class ModelDetailsHelper
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.NPU)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN);
     }
 

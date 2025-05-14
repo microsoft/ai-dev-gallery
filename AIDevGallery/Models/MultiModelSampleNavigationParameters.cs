@@ -16,6 +16,7 @@ internal class MultiModelSampleNavigationParameters(
         HardwareAccelerator[] hardwareAccelerators,
         LlmPromptTemplate?[] promptTemplates,
         TaskCompletionSource sampleLoadedCompletionSource,
+        string? preferedEP,
         ExecutionProviderDevicePolicy? executionProviderDevicePolicy,
         CancellationToken loadingCanceledToken)
     : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
@@ -28,6 +29,8 @@ internal class MultiModelSampleNavigationParameters(
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplates[0];
 
     public override ExecutionProviderDevicePolicy WinMLExecutionProviderDevicePolicy => executionProviderDevicePolicy ?? ExecutionProviderDevicePolicy.DEFAULT;
+
+    public override string PreferedEP => preferedEP ?? "CPU";
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)
     {

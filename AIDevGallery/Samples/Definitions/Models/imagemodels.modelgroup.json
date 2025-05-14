@@ -18,7 +18,7 @@
             "Description": "FPN",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 167330019,
             "License": "mit"
@@ -30,7 +30,7 @@
             "Description": "FPN-fp32",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 176713194,
             "License": "mit"
@@ -51,7 +51,7 @@
             "Description": "ResNet101 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 178914043,
             "License": "apache-2.0"
@@ -63,7 +63,7 @@
             "Description": "ResNet50 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 102583340,
             "License": "apache-2.0"
@@ -84,7 +84,7 @@
             "Description": "MobileNet v2 1.0",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 13963115,
             "License": "apache-2.0"
@@ -105,7 +105,7 @@
             "Description": "SqueezeNet 1.1",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 4956208,
@@ -123,11 +123,11 @@
           "HRNetPoseQualcomm": {
             "Id": "b7cae312-478f-1177-9559-709df5dfe703",
             "Name": "HRNet Pose",
-            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/hrnet_pose/hrnet_pose.onnx",
+            "Url": "https://huggingface.co/microsoft/GPU-ai-hub-models/blob/main/hrnet_pose/hrnet_pose.onnx",
             "Description": "HRNet Pose",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 114232171,
@@ -145,11 +145,11 @@
           "ESRGANQualcomm": {
             "Id": "b7dfe312-478f-1177-9559-709df5dfe703",
             "Name": "ESRGAN",
-            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/esrgan/esrgan.onnx",
+            "Url": "https://huggingface.co/microsoft/GPU-ai-hub-models/blob/main/esrgan/esrgan.onnx",
             "Description": "ESRGAN",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 67162397,
@@ -167,11 +167,11 @@
           "FFNet78s": {
             "Id": "b7cae302-478f-1177-9559-709df5dfe703",
             "Name": "FFNet 78s",
-            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_78s/ffnet_78s.onnx",
+            "Url": "https://huggingface.co/microsoft/GPU-ai-hub-models/blob/main/ffnet_78s/ffnet_78s.onnx",
             "Description": "FFNet 78s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 109974166,
@@ -180,11 +180,11 @@
           "FFNet54s": {
             "Id": "b7cae311-478f-1177-9559-709df5dfe703",
             "Name": "FFNet 54s",
-            "Url": "https://huggingface.co/microsoft/dml-ai-hub-models/blob/main/ffnet_54s/ffnet_54s.onnx",
+            "Url": "https://huggingface.co/microsoft/GPU-ai-hub-models/blob/main/ffnet_54s/ffnet_54s.onnx",
             "Description": "FFNet 54s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 72188137,
@@ -206,7 +206,7 @@
             "Description": "YOLOv4 optimizes the speed and accuracy of object detection.",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 257470589,
             "License": "mit"
@@ -227,7 +227,7 @@
             "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 414444,
@@ -249,7 +249,7 @@
             "Description": "face_det_lite is a machine learning model that detect face in the images",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "Size": 3540725,

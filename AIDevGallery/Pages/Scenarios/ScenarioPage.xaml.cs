@@ -12,27 +12,18 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using static UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor.ContentOrderTextExtractor;
 
 namespace AIDevGallery.Pages;
 
 internal sealed partial class ScenarioPage : Page
 {
-    private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
-    {
-        { "Default", ExecutionProviderDevicePolicy.DEFAULT },
-        { "Max Efficency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
-        { "Max Performance", ExecutionProviderDevicePolicy.MAX_PERFORMANCE },
-        { "Minimize Overall Power", ExecutionProviderDevicePolicy.MIN_OVERALL_POWER },
-        { "Prefer NPU", ExecutionProviderDevicePolicy.PREFER_NPU },
-        { "Prefer GPU", ExecutionProviderDevicePolicy.PREFER_GPU },
-        { "Prefer CPU", ExecutionProviderDevicePolicy.PREFER_CPU },
-    };
-
     private Scenario? scenario;
     private List<Sample>? samples;
     private Sample? sample;
@@ -56,8 +47,7 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
-        WinMLEpSelectionDevicePolicyComboBox.SelectedIndex = App.AppData.LastExecutionProviderDevicePolicyIndex;
-        WinMLEpSelectionDevicePolicyComboBox.SelectionChanged += WinMLEpSelectionDevicePolicyComboBox_SelectionChanged;
+        DeviceEpSelectionDevicePolicyComboBox.SelectionChanged += DeviceEpSelectionDevicePolicyComboBox_SelectionChanged;
 
         if (parameter is Scenario scenario)
         {
@@ -112,6 +102,51 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
+    private static Dictionary<HardwareAccelerator, string>? supportedHardwareAccelerators;
+
+    private static Dictionary<HardwareAccelerator, string> GetSupportedHardwareAccelerators()
+    {
+        if (supportedHardwareAccelerators != null)
+        {
+            return supportedHardwareAccelerators;
+        }
+
+        supportedHardwareAccelerators = new();
+        supportedHardwareAccelerators[HardwareAccelerator.CPU] = "CPU";
+
+        IReadOnlyList<OrtEpDevice> epDevices = OrtEnv.Instance().GetEpDevices();
+
+        Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (OrtEpDevice device in epDevices)
+        {
+            switch(device.EpName)
+            {
+                case "VitisAIExecutionProvider":
+                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    break;
+
+                case "OpenVINOExecutionProvider":
+                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    break;
+
+                case "QNNExecutionProvider":
+                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    break;
+
+                case "DmlExecutionProvider":
+                    supportedHardwareAccelerators[HardwareAccelerator.DML] = "GPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.GPU] = "GPU";
+                    break;
+            }
+        }
+
+        return supportedHardwareAccelerators;
+    }
+
     private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
     {
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
@@ -124,21 +159,39 @@ internal sealed partial class ScenarioPage : Page
         modelDetails.Clear();
         selectedModels.ForEach(modelDetails.Add);
 
+        if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
+        {
+            HashSet<string> eps = ["CPU"];
+            var supportedHardwareAccelerators = GetSupportedHardwareAccelerators();
+
+            DeviceEpSelectionDevicePolicyComboBox.Items.Clear();
+
+            foreach (var harwareAccelerator in selectedModels.SelectMany(m => m!.HardwareAccelerators).Distinct())
+            {
+                if (supportedHardwareAccelerators.TryGetValue(harwareAccelerator, out var ep))
+                {
+                    eps.Add(ep);
+                }
+            }
+
+            foreach (var ep in eps)
+            {
+                DeviceEpSelectionDevicePolicyComboBox.Items.Add(ep);
+            }
+
+            DeviceEpSelectionDevicePolicyComboBox.SelectedIndex = DeviceEpSelectionDevicePolicyComboBox.Items.IndexOf(App.AppData.LastPreferedEP ?? "CPU");
+
+            DeviceEpSelectionDevicePolicyComboBox.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            DeviceEpSelectionDevicePolicyComboBox.Visibility = Visibility.Collapsed;
+        }
+
         if (selectedModels.Count == 1)
         {
             // add the second model with null
             selectedModels = [selectedModels[0], null];
-        }
-
-        // show for non language onnx models
-        // parameter size is only for language models
-        if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
-        {
-            WinMLEpSelectionDevicePolicyComboBox.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            WinMLEpSelectionDevicePolicyComboBox.Visibility = Visibility.Collapsed;
         }
 
         List<Sample> viableSamples = samples!.Where(s =>
@@ -181,16 +234,16 @@ internal sealed partial class ScenarioPage : Page
 
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
-        ExecutionProviderDevicePolicy devicePolicy = ExecutionProviderDevicePolicy.DEFAULT;
+        string? preferedEP = null;
 
-        if (WinMLEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && WinMLEpSelectionDevicePolicyComboBox.SelectedItem is string key)
+        if (DeviceEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && DeviceEpSelectionDevicePolicyComboBox.SelectedItem is string ep)
         {
-            devicePolicy = executionProviderDevicePolicies[key];
+            preferedEP = ep;
         }
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], devicePolicy);
+        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], preferedEP);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -267,14 +320,7 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        ExecutionProviderDevicePolicy devicePolicy = ExecutionProviderDevicePolicy.DEFAULT;
-
-        if (WinMLEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && WinMLEpSelectionDevicePolicyComboBox.SelectedItem is string key)
-        {
-            devicePolicy = executionProviderDevicePolicies[key];
-        }
-
-        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), devicePolicy, XamlRoot);
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), DeviceEpSelectionDevicePolicyComboBox.SelectedItem as string ?? "CPU", XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -309,16 +355,14 @@ internal sealed partial class ScenarioPage : Page
         LoadSample(selectedSample);
     }
 
-    private async void WinMLEpSelectionDevicePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void DeviceEpSelectionDevicePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (WinMLEpSelectionDevicePolicyComboBox.SelectedIndex == -1 || WinMLEpSelectionDevicePolicyComboBox.SelectedIndex == App.AppData.LastExecutionProviderDevicePolicyIndex)
+        if (DeviceEpSelectionDevicePolicyComboBox.SelectedItem is string ep && ep != App.AppData.LastPreferedEP)
         {
-            return;
+            LoadSample(sample);
+
+            App.AppData.LastPreferedEP = ep;
+            await App.AppData.SaveAsync();
         }
-
-        LoadSample(sample);
-
-        App.AppData.LastExecutionProviderDevicePolicyIndex = WinMLEpSelectionDevicePolicyComboBox.SelectedIndex;
-        await App.AppData.SaveAsync();
     }
 }

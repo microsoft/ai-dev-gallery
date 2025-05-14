@@ -112,35 +112,36 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 var existingAvailableModel = AvailableModels.FirstOrDefault(m => m?.ModelDetails.Url == model.Url);
                 if (existingAvailableModel == null)
                 {
-                    foreach (var hardwareAccelerator in model.HardwareAccelerators)
-                    {
-                        var modelDetails = new ModelDetails
-                        {
-                            Id = model.Id,
-                            Name = model.Name,
-                            Url = model.Url,
-                            Description = model.Description,
-                            HardwareAccelerators = [hardwareAccelerator],
-                            SupportedOnQualcomm = model.SupportedOnQualcomm,
-                            Size = model.Size,
-                            Icon = model.Icon,
-                            ParameterSize = model.ParameterSize,
-                            IsUserAdded = model.IsUserAdded,
-                            PromptTemplate = model.PromptTemplate,
-                            ReadmeUrl = model.ReadmeUrl,
-                            License = model.License,
-                            FileFilters = model.FileFilters
-                        };
+                    AvailableModels.Add(new AvailableModel(model));
+                    //foreach (var hardwareAccelerator in model.HardwareAccelerators)
+                    //{
+                    //    var modelDetails = new ModelDetails
+                    //    {
+                    //        Id = model.Id,
+                    //        Name = model.Name,
+                    //        Url = model.Url,
+                    //        Description = model.Description,
+                    //        HardwareAccelerators = [hardwareAccelerator],
+                    //        SupportedOnQualcomm = model.SupportedOnQualcomm,
+                    //        Size = model.Size,
+                    //        Icon = model.Icon,
+                    //        ParameterSize = model.ParameterSize,
+                    //        IsUserAdded = model.IsUserAdded,
+                    //        PromptTemplate = model.PromptTemplate,
+                    //        ReadmeUrl = model.ReadmeUrl,
+                    //        License = model.License,
+                    //        FileFilters = model.FileFilters
+                    //    };
 
-                        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
-                        {
-                            AvailableModels.Add(new AvailableModel(modelDetails));
-                        }
-                        else
-                        {
-                            // UnavailableModels.Add(new DownloadableModel(modelDetails));
-                        }
-                    }
+                    //    if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
+                    //    {
+                    //        AvailableModels.Add(new AvailableModel(modelDetails));
+                    //    }
+                    //    else
+                    //    {
+                    //        // UnavailableModels.Add(new DownloadableModel(modelDetails));
+                    //    }
+                    //}
                 }
 
                 // remove if already in the downloadable list

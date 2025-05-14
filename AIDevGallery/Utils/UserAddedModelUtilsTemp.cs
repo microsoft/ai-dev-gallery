@@ -25,7 +25,7 @@ internal static class UserAddedModelUtilsTemp
 
         if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
         {
-            return HardwareAccelerator.DML;
+            return HardwareAccelerator.GPU;
         }
 
         return HardwareAccelerator.CPU;

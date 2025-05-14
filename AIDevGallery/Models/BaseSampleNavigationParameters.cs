@@ -20,6 +20,7 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
     protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
 
     public abstract ExecutionProviderDevicePolicy WinMLExecutionProviderDevicePolicy { get; }
+    public abstract string PreferedEP { get; }
 
     public void NotifyCompletion()
     {

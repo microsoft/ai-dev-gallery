@@ -35,7 +35,7 @@ internal class AppData
 
     public string LastSystemPrompt { get; set; }
 
-    public int LastExecutionProviderDevicePolicyIndex { get; set; }
+    public string? LastPreferedEP { get; set; }
 
     public AppData()
     {
