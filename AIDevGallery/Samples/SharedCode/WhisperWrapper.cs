@@ -38,7 +38,7 @@ internal class WhisperWrapper : IDisposable
         using SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
-        sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_CPU);
+        sessionOptions.SetEpSelectionPolicy(policy);
 
         var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
 
