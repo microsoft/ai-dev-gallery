@@ -93,12 +93,16 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
             sessionOptions.SetEpSelectionPolicy(policy);
 
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
 
-            OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(compiledModelPath);
-            compilationOptions.CompileModel();
+            if (!File.Exists(compiledModelPath))
+            {
+                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+                modelPath = compiledModelPath;
+            }
 
             if (File.Exists(compiledModelPath))
             {
