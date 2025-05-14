@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -82,7 +81,6 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
 
             try
             {
-                Debug.WriteLine("Downloading packages ...");
                 await infrastructure.DownloadPackagesAsync();
             }
             catch (Exception ex)

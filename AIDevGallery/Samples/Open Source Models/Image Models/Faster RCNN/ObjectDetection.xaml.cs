@@ -79,7 +79,6 @@ internal sealed partial class ObjectDetection : BaseSamplePage
 
             try
             {
-                Debug.WriteLine("Downloading packages ...");
                 await infrastructure.DownloadPackagesAsync();
             }
             catch (Exception ex)

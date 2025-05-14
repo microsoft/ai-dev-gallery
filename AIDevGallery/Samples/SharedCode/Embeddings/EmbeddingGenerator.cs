@@ -61,6 +61,14 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
     }
 
+    public EmbeddingGenerator(string modelPath, SessionOptions sessionOptions)
+    {
+        _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
+        _sessionOptions = sessionOptions;
+        _inferenceSession = new InferenceSession(modelPath, _sessionOptions);
+        _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
+    }
+
     public Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
     {
         return InternalGenerateEmbeddings(values, null, options, cancellationToken);
@@ -286,5 +294,47 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :
             null;
+    }
+}
+
+internal static class EmbeddingGeneratorFactory
+{
+    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, ExecutionProviderDevicePolicy policy)
+    {
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+        try
+        {
+            Debug.WriteLine("Downloading packages ...");
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+        }
+
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+        SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        sessionOptions.SetEpSelectionPolicy(policy);
+
+        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+        if (!File.Exists(compiledModelPath))
+        {
+            OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+            compilationOptions.SetInputModelPath(modelPath);
+            compilationOptions.SetOutputModelPath(compiledModelPath);
+            compilationOptions.CompileModel();
+        }
+
+        if (File.Exists(compiledModelPath))
+        {
+            modelPath = compiledModelPath;
+        }
+
+        return new EmbeddingGenerator(modelPath, sessionOptions);
     }
 }
