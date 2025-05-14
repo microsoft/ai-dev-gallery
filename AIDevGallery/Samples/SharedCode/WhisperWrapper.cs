@@ -19,9 +19,8 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy policy)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, string preferedEp)
     {
-        
         Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
         try
@@ -38,9 +37,9 @@ internal class WhisperWrapper : IDisposable
         using SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
-        sessionOptions.SetEpSelectionPolicy(policy);
+        sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
-        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
         if (!File.Exists(compiledModelPath))
         {

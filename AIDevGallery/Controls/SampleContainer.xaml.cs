@@ -249,7 +249,6 @@ internal sealed partial class SampleContainer : UserControl
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
                 preferedEP,
-                null,
                 token);
         }
         else
@@ -270,7 +269,6 @@ internal sealed partial class SampleContainer : UserControl
                 [.. promptTemplates],
                 _sampleLoadedCompletionSource,
                 preferedEP,
-                null,
                 token);
         }
 

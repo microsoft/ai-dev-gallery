@@ -71,13 +71,13 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMLExecutionProviderDevicePolicy);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.PreferedEP);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy policy)
+    private Task InitModels(string poseModelPath, string detectionModelPath, string preferedEp)
     {
         return Task.Run(async () =>
         {
@@ -94,17 +94,18 @@ internal sealed partial class Multipose : BaseSamplePage
 
             await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
-            _poseSession = GetInferenceSession(poseModelPath, policy);
-            _detectionSession = GetInferenceSession(detectionModelPath, policy);
+            _poseSession = GetInferenceSession(poseModelPath, preferedEp);
+            _detectionSession = GetInferenceSession(detectionModelPath, preferedEp);
         });
     }
 
-    private InferenceSession GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy policy)
+    private InferenceSession GetInferenceSession(string modelPath, string preferedEp)
     {
         using SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
-        sessionOptions.SetEpSelectionPolicy(policy);
-        var modelCompiledPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+        sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
+
+        var modelCompiledPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
         if (!File.Exists(modelCompiledPath))
         {

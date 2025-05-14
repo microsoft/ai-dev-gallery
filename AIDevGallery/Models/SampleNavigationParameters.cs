@@ -3,7 +3,6 @@
 
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
-using Microsoft.ML.OnnxRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,6 @@ internal class SampleNavigationParameters(
         LlmPromptTemplate? promptTemplate,
         TaskCompletionSource sampleLoadedCompletionSource,
         string? preferedEP,
-        ExecutionProviderDevicePolicy? executionProviderDevicePolicy,
         CancellationToken loadingCanceledToken)
     : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
 {
@@ -28,8 +26,6 @@ internal class SampleNavigationParameters(
     protected override string ChatClientModelPath => ModelPath;
     protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerator;
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
-
-    public override ExecutionProviderDevicePolicy WinMLExecutionProviderDevicePolicy => executionProviderDevicePolicy ?? ExecutionProviderDevicePolicy.DEFAULT;
 
     public override string PreferedEP => preferedEP ?? "CPU";
 

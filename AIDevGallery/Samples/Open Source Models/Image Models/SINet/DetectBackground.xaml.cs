@@ -61,14 +61,14 @@ internal sealed partial class DetectBackground : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
+        await InitModel(sampleParams.ModelPath, sampleParams.PreferedEP);
 
         sampleParams.NotifyCompletion();
 
         await Detect(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "detection_default.png"));
     }
 
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
+    private Task InitModel(string modelPath, string preferedEp)
     {
         return Task.Run(async () =>
         {
@@ -93,9 +93,9 @@ internal sealed partial class DetectBackground : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            sessionOptions.SetEpSelectionPolicy(policy);
+            sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
             if (!File.Exists(compiledModelPath))
             {

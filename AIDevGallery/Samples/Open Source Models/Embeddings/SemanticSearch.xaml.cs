@@ -58,7 +58,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected async override Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _embeddings = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
+        _embeddings = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.PreferedEP);
         sampleParams.NotifyCompletion();
 
         this.SourceTextBox.Text = _sampleText;

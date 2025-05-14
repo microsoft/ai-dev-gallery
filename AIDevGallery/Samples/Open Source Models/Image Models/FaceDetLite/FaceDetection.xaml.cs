@@ -107,13 +107,13 @@ internal sealed partial class FaceDetection : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
+        await InitModel(sampleParams.ModelPath, sampleParams.PreferedEP);
         sampleParams.NotifyCompletion();
 
         InitializeCameraPreviewControl();
     }
 
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
+    private Task InitModel(string modelPath, string preferedEp)
     {
         return Task.Run(async () =>
         {
@@ -138,9 +138,9 @@ internal sealed partial class FaceDetection : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            sessionOptions.SetEpSelectionPolicy(policy);
+            sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
             if (!File.Exists(compiledModelPath))
             {

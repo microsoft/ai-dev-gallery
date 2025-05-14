@@ -299,7 +299,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
 internal static class EmbeddingGeneratorFactory
 {
-    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, ExecutionProviderDevicePolicy policy)
+    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, string preferedEp = "CPU")
     {
         Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
@@ -317,10 +317,9 @@ internal static class EmbeddingGeneratorFactory
 
         SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
+        sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
-        sessionOptions.SetEpSelectionPolicy(policy);
-
-        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
         if (!File.Exists(compiledModelPath))
         {

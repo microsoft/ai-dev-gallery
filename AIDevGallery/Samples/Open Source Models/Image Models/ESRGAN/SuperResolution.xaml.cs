@@ -59,15 +59,14 @@ internal sealed partial class SuperResolution : BaseSamplePage
     /// <inheritdoc/>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var policy = sampleParams.WinMLExecutionProviderDevicePolicy;
-        await InitModel(sampleParams.ModelPath, policy);
+        await InitModel(sampleParams.ModelPath, sampleParams.PreferedEP);
 
         sampleParams.NotifyCompletion();
 
         await EnhanceImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "Enhance.png"));
     }
 
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
+    private Task InitModel(string modelPath, string preferedEp)
     {
         return Task.Run(async () =>
         {
@@ -91,10 +90,9 @@ internal sealed partial class SuperResolution : BaseSamplePage
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
+            sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
-            sessionOptions.SetEpSelectionPolicy(policy);
-
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
             if (!File.Exists(compiledModelPath))
             {
