@@ -95,13 +95,10 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
             var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + ".ctx.onnx";
 
-            if (!File.Exists(compiledModelPath))
-            {
-                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-                compilationOptions.SetInputModelPath(modelPath);
-                compilationOptions.SetOutputModelPath(compiledModelPath);
-                compilationOptions.CompileModel();
-            }
+            OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+            compilationOptions.SetInputModelPath(modelPath);
+            compilationOptions.SetOutputModelPath(compiledModelPath);
+            compilationOptions.CompileModel();
 
             if (File.Exists(compiledModelPath))
             {
