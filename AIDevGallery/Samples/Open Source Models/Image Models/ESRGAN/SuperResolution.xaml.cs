@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -58,38 +59,55 @@ internal sealed partial class SuperResolution : BaseSamplePage
     /// <inheritdoc/>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
-        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
+        var policy = sampleParams.WinMLExecutionProviderDevicePolicy;
+        await InitModel(sampleParams.ModelPath, policy);
 
         sampleParams.NotifyCompletion();
 
         await EnhanceImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "Enhance.png"));
     }
 
-    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy policy)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-            if (hardwareAccelerator == HardwareAccelerator.DML)
+
+            sessionOptions.SetEpSelectionPolicy(policy);
+
+            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+            if (!File.Exists(compiledModelPath))
             {
-                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+                modelPath = compiledModelPath;
             }
-            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+
+            if (File.Exists(compiledModelPath))
             {
-                Dictionary<string, string> options = new()
-                    {
-                        { "backend_path", "QnnHtp.dll" },
-                        { "htp_performance_mode", "high_performance" },
-                        { "htp_graph_finalization_optimization_mode", "3" }
-                    };
-                sessionOptions.AppendExecutionProvider("QNN", options);
+                modelPath = compiledModelPath;
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
