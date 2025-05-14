@@ -140,7 +140,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 Id = $"fl-{model.Name}",
                 Name = model.Name,
                 Url = $"{UrlPrefix}{model.Name}",
-                Description = $"{model.Name} running localy with Foundry Local",
+                Description = $"{model.Name} running locally with Foundry Local",
                 HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
                 SupportedOnQualcomm = true,
                 ProviderModelDetails = model
@@ -159,7 +159,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             Id = $"fl-{model.Name}",
             Name = model.Name,
             Url = $"{UrlPrefix}{model.Name}",
-            Description = $"{model.Alias} running localy with Foundry Local",
+            Description = $"{model.Alias} running locally with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
             Size = model.FileSizeMb * 1024 * 1024,
             SupportedOnQualcomm = true,

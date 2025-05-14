@@ -5,6 +5,7 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
 using AIDevGallery.ViewModels;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -98,9 +99,9 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         }
     }
 
-    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender is ListView modelView && modelView.SelectedItem is FoundryModelPair pair)
+        if (sender.SelectedItem is FoundryModelPair pair && pair.FoundryCatalogModel is not null)
         {
             OnSelectedModelChanged(this, pair.ModelDetails);
         }
@@ -114,16 +115,16 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
             if (modelToSelect != null)
             {
-                ModelSelectionItemsView.SelectedIndex = AvailableModels.IndexOf(modelToSelect);
+                ModelSelectionItemsView.Select(AvailableModels.IndexOf(modelToSelect));
             }
             else
             {
-                ModelSelectionItemsView.SelectedItem = null;
+                ModelSelectionItemsView.DeselectAll();
             }
         }
         else
         {
-            ModelSelectionItemsView.SelectedItem = null;
+            ModelSelectionItemsView.DeselectAll();
         }
     }
 
