@@ -101,7 +101,6 @@ internal sealed partial class ImageClassification : BaseSamplePage
                 compilationOptions.SetInputModelPath(modelPath);
                 compilationOptions.SetOutputModelPath(compiledModelPath);
                 compilationOptions.CompileModel();
-                modelPath = compiledModelPath;
             }
 
             if (File.Exists(compiledModelPath))
