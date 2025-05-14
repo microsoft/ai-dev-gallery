@@ -5,6 +5,8 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,19 +19,43 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy policy)
     {
-        InferenceSession inferenceSession = null!;
+        
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
-        await Task.Run(() =>
+        try
         {
-            SessionOptions options = new();
-            options.RegisterOrtExtensions();
-            options.AppendExecutionProvider_CPU();
-            options.LogSeverityLevel = OrtLoggingLevel.ORT_LOGGING_LEVEL_INFO;
-            inferenceSession = new InferenceSession(modelPath, options);
-        });
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+        }
 
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+        using SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        sessionOptions.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_CPU);
+
+        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{policy}.onnx";
+
+        if (!File.Exists(compiledModelPath))
+        {
+            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+            compilationOptions.SetInputModelPath(modelPath);
+            compilationOptions.SetOutputModelPath(compiledModelPath);
+            compilationOptions.CompileModel();
+        }
+
+        if (File.Exists(compiledModelPath))
+        {
+            modelPath = compiledModelPath;
+        }
+
+        InferenceSession inferenceSession = new InferenceSession(modelPath, sessionOptions);
         var whisper = new WhisperWrapper(inferenceSession);
         return whisper;
     }

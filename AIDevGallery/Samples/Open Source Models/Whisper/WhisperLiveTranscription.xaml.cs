@@ -43,7 +43,7 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
+        whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMLExecutionProviderDevicePolicy);
         sampleParams.NotifyCompletion();
     }
 
