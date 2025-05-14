@@ -71,8 +71,8 @@
         "Id": "custom-parameters"
       },
       "LoRAAdapters": {
-        "Name": "Use LoRA Adapters",
-        "Description": "Generate text with a language model and LoRA adapter.",
+        "Name": "LoRA fine-tuning for Phi Silica",
+        "Description": "Generate text by fine-tuning Phi Silica with a Low Rank Adaption (LoRA) adapter.",
         "Instructions": "Select a LoRA adapter to use with a language model. Enter a prompt to pass to the model and adapter and generate the response.",
         "Id": "generate-with-lora"
       },
