@@ -35,9 +35,9 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public EmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
+    public EmbeddingGenerator(string modelFolderRoot, HardwareAccelerator hardwareAccelerator)
     {
-        _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
+        _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelFolderRoot}"), modelFolderRoot, 384);
 
         _sessionOptions = new SessionOptions();
 
@@ -57,16 +57,17 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             _chunkSize = 8;
         }
 
-        _inferenceSession = new InferenceSession(Path.Join(modelPath, "onnx", "model.onnx"), _sessionOptions);
-        _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
+        _inferenceSession = new InferenceSession(Path.Join(modelFolderRoot, "onnx", "model.onnx"), _sessionOptions);
+        _tokenizer = BertTokenizer.Create(Path.Join(modelFolderRoot, "vocab.txt"));
     }
 
-    public EmbeddingGenerator(string modelPath, SessionOptions sessionOptions)
+    public EmbeddingGenerator(string vocabPath, string modelPath, SessionOptions sessionOptions)
     {
         _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
         _sessionOptions = sessionOptions;
+
         _inferenceSession = new InferenceSession(modelPath, _sessionOptions);
-        _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
+        _tokenizer = BertTokenizer.Create(vocabPath);
     }
 
     public Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
@@ -319,6 +320,8 @@ internal static class EmbeddingGeneratorFactory
         sessionOptions.RegisterOrtExtensions();
         sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
 
+        var vocabPath = Path.Join(modelPath, "vocab.txt");
+        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
         var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 
         if (!File.Exists(compiledModelPath))
@@ -334,6 +337,6 @@ internal static class EmbeddingGeneratorFactory
             modelPath = compiledModelPath;
         }
 
-        return new EmbeddingGenerator(modelPath, sessionOptions);
+        return new EmbeddingGenerator(vocabPath, modelPath, sessionOptions);
     }
 }
