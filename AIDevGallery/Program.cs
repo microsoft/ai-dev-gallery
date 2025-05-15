@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
+using AIDevGallery.WinMLBootsrap;
 using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -25,6 +26,7 @@ public class Program
     [STAThread]
     private static void Main()
     {
+        WinMLGalleryBootstrap.Initialize();
         WinRT.ComWrappersSupport.InitializeComWrappers();
         bool isRedirect = DecideRedirection();
 
@@ -40,6 +42,8 @@ public class Program
                 _ = new App();
             });
         }
+
+        NativeMethods.WinMLUninitialize();
     }
 
     private static bool DecideRedirection()
