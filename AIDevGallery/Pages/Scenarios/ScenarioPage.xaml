@@ -4,11 +4,15 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AIDevGallery.Pages"
+
+    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
+
     xmlns:controls="using:AIDevGallery.Controls"
     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:AIDevGallery.Models"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
@@ -20,6 +24,32 @@
             TargetType="FlyoutPresenter">
             <Setter Property="MinWidth" Value="524" />
         </Style>
+
+        <animations:ImplicitAnimationSet x:Name="ShowTransitions">
+            <animations:OffsetAnimation
+                EasingMode="EaseOut"
+                From="0,24,0"
+                To="0"
+                Duration="0:0:0.4" />
+            <animations:OpacityAnimation
+                EasingMode="EaseOut"
+                From="0"
+                To="1"
+                Duration="0:0:0.2" />
+        </animations:ImplicitAnimationSet>
+        <animations:ImplicitAnimationSet x:Name="HideTransitions">
+            <animations:OffsetAnimation
+                EasingMode="EaseOut"
+                From="0"
+                To="0,24,0"
+                Duration="0:0:0.2" />
+            <animations:OpacityAnimation
+                EasingMode="EaseOut"
+                From="1"
+                To="0"
+                Duration="0:0:0.1" />
+        </animations:ImplicitAnimationSet>
+
     </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -133,8 +163,91 @@
                               Visibility="Collapsed"></ComboBox>-->
                     <Button x:Name="WinMlModelOptionsButton" Padding="0">
                         <Button.Flyout>
-                            <Flyout x:Name="WinMLOptionsFlyout" Opening="WinMLOptionsFlyout_Opening">
-                                <StackPanel Width="200" Spacing="4">
+                          <Flyout x:Name="WinMLOptionsFlyout" Placement="Bottom" Opening="WinMLOptionsFlyout_Opening">
+                                <Grid
+                                    MinHeight="120"
+                                    MaxWidth="240"
+                                    RowSpacing="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Select how you want WinML to prioritize the model inference"
+                                        TextWrapping="Wrap" />
+                                    <toolkit:Segmented
+                                        x:Name="segmentedControl"
+                                        Grid.Row="1"
+                                        Margin="0,8"
+                                        HorizontalAlignment="Stretch"
+                                        SelectedIndex="0">
+                                        <toolkit:SegmentedItem
+                                            Content="Policy"
+                                            Icon="{ui:FontIcon Glyph=&#xE739;}"
+                                            Tag="policy" />
+                                        <toolkit:SegmentedItem
+                                            Content="Device"
+                                            Icon="{ui:FontIcon Glyph=&#xEA3A;}"
+                                            Tag="device" />
+                                    </toolkit:Segmented>
+                                    <Grid
+                                        Grid.Row="2"
+                                        Grid.RowSpan="4"
+                                        Margin="-16,0,-16,-16"
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                        BorderThickness="0,1,0,0" />
+                                    <toolkit:SwitchPresenter Grid.Row="2" Value="{Binding SelectedItem.Tag, ElementName=segmentedControl}">
+                                        <toolkit:Case Value="policy">
+                                            <Grid>
+                                                <ComboBox
+                                                    x:Name="ExecutionPolicyComboBox"
+                                                    Margin="0,12,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
+                                                    SelectionChanged="ExecutionDevicePolicyChanged" />
+                                            </Grid>
+                                        </toolkit:Case>
+                                        <toolkit:Case Value="device">
+                                            <StackPanel Orientation="Vertical">                                               
+                                                  <ComboBox
+                                        x:Name="DeviceComboBox"
+                                      Margin="0,16,0,0"
+                                        SelectionChanged="SelectedDeviceChanged">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="local:WinMlEp">
+                                                <TextBlock>
+                                                    <Run Text="{x:Bind ShortName}" />
+                                                    <Run Text="(" /><Run Text="{x:Bind DeviceType}" /><Run Text=")" />
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                                <CheckBox
+                                                    x:Name="CompileModelCheckBox"
+                                                    Margin="0,16,0,0"
+                                                    Content="Compile Model" />
+                                            </StackPanel>
+                                        </toolkit:Case>
+                                    </toolkit:SwitchPresenter>
+                                    <Rectangle
+                                        Grid.Row="3"
+                                        Height="1"
+                                        Margin="0,16,0,8"
+                                        HorizontalAlignment="Stretch"
+                                        Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                                    <Button
+                                        Grid.Row="4" x:Name="WinMLOptionsApply"  Click="ApplySampleOptions"
+                                        HorizontalAlignment="Stretch"
+                                        Content="Apply"
+                                        Style="{StaticResource AccentButtonStyle}" />
+                                </Grid>
+                                <!--<StackPanel Width="200" Spacing="4">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <TextBlock Text="Execution Policy" />
                                         <Button
@@ -153,11 +266,7 @@
                                             </Button.Flyout>
                                         </Button>
                                     </StackPanel>
-                                    <ComboBox
-                                        x:Name="ExecutionPolicyComboBox"
-                                        Width="200"
-                                        ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
-                                        SelectionChanged="ExecutionDevicePolicyChanged" />
+
                                     <StackPanel
                                         Margin="0,16,0,0"
                                         Orientation="Horizontal"
@@ -178,26 +287,7 @@
                                                 </Flyout>
                                             </Button.Flyout>
                                         </Button>
-                                    </StackPanel>
-                                    <ComboBox
-                                        x:Name="DeviceComboBox"
-                                        Width="200"
-                                        SelectionChanged="SelectedDeviceChanged">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="local:WinMlEp">
-                                                <TextBlock>
-                                                    <Run Text="{x:Bind ShortName}" />
-                                                    <Run Text="(" /><Run Text="{x:Bind DeviceType}" /><Run Text=")" />
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <CheckBox
-                                        x:Name="CompileModelCheckBox"
-                                        Margin="0,16,0,0"
-                                        Content="Compile Model" />
-                                    <Button x:Name="WinMLOptionsApply" Content="Apply" Click="ApplySampleOptions"></Button>
-                                </StackPanel>
+                                    </StackPanel> -->
                             </Flyout>
                         </Button.Flyout>
                         <StackPanel
