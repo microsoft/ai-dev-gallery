@@ -106,8 +106,16 @@ internal sealed partial class FaceDetection : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load model.");
+            return;
+        }
 
         InitializeCameraPreviewControl();
     }

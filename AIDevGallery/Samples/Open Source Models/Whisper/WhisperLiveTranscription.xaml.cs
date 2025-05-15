@@ -43,8 +43,16 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load model.");
+            return;
+        }
     }
 
     // <exclude>
