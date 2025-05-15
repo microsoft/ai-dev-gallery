@@ -88,7 +88,7 @@ internal sealed partial class PoseDetection : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
+            sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
 
             var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 

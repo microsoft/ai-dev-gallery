@@ -21,6 +21,8 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Pages;
 
+internal record WinMlEp(List<HardwareAccelerator> HardwareAccelerators, string Name, string ShortName, string DeviceType);
+
 internal sealed partial class ScenarioPage : Page
 {
     private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
@@ -110,9 +112,9 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private static Dictionary<HardwareAccelerator, string>? supportedHardwareAccelerators;
+    private static List<WinMlEp>? supportedHardwareAccelerators;
 
-    private static async Task<Dictionary<HardwareAccelerator, string>> GetSupportedHardwareAccelerators()
+    private static async Task<List<WinMlEp>> GetSupportedHardwareAccelerators()
     {
         if (supportedHardwareAccelerators != null)
         {
@@ -131,8 +133,7 @@ internal sealed partial class ScenarioPage : Page
 
         await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
-        supportedHardwareAccelerators = new();
-        supportedHardwareAccelerators[HardwareAccelerator.CPU] = "CPU";
+        supportedHardwareAccelerators = [new([HardwareAccelerator.CPU], "CPU", "CPU", "CPU")];
 
         IReadOnlyList<OrtEpDevice> epDevices = OrtEnv.Instance().GetEpDevices();
 
@@ -143,23 +144,23 @@ internal sealed partial class ScenarioPage : Page
             switch(device.EpName)
             {
                 case "VitisAIExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
-                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
                     break;
 
                 case "OpenVINOExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.OpenVINO] = "NPU";
-                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
                     break;
 
                 case "QNNExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.QNN] = "NPU";
-                    supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], "QNNExecutionProvider", "QNN", "NPU"));
                     break;
 
                 case "DmlExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.DML] = "GPU";
-                    supportedHardwareAccelerators[HardwareAccelerator.GPU] = "GPU";
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                    break;
+
+                case "NvTensorRTRTXExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], "NvTensorRTRTXExecutionProvider", "NvTensorRT", "GPU"));
                     break;
             }
         }
@@ -181,14 +182,14 @@ internal sealed partial class ScenarioPage : Page
 
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
         {
-            HashSet<string> eps = ["CPU"];
             var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
+            HashSet<WinMlEp> eps = [supportedHardwareAccelerators[0]];
 
             DeviceComboBox.Items.Clear();
 
-            foreach (var harwareAccelerator in selectedModels.SelectMany(m => m!.HardwareAccelerators).Distinct())
+            foreach (var hardwareAccelerator in selectedModels.SelectMany(m => m!.HardwareAccelerators).Distinct())
             {
-                if (supportedHardwareAccelerators.TryGetValue(harwareAccelerator, out var ep))
+                foreach (var ep in supportedHardwareAccelerators.Where(ep => ep.HardwareAccelerators.Contains(hardwareAccelerator)))
                 {
                     eps.Add(ep);
                 }
@@ -257,9 +258,10 @@ internal sealed partial class ScenarioPage : Page
         }
         else if (options.Device != null)
         {
-            if (DeviceComboBox.Items.Contains(options.Device))
+            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.Device).FirstOrDefault();
+            if (selectedDevice != null)
             {
-                DeviceComboBox.SelectedItem = options.Device;
+                DeviceComboBox.SelectedItem = selectedDevice;
             }
             else
             {
@@ -269,7 +271,7 @@ internal sealed partial class ScenarioPage : Page
             ExecutionPolicyComboBox.SelectedIndex = -1;
             CompileModelCheckBox.IsEnabled = true;
             CompileModelCheckBox.IsChecked = true;
-            WinMlModelOptionsButtonText.Text = DeviceComboBox.SelectedItem?.ToString();
+            WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
         }
     }
 
@@ -410,7 +412,7 @@ internal sealed partial class ScenarioPage : Page
 
     private void SelectedDeviceChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (DeviceComboBox.SelectedItem is string device)
+        if (DeviceComboBox.SelectedItem is WinMlEp device)
         {
             ExecutionPolicyComboBox.SelectedIndex = -1;
             CompileModelCheckBox.IsEnabled = true;
@@ -429,10 +431,10 @@ internal sealed partial class ScenarioPage : Page
             WinMlModelOptionsButtonText.Text = key;
             App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
         }
-        else if (DeviceComboBox.SelectedItem is string device)
+        else if (DeviceComboBox.SelectedItem is WinMlEp device)
         {
-            WinMlModelOptionsButtonText.Text = device;
-            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device, CompileModelCheckBox.IsChecked!.Value);
+            WinMlModelOptionsButtonText.Text = device.ShortName;
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device.Name, CompileModelCheckBox.IsChecked!.Value);
         }
 
         if (oldOptions == App.AppData.WinMLSampleOptions)

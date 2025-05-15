@@ -101,7 +101,7 @@ internal sealed partial class Multipose : BaseSamplePage
     {
         using SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
-        sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
+        sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
 
         var modelCompiledPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
 

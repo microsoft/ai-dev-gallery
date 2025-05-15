@@ -173,6 +173,7 @@ internal enum HardwareAccelerator
     GPU,
     VitisAI,
     OpenVINO,
+    NvTensorRT
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]

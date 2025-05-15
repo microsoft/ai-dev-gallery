@@ -9,11 +9,12 @@ using System.IO;
 namespace AIDevGallery.Samples.SharedCode;
 internal static class WinMLHelpers
 {
-    public static string? AppendExecutionProviderForPreferedEp(this SessionOptions sessionOptions, string preferedEP, OrtEnv? environment = null)
+    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, OrtEnv? environment = null)
     {
-        if (preferedEP == "CPU")
+        if (epName == "CPU")
         {
-            return "CPU";
+            // No need to append CPU execution provider
+            return true;
         }
 
         environment ??= OrtEnv.Instance();
@@ -22,12 +23,12 @@ internal static class WinMLHelpers
 
         foreach (OrtEpDevice device in epDevices)
         {
-            string epName = device.EpName;
+            string name = device.EpName;
 
-            if (!epDeviceMap.TryGetValue(epName, out List<OrtEpDevice>? value))
+            if (!epDeviceMap.TryGetValue(name, out List<OrtEpDevice>? value))
             {
                 value = [];
-                epDeviceMap[epName] = value;
+                epDeviceMap[name] = value;
             }
 
             value.Add(device);
@@ -36,52 +37,60 @@ internal static class WinMLHelpers
         // Configure execution providers
         foreach (KeyValuePair<string, List<OrtEpDevice>> epGroup in epDeviceMap)
         {
-            string epName = epGroup.Key;
+            string name = epGroup.Key;
             List<OrtEpDevice> devices = epGroup.Value;
 
             // Configure EP with all its devices
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
 
-            switch (epName)
+            switch (name)
             {
                 case "VitisAIExecutionProvider":
-                    if (preferedEP == "Vitis" || preferedEP == "NPU")
+                    if (epName == "VitisAIExecutionProvider")
                     {
                         sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return "Vitis";
+                        return true;
                     }
 
                     break;
 
                 case "OpenVINOExecutionProvider":
-                    if (preferedEP == "OpenVINO" || preferedEP == "NPU")
+                    if (epName == "OpenVINOExecutionProvider")
                     {
                         // Configure threading for OpenVINO EP
                         epOptions["num_of_threads"] = "4";
                         sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return "OpenVINO";
+                        return true;
                     }
 
                     break;
 
                 case "QNNExecutionProvider":
-                    if (preferedEP == "QNN" || preferedEP == "NPU")
+                    if (epName == "QNNExecutionProvider")
                     {
                         // Configure performance mode for QNN EP
                         epOptions["htp_performance_mode"] = "high_performance";
                         sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return "QNN";
+                        return true;
                     }
 
                     break;
 
                 case "DmlExecutionProvider":
-                    if (preferedEP == "DML" || preferedEP == "GPU")
+                    if (epName == "DmlExecutionProvider")
                     {
                         sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return "DML";
+                        return true;
                     }
 
+                    break;
+
+                case "NvTensorRTRTXExecutionProvider":
+                    if (epName == "DmlExecutionProvider")
+                    {
+                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
+                        return true;
+                    }
                     break;
 
                 default:
@@ -89,7 +98,7 @@ internal static class WinMLHelpers
             }
         }
 
-        return null;
+        return false;
     }
 
     public static string? GetCompiledModel(this SessionOptions sessionOptions, string modelPath, string device)

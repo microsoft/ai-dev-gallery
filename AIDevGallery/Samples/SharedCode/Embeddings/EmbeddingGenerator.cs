@@ -318,7 +318,7 @@ internal static class EmbeddingGeneratorFactory
 
         SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
-        sessionOptions.AppendExecutionProviderForPreferedEp(preferedEp);
+        sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
 
         var vocabPath = Path.Join(modelPath, "vocab.txt");
         modelPath = Path.Join(modelPath, "onnx", "model.onnx");

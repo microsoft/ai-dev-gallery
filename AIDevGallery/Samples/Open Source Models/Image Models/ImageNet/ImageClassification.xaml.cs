@@ -96,7 +96,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
             }
             else if (device != null)
             {
-                sessionOptions.AppendExecutionProviderForPreferedEp(device);
+                sessionOptions.AppendExecutionProviderFromEpName(device);
 
                 if (compileModel)
                 {
