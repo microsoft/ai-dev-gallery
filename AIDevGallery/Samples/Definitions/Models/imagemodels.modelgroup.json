@@ -106,7 +106,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 4956208,
             "License": "apache-2.0"
@@ -128,7 +128,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 114232171,
             "License": "bsd-3-clause"
@@ -150,7 +150,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 67162397,
             "License": "apache-2.0"
@@ -172,7 +172,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 109974166,
             "License": "bsd-3-clause"
@@ -185,7 +185,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 72188137,
             "License": "bsd-3-clause"
@@ -228,7 +228,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 414444,
             "License": "mit"
@@ -250,7 +250,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "QNN"
+              "NPU"
             ],
             "Size": 3540725,
             "License": "bsd-3-clause"
