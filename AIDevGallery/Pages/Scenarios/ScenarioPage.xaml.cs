@@ -6,6 +6,7 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
+using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
@@ -135,13 +136,9 @@ internal sealed partial class ScenarioPage : Page
 
         supportedHardwareAccelerators = [new([HardwareAccelerator.CPU], "CPU", "CPU", "CPU")];
 
-        IReadOnlyList<OrtEpDevice> epDevices = OrtEnv.Instance().GetEpDevices();
-
-        Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
-
-        foreach (OrtEpDevice device in epDevices)
+        foreach (string device in WinMLHelpers.GetEpDeviceMap().Keys)
         {
-            switch(device.EpName)
+            switch(device)
             {
                 case "VitisAIExecutionProvider":
                     supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));

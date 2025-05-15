@@ -18,84 +18,27 @@ internal static class WinMLHelpers
         }
 
         environment ??= OrtEnv.Instance();
-        IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
-        Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
+        var epDeviceMap = GetEpDeviceMap(environment);
 
-        foreach (OrtEpDevice device in epDevices)
+        if (epDeviceMap.TryGetValue(epName, out var devices))
         {
-            string name = device.EpName;
-
-            if (!epDeviceMap.TryGetValue(name, out List<OrtEpDevice>? value))
-            {
-                value = [];
-                epDeviceMap[name] = value;
-            }
-
-            value.Add(device);
-        }
-
-        // Configure execution providers
-        foreach (KeyValuePair<string, List<OrtEpDevice>> epGroup in epDeviceMap)
-        {
-            string name = epGroup.Key;
-            List<OrtEpDevice> devices = epGroup.Value;
-
-            // Configure EP with all its devices
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
-
-            switch (name)
+            switch(epName)
             {
-                case "VitisAIExecutionProvider":
-                    if (epName == "VitisAIExecutionProvider")
-                    {
-                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return true;
-                    }
-
-                    break;
-
                 case "OpenVINOExecutionProvider":
-                    if (epName == "OpenVINOExecutionProvider")
-                    {
-                        // Configure threading for OpenVINO EP
-                        epOptions["num_of_threads"] = "4";
-                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return true;
-                    }
-
+                    // Configure threading for OpenVINO EP
+                    epOptions["num_of_threads"] = "4";
                     break;
-
                 case "QNNExecutionProvider":
-                    if (epName == "QNNExecutionProvider")
-                    {
-                        // Configure performance mode for QNN EP
-                        epOptions["htp_performance_mode"] = "high_performance";
-                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return true;
-                    }
-
+                    // Configure performance mode for QNN EP
+                    epOptions["htp_performance_mode"] = "high_performance";
                     break;
-
-                case "DmlExecutionProvider":
-                    if (epName == "DmlExecutionProvider")
-                    {
-                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return true;
-                    }
-
-                    break;
-
-                case "NvTensorRTRTXExecutionProvider":
-                    if (epName == "DmlExecutionProvider")
-                    {
-                        sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
-                        return true;
-                    }
-                    break;
-
                 default:
                     break;
             }
+
+            sessionOptions.AppendExecutionProvider(environment, devices, epOptions);
+            return true;
         }
 
         return false;
@@ -119,5 +62,32 @@ internal static class WinMLHelpers
         }
 
         return null;
+    }
+
+    private static Dictionary<string, List<OrtEpDevice>>? _epDeviceMap;
+
+    public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap(OrtEnv? environment = null)
+    {
+        if (_epDeviceMap == null)
+        {
+            environment ??= OrtEnv.Instance();
+            IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
+            _epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
+
+            foreach (OrtEpDevice device in epDevices)
+            {
+                string name = device.EpName;
+
+                if (!_epDeviceMap.TryGetValue(name, out List<OrtEpDevice>? value))
+                {
+                    value = [];
+                    _epDeviceMap[name] = value;
+                }
+
+                value.Add(device);
+            }
+        }
+
+        return _epDeviceMap;
     }
 }
