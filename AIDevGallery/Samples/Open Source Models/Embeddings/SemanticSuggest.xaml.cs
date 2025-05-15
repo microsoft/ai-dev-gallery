@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -40,8 +41,16 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
 
     protected override async Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        this.MySemanticComboBox.EmbeddingGenerator = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            this.MySemanticComboBox.EmbeddingGenerator = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            this.ShowException(ex, "Error initializing the model");
+        }
+
         return Task.CompletedTask;
     }
 
