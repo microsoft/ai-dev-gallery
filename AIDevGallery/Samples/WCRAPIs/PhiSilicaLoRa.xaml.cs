@@ -227,6 +227,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             GenerateButton.Visibility = Visibility.Collapsed;
             StopBtn.Visibility = Visibility.Visible;
             InputTextBox.IsEnabled = false;
+            SystemPromptBox.IsEnabled = false;
             IsProgressVisible = true;
 
             _cts?.Cancel();
@@ -259,6 +260,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             StopBtn.Visibility = Visibility.Collapsed;
             GenerateButton.Visibility = Visibility.Visible;
             InputTextBox.IsEnabled = true;
+            SystemPromptBox.IsEnabled = true;
             _cts?.Dispose();
             _cts = null;
         }
@@ -309,8 +311,13 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         }
     }
 
-    private async void SelectFile_Click(object sender, RoutedEventArgs e)
+    private async void AdapterHyperLink_Click(object sender, RoutedEventArgs e)
     {
+        /* if (File.Exists(_adapterFilePath))
+        {
+            Process.Start("explorer.exe", $"/select,\"{_adapterFilePath}\"");
+        } */
+
         var window = new Window();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var picker = new FileOpenPicker();
@@ -322,16 +329,8 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             _adapterFilePath = file.Path;
             App.AppData.LastAdapterPath = _adapterFilePath; // <exclude-line>
             await App.AppData.SaveAsync(); // <exclude-line>
-            AdapterHyperLink.Content = Path.GetFileNameWithoutExtension(_adapterFilePath);
+            AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = !string.IsNullOrWhiteSpace(_adapterFilePath);
-        }
-    }
-
-    private void AdapterHyperLink_Click(object sender, RoutedEventArgs e)
-    {
-        if (File.Exists(_adapterFilePath))
-        {
-            Process.Start("explorer.exe", $"/select,\"{_adapterFilePath}\"");
         }
     }
 

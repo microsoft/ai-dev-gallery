@@ -1,106 +1,138 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<samples:BaseSamplePage x:Class="AIDevGallery.Samples.WCRAPIs.PhiSilicaLoRa"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:samples="using:AIDevGallery.Samples" mc:Ignorable="d">
-    <ScrollViewer Padding="0,0,10,0">
-        <Grid x:Name="MainGrid" MinHeight="300" ColumnSpacing="8" RowSpacing="8">
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.PhiSilicaLoRa"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid
+        x:Name="MainGrid"
+        MinHeight="300"
+        ColumnSpacing="8"
+        RowSpacing="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.ColumnSpan="2"
+            Orientation="Vertical"
+            Spacing="16">
+
+            <TextBox
+                x:Name="SystemPromptBox"
+                MaxHeight="100"
+                AcceptsReturn="True"
+                Header="System prompt"
+                TextWrapping="Wrap" />
+
+            <TextBox
+                x:Name="InputTextBox"
+                MaxHeight="100"
+                AcceptsReturn="True"
+                Header="Prompt"
+                TextWrapping="Wrap" />
+            <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock VerticalAlignment="Center" Text="Adapter:" />
+                    <HyperlinkButton
+                        x:Name="AdapterHyperLink"
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        Click="AdapterHyperLink_Click"
+                        Content="Select a LoRA adapter.."
+                        FontWeight="SemiBold"
+                        ToolTipService.ToolTip="Select a LoRA adapter (.safetensors)" />
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <DropDownButton
+                        x:Name="GenerateButton"
+                        HorizontalAlignment="Right"
+                        Content="Generate"
+                        Style="{StaticResource AccentDropDownButtonStyle}">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Click="GenerateAll_Click" Text="Generate all" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Click="GenerateWith_Click" Text="Generate with adapter" />
+                                <MenuFlyoutItem Click="GenerateWithout_Click" Text="Generate without adapter" />
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                    <Button
+                        x:Name="StopBtn"
+                        AutomationProperties.Name="Stop"
+                        Click="StopBtn_Click"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon
+                                x:Name="StopIcon"
+                                FontSize="16"
+                                Glyph="&#xE73B;" />
+                            <ProgressRing
+                                x:Name="OutputProgressBar"
+                                Width="16"
+                                Height="16"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                IsIndeterminate="True"
+                                Visibility="Collapsed" />
+                            <TextBlock Text="Stop" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+        </StackPanel>
+        <Grid
+            x:Name="OutputGrid"
+            Grid.Row="1"
+            Margin="0,24,0,0"
+            Padding="12"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            ColumnSpacing="24"
+            CornerRadius="{StaticResource OverlayCornerRadius}"
+            RowSpacing="8"
+            Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
-                    ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Adapter" Margin="10,0" Width="120"
-                        VerticalAlignment="Center" Grid.Column="0" />
-                <HyperlinkButton x:Name="AdapterHyperLink" Grid.Column="1"
-                        Click="AdapterHyperLink_Click" />
-                <Button Content="Select file" Click="SelectFile_Click" Grid.Column="2"
-                        Width="100" />
-            </Grid>
-            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="System Prompt" Margin="10,0" Width="120"
-                        VerticalAlignment="Center" Grid.Column="0" />
-                <TextBox x:Name="SystemPromptBox" Grid.Column="1" Margin="0,0,110,0"
-                        AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="100" />
-            </Grid>
-            <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Prompt" Margin="10,0" Width="120"
-                        VerticalAlignment="Center" Grid.Column="0" />
-                <TextBox x:Name="InputTextBox" Grid.Column="1" AcceptsReturn="True"
-                        TextWrapping="Wrap" MaxHeight="100" />
-                <DropDownButton x:Name="GenerateButton" Grid.Column="2"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                        Content="Generate" Width="100">
-                    <DropDownButton.Flyout>
-                        <MenuFlyout Placement="Bottom">
-                            <MenuFlyoutItem Click="GenerateAll_Click" Text="Generate all" />
-                            <MenuFlyoutItem Click="GenerateWith_Click"
-                                    Text="Generate with adapter" />
-                            <MenuFlyoutItem Click="GenerateWithout_Click"
-                                    Text="Generate withour adapter" />
-                        </MenuFlyout>
-                    </DropDownButton.Flyout>
-                </DropDownButton>
-                <Button x:Name="StopBtn" Grid.Column="2" Width="100"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                        AutomationProperties.Name="Stop" Click="StopBtn_Click"
-                        Style="{ThemeResource AccentButtonStyle}" Visibility="Collapsed">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon x:Name="StopIcon" FontSize="16" Glyph="&#xE73B;" />
-                        <ProgressRing x:Name="OutputProgressBar" Width="16" Height="16"
-                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                IsIndeterminate="True" Visibility="Collapsed" />
-                        <TextBlock Text="Stop" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-            <Grid x:Name="OutputGrid" Grid.Row="3" Margin="0,24,0,0" ColumnSpacing="24"
-                    Grid.ColumnSpan="2" Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock FontWeight="SemiBold" Text="With Adapter" />
-                <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="Without adapter" />
-                <ScrollViewer x:Name="LoraScroll" Grid.Row="1"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <TextBlock x:Name="LoraTxt" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" TextWrapping="Wrap" />
-                </ScrollViewer>
-                <ScrollViewer x:Name="NoLoraScroll" Grid.Row="1" Grid.Column="1"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <TextBlock x:Name="NoLoraTxt" HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" TextWrapping="Wrap" />
-                </ScrollViewer>
-            </Grid>
+            <TextBlock FontWeight="SemiBold" Text="With adapter" />
+            <TextBlock
+                x:Name="LoraTxt"
+                Grid.Row="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                TextWrapping="Wrap" />
+            <Rectangle
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Width="1"
+                VerticalAlignment="Stretch"
+                Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+            <TextBlock
+                Grid.Column="2"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Without adapter" />
+            <TextBlock
+                x:Name="NoLoraTxt"
+                Grid.Row="1"
+                Grid.Column="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
         </Grid>
-    </ScrollViewer>
+    </Grid>
 </samples:BaseSamplePage>

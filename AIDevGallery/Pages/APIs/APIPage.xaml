@@ -86,7 +86,7 @@
                     <ColumnDefinition x:Name="SideColumn" Width="320" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" MinHeight="360" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -103,7 +103,7 @@
                     <Grid.Shadow>
                         <ThemeShadow x:Name="BackgroundShadow" />
                     </Grid.Shadow>
-                    <controls:SampleContainer x:Name="sampleContainer" Height="360" />
+                    <controls:SampleContainer x:Name="sampleContainer" />
                 </Grid>
 
                 <controls:Card
