@@ -6,7 +6,6 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +18,7 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath, string preferedEp)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
         Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
@@ -34,24 +33,21 @@ internal class WhisperWrapper : IDisposable
 
         await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
-        using SessionOptions sessionOptions = new();
+        SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
-        sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
-
-        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
-
-        if (!File.Exists(compiledModelPath))
+        if (policy != null)
         {
-            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(compiledModelPath);
-            compilationOptions.CompileModel();
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
         }
-
-        if (File.Exists(compiledModelPath))
+        else if (device != null)
         {
-            modelPath = compiledModelPath;
+            sessionOptions.AppendExecutionProviderFromEpName(device);
+
+            if (compileModel)
+            {
+                modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+            }
         }
 
         InferenceSession inferenceSession = new InferenceSession(modelPath, sessionOptions);
