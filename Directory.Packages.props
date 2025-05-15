@@ -25,7 +25,7 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.QNN" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250508017-experimental" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250515001-experimental2" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" Version="0.7.1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.7.1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.7.1" />
