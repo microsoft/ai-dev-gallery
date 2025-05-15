@@ -69,13 +69,13 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.PreferedEP);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, string detectionModelPath, string preferedEp)
+    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
         return Task.Run(async () =>
         {
@@ -92,33 +92,53 @@ internal sealed partial class Multipose : BaseSamplePage
 
             await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
-            _poseSession = GetInferenceSession(poseModelPath, preferedEp);
-            _detectionSession = GetInferenceSession(detectionModelPath, "CPU");
+            _poseSession = await GetInferenceSession(poseModelPath, policy, device, compileModel);
+            _detectionSession = await GetInferenceSession(detectionModelPath, ExecutionProviderDevicePolicy.PREFER_CPU, device, compileModel);
         });
     }
 
-    private InferenceSession GetInferenceSession(string modelPath, string preferedEp)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
     {
-        using SessionOptions sessionOptions = new();
-        sessionOptions.RegisterOrtExtensions();
-        sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
-
-        var modelCompiledPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
-
-        if (!File.Exists(modelCompiledPath))
+        return Task.Run(async () =>
         {
-            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(modelCompiledPath);
-            compilationOptions.CompileModel();
-        }
+            if (!File.Exists(modelPath))
+            {
+                throw new FileNotFoundException("Model file not found.", modelPath);
+            }
 
-        if (File.Exists(modelCompiledPath))
-        {
-            modelPath = modelCompiledPath;
-        }
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
-        return new InferenceSession(modelPath, sessionOptions);
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
+            }
+
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
+        });
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
