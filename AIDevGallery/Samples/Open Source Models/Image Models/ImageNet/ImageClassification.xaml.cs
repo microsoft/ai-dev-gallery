@@ -33,9 +33,6 @@ namespace AIDevGallery.Samples.OpenSourceModels;
         SharedCodeEnum.BitmapFunctions,
         SharedCodeEnum.DeviceUtils
     ],
-    AssetFilenames = [
-        "team.jpg"
-    ],
     Name = "ImageNet Image Classification",
     Id = "09d73ba7-b877-45f9-9de6-41898ab4d339",
     Icon = "\uE8B9")]
@@ -63,7 +60,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
             return;
         }
 
-        await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
+        await ClassifyImage(App.AppData.GetSampleData("ImageClassification", "last-photo-path") ?? Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg")); // <exclude-line>
     }
 
     // <exclude>
@@ -136,6 +133,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             UploadImageButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
+            _ = App.AppData.SetSampleDataAsync("ImageClassification", "last-photo-path", file.Path); // <exclude-line>
             await ClassifyImage(file.Path);
         }
     }
@@ -146,6 +144,8 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             return;
         }
+
+        SendSampleInteractedEvent("ClassifyImage"); // <exclude-line>
 
         // Grab model metadata
         var inputName = _inferenceSession.InputNames[0];
