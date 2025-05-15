@@ -207,7 +207,7 @@ internal sealed partial class ScenarioPage : Page
                 DeviceComboBox.SelectedIndex = -1;
                 CompileModelCheckBox.IsEnabled = false;
                 CompileModelCheckBox.IsChecked = false;
-                WinMlModelOptionsButton.Content = key;
+                WinMlModelOptionsButtonText.Text = key;
             }
             else if (options.Device != null)
             {
@@ -223,7 +223,7 @@ internal sealed partial class ScenarioPage : Page
                 ExecutionPolicyComboBox.SelectedIndex = -1;
                 CompileModelCheckBox.IsEnabled = true;
                 CompileModelCheckBox.IsChecked = true;
-                WinMlModelOptionsButton.Content = DeviceComboBox.SelectedItem;
+                WinMlModelOptionsButtonText.Text = DeviceComboBox.SelectedItem?.ToString();
             }
 
             WinMlModelOptionsButton.Visibility = Visibility.Visible;
@@ -364,7 +364,7 @@ internal sealed partial class ScenarioPage : Page
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Calculate if the modelselectors collide with the export/code buttons
-        if ((ModelBtn.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
+        if ((ActionsButtonHolderPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
         {
             VisualStateManager.GoToState(this, "NarrowLayout", true);
         }
@@ -419,12 +419,12 @@ internal sealed partial class ScenarioPage : Page
 
         if (ExecutionPolicyComboBox.SelectedItem is string key)
         {
-            WinMlModelOptionsButton.Content = key;
+            WinMlModelOptionsButtonText.Text = key;
             App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
         }
         else if (DeviceComboBox.SelectedItem is string device)
         {
-            WinMlModelOptionsButton.Content = device;
+            WinMlModelOptionsButtonText.Text = device;
             App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device, CompileModelCheckBox.IsChecked!.Value);
         }
 

@@ -57,50 +57,85 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Padding="8,5,8,6" Spacing="4">
+                <StackPanel
+                    x:Name="ActionsButtonHolderPanel"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Spacing="4">
                     <Button
                         x:Name="ModelBtn"
+                        Padding="0"
+                        VerticalAlignment="Center"
                         AutomationProperties.Name="Selected models"
                         Click="ModelBtn_Click">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="No model selected" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
-                            <ItemsRepeater ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="24" />
-                                </ItemsRepeater.Layout>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate x:DataType="models:ModelDetails">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Image Width="16" Source="{x:Bind Icon}" />
-                                            <TextBlock Text="{x:Bind Name}" />
-                                            <Border
-                                                Padding="2,0,2,0"
-                                                Background="{ThemeResource TertiaryButtonBackground}"
-                                                BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="{StaticResource ControlCornerRadius}">
-                                                <TextBlock
-                                                    AutomationProperties.AccessibilityView="Raw"
-                                                    FontSize="10"
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border
+                                Width="32"
+                                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,1,0"
+                                CornerRadius="4,0,0,4"
+                                ToolTipService.ToolTip="Selected model">
+                                <FontIcon
+                                    Margin="2,0,0,0"
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    FontSize="14"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Glyph="&#xF158;" />
+                            </Border>
+                            <Grid MinHeight="33" Padding="2,4,10,8">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Select model"
+                                    Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(modelDetails), Mode=OneWay}" />
+                                <ItemsRepeater
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    ItemsSource="{x:Bind modelDetails, Mode=OneWay}">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Orientation="Horizontal" Spacing="24" />
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ModelDetails">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Image
+                                                    Width="16"
                                                     VerticalAlignment="Center"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind utils:AppUtils.GetModelTypeStringFromHardwareAccelerators(HardwareAccelerators)}" />
-                                            </Border>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
+                                                    Source="{x:Bind Icon}" />
+                                                <TextBlock
+                                                    Margin="0,-1,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Text="{x:Bind Name}" />
+                                                <Border
+                                                    Padding="2,0,2,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="{ThemeResource TertiaryButtonBackground}"
+                                                    BorderBrush="{ThemeResource TertiaryButtonBorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource ControlCornerRadius}">
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        AutomationProperties.AccessibilityView="Raw"
+                                                        FontSize="10"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        Text="{x:Bind utils:AppUtils.GetModelTypeStringFromHardwareAccelerators(HardwareAccelerators)}" />
+                                                </Border>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </Grid>
                         </StackPanel>
                     </Button>
-                    <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox" 
+                    <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox"
                               Visibility="Collapsed"></ComboBox>-->
-                    <Button x:Name="WinMlModelOptionsButton">
+                    <Button x:Name="WinMlModelOptionsButton" Padding="0">
                         <Button.Flyout>
                             <Flyout Closed="Flyout_Closed">
-                                <StackPanel Spacing="4"
-                                            Width="200">
+                                <StackPanel Width="200" Spacing="4">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="Execution Policy"></TextBlock>
+                                        <TextBlock Text="Execution Policy" />
                                         <Button
                                             VerticalAlignment="Center"
                                             AutomationProperties.Name="More info"
@@ -117,13 +152,16 @@
                                             </Button.Flyout>
                                         </Button>
                                     </StackPanel>
-                                    <ComboBox x:Name="ExecutionPolicyComboBox"
-                                              SelectionChanged="ExecutionDevicePolicyChanged"
-                                              Width="200"
-                                              ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"></ComboBox>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,16,0,0">
-                                        <TextBlock Text="Execution Device"></TextBlock>
+                                    <ComboBox
+                                        x:Name="ExecutionPolicyComboBox"
+                                        Width="200"
+                                        ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
+                                        SelectionChanged="ExecutionDevicePolicyChanged" />
+                                    <StackPanel
+                                        Margin="0,16,0,0"
+                                        Orientation="Horizontal"
+                                        Spacing="4">
+                                        <TextBlock Text="Execution Device" />
                                         <Button
                                             VerticalAlignment="Center"
                                             AutomationProperties.Name="More info"
@@ -140,33 +178,65 @@
                                             </Button.Flyout>
                                         </Button>
                                     </StackPanel>
-                                    <ComboBox x:Name="DeviceComboBox"
-                                              SelectionChanged="SelectedDeviceChanged"
-                                              Width="200">
+                                    <ComboBox
+                                        x:Name="DeviceComboBox"
+                                        Width="200"
+                                        SelectionChanged="SelectedDeviceChanged">
                                         <x:String>NPU</x:String>
                                         <x:String>GPU</x:String>
                                         <x:String>CPU</x:String>
                                     </ComboBox>
-                                    <CheckBox x:Name="CompileModelCheckBox"
-                                              Margin="0,16,0,0"
-                                              Content="Compile Model"/>
+                                    <CheckBox
+                                        x:Name="CompileModelCheckBox"
+                                        Margin="0,16,0,0"
+                                        Content="Compile Model" />
                                 </StackPanel>
                             </Flyout>
                         </Button.Flyout>
+                        <StackPanel
+                            MinHeight="33"
+                            VerticalAlignment="Stretch"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Border
+                                Width="32"
+                                VerticalAlignment="Stretch"
+                                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,1,0"
+                                CornerRadius="4,0,0,4"
+                                ToolTipService.ToolTip="WinML Execution Policy">
+                                <FontIcon
+                                    Margin="2,1,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    FontSize="14"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Glyph="&#xE945;" />
+                            </Border>
+                            <TextBlock
+                                x:Name="WinMlModelOptionsButtonText"
+                                Grid.Column="1"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                 </StackPanel>
                 <StackPanel
                     x:Name="ButtonsPanel"
+                    Padding="0,1"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource ControlElevationBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource ControlCornerRadius}"
                     Orientation="Horizontal"
                     Visibility="Collapsed">
                     <Button
                         Padding="12,6,12,6"
+                        VerticalAlignment="Stretch"
                         AutomationProperties.Name="Instructions"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="Instructions"
@@ -189,6 +259,7 @@
                     <ToggleButton
                         x:Name="CodeToggle"
                         Padding="12,6,12,6"
+                        VerticalAlignment="Stretch"
                         AutomationProperties.Name="Show source code"
                         Background="Transparent"
                         BorderThickness="0"
