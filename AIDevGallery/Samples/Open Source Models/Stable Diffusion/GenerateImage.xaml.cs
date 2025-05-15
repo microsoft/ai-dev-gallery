@@ -80,10 +80,15 @@ internal sealed partial class GenerateImage : BaseSamplePage
         var device = sampleParams.WinMlSampleOptions.Device;
         bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
 
-        policy = ExecutionProviderDevicePolicy.PREFER_NPU;
-
-        stableDiffusion = new StableDiffusion(parentFolder);
-        await stableDiffusion.InitializeAsync(policy, device, compileOption);
+        try
+        {
+            stableDiffusion = new StableDiffusion(parentFolder);
+            await stableDiffusion.InitializeAsync(policy, device, compileOption);
+        }
+        catch(Exception ex)
+        {
+            ShowException(ex);
+        }
 
         modelReady = true;
 

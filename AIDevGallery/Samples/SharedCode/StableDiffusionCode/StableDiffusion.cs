@@ -242,10 +242,10 @@ internal class StableDiffusion : IDisposable
         {
             if (disposing)
             {
-                textProcessor!.Dispose();
-                unetInferenceSession!.Dispose();
-                vaeDecoder!.Dispose();
-                safetyChecker!.Dispose();
+                textProcessor?.Dispose();
+                unetInferenceSession?.Dispose();
+                vaeDecoder?.Dispose();
+                safetyChecker?.Dispose();
             }
 
             disposedValue = true;
