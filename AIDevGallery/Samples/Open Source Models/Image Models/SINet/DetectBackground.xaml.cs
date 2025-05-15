@@ -61,14 +61,14 @@ internal sealed partial class DetectBackground : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.PreferedEP);
+        await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
 
         sampleParams.NotifyCompletion();
 
         await Detect(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "detection_default.png"));
     }
 
-    private Task InitModel(string modelPath, string preferedEp)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
         return Task.Run(async () =>
         {
@@ -93,22 +93,18 @@ internal sealed partial class DetectBackground : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
-
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
-
-            if (!File.Exists(compiledModelPath))
+            if (policy != null)
             {
-                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-                compilationOptions.SetInputModelPath(modelPath);
-                compilationOptions.SetOutputModelPath(compiledModelPath);
-                compilationOptions.CompileModel();
-                modelPath = compiledModelPath;
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-
-            if (File.Exists(compiledModelPath))
+            else if (device != null)
             {
-                modelPath = compiledModelPath;
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileModel)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
