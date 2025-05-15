@@ -5,6 +5,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
