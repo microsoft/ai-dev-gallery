@@ -35,32 +35,6 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public EmbeddingGenerator(string modelFolderRoot, HardwareAccelerator hardwareAccelerator)
-    {
-        _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelFolderRoot}"), modelFolderRoot, 384);
-
-        _sessionOptions = new SessionOptions();
-
-        if (hardwareAccelerator == HardwareAccelerator.DML)
-        {
-            _sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-        }
-        else if (hardwareAccelerator == HardwareAccelerator.QNN)
-        {
-            Dictionary<string, string> options = new()
-            {
-                { "backend_path", "QnnHtp.dll" },
-                { "htp_performance_mode", "high_performance" },
-                { "htp_graph_finalization_optimization_mode", "3" }
-            };
-            _sessionOptions.AppendExecutionProvider("QNN", options);
-            _chunkSize = 8;
-        }
-
-        _inferenceSession = new InferenceSession(Path.Join(modelFolderRoot, "onnx", "model.onnx"), _sessionOptions);
-        _tokenizer = BertTokenizer.Create(Path.Join(modelFolderRoot, "vocab.txt"));
-    }
-
     public EmbeddingGenerator(string vocabPath, string modelPath, SessionOptions sessionOptions)
     {
         _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
@@ -300,13 +274,19 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
 internal static class EmbeddingGeneratorFactory
 {
-    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, string preferedEp = "CPU")
+    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, WinMlSampleOptions options)
     {
+        ExecutionProviderDevicePolicy? policy = options.Policy;
+        string? device = options.Device;
+        bool compileModel = options.CompileModel;
+
+        var vocabPath = Path.Join(modelPath, "vocab.txt");
+        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
+
         Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
         try
         {
-            Debug.WriteLine("Downloading packages ...");
             await infrastructure.DownloadPackagesAsync();
         }
         catch (Exception ex)
@@ -318,23 +298,19 @@ internal static class EmbeddingGeneratorFactory
 
         SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
-        sessionOptions.AppendExecutionProviderFromEpName(preferedEp);
 
-        var vocabPath = Path.Join(modelPath, "vocab.txt");
-        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
-        var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{preferedEp}.onnx";
-
-        if (!File.Exists(compiledModelPath))
+        if (policy != null)
         {
-            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(compiledModelPath);
-            compilationOptions.CompileModel();
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
         }
-
-        if (File.Exists(compiledModelPath))
+        else if (device != null)
         {
-            modelPath = compiledModelPath;
+            sessionOptions.AppendExecutionProviderFromEpName(device);
+
+            if (compileModel)
+            {
+                modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+            }
         }
 
         return new EmbeddingGenerator(vocabPath, modelPath, sessionOptions);

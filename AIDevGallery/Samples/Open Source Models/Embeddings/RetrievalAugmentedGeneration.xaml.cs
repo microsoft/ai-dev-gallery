@@ -87,7 +87,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            _embeddings = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)

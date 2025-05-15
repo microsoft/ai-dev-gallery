@@ -38,9 +38,9 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        this.MySemanticComboBox.EmbeddingGenerator = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
+        this.MySemanticComboBox.EmbeddingGenerator = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
         sampleParams.NotifyCompletion();
         return Task.CompletedTask;
     }
