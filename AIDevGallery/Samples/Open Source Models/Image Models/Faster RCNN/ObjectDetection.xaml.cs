@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [

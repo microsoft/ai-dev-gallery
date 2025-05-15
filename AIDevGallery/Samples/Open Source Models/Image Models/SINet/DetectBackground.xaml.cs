@@ -31,7 +31,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SINet;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [

@@ -135,6 +135,27 @@ internal static class AppUtils
         return string.Join(", ", hardwareAcceleratorsStrings);
     }
 
+    public static string GetModelTypeStringFromHardwareAccelerators(List<HardwareAccelerator> hardwareAccelerators)
+    {
+        if (hardwareAccelerators.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        if (hardwareAccelerators.Any(h => h == HardwareAccelerator.GPU ||
+                                    h == HardwareAccelerator.DML
+                                    || h == HardwareAccelerator.NPU
+                                    || h == HardwareAccelerator.QNN
+                                    || h == HardwareAccelerator.VitisAI
+                                    || h == HardwareAccelerator.OpenVINO
+                                    || h == HardwareAccelerator.CPU))
+        {
+            return "ONNX";
+        }
+
+        return GetHardwareAcceleratorString(hardwareAccelerators.First());
+    }
+
     public static string GetHardwareAcceleratorString(HardwareAccelerator hardwareAccelerator)
     {
         if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))

@@ -23,11 +23,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "System.Numerics.Tensors",
         "Microsoft.ML.Tokenizers",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "System.Numerics.Tensors"
     ],
     Id = "c0d6c4f1-8daa-409f-a686-3de388edbf91",
     Icon = "\uE8D4")]

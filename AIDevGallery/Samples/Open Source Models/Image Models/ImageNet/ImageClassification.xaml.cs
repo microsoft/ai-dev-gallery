@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -90,22 +89,9 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
+
             sessionOptions.AppendExecutionProviderForPreferedEp(device);
-
-            var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{device}.onnx";
-
-            if (!File.Exists(compiledModelPath))
-            {
-                OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-                compilationOptions.SetInputModelPath(modelPath);
-                compilationOptions.SetOutputModelPath(compiledModelPath);
-                compilationOptions.CompileModel();
-            }
-
-            if (File.Exists(compiledModelPath))
-            {
-                modelPath = compiledModelPath;
-            }
+            modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });

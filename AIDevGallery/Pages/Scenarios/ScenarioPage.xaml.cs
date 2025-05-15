@@ -18,7 +18,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using static UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor.ContentOrderTextExtractor;
 
 namespace AIDevGallery.Pages;
 
@@ -117,7 +116,7 @@ internal sealed partial class ScenarioPage : Page
         {
             await infrastructure.DownloadPackagesAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
 

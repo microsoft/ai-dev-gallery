@@ -30,7 +30,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [

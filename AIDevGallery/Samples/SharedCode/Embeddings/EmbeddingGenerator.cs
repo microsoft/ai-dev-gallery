@@ -326,7 +326,7 @@ internal static class EmbeddingGeneratorFactory
 
         if (!File.Exists(compiledModelPath))
         {
-            OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
             compilationOptions.SetInputModelPath(modelPath);
             compilationOptions.SetOutputModelPath(compiledModelPath);
             compilationOptions.CompileModel();

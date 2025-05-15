@@ -4,7 +4,6 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
-using Microsoft.ML.OnnxRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 

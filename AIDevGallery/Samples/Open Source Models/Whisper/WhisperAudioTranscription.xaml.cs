@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     ],
     NugetPackageReferences = [
         "NAudio.WinMM",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     Id = "c7e248af-86e8-49ba-9f44-022230963261",

@@ -38,12 +38,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "PdfPig",
-        "Microsoft.ML.Tokenizers",
-        "System.Numerics.Tensors",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.ML.Tokenizers",
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "PdfPig",
+        "System.Numerics.Tensors",
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
     Icon = "\uE8D4")]

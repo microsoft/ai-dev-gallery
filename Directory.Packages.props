@@ -24,13 +24,9 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.21.0" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime.QNN" Version="1.21.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250508017-experimental" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" Version="0.7.1" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.9.0-dev-20250510-783530-30261df" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.7.1" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />

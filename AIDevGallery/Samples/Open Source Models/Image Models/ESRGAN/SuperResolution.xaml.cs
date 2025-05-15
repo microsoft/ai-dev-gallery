@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -33,7 +32,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
       ],
       NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
       ],
       Name = "Enhance Image",

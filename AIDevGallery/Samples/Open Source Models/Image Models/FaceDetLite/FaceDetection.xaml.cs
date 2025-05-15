@@ -3,7 +3,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Canvas;
@@ -36,7 +35,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions",
         "CommunityToolkit.WinUI.Helpers",
         "CommunityToolkit.WinUI.Controls.CameraPreview",

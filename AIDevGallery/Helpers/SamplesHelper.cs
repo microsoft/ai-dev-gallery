@@ -18,6 +18,13 @@ internal static partial class SamplesHelper
     public static List<SharedCodeEnum> GetAllSharedCode(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
     {
         var sharedCode = sample.SharedCode.ToList();
+        var packageReferences = sample.NugetPackageReferences.ToList();
+
+        if (packageReferences.Contains("Microsoft.Windows.AI.MachineLearning"))
+        {
+            InsertUniqueFirst(SharedCodeEnum.WinMLHelpers);
+            AddUnique(SharedCodeEnum.DeviceUtils);
+        }
 
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(models.Keys.First(), ModelType.LanguageModels);
 
@@ -51,6 +58,14 @@ internal static partial class SamplesHelper
             if (!sharedCode.Contains(sharedCodeEnumToAdd))
             {
                 sharedCode.Add(sharedCodeEnumToAdd);
+            }
+        }
+
+        void InsertUniqueFirst(SharedCodeEnum sharedCodeEnumToAdd)
+        {
+            if (!sharedCode.Contains(sharedCodeEnumToAdd))
+            {
+                sharedCode.Insert(0, sharedCodeEnumToAdd);
             }
         }
     }
@@ -217,7 +232,6 @@ internal static partial class SamplesHelper
             foreach (var modelInfo in modelInfos)
             {
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
-                //cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMLExecutionProviderDevicePolicy", $"ExecutionProviderDevicePolicy.{modelInfo.Value.ExpandedModelDetails.ExecutionProviderDevicePolicy}");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.PreferedEP", $"\"{modelInfo.Value.ExpandedModelDetails.PreferedEp}\"");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
                 i++;
@@ -229,7 +243,6 @@ internal static partial class SamplesHelper
         {
             var modelInfo = modelInfos.Values.First();
             cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
-            //cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMLExecutionProviderDevicePolicy", $"ExecutionProviderDevicePolicy.{modelInfo.ExpandedModelDetails.ExecutionProviderDevicePolicy}");
             cleanCsSource = cleanCsSource.Replace($"sampleParams.PreferedEP", $"\"{modelInfo.ExpandedModelDetails.PreferedEp}\"");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
