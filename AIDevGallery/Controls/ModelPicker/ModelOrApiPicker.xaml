@@ -102,7 +102,13 @@
                     Background="{ThemeResource CardGradient2Brush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
+                    RowSpacing="8"
                     Translation="0,0,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Models selected for this sample" />
                     <ItemsView
                         x:Name="SelectedModelsItemsView"
                         Grid.Row="1"
@@ -174,15 +180,15 @@
                     </ItemsView>
                     <Button
                         x:Name="SaveButton"
-                        Grid.Row="2"
+                        Grid.Row="1"
                         Width="120"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Stretch"
                         Click="OnSave_Clicked"
                         Style="{StaticResource AccentButtonStyle}">
                         <StackPanel Orientation="Vertical" Spacing="4">
-                            <FontIcon FontSize="16" Glyph="&#xE72A;" />
-                            <TextBlock Text="Use models" />
+                            <FontIcon FontSize="14" Glyph="&#xE72A;" />
+                            <TextBlock Text="Run sample" />
                         </StackPanel>
                     </Button>
                 </Grid>
