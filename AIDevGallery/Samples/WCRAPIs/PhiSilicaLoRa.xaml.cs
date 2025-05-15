@@ -11,7 +11,6 @@ using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Text;
 using Microsoft.Windows.AI.Text.Experimental;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

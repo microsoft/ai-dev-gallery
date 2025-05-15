@@ -3,7 +3,6 @@
 
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
-using AIDevGallery.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;

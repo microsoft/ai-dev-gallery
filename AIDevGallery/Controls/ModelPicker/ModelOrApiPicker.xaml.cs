@@ -219,10 +219,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             modelTypeSelector.Items.Add(def);
         }
+
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
         if (modelTypeSelector.Items.Count > 1)
         {
-     
             VisualStateManager.GoToState(this, "SidePaneVisible", true);
         }
         else
