@@ -38,6 +38,8 @@ internal class AppData
 
     public WinMlSampleOptions WinMLSampleOptions { get; set; }
 
+    private Dictionary<string, Dictionary<string, string>>? SampleData { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
@@ -143,6 +145,46 @@ internal class AppData
         }
 
         await SaveAsync();
+    }
+
+    // does not persist between sessions
+    public async Task SetSampleDataAsync(string sampleName, string key, string data)
+    {
+        if (SampleData == null)
+        {
+            SampleData = new Dictionary<string, Dictionary<string, string>>();
+        }
+
+        if (!SampleData.TryGetValue(sampleName, out Dictionary<string, string>? value))
+        {
+            value = new Dictionary<string, string>();
+            SampleData[sampleName] = value;
+        }
+
+        if (!value.TryAdd(key, data))
+        {
+            value[key] = data;
+        }
+
+        await SaveAsync();
+    }
+
+    public string? GetSampleData(string sampleName, string key)
+    {
+        if (SampleData == null)
+        {
+            return null;
+        }
+
+        if (SampleData.TryGetValue(sampleName, out Dictionary<string, string>? value))
+        {
+            if (value.TryGetValue(key, out string? data))
+            {
+                return data;
+            }
+        }
+
+        return null;
     }
 
     private static AppData GetDefault()
