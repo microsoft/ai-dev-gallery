@@ -211,7 +211,7 @@ internal sealed partial class APIPage : Page
             return;
         }
 
-        _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], "CPU", this.XamlRoot);
+        _ = Generator.AskGenerateAndOpenAsync(sample, [modelDetails], null, this.XamlRoot);
     }
 
     private void CopyCodeButton_Click(object sender, RoutedEventArgs e)

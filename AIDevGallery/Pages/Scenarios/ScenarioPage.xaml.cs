@@ -23,6 +23,17 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class ScenarioPage : Page
 {
+    private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
+    {
+        { "Default", ExecutionProviderDevicePolicy.DEFAULT },
+        { "Max Efficency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
+        { "Max Performance", ExecutionProviderDevicePolicy.MAX_PERFORMANCE },
+        { "Minimize Overall Power", ExecutionProviderDevicePolicy.MIN_OVERALL_POWER },
+        { "Prefer NPU", ExecutionProviderDevicePolicy.PREFER_NPU },
+        { "Prefer GPU", ExecutionProviderDevicePolicy.PREFER_GPU },
+        { "Prefer CPU", ExecutionProviderDevicePolicy.PREFER_CPU },
+    };
+
     private Scenario? scenario;
     private List<Sample>? samples;
     private Sample? sample;
@@ -46,8 +57,6 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
-        DeviceEpSelectionDevicePolicyComboBox.SelectionChanged += DeviceEpSelectionDevicePolicyComboBox_SelectionChanged;
-
         if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
@@ -175,7 +184,7 @@ internal sealed partial class ScenarioPage : Page
             HashSet<string> eps = ["CPU"];
             var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
 
-            DeviceEpSelectionDevicePolicyComboBox.Items.Clear();
+            DeviceComboBox.Items.Clear();
 
             foreach (var harwareAccelerator in selectedModels.SelectMany(m => m!.HardwareAccelerators).Distinct())
             {
@@ -187,16 +196,41 @@ internal sealed partial class ScenarioPage : Page
 
             foreach (var ep in eps)
             {
-                DeviceEpSelectionDevicePolicyComboBox.Items.Add(ep);
+                DeviceComboBox.Items.Add(ep);
             }
 
-            DeviceEpSelectionDevicePolicyComboBox.SelectedIndex = DeviceEpSelectionDevicePolicyComboBox.Items.IndexOf(App.AppData.LastPreferedEP ?? "CPU");
+            var options = App.AppData.WinMLSampleOptions;
+            if (options.Policy != null)
+            {
+                var key = executionProviderDevicePolicies.FirstOrDefault(kvp => kvp.Value == options.Policy).Key;
+                ExecutionPolicyComboBox.SelectedItem = key;
+                DeviceComboBox.SelectedIndex = -1;
+                CompileModelCheckBox.IsEnabled = false;
+                CompileModelCheckBox.IsChecked = false;
+                WinMlModelOptionsButton.Content = key;
+            }
+            else if (options.Device != null)
+            {
+                if (DeviceComboBox.Items.Contains(options.Device))
+                {
+                    DeviceComboBox.SelectedItem = options.Device;
+                }
+                else
+                {
+                    DeviceComboBox.SelectedIndex = 0;
+                }
 
-            DeviceEpSelectionDevicePolicyComboBox.Visibility = Visibility.Visible;
+                ExecutionPolicyComboBox.SelectedIndex = -1;
+                CompileModelCheckBox.IsEnabled = true;
+                CompileModelCheckBox.IsChecked = true;
+                WinMlModelOptionsButton.Content = DeviceComboBox.SelectedItem;
+            }
+
+            WinMlModelOptionsButton.Visibility = Visibility.Visible;
         }
         else
         {
-            DeviceEpSelectionDevicePolicyComboBox.Visibility = Visibility.Collapsed;
+            WinMlModelOptionsButton.Visibility = Visibility.Collapsed;
         }
 
         if (selectedModels.Count == 1)
@@ -245,16 +279,9 @@ internal sealed partial class ScenarioPage : Page
 
         VisualStateManager.GoToState(this, "ModelSelected", true);
 
-        string? preferedEP = null;
-
-        if (DeviceEpSelectionDevicePolicyComboBox.Visibility == Visibility.Visible && DeviceEpSelectionDevicePolicyComboBox.SelectedItem is string ep)
-        {
-            preferedEP = ep;
-        }
-
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], preferedEP);
+        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], App.AppData.WinMLSampleOptions);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -331,7 +358,7 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), DeviceEpSelectionDevicePolicyComboBox.SelectedItem as string ?? "CPU", XamlRoot);
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), App.AppData.WinMLSampleOptions, XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -366,14 +393,47 @@ internal sealed partial class ScenarioPage : Page
         LoadSample(selectedSample);
     }
 
-    private async void DeviceEpSelectionDevicePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ExecutionDevicePolicyChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (DeviceEpSelectionDevicePolicyComboBox.SelectedItem is string ep && ep != App.AppData.LastPreferedEP)
+        if (ExecutionPolicyComboBox.SelectedItem is string key)
         {
-            LoadSample(sample);
-
-            App.AppData.LastPreferedEP = ep;
-            await App.AppData.SaveAsync();
+            CompileModelCheckBox.IsChecked = false;
+            CompileModelCheckBox.IsEnabled = false;
+            DeviceComboBox.SelectedIndex = -1;
         }
+    }
+
+    private void SelectedDeviceChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DeviceComboBox.SelectedItem is string device)
+        {
+            ExecutionPolicyComboBox.SelectedIndex = -1;
+            CompileModelCheckBox.IsEnabled = true;
+            CompileModelCheckBox.IsChecked = true;
+        }
+    }
+
+    private async void Flyout_Closed(object sender, object e)
+    {
+        var oldOptions = App.AppData.WinMLSampleOptions;
+
+        if (ExecutionPolicyComboBox.SelectedItem is string key)
+        {
+            WinMlModelOptionsButton.Content = key;
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
+        }
+        else if (DeviceComboBox.SelectedItem is string device)
+        {
+            WinMlModelOptionsButton.Content = device;
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device, CompileModelCheckBox.IsChecked!.Value);
+        }
+
+        if (oldOptions == App.AppData.WinMLSampleOptions)
+        {
+            return;
+        }
+
+        LoadSample(sample);
+        await App.AppData.SaveAsync();
     }
 }

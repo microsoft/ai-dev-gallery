@@ -92,8 +92,68 @@
                             </ItemsRepeater>
                         </StackPanel>
                     </Button>
-                    <ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox" 
-                              Visibility="Collapsed"></ComboBox>
+                    <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox" 
+                              Visibility="Collapsed"></ComboBox>-->
+                    <Button x:Name="WinMlModelOptionsButton">
+                        <Button.Flyout>
+                            <Flyout Closed="Flyout_Closed">
+                                <StackPanel Spacing="4"
+                                            Width="200">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="Execution Policy"></TextBlock>
+                                        <Button
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="More info"
+                                            Content="i"
+                                            Style="{StaticResource TertiaryButtonStyle}"
+                                            ToolTipService.ToolTip="More info">
+                                            <Button.Flyout>
+                                                <Flyout ShouldConstrainToRootBounds="False">
+                                                    <TextBlock
+                                                        MaxWidth="360"
+                                                        Text="Let WinML decide the best device based on the selected Execution Device Policy"
+                                                        TextWrapping="Wrap" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </StackPanel>
+                                    <ComboBox x:Name="ExecutionPolicyComboBox"
+                                              SelectionChanged="ExecutionDevicePolicyChanged"
+                                              Width="200"
+                                              ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"></ComboBox>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,16,0,0">
+                                        <TextBlock Text="Execution Device"></TextBlock>
+                                        <Button
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="More info"
+                                            Content="i"
+                                            Style="{StaticResource TertiaryButtonStyle}"
+                                            ToolTipService.ToolTip="More info">
+                                            <Button.Flyout>
+                                                <Flyout ShouldConstrainToRootBounds="False">
+                                                    <TextBlock
+                                                        MaxWidth="360"
+                                                        Text="Select the Execution Device directly"
+                                                        TextWrapping="Wrap" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </StackPanel>
+                                    <ComboBox x:Name="DeviceComboBox"
+                                              SelectionChanged="SelectedDeviceChanged"
+                                              Width="200">
+                                        <x:String>NPU</x:String>
+                                        <x:String>GPU</x:String>
+                                        <x:String>CPU</x:String>
+                                    </ComboBox>
+                                    <CheckBox x:Name="CompileModelCheckBox"
+                                              Margin="0,16,0,0"
+                                              Content="Compile Model"/>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                 </StackPanel>
                 <StackPanel
                     x:Name="ButtonsPanel"

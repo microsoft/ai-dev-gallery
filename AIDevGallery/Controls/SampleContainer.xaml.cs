@@ -61,7 +61,7 @@ internal sealed partial class SampleContainer : UserControl
     private Sample? _sampleCache;
     private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
     private List<ModelDetails>? _modelsCache;
-    private string? _currentPreferedEp;
+    private WinMlSampleOptions? _currentWinMlSampleOptions;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
@@ -126,7 +126,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, string? preferedEP = null)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (sample == null)
         {
@@ -135,7 +135,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         this.Visibility = Visibility.Visible;
-        if (!LoadSampleMetadata(sample, models, preferedEP))
+        if (!LoadSampleMetadata(sample, models, winMlSampleOptions))
         {
             return;
         }
@@ -248,7 +248,7 @@ internal sealed partial class SampleContainer : UserControl
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
-                preferedEP,
+                winMlSampleOptions,
                 token);
         }
         else
@@ -268,7 +268,7 @@ internal sealed partial class SampleContainer : UserControl
                 [.. hardwareAccelerators],
                 [.. promptTemplates],
                 _sampleLoadedCompletionSource,
-                preferedEP,
+                winMlSampleOptions,
                 token);
         }
 
@@ -298,12 +298,12 @@ internal sealed partial class SampleContainer : UserControl
     }
 
     [MemberNotNull(nameof(_sampleCache))]
-    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, string? preferedEP = null)
+    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (_sampleCache == sample &&
             _modelsCache != null &&
             models != null &&
-            preferedEP == _currentPreferedEp)
+            winMlSampleOptions == _currentWinMlSampleOptions)
         {
             var modelsAreEqual = true;
             if (_modelsCache.Count != models.Count)
@@ -330,11 +330,11 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
-        _currentPreferedEp = preferedEP;
+        _currentWinMlSampleOptions = winMlSampleOptions;
 
         if (models != null)
         {
-            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentPreferedEp ?? "CPU");
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentWinMlSampleOptions);
 
             if (_cachedModels != null)
             {
@@ -439,11 +439,12 @@ internal sealed partial class SampleContainer : UserControl
     {
         var models = _modelsCache;
         var sample = _sampleCache;
+        var winMlSampleOptions = _currentWinMlSampleOptions;
         _modelsCache = null;
         _sampleCache = null;
-        _currentPreferedEp = default;
+        _currentWinMlSampleOptions = null;
 
-        return LoadSampleAsync(sample, models, _currentPreferedEp);
+        return LoadSampleAsync(sample, models, winMlSampleOptions);
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)

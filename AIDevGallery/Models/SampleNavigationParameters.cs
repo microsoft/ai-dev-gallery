@@ -3,6 +3,7 @@
 
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
+using AIDevGallery.Utils;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ internal class SampleNavigationParameters(
         HardwareAccelerator hardwareAccelerator,
         LlmPromptTemplate? promptTemplate,
         TaskCompletionSource sampleLoadedCompletionSource,
-        string? preferedEP,
+        WinMlSampleOptions? winMlSampleOptions,
         CancellationToken loadingCanceledToken)
     : BaseSampleNavigationParameters(sampleLoadedCompletionSource, loadingCanceledToken)
 {
@@ -27,7 +28,10 @@ internal class SampleNavigationParameters(
     protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerator;
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplate;
 
-    public override string PreferedEP => preferedEP ?? "CPU";
+    // temporary until samples are moved away
+    public string PreferedEP => "CPU";
+
+    public override WinMlSampleOptions WinMlSampleOptions => winMlSampleOptions ?? new WinMlSampleOptions(null, null, false);
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)
     {

@@ -380,9 +380,9 @@ internal partial class Generator
         return outputPath;
     }
 
-    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, string preferedEp, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
+    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, WinMlSampleOptions? winMlSampleOptions, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
     {
-        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), preferedEp);
+        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), winMlSampleOptions);
 
         if (cachedModels == null)
         {

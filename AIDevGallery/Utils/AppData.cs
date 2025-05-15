@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ internal class AppData
 
     public string LastSystemPrompt { get; set; }
 
-    public string? LastPreferedEP { get; set; }
+    public WinMlSampleOptions WinMLSampleOptions { get; set; }
 
     public AppData()
     {
@@ -44,6 +45,7 @@ internal class AppData
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
+        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false);
     }
 
     private static string GetConfigFilePath()
@@ -172,3 +174,5 @@ internal class CustomParametersState
 }
 
 internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);
+
+internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? Device, bool CompileModel);
