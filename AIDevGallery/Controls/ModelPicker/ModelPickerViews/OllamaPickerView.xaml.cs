@@ -3,6 +3,7 @@
 
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
+using AIDevGallery.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -65,9 +66,9 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
         }
     }
 
-    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender is ListView modelView && modelView.SelectedItem is ModelDetails details)
+        if (sender.SelectedItem is ModelDetails details)
         {
             OnSelectedModelChanged(this, details);
         }
@@ -80,16 +81,16 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionView.SelectedIndex = models.IndexOf(foundModel);
+                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
             }
             else
             {
-                ModelSelectionView.SelectedItem = null;
+                ModelSelectionItemsView.DeselectAll();
             }
         }
         else
         {
-            ModelSelectionView.SelectedItem = null;
+            ModelSelectionItemsView.DeselectAll();
         }
     }
 }

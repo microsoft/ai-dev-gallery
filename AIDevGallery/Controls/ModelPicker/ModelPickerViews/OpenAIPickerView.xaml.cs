@@ -79,9 +79,9 @@ internal sealed partial class OpenAIPickerView : BaseModelPickerView
         }
     }
 
-    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender is ListView modelView && modelView.SelectedItem is ModelDetails details)
+        if (sender.SelectedItem is ModelDetails details)
         {
             OnSelectedModelChanged(this, details);
         }
@@ -94,16 +94,16 @@ internal sealed partial class OpenAIPickerView : BaseModelPickerView
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionView.SelectedIndex = models.IndexOf(foundModel);
+                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
             }
             else
             {
-                ModelSelectionView.SelectedItem = null;
+                ModelSelectionItemsView.DeselectAll();
             }
         }
         else
         {
-            ModelSelectionView.SelectedItem = null;
+            ModelSelectionItemsView.DeselectAll();
         }
     }
 

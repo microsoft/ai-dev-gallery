@@ -143,11 +143,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
 
-        if (modelSelectionItems.Count > 1)
-        {
-            modelText.Text = "Selected models for this sample";
-        }
-
         return selectedModels;
     }
 
@@ -224,16 +219,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             modelTypeSelector.Items.Add(def);
         }
-
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
-
-        if (modelTypeSelector.Items.Count <= 1)
+        if (modelTypeSelector.Items.Count > 1)
         {
-            modelTypeSelector.Visibility = Visibility.Collapsed;
+     
+            VisualStateManager.GoToState(this, "SidePaneVisible", true);
         }
         else
         {
-            modelTypeSelector.Visibility = Visibility.Visible;
+            VisualStateManager.GoToState(this, "SidePaneCollapsed", true);
         }
     }
 
@@ -280,8 +274,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
 
                 Implicit.SetShowAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultShowAnimationsSet"]);
-                Implicit.SetHideAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultHideAnimationsSet"]);
-
                 modelsGrid.Children.Add(modelPickerView);
             }
         }
