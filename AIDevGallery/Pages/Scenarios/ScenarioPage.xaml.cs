@@ -104,12 +104,24 @@ internal sealed partial class ScenarioPage : Page
 
     private static Dictionary<HardwareAccelerator, string>? supportedHardwareAccelerators;
 
-    private static Dictionary<HardwareAccelerator, string> GetSupportedHardwareAccelerators()
+    private static async Task<Dictionary<HardwareAccelerator, string>> GetSupportedHardwareAccelerators()
     {
         if (supportedHardwareAccelerators != null)
         {
             return supportedHardwareAccelerators;
         }
+
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+        try
+        {
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+        }
+
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
         supportedHardwareAccelerators = new();
         supportedHardwareAccelerators[HardwareAccelerator.CPU] = "CPU";
@@ -128,12 +140,12 @@ internal sealed partial class ScenarioPage : Page
                     break;
 
                 case "OpenVINOExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.OpenVINO] = "NPU";
                     supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
                     break;
 
                 case "QNNExecutionProvider":
-                    supportedHardwareAccelerators[HardwareAccelerator.VitisAI] = "NPU";
+                    supportedHardwareAccelerators[HardwareAccelerator.QNN] = "NPU";
                     supportedHardwareAccelerators[HardwareAccelerator.NPU] = "NPU";
                     break;
 
@@ -147,7 +159,7 @@ internal sealed partial class ScenarioPage : Page
         return supportedHardwareAccelerators;
     }
 
-    private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
+    private async void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
     {
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
@@ -162,7 +174,7 @@ internal sealed partial class ScenarioPage : Page
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
         {
             HashSet<string> eps = ["CPU"];
-            var supportedHardwareAccelerators = GetSupportedHardwareAccelerators();
+            var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
 
             DeviceEpSelectionDevicePolicyComboBox.Items.Clear();
 

@@ -334,7 +334,7 @@ internal sealed partial class SampleContainer : UserControl
 
         if (models != null)
         {
-            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentPreferedEp ?? "CPU");
 
             if (_cachedModels != null)
             {
@@ -443,7 +443,7 @@ internal sealed partial class SampleContainer : UserControl
         _sampleCache = null;
         _currentPreferedEp = default;
 
-        return LoadSampleAsync(sample, models);
+        return LoadSampleAsync(sample, models, _currentPreferedEp);
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)

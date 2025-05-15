@@ -95,7 +95,7 @@ internal sealed partial class Multipose : BaseSamplePage
             await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             _poseSession = GetInferenceSession(poseModelPath, preferedEp);
-            _detectionSession = GetInferenceSession(detectionModelPath, preferedEp);
+            _detectionSession = GetInferenceSession(detectionModelPath, "CPU");
         });
     }
 
