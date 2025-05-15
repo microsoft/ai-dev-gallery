@@ -132,7 +132,7 @@
                               Visibility="Collapsed"></ComboBox>-->
                     <Button x:Name="WinMlModelOptionsButton" Padding="0">
                         <Button.Flyout>
-                            <Flyout Closed="Flyout_Closed">
+                            <Flyout x:Name="WinMLOptionsFlyout" Opening="WinMLOptionsFlyout_Opening">
                                 <StackPanel Width="200" Spacing="4">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <TextBlock Text="Execution Policy" />
@@ -190,6 +190,7 @@
                                         x:Name="CompileModelCheckBox"
                                         Margin="0,16,0,0"
                                         Content="Compile Model" />
+                                    <Button x:Name="WinMLOptionsApply" Content="Apply" Click="ApplySampleOptions"></Button>
                                 </StackPanel>
                             </Flyout>
                         </Button.Flyout>

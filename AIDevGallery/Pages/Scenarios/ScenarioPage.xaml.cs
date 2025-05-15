@@ -199,32 +199,7 @@ internal sealed partial class ScenarioPage : Page
                 DeviceComboBox.Items.Add(ep);
             }
 
-            var options = App.AppData.WinMLSampleOptions;
-            if (options.Policy != null)
-            {
-                var key = executionProviderDevicePolicies.FirstOrDefault(kvp => kvp.Value == options.Policy).Key;
-                ExecutionPolicyComboBox.SelectedItem = key;
-                DeviceComboBox.SelectedIndex = -1;
-                CompileModelCheckBox.IsEnabled = false;
-                CompileModelCheckBox.IsChecked = false;
-                WinMlModelOptionsButtonText.Text = key;
-            }
-            else if (options.Device != null)
-            {
-                if (DeviceComboBox.Items.Contains(options.Device))
-                {
-                    DeviceComboBox.SelectedItem = options.Device;
-                }
-                else
-                {
-                    DeviceComboBox.SelectedIndex = 0;
-                }
-
-                ExecutionPolicyComboBox.SelectedIndex = -1;
-                CompileModelCheckBox.IsEnabled = true;
-                CompileModelCheckBox.IsChecked = true;
-                WinMlModelOptionsButtonText.Text = DeviceComboBox.SelectedItem?.ToString();
-            }
+            UpdateWinMLFlyout();
 
             WinMlModelOptionsButton.Visibility = Visibility.Visible;
         }
@@ -265,6 +240,36 @@ internal sealed partial class ScenarioPage : Page
         {
             SampleContainer.ShowFooter = false;
             LoadSample(viableSamples[0]);
+        }
+    }
+
+    private void UpdateWinMLFlyout()
+    {
+        var options = App.AppData.WinMLSampleOptions;
+        if (options.Policy != null)
+        {
+            var key = executionProviderDevicePolicies.FirstOrDefault(kvp => kvp.Value == options.Policy).Key;
+            ExecutionPolicyComboBox.SelectedItem = key;
+            DeviceComboBox.SelectedIndex = -1;
+            CompileModelCheckBox.IsEnabled = false;
+            CompileModelCheckBox.IsChecked = false;
+            WinMlModelOptionsButtonText.Text = key;
+        }
+        else if (options.Device != null)
+        {
+            if (DeviceComboBox.Items.Contains(options.Device))
+            {
+                DeviceComboBox.SelectedItem = options.Device;
+            }
+            else
+            {
+                DeviceComboBox.SelectedIndex = 0;
+            }
+
+            ExecutionPolicyComboBox.SelectedIndex = -1;
+            CompileModelCheckBox.IsEnabled = true;
+            CompileModelCheckBox.IsChecked = true;
+            WinMlModelOptionsButtonText.Text = DeviceComboBox.SelectedItem?.ToString();
         }
     }
 
@@ -413,8 +418,10 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private async void Flyout_Closed(object sender, object e)
+    private async void ApplySampleOptions(object sender, RoutedEventArgs e)
     {
+        WinMLOptionsFlyout.Hide();
+
         var oldOptions = App.AppData.WinMLSampleOptions;
 
         if (ExecutionPolicyComboBox.SelectedItem is string key)
@@ -435,5 +442,10 @@ internal sealed partial class ScenarioPage : Page
 
         LoadSample(sample);
         await App.AppData.SaveAsync();
+    }
+
+    private void WinMLOptionsFlyout_Opening(object sender, object e)
+    {
+        UpdateWinMLFlyout();
     }
 }
