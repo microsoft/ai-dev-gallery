@@ -50,8 +50,7 @@
                     <DropDownButton
                         x:Name="GenerateButton"
                         HorizontalAlignment="Right"
-                        Content="Generate"
-                        Style="{StaticResource AccentDropDownButtonStyle}">
+                        Content="Generate">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Click="GenerateAll_Click" Text="Generate all" />
