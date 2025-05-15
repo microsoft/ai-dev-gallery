@@ -41,6 +41,7 @@ internal sealed partial class ScenarioPage : Page
     private List<Sample>? samples;
     private Sample? sample;
     private ObservableCollection<ModelDetails?> modelDetails = new();
+    private static List<WinMlEp>? supportedHardwareAccelerators;
 
     public ScenarioPage()
     {
@@ -112,8 +113,6 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
     }
-
-    private static List<WinMlEp>? supportedHardwareAccelerators;
 
     private static async Task<List<WinMlEp>> GetSupportedHardwareAccelerators()
     {
@@ -248,10 +247,9 @@ internal sealed partial class ScenarioPage : Page
         {
             var key = executionProviderDevicePolicies.FirstOrDefault(kvp => kvp.Value == options.Policy).Key;
             ExecutionPolicyComboBox.SelectedItem = key;
-            DeviceComboBox.SelectedIndex = -1;
-            CompileModelCheckBox.IsEnabled = false;
-            CompileModelCheckBox.IsChecked = false;
             WinMlModelOptionsButtonText.Text = key;
+            DeviceComboBox.SelectedIndex = 0;
+            segmentedControl.SelectedIndex = 0;
         }
         else if (options.Device != null)
         {
@@ -265,10 +263,10 @@ internal sealed partial class ScenarioPage : Page
                 DeviceComboBox.SelectedIndex = 0;
             }
 
-            ExecutionPolicyComboBox.SelectedIndex = -1;
-            CompileModelCheckBox.IsEnabled = true;
-            CompileModelCheckBox.IsChecked = true;
+            ExecutionPolicyComboBox.SelectedIndex = 0;
+            CompileModelCheckBox.IsChecked = options.CompileModel;
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
+            segmentedControl.SelectedIndex = 1;
         }
     }
 
@@ -397,40 +395,22 @@ internal sealed partial class ScenarioPage : Page
         LoadSample(selectedSample);
     }
 
-    private void ExecutionDevicePolicyChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (ExecutionPolicyComboBox.SelectedItem is string key)
-        {
-            CompileModelCheckBox.IsChecked = false;
-            CompileModelCheckBox.IsEnabled = false;
-            DeviceComboBox.SelectedIndex = -1;
-        }
-    }
-
-    private void SelectedDeviceChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (DeviceComboBox.SelectedItem is WinMlEp device)
-        {
-            ExecutionPolicyComboBox.SelectedIndex = -1;
-            CompileModelCheckBox.IsEnabled = true;
-            CompileModelCheckBox.IsChecked = true;
-        }
-    }
-
     private async void ApplySampleOptions(object sender, RoutedEventArgs e)
     {
         WinMLOptionsFlyout.Hide();
 
         var oldOptions = App.AppData.WinMLSampleOptions;
 
-        if (ExecutionPolicyComboBox.SelectedItem is string key)
+        if (segmentedControl.SelectedIndex == 0)
         {
+            var key = (ExecutionPolicyComboBox.SelectedItem as string) ?? executionProviderDevicePolicies.Keys.First();
             WinMlModelOptionsButtonText.Text = key;
             App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
         }
-        else if (DeviceComboBox.SelectedItem is WinMlEp device)
+        else
         {
-            WinMlModelOptionsButtonText.Text = device.ShortName;
+            var device = (DeviceComboBox.SelectedItem as WinMlEp) ?? (DeviceComboBox.Items.First() as WinMlEp);
+            WinMlModelOptionsButtonText.Text = device!.ShortName;
             App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device.Name, CompileModelCheckBox.IsChecked!.Value);
         }
 

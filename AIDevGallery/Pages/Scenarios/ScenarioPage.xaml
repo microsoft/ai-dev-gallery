@@ -166,7 +166,7 @@
                                 Opening="WinMLOptionsFlyout_Opening"
                                 Placement="Bottom">
                                 <Grid
-                                    Width="300"
+                                    Width="320"
                                     MinHeight="120"
                                     RowSpacing="8">
                                     <Grid.RowDefinitions>
@@ -177,20 +177,19 @@
                                     <TextBlock
                                         FontSize="12"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="Choose what execution device WinML should use"
+                                        Text="Choose what Execution Provider (EP) WinML should use"
                                         TextWrapping="Wrap" />
                                     <toolkit:Segmented
                                         x:Name="segmentedControl"
                                         Grid.Row="1"
                                         Margin="0,0,0,12"
-                                        HorizontalAlignment="Stretch"
-                                        SelectedIndex="0">
+                                        HorizontalAlignment="Stretch">
                                         <toolkit:SegmentedItem
-                                            Content="Policy"
+                                            Content="EP Selection Policy"
                                             Icon="{ui:FontIcon Glyph=&#xEC4A;}"
                                             Tag="policy" />
                                         <toolkit:SegmentedItem
-                                            Content="Device"
+                                            Content="Execution Provider"
                                             Icon="{ui:FontIcon Glyph=&#xE950;}"
                                             Tag="device" />
                                     </toolkit:Segmented>
@@ -212,9 +211,8 @@
                                                     <ComboBox
                                                         x:Name="ExecutionPolicyComboBox"
                                                         HorizontalAlignment="Stretch"
-                                                        Header="Let WinML choose the best device"
-                                                        ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}"
-                                                        SelectionChanged="ExecutionDevicePolicyChanged" />
+                                                        Header="Let WinML choose the best device based on the  EP Selection Policy:"
+                                                        ItemsSource="{x:Bind executionProviderDevicePolicies.Keys}" />
                                                 </Grid>
                                             </toolkit:Case>
                                             <toolkit:Case Value="device">
@@ -222,8 +220,7 @@
                                                     <ComboBox
                                                         x:Name="DeviceComboBox"
                                                         HorizontalAlignment="Stretch"
-                                                        Header="Manually select the execution device"
-                                                        SelectionChanged="SelectedDeviceChanged">
+                                                        Header="Manually select the Execution Provider:">
                                                         <ComboBox.ItemTemplate>
                                                             <DataTemplate x:DataType="local:WinMlEp">
                                                                 <TextBlock>
@@ -236,7 +233,7 @@
                                                     <CheckBox
                                                         x:Name="CompileModelCheckBox"
                                                         Margin="0,8,0,0"
-                                                        Content="Convert and compile model" />
+                                                        Content="Compile model" />
                                                 </StackPanel>
                                             </toolkit:Case>
                                         </toolkit:SwitchPresenter>
