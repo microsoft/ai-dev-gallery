@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.Win32;
 using OpenAI;
@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal class LemonadeModelProvider : IExternalModelProvider
 {

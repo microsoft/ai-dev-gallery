@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
 internal class ModelPickerDefinition
@@ -34,7 +36,8 @@ internal class ModelPickerDefinition
                 Name = "Ollama",
                 Id = "ollama",
                 Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png",
-                CreatePicker = () => new OllamaPickerView()
+                CreatePicker = () => new OllamaPickerView(),
+                IsAvailable = OllamaModelProvider.Instance.IsAvailable
             }
         },
         {
@@ -52,7 +55,8 @@ internal class ModelPickerDefinition
                 Name = "Lemonade",
                 Id = "lemonade",
                 Icon = $"ms-appx:///Assets/ModelIcons/lemonade.png",
-                CreatePicker = () => new LemonadePickerView()
+                CreatePicker = () => new LemonadePickerView(),
+                IsAvailable = LemonadeModelProvider.Instance.IsAvailable
             }
         }
     };
@@ -61,4 +65,5 @@ internal class ModelPickerDefinition
     public required string Icon { get; set; }
     public required string Id { get; set; }
     public required Func<BaseModelPickerView> CreatePicker { get; set; }
+    public Func<Task<bool>> IsAvailable { get; set; } = () => Task.FromResult(true);
 }
