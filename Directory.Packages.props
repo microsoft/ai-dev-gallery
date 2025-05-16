@@ -8,10 +8,10 @@
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.4.0-preview.1.25207.5" />
     <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.4.0-preview.1.25207.5" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.4.0-preview.1.25207.5" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.9.0-dev-20250510-783530-30261df" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.8.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.47.0-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.47.0" />
-    <PackageVersion Include="Microsoft.Windows.AI.MachineLearning" Version="0.3.108-beta" />
+    <PackageVersion Include="Microsoft.Windows.AI.MachineLearning" Version="0.3.121-beta" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
     <PackageVersion Include="System.Text.Json" Version="9.0.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="9.0.3" />
@@ -26,7 +26,7 @@
     <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250515001-experimental2" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.9.0-dev-20250510-783530-30261df" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.8.0" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />
