@@ -27,6 +27,7 @@ internal class AppData
     public bool IsFirstRun { get; set; }
 
     public bool IsDiagnosticsMessageDismissed { get; set; }
+    public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
     public string LastAdapterPath { get; set; }
 
@@ -126,6 +127,51 @@ internal class AppData
         }
 
         await SaveAsync();
+    }
+
+    public void AddModelTypeToUserAddedModelsMappingEntry(ModelType modelType, string modelId)
+    {
+        string modelTypeString = modelType.ToString();
+
+        if(ModelTypeToUserAddedModelsMapping is null)
+        {
+            ModelTypeToUserAddedModelsMapping = new Dictionary<string, List<string>>();
+        }
+
+        if(ModelTypeToUserAddedModelsMapping.TryGetValue(modelTypeString, out List<string>? value))
+        {
+            value.Add(modelId);
+        }
+        else
+        {
+            ModelTypeToUserAddedModelsMapping[modelTypeString] = [modelId];
+        }
+    }
+
+    public async Task DeleteUserAddedModelMapping(string modelId)
+    {
+        if(ModelTypeToUserAddedModelsMapping == null)
+        {
+            return;
+        }
+
+        foreach (string modelType in ModelTypeToUserAddedModelsMapping.Keys)
+        {
+            ModelTypeToUserAddedModelsMapping[modelType].Remove(modelId);
+        }
+
+        await SaveAsync();
+    }
+
+    public bool TryGetUserAddedModelIds(ModelType type, out List<string>? modelIds)
+    {
+        if (ModelTypeToUserAddedModelsMapping == null)
+        {
+            modelIds = null;
+            return false;
+        }
+
+        return ModelTypeToUserAddedModelsMapping.TryGetValue(type.ToString(), out modelIds);
     }
 
     private static AppData GetDefault()

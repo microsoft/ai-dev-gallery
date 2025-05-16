@@ -188,14 +188,18 @@ internal sealed partial class ScenarioPage : Page
             return true;
         }
 
-        List<ModelDetails> models = [];
+        List<string> modelIds = [];
 
         foreach (var type in types)
         {
-            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type));
+            modelIds.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(type).Select(m => m.Id));
+            if (App.AppData.TryGetUserAddedModelIds(type, out var ids))
+            {
+                modelIds.AddRange(ids!);
+            }
         }
 
-        return models.Any(m => m.Id == model.Id);
+        return modelIds.Any(id => id == model.Id);
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
