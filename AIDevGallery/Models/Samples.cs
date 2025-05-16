@@ -134,6 +134,9 @@ internal class ModelDetails
 
         set => icon = value;
     }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public object? ProviderModelDetails { get; set; }
 }
 
 internal class PromptTemplate
@@ -171,6 +174,7 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
+    FOUNDRYLOCAL,
     LEMONADE
 }
 

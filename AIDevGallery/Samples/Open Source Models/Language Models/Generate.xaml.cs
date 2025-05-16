@@ -105,33 +105,40 @@ internal sealed partial class Generate : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
-                    [
-                        new ChatMessage(ChatRole.System, systemPrompt),
-                        new ChatMessage(ChatRole.User, userPrompt)
-                    ],
-                    null,
-                    cts.Token))
+                try
                 {
-                    DispatcherQueue.TryEnqueue(() =>
+                    await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
+                        [
+                            new ChatMessage(ChatRole.System, systemPrompt),
+                            new ChatMessage(ChatRole.User, userPrompt)
+                        ],
+                        null,
+                        cts.Token))
                     {
-                        if (isProgressVisible)
+                        DispatcherQueue.TryEnqueue(() =>
                         {
-                            StopBtn.Visibility = Visibility.Visible;
-                            IsProgressVisible = false;
-                        }
+                            if (isProgressVisible)
+                            {
+                                StopBtn.Visibility = Visibility.Visible;
+                                IsProgressVisible = false;
+                            }
 
-                        GenerateTextBlock.Text += messagePart;
+                            GenerateTextBlock.Text += messagePart;
 
-                        // <exclude>
-                        if (!contentStartedBeingGenerated)
-                        {
-                            NarratorHelper.Announce(InputTextBox, "Content has started generating.", "GeneratedAnnouncementActivityId");
-                            contentStartedBeingGenerated = true;
-                        }
+                            // <exclude>
+                            if (!contentStartedBeingGenerated)
+                            {
+                                NarratorHelper.Announce(InputTextBox, "Content has started generating.", "GeneratedAnnouncementActivityId");
+                                contentStartedBeingGenerated = true;
+                            }
 
-                        // </exclude>
-                    });
+                            // </exclude>
+                        });
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    ShowException(ex);
                 }
 
                 DispatcherQueue.TryEnqueue(() =>

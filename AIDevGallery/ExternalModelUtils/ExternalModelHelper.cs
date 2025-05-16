@@ -18,6 +18,7 @@ namespace AIDevGallery.ExternalModelUtils;
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
+        FoundryLocalModelProvider.Instance,
         OllamaModelProvider.Instance,
         OpenAIModelProvider.Instance,
         LemonadeModelProvider.Instance

@@ -84,9 +84,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
-    <PackageReference Include="HtmlAgilityPack"/>
-    <PackageReference Include="Markdig"/>
-    <PackageReference Include="Roman-Numerals"/>
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Roman-Numerals" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
@@ -241,6 +241,9 @@
     <None Remove="Assets\AppIcon\WideTile.scale-200_altform-colorful_theme-light.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400_altform-colorful_theme-light.png" />
+    <None Remove="Assets\ModelIcons\fl.dark.svg" />
+    <None Remove="Assets\ModelIcons\fl.light.svg" />
+    <None Remove="Assets\ModelIcons\Foundry.png" />
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
@@ -317,6 +320,12 @@
   <ItemGroup>
     <Folder Include="Pages\Models\" />
     <Folder Include="Pages\Scenarios\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Update="Assets\ModelIcons\Foundry.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- 

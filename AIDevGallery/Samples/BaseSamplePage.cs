@@ -50,7 +50,7 @@ internal partial class BaseSamplePage : Page
         SampleParams?.SendSampleInteractionEvent(customInfo);
     }
 
-    internal async void ShowException(Exception? ex, string? optionalMessage = null)
+    internal void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = optionalMessage ?? ex switch
         {
@@ -60,43 +60,46 @@ internal partial class BaseSamplePage : Page
             _ => $"Error:\n{ex?.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}"
         };
 
-        var errorText = new TextBlock
+        this.DispatcherQueue.TryEnqueue(async () =>
         {
-            TextWrapping = TextWrapping.Wrap,
-            Text = msg,
-            IsTextSelectionEnabled = true,
-        };
-
-        ContentDialog exceptionDialog = new()
-        {
-            Title = "Something went wrong",
-            Content = errorText,
-            PrimaryButtonText = "Copy error details",
-            XamlRoot = App.MainWindow.Content.XamlRoot,
-            CloseButtonText = "Close",
-            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
-        };
-
-        if (SampleParams != null)
-        {
-            exceptionDialog.SecondaryButtonText = "Reload";
-        }
-
-        var result = await exceptionDialog.ShowAsync();
-
-        if (result == ContentDialogResult.Primary)
-        {
-            CopyExceptionToClipboard(ex, optionalMessage);
-        }
-        else if (result == ContentDialogResult.Secondary)
-        {
-            if (SampleParams is BaseSampleNavigationParameters sampleParams)
+            var errorText = new TextBlock
             {
-                sampleParams.SampleLoadedCompletionSource = new();
+                TextWrapping = TextWrapping.Wrap,
+                Text = msg,
+                IsTextSelectionEnabled = true,
+            };
+
+            ContentDialog exceptionDialog = new()
+            {
+                Title = "Something went wrong",
+                Content = errorText,
+                PrimaryButtonText = "Copy error details",
+                XamlRoot = App.MainWindow.Content.XamlRoot,
+                CloseButtonText = "Close",
+                PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+            };
+
+            if (SampleParams != null)
+            {
+                exceptionDialog.SecondaryButtonText = "Reload";
             }
 
-            await LoadSample(SampleParams);
-        }
+            var result = await exceptionDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                CopyExceptionToClipboard(ex, optionalMessage);
+            }
+            else if (result == ContentDialogResult.Secondary)
+            {
+                if (SampleParams is BaseSampleNavigationParameters sampleParams)
+                {
+                    sampleParams.SampleLoadedCompletionSource = new();
+                }
+
+                await LoadSample(SampleParams);
+            }
+        });
     }
 
     public void CopyExceptionToClipboard(Exception? ex, string? optionalMessage)

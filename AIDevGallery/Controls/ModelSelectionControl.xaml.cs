@@ -471,7 +471,7 @@ internal partial class ModelSelectionControl : UserControl
 
             if (output == ContentDialogResult.Primary)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
+                App.ModelDownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
             }
         }
@@ -479,7 +479,7 @@ internal partial class ModelSelectionControl : UserControl
 
     private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
     {
-        App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
+        App.ModelDownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
         OnModelCollectionChanged();
     }
 
