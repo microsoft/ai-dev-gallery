@@ -196,7 +196,7 @@
             "HardwareAccelerator": [
               "CPU",
               "GPU",
-              "NPU"
+              "QNN"
             ],
             "InputDimensions": [
               [ 1, 3, 128, 128 ]
