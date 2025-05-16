@@ -149,9 +149,9 @@ internal sealed partial class ModelSelectionPage : Page
 
         if (languageModelsNavItem != null)
         {
-            var userAddedModels = App.ModelCache.Models.Where(m => m.Details.IsUserAdded).ToList();
+            var userAddedLanguageModels = App.ModelCache.Models.Where(m => m.Details.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.OrdinalIgnoreCase)).ToList();
 
-            foreach (var cachedModel in userAddedModels)
+            foreach (var cachedModel in userAddedLanguageModels)
             {
                 languageModelsNavItem.MenuItems.Add(new NavigationViewItem
                 {

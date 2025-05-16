@@ -179,16 +179,10 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
-            if (def.Id == "ollama")
+            if (await def.IsAvailable())
             {
-                // don't add ollama if not available
-                if (!await OllamaModelProvider.Instance.IsAvailable())
-                {
-                    continue;
-                }
+                modelTypeSelector.Items.Add(new SegmentedItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) }, Content = def.Name, Tag = def });
             }
-
-            modelTypeSelector.Items.Add(new SegmentedItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) },  Content = def.Name, Tag = def });
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];

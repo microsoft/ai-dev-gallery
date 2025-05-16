@@ -8,7 +8,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils;
@@ -17,7 +19,8 @@ internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
         OllamaModelProvider.Instance,
-        OpenAIModelProvider.Instance
+        OpenAIModelProvider.Instance,
+        LemonadeModelProvider.Instance
     ];
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
@@ -126,5 +129,32 @@ internal static class ExternalModelHelper
     public static string? GetIChatClientString(string url)
     {
         return GetProvider(url)?.GetIChatClientString(url);
+    }
+
+    public static async Task<(string Output, string Error, int ExitCode)?> GetFromProcessAsync(string command, string args, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var p = new Process();
+            p.StartInfo.FileName = command;
+            p.StartInfo.Arguments = args;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+
+            p.Start();
+
+            string output = await p.StandardOutput.ReadToEndAsync(cancellationToken);
+            string error = await p.StandardError.ReadToEndAsync(cancellationToken);
+
+            await p.WaitForExitAsync(cancellationToken);
+
+            return (output, error, p.ExitCode);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }
