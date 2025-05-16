@@ -139,7 +139,7 @@ internal static class ModelDetailsHelper
             }
         }
 
-        if (initialModelType != ModelType.LanguageModels && App.AppData.TryGetUserAddedModelIds(initialModelType, out List<string>? modelIds))
+        if (initialModelType != ModelType.LanguageModels && App.AppData != null && App.AppData.TryGetUserAddedModelIds(initialModelType, out List<string>? modelIds))
         {
             foreach (string id in modelIds!)
             {
