@@ -49,7 +49,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
-    private void Hide()
+    public void Hide()
     {
         this.Visibility = Visibility.Collapsed;
     }

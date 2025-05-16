@@ -121,6 +121,8 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
+            ModelPicker.Hide();
+
             if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
             {
                 // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
@@ -265,6 +267,7 @@ internal sealed partial class MainWindow : WindowEx
     {
         if (NavFrame.CanGoBack)
         {
+            ModelPicker.Hide();
             NavFrame.GoBack();
         }
     }
