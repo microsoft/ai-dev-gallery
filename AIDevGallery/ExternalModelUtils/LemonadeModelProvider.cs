@@ -148,10 +148,16 @@ internal class LemonadeModelProvider : IExternalModelProvider
 
     public async Task<bool> IsAvailable()
     {
+        if (_isLemonadeAvailable != null)
+        {
+            return _isLemonadeAvailable.Value;
+        }
+
         string? cpu = Registry.GetValue("HKEY_LOCAL_MACHINE\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString", null) as string;
 
         if (string.IsNullOrWhiteSpace(cpu) || !Regex.IsMatch(cpu, @"Ryzen AI.*\b3\d{2}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
+            _isLemonadeAvailable = false;
             return false;
         }
 
