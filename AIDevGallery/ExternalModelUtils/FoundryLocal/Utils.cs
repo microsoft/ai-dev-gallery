@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
-internal class FoundryUtils
+internal class Utils
 {
     public async static Task<(string? Output, string? Error, int ExitCode)> RunFoundryWithArguments(string arguments)
     {

@@ -47,7 +47,7 @@ internal class FoundryServiceManager()
 
     public async Task<string?> GetServiceUrl()
     {
-        var status = await FoundryUtils.RunFoundryWithArguments("service status");
+        var status = await Utils.RunFoundryWithArguments("service status");
 
         if (status.ExitCode != 0 || string.IsNullOrWhiteSpace(status.Output))
         {
@@ -70,7 +70,7 @@ internal class FoundryServiceManager()
             return true;
         }
 
-        var status = await FoundryUtils.RunFoundryWithArguments("service start");
+        var status = await Utils.RunFoundryWithArguments("service start");
         if (status.ExitCode != 0 || string.IsNullOrWhiteSpace(status.Output))
         {
             return false;

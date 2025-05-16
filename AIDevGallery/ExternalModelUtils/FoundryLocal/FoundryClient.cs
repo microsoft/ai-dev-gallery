@@ -16,7 +16,7 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient
 {
-    public static async Task<FoundryClient?> CreateAsync(HttpClient? httpClient = null)
+    public static async Task<FoundryClient?> CreateAsync()
     {
         var serviceManager = FoundryServiceManager.TryCreate();
         if (serviceManager == null)
@@ -39,7 +39,7 @@ internal class FoundryClient
             return null;
         }
 
-        return new FoundryClient(serviceUrl, serviceManager, httpClient ?? new HttpClient());
+        return new FoundryClient(serviceUrl, serviceManager, new HttpClient());
     }
 
     public FoundryServiceManager ServiceManager { get; init; }
@@ -83,12 +83,6 @@ internal class FoundryClient
         return _catalogModels;
     }
 
-    // public async Task<string> GetCacheLocation()
-    // {
-    //    var response = await _httpClient.GetAsync($"{_baseUrl}/openai/status");
-    //    response.EnsureSuccessStatusCode();
-    //    return await response.Content.ReadAsStringAsync();
-    // }
     public async Task<List<FoundryCachedModel>> ListCachedModels()
     {
         var response = await _httpClient.GetAsync($"{_baseUrl}/openai/models");
