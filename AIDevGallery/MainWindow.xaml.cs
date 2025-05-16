@@ -63,6 +63,10 @@ internal sealed partial class MainWindow : WindowEx
         {
             Navigate("Models", obj);
         }
+        else if (obj is SampleNavigationArgs)
+        {
+            Navigate("Samples", obj);
+        }
         else
         {
             Navigate("Home");
