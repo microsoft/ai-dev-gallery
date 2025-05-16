@@ -45,6 +45,15 @@ internal class ModelPickerDefinition
                 Icon = $"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.png",
                 CreatePicker = () => new OpenAIPickerView()
             }
+        },
+        {
+            "lemonade", new ModelPickerDefinition()
+            {
+                Name = "Lemonade",
+                Id = "lemonade",
+                Icon = $"ms-appx:///Assets/ModelIcons/lemonade.png",
+                CreatePicker = () => new LemonadePickerView()
+            }
         }
     };
 

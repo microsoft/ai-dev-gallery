@@ -244,6 +244,7 @@
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
+    <None Remove="Assets\ModelIcons\lemonade.png" />
     <None Remove="Assets\ModelIcons\lemonade.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />

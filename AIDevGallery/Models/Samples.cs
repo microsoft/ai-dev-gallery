@@ -169,7 +169,7 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
-    AMD
+    LEMONADE
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
