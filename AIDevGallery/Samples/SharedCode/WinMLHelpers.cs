@@ -64,30 +64,25 @@ internal static class WinMLHelpers
         return null;
     }
 
-    private static Dictionary<string, List<OrtEpDevice>>? _epDeviceMap;
-
     public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap(OrtEnv? environment = null)
     {
-        if (_epDeviceMap == null)
+        environment ??= OrtEnv.Instance();
+        IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
+        Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (OrtEpDevice device in epDevices)
         {
-            environment ??= OrtEnv.Instance();
-            IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
-            _epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
+            string name = device.EpName;
 
-            foreach (OrtEpDevice device in epDevices)
+            if (!epDeviceMap.TryGetValue(name, out List<OrtEpDevice>? value))
             {
-                string name = device.EpName;
-
-                if (!_epDeviceMap.TryGetValue(name, out List<OrtEpDevice>? value))
-                {
-                    value = [];
-                    _epDeviceMap[name] = value;
-                }
-
-                value.Add(device);
+                value = [];
+                epDeviceMap[name] = value;
             }
+
+            value.Add(device);
         }
 
-        return _epDeviceMap;
+        return epDeviceMap;
     }
 }

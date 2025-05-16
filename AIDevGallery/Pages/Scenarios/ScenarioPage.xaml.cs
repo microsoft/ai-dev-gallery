@@ -121,6 +121,7 @@ internal sealed partial class ScenarioPage : Page
             return supportedHardwareAccelerators;
         }
 
+        OrtEnv.Instance();
         Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
         try
