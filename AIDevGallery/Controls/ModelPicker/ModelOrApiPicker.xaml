@@ -129,7 +129,10 @@
                                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                         BorderThickness="1">
-                                        <Grid VerticalAlignment="Center" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNull(SelectedModel), Mode=OneWay}">
+                                        <Grid
+                                            Padding="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNull(SelectedModel), Mode=OneWay}">
                                             <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="No model selected.." />
                                         </Grid>
                                         <Grid RowSpacing="4" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(SelectedModel), Mode=OneWay}">
