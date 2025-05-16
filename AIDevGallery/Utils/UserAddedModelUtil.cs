@@ -356,7 +356,7 @@ internal static class UserAddedModelUtil
                 Name = name,
                 Url = $"local-file:///{filepath}",
                 Description = "Localy added ONNX model",
-                HardwareAccelerators = [HardwareAccelerator.CPU],
+                HardwareAccelerators = [HardwareAccelerator.CPU, HardwareAccelerator.GPU, HardwareAccelerator.NPU],
                 IsUserAdded = true,
                 Size = new FileInfo(filepath).Length,
                 ReadmeUrl = null,
