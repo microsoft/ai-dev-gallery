@@ -7,14 +7,19 @@ using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.Build.Construction;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Pickers;
 
 namespace AIDevGallery.ProjectGenerator;
 
@@ -169,7 +174,7 @@ internal partial class Generator
                 }
 
                 modelPathStr = $"System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, \"Models\", @\"{modelPath}\")";
-                modelInfo = modelInfo with { Path = modelPath };
+                modelInfo = modelInfo with { Path = modelInfo.Path };
             }
             else
             {
@@ -321,11 +326,11 @@ internal partial class Generator
                     var cachedModelDirectoryAttributes = File.GetAttributes(modelInfo.Value.ExpandedModelDetails.Path);
                     if (!cachedModelDirectoryAttributes.HasFlag(FileAttributes.Directory))
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{Path.GetFileName(modelInfo.Value.ExpandedModelDetails.Path)}");
                     }
                     else
                     {
-                        modelContentItemGroup.AddItem("Content", @$"Models\{modelInfo.Value.ExpandedModelDetails.Path}\**");
+                        modelContentItemGroup.AddItem("Content", @$"Models\{Path.GetFileName(modelInfo.Value.ExpandedModelDetails.Path)}\**");
                     }
                 }
             }
@@ -367,12 +372,159 @@ internal partial class Generator
             var appXamlPath = Path.Join(outputPath, "App.xaml");
             var appXaml = await File.ReadAllTextAsync(appXamlPath, cancellationToken);
             appXaml = appXaml.Replace(
-                "                <!--  Other merged dictionaries here  -->",
+                "                <!-- Other merged dictionaries here -->",
                 string.Join(Environment.NewLine, styles.Select(s => $"                <ResourceDictionary Source=\"{Path.Join("Utils", Path.GetFileName(s))}\" />")));
             await File.WriteAllTextAsync(appXamlPath, appXaml, cancellationToken);
         }
 
         return outputPath;
+    }
+
+    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
+    {
+        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+
+        if (cachedModels == null)
+        {
+            return;
+        }
+
+        var contentStackPanel = new StackPanel
+        {
+            Orientation = Orientation.Vertical
+        };
+
+        contentStackPanel.Children.Add(new TextBlock
+        {
+            Text = "Create a standalone VS project based on this sample.",
+            Margin = new Thickness(0, 0, 0, 16)
+        });
+
+        RadioButton? copyRadioButton = null;
+
+        var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
+        if (totalSize != 0)
+        {
+            var radioButtons = new RadioButtons();
+            radioButtons.Items.Add(new RadioButton
+            {
+                Content = "Reference model from model cache",
+                IsChecked = true
+            });
+
+            copyRadioButton = new RadioButton
+            {
+                Content = new TextBlock()
+                {
+                    Text = $"Copy model({AppUtils.FileSizeToString(totalSize)}) to project directory"
+                }
+            };
+
+            radioButtons.Items.Add(copyRadioButton);
+
+            contentStackPanel.Children.Add(radioButtons);
+        }
+
+        ContentDialog exportDialog = new ContentDialog()
+        {
+            Title = "Export Visual Studio project",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Export",
+            XamlRoot = xamlRoot,
+            Content = contentStackPanel
+        };
+
+        ContentDialog? dialog = null;
+        var generator = new Generator();
+        try
+        {
+            var output = await exportDialog.ShowAsync();
+
+            if (output == ContentDialogResult.Primary)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+                var picker = new FolderPicker();
+                picker.FileTypeFilter.Add("*");
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var folder = await picker.PickSingleFolderAsync();
+                if (folder != null)
+                {
+                    dialog = new ContentDialog
+                    {
+                        XamlRoot = xamlRoot,
+                        Title = "Creating Visual Studio project..",
+                        Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+                    };
+                    _ = dialog.ShowAsync();
+
+                    var projectPath = await generator.GenerateAsync(
+                        sample,
+                        cachedModels,
+                        copyRadioButton != null && copyRadioButton.IsChecked != null && copyRadioButton.IsChecked.Value,
+                        folder.Path,
+                        cancellationToken);
+
+                    dialog.Closed += async (_, _) =>
+                    {
+                        var confirmationDialog = new ContentDialog
+                        {
+                            XamlRoot = xamlRoot,
+                            Title = "Project exported",
+                            Content = new TextBlock
+                            {
+                                Text = "The project has been successfully exported to the selected folder.",
+                                TextWrapping = TextWrapping.WrapWholeWords
+                            },
+                            PrimaryButtonText = "Open folder",
+                            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+                            CloseButtonText = "Close"
+                        };
+
+                        var shouldOpenFolder = await confirmationDialog.ShowAsync();
+                        if (shouldOpenFolder == ContentDialogResult.Primary)
+                        {
+                            await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
+                        }
+                    };
+                    dialog.Hide();
+                    dialog = null;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            generator.CleanUp();
+            dialog?.Hide();
+
+            var message = "Please try again, or report this issue.";
+            if (ex is IOException)
+            {
+                message = ex.Message;
+            }
+
+            var errorDialog = new ContentDialog
+            {
+                XamlRoot = xamlRoot,
+                Title = "Error while exporting project",
+                Content = new TextBlock
+                {
+                    Text = $"An error occurred while exporting the project. {message}",
+                    TextWrapping = TextWrapping.WrapWholeWords
+                },
+                PrimaryButtonText = "Copy details",
+                CloseButtonText = "Close"
+            };
+
+            var result = await errorDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(ex.ToString());
+                Clipboard.SetContentWithOptions(dataPackage, null);
+            }
+        }
     }
 
     private static async Task CopyFileAsync(string sourceFile, string destinationFile, CancellationToken cancellationToken)

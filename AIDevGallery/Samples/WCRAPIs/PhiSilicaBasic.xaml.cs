@@ -7,8 +7,8 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,17 +39,29 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!LanguageModel.IsAvailable())
+        var readyState = LanguageModel.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
         {
-            var operation = await LanguageModel.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.EnsureNeeded)
             {
-                // TODO: handle error
+                var operation = await LanguageModel.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, $"Phi-Silica is not available");
+                }
             }
+
+            _ = GenerateText(InputTextBox.Text);
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Phi-Silica is not available: {msg}");
         }
 
-        _ = GenerateText(InputTextBox.Text);
         sampleParams.NotifyCompletion();
     }
 
@@ -97,7 +109,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        var operation = _languageModel.GenerateResponseWithProgressAsync(prompt);
+        var operation = _languageModel.GenerateResponseAsync(prompt);
         operation.Progress = (asyncInfo, delta) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -116,7 +128,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
                     IsProgressVisible = false;
                 }
 
-                GenerateTextBlock.Text = asyncInfo.GetResults().Response;
+                GenerateTextBlock.Text += delta;
                 if (_cts?.IsCancellationRequested == true)
                 {
                     operation.Cancel();

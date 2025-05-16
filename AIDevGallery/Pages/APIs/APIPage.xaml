@@ -36,16 +36,30 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Image Width="24" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
             <TextBlock
                 Grid.Column="1"
-                Margin="0,-4,0,0"
                 VerticalAlignment="Center"
                 Style="{StaticResource SubtitleTextBlockStyle}"
                 Text="{x:Bind ModelFamily.Name}" />
-            <controls:CopyButton
+            <Button
+                x:Name="ExportSampleToggle"
                 Grid.Column="2"
+                Height="34"
+                Margin="0,0,8,0"
+                Padding="8,6,8,6"
+                AutomationProperties.Name="Export sample to Visual Studio"
+                Click="ExportSampleToggle_Click"
+                ToolTipService.ToolTip="Export sample">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Image Width="16" Source="ms-appx:///Assets/VSIcon.svg" />
+                    <TextBlock Margin="0,-1,0,0" Text="Export sample" />
+                </StackPanel>
+            </Button>
+            <controls:CopyButton
+                Grid.Column="3"
                 Height="34"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -89,14 +103,7 @@
                     <Grid.Shadow>
                         <ThemeShadow x:Name="BackgroundShadow" />
                     </Grid.Shadow>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <controls:SampleContainer
-                        x:Name="sampleContainer"
-                        MinHeight="240"
-                        DisclaimerHorizontalAlignment="Left" />
+                    <controls:SampleContainer x:Name="sampleContainer" Height="360" />
                 </Grid>
 
                 <controls:Card
@@ -154,6 +161,7 @@
                     Title="Documentation"
                     Grid.Row="3"
                     Grid.Column="1"
+                    Grid.ColumnSpan="2"
                     Icon="{ui:FontIcon Glyph=&#xE7C3;,
                                        FontSize=16}">
                     <controls:Card.TitleContent>
@@ -189,28 +197,30 @@
                 <controls:Card
                     x:Name="CodeCard"
                     Title="API"
-                    Grid.Row="3"
-                    Grid.Column="2"
-                    VerticalContentAlignment="Top">
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    MaxHeight="200"
+                    VerticalContentAlignment="Top"
+                    IsMinimized="True">
                     <controls:Card.Icon>
                         <PathIcon Data="M8.06562 18.9434L14.5656 4.44339C14.7351 4.06542 15.1788 3.89637 15.5568 4.0658C15.9033 4.22112 16.0742 4.60695 15.9698 4.96131L15.9344 5.05698L9.43438 19.557C9.26495 19.935 8.82118 20.104 8.44321 19.9346C8.09673 19.7793 7.92581 19.3934 8.03024 19.0391L8.06562 18.9434L14.5656 4.44339L8.06562 18.9434ZM2.21967 11.4699L6.46967 7.21986C6.76256 6.92696 7.23744 6.92696 7.53033 7.21986C7.7966 7.48612 7.8208 7.90279 7.60295 8.1964L7.53033 8.28052L3.81066 12.0002L7.53033 15.7199C7.82322 16.0127 7.82322 16.4876 7.53033 16.7805C7.26406 17.0468 6.8474 17.071 6.55379 16.8531L6.46967 16.7805L2.21967 12.5305C1.9534 12.2642 1.9292 11.8476 2.14705 11.554L2.21967 11.4699L6.46967 7.21986L2.21967 11.4699ZM16.4697 7.21986C16.7359 6.95359 17.1526 6.92938 17.4462 7.14724L17.5303 7.21986L21.7803 11.4699C22.0466 11.7361 22.0708 12.1528 21.8529 12.4464L21.7803 12.5305L17.5303 16.7805C17.2374 17.0734 16.7626 17.0734 16.4697 16.7805C16.2034 16.5143 16.1792 16.0976 16.3971 15.804L16.4697 15.7199L20.1893 12.0002L16.4697 8.28052C16.1768 7.98762 16.1768 7.51275 16.4697 7.21986Z" />
                     </controls:Card.Icon>
                     <ScrollViewer
                         Grid.Row="1"
-                        Background="Transparent"
-                        HorizontalScrollMode="Auto"
-                        HorizontalScrollBarVisibility="Visible"
-                        VerticalScrollMode="Auto"
                         Margin="0"
                         Padding="0"
-                        VerticalScrollBarVisibility="Visible">
+                        Background="Transparent"
+                        HorizontalScrollBarVisibility="Visible"
+                        HorizontalScrollMode="Auto"
+                        VerticalScrollBarVisibility="Visible"
+                        VerticalScrollMode="Auto">
                         <RichTextBlock
-                            Margin="8"
                             x:Name="CodeSampleTextBlock"
+                            Margin="8"
                             FontFamily="Consolas"
                             FontSize="14"
-                            IsTextSelectionEnabled="True">
-                        </RichTextBlock>
+                            IsTextSelectionEnabled="True" />
                     </ScrollViewer>
                 </controls:Card>
             </Grid>

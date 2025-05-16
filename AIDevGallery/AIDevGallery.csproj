@@ -55,6 +55,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.CameraPreview" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="CommunityToolkit.WinUI.Converters" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" />
@@ -246,8 +247,15 @@
     <None Remove="Assets\ModelIcons\lemonade.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
-    <None Remove="Assets\ModelIcons\onnx.svg" />
+    <None Remove="Assets\ModelIcons\Ollama.dark.png" />
+    <None Remove="Assets\ModelIcons\Ollama.light.png" />
+    <None Remove="Assets\ModelIcons\Onnx.png" />
+    <None Remove="Assets\ModelIcons\Onnx.svg" />
+    <None Remove="Assets\ModelIcons\OpenAI.dark.png" />
+    <None Remove="Assets\ModelIcons\OpenAI.dark.svg" />
     <None Remove="Assets\ModelIcons\OpenAI.png" />
+    <None Remove="Assets\ModelIcons\OpenAI.svg" />
+    <None Remove="Assets\ModelIcons\WCRAPI.png" />
     <None Remove="Assets\TileImages\Chat.png" />
     <None Remove="Assets\TileImages\ClassifyImage.png" />
     <None Remove="Assets\TileImages\DetectObjects.png" />

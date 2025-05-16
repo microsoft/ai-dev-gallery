@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.AI;
+using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
 using System;
@@ -14,23 +15,31 @@ using Windows.Foundation;
 
 namespace AIDevGallery.Samples.SharedCode;
 
+internal class WCRException : Exception
+{
+    public WCRException(string message)
+        : base(message)
+    {
+    }
+}
+
 internal class PhiSilicaClient : IChatClient
 {
     // Search Options
-    private const LanguageModelSkill DefaultLanguageModelSkill = LanguageModelSkill.General;
-    private const SeverityLevel DefaultInputModeration = SeverityLevel.None;
-    private const SeverityLevel DefaultOutputModeration = SeverityLevel.None;
+    private const SeverityLevel DefaultInputModeration = SeverityLevel.Minimum;
+    private const SeverityLevel DefaultOutputModeration = SeverityLevel.Minimum;
     private const int DefaultTopK = 50;
     private const float DefaultTopP = 0.9f;
     private const float DefaultTemperature = 1;
 
-    private LanguageModel? _languageModel;
+    private LanguageModel _languageModel;
     private LanguageModelContext? _languageModelContext;
 
     public ChatClientMetadata Metadata { get; }
 
-    private PhiSilicaClient()
+    private PhiSilicaClient(LanguageModel languageModel)
     {
+        _languageModel = languageModel;
         Metadata = new ChatClientMetadata("PhiSilica", new Uri($"file:///PhiSilica"));
     }
 
@@ -40,7 +49,6 @@ internal class PhiSilicaClient : IChatClient
         {
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
-                { "skill", DefaultLanguageModelSkill },
                 { "input_moderation", DefaultInputModeration },
                 { "output_moderation", DefaultOutputModeration },
             },
@@ -52,11 +60,40 @@ internal class PhiSilicaClient : IChatClient
 
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
+        var readyState = LanguageModel.GetReadyState();
+
+        if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
+        {
+            throw new WCRException("PhiSilica is not available: " +
+                readyState switch
+                {
+                    AIFeatureReadyState.NotSupportedOnCurrentSystem => "Not supported",
+                    AIFeatureReadyState.DisabledByUser => "Disabled by user",
+                    _ => "Unknown reason"
+                });
+        }
+
+        if (readyState is AIFeatureReadyState.EnsureNeeded)
+        {
+            var operation = await LanguageModel.EnsureReadyAsync();
+            if (operation.Status != AIFeatureReadyResultState.Success)
+            {
+                throw new WCRException($"PhiSilica is not available");
+            }
+        }
+
+        if (LanguageModel.GetReadyState() is not AIFeatureReadyState.Ready)
+        {
+            throw new WCRException("PhiSilica is not available");
+        }
+
+        var languageModel = await LanguageModel.CreateAsync();
+
+        cancellationToken.ThrowIfCancellationRequested();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var phiSilicaClient = new PhiSilicaClient();
+        var phiSilicaClient = new PhiSilicaClient(languageModel);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        await phiSilicaClient.InitializeAsync(cancellationToken);
         return phiSilicaClient;
     }
 
@@ -65,11 +102,6 @@ internal class PhiSilicaClient : IChatClient
 
     public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         var prompt = GetPrompt(chatMessages);
 
         string responseId = Guid.NewGuid().ToString("N");
@@ -82,46 +114,45 @@ internal class PhiSilicaClient : IChatClient
         }
     }
 
-    private (LanguageModelOptions? ModelOptions, ContentFilterOptions? FilterOptions) GetModelOptions(ChatOptions options)
+    private LanguageModelOptions GetModelOptions(ChatOptions? options)
     {
         if (options == null)
         {
-            return (null, null);
+            return new LanguageModelOptions();
+        }
+
+        var contentFilterOptions = new ContentFilterOptions();
+
+        if (options?.AdditionalProperties?.TryGetValue("input_moderation", out SeverityLevel inputModeration) == true && inputModeration != SeverityLevel.Minimum)
+        {
+            contentFilterOptions.PromptMaxAllowedSeverityLevel = new TextContentFilterSeverity
+            {
+                Hate = inputModeration,
+                Sexual = inputModeration,
+                Violent = inputModeration,
+                SelfHarm = inputModeration
+            };
+        }
+
+        if (options?.AdditionalProperties?.TryGetValue("output_moderation", out SeverityLevel outputModeration) == true && outputModeration != SeverityLevel.Minimum)
+        {
+            contentFilterOptions.ResponseMaxAllowedSeverityLevel = new TextContentFilterSeverity
+            {
+                Hate = outputModeration,
+                Sexual = outputModeration,
+                Violent = outputModeration,
+                SelfHarm = outputModeration
+            };
         }
 
         var languageModelOptions = new LanguageModelOptions
         {
-            Skill = options.AdditionalProperties?.TryGetValue("skill", out LanguageModelSkill skill) == true ? skill : DefaultLanguageModelSkill,
-            Temp = options.Temperature ?? DefaultTemperature,
-            Top_k = (uint)(options.TopK ?? DefaultTopK),
-            Top_p = (uint)(options.TopP ?? DefaultTopP),
+            Temperature = options?.Temperature ?? DefaultTemperature,
+            TopK = (uint)(options?.TopK ?? DefaultTopK),
+            TopP = (uint)(options?.TopP ?? DefaultTopP),
+            ContentFilterOptions = contentFilterOptions
         };
-
-        var contentFilterOptions = new ContentFilterOptions();
-
-        if (options?.AdditionalProperties?.TryGetValue("input_moderation", out SeverityLevel inputModeration) == true && inputModeration != SeverityLevel.None)
-        {
-            contentFilterOptions.PromptMinSeverityLevelToBlock = new TextContentFilterSeverity
-            {
-                HateContentSeverity = inputModeration,
-                SexualContentSeverity = inputModeration,
-                ViolentContentSeverity = inputModeration,
-                SelfHarmContentSeverity = inputModeration
-            };
-        }
-
-        if (options?.AdditionalProperties?.TryGetValue("output_moderation", out SeverityLevel outputModeration) == true && outputModeration != SeverityLevel.None)
-        {
-            contentFilterOptions.ResponseMinSeverityLevelToBlock = new TextContentFilterSeverity
-            {
-                HateContentSeverity = outputModeration,
-                SexualContentSeverity = outputModeration,
-                ViolentContentSeverity = outputModeration,
-                SelfHarmContentSeverity = outputModeration
-            };
-        }
-
-        return (languageModelOptions, contentFilterOptions);
+        return languageModelOptions;
     }
 
     private string GetPrompt(IEnumerable<ChatMessage> history)
@@ -165,105 +196,69 @@ internal class PhiSilicaClient : IChatClient
 
     public void Dispose()
     {
-        _languageModel?.Dispose();
-        _languageModel = null;
+        _languageModel.Dispose();
     }
 
     public object? GetService(Type serviceType, object? serviceKey = null)
     {
-        return
-            serviceKey is not null ? null :
-            _languageModel is not null && serviceType?.IsInstanceOfType(_languageModel) is true ? _languageModel :
-            serviceType?.IsInstanceOfType(this) is true ? this :
-            serviceType?.IsInstanceOfType(typeof(ChatOptions)) is true ? GetDefaultChatOptions() :
+        return serviceKey is not null ? null :
+            serviceType == typeof(LanguageModel) ? _languageModel :
+            serviceType == typeof(PhiSilicaClient) ? this :
+            serviceType == typeof(IChatClient) ? this :
+            serviceType == typeof(ChatClientMetadata) ? Metadata :
+            serviceType == typeof(ChatOptions) ? GetDefaultChatOptions() :
             null;
-    }
-
-    public static bool IsAvailable()
-    {
-        try
-        {
-            return LanguageModel.IsAvailable();
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private async Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (!IsAvailable())
-        {
-            await LanguageModel.MakeAvailableAsync();
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        _languageModel = await LanguageModel.CreateAsync();
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter
     public async IAsyncEnumerable<string> GenerateStreamResponseAsync(string prompt, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
-        if (_languageModel == null)
-        {
-            throw new InvalidOperationException("Language model is not loaded.");
-        }
-
         string currentResponse = string.Empty;
         using var newPartEvent = new ManualResetEventSlim(false);
 
-        if (!_languageModel.IsPromptLargerThanContext(prompt))
+        IAsyncOperationWithProgress<LanguageModelResponseResult, string>? progress;
+
+        var modelOptions = GetModelOptions(options);
+        if ((ulong)prompt.Length > _languageModel.GetUsablePromptLength(_languageModelContext, prompt))
         {
-            IAsyncOperationWithProgress<LanguageModelResponse, string>? progress;
-            if (options == null)
-            {
-                progress = _languageModel.GenerateResponseWithProgressAsync(new LanguageModelOptions(), prompt, new ContentFilterOptions(), _languageModelContext);
-            }
-            else
-            {
-                var (modelOptions, filterOptions) = GetModelOptions(options);
-                progress = _languageModel.GenerateResponseWithProgressAsync(modelOptions, prompt, filterOptions, _languageModelContext);
-            }
-
-            progress.Progress = (result, value) =>
-            {
-                currentResponse = value;
-                newPartEvent.Set();
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    progress.Cancel();
-                }
-            };
-
-            while (progress.Status != AsyncStatus.Completed)
-            {
-                await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
-
-                if (newPartEvent.Wait(10, cancellationToken))
-                {
-                    yield return currentResponse;
-                    newPartEvent.Reset();
-                }
-            }
-
-            var response = await progress;
-
-            yield return response?.Status switch
-            {
-                LanguageModelResponseStatus.BlockedByPolicy => "\nBlocked by policy",
-                LanguageModelResponseStatus.PromptBlockedByPolicy => "\nPrompt blocked by policy",
-                LanguageModelResponseStatus.ResponseBlockedByPolicy => "\nResponse blocked by policy",
-                _ => string.Empty,
-            };
+            yield return "\nPrompt larger than context";
+            yield break;
         }
-        else
+
+        progress = _languageModel.GenerateResponseAsync(_languageModelContext, prompt, modelOptions);
+
+        progress.Progress = (result, value) =>
         {
-            yield return "Prompt is too large for this model. Please submit a smaller prompt";
+            currentResponse = value;
+            newPartEvent.Set();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                progress.Cancel();
+            }
+        };
+
+        while (progress.Status != AsyncStatus.Completed)
+        {
+            await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+
+            if (newPartEvent.Wait(10, cancellationToken))
+            {
+                yield return currentResponse;
+                newPartEvent.Reset();
+            }
         }
+
+        var response = await progress;
+
+        yield return response?.Status switch
+        {
+            LanguageModelResponseStatus.BlockedByPolicy => "\nBlocked by policy",
+            LanguageModelResponseStatus.PromptBlockedByContentModeration => "\nPrompt blocked by content moderation",
+            LanguageModelResponseStatus.ResponseBlockedByContentModeration => "\nResponse blocked by content moderation",
+            LanguageModelResponseStatus.PromptLargerThanContext => "\nPrompt larger than context",
+            LanguageModelResponseStatus.Error => "\nError",
+            _ => string.Empty,
+        };
     }
 }

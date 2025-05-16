@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
 using Microsoft.Windows.AI.ContentModeration;
-using Microsoft.Windows.AI.Generative;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,7 +72,7 @@ internal class AppData
         await File.WriteAllTextAsync(GetConfigFilePath(), str);
     }
 
-    public async Task AddMru(MostRecentlyUsedItem item, string? modelOrApiId = null, HardwareAccelerator? hardwareAccelerator = null)
+    public async Task AddMru(MostRecentlyUsedItem item, List<(string Id, HardwareAccelerator HardwareAccelerator)>? modelOrApiUsage)
     {
         UsageHistoryV2 ??= new LinkedList<UsageHistory>();
 
@@ -87,7 +86,29 @@ internal class AppData
             MostRecentlyUsedItems.RemoveLast();
         }
 
-        if (!string.IsNullOrWhiteSpace(modelOrApiId))
+        if (modelOrApiUsage != null)
+        {
+            foreach (var (modelOrApiId, hardwareAccelerator) in modelOrApiUsage)
+            {
+                var existingItem = UsageHistoryV2.Where(u => u.Id == modelOrApiId).FirstOrDefault();
+                if (existingItem != default)
+                {
+                    UsageHistoryV2.Remove(existingItem);
+                }
+
+                UsageHistoryV2.AddFirst(new UsageHistory(modelOrApiId, hardwareAccelerator));
+            }
+        }
+
+        MostRecentlyUsedItems.AddFirst(item);
+        await SaveAsync();
+    }
+
+    public async Task AddModelUsage(List<(string Id, HardwareAccelerator HardwareAccelerator)> usage)
+    {
+        UsageHistoryV2 ??= new LinkedList<UsageHistory>();
+
+        foreach (var (modelOrApiId, hardwareAccelerator) in usage)
         {
             var existingItem = UsageHistoryV2.Where(u => u.Id == modelOrApiId).FirstOrDefault();
             if (existingItem != default)
@@ -98,7 +119,6 @@ internal class AppData
             UsageHistoryV2.AddFirst(new UsageHistory(modelOrApiId, hardwareAccelerator));
         }
 
-        MostRecentlyUsedItems.AddFirst(item);
         await SaveAsync();
     }
 
@@ -126,7 +146,6 @@ internal class CustomParametersState
     public float? Temperature { get; set; }
     public string? UserPrompt { get; set; }
     public string? SystemPrompt { get; set; }
-    public LanguageModelSkill? ModelSkill { get; set; }
     public SeverityLevel? InputContentModeration { get; set; }
     public SeverityLevel? OutputContentModeration { get; set; }
 }

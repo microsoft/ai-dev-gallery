@@ -44,6 +44,7 @@
                 VerticalAlignment="Stretch"
                 GotFocus="SearchTextBox_GotFocus"
                 KeyUp="TextBox_KeyUp"
+                PreviewKeyDown="TextBox_PreviewKeyDown"
                 LostFocus="SearchTextBox_LostFocus"
                 PlaceholderText="Search PDF..."
                 TextWrapping="Wrap" />

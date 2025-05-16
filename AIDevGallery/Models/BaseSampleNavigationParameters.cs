@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System.Threading;
 using System.Threading.Tasks;

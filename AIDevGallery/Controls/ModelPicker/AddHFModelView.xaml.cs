@@ -9,38 +9,36 @@ using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Windows.Storage.Pickers;
 
-namespace AIDevGallery.Pages;
+namespace AIDevGallery.Controls.ModelPicker;
 
-internal sealed partial class AddModelPage : Page
+internal sealed partial class AddHFModelView : UserControl
 {
+    public delegate void HFModelViewCloseEventHandler(object sender);
+    public event HFModelViewCloseEventHandler? CloseRequested;
+
     private readonly ObservableCollection<Result> results = [];
     private CancellationTokenSource? cts;
 
-    public AddModelPage()
+    public AddHFModelView()
     {
         this.InitializeComponent();
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    private void CloseView_Click(object sender, RoutedEventArgs e)
     {
-        base.OnNavigatedTo(e);
-
-        NavigatedToPageEvent.Log(nameof(AddModelPage));
+        CloseRequested?.Invoke(this);
     }
 
-    private async void Button_Click(object sender, RoutedEventArgs e)
+    private async void SearchButton_Click(object sender, RoutedEventArgs e)
     {
         await SearchAsync();
     }
@@ -101,7 +99,7 @@ internal sealed partial class AddModelPage : Page
 
                 try
                 {
-                    accelerator = GetHardwareAcceleratorFromConfig(configContents);
+                    accelerator = UserAddedModelUtilsTemp.GetHardwareAcceleratorFromConfig(configContents);
                 }
                 catch (JsonException)
                 {
@@ -129,7 +127,7 @@ internal sealed partial class AddModelPage : Page
                     Description = "Model downloaded from HuggingFace",
                     HardwareAccelerators = [accelerator],
                     IsUserAdded = true,
-                    PromptTemplate = GetTemplateFromName(result.Id),
+                    PromptTemplate = ModelDetailsHelper.GetTemplateFromName(result.Id),
                     Size = filesToDownload.Sum(f => f.Size),
                     ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
                 };
@@ -220,27 +218,6 @@ internal sealed partial class AddModelPage : Page
         await actionBlock.Completion;
     }
 
-    private PromptTemplate? GetTemplateFromName(string name)
-    {
-        switch (name.ToLower(System.Globalization.CultureInfo.InvariantCulture))
-        {
-            case string p when p.Contains("phi"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Phi3];
-            case string d when d.Contains("deepseek"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.DeepSeekR1];
-            case string l when l.Contains("llama") || l.Contains("nemotron"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Llama3];
-            case string m when m.Contains("mistral"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Mistral];
-            case string q when q.Contains("qwen"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Qwen];
-            case string g when g.Contains("gemma"):
-                return Samples.PromptTemplateHelpers.PromptTemplates[PromptTemplateType.Gemma];
-            default:
-                return null;
-        }
-    }
-
     private async void DownloadModelClicked(object sender, RoutedEventArgs e)
     {
         var button = sender as Button;
@@ -325,207 +302,6 @@ internal sealed partial class AddModelPage : Page
     private void SearchTextBox_Loaded(object sender, RoutedEventArgs e)
     {
         this.Focus(FocusState.Programmatic);
-    }
-
-    private HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
-    {
-        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
-        {
-            return HardwareAccelerator.QNN;
-        }
-
-        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
-        if (config == null)
-        {
-            throw new FileLoadException("genai_config.json is not valid");
-        }
-
-        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
-        {
-            return HardwareAccelerator.DML;
-        }
-
-        return HardwareAccelerator.CPU;
-    }
-
-    private async void AddLocalClicked(object sender, RoutedEventArgs e)
-    {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-        var picker = new FolderPicker();
-        picker.FileTypeFilter.Add("*");
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-        var folder = await picker.PickSingleFolderAsync();
-
-        if (folder != null)
-        {
-            var files = Directory.GetFiles(folder.Path);
-            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
-
-            if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
-            {
-                var message = string.IsNullOrEmpty(config) ?
-                    "The folder does not contain a model you can add. Ensure \"genai_config.json\" is present in the selected directory" :
-                    "This model is already added";
-
-                ContentDialog confirmFolderDialog = new()
-                {
-                    Title = "Can't add model",
-                    Content = message,
-                    XamlRoot = this.Content.XamlRoot,
-                    CloseButtonText = "OK"
-                };
-
-                await confirmFolderDialog.ShowAsync();
-                return;
-            }
-
-            HardwareAccelerator accelerator = HardwareAccelerator.CPU;
-
-            try
-            {
-                string configContents = string.Empty;
-                configContents = await File.ReadAllTextAsync(config);
-                accelerator = GetHardwareAcceleratorFromConfig(configContents);
-            }
-            catch (Exception ex)
-            {
-                ContentDialog confirmFolderDialog = new()
-                {
-                    Title = "Can't read genai_config.json",
-                    Content = ex.Message,
-                    XamlRoot = this.Content.XamlRoot,
-                    CloseButtonText = "OK"
-                };
-
-                await confirmFolderDialog.ShowAsync();
-                return;
-            }
-
-            var nameTextBox = new TextBox()
-            {
-                Text = Path.GetFileName(folder.Path),
-                Width = 300,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 0, 0, 10),
-                Header = "Model name"
-            };
-
-            ContentDialog nameModelDialog = new()
-            {
-                Title = "Add model",
-                Content = new StackPanel()
-                {
-                    Orientation = Orientation.Vertical,
-                    Spacing = 8,
-                    Children =
-                    {
-                        new TextBlock()
-                        {
-                            Text = $"Adding ONNX model from \n \"{folder.Path}\"",
-                            TextWrapping = TextWrapping.WrapWholeWords
-                        },
-                        nameTextBox
-                    }
-                },
-                XamlRoot = this.Content.XamlRoot,
-                CloseButtonText = "Cancel",
-                PrimaryButtonText = "Add",
-                DefaultButton = ContentDialogButton.Primary,
-                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
-            };
-
-            string modelName = nameTextBox.Text;
-
-            nameTextBox.TextChanged += (s, e) =>
-            {
-                if (string.IsNullOrEmpty(nameTextBox.Text))
-                {
-                    nameModelDialog.IsPrimaryButtonEnabled = false;
-                }
-                else
-                {
-                    modelName = nameTextBox.Text;
-                    nameModelDialog.IsPrimaryButtonEnabled = true;
-                }
-            };
-
-            var result = await nameModelDialog.ShowAsync();
-            if (result != ContentDialogResult.Primary)
-            {
-                return;
-            }
-
-            DirectoryInfo dirInfo = new DirectoryInfo(folder.Path);
-            long dirSize = await Task.Run(() => dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(file => file.Length));
-
-            var details = new ModelDetails()
-            {
-                Id = "useradded-local-languagemodel-" + Guid.NewGuid().ToString(),
-                Name = modelName,
-                Url = $"local-file:///{folder.Path}",
-                Description = "Localy added GenAI Model",
-                HardwareAccelerators = [accelerator],
-                IsUserAdded = true,
-                PromptTemplate = GetTemplateFromName(folder.Path),
-                Size = dirSize,
-                ReadmeUrl = null,
-                License = "unknown"
-            };
-
-            await App.ModelCache.AddLocalModelToCache(details, folder.Path);
-
-            App.MainWindow.NavigateToPage(details);
-        }
-    }
-
-    private async void AddCloudClicked(object sender, RoutedEventArgs e)
-    {
-        var textBox = new TextBox
-        {
-            Width = 300,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(0, 0, 0, 10),
-            Header = "OpenAI API Key"
-        };
-
-        // Ask for OPENAI key
-        ContentDialog keyDialog = new()
-        {
-            Title = "Add OpenAI model",
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Vertical,
-                Spacing = 8,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = "Please enter your OpenAI API key",
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    },
-                    textBox
-                }
-            },
-            XamlRoot = this.Content.XamlRoot,
-            CloseButtonText = "Cancel",
-            PrimaryButtonText = "Add",
-            DefaultButton = ContentDialogButton.Primary,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
-        };
-
-        var result = await keyDialog.ShowAsync();
-        if (result != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        string openAIKey = textBox.Text;
-        if (string.IsNullOrEmpty(openAIKey))
-        {
-            return;
-        }
-
-        OpenAIModelProvider.OpenAIKey = openAIKey;
     }
 }
 

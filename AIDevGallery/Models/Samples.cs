@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
@@ -103,14 +104,7 @@ internal class ModelDetails
             {
                 if (Url.StartsWith("https://github", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                    {
-                        icon = "GitHub.light.svg";
-                    }
-                    else
-                    {
-                        icon = "GitHub.dark.svg";
-                    }
+                    icon = $"GitHub{AppUtils.GetThemeAssetSuffix()}.svg";
                 }
 
                 if (ExternalModelHelper.IsUrlFromExternalProvider(Url))
@@ -119,7 +113,7 @@ internal class ModelDetails
                 }
                 else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
                 {
-                    icon = "onnx.svg";
+                    icon = "Onnx.svg";
                 }
                 else
                 {
@@ -160,8 +154,8 @@ internal class Scenario
 {
     public string Name { get; init; } = null!;
     public string Description { get; init; } = null!;
+    public string Instructions { get; init; } = null!;
     public string Id { get; init; } = null!;
-
     public string? Icon { get; init; }
     public ScenarioType ScenarioType { get; set; }
 }

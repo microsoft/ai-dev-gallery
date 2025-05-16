@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -10,14 +11,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
-        new OllamaModelProvider(),
-        new OpenAIModelProvider(),
-        new LemonadeModelProvider()
+        OllamaModelProvider.Instance,
+        OpenAIModelProvider.Instance,
+        Lemonade.Instance
     ];
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
@@ -51,6 +52,11 @@ internal static class ExternalModelHelper
     private static IExternalModelProvider? GetProvider(HardwareAccelerator hardwareAccelerator)
     {
         return _modelProviders?.FirstOrDefault(p => p.ModelHardwareAccelerator == hardwareAccelerator);
+    }
+
+    private static IExternalModelProvider? GetProvider(string url)
+    {
+        return _modelProviders?.FirstOrDefault(p => url.StartsWith(p.UrlPrefix, StringComparison.InvariantCultureIgnoreCase));
     }
 
     private static IExternalModelProvider? GetProvider(ModelDetails details)
@@ -102,47 +108,24 @@ internal static class ExternalModelHelper
 
     public static string GetIcon(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                {
-                    return provider.LightIcon;
-                }
-                else
-                {
-                    return provider.DarkIcon;
-                }
-            }
-        }
-
-        return "HuggingFace.svg";
+        var provider = GetProvider(url);
+        return provider == null
+                ? "HuggingFace.svg"
+            : provider.Icon;
     }
 
     public static IChatClient? GetIChatClient(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return provider.GetIChatClient(url);
-            }
-        }
+        return GetProvider(url)?.GetIChatClient(url);
+    }
 
-        return null;
+    public static string? GetIChatClientNamespace(string url)
+    {
+        return GetProvider(url)?.IChatClientImplementationNamespace;
     }
 
     public static string? GetIChatClientString(string url)
     {
-        foreach (var provider in _modelProviders)
-        {
-            if (url.StartsWith(provider.UrlPrefix, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return provider.GetIChatClientString(url);
-            }
-        }
-
-        return null;
+        return GetProvider(url)?.GetIChatClientString(url);
     }
 }

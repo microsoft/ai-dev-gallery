@@ -7,8 +7,9 @@ using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.AI;
+using Microsoft.Windows.AI.ContentModeration;
 using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,18 +36,18 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class ImageDescription : BaseSamplePage
 {
-    private readonly Dictionary<string, ImageDescriptionScenario> _scenarioDictionary = new Dictionary<string, ImageDescriptionScenario>
+    private readonly Dictionary<string, ImageDescriptionKind> _descriptionKindDictionary = new Dictionary<string, ImageDescriptionKind>
     {
-        { "Accessible", ImageDescriptionScenario.Accessibility },
-        { "Caption", ImageDescriptionScenario.Caption },
-        { "Detailed", ImageDescriptionScenario.DetailedNarration },
-        { "OfficeCharts", ImageDescriptionScenario.OfficeCharts },
+        { "Accessible", ImageDescriptionKind.AccessibleDescription },
+        { "Caption", ImageDescriptionKind.BriefDescription },
+        { "Detailed", ImageDescriptionKind.DetailedDescrition },
+        { "OfficeCharts", ImageDescriptionKind.DiagramDescription },
     };
 
     private ImageDescriptionGenerator? _imageDescriptor;
     private CancellationTokenSource? _cts;
     private SoftwareBitmap? _currentBitmap;
-    private ImageDescriptionScenario _currentScenario = ImageDescriptionScenario.Caption;
+    private ImageDescriptionKind _currentKind = ImageDescriptionKind.BriefDescription;
 
     public ImageDescription()
     {
@@ -55,17 +56,29 @@ internal sealed partial class ImageDescription : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageDescriptionGenerator.IsAvailable())
+        var readyState = ImageDescriptionGenerator.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
         {
-            var operation = await ImageDescriptionGenerator.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.EnsureNeeded)
             {
-                // TODO: handle error
+                var operation = await ImageDescriptionGenerator.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, $"Image Description is not available");
+                }
             }
+
+            _ = LoadDefaultImage();
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Image Description is not available: {msg}");
         }
 
-        _ = LoadDefaultImage();
         sampleParams.NotifyCompletion();
     }
 
@@ -154,10 +167,10 @@ internal sealed partial class ImageDescription : BaseSamplePage
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         ImageSrc.Source = bitmapSource;
-        DescribeImage(inputBitmap, _currentScenario);
+        DescribeImage(inputBitmap, _currentKind);
     }
 
-    private async void DescribeImage(SoftwareBitmap bitmap, ImageDescriptionScenario scenario)
+    private async void DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
     {
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
@@ -174,7 +187,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
             _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
-            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, scenario);
+            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, descriptionKind, new ContentFilterOptions());
             if (describeTask != null)
             {
                 describeTask.Progress += (asyncInfo, delta) =>
@@ -196,7 +209,8 @@ internal sealed partial class ImageDescription : BaseSamplePage
                     }
                 };
 
-                await describeTask.AsTask(_cts.Token);
+                var response = await describeTask.AsTask(_cts.Token);
+                DispatcherQueue?.TryEnqueue(() => ResponseTxt.Text = response.Description);
             }
         }
         catch (TaskCanceledException)
@@ -224,13 +238,13 @@ internal sealed partial class ImageDescription : BaseSamplePage
     {
         MenuFlyoutItem flyoutItem = (sender as MenuFlyoutItem)!;
 
-        string? scenarioString = flyoutItem.Tag as string;
-        ImageDescriptionScenario newScenario;
-        if (!string.IsNullOrEmpty(scenarioString) && _scenarioDictionary.TryGetValue(scenarioString, out newScenario) && newScenario != _currentScenario)
+        string? kindString = flyoutItem.Tag as string;
+        ImageDescriptionKind newKind;
+        if (!string.IsNullOrEmpty(kindString) && _descriptionKindDictionary.TryGetValue(kindString, out newKind) && newKind != _currentKind)
         {
-            _currentScenario = newScenario;
+            _currentKind = newKind;
             ScenarioSelectTextblock.Text = flyoutItem.Text;
-            DescribeImage(_currentBitmap!, _currentScenario);
+            DescribeImage(_currentBitmap!, _currentKind);
         }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using OpenAI;
 using OpenAI.Models;
@@ -11,11 +12,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Utils;
+namespace AIDevGallery.ExternalModelUtils;
 
 internal class OpenAIModelProvider : IExternalModelProvider
 {
-    private const string KeyName = "OPENAI_API_KEY";
+    public static OpenAIModelProvider Instance { get; } = new OpenAIModelProvider();
+
+    private const string KeyName = "AI_DEV_GALLERY_OPENAI_API_KEY";
     private IEnumerable<ModelDetails>? _cachedModels;
 
     public static string? OpenAIKey
@@ -30,6 +33,10 @@ internal class OpenAIModelProvider : IExternalModelProvider
             {
                 CredentialManager.WriteCredential(KeyName, value);
             }
+            else
+            {
+                CredentialManager.DeleteCredential(KeyName);
+            }
         }
     }
 
@@ -43,9 +50,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
     public string UrlPrefix => "openai://";
 
-    public string LightIcon => "OpenAI.png";
-
-    public string DarkIcon => LightIcon;
+    public string Icon => $"OpenAI{AppUtils.GetThemeAssetSuffix()}.svg";
 
     public string Url => "https://api.openai.com/v1";
 
@@ -57,23 +62,36 @@ internal class OpenAIModelProvider : IExternalModelProvider
     public IChatClient? GetIChatClient(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return modelId == null ? null : new OpenAIClient(OpenAIKey).AsChatClient(modelId);
+        return modelId == null ? null : new OpenAIClient(OpenAIKey).GetChatClient(modelId).AsIChatClient();
     }
+
+    public string? IChatClientImplementationNamespace { get; } = "OpenAI";
 
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
 
-        // TODO
-        return $"new OpenAIClient(\"OPENAI_API_KEY\").AsChatClient(\"{modelId}\")";
+        return $"new OpenAIClient(\"OPENAI_API_KEY\").GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(CancellationToken cancelationToken = default)
+    public void ClearCachedModels()
     {
+        _cachedModels = null;
+    }
+
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCache = false, CancellationToken cancelationToken = default)
+    {
+        if (ignoreCache)
+        {
+            _cachedModels = null;
+        }
+
         if (_cachedModels != null && _cachedModels.Any())
         {
             return _cachedModels;
         }
+
+        _cachedModels = [];
 
         try
         {
@@ -83,7 +101,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
 
             if (models?.Value == null)
             {
-                return [];
+                return _cachedModels;
             }
 
             _cachedModels = [.. models.Value
@@ -93,27 +111,27 @@ internal class OpenAIModelProvider : IExternalModelProvider
                     !model.Id.Contains("tts", StringComparison.InvariantCultureIgnoreCase) &&
                     !model.Id.Contains("preview", StringComparison.InvariantCultureIgnoreCase))
                 .Select(ToModelDetails)];
-
-            return _cachedModels;
         }
         catch
         {
-            return [];
+            return _cachedModels;
         }
 
-        static ModelDetails ToModelDetails(OpenAIModel model)
+        return _cachedModels != null && _cachedModels.Any() ? _cachedModels : [];
+    }
+
+    private ModelDetails ToModelDetails(OpenAIModel model)
+    {
+        return new ModelDetails()
         {
-            return new ModelDetails()
-            {
-                Id = $"openai-{model.Id}",
-                Name = model.Id,
-                Url = $"openai://{model.Id}",
-                Description = $"{model.Id} running on the cloud via OpenAI",
-                HardwareAccelerators = [HardwareAccelerator.OPENAI],
-                Size = 0,
-                SupportedOnQualcomm = true,
-                ParameterSize = string.Empty,
-            };
-        }
+            Id = $"openai-{model.Id}",
+            Name = model.Id,
+            Url = $"{UrlPrefix}{model.Id}",
+            Description = $"{model.Id} running on the cloud via OpenAI",
+            HardwareAccelerators = [HardwareAccelerator.OPENAI],
+            Size = 0,
+            SupportedOnQualcomm = true,
+            ParameterSize = string.Empty,
+        };
     }
 }
