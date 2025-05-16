@@ -34,7 +34,6 @@
     <AppInstallerUri>F:\Projects\ai-dev-gallery-private\Publish</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
-    <WinMLBootstrapAutoInitializeDisabled>true</WinMLBootstrapAutoInitializeDisabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -336,6 +335,4 @@
       <UserProperties />
     </VisualStudio>
   </ProjectExtensions>
-
-  <Import Project="$(MSBuildThisFileDirectory)\WinAppSDKSelfContainedFix.targets" Condition="'$(WindowsAppSDKSelfContained)'=='true'" />
 </Project>
