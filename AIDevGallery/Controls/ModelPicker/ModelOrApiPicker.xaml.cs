@@ -208,16 +208,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         foreach (var def in pickers)
         {
-            if (def.Id == "ollama")
+            if (await def.IsAvailable())
             {
-                // don't add ollama if not available
-                if (!await OllamaModelProvider.Instance.IsAvailable())
-                {
-                    continue;
-                }
+                modelTypeSelector.Items.Add(def);
             }
 
-            modelTypeSelector.Items.Add(def);
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];

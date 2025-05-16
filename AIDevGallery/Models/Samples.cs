@@ -174,7 +174,8 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
-    FOUNDRYLOCAL
+    FOUNDRYLOCAL,
+    LEMONADE
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]
