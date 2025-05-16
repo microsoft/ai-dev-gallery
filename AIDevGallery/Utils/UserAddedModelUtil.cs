@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
@@ -233,7 +234,10 @@ internal static class UserAddedModelUtil
 
     private static bool ValidateUserAddedModelDimensionsForModelTypeModelDetails(List<ModelDetails> modelDetailsList, string modelFilepath)
     {
-        using InferenceSession inferenceSession = new(modelFilepath);
+        using SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        using InferenceSession inferenceSession = new(modelFilepath, sessionOptions);
         List<int[]> inputDimensions = new();
         List<int[]> outputDimensions = new();
 
@@ -331,6 +335,7 @@ internal static class UserAddedModelUtil
         return HardwareAccelerator.CPU;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Not needed")]
     public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)
     {
         List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(filepath, modelTypes);
@@ -362,8 +367,32 @@ internal static class UserAddedModelUtil
 
             return details;
         }
+        else
+        {
+            StringBuilder validDimensions = new();
+            validDimensions.AppendLine("The model is not compatible with any of the supported model types. Dimmensions required:");
+            foreach (var (type, models) in ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes))
+            {
+                foreach (var model in models)
+                {
+                    if (model.InputDimensions != null && model.OutputDimensions != null)
+                    {
+                        validDimensions.AppendLine();
+                        validDimensions.AppendLine($"Model Type: {type.ToString()}");
+                        validDimensions.AppendLine($"Input: {FlattenWithBrackets(model.InputDimensions)}");
+                        validDimensions.AppendLine($"Output: {FlattenWithBrackets(model.OutputDimensions)}");
+                    }
+                }
+            }
 
-        return null;
+            throw new FileLoadException(validDimensions.ToString());
+
+            string FlattenWithBrackets(List<int[]> list)
+            {
+                // Wrap every inner array in brackets, then join all those pieces
+                return string.Join(" ", list.Select(arr => $"[{string.Join(", ", arr)}]"));
+            }
+        }
     }
 
     public static async Task<ModelDetails?> AddLanguageModelFromLocalFilepath(string filepath, string name, HardwareAccelerator accelerator)

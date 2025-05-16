@@ -93,7 +93,7 @@ internal static class ActivationHelper
         string adjustedPath = $"local-file:///{modelPath}";
         string? config = Directory.Exists(modelPath) ? Directory.GetFiles(modelPath).Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault() : string.Empty;
 
-        ModelDetails? resultModelDetails;
+        ModelDetails? resultModelDetails = null;
         List<Sample> samples = SampleDetails.Samples.Where(sample => sample.Scenario == scenario.ScenarioType).ToList();
 
         if (App.ModelCache.IsModelCached(adjustedPath))
@@ -119,15 +119,21 @@ internal static class ActivationHelper
         }
         else
         {
-            // Try Model 1 Types first
-            List<ModelType> modelTypes = samples.SelectMany(s => s.Model1Types).ToList();
-            resultModelDetails = await UserAddedModelUtil.AddModelFromLocalFilePath(modelPath, Path.GetFileNameWithoutExtension(modelPath), modelTypes);
-
-            // If no matches, try Model 2 types
-            if (resultModelDetails == null && samples[0].Model2Types != null)
+            try
             {
-                modelTypes = samples.SelectMany(s => s.Model2Types!).ToList();
+                // Try Model 1 Types first
+                List<ModelType> modelTypes = samples.SelectMany(s => s.Model1Types).ToList();
                 resultModelDetails = await UserAddedModelUtil.AddModelFromLocalFilePath(modelPath, Path.GetFileNameWithoutExtension(modelPath), modelTypes);
+
+                // If no matches, try Model 2 types
+                if (resultModelDetails == null && samples[0].Model2Types != null)
+                {
+                    modelTypes = samples.SelectMany(s => s.Model2Types!).ToList();
+                    resultModelDetails = await UserAddedModelUtil.AddModelFromLocalFilePath(modelPath, Path.GetFileNameWithoutExtension(modelPath), modelTypes);
+                }
+            }
+            catch
+            {
             }
         }
 
