@@ -48,24 +48,6 @@ internal sealed partial class LemonadePickerView : BaseModelPickerView
         }
     }
 
-    private void ViewModelDetails_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
-        {
-            var modelDetailsUrl = ExternalModelHelper.GetModelDetailsUrl(details);
-            if (string.IsNullOrEmpty(modelDetailsUrl))
-            {
-                return;
-            }
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = modelDetailsUrl,
-                UseShellExecute = true
-            });
-        }
-    }
-
     private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is ListView modelView && modelView.SelectedItem is ModelDetails details)

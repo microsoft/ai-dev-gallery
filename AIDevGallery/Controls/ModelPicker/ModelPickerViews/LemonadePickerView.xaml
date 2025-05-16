@@ -47,7 +47,6 @@
                             Background="Transparent"
                             BorderThickness="0"
                             CornerRadius="0"
-                            Description="{x:Bind utils:AppUtils.FileSizeToString(Size)}"
                             Header="{x:Bind Name}">
                             <toolkit:SettingsCard.Resources>
                                 <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
@@ -77,11 +76,6 @@
                                             Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                             Tag="{x:Bind}"
                                             Text="Copy URL" />
-                                        <MenuFlyoutItem
-                                            Click="ViewModelDetails_Click"
-                                            Icon="{ui:FontIcon Glyph=&#xE8A5;}"
-                                            Tag="{x:Bind}"
-                                            Text="Model details" />
                                     </MenuFlyout>
                                 </Button.Flyout>
                             </Button>

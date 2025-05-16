@@ -10,7 +10,6 @@ using OpenAI.Models;
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,8 +17,6 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Utils;
 
-// TODOs
-// links to models?
 internal class LemonadeModelProvider : IExternalModelProvider
 {
     private IEnumerable<ModelDetails>? _cachedModels;
