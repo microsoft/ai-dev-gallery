@@ -123,7 +123,7 @@
                 <TextBlock
                     FontWeight="SemiBold"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="Windows AI Foundry"
+                    Text="Windows AI APIs"
                     TextWrapping="Wrap" />
                 <TextBlock Text="Experience the full potential of the Windows AI APIs" TextWrapping="Wrap" />
                 <HyperlinkButton

@@ -20,7 +20,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEA54",
         "Description": "Generate text using adapter.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica-lora.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12"
       },
