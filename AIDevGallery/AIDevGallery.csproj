@@ -84,9 +84,9 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
-    <PackageReference Include="HtmlAgilityPack" />
-    <PackageReference Include="Markdig" />
-    <PackageReference Include="Roman-Numerals" />
+    <PackageReference Include="HtmlAgilityPack"/>
+    <PackageReference Include="Markdig"/>
+    <PackageReference Include="Roman-Numerals"/>
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>

@@ -22,6 +22,7 @@ namespace AIDevGallery.Controls;
 internal partial class ModelSelectionControl : UserControl
 {
     public List<ModelDetails>? Models { get; private set; }
+    public Scenario? Scenario { get; set; }
     public ModelDetails? Selected { get; private set; }
 
     public static readonly DependencyProperty DownloadableModelsTitleProperty = DependencyProperty.Register(nameof(DownloadableModelsTitle), typeof(string), typeof(ModelSelectionControl), new PropertyMetadata(defaultValue: null));
@@ -85,7 +86,7 @@ internal partial class ModelSelectionControl : UserControl
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        PopulateModelDetailsLists();
+        DispatcherQueue.TryEnqueue(PopulateModelDetailsLists);
     }
 
     private void ResetAndLoadModelList(ModelDetails? selectedModel = null)
