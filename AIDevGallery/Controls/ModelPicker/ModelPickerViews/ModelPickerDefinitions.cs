@@ -31,6 +31,15 @@ internal class ModelPickerDefinition
             }
         },
         {
+            "fl", new ModelPickerDefinition()
+            {
+                Name = "Foundry Local",
+                Id = "fl",
+                Icon = "ms-appx:///Assets/ModelIcons/Foundry.png",
+                CreatePicker = () => new FoundryLocalPickerView()
+            }
+        },
+        {
             "ollama", new ModelPickerDefinition()
             {
                 Name = "Ollama",

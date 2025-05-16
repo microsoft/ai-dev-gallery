@@ -21,16 +21,16 @@
                 <controls:OverviewPageHeader
                     Title="Overview"
                     Background="{ThemeResource CardGradient2Brush}"
-                    Description="Windows AI Foundry provides developers with a comprehensive suite of AI-powered features and APIs, enabling seamless integration of AI capabilities into their applications without the complexities of sourcing, deploying, or fine-tuning their own machine learning models.">
+                    Description="Windows AI APIs enable seamless integration of AI capabilities into Windows applications without the need to find, run, or optimize your own machine learning model.">
                     <controls:OverviewPageHeader.ActionContent>
-                        <Button AutomationProperties.Name="Learn more about Windows AI Foundry">
+                        <Button AutomationProperties.Name="Learn more about Windows AI APIs">
                             <Button.Content>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon
                                         FontSize="16"
                                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                         Glyph="&#xE7C3;" />
-                                    <TextBlock Text="Learn more about Windows AI Foundry" />
+                                    <TextBlock Text="Learn more about Windows AI APIs" />
                                 </StackPanel>
                             </Button.Content>
                             <interactivity:Interaction.Behaviors>

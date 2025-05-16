@@ -130,9 +130,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         DispatcherQueue.TryEnqueue(ResetAndLoadModelList);
     }
 
-    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender is ListView modelView && modelView.SelectedItem is AvailableModel model)
+        if (sender.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
         }
@@ -145,16 +145,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             var availableModel = AvailableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
             if (availableModel != null)
             {
-                ModelSelectionView.SelectedIndex = AvailableModels.IndexOf(availableModel);
+                ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel));
             }
             else
             {
-                ModelSelectionView.SelectedItem = null;
+                ModelSelectionItemsView.DeselectAll();
             }
         }
         else
         {
-            ModelSelectionView.SelectedItem = null;
+            ModelSelectionItemsView.DeselectAll();
         }
     }
 
@@ -323,15 +323,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
             if (output == ContentDialogResult.Primary)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
             }
         }
-    }
-
-    private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
-    {
-        App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
     }
 
     private void AddHFModelButton_Click(object sender, RoutedEventArgs e)
