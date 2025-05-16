@@ -212,7 +212,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
             {
                 modelTypeSelector.Items.Add(def);
             }
-
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
