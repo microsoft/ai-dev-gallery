@@ -13,6 +13,8 @@
     <Nullable>enable</Nullable>
     <EnableMsixTooling>true</EnableMsixTooling>
     <NoWarn>CS1591</NoWarn>
+	<!-- Workaround for tests in WinAppSDK1.8Exp2 -->
+    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
   </PropertyGroup>
 
   <ItemGroup>
