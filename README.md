@@ -45,7 +45,7 @@ Ensure that the `AIDevGallery` project is set as the startup project in Visual S
 
 Press <kbd>F5</kbd> to run AI Dev Gallery!
 
->**⚠️ Note**: On ARM64-based Copilot+ PCs, make sure to build and run the solution as `ARM64` (and not as `x64`). This is required especially when running the samples that invoke the Windows Copilot Runtime to communicate with models such as Phi Silica.
+>**⚠️ Note**: On ARM64-based Copilot+ PCs, make sure to build and run the solution as `ARM64` (and not as `x64`). This is required especially when running the samples that invoke the Windows AI Foundry to communicate with models such as Phi Silica.
 
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help!
 
@@ -70,7 +70,7 @@ Any samples or docs improvements you'd like to see? We're always looking for a h
 - **Q: Can I use the app without an internet connection?**
   - **A:** Yes, the app works offline since the AI models are downloaded locally. However, you will need to be online to download additional AI models from Hugging Face or GitHub.
 - **Q: What AI models are available in the app?**
-  - **A:** The app features popular open source models and will eventually include APIs from the <a href="https://learn.microsoft.com/windows/ai/overview">Windows Copilot Runtime</a>. When executing a sample, you can select which model you want to use.
+  - **A:** The app features popular open source models and APIs from the <a href="https://learn.microsoft.com/windows/ai/overview">Windows AI  Foundry</a>. When executing a sample, you can select which model you want to use.
 - **Q: Is the app's source code accessible? Can I contribute new samples?**
   - **A:** Yes, the app is completely open-source, and its code is accessible on [GitHub](https://github.com/microsoft/AI-Dev-Gallery). Feel free to contribute by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">filing an issue</a>, or submitting a PR and one of our moderators will review it.
 - **Q: Where can I provide feedback?**
