@@ -99,7 +99,7 @@ internal static partial class SamplesHelper
             else
             {
                 AddUnique("Microsoft.ML.OnnxRuntimeGenAI.Managed");
-                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
+                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.WinML");
             }
         }
 
