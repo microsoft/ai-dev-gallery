@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Win32;
@@ -47,32 +48,24 @@ internal class LemonadeModelProvider : IExternalModelProvider
     {
         try
         {
-            using var p = new Process();
-            p.StartInfo.FileName = "lemonade-server";
-            p.StartInfo.Arguments = "status";
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
+            var result = await ExternalModelHelper.GetFromProcessAsync("where", "lemonade-server", cancellationToken);
 
-            p.Start();
-
-            string output = await p.StandardOutput.ReadToEndAsync(cancellationToken);
-
-            await p.WaitForExitAsync(cancellationToken);
-
-            if (p.ExitCode == 0)
+            if (result == null || result.Value.ExitCode != 0 || string.IsNullOrWhiteSpace(result.Value.Output))
             {
-                return output;
+                return null;
             }
 
-            if (!string.IsNullOrWhiteSpace(output))
+            result = await ExternalModelHelper.GetFromProcessAsync(result.Value.Output, "status", cancellationToken);
+
+            if (result == null || result.Value.ExitCode != 0 || string.IsNullOrWhiteSpace(result.Value.Output))
             {
-                Match m = Regex.Match(output, @"\b(\d{1,5})\b$");
-                if (m.Success)
-                {
-                    return $"\"http://localhost:{m.Groups[1].Value}/api/v0";
-                }
+                return null;
+            }
+
+            Match m = Regex.Match(result.Value.Output.Trim(), @"\b(\d{1,5})\b$");
+            if (m.Success)
+            {
+                return $"http://localhost:{m.Groups[1].Value}/api/v0";
             }
         }
         catch
@@ -107,8 +100,11 @@ internal class LemonadeModelProvider : IExternalModelProvider
                 _url = await InitializeLemonadeServer(cancelationToken);
                 if (string.IsNullOrWhiteSpace(_url))
                 {
+                    _isLemonadeAvailable = false;
                     return [];
                 }
+
+                _isLemonadeAvailable = true;
             }
 
             OpenAIModelClient client = new OpenAIModelClient(new ApiKeyCredential("not-needed"), new OpenAIClientOptions
