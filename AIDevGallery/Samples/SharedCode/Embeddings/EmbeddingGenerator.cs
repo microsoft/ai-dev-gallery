@@ -33,7 +33,45 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public EmbeddingGenerator(string vocabPath, string modelPath, SessionOptions sessionOptions)
+    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
+    {
+        var vocabPath = Path.Join(modelPath, "vocab.txt");
+        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
+
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+        try
+        {
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+        }
+
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+        SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        if (policy != null)
+        {
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
+        }
+        else if (epName != null)
+        {
+            sessionOptions.AppendExecutionProviderFromEpName(epName);
+
+            if (compileModel)
+            {
+                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
+            }
+        }
+
+        return new EmbeddingGenerator(vocabPath, modelPath, sessionOptions);
+    }
+
+    private EmbeddingGenerator(string vocabPath, string modelPath, SessionOptions sessionOptions)
     {
         _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
         _sessionOptions = sessionOptions;
@@ -267,46 +305,5 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
             serviceType?.IsInstanceOfType(_tokenizer) is true ? _tokenizer :
             serviceType?.IsInstanceOfType(this) is true ? this :
             null;
-    }
-}
-
-internal static class EmbeddingGeneratorFactory
-{
-    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
-    {
-        var vocabPath = Path.Join(modelPath, "vocab.txt");
-        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
-
-        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
-
-        try
-        {
-            await infrastructure.DownloadPackagesAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
-        }
-
-        await infrastructure.RegisterExecutionProviderLibrariesAsync();
-
-        SessionOptions sessionOptions = new();
-        sessionOptions.RegisterOrtExtensions();
-
-        if (policy != null)
-        {
-            sessionOptions.SetEpSelectionPolicy(policy.Value);
-        }
-        else if (epName != null)
-        {
-            sessionOptions.AppendExecutionProviderFromEpName(epName);
-
-            if (compileModel)
-            {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
-            }
-        }
-
-        return new EmbeddingGenerator(vocabPath, modelPath, sessionOptions);
     }
 }

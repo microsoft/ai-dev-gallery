@@ -31,7 +31,7 @@ internal class SampleNavigationParameters(
     // temporary until samples are moved away
     public string PreferedEP => "CPU";
 
-    public override WinMlSampleOptions WinMlSampleOptions => winMlSampleOptions ?? new WinMlSampleOptions(null, null, false);
+    public override WinMlSampleOptions WinMlSampleOptions => winMlSampleOptions ??= new WinMlSampleOptions(null, null, false);
 
     internal override void SendSampleInteractionEvent(string? customInfo = null)
     {

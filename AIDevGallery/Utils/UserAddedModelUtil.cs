@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -56,7 +57,7 @@ internal static class UserAddedModelUtil
             {
                 string configContents = string.Empty;
                 configContents = await File.ReadAllTextAsync(config);
-                accelerator = UserAddedModelUtil.GetHardwareAcceleratorFromConfig(configContents);
+                accelerator = GetHardwareAcceleratorFromConfig(configContents);
             }
             catch (Exception ex)
             {
@@ -324,7 +325,7 @@ internal static class UserAddedModelUtil
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
         if (config == null)
         {
-            throw new FileLoadException("genai_config.json is not valid");
+            throw new InvalidDataException("genai_config.json is not valid");
         }
 
         if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
@@ -335,7 +336,6 @@ internal static class UserAddedModelUtil
         return HardwareAccelerator.CPU;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Not needed")]
     public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)
     {
         List<ModelType> validatedModelTypes = GetValidatedModelTypesForUploadedOnnxModel(filepath, modelTypes);
@@ -378,14 +378,14 @@ internal static class UserAddedModelUtil
                     if (model.InputDimensions != null && model.OutputDimensions != null)
                     {
                         validDimensions.AppendLine();
-                        validDimensions.AppendLine($"Model Type: {type.ToString()}");
-                        validDimensions.AppendLine($"Input: {FlattenWithBrackets(model.InputDimensions)}");
-                        validDimensions.AppendLine($"Output: {FlattenWithBrackets(model.OutputDimensions)}");
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Model Type: {type}");
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Input: {FlattenWithBrackets(model.InputDimensions)}");
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Output: {FlattenWithBrackets(model.OutputDimensions)}");
                     }
                 }
             }
 
-            throw new FileLoadException(validDimensions.ToString());
+            throw new InvalidDataException(validDimensions.ToString());
 
             string FlattenWithBrackets(List<int[]> list)
             {
