@@ -158,7 +158,9 @@
                     </Button>
                     <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox"
                               Visibility="Collapsed"></ComboBox>-->
-                    <Button x:Name="WinMlModelOptionsButton" Padding="0">
+                    <Button x:Name="WinMlModelOptionsButton" 
+                            Visibility="Collapsed"
+                            Padding="0">
                         <Button.Flyout>
                             <Flyout
                                 x:Name="WinMLOptionsFlyout"
