@@ -52,7 +52,7 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
     {
         try
         {
-            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

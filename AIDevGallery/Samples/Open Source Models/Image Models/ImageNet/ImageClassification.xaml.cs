@@ -53,7 +53,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             string modelPath = sampleParams.ModelPath;
             ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.Device;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
             bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
 
             await InitModel(modelPath, policy, epName, compileModel);

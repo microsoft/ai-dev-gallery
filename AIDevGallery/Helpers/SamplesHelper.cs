@@ -240,8 +240,8 @@ internal static partial class SamplesHelper
                 var winmlOptions = modelInfo.Value.ExpandedModelDetails.WinMlSampleOptions;
 
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
-                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions != null && winmlOptions.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy.ToString()}" : "null");
-                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Device", GetValueOrNull(winmlOptions?.Device, "null"));
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
 
@@ -256,8 +256,8 @@ internal static partial class SamplesHelper
             var winmlOptions = modelInfo.ExpandedModelDetails.WinMlSampleOptions;
 
             cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
-            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions != null && winmlOptions.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy.ToString()}" : "null");
-            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Device", GetValueOrNull(winmlOptions?.Device, "null"));
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
             cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
@@ -353,7 +353,7 @@ internal static partial class SamplesHelper
                 return null;
             }
 
-            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
+            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);

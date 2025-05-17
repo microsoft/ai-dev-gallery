@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -56,20 +57,24 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
     }
 
-    protected async override Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected async override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         try
         {
-            _embeddings = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            _embeddings = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(modelPath, policy, epName, compileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
         {
-            this.ShowException(ex, "Error initializing the model");
+            ShowException(ex, "Error initializing the model");
         }
 
         this.SourceTextBox.Text = _sampleText;
-        return Task.CompletedTask;
     }
 
     // <exclude>

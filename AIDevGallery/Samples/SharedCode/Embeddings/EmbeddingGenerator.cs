@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -273,12 +272,8 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
 internal static class EmbeddingGeneratorFactory
 {
-    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, WinMlSampleOptions options)
+    public static async Task<EmbeddingGenerator> GetEmbeddingGeneratorInstance(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
     {
-        ExecutionProviderDevicePolicy? policy = options.Policy;
-        string? device = options.Device;
-        bool compileModel = options.CompileModel;
-
         var vocabPath = Path.Join(modelPath, "vocab.txt");
         modelPath = Path.Join(modelPath, "onnx", "model.onnx");
 
@@ -302,13 +297,13 @@ internal static class EmbeddingGeneratorFactory
         {
             sessionOptions.SetEpSelectionPolicy(policy.Value);
         }
-        else if (device != null)
+        else if (epName != null)
         {
-            sessionOptions.AppendExecutionProviderFromEpName(device);
+            sessionOptions.AppendExecutionProviderFromEpName(epName);
 
             if (compileModel)
             {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
             }
         }
 

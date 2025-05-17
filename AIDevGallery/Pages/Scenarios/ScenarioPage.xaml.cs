@@ -252,9 +252,9 @@ internal sealed partial class ScenarioPage : Page
             DeviceComboBox.SelectedIndex = 0;
             segmentedControl.SelectedIndex = 0;
         }
-        else if (options.Device != null)
+        else if (options.EpName != null)
         {
-            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.Device).FirstOrDefault();
+            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.EpName).FirstOrDefault();
             if (selectedDevice != null)
             {
                 DeviceComboBox.SelectedItem = selectedDevice;

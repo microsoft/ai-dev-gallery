@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -39,19 +40,22 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override async Task<Task> LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         try
         {
-            this.MySemanticComboBox.EmbeddingGenerator = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGeneratorFactory.GetEmbeddingGeneratorInstance(modelPath, policy, epName, compileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
         {
-            this.ShowException(ex, "Error initializing the model");
+            ShowException(ex, "Error initializing the model");
         }
-
-        return Task.CompletedTask;
     }
 
     public List<string> ShoppingCategories { get; } =

@@ -69,7 +69,7 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));

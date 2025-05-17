@@ -76,7 +76,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
         var parentFolder = sampleParams.ModelPath;
 
         var policy = sampleParams.WinMlSampleOptions.Policy;
-        var device = sampleParams.WinMlSampleOptions.Device;
+        var device = sampleParams.WinMlSampleOptions.EpName;
         bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
 
         try

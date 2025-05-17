@@ -263,4 +263,4 @@ internal class CustomParametersState
 
 internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);
 
-internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? Device, bool CompileModel);
+internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel);

@@ -62,7 +62,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
