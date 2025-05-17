@@ -134,6 +134,7 @@ internal static class ActivationHelper
             }
             catch
             {
+                return null;
             }
         }
 
