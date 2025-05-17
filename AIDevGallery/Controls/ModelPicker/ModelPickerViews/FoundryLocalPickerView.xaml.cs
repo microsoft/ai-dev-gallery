@@ -114,16 +114,16 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
             if (modelToSelect != null)
             {
-                ModelSelectionItemsView.Select(AvailableModels.IndexOf(modelToSelect));
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.Select(AvailableModels.IndexOf(modelToSelect)));
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
         }
     }
 

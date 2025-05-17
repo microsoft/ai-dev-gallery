@@ -80,16 +80,16 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)
             {
-                ModelSelectionItemsView.Select(models.IndexOf(foundModel));
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.Select(models.IndexOf(foundModel)));
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
         }
     }
 }
