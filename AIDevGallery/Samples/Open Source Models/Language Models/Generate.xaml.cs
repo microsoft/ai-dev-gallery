@@ -132,7 +132,7 @@ internal sealed partial class Generate : BaseSamplePage
 
                         outputTokens++;
                         double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
-                        ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token:\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+                        ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
 
                         // </exclude>
                         DispatcherQueue.TryEnqueue(() =>
