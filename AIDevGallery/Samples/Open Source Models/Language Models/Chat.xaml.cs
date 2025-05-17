@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -157,8 +158,26 @@ internal sealed partial class Chat : BaseSamplePage
 
             history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));
 
+            // <exclude>
+            ShowDebugInfo(null);
+            var swEnd = Stopwatch.StartNew();
+            var swTtft = Stopwatch.StartNew();
+            int outputTokens = 0;
+
+            // </exclude>
             await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
             {
+                // <exclude>
+                if (outputTokens == 0)
+                {
+                    swTtft.Stop();
+                }
+
+                outputTokens++;
+                double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+                // </exclude>
                 var part = messagePart;
                 DispatcherQueue.TryEnqueue(() =>
                 {
@@ -175,6 +194,12 @@ internal sealed partial class Chat : BaseSamplePage
                 });
             }
 
+            // <exclude>
+            swEnd.Stop();
+            double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+            ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+            // </exclude>
             cts?.Dispose();
             cts = null;
 

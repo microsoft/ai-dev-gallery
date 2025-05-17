@@ -123,10 +123,27 @@
                         TextAlignment="Center"
                         Visibility="Visible" />
                 </StackPanel>
-                <ContentPresenter
-                    x:Name="FooterContentPresenter"
-                    HorizontalAlignment="Right"
-                    Content="{x:Bind FooterContent, Mode=OneWay}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button BorderThickness="0" Background="Transparent">
+                        <TextBlock x:Name="SampleDebugInfoButton"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   FontSize="12"></TextBlock>
+                        <Button.Flyout>
+                            <Flyout>
+                                <TextBlock x:Name="SampleDebugInfoContent" 
+                                           FontFamily="Cascadia Code" 
+                                           FontSize="14"
+                                           MaxWidth="300"
+                                           TextWrapping="WrapWholeWords"
+                                           LineHeight="20">
+                                </TextBlock>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                    <ContentPresenter
+                        x:Name="FooterContentPresenter"
+                        Content="{x:Bind FooterContent, Mode=OneWay}" />
+                </StackPanel>
             </Grid>
 
             <Grid

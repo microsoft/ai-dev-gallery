@@ -144,16 +144,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             var availableModel = AvailableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
             if (availableModel != null)
             {
-                ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel));
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel)));
             }
             else
             {
-                ModelSelectionItemsView.DeselectAll();
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
             }
         }
         else
         {
-            ModelSelectionItemsView.DeselectAll();
+            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
         }
     }
 
