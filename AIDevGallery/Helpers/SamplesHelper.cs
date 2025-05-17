@@ -314,11 +314,6 @@ internal static partial class SamplesHelper
             }
         }
 
-        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
-        {
-            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
-        }
-
         return cleanCsSource;
     }
 

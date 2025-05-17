@@ -39,8 +39,6 @@ public class Program
         WinRT.ComWrappersSupport.InitializeComWrappers();
         bool isRedirect = DecideRedirection();
 
-        using OgaHandle ogaHandle = new();
-
         if (!isRedirect)
         {
             Application.Start((p) =>

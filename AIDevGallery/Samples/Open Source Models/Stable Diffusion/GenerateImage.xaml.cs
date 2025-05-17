@@ -5,6 +5,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Samples.SharedCode.StableDiffusionCode;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -73,16 +74,16 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var parentFolder = sampleParams.ModelPath;
+        string parentFolder = sampleParams.ModelPath;
 
-        var policy = sampleParams.WinMlSampleOptions.Policy;
-        var device = sampleParams.WinMlSampleOptions.EpName;
+        ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+        string? epName = sampleParams.WinMlSampleOptions.EpName;
         bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
 
         try
         {
             stableDiffusion = new StableDiffusion(parentFolder);
-            await stableDiffusion.InitializeAsync(policy, device, compileOption);
+            await stableDiffusion.InitializeAsync(policy, epName, compileOption);
         }
         catch(Exception ex)
         {
