@@ -140,6 +140,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         SetFooterVisualStates();
+        ShowDebugInfo(null);
         RenderCodeTabs(true);
 
         CancelCTS();
@@ -292,6 +293,22 @@ internal sealed partial class SampleContainer : UserControl
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
         VisualStateManager.GoToState(this, "SampleLoaded", true);
+    }
+
+    public void ShowDebugInfo(string? contents)
+    {
+        if (string.IsNullOrEmpty(contents))
+        {
+            SampleDebugInfoButton.Visibility = Visibility.Collapsed;
+            SampleDebugInfoButton.Text = string.Empty;
+            SampleDebugInfoContent.Text = string.Empty;
+            return;
+        }
+
+        SampleDebugInfoButton.Text = contents.Split('\n')[0];
+        SampleDebugInfoContent.Text = contents;
+
+        SampleDebugInfoButton.Visibility = Visibility.Visible;
     }
 
     [MemberNotNull(nameof(_sampleCache))]

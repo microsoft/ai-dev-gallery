@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Text;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -109,6 +110,13 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
+        // <exclude>
+        ShowDebugInfo(null);
+        var swEnd = Stopwatch.StartNew();
+        var swTtft = Stopwatch.StartNew();
+        int outputTokens = 0;
+
+        // </exclude>
         var operation = _languageModel.GenerateResponseAsync(prompt);
         operation.Progress = (asyncInfo, delta) =>
         {
@@ -120,6 +128,15 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
                     NarratorHelper.Announce(InputTextBox, "Content has started generating.", "GeneratedAnnouncementActivityId");
                     contentStartedBeingGenerated = true;
                 }
+
+                if (outputTokens == 0)
+                {
+                    swTtft.Stop();
+                }
+
+                outputTokens++;
+                double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token:\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
 
                 // </exclude>
                 if (_isProgressVisible)
@@ -138,6 +155,12 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
         var result = await operation;
 
+        // <exclude>
+        swEnd.Stop();
+        double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+        ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+        // </exclude>
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
         StopBtn.Visibility = Visibility.Collapsed;
         GenerateButton.Visibility = Visibility.Visible;
