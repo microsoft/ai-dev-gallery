@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
-using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AI.MachineLearning.Bootstrap;
