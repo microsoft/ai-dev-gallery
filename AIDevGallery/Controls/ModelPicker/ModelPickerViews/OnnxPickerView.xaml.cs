@@ -42,15 +42,24 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         ResetAndLoadModelList();
 
+        var isAddModelButtonsVisible = false;
+
         if (types.Contains(ModelType.LanguageModels))
         {
             AddHFModelButton.Visibility = Visibility.Visible;
+            isAddModelButtonsVisible = true;
         }
 
         // local models supported for types
         if (types.Contains(ModelType.LanguageModels) || models.IsModelsDetailsListUploadCompatible())
         {
             AddLocalModelButton.Visibility = Visibility.Visible;
+            isAddModelButtonsVisible = true;
+        }
+
+        if (isAddModelButtonsVisible)
+        {
+            AddModelButtons.Visibility = Visibility.Visible;
         }
 
         return Task.CompletedTask;
