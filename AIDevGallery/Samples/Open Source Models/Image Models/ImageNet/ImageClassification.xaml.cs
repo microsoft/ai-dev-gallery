@@ -53,10 +53,10 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             string modelPath = sampleParams.ModelPath;
             ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? device = sampleParams.WinMlSampleOptions.Device;
+            string? epName = sampleParams.WinMlSampleOptions.Device;
             bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
 
-            await InitModel(modelPath, policy, device, compileModel);
+            await InitModel(modelPath, policy, epName, compileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -75,7 +75,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
     {
         return Task.Run(async () =>
         {
@@ -104,13 +104,13 @@ internal sealed partial class ImageClassification : BaseSamplePage
             {
                 sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (device != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(epName);
 
                 if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 
