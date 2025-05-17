@@ -51,7 +51,12 @@ internal sealed partial class ImageClassification : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.Device, sampleParams.WinMlSampleOptions.CompileModel);
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? device = sampleParams.WinMlSampleOptions.Device;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            await InitModel(modelPath, policy, device, compileModel);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
