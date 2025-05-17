@@ -8,6 +8,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -107,6 +109,13 @@ internal sealed partial class Generate : BaseSamplePage
 
                 try
                 {
+                    // <exclude>
+                    ShowDebugInfo(null); // <exclude-line>
+                    var swEnd = Stopwatch.StartNew();
+                    var swTtft = Stopwatch.StartNew();
+                    int outputTokens = 0;
+
+                    // </exclude>
                     await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
@@ -115,6 +124,17 @@ internal sealed partial class Generate : BaseSamplePage
                         null,
                         cts.Token))
                     {
+                        // <exclude>
+                        if (outputTokens == 0)
+                        {
+                            swTtft.Stop();
+                        }
+
+                        outputTokens++;
+                        double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                        ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+                        // </exclude>
                         DispatcherQueue.TryEnqueue(() =>
                         {
                             if (isProgressVisible)
@@ -135,6 +155,13 @@ internal sealed partial class Generate : BaseSamplePage
                             // </exclude>
                         });
                     }
+
+                    // <exclude>
+                    swEnd.Stop();
+                    double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                    ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+                    // </exclude>
                 }
                 catch (System.Exception ex)
                 {

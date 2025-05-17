@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -34,7 +35,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     NugetPackageReferences = [
         "System.Numerics.Tensors",
         "Microsoft.ML.Tokenizers",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.Extensions.AI",
         "Microsoft.SemanticKernel.Connectors.InMemory"
     ],
@@ -56,13 +57,24 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected async override Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        _embeddings = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Error initializing the model");
+        }
 
         this.SourceTextBox.Text = _sampleText;
-        return Task.CompletedTask;
     }
 
     // <exclude>

@@ -175,7 +175,12 @@ internal enum HardwareAccelerator
     OLLAMA,
     OPENAI,
     FOUNDRYLOCAL,
-    LEMONADE
+    LEMONADE,
+    NPU,
+    GPU,
+    VitisAI,
+    OpenVINO,
+    NvTensorRT
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]

@@ -18,7 +18,7 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, -1 ],
@@ -51,7 +51,7 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, -1 ],

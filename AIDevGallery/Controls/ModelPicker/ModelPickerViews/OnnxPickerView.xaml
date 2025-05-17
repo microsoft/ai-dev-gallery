@@ -190,8 +190,10 @@
                         Text="Downloadable models"
                         Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotEmpty(DownloadableModels), Mode=OneWay}" />
                     <DropDownButton
+                        x:Name="AddModelButtons"
                         Grid.Column="1"
                         Padding="0"
+                        Visibility="Collapsed"
                         Background="Transparent"
                         BorderThickness="0"
                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">

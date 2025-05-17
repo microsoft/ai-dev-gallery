@@ -4,6 +4,8 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using Microsoft.ML.OnnxRuntime;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -23,11 +25,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "System.Numerics.Tensors",
         "Microsoft.ML.Tokenizers",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "System.Numerics.Tensors"
     ],
     Id = "c0d6c4f1-8daa-409f-a686-3de388edbf91",
     Icon = "\uE8D4")]
@@ -38,11 +40,22 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
         this.InitializeComponent();
     }
 
-    protected override Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        this.MySemanticComboBox.EmbeddingGenerator = new EmbeddingGenerator(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-        sampleParams.NotifyCompletion();
-        return Task.CompletedTask;
+        try
+        {
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Error initializing the model");
+        }
     }
 
     public List<string> ShoppingCategories { get; } =

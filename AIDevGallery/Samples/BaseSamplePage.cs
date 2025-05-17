@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Controls;
 using AIDevGallery.Models;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -48,6 +50,21 @@ internal partial class BaseSamplePage : Page
     internal void SendSampleInteractedEvent(string? customInfo = null)
     {
         SampleParams?.SendSampleInteractionEvent(customInfo);
+    }
+
+    internal void ShowDebugInfo(string? debugInfo)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            SampleContainer? sampleContainer = this.FindParent<SampleContainer>();
+
+            if (sampleContainer == null)
+            {
+                return;
+            }
+
+            sampleContainer.ShowDebugInfo(debugInfo);
+        });
     }
 
     internal void ShowException(Exception? ex, string? optionalMessage = null)

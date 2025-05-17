@@ -49,7 +49,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         "MathNet.Numerics",
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.Extensions",
-        "Microsoft.ML.OnnxRuntime.DirectML"
+        "Microsoft.Windows.AI.MachineLearning"
     ],
     Icon = "\uEE71")]
 
@@ -73,13 +73,21 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
         var parentFolder = sampleParams.ModelPath;
 
-        await Task.Run(() =>
+        var policy = sampleParams.WinMlSampleOptions.Policy;
+        var device = sampleParams.WinMlSampleOptions.EpName;
+        bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
+
+        try
         {
-            stableDiffusion = new StableDiffusion(parentFolder, hardwareAccelerator);
-        });
+            stableDiffusion = new StableDiffusion(parentFolder);
+            await stableDiffusion.InitializeAsync(policy, device, compileOption);
+        }
+        catch(Exception ex)
+        {
+            ShowException(ex);
+        }
 
         modelReady = true;
 

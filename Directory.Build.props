@@ -26,7 +26,7 @@
     <!-- Turn on/off depending on weather the WinAppSDK is prerelease or not -->
     <IsWindowsAppSDKPreRelease>true</IsWindowsAppSDKPreRelease>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
+  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true'">
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 </Project>

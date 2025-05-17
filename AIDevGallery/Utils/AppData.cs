@@ -3,12 +3,14 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -16,6 +18,8 @@ namespace AIDevGallery.Utils;
 
 internal class AppData
 {
+    private static readonly SemaphoreSlim _saveSemaphore = new(1, 1);
+
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
     public CustomParametersState? LastCustomParamtersState { get; set; }
@@ -33,6 +37,10 @@ internal class AppData
 
     public string LastSystemPrompt { get; set; }
 
+    public WinMlSampleOptions WinMLSampleOptions { get; set; }
+
+    private Dictionary<string, Dictionary<string, string>>? SampleData { get; set; }
+
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
@@ -40,6 +48,7 @@ internal class AppData
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
+        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false);
     }
 
     private static string GetConfigFilePath()
@@ -53,6 +62,7 @@ internal class AppData
         AppData? appData = null;
 
         var configFile = GetConfigFilePath();
+        await _saveSemaphore.WaitAsync();
 
         try
         {
@@ -68,6 +78,7 @@ internal class AppData
         finally
         {
             appData ??= GetDefault();
+            _saveSemaphore.Release();
         }
 
         return appData;
@@ -75,8 +86,16 @@ internal class AppData
 
     public async Task SaveAsync()
     {
-        var str = JsonSerializer.Serialize(this, AppDataSourceGenerationContext.Default.AppData);
-        await File.WriteAllTextAsync(GetConfigFilePath(), str);
+        await _saveSemaphore.WaitAsync();
+        try
+        {
+            var str = JsonSerializer.Serialize(this, AppDataSourceGenerationContext.Default.AppData);
+            await File.WriteAllTextAsync(GetConfigFilePath(), str);
+        }
+        finally
+        {
+            _saveSemaphore.Release();
+        }
     }
 
     public async Task AddMru(MostRecentlyUsedItem item, List<(string Id, HardwareAccelerator HardwareAccelerator)>? modelOrApiUsage)
@@ -163,6 +182,46 @@ internal class AppData
         await SaveAsync();
     }
 
+    // does not persist between sessions
+    public async Task SetSampleDataAsync(string sampleName, string key, string data)
+    {
+        if (SampleData == null)
+        {
+            SampleData = new Dictionary<string, Dictionary<string, string>>();
+        }
+
+        if (!SampleData.TryGetValue(sampleName, out Dictionary<string, string>? value))
+        {
+            value = new Dictionary<string, string>();
+            SampleData[sampleName] = value;
+        }
+
+        if (!value.TryAdd(key, data))
+        {
+            value[key] = data;
+        }
+
+        await SaveAsync();
+    }
+
+    public string? GetSampleData(string sampleName, string key)
+    {
+        if (SampleData == null)
+        {
+            return null;
+        }
+
+        if (SampleData.TryGetValue(sampleName, out Dictionary<string, string>? value))
+        {
+            if (value.TryGetValue(key, out string? data))
+            {
+                return data;
+            }
+        }
+
+        return null;
+    }
+
     public bool TryGetUserAddedModelIds(ModelType type, out List<string>? modelIds)
     {
         if (ModelTypeToUserAddedModelsMapping == null)
@@ -203,3 +262,5 @@ internal class CustomParametersState
 }
 
 internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);
+
+internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel);

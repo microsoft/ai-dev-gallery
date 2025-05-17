@@ -5,6 +5,7 @@ using AIDevGallery.Helpers;
 using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AI.MachineLearning.Bootstrap;
 using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Diagnostics;
@@ -19,6 +20,16 @@ namespace AIDevGallery;
 /// </summary>
 public class Program
 {
+    internal static class AutoInitialize
+    {
+        [global::System.Runtime.CompilerServices.ModuleInitializer]
+        internal static void Initialize()
+        {
+            int hr = NativeMethods.WinMLDeployMainPackage();
+            Debug.WriteLine(hr);
+        }
+    }
+
     // Replaces the standard App.g.i.cs.
     // Note: We can't declare Main to be async because in a WinUI app
     // this prevents Narrator from reading XAML elements.
@@ -40,6 +51,8 @@ public class Program
                 _ = new App();
             });
         }
+
+        NativeMethods.WinMLUninitialize();
     }
 
     private static bool DecideRedirection()

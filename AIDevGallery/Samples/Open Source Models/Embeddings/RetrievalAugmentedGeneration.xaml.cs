@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -38,12 +39,12 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "PdfPig",
-        "Microsoft.ML.Tokenizers",
-        "System.Numerics.Tensors",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.ML.Tokenizers",
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "PdfPig",
+        "System.Numerics.Tensors",
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
     Icon = "\uE8D4")]
@@ -87,7 +88,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            string modelPath = sampleParams.ModelPaths[1];
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)

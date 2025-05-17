@@ -8,4 +8,8 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
+    NPU,
+    GPU,
+    VitisAI,
+    OpenVINO,
 }

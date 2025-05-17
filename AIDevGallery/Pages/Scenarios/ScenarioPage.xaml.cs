@@ -6,11 +6,14 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
+using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -19,12 +22,26 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Pages;
 
+internal record WinMlEp(List<HardwareAccelerator> HardwareAccelerators, string Name, string ShortName, string DeviceType);
+
 internal sealed partial class ScenarioPage : Page
 {
+    private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
+    {
+        { "Default", ExecutionProviderDevicePolicy.DEFAULT },
+        { "Max Efficency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
+        { "Max Performance", ExecutionProviderDevicePolicy.MAX_PERFORMANCE },
+        { "Minimize Overall Power", ExecutionProviderDevicePolicy.MIN_OVERALL_POWER },
+        { "Prefer NPU", ExecutionProviderDevicePolicy.PREFER_NPU },
+        { "Prefer GPU", ExecutionProviderDevicePolicy.PREFER_GPU },
+        { "Prefer CPU", ExecutionProviderDevicePolicy.PREFER_CPU },
+    };
+
     private Scenario? scenario;
     private List<Sample>? samples;
     private Sample? sample;
     private ObservableCollection<ModelDetails?> modelDetails = new();
+    private static List<WinMlEp>? supportedHardwareAccelerators;
 
     public ScenarioPage()
     {
@@ -97,7 +114,58 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
-    private void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
+    private static async Task<List<WinMlEp>> GetSupportedHardwareAccelerators()
+    {
+        if (supportedHardwareAccelerators != null)
+        {
+            return supportedHardwareAccelerators;
+        }
+
+        OrtEnv.Instance();
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+        try
+        {
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception)
+        {
+        }
+
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+        supportedHardwareAccelerators = [new([HardwareAccelerator.CPU], "CPU", "CPU", "CPU")];
+
+        foreach (string device in WinMLHelpers.GetEpDeviceMap().Keys)
+        {
+            switch(device)
+            {
+                case "VitisAIExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
+                    break;
+
+                case "OpenVINOExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
+                    break;
+
+                case "QNNExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], "QNNExecutionProvider", "QNN", "NPU"));
+                    break;
+
+                case "DmlExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                    break;
+
+                case "NvTensorRTRTXExecutionProvider":
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], "NvTensorRTRTXExecutionProvider", "NvTensorRT", "GPU"));
+                    break;
+            }
+        }
+
+        return supportedHardwareAccelerators;
+    }
+
+    private async void HandleModelSelectionChanged(List<ModelDetails?> selectedModels)
     {
         if (selectedModels.Contains(null) || selectedModels.Count == 0)
         {
@@ -109,6 +177,35 @@ internal sealed partial class ScenarioPage : Page
         modelDetails.Clear();
         selectedModels.ForEach(modelDetails.Add);
 
+        if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
+        {
+            var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
+            HashSet<WinMlEp> eps = [supportedHardwareAccelerators[0]];
+
+            DeviceComboBox.Items.Clear();
+
+            foreach (var hardwareAccelerator in selectedModels.SelectMany(m => m!.HardwareAccelerators).Distinct())
+            {
+                foreach (var ep in supportedHardwareAccelerators.Where(ep => ep.HardwareAccelerators.Contains(hardwareAccelerator)))
+                {
+                    eps.Add(ep);
+                }
+            }
+
+            foreach (var ep in eps)
+            {
+                DeviceComboBox.Items.Add(ep);
+            }
+
+            UpdateWinMLFlyout();
+
+            WinMlModelOptionsButton.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            WinMlModelOptionsButton.Visibility = Visibility.Collapsed;
+        }
+
         if (selectedModels.Count == 1)
         {
             // add the second model with null
@@ -116,8 +213,8 @@ internal sealed partial class ScenarioPage : Page
         }
 
         List<Sample> viableSamples = samples!.Where(s =>
-            IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
-            IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
+                IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
+                IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
 
         if (viableSamples.Count == 0)
         {
@@ -144,6 +241,36 @@ internal sealed partial class ScenarioPage : Page
         }
     }
 
+    private void UpdateWinMLFlyout()
+    {
+        var options = App.AppData.WinMLSampleOptions;
+        if (options.Policy != null)
+        {
+            var key = executionProviderDevicePolicies.FirstOrDefault(kvp => kvp.Value == options.Policy).Key;
+            ExecutionPolicyComboBox.SelectedItem = key;
+            WinMlModelOptionsButtonText.Text = key;
+            DeviceComboBox.SelectedIndex = 0;
+            segmentedControl.SelectedIndex = 0;
+        }
+        else if (options.EpName != null)
+        {
+            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.EpName).FirstOrDefault();
+            if (selectedDevice != null)
+            {
+                DeviceComboBox.SelectedItem = selectedDevice;
+            }
+            else
+            {
+                DeviceComboBox.SelectedIndex = 0;
+            }
+
+            ExecutionPolicyComboBox.SelectedIndex = 0;
+            CompileModelCheckBox.IsChecked = options.CompileModel;
+            WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
+            segmentedControl.SelectedIndex = 1;
+        }
+    }
+
     private void LoadSample(Sample? sampleToLoad)
     {
         sample = sampleToLoad;
@@ -157,7 +284,7 @@ internal sealed partial class ScenarioPage : Page
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails]);
+        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], App.AppData.WinMLSampleOptions);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -238,13 +365,13 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), XamlRoot);
+        _ = Generator.AskGenerateAndOpenAsync(sample, modelDetails.Where(m => m != null).Select(m => m!), App.AppData.WinMLSampleOptions, XamlRoot);
     }
 
     private void ActionButtonsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Calculate if the modelselectors collide with the export/code buttons
-        if ((ModelBtn.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
+        if ((ActionsButtonHolderPanel.ActualWidth + ButtonsPanel.ActualWidth) >= e.NewSize.Width)
         {
             VisualStateManager.GoToState(this, "NarrowLayout", true);
         }
@@ -271,5 +398,38 @@ internal sealed partial class ScenarioPage : Page
             .ToList().FirstOrDefault();
 
         LoadSample(selectedSample);
+    }
+
+    private async void ApplySampleOptions(object sender, RoutedEventArgs e)
+    {
+        WinMLOptionsFlyout.Hide();
+
+        var oldOptions = App.AppData.WinMLSampleOptions;
+
+        if (segmentedControl.SelectedIndex == 0)
+        {
+            var key = (ExecutionPolicyComboBox.SelectedItem as string) ?? executionProviderDevicePolicies.Keys.First();
+            WinMlModelOptionsButtonText.Text = key;
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
+        }
+        else
+        {
+            var device = (DeviceComboBox.SelectedItem as WinMlEp) ?? (DeviceComboBox.Items.First() as WinMlEp);
+            WinMlModelOptionsButtonText.Text = device!.ShortName;
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device.Name, CompileModelCheckBox.IsChecked!.Value);
+        }
+
+        if (oldOptions == App.AppData.WinMLSampleOptions)
+        {
+            return;
+        }
+
+        LoadSample(sample);
+        await App.AppData.SaveAsync();
+    }
+
+    private void WinMLOptionsFlyout_Opening(object sender, object e)
+    {
+        UpdateWinMLFlyout();
     }
 }

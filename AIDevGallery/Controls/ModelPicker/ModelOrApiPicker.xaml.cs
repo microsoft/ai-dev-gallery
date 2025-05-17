@@ -90,49 +90,12 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 {
                     if (modelOrApiUsageHistory.HardwareAccelerator != null)
                     {
-                        var model = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
-                        if (model != null)
-                        {
-                            modelToPreselect = new ModelDetails
-                            {
-                                Id = model.Id,
-                                Name = model.Name,
-                                Url = model.Url,
-                                Description = model.Description,
-                                HardwareAccelerators = [modelOrApiUsageHistory.HardwareAccelerator.Value],
-                                SupportedOnQualcomm = model.SupportedOnQualcomm,
-                                Size = model.Size,
-                                Icon = model.Icon,
-                                ParameterSize = model.ParameterSize,
-                                IsUserAdded = model.IsUserAdded,
-                                PromptTemplate = model.PromptTemplate,
-                                ReadmeUrl = model.ReadmeUrl,
-                                License = model.License,
-                                FileFilters = model.FileFilters
-                            };
-                        }
+                        modelToPreselect = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
                     }
 
                     if (modelToPreselect == null)
                     {
-                        var model = matchedModels[0];
-                        modelToPreselect = new ModelDetails
-                        {
-                            Id = model.Id,
-                            Name = model.Name,
-                            Url = model.Url,
-                            Description = model.Description,
-                            HardwareAccelerators = [model.HardwareAccelerators[0]],
-                            SupportedOnQualcomm = model.SupportedOnQualcomm,
-                            Size = model.Size,
-                            Icon = model.Icon,
-                            ParameterSize = model.ParameterSize,
-                            IsUserAdded = model.IsUserAdded,
-                            PromptTemplate = model.PromptTemplate,
-                            ReadmeUrl = model.ReadmeUrl,
-                            License = model.License,
-                            FileFilters = model.FileFilters
-                        };
+                        modelToPreselect = matchedModels[0];
                     }
                 }
             }
