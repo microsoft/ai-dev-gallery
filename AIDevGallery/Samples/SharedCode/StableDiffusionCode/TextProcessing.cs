@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Pages;
-using AIDevGallery.Samples.SharedCode;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using Microsoft.Windows.AI.MachineLearning;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -161,6 +158,7 @@ internal class TextProcessing : IDisposable
         {
             throw new InvalidOperationException("Encoder is not initialized.");
         }
+
         // Create input tensor.
         var input_ids = TensorHelper.CreateTensor(tokenizedInput, [1, tokenizedInput.Length]);
 

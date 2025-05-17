@@ -33,7 +33,9 @@ internal class WhisperWrapper : IDisposable
 
         await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         SessionOptions sessionOptions = new();
+#pragma warning restore CA2000 // Dispose objects before losing scope
         sessionOptions.RegisterOrtExtensions();
 
         if (policy != null)
