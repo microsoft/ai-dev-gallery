@@ -125,12 +125,14 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                     <Button BorderThickness="0" Background="Transparent">
-                        <TextBlock x:Name="SampleDebugInfoButton" FontSize="12"></TextBlock>
+                        <TextBlock x:Name="SampleDebugInfoButton"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   FontSize="12"></TextBlock>
                         <Button.Flyout>
                             <Flyout>
                                 <TextBlock x:Name="SampleDebugInfoContent" 
                                            FontFamily="Cascadia Code" 
-                                           FontSize="16"
+                                           FontSize="14"
                                            MaxWidth="300"
                                            TextWrapping="WrapWholeWords"
                                            LineHeight="20">
