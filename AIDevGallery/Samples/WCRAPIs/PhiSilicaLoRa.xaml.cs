@@ -91,6 +91,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         {
             AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = true;
+            ExampleAdapterLink.Visibility = Visibility.Collapsed;
         }
         else
         {
@@ -330,6 +331,8 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             await App.AppData.SaveAsync(); // <exclude-line>
             AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = !string.IsNullOrWhiteSpace(_adapterFilePath);
+            ExampleAdapterLink.Visibility = string.IsNullOrWhiteSpace(_adapterFilePath) ? Visibility.Visible : Visibility.Collapsed;
+
         }
     }
 

@@ -45,6 +45,13 @@
                         Content="Select a LoRA adapter.."
                         FontWeight="SemiBold"
                         ToolTipService.ToolTip="Select a LoRA adapter (.safetensors)" />
+                    <HyperlinkButton
+                        x:Name="ExampleAdapterLink"
+                        Padding="0"
+                        NavigateUri="https://aka.ms/ai-dev-gallery-example-lora-adapter"
+                        VerticalAlignment="Center"
+                        Content="(example adapter)"
+                        ToolTipService.ToolTip="Download an example adapter" />
                 </StackPanel>
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <DropDownButton
