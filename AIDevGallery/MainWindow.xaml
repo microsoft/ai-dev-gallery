@@ -120,7 +120,10 @@
                     Tag="Settings" />
             </NavigationView.FooterMenuItems>
             <NavigationView.Content>
-                <Frame x:Name="NavFrame" Navigating="NavFrame_Navigating" />
+                <Frame
+                    x:Name="NavFrame"
+                    Navigated="NavFrame_Navigated"
+                    Navigating="NavFrame_Navigating" />
             </NavigationView.Content>
         </NavigationView>
         <TitleBar
@@ -133,6 +136,7 @@
             <!--  This is a workaround for https://github.com/microsoft/microsoft-ui-xaml/issues/10427 that can cause the window to be clipped when the window is maximized  -->
             <TitleBar.LeftHeader>
                 <Image
+                    x:Name="titleBarIcon"
                     Width="16"
                     Margin="16,0,0,0"
                     AutomationProperties.AccessibilityView="Raw"
