@@ -50,7 +50,8 @@
                 Grid.ColumnSpan="2"
                 Background="{ThemeResource NavigationViewContentBackground}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,0,0,1">
+                BorderThickness="0,0,0,1"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
                 <TextBlock
                     Margin="16"
                     VerticalAlignment="Center"
@@ -102,7 +103,8 @@
                 Padding="16"
                 Background="{ThemeResource CardGradient2Brush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,8,8"
                 RowSpacing="8"
                 Translation="0,0,16">
                 <Grid.RowDefinitions>
