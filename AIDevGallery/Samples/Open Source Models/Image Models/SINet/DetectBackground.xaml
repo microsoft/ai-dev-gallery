@@ -46,7 +46,6 @@
                 AutomationProperties.Name="Select image"
                 Click="UploadButton_Click"
                 ToolTipService.ToolTip="Select image">
-
                 <FontIcon FontSize="16" Glyph="&#xEE71;" />
             </Button>
         </Grid>
