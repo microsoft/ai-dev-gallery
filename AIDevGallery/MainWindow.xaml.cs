@@ -261,13 +261,6 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavView.SelectedItem = NavView.MenuItems[0];
         }
-
-        // Workaround for using the LeftHeader instead of Icon
-        if (sender is Frame navFrame && navFrame.CanGoBack)
-        {
-            // Check if the back button is shown, update the margin of the icon.
-            titleBarIcon.Margin = new Thickness(16, 0, 0, 0);
-        }
     }
 
     private void TitleBar_BackRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
@@ -276,6 +269,20 @@ internal sealed partial class MainWindow : WindowEx
         {
             ModelPicker.Hide();
             NavFrame.GoBack();
+        }
+    }
+
+    private void NavFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        // Workaround for using the LeftHeader instead of Icon
+        if (titleBar.IsBackButtonVisible)
+        {
+            // Check if the back button is shown, update the margin of the icon.
+            titleBarIcon.Margin = new Thickness(0, 0, 8, 0);
+        }
+        else
+        {
+            titleBarIcon.Margin = new Thickness(16, 0, 0, 0);
         }
     }
 }
