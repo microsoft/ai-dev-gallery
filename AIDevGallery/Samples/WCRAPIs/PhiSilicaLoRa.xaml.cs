@@ -129,7 +129,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         }
     }
 
-    public async Task GenerateText(string prompt, TextBlock textBlock, LanguageModelContext? context, LanguageModelOptionsExperimental? options = null)
+    public async Task GenerateText(string prompt, string systemPrompt, TextBlock textBlock, LanguageModelOptionsExperimental? options = null)
     {
         if (_languageModel == null || _loraModel == null)
         {
@@ -143,6 +143,9 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
+        // the context has the system prompt and history
+        //  it is created for each query to avoid bringing history from previous queries
+        LanguageModelContext? context = systemPrompt.Length > 0 ? _languageModel.CreateContext(systemPrompt) : null;
         operation = context == null ?
             options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
             options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
@@ -202,12 +205,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         if (this.InputTextBox.Text.Length > 0 && _loraModel != null)
         {
-            LanguageModelContext? context = null;
-            if (SystemPromptBox.Text.Length > 0)
-            {
-                context = _languageModel.CreateContext(SystemPromptBox.Text);
-            }
-
             LowRankAdaptation? loraAdapter;
             try
             {
@@ -238,14 +235,14 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
                 {
                     case GenerationType.All:
                         await Task.WhenAll(
-                            GenerateText(InputTextBox.Text, LoraTxt, context, options),
-                            GenerateText(InputTextBox.Text, NoLoraTxt, context));
+                            GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options),
+                            GenerateText(InputTextBox.Text, SystemPromptBox.Text, NoLoraTxt));
                         break;
                     case GenerationType.With:
-                        await GenerateText(InputTextBox.Text, LoraTxt, context, options);
+                        await GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options);
                         break;
                     case GenerationType.Without:
-                        await GenerateText(InputTextBox.Text, NoLoraTxt, context);
+                        await GenerateText(InputTextBox.Text, SystemPromptBox.Text, NoLoraTxt);
                         break;
                 }
             }
