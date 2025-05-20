@@ -71,7 +71,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
                 }
             }
 
-            this.InitializeCameraPreviewControl();
+            await this.InitializeCameraPreviewControl();
         }
         else
         {
@@ -84,7 +84,7 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
         sampleParams.NotifyCompletion();
     }
 
-    private async void InitializeCameraPreviewControl()
+    private async Task InitializeCameraPreviewControl()
     {
         var cameraHelper = CameraPreviewControl.CameraHelper;
 

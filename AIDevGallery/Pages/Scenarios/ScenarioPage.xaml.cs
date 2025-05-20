@@ -269,6 +269,9 @@ internal sealed partial class ScenarioPage : Page
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
         }
+
+        // in case already saved options do not apply to this sample
+        _ = UpdateSampleOptions();
     }
 
     private void LoadSample(Sample? sampleToLoad)
@@ -403,7 +406,12 @@ internal sealed partial class ScenarioPage : Page
     private async void ApplySampleOptions(object sender, RoutedEventArgs e)
     {
         WinMLOptionsFlyout.Hide();
+        await UpdateSampleOptions();
+        LoadSample(sample);
+    }
 
+    private async Task UpdateSampleOptions()
+    {
         var oldOptions = App.AppData.WinMLSampleOptions;
 
         if (segmentedControl.SelectedIndex == 0)
@@ -424,7 +432,6 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        LoadSample(sample);
         await App.AppData.SaveAsync();
     }
 
