@@ -24,180 +24,183 @@
             Loaded="ShadowGrid_Loaded"
             Tapped="ShadowGrid_Tapped" />
 
-        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid
+            MaxWidth="786"
+            MaxHeight="640"
+            Margin="48,12,48,12"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource OverlayCornerRadius}"
+            Shadow="{StaticResource DialogShadow}"
+            Translation="0,0,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <Grid
-                Width="786"
-                Height="640"
-                Margin="48,0,48,0"
-                Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="{StaticResource OverlayCornerRadius}"
-                Shadow="{StaticResource DialogShadow}"
+                Grid.Row="0"
+                Grid.ColumnSpan="2"
+                Background="{ThemeResource NavigationViewContentBackground}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
+                <TextBlock
+                    Margin="16"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Select a model to use for this sample" />
+                <Button
+                    x:Name="CancelButton"
+                    Margin="12"
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    AutomationProperties.Name="Close"
+                    Click="OnCancel_Clicked"
+                    Content="{ui:FontIcon Glyph=&#xE894;,
+                                          FontSize=16}"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    ToolTipService.ToolTip="Close" />
+            </Grid>
+            <ListView
+                x:Name="modelTypeSelector"
+                Grid.Row="1"
+                Width="186"
+                Margin="0,24,0,0"
+                HorizontalAlignment="Stretch"
+                SelectionChanged="ModelTypeSelector_SelectionChanged">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="modelpickerviews:ModelPickerDefinition">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{x:Bind Icon}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind Name}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Grid
+                x:Name="modelsGrid"
+                Grid.Row="1"
+                Grid.Column="1"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,0,0,0" />
+            <Grid
+                Grid.Row="2"
+                Grid.ColumnSpan="2"
+                Padding="16"
+                Background="{ThemeResource CardGradient2Brush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,8,8"
+                RowSpacing="8"
                 Translation="0,0,16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid
-                    Grid.Row="0"
-                    Grid.ColumnSpan="2"
-                    Background="{ThemeResource NavigationViewContentBackground}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,1">
-                    <TextBlock
-                        Margin="16"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource SubtitleTextBlockStyle}"
-                        Text="Select a model to use for this sample" />
-                    <Button
-                        x:Name="CancelButton"
-                        Margin="12"
-                        Padding="8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        AutomationProperties.Name="Close"
-                        Click="OnCancel_Clicked"
-                        Content="{ui:FontIcon Glyph=&#xE894;,
-                                              FontSize=16}"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Close" />
-                </Grid>
-                <ListView
-                    x:Name="modelTypeSelector"
+                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Models selected for this sample" />
+                <ItemsView
+                    x:Name="SelectedModelsItemsView"
                     Grid.Row="1"
-                    Width="186"
-                    Margin="0,24,0,0"
-                    HorizontalAlignment="Stretch"
-                    SelectionChanged="ModelTypeSelector_SelectionChanged">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="modelpickerviews:ModelPickerDefinition">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Image Source="{x:Bind Icon}" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind Name}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-                <Grid
-                    x:Name="modelsGrid"
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1,0,0,0" />
-                <Grid
-                    Grid.Row="2"
-                    Grid.ColumnSpan="2"
-                    Padding="16"
-                    Background="{ThemeResource CardGradient2Brush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    RowSpacing="8"
-                    Translation="0,0,16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Models selected for this sample" />
-                    <ItemsView
-                        x:Name="SelectedModelsItemsView"
-                        Grid.Row="1"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        SelectionChanged="ModelSelectionItemChanged"
-                        SelectionMode="Single">
-                        <ItemsView.Layout>
-                            <StackLayout Orientation="Horizontal" Spacing="4" />
-                        </ItemsView.Layout>
-                        <ItemsView.ItemTemplate>
-                            <DataTemplate x:DataType="local:ModelSelectionItem">
-                                <ItemContainer>
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    SelectionChanged="ModelSelectionItemChanged"
+                    SelectionMode="Single">
+                    <ItemsView.Layout>
+                        <StackLayout Orientation="Horizontal" Spacing="4" />
+                    </ItemsView.Layout>
+                    <ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="local:ModelSelectionItem">
+                            <ItemContainer>
+                                <Grid
+                                    MinWidth="248"
+                                    MinHeight="48"
+                                    Padding="8"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1">
                                     <Grid
-                                        MinWidth="248"
-                                        MinHeight="48"
-                                        Padding="8"
-                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1">
-                                        <Grid
-                                            Padding="8,0,0,0"
-                                            VerticalAlignment="Center"
-                                            Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNull(SelectedModel), Mode=OneWay}">
-                                            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="No model selected.." />
-                                        </Grid>
-                                        <Grid RowSpacing="4" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(SelectedModel), Mode=OneWay}">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
-                                            <Image
-                                                Width="20"
-                                                HorizontalAlignment="Left"
-                                                Source="{x:Bind SelectedModel.Icon, Mode=OneWay}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                FontWeight="SemiBold"
-                                                Text="{x:Bind SelectedModel.Name, Mode=OneWay}" />
-                                            <ItemsRepeater
-                                                Margin="0,0,4,0"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center"
-                                                ItemsSource="{x:Bind SelectedModel.HardwareAccelerators, Mode=OneWay}">
-                                                <ItemsRepeater.Layout>
-                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
-                                                </ItemsRepeater.Layout>
-                                                <ItemsRepeater.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
-                                                        <Button
-                                                            VerticalAlignment="Center"
-                                                            AutomationProperties.Name="More info"
-                                                            Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
-                                                            Style="{StaticResource TertiaryButtonStyle}"
-                                                            ToolTipService.ToolTip="More info">
-                                                            <Button.Flyout>
-                                                                <Flyout ShouldConstrainToRootBounds="False">
-                                                                    <TextBlock
-                                                                        MaxWidth="360"
-                                                                        Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
-                                                                        TextWrapping="Wrap" />
-                                                                </Flyout>
-                                                            </Button.Flyout>
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </ItemsRepeater.ItemTemplate>
-                                            </ItemsRepeater>
-                                        </Grid>
+                                        Padding="8,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNull(SelectedModel), Mode=OneWay}">
+                                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="No model selected.." />
                                     </Grid>
-                                </ItemContainer>
-                            </DataTemplate>
-                        </ItemsView.ItemTemplate>
-                    </ItemsView>
-                    <Button
-                        x:Name="SaveButton"
-                        Grid.Row="1"
-                        Width="120"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Stretch"
-                        Click="OnSave_Clicked"
-                        Style="{StaticResource AccentButtonStyle}">
-                        <StackPanel Orientation="Vertical" Spacing="4">
-                            <FontIcon FontSize="14" Glyph="&#xE72A;" />
-                            <TextBlock Text="Run sample" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                                    <Grid RowSpacing="4" Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(SelectedModel), Mode=OneWay}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <Image
+                                            Width="20"
+                                            HorizontalAlignment="Left"
+                                            Source="{x:Bind SelectedModel.Icon, Mode=OneWay}" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind SelectedModel.Name, Mode=OneWay}" />
+                                        <ItemsRepeater
+                                            Margin="0,0,4,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{x:Bind SelectedModel.HardwareAccelerators, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Horizontal" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                    <Button
+                                                        VerticalAlignment="Center"
+                                                        AutomationProperties.Name="More info"
+                                                        Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
+                                                        Style="{StaticResource TertiaryButtonStyle}"
+                                                        ToolTipService.ToolTip="More info">
+                                                        <Button.Flyout>
+                                                            <Flyout ShouldConstrainToRootBounds="False">
+                                                                <TextBlock
+                                                                    MaxWidth="360"
+                                                                    Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
+                                                                    TextWrapping="Wrap" />
+                                                            </Flyout>
+                                                        </Button.Flyout>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </Grid>
+                                </Grid>
+                            </ItemContainer>
+                        </DataTemplate>
+                    </ItemsView.ItemTemplate>
+                </ItemsView>
+                <Button
+                    x:Name="SaveButton"
+                    Grid.Row="1"
+                    Width="120"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Stretch"
+                    Click="OnSave_Clicked"
+                    Style="{StaticResource AccentButtonStyle}">
+                    <StackPanel Orientation="Vertical" Spacing="4">
+                        <FontIcon FontSize="14" Glyph="&#xE72A;" />
+                        <TextBlock Text="Run sample" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
+
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="SidePaneVisibilityStates">
                 <VisualState x:Name="SidePaneVisible" />

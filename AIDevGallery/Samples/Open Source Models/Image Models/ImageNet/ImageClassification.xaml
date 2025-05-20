@@ -1,52 +1,65 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <samples:BaseSamplePage
-    xmlns:samples="using:AIDevGallery.Samples"
     x:Class="AIDevGallery.Samples.OpenSourceModels.ImageClassification"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
-    <Grid ColumnSpacing="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <ScrollViewer>
+        <Grid ColumnSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <StackPanel
-            Grid.Column="0"
-            Margin="12"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
-            Spacing="12">
-            <Image
-                x:Name="UploadedImage"
-                MaxWidth="400"
-                MaxHeight="300"
-                HorizontalAlignment="Center"
-                Stretch="Uniform" />
-            <Button
-                x:Name="UploadImageButton"
-                HorizontalAlignment="Center"
-                Click="UploadImageButton_Click"
-                Content="Select image"
-                Style="{StaticResource AccentButtonStyle}" />
-        </StackPanel>
-        <ScrollViewer
-            Grid.Row="1"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel
-                HorizontalAlignment="Stretch"
+            <Grid
+                MinWidth="240"
+                MaxWidth="600"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Spacing="12">
-                <TextBlock
-                    HorizontalAlignment="Left"
-                    FontSize="24"
-                    FontWeight="SemiBold"
-                    Text="Results" />
-                <StackPanel x:Name="PredictionsStackPanel" HorizontalAlignment="Stretch" />
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                BorderThickness="2"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Viewbox
+                    x:Name="ImageViewbox"
+                    Margin="-1"
+                    VerticalAlignment="Stretch"
+                    Stretch="Uniform">
+                    <Image
+                        x:Name="UploadedImage"
+                        MaxWidth="800"
+                        MaxHeight="500" />
+                </Viewbox>
+                <ProgressRing
+                    x:Name="Loader"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsActive="false"
+                    Visibility="Collapsed" />
+                <Grid
+                    Margin="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                    CornerRadius="{StaticResource ControlCornerRadius}">
+                    <Button
+                        x:Name="UploadImageButton"
+                        Padding="8"
+                        AutomationProperties.Name="Select image"
+                        Click="UploadImageButton_Click"
+                        ToolTipService.ToolTip="Select image">
+
+                        <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                    </Button>
+                </Grid>
+            </Grid>
+            <StackPanel
+                x:Name="PredictionsStackPanel"
+                Grid.Row="1"
+                HorizontalAlignment="Stretch" />
+        </Grid>
+    </ScrollViewer>
 </samples:BaseSamplePage>
