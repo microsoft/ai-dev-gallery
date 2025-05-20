@@ -310,11 +310,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
     private async void AdapterHyperLink_Click(object sender, RoutedEventArgs e)
     {
-        /* if (File.Exists(_adapterFilePath))
-        {
-            Process.Start("explorer.exe", $"/select,\"{_adapterFilePath}\"");
-        } */
-
         var window = new Window();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var picker = new FileOpenPicker();
@@ -329,7 +324,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = !string.IsNullOrWhiteSpace(_adapterFilePath);
             ExampleAdapterLink.Visibility = string.IsNullOrWhiteSpace(_adapterFilePath) ? Visibility.Visible : Visibility.Collapsed;
-
         }
     }
 
