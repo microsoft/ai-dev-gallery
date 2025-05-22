@@ -50,7 +50,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
     private EmbeddingGenerator? _embeddings;
-    private int _maxTokens = 2048;
     private IChatClient? _chatClient;
     private IVectorStore? _vectorStore;
     private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
