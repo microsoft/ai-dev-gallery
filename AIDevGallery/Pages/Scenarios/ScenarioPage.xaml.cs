@@ -174,12 +174,23 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
+        VisualStateManager.GoToState(this, "PageLoading", true);
+
         modelDetails.Clear();
         selectedModels.ForEach(modelDetails.Add);
 
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
         {
-            var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
+            var delayTask = Task.Delay(1000);
+            var supportedHardwareAcceleratorsTask = GetSupportedHardwareAccelerators();
+
+            if (await Task.WhenAny(delayTask, supportedHardwareAcceleratorsTask) == delayTask)
+            {
+                VisualStateManager.GoToState(this, "PageLoadingWithMessage", true);
+            }
+
+            var supportedHardwareAccelerators = await supportedHardwareAcceleratorsTask;
+
             HashSet<WinMlEp> eps = [supportedHardwareAccelerators[0]];
 
             DeviceComboBox.Items.Clear();
