@@ -22,12 +22,21 @@ internal class ModelPickerDefinition
             }
         },
         {
-            "wcr", new ModelPickerDefinition()
+            "winai", new ModelPickerDefinition()
             {
-                Name = "WCR",
-                Id = "wcr",
+                Name = "Windows AI APIs",
+                Id = "winai",
                 Icon = "ms-appx:///Assets/ModelIcons/WCRAPI.png",
                 CreatePicker = () => new WinAIApiPickerView()
+            }
+        },
+        {
+            "fl", new ModelPickerDefinition()
+            {
+                Name = "Foundry Local",
+                Id = "fl",
+                Icon = "ms-appx:///Assets/ModelIcons/Foundry.png",
+                CreatePicker = () => new FoundryLocalPickerView()
             }
         },
         {

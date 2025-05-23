@@ -6,12 +6,12 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,19 +38,18 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "PdfPig",
-        "Microsoft.ML.Tokenizers",
-        "System.Numerics.Tensors",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.ML.Tokenizers",
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "PdfPig",
+        "System.Numerics.Tensors",
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
     Icon = "\uE8D4")]
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
     private EmbeddingGenerator? _embeddings;
-    private int _maxTokens = 2048;
     private IChatClient? _chatClient;
     private IVectorStore? _vectorStore;
     private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
@@ -87,7 +86,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            string modelPath = sampleParams.ModelPaths[1];
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -108,24 +112,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     }
 
     // </exclude>
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
-    {
-        base.OnNavigatedFrom(e);
-        CleanUp();
-    }
-
     private void CleanUp()
     {
         _cts?.Cancel();
-        _cts = null;
         _chatClient?.Dispose();
-        _vectorStore = null;
-        _pdfPages = null;
         _embeddings?.Dispose();
-        _pdfFile = null;
         _inMemoryRandomAccessStream?.Dispose();
-        _cts?.Cancel();
-        _cts = null;
     }
 
     private async void IndexPDFButton_Click(object sender, RoutedEventArgs e)
@@ -133,7 +125,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         if (_isCancellable)
         {
             _cts?.Cancel();
-            _cts = null;
             ToSelectState();
             return;
         }
@@ -163,6 +154,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         }
 
         ToIndexingState();
+        _cts?.Cancel();
         _cts = new CancellationTokenSource();
         CancellationToken ct = _cts.Token;
 
@@ -238,6 +230,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             ChatGrid.Visibility = Visibility.Visible;
             SelectNewPDFButton.IsEnabled = true;
         });
+
         _cts?.Dispose();
         _cts = null;
     }
@@ -252,7 +245,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         if (_cts != null)
         {
             _cts.Cancel();
-            _cts = null;
             RAGProgressRing.IsActive = false;
             RAGProgressRing.Visibility = Visibility.Collapsed;
             AnswerButtonLabel.Text = "Answer";
@@ -299,32 +291,49 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         AnswerRun.Text = string.Empty;
         var fullResult = string.Empty;
 
-        await Task.Run(
+        _ = Task.Run(
             async () =>
             {
-                await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
-                    [
-                        new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
-                        new ChatMessage(ChatRole.User, searchPrompt),
-                    ],
-                    new() { MaxOutputTokens = _maxTokens },
-                    _cts.Token))
+                try
                 {
-                    fullResult += partialResult;
+                    await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
+                        [
+                            new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
+                            new ChatMessage(ChatRole.User, searchPrompt),
+                        ],
+                        null,
+                        _cts.Token))
+                    {
+                        if (_cts.Token.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        fullResult += partialResult;
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            AnswerRun.Text = fullResult;
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (!_cts.Token.IsCancellationRequested)
+                    {
+                        ShowException(ex);
+                    }
+                }
+                finally
+                {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        AnswerRun.Text = fullResult;
+                        RAGProgressRing.Visibility = Visibility.Collapsed;
+                        RAGProgressRing.IsActive = false;
+                        AnswerButtonLabel.Text = "Answer";
+                        SearchTextBox.IsEnabled = true;
                     });
                 }
-            },
-            _cts.Token);
-
-        _cts = null;
-
-        RAGProgressRing.Visibility = Visibility.Collapsed;
-        RAGProgressRing.IsActive = false;
-        AnswerButtonLabel.Text = "Answer";
-        SearchTextBox.IsEnabled = true;
+            });
     }
 
     private void Grid_Loaded(object sender, RoutedEventArgs e)

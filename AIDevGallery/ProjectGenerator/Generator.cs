@@ -281,17 +281,6 @@ internal partial class Generator
                 {
                     packageReferenceItem.AddMetadata("PrivateAssets", "all", true);
                 }
-                else if (packageName == "Microsoft.ML.OnnxRuntime.DirectML" ||
-                         packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
-                {
-                    packageReferenceItem.Condition = "$(Platform) == 'x64'";
-                }
-                else if (packageName == "Microsoft.ML.OnnxRuntime.QNN" ||
-                         packageName == "Microsoft.ML.OnnxRuntimeGenAI.QNN" ||
-                         packageName == "Microsoft.ML.OnnxRuntimeGenAI")
-                {
-                    packageReferenceItem.Condition = "$(Platform) == 'ARM64'";
-                }
 
                 var versionStr = PackageVersionHelpers.PackageVersions[packageName];
                 packageReferenceItem.AddMetadata("Version", versionStr, true);
@@ -299,17 +288,6 @@ internal partial class Generator
 
             foreach (var packageName in packageReferences)
             {
-                if (packageName == "Microsoft.ML.OnnxRuntime.DirectML")
-                {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.QNN");
-                }
-                else if (packageName == "Microsoft.ML.OnnxRuntimeGenAI.DirectML")
-                {
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntime.QNN");
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.QNN");
-                    AddPackageReference(itemGroup, "Microsoft.ML.OnnxRuntimeGenAI.Managed");
-                }
-
                 AddPackageReference(itemGroup, packageName);
             }
 
@@ -380,9 +358,9 @@ internal partial class Generator
         return outputPath;
     }
 
-    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
+    internal static async Task AskGenerateAndOpenAsync(Sample sample, IEnumerable<ModelDetails> models, WinMlSampleOptions? winMlSampleOptions, XamlRoot xamlRoot, CancellationToken cancellationToken = default)
     {
-        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+        var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), winMlSampleOptions);
 
         if (cachedModels == null)
         {

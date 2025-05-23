@@ -17,35 +17,26 @@ internal class ModelCache
 
     /* private long _movedSize; */
 
-    public ModelDownloadQueue DownloadQueue { get; }
     public ModelCacheStore CacheStore { get; private set; }
     public IReadOnlyList<CachedModel> Models => CacheStore.Models;
 
-    private ModelCache(AppData appData, ModelDownloadQueue modelDownloadQueue, ModelCacheStore modelCacheStore)
+    private ModelCache(AppData appData, ModelCacheStore modelCacheStore)
     {
         _appData = appData;
-        DownloadQueue = modelDownloadQueue;
         CacheStore = modelCacheStore;
     }
 
     public static async Task<ModelCache> CreateForApp(AppData appData)
     {
-        var downloadQueue = new ModelDownloadQueue(appData.ModelCachePath);
+        var downloadQueue = new ModelDownloadQueue();
 
         var modelCacheStore = await ModelCacheStore.CreateForApp(appData.ModelCachePath);
-        var instance = new ModelCache(appData, downloadQueue, modelCacheStore)
+        var instance = new ModelCache(appData, modelCacheStore)
         {
             CacheStore = modelCacheStore
         };
-        instance.DownloadQueue.ModelDownloadCompleted += instance.ModelDownloadQueue_ModelDownloadCompleted;
 
         return instance;
-    }
-
-    private async void ModelDownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
-    {
-        var cachedModel = e.CachedModel;
-        await CacheStore.AddModel(cachedModel);
     }
 
     public string GetCacheFolder()
@@ -61,25 +52,7 @@ internal class ModelCache
         CacheStore = await ModelCacheStore.CreateForApp(newPath, models);
 
         // cancel existing downloads
-        DownloadQueue.CacheDir = newPath;
-        DownloadQueue.GetDownloads().ToList().ForEach(DownloadQueue.CancelModelDownload);
-    }
-
-    public ModelDownload? AddModelToDownloadQueue(ModelDetails modelDetails)
-    {
-        if (IsModelCached(modelDetails.Url))
-        {
-            return null;
-        }
-
-        var existingDownload = DownloadQueue.GetDownload(modelDetails.Url);
-        if (existingDownload != null)
-        {
-            return existingDownload;
-        }
-
-        var download = DownloadQueue.EnqueueModelDownload(modelDetails);
-        return download;
+        App.ModelDownloadQueue.GetDownloads().Where(m => m is OnnxModelDownload).ToList().ForEach(m => m.CancelDownload());
     }
 
     public async Task<CachedModel> AddLocalModelToCache(ModelDetails modelDetails, string modelPath, bool isFile = false)

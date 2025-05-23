@@ -5,24 +5,84 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class VaeDecoder : IDisposable
 {
-    private readonly InferenceSession vaeDecoderInferenceSession;
-    private readonly SessionOptions sessionOptions;
+    private InferenceSession? vaeDecoderInferenceSession;
     private bool disposedValue;
 
-    public VaeDecoder(string decoderPath, SessionOptions options)
+    private VaeDecoder()
     {
-        sessionOptions = options;
-        vaeDecoderInferenceSession = new InferenceSession(decoderPath, sessionOptions);
+    }
+
+    public static async Task<VaeDecoder> CreateAsync(
+        string modelPath,
+        ExecutionProviderDevicePolicy? policy,
+        string? device,
+        bool compileOption)
+    {
+        var instance = new VaeDecoder();
+        instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(modelPath, policy, device, compileOption);
+        return instance;
+    }
+
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    {
+        return Task.Run(async () =>
+        {
+            if (!File.Exists(modelPath))
+            {
+                throw new FileNotFoundException("Model file not found.", modelPath);
+            }
+
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
+            }
+
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
+        });
     }
 
     public Tensor<float>? Decoder(List<NamedOnnxValue> input)
     {
+        if (vaeDecoderInferenceSession == null)
+        {
+            throw new InvalidOperationException("VaeDecoder is not initialized.");
+        }
+
         // Run session and send the input data in to get inference output.
         using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> output = vaeDecoderInferenceSession.Run(input);
         var result = output[0].AsTensor<float>().Clone();
@@ -57,7 +117,7 @@ internal class VaeDecoder : IDisposable
     {
         if (!disposedValue)
         {
-            if (disposing)
+            if (disposing && vaeDecoderInferenceSession != null)
             {
                 vaeDecoderInferenceSession.Dispose();
             }

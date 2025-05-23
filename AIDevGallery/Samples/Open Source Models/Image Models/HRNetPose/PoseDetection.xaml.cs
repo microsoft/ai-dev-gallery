@@ -4,13 +4,13 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.HRNetPose;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [
@@ -57,36 +57,57 @@ internal sealed partial class PoseDetection : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await InitModel(sampleParams.ModelPath, sampleParams.HardwareAccelerator);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load model.");
+            return;
+        }
 
         await DetectPose(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
     }
 
-    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-            if (hardwareAccelerator == HardwareAccelerator.DML)
+
+            if (policy != null)
             {
-                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            else if (device != null)
             {
-                Dictionary<string, string> options = new()
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileModel)
                 {
-                    { "backend_path", "QnnHtp.dll" },
-                    { "htp_performance_mode", "high_performance" },
-                    { "htp_graph_finalization_optimization_mode", "3" }
-                };
-                sessionOptions.AppendExecutionProvider("QNN", options);
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);

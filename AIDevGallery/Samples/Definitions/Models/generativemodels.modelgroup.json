@@ -18,7 +18,7 @@
             "Description": "Stable Diffusion v1.4 will generate images from text",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "Size": 5483859392,
             "License": "creativeml-openrail-m"

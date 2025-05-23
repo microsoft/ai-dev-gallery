@@ -1,27 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class StableDiffusion : IDisposable
 {
-    private InferenceSession UnetInferenceSession { get; }
-
-    private readonly TextProcessing textProcessor;
-    private readonly VaeDecoder vaeDecoder;
-    private readonly SafetyChecker safetyChecker;
-    private SessionOptions SessionOptions { get; }
-
     private readonly StableDiffusionConfig config = new()
     {
         // Number of denoising steps
@@ -31,33 +25,81 @@ internal class StableDiffusion : IDisposable
         GuidanceScale = 7.5
     };
 
+    private InferenceSession? unetInferenceSession;
+
+    private TextProcessing? textProcessor;
+    private VaeDecoder? vaeDecoder;
+    private SafetyChecker? safetyChecker;
+
     private bool disposedValue;
     private bool running;
 
-    public StableDiffusion(string textEncoderPath, string unetPath, string vaeDecoderPath, string safetyPath, HardwareAccelerator hardwareAccelerator)
+    public StableDiffusion(string textEncoderPath, string unetPath, string vaeDecoderPath, string safetyPath)
     {
         config.TextEncoderModelPath = textEncoderPath;
         config.UnetModelPath = unetPath;
         config.VaeDecoderModelPath = vaeDecoderPath;
         config.SafetyModelPath = safetyPath;
-
-        // Tokenizer model isn't built in with the SD code, need to pull it in from local folder.
-        // Need to solve this later!
-        string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
-
         config.DeviceId = DeviceUtils.GetBestDeviceId();
-
-        SessionOptions = config.GetSessionOptionsForEp(hardwareAccelerator);
-
-        textProcessor = new TextProcessing(tokenizerPath, config.TextEncoderModelPath, SessionOptions);
-        UnetInferenceSession = new InferenceSession(config.UnetModelPath, SessionOptions);
-        vaeDecoder = new VaeDecoder(config.VaeDecoderModelPath, SessionOptions);
-        safetyChecker = new SafetyChecker(config.SafetyModelPath, SessionOptions);
     }
 
-    public StableDiffusion(string modelFolder, HardwareAccelerator hardwareAccelerator)
-        : this(@$"{modelFolder}\text_encoder\model.onnx", @$"{modelFolder}\unet\model.onnx", @$"{modelFolder}\vae_decoder\model.onnx", @$"{modelFolder}\safety_checker\model.onnx", hardwareAccelerator)
+    public async Task InitializeAsync(ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
     {
+        string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
+
+        textProcessor = await TextProcessing.CreateAsync(tokenizerPath, config.TextEncoderModelPath, policy, device, compileOption);
+        unetInferenceSession = await GetInferenceSession(config.UnetModelPath, policy, device, compileOption);
+        vaeDecoder = await VaeDecoder.CreateAsync(config.VaeDecoderModelPath, policy, device, compileOption);
+        safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, policy, device, compileOption);
+    }
+
+    public StableDiffusion(string modelFolder)
+        : this(@$"{modelFolder}\text_encoder\model.onnx", @$"{modelFolder}\unet\model.onnx", @$"{modelFolder}\vae_decoder\model.onnx", @$"{modelFolder}\safety_checker\model.onnx")
+    {
+    }
+
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    {
+        return Task.Run(async () =>
+        {
+            if (!File.Exists(modelPath))
+            {
+                throw new FileNotFoundException("Model file not found.", modelPath);
+            }
+
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
+            }
+
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
+        });
     }
 
     public static List<NamedOnnxValue> CreateUnetModelInput(Tensor<float> encoderHiddenStates, Tensor<float> sample, long timeStep)
@@ -118,6 +160,11 @@ internal class StableDiffusion : IDisposable
 
     public Bitmap? Inference(string prompt, CancellationToken token)
     {
+        if(unetInferenceSession == null || textProcessor == null || vaeDecoder == null || safetyChecker == null)
+        {
+            throw new InvalidOperationException("StableDiffusion is not initialized.");
+        }
+
         // Preprocess text
         token.ThrowIfCancellationRequested();
         var textEmbeddings = textProcessor.PreprocessText(prompt);
@@ -145,7 +192,7 @@ internal class StableDiffusion : IDisposable
             try
             {
                 running = true;
-                using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> output = UnetInferenceSession.Run(input);
+                using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> output = unetInferenceSession.Run(input);
                 var outputTensor = output[0].AsTensor<float>();
 
                 var splitTensors = TensorHelper.SplitTensor(outputTensor!, [1, 4, config.Height / 8, config.Width / 8]);
@@ -195,11 +242,10 @@ internal class StableDiffusion : IDisposable
         {
             if (disposing)
             {
-                textProcessor.Dispose();
-                UnetInferenceSession.Dispose();
-                vaeDecoder.Dispose();
-                safetyChecker.Dispose();
-                SessionOptions.Dispose();
+                textProcessor?.Dispose();
+                unetInferenceSession?.Dispose();
+                vaeDecoder?.Dispose();
+                safetyChecker?.Dispose();
             }
 
             disposedValue = true;

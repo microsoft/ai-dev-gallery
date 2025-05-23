@@ -16,14 +16,14 @@ internal sealed partial class DownloadProgressList : UserControl
     public DownloadProgressList()
     {
         this.InitializeComponent();
-        App.ModelCache.DownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
+        App.ModelDownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
         PopulateModels();
     }
 
     private void PopulateModels()
     {
         downloadProgresses.Clear();
-        foreach (var model in App.ModelCache.DownloadQueue.GetDownloads())
+        foreach (var model in App.ModelDownloadQueue.GetDownloads())
         {
             downloadProgresses.Add(new DownloadableModel(model));
         }
@@ -72,7 +72,7 @@ internal sealed partial class DownloadProgressList : UserControl
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
             downloadProgresses.Remove(downloadableModel);
-            App.ModelCache.AddModelToDownloadQueue(downloadableModel.ModelDetails);
+            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
         }
     }
 

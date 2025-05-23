@@ -4,13 +4,13 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels;
     Scenario = ScenarioType.ImageClassifyImage,
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     SharedCode = [
@@ -32,9 +32,6 @@ namespace AIDevGallery.Samples.OpenSourceModels;
         SharedCodeEnum.ImageNet,
         SharedCodeEnum.BitmapFunctions,
         SharedCodeEnum.DeviceUtils
-    ],
-    AssetFilenames = [
-        "team.jpg"
     ],
     Name = "ImageNet Image Classification",
     Id = "09d73ba7-b877-45f9-9de6-41898ab4d339",
@@ -52,11 +49,23 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var hardwareAccelerator = sampleParams.HardwareAccelerator;
-        await InitModel(sampleParams.ModelPath, hardwareAccelerator);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
 
-        await ClassifyImage(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
+            await InitModel(modelPath, policy, epName, compileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load model.");
+            return;
+        }
+
+        await ClassifyImage(App.AppData.GetSampleData("ImageClassification", "last-photo-path") ?? Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg")); // <exclude-line>
     }
 
     // <exclude>
@@ -66,30 +75,43 @@ internal sealed partial class ImageClassification : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath, HardwareAccelerator hardwareAccelerator)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             if (_inferenceSession != null)
             {
                 return;
             }
 
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-            if (hardwareAccelerator == HardwareAccelerator.DML)
+
+            if (policy != null)
             {
-                sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (hardwareAccelerator == HardwareAccelerator.QNN)
+            else if (epName != null)
             {
-                Dictionary<string, string> options = new()
-                    {
-                        { "backend_path", "QnnHtp.dll" },
-                        { "htp_performance_mode", "high_performance" },
-                        { "htp_graph_finalization_optimization_mode", "3" }
-                    };
-                sessionOptions.AppendExecutionProvider("QNN", options);
+                sessionOptions.AppendExecutionProviderFromEpName(epName);
+
+                if (compileModel)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
+                }
             }
 
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
@@ -116,6 +138,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             UploadImageButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
+            _ = App.AppData.SetSampleDataAsync("ImageClassification", "last-photo-path", file.Path); // <exclude-line>
             await ClassifyImage(file.Path);
         }
     }
@@ -126,6 +149,8 @@ internal sealed partial class ImageClassification : BaseSamplePage
         {
             return;
         }
+
+        SendSampleInteractedEvent("ClassifyImage"); // <exclude-line>
 
         // Grab model metadata
         var inputName = _inferenceSession.InputNames[0];

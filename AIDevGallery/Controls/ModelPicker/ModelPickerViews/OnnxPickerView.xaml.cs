@@ -42,15 +42,24 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         ResetAndLoadModelList();
 
+        var isAddModelButtonsVisible = false;
+
         if (types.Contains(ModelType.LanguageModels))
         {
             AddHFModelButton.Visibility = Visibility.Visible;
+            isAddModelButtonsVisible = true;
         }
 
         // local models supported for types
         if (types.Contains(ModelType.LanguageModels) || models.IsModelsDetailsListUploadCompatible())
         {
             AddLocalModelButton.Visibility = Visibility.Visible;
+            isAddModelButtonsVisible = true;
+        }
+
+        if (isAddModelButtonsVisible)
+        {
+            AddModelButtons.Visibility = Visibility.Visible;
         }
 
         return Task.CompletedTask;
@@ -111,35 +120,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 var existingAvailableModel = AvailableModels.FirstOrDefault(m => m?.ModelDetails.Url == model.Url);
                 if (existingAvailableModel == null)
                 {
-                    foreach (var hardwareAccelerator in model.HardwareAccelerators)
-                    {
-                        var modelDetails = new ModelDetails
-                        {
-                            Id = model.Id,
-                            Name = model.Name,
-                            Url = model.Url,
-                            Description = model.Description,
-                            HardwareAccelerators = [hardwareAccelerator],
-                            SupportedOnQualcomm = model.SupportedOnQualcomm,
-                            Size = model.Size,
-                            Icon = model.Icon,
-                            ParameterSize = model.ParameterSize,
-                            IsUserAdded = model.IsUserAdded,
-                            PromptTemplate = model.PromptTemplate,
-                            ReadmeUrl = model.ReadmeUrl,
-                            License = model.License,
-                            FileFilters = model.FileFilters
-                        };
-
-                        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.Compatible)
-                        {
-                            AvailableModels.Add(new AvailableModel(modelDetails));
-                        }
-                        else
-                        {
-                            // UnavailableModels.Add(new DownloadableModel(modelDetails));
-                        }
-                    }
+                    AvailableModels.Add(new AvailableModel(model));
                 }
 
                 // remove if already in the downloadable list
@@ -157,9 +138,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         DispatcherQueue.TryEnqueue(ResetAndLoadModelList);
     }
 
-    private void ModelSelectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender is ListView modelView && modelView.SelectedItem is AvailableModel model)
+        if (sender.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
         }
@@ -172,16 +153,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             var availableModel = AvailableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
             if (availableModel != null)
             {
-                ModelSelectionView.SelectedIndex = AvailableModels.IndexOf(availableModel);
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.Select(AvailableModels.IndexOf(availableModel)));
             }
             else
             {
-                ModelSelectionView.SelectedItem = null;
+                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
             }
         }
         else
         {
-            ModelSelectionView.SelectedItem = null;
+            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
         }
     }
 
@@ -350,15 +331,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
             if (output == ContentDialogResult.Primary)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
             }
         }
-    }
-
-    private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
-    {
-        App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
     }
 
     private void AddHFModelButton_Click(object sender, RoutedEventArgs e)
@@ -380,15 +355,71 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             return;
         }
 
-        if (modelTypes.Contains(ModelType.LanguageModels))
+        try
         {
-            await UserAddedModelUtil.OpenAddLanguageModelFlow(Content.XamlRoot);
-        }
-        else
-        {
-            await UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, modelTypes);
-        }
+            if (modelTypes.Contains(ModelType.LanguageModels))
+            {
+                await UserAddedModelUtil.OpenAddLanguageModelFlow(Content.XamlRoot);
+            }
+            else
+            {
+                await UserAddedModelUtil.OpenAddModelFlow(Content.XamlRoot, modelTypes);
+            }
 
-        ResetAndLoadModelList();
+            ResetAndLoadModelList();
+        }
+        catch(Exception ex)
+        {
+            ShowException(ex);
+        }
+    }
+
+    private async void ShowException(Exception? ex, string? optionalMessage = null)
+    {
+        var msg = $"Error:\n{ex?.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}";
+
+        var errorText = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Text = msg,
+            IsTextSelectionEnabled = true,
+        };
+
+        ContentDialog exceptionDialog = new()
+        {
+            Title = "Something went wrong",
+            Content = errorText,
+            PrimaryButtonText = "Copy error details",
+            XamlRoot = App.MainWindow.Content.XamlRoot,
+            CloseButtonText = "Close",
+            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+        };
+
+        var result = await exceptionDialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary)
+        {
+            string exceptionDetails = string.IsNullOrWhiteSpace(optionalMessage) ? string.Empty : optionalMessage + "\n";
+
+            if (ex != null)
+            {
+                exceptionDetails += GetExceptionDetails(ex);
+            }
+
+            DataPackage dataPackage = new DataPackage();
+            dataPackage.SetText(exceptionDetails);
+            Clipboard.SetContent(dataPackage);
+        }
+    }
+
+    private string GetExceptionDetails(Exception ex)
+    {
+        var innerExceptionData = ex.InnerException == null ? string.Empty :
+            $"Inner Exception:\n{GetExceptionDetails(ex.InnerException)}";
+        string details = $@"Type: {ex.GetType().Name}
+Message: {ex.Message}
+StackTrace: {ex.StackTrace}
+{innerExceptionData}";
+        return details;
     }
 }

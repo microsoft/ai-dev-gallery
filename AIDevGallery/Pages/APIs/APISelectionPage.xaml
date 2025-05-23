@@ -30,7 +30,7 @@
                 <TextBlock
                     Margin="16,12,0,12"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="WCR APIs" />
+                    Text="Windows AI APIs" />
             </StackPanel>
         </NavigationView.PaneHeader>
         <NavigationView.MenuItems>

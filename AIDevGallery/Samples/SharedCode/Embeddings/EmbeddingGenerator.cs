@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Models;
-using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -35,30 +33,51 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public EmbeddingGenerator(string modelPath, HardwareAccelerator hardwareAccelerator)
+    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
+    {
+        var vocabPath = Path.Join(modelPath, "vocab.txt");
+        modelPath = Path.Join(modelPath, "onnx", "model.onnx");
+
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+        try
+        {
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+        }
+
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+        SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        if (policy != null)
+        {
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
+        }
+        else if (epName != null)
+        {
+            sessionOptions.AppendExecutionProviderFromEpName(epName);
+
+            if (compileModel)
+            {
+                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
+            }
+        }
+
+        return new EmbeddingGenerator(vocabPath, modelPath, sessionOptions);
+    }
+
+    private EmbeddingGenerator(string vocabPath, string modelPath, SessionOptions sessionOptions)
     {
         _metadata = new EmbeddingGeneratorMetadata("ORTEmbeddingGenerator", new Uri($"file://{modelPath}"), modelPath, 384);
+        _sessionOptions = sessionOptions;
 
-        _sessionOptions = new SessionOptions();
-
-        if (hardwareAccelerator == HardwareAccelerator.DML)
-        {
-            _sessionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-        }
-        else if (hardwareAccelerator == HardwareAccelerator.QNN)
-        {
-            Dictionary<string, string> options = new()
-            {
-                { "backend_path", "QnnHtp.dll" },
-                { "htp_performance_mode", "high_performance" },
-                { "htp_graph_finalization_optimization_mode", "3" }
-            };
-            _sessionOptions.AppendExecutionProvider("QNN", options);
-            _chunkSize = 8;
-        }
-
-        _inferenceSession = new InferenceSession(Path.Join(modelPath, "onnx", "model.onnx"), _sessionOptions);
-        _tokenizer = BertTokenizer.Create(Path.Join(modelPath, "vocab.txt"));
+        _inferenceSession = new InferenceSession(modelPath, _sessionOptions);
+        _tokenizer = BertTokenizer.Create(vocabPath);
     }
 
     public Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)

@@ -7,11 +7,8 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Animations;
-using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -52,7 +49,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         this.Visibility = Visibility.Visible;
     }
 
-    private void Hide()
+    public void Hide()
     {
         this.Visibility = Visibility.Collapsed;
     }
@@ -93,49 +90,12 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 {
                     if (modelOrApiUsageHistory.HardwareAccelerator != null)
                     {
-                        var model = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
-                        if (model != null)
-                        {
-                            modelToPreselect = new ModelDetails
-                            {
-                                Id = model.Id,
-                                Name = model.Name,
-                                Url = model.Url,
-                                Description = model.Description,
-                                HardwareAccelerators = [modelOrApiUsageHistory.HardwareAccelerator.Value],
-                                SupportedOnQualcomm = model.SupportedOnQualcomm,
-                                Size = model.Size,
-                                Icon = model.Icon,
-                                ParameterSize = model.ParameterSize,
-                                IsUserAdded = model.IsUserAdded,
-                                PromptTemplate = model.PromptTemplate,
-                                ReadmeUrl = model.ReadmeUrl,
-                                License = model.License,
-                                FileFilters = model.FileFilters
-                            };
-                        }
+                        modelToPreselect = matchedModels.FirstOrDefault(m => m.HardwareAccelerators.Contains(modelOrApiUsageHistory.HardwareAccelerator.Value));
                     }
 
                     if (modelToPreselect == null)
                     {
-                        var model = matchedModels[0];
-                        modelToPreselect = new ModelDetails
-                        {
-                            Id = model.Id,
-                            Name = model.Name,
-                            Url = model.Url,
-                            Description = model.Description,
-                            HardwareAccelerators = [model.HardwareAccelerators[0]],
-                            SupportedOnQualcomm = model.SupportedOnQualcomm,
-                            Size = model.Size,
-                            Icon = model.Icon,
-                            ParameterSize = model.ParameterSize,
-                            IsUserAdded = model.IsUserAdded,
-                            PromptTemplate = model.PromptTemplate,
-                            ReadmeUrl = model.ReadmeUrl,
-                            License = model.License,
-                            FileFilters = model.FileFilters
-                        };
+                        modelToPreselect = matchedModels[0];
                     }
                 }
             }
@@ -145,11 +105,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         SelectedModelsItemsView.ItemsSource = modelSelectionItems;
         SelectedModelsItemsView.Select(0);
-
-        if (modelSelectionItems.Count > 1)
-        {
-            modelText.Text = "Selected models for this sample";
-        }
 
         return selectedModels;
     }
@@ -210,7 +165,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
             {
-                pickers.Add(ModelPickerDefinition.Definitions["wcr"]);
+                pickers.Add(ModelPickerDefinition.Definitions["winai"]);
             }
         }
 
@@ -218,19 +173,18 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             if (await def.IsAvailable())
             {
-                modelTypeSelector.Items.Add(new SegmentedItem() { Icon = new ImageIcon() { Source = new BitmapImage(new Uri(def.Icon)) }, Content = def.Name, Tag = def });
+                modelTypeSelector.Items.Add(def);
             }
         }
 
         modelTypeSelector.SelectedItem = modelTypeSelector.Items[0];
-
-        if (modelTypeSelector.Items.Count <= 1)
+        if (modelTypeSelector.Items.Count > 1)
         {
-            modelTypeSelector.Visibility = Visibility.Collapsed;
+            VisualStateManager.GoToState(this, "SidePaneVisible", true);
         }
         else
         {
-            modelTypeSelector.Visibility = Visibility.Visible;
+            VisualStateManager.GoToState(this, "SidePaneCollapsed", true);
         }
     }
 
@@ -249,9 +203,9 @@ internal sealed partial class ModelOrApiPicker : UserControl
         Hide();
     }
 
-    private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs args)
+    private void ModelTypeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is Segmented segmented && segmented.SelectedItem is SegmentedItem selectedItem)
+        if (sender is ListView listView && listView.SelectedItem is ModelPickerDefinition pickerDefinition)
         {
             modelsGrid.Children.Clear();
 
@@ -264,25 +218,20 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 return;
             }
 
-            if (selectedItem?.Tag is ModelPickerDefinition pickerDefinition)
+            if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
             {
-                if (!modelSelectionItem.ModelPickerViews.TryGetValue(pickerDefinition.Id, out modelPickerView))
-                {
-                    modelPickerView = pickerDefinition.CreatePicker();
-                    modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
-                    modelPickerView!.Load(modelSelectionItem.ModelTypes);
-                    modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
-                }
+                modelPickerView = pickerDefinition.CreatePicker();
+                modelPickerView.SelectedModelChanged += ModelPickerView_SelectedModelChanged;
+                modelPickerView!.Load(modelSelectionItem.ModelTypes);
+                modelSelectionItem.ModelPickerViews[pickerDefinition.Id] = modelPickerView!;
+            }
 
-                if (modelPickerView != null)
-                {
-                    modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
+            if (modelPickerView != null)
+            {
+                modelPickerView.SelectModel(modelSelectionItem.SelectedModel);
 
-                    Implicit.SetShowAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultShowAnimationsSet"]);
-                    Implicit.SetHideAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultHideAnimationsSet"]);
-
-                    modelsGrid.Children.Add(modelPickerView);
-                }
+                Implicit.SetShowAnimations(modelPickerView, (ImplicitAnimationSet)Application.Current.Resources["DefaultShowAnimationsSet"]);
+                modelsGrid.Children.Add(modelPickerView);
             }
         }
     }

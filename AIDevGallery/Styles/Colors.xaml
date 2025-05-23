@@ -21,10 +21,20 @@
             <SolidColorBrush x:Key="GlassAcrylicBorderBrush" Color="{ThemeResource SurfaceStrokeColorDefault}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-            <LinearGradientBrush x:Key="CardGradient2Brush" StartPoint="0,1" EndPoint="1, 0">
-                <GradientStop Offset="0" Color="#E6F0FC" />
+            <LinearGradientBrush x:Key="CardGradient2Brush" StartPoint="0,0" EndPoint="1, 1">
+                <!--<GradientStop Offset="0" Color="#E6F0FC" />
                 <GradientStop Offset="0.4" Color="#E6F0FC" />
-                <GradientStop Offset="1" Color="#F0F0F7" />
+                <GradientStop Offset="1" Color="#F0F0F7" />-->
+                <GradientStop Offset="0.0" Color="#FFF6F9FF" />
+                <!--  Light cool white  -->
+                <GradientStop Offset="0.4" Color="#FFEFF5FF" />
+                <!--  Hinted lavender/blue  -->
+                <GradientStop Offset="0.7" Color="#FFF7FAFD" />
+                <!--  Very soft neutral white  -->
+                <GradientStop Offset="1.0" Color="#FFF5F8FA" />
+                <!--  Slight bluish-gray tint  -->
+                <!--  Faint peach glow  -->
+                <!--  Soft peach  -->
             </LinearGradientBrush>
             <LinearGradientBrush x:Key="CardGradient1Brush" Opacity="0.15" StartPoint="-0.2,0" EndPoint="1, 1">
                 <GradientStop Offset="0" Color="#3286EE" />

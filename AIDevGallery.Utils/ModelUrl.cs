@@ -252,7 +252,15 @@ public static class UrlHelpers
         {
             return url;
         }
+        else if (url.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
+        {
+            return new HuggingFaceUrl(url).FullUrl;
+        }
         else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
+        {
+            return url;
+        }
+        else if (url.Contains("://"))
         {
             return url;
         }

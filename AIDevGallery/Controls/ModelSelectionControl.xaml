@@ -160,7 +160,7 @@
                                                     <Run Text="{x:Bind helpers:ModelDetailsHelper.GetHttpApiUrl(ModelDetails)}" />
                                                 </TextBlock>
                                             </toolkit:WrapPanel>
-                                            <TextBlock Text="Windows Copilot Runtime APIs" Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
+                                            <TextBlock Text="Windows AI APIs" Visibility="{x:Bind helpers:ModelDetailsHelper.ShowWhenWcrApi(ModelDetails)}" />
                                         </StackPanel>
 
                                     </toolkit:SettingsCard.Description>
@@ -541,7 +541,7 @@
                                         </toolkit:WrapPanel>
                                         <TextBlock
                                             Foreground="{ThemeResource TextFillColorDisabledBrush}"
-                                            Text="Windows Copilot Runtime APIs"
+                                            Text="Windows AI APIs"
                                             Visibility="{x:Bind ModelDetails.Size, Converter={StaticResource ZeroToVisibilityConverter}}" />
                                     </StackPanel>
                                 </toolkit:SettingsCard.Description>

@@ -58,17 +58,23 @@
         "Id": "analyze-sentiment-text",
         "Icon": "\uE9D5"
       },
+      "ContentModeration": {
+        "Name": "Content Moderation",
+        "Description": "Prompt a local language model with safety checks in place.",
+        "Instructions": "Enter a prompt into the textbox and click 'Generate' to get a content-moderated response. This sample does two rounds of inference, one to check if the request is safe, and a second based on the outcome of that result.",
+        "Id": "content-moderation"
+      },
       "CustomParameters": {
         "Name": "Custom Parameters",
         "Description": "Generate text with a local language model with custom parameters.",
         "Instructions": "Enter a system prompt, a query, and manipulate parameters related to token selection to fine-tune language model output. Hover over any field on this page to see a tooltip containing more info on the parameter.",
         "Id": "custom-parameters"
       },
-      "ContentModeration": {
-        "Name": "Content Moderation",
-        "Description": "Prompt a local language model with safety checks in place.",
-        "Instructions": "Enter a prompt into the textbox and click 'Generate' to get a content-moderated response. This sample does two rounds of inference, one to check if the request is safe, and a second based on the outcome of that result.",
-        "Id": "content-moderation"
+      "LoRAAdapters": {
+        "Name": "LoRA fine-tuning for Phi Silica",
+        "Description": "Generate text by fine-tuning Phi Silica with a Low Rank Adaption (LoRA) adapter.",
+        "Instructions": "Select a LoRA adapter to use with a language model. Enter a prompt to pass to the model and adapter and generate the response.",
+        "Id": "generate-with-lora"
       },
       "SemanticSearch": {
         "Name": "Semantic Search",

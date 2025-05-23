@@ -5,6 +5,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,19 +18,41 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
-        InferenceSession inferenceSession = null!;
+        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
 
-        await Task.Run(() =>
+        try
         {
-            SessionOptions options = new();
-            options.RegisterOrtExtensions();
-            options.AppendExecutionProvider_CPU();
-            options.LogSeverityLevel = OrtLoggingLevel.ORT_LOGGING_LEVEL_INFO;
-            inferenceSession = new InferenceSession(modelPath, options);
-        });
+            await infrastructure.DownloadPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+        }
 
+        await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        SessionOptions sessionOptions = new();
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        sessionOptions.RegisterOrtExtensions();
+
+        if (policy != null)
+        {
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
+        }
+        else if (device != null)
+        {
+            sessionOptions.AppendExecutionProviderFromEpName(device);
+
+            if (compileModel)
+            {
+                modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+            }
+        }
+
+        InferenceSession inferenceSession = new InferenceSession(modelPath, sessionOptions);
         var whisper = new WhisperWrapper(inferenceSession);
         return whisper;
     }

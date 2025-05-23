@@ -301,7 +301,7 @@ public class ProjectGenerator
         {
             FileName = @"C:\Program Files\dotnet\dotnet",
             WorkingDirectory = projectPath,
-            Arguments = $"build {safeProjectName}.csproj -r win-{arch} -f {Generator.DotNetVersion}-windows10.0.22621.0 /p:Configuration=Release /p:Platform={arch} /flp:logfile={logFileName}",
+            Arguments = $"build {safeProjectName}.csproj -r win-{arch} -f {Generator.DotNetVersion}-windows10.0.26100.0 /p:Configuration=Release /p:Platform={arch} /flp:logfile={logFileName}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,

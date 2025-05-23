@@ -3,8 +3,8 @@
 
 using Microsoft.Extensions.AI;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.ContentModeration;
-using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.AI.ContentSafety;
+using Microsoft.Windows.AI.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,7 +73,7 @@ internal class PhiSilicaClient : IChatClient
                 });
         }
 
-        if (readyState is AIFeatureReadyState.EnsureNeeded)
+        if (readyState is AIFeatureReadyState.NotReady)
         {
             var operation = await LanguageModel.EnsureReadyAsync();
             if (operation.Status != AIFeatureReadyResultState.Success)

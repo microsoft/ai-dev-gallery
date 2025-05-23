@@ -19,7 +19,6 @@ internal static class OnnxRuntimeGenAIChatClientFactory
     private const int DefaultMaxLength = 1024;
 
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
-    private static OgaHandle? _ogaHandle;
 
     // This is a workaround to ensure that the Config object is disposed
     // Remove after https://github.com/microsoft/onnxruntime-genai/pull/1364 is merged.
@@ -106,11 +105,6 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                 o.AdditionalProperties["max_length"] = DefaultMaxLength;
             })
             ?.Build();
-    }
-
-    public static void InitializeGenAI()
-    {
-        _ogaHandle = new OgaHandle();
     }
 
     private static string GetPrompt(LlmPromptTemplate? template, IEnumerable<ChatMessage> history, ChatOptions? chatOptions)

@@ -3,6 +3,7 @@
 
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
     protected abstract string ChatClientModelPath { get; }
     protected abstract HardwareAccelerator ChatClientHardwareAccelerator { get; }
     protected abstract LlmPromptTemplate? ChatClientPromptTemplate { get; }
+
+    public abstract WinMlSampleOptions WinMlSampleOptions { get; }
 
     public void NotifyCompletion()
     {

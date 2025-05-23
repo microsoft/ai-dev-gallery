@@ -4,13 +4,13 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [
@@ -69,53 +69,75 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.HardwareAccelerators[0], sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, HardwareAccelerator poseHardwareAccelerator, string detectionModelPath, HardwareAccelerator detectionHardwareAccelerator)
+    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
-            if (_poseSession != null)
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
             {
-                return;
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
             }
 
-            SessionOptions poseOptions = new();
-            poseOptions.RegisterOrtExtensions();
-            if (poseHardwareAccelerator == HardwareAccelerator.DML)
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            _poseSession = await GetInferenceSession(poseModelPath, policy, device, compileModel);
+            _detectionSession = await GetInferenceSession(detectionModelPath, ExecutionProviderDevicePolicy.PREFER_CPU, device, compileModel);
+        });
+    }
+
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    {
+        return Task.Run(async () =>
+        {
+            if (!File.Exists(modelPath))
             {
-                poseOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
+                throw new FileNotFoundException("Model file not found.", modelPath);
             }
-            else if (poseHardwareAccelerator == HardwareAccelerator.QNN)
+
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
             {
-                Dictionary<string, string> options = new()
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
                 {
-                    { "backend_path", "QnnHtp.dll" },
-                    { "htp_performance_mode", "high_performance" },
-                    { "htp_graph_finalization_optimization_mode", "3" }
-                };
-                poseOptions.AppendExecutionProvider("QNN", options);
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
             }
 
-            _poseSession = new InferenceSession(poseModelPath, poseOptions);
-
-            if (_detectionSession != null)
-            {
-                return;
-            }
-
-            SessionOptions detectionOptions = new();
-            detectionOptions.RegisterOrtExtensions();
-            if (detectionHardwareAccelerator == HardwareAccelerator.DML)
-            {
-                detectionOptions.AppendExecutionProvider_DML(DeviceUtils.GetBestDeviceId());
-            }
-
-            _detectionSession = new InferenceSession(detectionModelPath, detectionOptions);
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
         });
     }
 

@@ -3,12 +3,12 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
+using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,9 +49,9 @@ internal sealed partial class MagicEraser : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         var readyState = ImageObjectRemover.GetReadyState();
-        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
-            if (readyState == AIFeatureReadyState.EnsureNeeded)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
                 var operation = await ImageObjectRemover.EnsureReadyAsync();
 
