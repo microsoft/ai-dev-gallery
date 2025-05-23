@@ -21,11 +21,15 @@ public class Program
 {
     internal static class AutoInitialize
     {
+        [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+        public static extern int MessageBox(IntPtr hWnd, string text, string caption, int type);
+
         [global::System.Runtime.CompilerServices.ModuleInitializer]
         internal static void Initialize()
         {
             int hr = NativeMethods.WinMLDeployMainPackage();
-            Debug.WriteLine(hr);
+
+            MessageBox(IntPtr.Zero, "Error installing Windows ML Package", "Error", 0);
         }
     }
 
