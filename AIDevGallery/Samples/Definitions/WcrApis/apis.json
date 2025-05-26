@@ -24,6 +24,36 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12"
       },
+      "TextSummarizer": {
+        "Id": "55eb4d48-3908-44ac-95b1-fa47318a5cbf",
+        "Name": "Text Summarizer",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEDC6",
+        "Description": "Summarizes text.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3b0582ef-3278-489a-8f71-3ee1379aed2b"
+      },
+      "TextRewriter": {
+        "Id": "4084554c-a4ce-4624-a1e4-871a1d3df5d6",
+        "Name": "Text Rewriter",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEE56",
+        "Description": "Rewrites text.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b"
+      },
+      "TextToTableConverter": {
+        "Id": "b8a3dc48-a9e7-4697-b178-70c139887e9b",
+        "Name": "Text To Table Converter",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEE56",
+        "Description": "Convert Text To Table.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "ff611809-aa53-47e1-a5d9-5210f01b2e3d"
+      },
       "TextRecognitionOCR": {
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
         "Name": "Text Recognition (OCR)",

@@ -320,6 +320,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  
+  <ItemGroup>
+    <Page Update="Samples\WCRAPIs\TextToTable.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Samples\WCRAPIs\TextRewrite.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
 
   <!-- 
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

@@ -21,6 +21,15 @@ internal static class WcrApiHelpers
             ModelType.PhiSilicaLora, LanguageModel.GetReadyState
         },
         {
+            ModelType.TextSummarizer, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.TextRewriter, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.TextToTableConverter, LanguageModel.GetReadyState
+        },
+        {
             ModelType.TextRecognitionOCR, TextRecognizer.GetReadyState
         },
         {
@@ -44,6 +53,15 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.TextSummarizer, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.TextRewriter, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.TextToTableConverter, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextRecognitionOCR, TextRecognizer.EnsureReadyAsync
