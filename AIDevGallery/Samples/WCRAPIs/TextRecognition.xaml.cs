@@ -208,6 +208,12 @@ internal sealed partial class TextRecognition : BaseSamplePage
 
         foreach (var line in recognizedText.Lines)
         {
+            double fontSize;
+            if ((fontSize = Math.Abs((int)line.BoundingBox.TopRight.Y - (int)line.BoundingBox.BottomRight.Y) * .85) == 0)
+            {
+                continue;
+            }
+
             lines.Add(line.Text);
 
             SolidColorBrush backgroundBrush = new SolidColorBrush
@@ -228,7 +234,7 @@ internal sealed partial class TextRecognition : BaseSamplePage
                 IsTextSelectionEnabled = true,
                 Foreground = new SolidColorBrush(Colors.White),
                 Text = line.Text,
-                FontSize = Math.Abs((int)line.BoundingBox.TopRight.Y - (int)line.BoundingBox.BottomRight.Y) * .85,
+                FontSize = fontSize,
             };
 
             grid.Children.Add(block);
