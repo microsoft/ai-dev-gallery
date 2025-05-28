@@ -96,14 +96,7 @@ internal class SafetyChecker : IDisposable
         var inputTensor = ClipImageFeatureExtractor(resultImage, config);
 
         // images input
-        if(device == "NvTensorRTRTXExecutionProvider")
-        {
-            var inputImagesTensor = inputTensor;
-        }
-        else
-        {
-            var inputImagesTensor = ReorderTensor(inputTensor);
-        }
+        var inputImagesTensor = ReorderTensor(inputTensor);
 
         var input = new List<NamedOnnxValue>
         {
