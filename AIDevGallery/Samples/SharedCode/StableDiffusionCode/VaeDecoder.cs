@@ -57,6 +57,14 @@ internal class VaeDecoder : IDisposable
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
+            if(device == "NvTensorRTRTXExecutionProvider")
+            {
+                sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
+                sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
+                sessionOptions.AddFreeDimensionOverrideByName("height", 64);
+                sessionOptions.AddFreeDimensionOverrideByName("width", 64);
+            }            
+
             if (policy != null)
             {
                 sessionOptions.SetEpSelectionPolicy(policy.Value);
