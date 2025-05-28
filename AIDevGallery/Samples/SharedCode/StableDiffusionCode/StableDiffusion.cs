@@ -83,15 +83,12 @@ internal class StableDiffusion : IDisposable
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if(device == "NvTensorRTRTXExecutionProvider")
-            {
-                sessionOptions.AddFreeDimensionOverrideByName("batch", 2);
-                sessionOptions.AddFreeDimensionOverrideByName("time_batch", 1);
-                sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-                sessionOptions.AddFreeDimensionOverrideByName("height", 64);
-                sessionOptions.AddFreeDimensionOverrideByName("width", 64);
-                sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
-            }
+            sessionOptions.AddFreeDimensionOverrideByName("batch", 2);
+            sessionOptions.AddFreeDimensionOverrideByName("time_batch", 1);
+            sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
+            sessionOptions.AddFreeDimensionOverrideByName("height", 64);
+            sessionOptions.AddFreeDimensionOverrideByName("width", 64);
+            sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
             
 
             if (policy != null)

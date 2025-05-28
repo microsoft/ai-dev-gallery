@@ -58,13 +58,10 @@ internal class SafetyChecker : IDisposable
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if(device == "NvTensorRTRTXExecutionProvider")
-            {
-                sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
-                sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
-                sessionOptions.AddFreeDimensionOverrideByName("height", 224);
-                sessionOptions.AddFreeDimensionOverrideByName("width", 224);
-            }
+            sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
+            sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
+            sessionOptions.AddFreeDimensionOverrideByName("height", 224);
+            sessionOptions.AddFreeDimensionOverrideByName("width", 224);
 
             if (policy != null)
             {

@@ -59,14 +59,11 @@ internal class TextProcessing : IDisposable
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-
-            if(device == "NvTensorRTRTXExecutionProvider")
-            {
-                sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
-                sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-                sessionOptions.AddFreeDimensionOverrideByName("height", 512);
-                sessionOptions.AddFreeDimensionOverrideByName("width", 512);
-            }
+            
+            sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
+            sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
+            sessionOptions.AddFreeDimensionOverrideByName("height", 512);
+            sessionOptions.AddFreeDimensionOverrideByName("width", 512);            
 
             if (policy != null)
             {
