@@ -178,7 +178,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
 
     public string? GetDetailsUrl(ModelDetails details)
     {
-        return $"https://github.com/onnx/turnkeyml/tree/main";
+        return $"https://github.com/lemonade-sdk/lemonade/tree/main";
     }
 
     public string? GetIChatClientString(string url)
