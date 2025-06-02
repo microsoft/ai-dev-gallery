@@ -5,10 +5,11 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
-    <PackageVersion Include="Microsoft.Extensions.AI" Version="9.4.0-preview.1.25207.5" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.4.0-preview.1.25207.5" />
-    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.4.0-preview.1.25207.5" />
+    <PackageVersion Include="Microsoft.Extensions.AI" Version="9.5.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.5.0-preview.1.25265.7" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.5.0-preview.1.25265.7" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.8.0" />
+
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.47.0-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.47.0" />
     <PackageVersion Include="Microsoft.Windows.AI.MachineLearning" Version="0.3.131-beta" />
