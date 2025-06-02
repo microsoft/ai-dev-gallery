@@ -143,8 +143,9 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("GenerateText"); // <exclude-line>
 
-        using var context = systemPrompt.Length > 0 ? _languageModel.CreateContext(SystemPromptBox.Text) : null;
-
+        // the context has the system prompt and history
+        //  it is created for each query to avoid bringing history from previous queries
+        LanguageModelContext? context = systemPrompt.Length > 0 ? _languageModel.CreateContext(systemPrompt) : null;
         operation = context == null ?
             options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
             options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
@@ -307,11 +308,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
     private async void AdapterHyperLink_Click(object sender, RoutedEventArgs e)
     {
-        /* if (File.Exists(_adapterFilePath))
-        {
-            Process.Start("explorer.exe", $"/select,\"{_adapterFilePath}\"");
-        } */
-
         var window = new Window();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var picker = new FileOpenPicker();
@@ -326,7 +322,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             AdapterHyperLink.Content = Path.GetFileName(_adapterFilePath);
             GenerateButton.IsEnabled = !string.IsNullOrWhiteSpace(_adapterFilePath);
             ExampleAdapterLink.Visibility = string.IsNullOrWhiteSpace(_adapterFilePath) ? Visibility.Visible : Visibility.Collapsed;
-
         }
     }
 

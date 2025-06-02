@@ -167,10 +167,10 @@ internal sealed partial class ImageDescription : BaseSamplePage
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         ImageSrc.Source = bitmapSource;
-        DescribeImage(inputBitmap, _currentKind);
+        await DescribeImage(inputBitmap, _currentKind);
     }
 
-    private async void DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
+    private async Task DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
     {
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
@@ -244,7 +244,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             _currentKind = newKind;
             ScenarioSelectTextblock.Text = flyoutItem.Text;
-            DescribeImage(_currentBitmap!, _currentKind);
+            _ = DescribeImage(_currentBitmap!, _currentKind);
         }
     }
 }

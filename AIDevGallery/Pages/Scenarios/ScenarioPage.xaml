@@ -158,9 +158,10 @@
                     </Button>
                     <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox"
                               Visibility="Collapsed"></ComboBox>-->
-                    <Button x:Name="WinMlModelOptionsButton" 
-                            Visibility="Collapsed"
-                            Padding="0">
+                    <Button
+                        x:Name="WinMlModelOptionsButton"
+                        Padding="0"
+                        Visibility="Collapsed">
                         <Button.Flyout>
                             <Flyout
                                 x:Name="WinMLOptionsFlyout"
@@ -450,11 +451,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock>
+                <TextBlock TextAlignment="Center">
                     <Run FontWeight="SemiBold" Text="It looks like you don't have a model or API selected." />
                     <LineBreak />
                     <LineBreak />
-                    <Run Text="Select a model or API to load a sample" />
+                    <Run Text="Select a model or API to load this sample" />
                 </TextBlock>
             </Grid>
         </Grid>
@@ -462,7 +463,14 @@
             x:Name="LoadingGrid"
             Grid.RowSpan="2"
             Visibility="Collapsed">
-            <ProgressRing x:Name="LoadingRing" IsActive="False" />
+            <StackPanel VerticalAlignment="Center" Spacing="12" Padding="24">
+                <ProgressRing x:Name="LoadingRing" IsActive="False" />
+                <TextBlock x:Name="LoadingTextBlock" 
+                           Visibility="Collapsed" 
+                           TextAlignment="Center"
+                           TextWrapping="WrapWholeWords"
+                           Text="Downloading and installing available hardware accelerators for your device. This might take a minute." />
+            </StackPanel>
         </Grid>
 
         <VisualStateManager.VisualStateGroups>
@@ -480,6 +488,16 @@
                 <VisualState x:Name="PageLoading">
                     <VisualState.Setters>
                         <Setter Target="LoadingGrid.Visibility" Value="Visible" />
+                        <Setter Target="LoadingRing.IsActive" Value="True" />
+                        <Setter Target="NoModelSelectedGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="ActionButtonsGrid.Visibility" Value="Collapsed" />
+                        <Setter Target="SampleContainer.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PageLoadingWithMessage">
+                    <VisualState.Setters>
+                        <Setter Target="LoadingGrid.Visibility" Value="Visible" />
+                        <Setter Target="LoadingTextBlock.Visibility" Value="Visible" />
                         <Setter Target="LoadingRing.IsActive" Value="True" />
                         <Setter Target="NoModelSelectedGrid.Visibility" Value="Collapsed" />
                         <Setter Target="ActionButtonsGrid.Visibility" Value="Collapsed" />

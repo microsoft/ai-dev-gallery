@@ -174,12 +174,23 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
+        VisualStateManager.GoToState(this, "PageLoading", true);
+
         modelDetails.Clear();
         selectedModels.ForEach(modelDetails.Add);
 
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize)))
         {
-            var supportedHardwareAccelerators = await GetSupportedHardwareAccelerators();
+            var delayTask = Task.Delay(1000);
+            var supportedHardwareAcceleratorsTask = GetSupportedHardwareAccelerators();
+
+            if (await Task.WhenAny(delayTask, supportedHardwareAcceleratorsTask) == delayTask)
+            {
+                VisualStateManager.GoToState(this, "PageLoadingWithMessage", true);
+            }
+
+            var supportedHardwareAccelerators = await supportedHardwareAcceleratorsTask;
+
             HashSet<WinMlEp> eps = [supportedHardwareAccelerators[0]];
 
             DeviceComboBox.Items.Clear();
@@ -269,6 +280,9 @@ internal sealed partial class ScenarioPage : Page
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
         }
+
+        // in case already saved options do not apply to this sample
+        _ = UpdateSampleOptions();
     }
 
     private void LoadSample(Sample? sampleToLoad)
@@ -403,7 +417,12 @@ internal sealed partial class ScenarioPage : Page
     private async void ApplySampleOptions(object sender, RoutedEventArgs e)
     {
         WinMLOptionsFlyout.Hide();
+        await UpdateSampleOptions();
+        LoadSample(sample);
+    }
 
+    private async Task UpdateSampleOptions()
+    {
         var oldOptions = App.AppData.WinMLSampleOptions;
 
         if (segmentedControl.SelectedIndex == 0)
@@ -424,7 +443,6 @@ internal sealed partial class ScenarioPage : Page
             return;
         }
 
-        LoadSample(sample);
         await App.AppData.SaveAsync();
     }
 

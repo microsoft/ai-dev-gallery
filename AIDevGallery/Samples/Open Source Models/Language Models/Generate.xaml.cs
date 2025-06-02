@@ -163,9 +163,12 @@ internal sealed partial class Generate : BaseSamplePage
 
                     // </exclude>
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
-                    ShowException(ex);
+                    if (!cts.Token.IsCancellationRequested)
+                    {
+                        ShowException(ex);
+                    }
                 }
 
                 DispatcherQueue.TryEnqueue(() =>

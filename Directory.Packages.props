@@ -23,7 +23,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.2.250402" />
-    <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
+    <PackageVersion Include="Microsoft.Build" Version="17.14.8" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250515001-experimental2" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.8.0" />
@@ -31,11 +31,11 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
-    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.183" />
-    <PackageVersion Include="System.Drawing.Common" Version="9.0.4" />
+    <PackageVersion Include="System.Drawing.Common" Version="9.0.5" />
     <PackageVersion Include="NAudio.WinMM" Version="2.2.1" />
-    <PackageVersion Include="System.Numerics.Tensors" Version="9.0.4" />
+    <PackageVersion Include="System.Numerics.Tensors" Version="9.0.5" />
     <PackageVersion Include="WinUIEx" Version="2.5.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
@@ -53,7 +53,7 @@
     <PackageVersion Include="PdfPig" Version="0.1.10" />
     <!-- for Markdown control-->
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.1" />
-    <PackageVersion Include="Markdig" Version="0.41.0" />
+    <PackageVersion Include="Markdig" Version="0.41.1" />
     <PackageVersion Include="Roman-Numerals" Version="2.0.1" />
   </ItemGroup>
 </Project>
