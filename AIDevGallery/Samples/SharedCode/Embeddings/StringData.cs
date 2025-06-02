@@ -8,12 +8,13 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal class StringData
 {
-    [VectorStoreRecordKey]
-    public required int Key { get; init; }
-
-    [VectorStoreRecordData]
-    public required string Text { get; init; }
-
-    [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
-    public required ReadOnlyMemory<float> Vector { get; init; }
+    internal static readonly VectorStoreCollectionDefinition VectorStoreDefinition = new()
+    {
+        Properties =
+        [
+            new VectorStoreKeyProperty("Key", typeof(int)),
+            new VectorStoreDataProperty("Text", typeof(string)),
+            new VectorStoreVectorProperty("Vector", typeof(ReadOnlyMemory<float>), 384)
+        ]
+    };
 }

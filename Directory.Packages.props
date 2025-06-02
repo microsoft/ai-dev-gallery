@@ -10,12 +10,12 @@
     <PackageVersion Include="OllamaSharp" Version="5.2.2" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.5.0-preview.1.25265.7" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.8.0" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.47.0-preview" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.47.0" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.54.0-preview" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="1.54.0" />
     <PackageVersion Include="Microsoft.Windows.AI.MachineLearning" Version="0.3.131-beta" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="9.0.3" />
-    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="9.0.3" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.5" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="9.0.5" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="Microsoft.ML.Tokenizers" Version="1.0.2" />
@@ -27,7 +27,7 @@
     <PackageVersion Include="Microsoft.Build" Version="17.14.8" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.250515001-experimental2" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.8.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.8.1" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />
@@ -38,17 +38,17 @@
     <PackageVersion Include="NAudio.WinMM" Version="2.2.1" />
     <PackageVersion Include="System.Numerics.Tensors" Version="9.0.5" />
     <PackageVersion Include="WinUIEx" Version="2.5.1" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
-    <PackageVersion Include="System.Text.Encodings.Web" Version="9.0.3" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.3" />
-    <PackageVersion Include="System.IO.Pipelines" Version="9.0.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.5" />
+    <PackageVersion Include="System.IO.Pipelines" Version="9.0.5" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.13.0" />
+    <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="17.14.0" />
     <!-- Keep version in sync with GHAction build.yml (vstest.console.exe) -->
-    <PackageVersion Include="MSTest.TestAdapter" Version="3.8.3" />
-    <PackageVersion Include="MSTest.TestFramework" Version="3.8.3" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="3.9.1" />
+    <PackageVersion Include="MSTest.TestFramework" Version="3.9.1" />
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
     <PackageVersion Include="Microsoft.Telemetry.Inbox.Managed" Version="10.0.25148.1001-220626-1600.rs-fun-deploy-dev5" />
     <PackageVersion Include="PdfPig" Version="0.1.10" />
