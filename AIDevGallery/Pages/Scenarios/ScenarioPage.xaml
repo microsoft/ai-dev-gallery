@@ -47,7 +47,6 @@
                 Content="{ui:FontIcon Glyph=&#xE71B;,
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
-
             <Grid
                 x:Name="ActionButtonsGrid"
                 Grid.Row="2"
@@ -220,6 +219,7 @@
                 VerticalAlignment="Center"
                 RowSpacing="8">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
