@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
-using Microsoft.Graphics.Imaging;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Vision;
+using Microsoft.Windows.AI.Imaging;
+using Microsoft.Windows.AI.Text;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -17,6 +16,9 @@ internal static class WcrApiHelpers
     {
         {
             ModelType.PhiSilica, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.GetReadyState
         },
         {
             ModelType.TextRecognitionOCR, TextRecognizer.GetReadyState
@@ -39,6 +41,9 @@ internal static class WcrApiHelpers
     {
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextRecognitionOCR, TextRecognizer.EnsureReadyAsync
@@ -89,7 +94,7 @@ internal static class WcrApiHelpers
                 return "Not supported on this system.";
             case AIFeatureReadyState.DisabledByUser:
                 return "API is disabled by the user in the Windows settings.";
-            case AIFeatureReadyState.EnsureNeeded:
+            case AIFeatureReadyState.NotReady:
                 return "API requires a model download or update.";
             default:
                 return string.Empty;

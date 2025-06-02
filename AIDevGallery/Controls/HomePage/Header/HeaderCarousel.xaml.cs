@@ -36,6 +36,7 @@ internal sealed partial class HeaderCarousel : UserControl
     private void SubscribeToEvents()
     {
         selectionTimer.Tick += SelectionTimer_Tick;
+        deselectionTimer.Tick += DeselectionTimer_Tick;
         selectionTimer.Start();
         foreach (HeaderTile tile in TilePanel.Children)
         {
@@ -50,7 +51,9 @@ internal sealed partial class HeaderCarousel : UserControl
     private void UnsubscribeToEvents()
     {
         selectionTimer.Tick -= SelectionTimer_Tick;
+        deselectionTimer.Tick -= DeselectionTimer_Tick;
         selectionTimer.Stop();
+        deselectionTimer.Stop();
         foreach (HeaderTile tile in TilePanel.Children)
         {
             tile.PointerEntered -= Tile_PointerEntered;
@@ -85,7 +88,6 @@ internal sealed partial class HeaderCarousel : UserControl
             scrollViewer.ChangeView(point.X - (scrollViewer.ActualWidth / 2) + (selectedTile.ActualSize.X / 2), null, null);
             await Task.Delay(500);
             SetTileVisuals();
-            deselectionTimer.Tick += DeselectionTimer_Tick;
             deselectionTimer.Start();
         }
     }

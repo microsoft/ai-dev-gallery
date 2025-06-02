@@ -6,12 +6,12 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,22 +38,21 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.StringData
     ],
     NugetPackageReferences = [
-        "PdfPig",
-        "Microsoft.ML.Tokenizers",
-        "System.Numerics.Tensors",
-        "Microsoft.ML.OnnxRuntime.DirectML",
         "Microsoft.Extensions.AI",
-        "Microsoft.SemanticKernel.Connectors.InMemory"
+        "Microsoft.ML.Tokenizers",
+        "Microsoft.SemanticKernel.Connectors.InMemory",
+        "Microsoft.Windows.AI.MachineLearning",
+        "PdfPig",
+        "System.Numerics.Tensors",
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
     Icon = "\uE8D4")]
 internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
     private EmbeddingGenerator? _embeddings;
-    private int _maxTokens = 2048;
     private IChatClient? _chatClient;
-    private IVectorStore? _vectorStore;
-    private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
+    private VectorStore? _vectorStore;
+    private VectorStoreCollection<object, Dictionary<string, object?>>? _pdfPages;
     private StorageFile? _pdfFile;
     private InMemoryRandomAccessStream? _inMemoryRandomAccessStream;
     private CancellationTokenSource? _cts;
@@ -64,17 +63,16 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private int selectedPageIndex = -1;
     private string searchTextBoxInitialText = string.Empty;
 
-    public class PdfPageData
+    private static readonly VectorStoreCollectionDefinition VectorStoreDefinition = new()
     {
-        [VectorStoreRecordKey]
-        public required int Key { get; init; }
-        [VectorStoreRecordData]
-        public required uint Page { get; init; }
-        [VectorStoreRecordData]
-        public required string Text { get; init; }
-        [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
-        public required ReadOnlyMemory<float> Vector { get; init; }
-    }
+        Properties =
+        [
+            new VectorStoreKeyProperty("Key", typeof(int)),
+            new VectorStoreDataProperty("Page", typeof(uint)),
+            new VectorStoreDataProperty("Text", typeof(string)),
+            new VectorStoreVectorProperty("Vector", typeof(ReadOnlyMemory<float>), 384)
+        ]
+    };
 
     public RetrievalAugmentedGeneration()
     {
@@ -87,7 +85,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = new EmbeddingGenerator(sampleParams.ModelPaths[1], sampleParams.HardwareAccelerators[1]);
+            string modelPath = sampleParams.ModelPaths[1];
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -108,24 +111,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     }
 
     // </exclude>
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
-    {
-        base.OnNavigatedFrom(e);
-        CleanUp();
-    }
-
     private void CleanUp()
     {
         _cts?.Cancel();
-        _cts = null;
         _chatClient?.Dispose();
-        _vectorStore = null;
-        _pdfPages = null;
         _embeddings?.Dispose();
-        _pdfFile = null;
         _inMemoryRandomAccessStream?.Dispose();
-        _cts?.Cancel();
-        _cts = null;
     }
 
     private async void IndexPDFButton_Click(object sender, RoutedEventArgs e)
@@ -133,7 +124,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         if (_isCancellable)
         {
             _cts?.Cancel();
-            _cts = null;
             ToSelectState();
             return;
         }
@@ -163,12 +153,13 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         }
 
         ToIndexingState();
+        _cts?.Cancel();
         _cts = new CancellationTokenSource();
         CancellationToken ct = _cts.Token;
 
         _vectorStore = new InMemoryVectorStore();
-        _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
-        await _pdfPages.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+        _pdfPages = _vectorStore.GetDynamicCollection("pages", VectorStoreDefinition);
+        await _pdfPages.EnsureCollectionExistsAsync(ct).ConfigureAwait(false);
         int chunksProcessedCount = 0;
 
         try
@@ -191,12 +182,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                     await foreach (var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
                     {
                         await _pdfPages.UpsertAsync(
-                        new PdfPageData
+                        new Dictionary<string, object?>
                         {
-                            Key = chunksProcessedCount,
-                            Page = pageChunks[i].Page,
-                            Text = pageChunks[i].Text,
-                            Vector = embedding.Vector
+                            ["Key"] = chunksProcessedCount,
+                            ["Page"] = pageChunks[i].Page,
+                            ["Text"] = pageChunks[i].Text,
+                            ["Vector"] = embedding.Vector
                         },
                         ct).ConfigureAwait(false);
                         i++;
@@ -238,6 +229,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             ChatGrid.Visibility = Visibility.Visible;
             SelectNewPDFButton.IsEnabled = true;
         });
+
         _cts?.Dispose();
         _cts = null;
     }
@@ -252,7 +244,6 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         if (_cts != null)
         {
             _cts.Cancel();
-            _cts = null;
             RAGProgressRing.IsActive = false;
             RAGProgressRing.Visibility = Visibility.Collapsed;
             AnswerButtonLabel.Text = "Answer";
@@ -273,58 +264,73 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         // 4) Search the chunks using the user's prompt, with the same model used for indexing
         var searchVector = await _embeddings.GenerateAsync([searchPrompt], null, _cts.Token);
-        var vectorSearchResults = await _pdfPages.VectorizedSearchAsync(
+        var vectorSearchResults = _pdfPages.SearchAsync(
                 searchVector[0].Vector,
-                new VectorSearchOptions<PdfPageData>
-                {
-                    Top = 5,
-                    VectorProperty = (pdfPageData) => pdfPageData.Vector
-                },
+                5,
+                null,
                 _cts.Token);
 
-        var contents = vectorSearchResults.Results.ToBlockingEnumerable()
+        var contents = vectorSearchResults.ToBlockingEnumerable(_cts.Token)
                 .Select(r => r.Record)
-                .DistinctBy(c => c.Page)
-                .OrderBy(c => c.Page);
+                .DistinctBy(c => c["Page"])
+                .OrderBy(c => (uint)c["Page"]!)
+                .ToList();
 
-        selectedPages = contents.Select(c => c.Page).ToList();
+        selectedPages = [.. contents.Select(c => (uint)c["Page"]!)];
 
         PagesUsedRun.Text = string.Join(", ", selectedPages);
         InformationSV.Visibility = Visibility.Visible;
         await UpdatePdfImageAsync();
 
-        var pagesChunks = contents.GroupBy(c => c.Page)
-            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => c.Text))}");
+        var pagesChunks = contents.GroupBy(c => (uint)c["Page"]!)
+            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => (string)c["Text"]!))}");
 
         AnswerRun.Text = string.Empty;
         var fullResult = string.Empty;
 
-        await Task.Run(
+        _ = Task.Run(
             async () =>
             {
-                await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
-                    [
-                        new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
-                        new ChatMessage(ChatRole.User, searchPrompt),
-                    ],
-                    new() { MaxOutputTokens = _maxTokens },
-                    _cts.Token))
+                try
                 {
-                    fullResult += partialResult;
+                    await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
+                        [
+                            new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
+                            new ChatMessage(ChatRole.User, searchPrompt),
+                        ],
+                        null,
+                        _cts.Token))
+                    {
+                        if (_cts.Token.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        fullResult += partialResult;
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            AnswerRun.Text = fullResult;
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (!_cts.Token.IsCancellationRequested)
+                    {
+                        ShowException(ex);
+                    }
+                }
+                finally
+                {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        AnswerRun.Text = fullResult;
+                        RAGProgressRing.Visibility = Visibility.Collapsed;
+                        RAGProgressRing.IsActive = false;
+                        AnswerButtonLabel.Text = "Answer";
+                        SearchTextBox.IsEnabled = true;
                     });
                 }
-            },
-            _cts.Token);
-
-        _cts = null;
-
-        RAGProgressRing.Visibility = Visibility.Collapsed;
-        RAGProgressRing.IsActive = false;
-        AnswerButtonLabel.Text = "Answer";
-        SearchTextBox.IsEnabled = true;
+            });
     }
 
     private void Grid_Loaded(object sender, RoutedEventArgs e)
@@ -464,7 +470,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     private void ToSelectState()
     {
-        _pdfPages?.DeleteCollectionAsync();
+        _pdfPages?.EnsureCollectionDeletedAsync();
         HideProgress();
         _isCancellable = false;
         PdfImageGrid.Visibility = Visibility.Collapsed;
