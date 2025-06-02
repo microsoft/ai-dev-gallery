@@ -164,7 +164,7 @@ internal sealed partial class SettingsPage : Page
 
     private async void ChangeCacheFolder_Click(object sender, RoutedEventArgs e)
     {
-        var downloadCount = App.ModelCache.DownloadQueue.GetDownloads().Count;
+        var downloadCount = App.ModelDownloadQueue.GetDownloads().Count;
         if (downloadCount > 0)
         {
             ContentDialog dialog = new()

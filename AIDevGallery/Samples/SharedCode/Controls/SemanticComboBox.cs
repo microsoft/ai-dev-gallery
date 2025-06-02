@@ -15,8 +15,8 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal sealed partial class SemanticComboBox : Control
 {
-    private IVectorStore? _vectorStore;
-    private IVectorStoreRecordCollection<int, StringData>? _stringsCollection;
+    private VectorStore? _vectorStore;
+    private VectorStoreCollection<object, Dictionary<string, object?>>? _stringsCollection;
 
     public IEmbeddingGenerator<string, Embedding<float>>? EmbeddingGenerator
     {
@@ -68,7 +68,7 @@ internal sealed partial class SemanticComboBox : Control
         }
     }
 
-    public async Task<IEnumerable<StringData>> Search(string searchTerm)
+    public async Task<IEnumerable<Dictionary<string, object?>>> Search(string searchTerm)
     {
         if (EmbeddingGenerator == null || _stringsCollection == null)
         {
@@ -79,17 +79,9 @@ internal sealed partial class SemanticComboBox : Control
         GeneratedEmbeddings<Embedding<float>> results = [];
 
         var searchVectors = await EmbeddingGenerator.GenerateAsync([searchTerm]);
-        return (await _stringsCollection.VectorizedSearchAsync(
-                    searchVectors[0].Vector,
-                    new VectorSearchOptions<StringData>
-                    {
-                        // Number of results to return
-                        Top = 5,
-                        VectorProperty = (str) => str.Vector
-                    }))
-                    .Results
-                    .ToBlockingEnumerable()
-                    .Select(r => r.Record);
+        return _stringsCollection.SearchAsync(searchVectors[0].Vector, 5)
+            .ToBlockingEnumerable()
+            .Select(r => r.Record);
     }
 
     private async void SuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -99,7 +91,7 @@ internal sealed partial class SemanticComboBox : Control
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
             var searchResults = await Search(sender.Text);
-            sender.ItemsSource = searchResults.Select(item => item.Text);
+            sender.ItemsSource = searchResults.Select(item => item["Text"]);
         }
     }
 
@@ -120,21 +112,19 @@ internal sealed partial class SemanticComboBox : Control
             if (semanticComboBox._vectorStore == null || semanticComboBox._stringsCollection == null)
             {
                 semanticComboBox._vectorStore = new InMemoryVectorStore();
-                semanticComboBox._stringsCollection = semanticComboBox._vectorStore.GetCollection<int, StringData>("strings");
-                await semanticComboBox._stringsCollection.CreateCollectionIfNotExistsAsync().ConfigureAwait(false);
+                semanticComboBox._stringsCollection = semanticComboBox._vectorStore.GetDynamicCollection("strings", StringData.VectorStoreDefinition);
+                await semanticComboBox._stringsCollection.EnsureCollectionExistsAsync().ConfigureAwait(false);
             }
 
             var sourceVectors = await semanticComboBox.EmbeddingGenerator.GenerateAsync(newItems).ConfigureAwait(false);
 
-            await foreach (var key in semanticComboBox._stringsCollection.UpsertBatchAsync(
-                    sourceVectors.Select((x, i) => new StringData
+            await semanticComboBox._stringsCollection.UpsertAsync(
+                    sourceVectors.Select((x, i) => new Dictionary<string, object?>
                     {
-                        Key = i,
-                        Text = newItems[i],
-                        Vector = x.Vector
-                    })).ConfigureAwait(false))
-            {
-            }
+                        ["Key"] = i,
+                        ["Text"] = newItems[i],
+                        ["Vector"] = x.Vector
+                    })).ConfigureAwait(false);
         }
     }
 }

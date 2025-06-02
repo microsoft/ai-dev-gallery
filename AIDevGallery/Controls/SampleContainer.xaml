@@ -88,7 +88,7 @@
                         IsTextSelectionEnabled="True"
                         TextAlignment="Center"
                         TextWrapping="Wrap">
-                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
+                        <Run Text="This Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
                         <Run Text="You can still view the code and export the sample." />
                     </TextBlock>
                 </StackPanel>
@@ -123,10 +123,29 @@
                         TextAlignment="Center"
                         Visibility="Visible" />
                 </StackPanel>
-                <ContentPresenter
-                    x:Name="FooterContentPresenter"
+                <StackPanel
                     HorizontalAlignment="Right"
-                    Content="{x:Bind FooterContent, Mode=OneWay}" />
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button Style="{StaticResource SubtleButtonStyle}">
+                        <TextBlock
+                            x:Name="SampleDebugInfoButton"
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <Button.Flyout>
+                            <Flyout>
+                                <TextBlock
+                                    x:Name="SampleDebugInfoContent"
+                                    MaxWidth="300"
+                                    FontFamily="Consolas"
+                                    FontSize="14"
+                                    LineHeight="20"
+                                    TextWrapping="WrapWholeWords" />
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                    <ContentPresenter x:Name="FooterContentPresenter" Content="{x:Bind FooterContent, Mode=OneWay}" />
+                </StackPanel>
             </Grid>
 
             <Grid

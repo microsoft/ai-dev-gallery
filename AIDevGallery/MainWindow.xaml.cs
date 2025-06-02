@@ -26,7 +26,7 @@ internal sealed partial class MainWindow : WindowEx
     {
         this.InitializeComponent();
         SetTitleBar();
-        App.ModelCache.DownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
+        App.ModelDownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
 
         this.NavView.Loaded += (sender, args) =>
         {
@@ -121,6 +121,8 @@ internal sealed partial class MainWindow : WindowEx
     {
         DispatcherQueue.TryEnqueue(() =>
         {
+            ModelPicker.Hide();
+
             if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
             {
                 // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
@@ -265,7 +267,22 @@ internal sealed partial class MainWindow : WindowEx
     {
         if (NavFrame.CanGoBack)
         {
+            ModelPicker.Hide();
             NavFrame.GoBack();
+        }
+    }
+
+    private void NavFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        // Workaround for using the LeftHeader instead of Icon
+        if (titleBar.IsBackButtonVisible)
+        {
+            // Check if the back button is shown, update the margin of the icon.
+            titleBarIcon.Margin = new Thickness(0, 0, 8, 0);
+        }
+        else
+        {
+            titleBarIcon.Margin = new Thickness(16, 0, 0, 0);
         }
     }
 }

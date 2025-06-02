@@ -8,8 +8,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage.Pickers;
@@ -55,7 +57,7 @@ internal static class UserAddedModelUtil
             {
                 string configContents = string.Empty;
                 configContents = await File.ReadAllTextAsync(config);
-                accelerator = UserAddedModelUtil.GetHardwareAcceleratorFromConfig(configContents);
+                accelerator = GetHardwareAcceleratorFromConfig(configContents);
             }
             catch (Exception ex)
             {
@@ -233,7 +235,10 @@ internal static class UserAddedModelUtil
 
     private static bool ValidateUserAddedModelDimensionsForModelTypeModelDetails(List<ModelDetails> modelDetailsList, string modelFilepath)
     {
-        using InferenceSession inferenceSession = new(modelFilepath);
+        using SessionOptions sessionOptions = new();
+        sessionOptions.RegisterOrtExtensions();
+
+        using InferenceSession inferenceSession = new(modelFilepath, sessionOptions);
         List<int[]> inputDimensions = new();
         List<int[]> outputDimensions = new();
 
@@ -320,7 +325,7 @@ internal static class UserAddedModelUtil
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
         if (config == null)
         {
-            throw new FileLoadException("genai_config.json is not valid");
+            throw new InvalidDataException("genai_config.json is not valid");
         }
 
         if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
@@ -351,7 +356,7 @@ internal static class UserAddedModelUtil
                 Name = name,
                 Url = $"local-file:///{filepath}",
                 Description = "Localy added ONNX model",
-                HardwareAccelerators = [HardwareAccelerator.CPU],
+                HardwareAccelerators = [HardwareAccelerator.CPU, HardwareAccelerator.GPU, HardwareAccelerator.NPU],
                 IsUserAdded = true,
                 Size = new FileInfo(filepath).Length,
                 ReadmeUrl = null,
@@ -362,8 +367,32 @@ internal static class UserAddedModelUtil
 
             return details;
         }
+        else
+        {
+            StringBuilder validDimensions = new();
+            validDimensions.AppendLine("The model is not compatible with any of the supported model types. Dimmensions required:");
+            foreach (var (type, models) in ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes))
+            {
+                foreach (var model in models)
+                {
+                    if (model.InputDimensions != null && model.OutputDimensions != null)
+                    {
+                        validDimensions.AppendLine();
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Model Type: {type}");
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Input: {FlattenWithBrackets(model.InputDimensions)}");
+                        validDimensions.AppendLine(CultureInfo.InvariantCulture, $"Output: {FlattenWithBrackets(model.OutputDimensions)}");
+                    }
+                }
+            }
 
-        return null;
+            throw new InvalidDataException(validDimensions.ToString());
+
+            string FlattenWithBrackets(List<int[]> list)
+            {
+                // Wrap every inner array in brackets, then join all those pieces
+                return string.Join(" ", list.Select(arr => $"[{string.Join(", ", arr)}]"));
+            }
+        }
     }
 
     public static async Task<ModelDetails?> AddLanguageModelFromLocalFilepath(string filepath, string name, HardwareAccelerator accelerator)

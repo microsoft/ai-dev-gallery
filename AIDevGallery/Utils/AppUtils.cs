@@ -135,6 +135,27 @@ internal static class AppUtils
         return string.Join(", ", hardwareAcceleratorsStrings);
     }
 
+    public static string GetModelTypeStringFromHardwareAccelerators(List<HardwareAccelerator> hardwareAccelerators)
+    {
+        if (hardwareAccelerators.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        if (hardwareAccelerators.Any(h => h == HardwareAccelerator.GPU ||
+                                    h == HardwareAccelerator.DML
+                                    || h == HardwareAccelerator.NPU
+                                    || h == HardwareAccelerator.QNN
+                                    || h == HardwareAccelerator.VitisAI
+                                    || h == HardwareAccelerator.OpenVINO
+                                    || h == HardwareAccelerator.CPU))
+        {
+            return "ONNX";
+        }
+
+        return GetHardwareAcceleratorString(hardwareAccelerators.First());
+    }
+
     public static string GetHardwareAcceleratorString(HardwareAccelerator hardwareAccelerator)
     {
         if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))
@@ -149,11 +170,13 @@ internal static class AppUtils
         switch (hardwareAccelerator)
         {
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "GPU";
             case HardwareAccelerator.QNN:
+            case HardwareAccelerator.NPU:
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
-                return "WCR";
+                return "Windows AI API";
             default:
                 return hardwareAccelerator.ToString();
         }
@@ -176,11 +199,15 @@ internal static class AppUtils
             case HardwareAccelerator.CPU:
                 return "This model will run on CPU";
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "This model will run on supported GPUs with DirectML";
             case HardwareAccelerator.QNN:
-                return "This model will run on Qualcomm NPUs";
+            case HardwareAccelerator.NPU:
+                return "This model will run on NPUs";
             case HardwareAccelerator.WCRAPI:
-                return "The model used by this Windows Copilot Runtime API will run on NPU";
+                return "The model used by this Windows AI API will run on NPU";
+            case HardwareAccelerator.OLLAMA:
+                return "The model will run locally via Ollama";
         }
     }
 
