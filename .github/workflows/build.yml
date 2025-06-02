@@ -94,6 +94,8 @@ jobs:
       run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Tests
       run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.1\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+      env:
+        VSTEST_CONNECTION_TIMEOUT: 300
     - name: Publish Test Builds If Failed
       if: failure()
       uses: actions/upload-artifact@v4
