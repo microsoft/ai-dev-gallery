@@ -5,27 +5,78 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class TextProcessing : IDisposable
 {
-    private readonly InferenceSession tokenizerInferenceSession;
-    private readonly InferenceSession encoderInferenceSession;
-    private readonly SessionOptions encoderSessionOptions;
-    private readonly SessionOptions tokenizerSessionOptions;
+    private InferenceSession? tokenizerInferenceSession;
+    private InferenceSession? encoderInferenceSession;
     private bool disposedValue;
 
-    public TextProcessing(string tokenizerPath, string encoderPath, SessionOptions options)
+    private TextProcessing()
     {
-        encoderSessionOptions = options;
+    }
 
-        tokenizerSessionOptions = new SessionOptions();
-        tokenizerSessionOptions.RegisterOrtExtensions();
+    public static async Task<TextProcessing> CreateAsync(
+        string tokenizerPath,
+        string encoderPath,
+        ExecutionProviderDevicePolicy? policy,
+        string? device,
+        bool compileOption)
+    {
+        var instance = new TextProcessing();
+        instance.tokenizerInferenceSession = await instance.GetInferenceSession(tokenizerPath, policy, device, compileOption);
+        instance.encoderInferenceSession = await instance.GetInferenceSession(encoderPath, policy, device, compileOption);
+        return instance;
+    }
 
-        tokenizerInferenceSession = new InferenceSession(tokenizerPath, tokenizerSessionOptions);
-        encoderInferenceSession = new InferenceSession(encoderPath, encoderSessionOptions);
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    {
+        return Task.Run(async () =>
+        {
+            if (!File.Exists(modelPath))
+            {
+                throw new FileNotFoundException("Model file not found.", modelPath);
+            }
+
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
+            }
+
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
+        });
     }
 
     public DenseTensor<float> PreprocessText(string prompt)
@@ -52,6 +103,11 @@ internal class TextProcessing : IDisposable
 
     public int[] TokenizeText(string text)
     {
+        if (tokenizerInferenceSession == null)
+        {
+            throw new InvalidOperationException("Tokenizer is not initialized.");
+        }
+
         // Create an InferenceSession from the onnx clip tokenizer.
         var inputTensor = new DenseTensor<string>(new string[] { text }, [1]);
         var inputString = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("string_input", inputTensor) };
@@ -98,6 +154,11 @@ internal class TextProcessing : IDisposable
 
     public float[] TextEncoder(int[] tokenizedInput)
     {
+        if (encoderInferenceSession == null)
+        {
+            throw new InvalidOperationException("Encoder is not initialized.");
+        }
+
         // Create input tensor.
         var input_ids = TensorHelper.CreateTensor(tokenizedInput, [1, tokenizedInput.Length]);
 
@@ -118,9 +179,8 @@ internal class TextProcessing : IDisposable
         {
             if (disposing)
             {
-                tokenizerInferenceSession.Dispose();
-                encoderInferenceSession.Dispose();
-                tokenizerSessionOptions.Dispose();
+                tokenizerInferenceSession!.Dispose();
+                encoderInferenceSession!.Dispose();
             }
 
             disposedValue = true;

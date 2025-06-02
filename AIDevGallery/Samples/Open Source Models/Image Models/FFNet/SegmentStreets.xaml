@@ -8,31 +8,46 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-  <ScrollViewer>
-    <Grid RowSpacing="16">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-      </Grid.RowDefinitions>
-      <Image
-            x:Name="DefaultImage"
-            Stretch="Uniform"
+    <Grid
+        MinWidth="240"
+        MaxWidth="600"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Top"
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+        BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+        BorderThickness="2"
+        CornerRadius="{StaticResource OverlayCornerRadius}">
+        <Viewbox
+            x:Name="ImageViewbox"
+            Margin="-1"
+            VerticalAlignment="Stretch"
+            Stretch="Uniform">
+            <Image
+                x:Name="DefaultImage"
+                MaxWidth="800"
+                MaxHeight="500" />
+        </Viewbox>
+        <ProgressRing
+            x:Name="Loader"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            MaxWidth="800"
-            MaxHeight="500" />
-      <ProgressRing
-            x:Name="Loader"
-            Grid.Row="1"
             IsActive="false"
             Visibility="Collapsed" />
-      <Button
-            x:Name="UploadButton"
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            Click="UploadButton_Click"
-            Content="Select image"
-            Style="{StaticResource AccentButtonStyle}" />
+        <Grid
+            Margin="8"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+            CornerRadius="{StaticResource ControlCornerRadius}">
+            <Button
+                x:Name="UploadButton"
+                Padding="8"
+                AutomationProperties.Name="Select image"
+                Click="UploadButton_Click"
+                ToolTipService.ToolTip="Select image">
+
+                <FontIcon FontSize="16" Glyph="&#xEE71;" />
+            </Button>
+        </Grid>
     </Grid>
-  </ScrollViewer>
 </samples:BaseSamplePage>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>AIDevGallery</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -24,6 +24,7 @@
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <ApplicationIcon>Assets\AppIcon\Icon.ico</ApplicationIcon>
     <AssemblyTitle>AI Dev Gallery</AssemblyTitle>
+    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,7 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="ColorCode.WinUI" />
+    <PackageReference Include="ColorCode.WinUI" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.CameraPreview" />
@@ -63,12 +64,15 @@
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
-    <PackageReference Include="Microsoft.Extensions.AI.Ollama" />
+    <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />
+    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" />
@@ -84,21 +88,10 @@
     <PackageReference Include="NAudio.WinMM" />
     <PackageReference Include="System.Numerics.Tensors" />
     <PackageReference Include="WinUIEx" />
-    <PackageReference Include="HtmlAgilityPack"/>
-    <PackageReference Include="Markdig"/>
-    <PackageReference Include="Roman-Numerals"/>
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Roman-Numerals" />
     <Manifest Include="$(ApplicationManifest)" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$(Platform) == 'ARM64'">
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.QNN" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.QNN" />
-  </ItemGroup>
-	
-  <ItemGroup Condition="$(Platform) == 'x64'">
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" />
   </ItemGroup>
 
   <ItemGroup>
@@ -241,6 +234,9 @@
     <None Remove="Assets\AppIcon\WideTile.scale-200_altform-colorful_theme-light.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400.png" />
     <None Remove="Assets\AppIcon\WideTile.scale-400_altform-colorful_theme-light.png" />
+    <None Remove="Assets\ModelIcons\fl.dark.svg" />
+    <None Remove="Assets\ModelIcons\fl.light.svg" />
+    <None Remove="Assets\ModelIcons\Foundry.png" />
     <None Remove="Assets\ModelIcons\GitHub.dark.svg" />
     <None Remove="Assets\ModelIcons\GitHub.light.svg" />
     <None Remove="Assets\ModelIcons\HuggingFace.svg" />
@@ -318,6 +314,12 @@
     <Folder Include="Pages\Models\" />
     <Folder Include="Pages\Scenarios\" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Content Update="Assets\ModelIcons\Foundry.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <!-- 
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 
@@ -333,6 +335,4 @@
       <UserProperties />
     </VisualStudio>
   </ProjectExtensions>
-
-  <Import Project="$(MSBuildThisFileDirectory)\WinAppSDKSelfContainedFix.targets" Condition="'$(WindowsAppSDKSelfContained)'=='true'" />
 </Project>

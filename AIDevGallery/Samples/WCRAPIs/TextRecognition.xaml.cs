@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.Vision;
+using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,9 +47,9 @@ internal sealed partial class TextRecognition : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         var readyState = TextRecognizer.GetReadyState();
-        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
-            if (readyState == AIFeatureReadyState.EnsureNeeded)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
                 var operation = await TextRecognizer.EnsureReadyAsync();
 
@@ -172,9 +172,9 @@ internal sealed partial class TextRecognition : BaseSamplePage
     {
         CopyTextButton.Visibility = Visibility.Collapsed;
         RectCanvas.Visibility = Visibility.Collapsed;
-        using var imageBuffer = ImageBuffer.CreateBufferAttachedToBitmap(bitmap);
+        using var imageBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
         _textRecognizer ??= await TextRecognizer.CreateAsync();
-        RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer, new TextRecognizerOptions());
+        RecognizedText? result = _textRecognizer?.RecognizeTextFromImage(imageBuffer);
 
         if (result?.Lines == null)
         {

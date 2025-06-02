@@ -18,7 +18,7 @@
             "Description": "FPN",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ 3, -1, -1 ]
@@ -38,7 +38,7 @@
             "Description": "FPN-fp32",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ 3, -1, -1 ]
@@ -67,7 +67,7 @@
             "Description": "ResNet101 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, 3, 224, 224 ]
@@ -85,7 +85,7 @@
             "Description": "ResNet50 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, 3, 224, 224 ]
@@ -112,7 +112,7 @@
             "Description": "MobileNet v2 1.0",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, 3, 224, 224 ]
@@ -139,8 +139,8 @@
             "Description": "SqueezeNet 1.1",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 3, 224, 224 ]
@@ -167,8 +167,8 @@
             "Description": "HRNet Pose",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 3, 256, 192 ]
@@ -195,7 +195,7 @@
             "Description": "ESRGAN",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
             ],
             "InputDimensions": [
@@ -223,8 +223,8 @@
             "Description": "FFNet 78s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 3, 1024, 2048 ]
@@ -242,8 +242,8 @@
             "Description": "FFNet 54s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 3, 1024, 2048 ]
@@ -270,7 +270,7 @@
             "Description": "YOLOv4 optimizes the speed and accuracy of object detection.",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
             ],
             "InputDimensions": [
               [ -1, 416, 416, 3 ]
@@ -299,8 +299,8 @@
             "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 3, 224, 224 ]
@@ -327,8 +327,8 @@
             "Description": "face_det_lite is a machine learning model that detect face in the images",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
             ],
             "InputDimensions": [
               [ 1, 1, 480, 640 ]

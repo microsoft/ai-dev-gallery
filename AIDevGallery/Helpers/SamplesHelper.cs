@@ -4,6 +4,7 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,6 +19,13 @@ internal static partial class SamplesHelper
     public static List<SharedCodeEnum> GetAllSharedCode(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
     {
         var sharedCode = sample.SharedCode.ToList();
+        var packageReferences = sample.NugetPackageReferences.ToList();
+
+        if (packageReferences.Contains("Microsoft.Windows.AI.MachineLearning"))
+        {
+            InsertUniqueFirst(SharedCodeEnum.WinMLHelpers);
+            AddUnique(SharedCodeEnum.DeviceUtils);
+        }
 
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(models.Keys.First(), ModelType.LanguageModels);
 
@@ -53,6 +61,14 @@ internal static partial class SamplesHelper
                 sharedCode.Add(sharedCodeEnumToAdd);
             }
         }
+
+        void InsertUniqueFirst(SharedCodeEnum sharedCodeEnumToAdd)
+        {
+            if (!sharedCode.Contains(sharedCodeEnumToAdd))
+            {
+                sharedCode.Insert(0, sharedCodeEnumToAdd);
+            }
+        }
     }
 
     public static List<string> GetAllNugetPackageReferences(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
@@ -83,7 +99,7 @@ internal static partial class SamplesHelper
             else
             {
                 AddUnique("Microsoft.ML.OnnxRuntimeGenAI.Managed");
-                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
+                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.WinML");
             }
         }
 
@@ -210,14 +226,25 @@ internal static partial class SamplesHelper
     {
         string cleanCsSource = sample.CSCode;
 
+        string GetValueOrNull(string? value, string ifNull)
+        {
+            return string.IsNullOrEmpty(value) ? ifNull : $"\"{value}\"";
+        }
+
         string modelPathStr;
         if (modelInfos.Count > 1)
         {
             int i = 0;
             foreach (var modelInfo in modelInfos)
             {
+                var winmlOptions = modelInfo.Value.ExpandedModelDetails.WinMlSampleOptions;
+
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
+
                 i++;
             }
 
@@ -226,7 +253,12 @@ internal static partial class SamplesHelper
         else
         {
             var modelInfo = modelInfos.Values.First();
+            var winmlOptions = modelInfo.ExpandedModelDetails.WinMlSampleOptions;
+
             cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
         }
@@ -282,15 +314,10 @@ internal static partial class SamplesHelper
             }
         }
 
-        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
-        {
-            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
-        }
-
         return cleanCsSource;
     }
 
-    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails)
+    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (modelDetails.Length == 0 || modelDetails.Length > 2)
         {
@@ -311,7 +338,7 @@ internal static partial class SamplesHelper
 
         if (selectedModelDetails.IsApi())
         {
-            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
         else
         {
@@ -321,7 +348,7 @@ internal static partial class SamplesHelper
                 return null;
             }
 
-            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
@@ -340,7 +367,7 @@ internal static partial class SamplesHelper
 
             if (selectedModelDetails2.Size == 0)
             {
-                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
             else
             {
@@ -350,7 +377,7 @@ internal static partial class SamplesHelper
                     return null;
                 }
 
-                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
 
             var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)
