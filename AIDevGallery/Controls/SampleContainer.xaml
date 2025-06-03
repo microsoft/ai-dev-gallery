@@ -34,34 +34,13 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <StackPanel
-                x:Name="AIContentWarningPanel"
-                Grid.Row="1"
-                Margin="24,16,24,16"
-                HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
-                Orientation="Horizontal"
-                Spacing="4"
-                Visibility="Collapsed">
-                <FontIcon
-                    AutomationProperties.AccessibilityView="Raw"
-                    FontSize="11"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Glyph="&#xE946;" />
-                <TextBlock
-                    Margin="0,-1,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="10"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="AI-generated content might be incorrect, offensive, or biased."
-                    TextAlignment="Center"
-                    Visibility="Visible" />
-            </StackPanel>
-
-            <Grid x:Name="ContentPageHolder" VerticalAlignment="Stretch">
+            <Grid
+                x:Name="ContentPageHolder"
+                Padding="16"
+                VerticalAlignment="Stretch">
                 <Frame
                     x:Name="SampleFrame"
                     MinHeight="48"
-                    Padding="24,24,24,0"
                     Visibility="Collapsed" />
                 <InfoBar
                     x:Name="warningInfoBar"
@@ -109,11 +88,66 @@
                         IsTextSelectionEnabled="True"
                         TextAlignment="Center"
                         TextWrapping="Wrap">
-                        <Run Text="This Windows Copilot Runtime API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
+                        <Run Text="This Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)." /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
                         <Run Text="You can still view the code and export the sample." />
                     </TextBlock>
                 </StackPanel>
             </Grid>
+            <Grid
+                x:Name="FooterGrid"
+                Grid.Row="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                SizeChanged="FooterGrid_SizeChanged">
+                <StackPanel
+                    x:Name="AIContentWarningPanel"
+                    Margin="12,8,8,8"
+                    HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
+                    Orientation="Horizontal"
+                    Spacing="4"
+                    Visibility="Visible">
+                    <FontIcon
+                        AutomationProperties.AccessibilityView="Raw"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Glyph="&#xE946;"
+                        ToolTipService.ToolTip="AI-generated content might be incorrect, offensive, or biased." />
+                    <TextBlock
+                        x:Name="WarningText"
+                        Margin="0,-1,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="10"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Text="AI-generated content might be incorrect, offensive, or biased."
+                        TextAlignment="Center"
+                        Visibility="Visible" />
+                </StackPanel>
+                <StackPanel
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button Style="{StaticResource SubtleButtonStyle}">
+                        <TextBlock
+                            x:Name="SampleDebugInfoButton"
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <Button.Flyout>
+                            <Flyout>
+                                <TextBlock
+                                    x:Name="SampleDebugInfoContent"
+                                    MaxWidth="300"
+                                    FontFamily="Consolas"
+                                    FontSize="14"
+                                    LineHeight="20"
+                                    TextWrapping="WrapWholeWords" />
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                    <ContentPresenter x:Name="FooterContentPresenter" Content="{x:Bind FooterContent, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+
             <Grid
                 x:Name="CodeGrid"
                 Grid.RowSpan="2"
@@ -157,9 +191,7 @@
                                 FontSize="14"
                                 Foreground="{ThemeResource TextFillColorDisabledBrush}"
                                 IsTextSelectionEnabled="False"
-                                LineHeight="16">
-                                0
-                            </TextBlock>
+                                LineHeight="16" />
                         </ScrollViewer>
                         <ScrollViewer
                             Grid.Column="1"
@@ -260,7 +292,6 @@
                 <VisualState x:Name="SampleLoaded">
                     <VisualState.Setters>
                         <Setter Target="SampleFrame.Visibility" Value="Visible" />
-                        <Setter Target="AIContentWarningPanel.Visibility" Value="Visible" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -274,6 +305,24 @@
                     <VisualState.Setters>
                         <Setter Target="CodeGrid.Visibility" Value="Visible" />
                         <Setter Target="CodeGridSplitter.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="FooterContentStates">
+                <VisualState x:Name="FooterVisible" />
+                <VisualState x:Name="FooterHidden">
+                    <VisualState.Setters>
+                        <Setter Target="FooterGrid.Background" Value="Transparent" />
+                        <Setter Target="FooterGrid.BorderThickness" Value="0" />
+                        <Setter Target="FooterContentPresenter.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="WarningStates">
+                <VisualState x:Name="WarningExpanded" />
+                <VisualState x:Name="WarningCollapsed">
+                    <VisualState.Setters>
+                        <Setter Target="WarningText.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

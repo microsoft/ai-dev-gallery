@@ -25,6 +25,7 @@ public partial class App : Application
     /// </summary>
     internal static MainWindow MainWindow { get; private set; } = null!;
     internal static ModelCache ModelCache { get; private set; } = null!;
+    internal static ModelDownloadQueue ModelDownloadQueue { get; private set; } = null!;
     internal static AppData AppData { get; private set; } = null!;
     internal static List<SearchResult> SearchIndex { get; private set; } = null!;
 
@@ -41,7 +42,7 @@ public partial class App : Application
     {
         await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
-        var activationParam = ActivationHelper.GetActivationParam(appActivationArguments);
+        var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
         MainWindow = new MainWindow(activationParam);
 
         MainWindow.Activate();
@@ -111,6 +112,8 @@ public partial class App : Application
         AppData = await AppData.GetForApp();
         TelemetryFactory.Get<ITelemetry>().IsDiagnosticTelemetryOn = AppData.IsDiagnosticDataEnabled;
         ModelCache = await ModelCache.CreateForApp(AppData);
+        ModelDownloadQueue = new ModelDownloadQueue();
+
         GenerateSearchIndex();
     }
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -78,6 +80,8 @@ internal class ModelDetails
     public List<AIToolkitAction>? AIToolkitActions { get; set; }
     public string? AIToolkitId { get; set; }
     public string? AIToolkitFinetuningId { get; set; }
+    public List<int[]>? InputDimensions { get; set; }
+    public List<int[]>? OutputDimensions { get; set; }
 
     private ModelCompatibility? compatibility;
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
@@ -102,29 +106,16 @@ internal class ModelDetails
             {
                 if (Url.StartsWith("https://github", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                    {
-                        icon = "GitHub.light.svg";
-                    }
-                    else
-                    {
-                        icon = "GitHub.dark.svg";
-                    }
+                    icon = $"GitHub{AppUtils.GetThemeAssetSuffix()}.svg";
                 }
-                else if (Url.StartsWith("ollama", StringComparison.OrdinalIgnoreCase))
+
+                if (ExternalModelHelper.IsUrlFromExternalProvider(Url))
                 {
-                    if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-                    {
-                        icon = "ollama.light.svg";
-                    }
-                    else
-                    {
-                        icon = "ollama.dark.svg";
-                    }
+                    icon = ExternalModelHelper.GetIcon(Url);
                 }
                 else if (Url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
                 {
-                    icon = "onnx.svg";
+                    icon = "Onnx.svg";
                 }
                 else
                 {
@@ -143,6 +134,9 @@ internal class ModelDetails
 
         set => icon = value;
     }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public object? ProviderModelDetails { get; set; }
 }
 
 internal class PromptTemplate
@@ -165,8 +159,8 @@ internal class Scenario
 {
     public string Name { get; init; } = null!;
     public string Description { get; init; } = null!;
+    public string Instructions { get; init; } = null!;
     public string Id { get; init; } = null!;
-
     public string? Icon { get; init; }
     public ScenarioType ScenarioType { get; set; }
 }
@@ -178,7 +172,15 @@ internal enum HardwareAccelerator
     DML,
     QNN,
     WCRAPI,
-    OLLAMA
+    OLLAMA,
+    OPENAI,
+    FOUNDRYLOCAL,
+    LEMONADE,
+    NPU,
+    GPU,
+    VitisAI,
+    OpenVINO,
+    NvTensorRT
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<AIToolkitAction>))]

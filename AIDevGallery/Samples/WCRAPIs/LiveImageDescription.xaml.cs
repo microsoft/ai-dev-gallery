@@ -7,8 +7,9 @@ using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Imaging;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
+using Microsoft.Windows.AI.ContentSafety;
+using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,23 +58,33 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!ImageDescriptionGenerator.IsAvailable())
+        var readyState = ImageDescriptionGenerator.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or not AIFeatureReadyState.NotReady)
         {
-            var operation = await ImageDescriptionGenerator.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
-                // TODO: handle error
-            }
-        }
+                var operation = await ImageDescriptionGenerator.EnsureReadyAsync();
 
-        // Load camera
-        this.InitializeCameraPreviewControl();
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, "Image Description is not available.");
+                }
+            }
+
+            await this.InitializeCameraPreviewControl();
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Image Description is not available: {msg}");
+        }
 
         sampleParams.NotifyCompletion();
     }
 
-    private async void InitializeCameraPreviewControl()
+    private async Task InitializeCameraPreviewControl()
     {
         var cameraHelper = CameraPreviewControl.CameraHelper;
 
@@ -99,10 +110,10 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
         SoftwareBitmap keyFrame = e.VideoFrame!.SoftwareBitmap;
         keyFrame = SoftwareBitmap.Convert(keyFrame, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
-        await DescribeImageAsync(keyFrame, ImageDescriptionScenario.DetailedNarration);
+        await DescribeImageAsync(keyFrame, ImageDescriptionKind.DetailedDescription);
     }
 
-    private async Task DescribeImageAsync(SoftwareBitmap bitmap, ImageDescriptionScenario scenario)
+    private async Task DescribeImageAsync(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
     {
         if (stopped || !_semaphore.Wait(0))
         {
@@ -121,10 +132,10 @@ internal sealed partial class LiveImageDescription : BaseSamplePage
         var isFirstWord = true;
         try
         {
-            using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+            using var bitmapBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
             _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
 
-            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, scenario);
+            var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, descriptionKind, new ContentFilterOptions());
 
             if (describeTask != null)
             {

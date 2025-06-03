@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
@@ -21,6 +22,7 @@ namespace AIDevGallery.Controls;
 internal partial class ModelSelectionControl : UserControl
 {
     public List<ModelDetails>? Models { get; private set; }
+    public Scenario? Scenario { get; set; }
     public ModelDetails? Selected { get; private set; }
 
     public static readonly DependencyProperty DownloadableModelsTitleProperty = DependencyProperty.Register(nameof(DownloadableModelsTitle), typeof(string), typeof(ModelSelectionControl), new PropertyMetadata(defaultValue: null));
@@ -84,7 +86,7 @@ internal partial class ModelSelectionControl : UserControl
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
     {
-        PopulateModelDetailsLists();
+        DispatcherQueue.TryEnqueue(PopulateModelDetailsLists);
     }
 
     private void ResetAndLoadModelList(ModelDetails? selectedModel = null)
@@ -469,7 +471,7 @@ internal partial class ModelSelectionControl : UserControl
 
             if (output == ContentDialogResult.Primary)
             {
-                App.ModelCache.DownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
+                App.ModelDownloadQueue.ModelDownloadCompleted += DownloadQueue_ModelDownloadCompleted;
                 downloadableModel.StartDownload();
             }
         }
@@ -477,7 +479,7 @@ internal partial class ModelSelectionControl : UserControl
 
     private void DownloadQueue_ModelDownloadCompleted(object? sender, ModelDownloadCompletedEventArgs e)
     {
-        App.ModelCache.DownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
+        App.ModelDownloadQueue.ModelDownloadCompleted -= DownloadQueue_ModelDownloadCompleted;
         OnModelCollectionChanged();
     }
 
@@ -577,20 +579,35 @@ internal partial class ModelSelectionControl : UserControl
         DownloadDialog?.Hide();
     }
 
-    private void OllamaCopyUrl_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(OllamaHelper.GetOllamaUrl());
-        Clipboard.SetContentWithOptions(dataPackage, null);
-    }
-
-    private void OllamaViewModelDetails_Click(object sender, RoutedEventArgs e)
+    private void CopyUrl_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
         {
-            Process.Start(new ProcessStartInfo()
+            var url = ExternalModelHelper.GetModelUrl(details);
+            if (string.IsNullOrEmpty(url))
             {
-                FileName = $"https://ollama.com/library/{details.Name}",
+                return;
+            }
+
+            var dataPackage = new DataPackage();
+            dataPackage.SetText(url);
+            Clipboard.SetContentWithOptions(dataPackage, null);
+        }
+    }
+
+    private void ViewModelDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem btn && btn.Tag is ModelDetails details)
+        {
+            var modelDetailsUrl = ExternalModelHelper.GetModelDetailsUrl(details);
+            if (string.IsNullOrEmpty(modelDetailsUrl))
+            {
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = modelDetailsUrl,
                 UseShellExecute = true
             });
         }

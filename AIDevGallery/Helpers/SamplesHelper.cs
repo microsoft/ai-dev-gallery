@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Utils;
@@ -18,6 +19,13 @@ internal static partial class SamplesHelper
     public static List<SharedCodeEnum> GetAllSharedCode(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
     {
         var sharedCode = sample.SharedCode.ToList();
+        var packageReferences = sample.NugetPackageReferences.ToList();
+
+        if (packageReferences.Contains("Microsoft.Windows.AI.MachineLearning"))
+        {
+            InsertUniqueFirst(SharedCodeEnum.WinMLHelpers);
+            AddUnique(SharedCodeEnum.DeviceUtils);
+        }
 
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(models.Keys.First(), ModelType.LanguageModels);
 
@@ -53,6 +61,14 @@ internal static partial class SamplesHelper
                 sharedCode.Add(sharedCodeEnumToAdd);
             }
         }
+
+        void InsertUniqueFirst(SharedCodeEnum sharedCodeEnumToAdd)
+        {
+            if (!sharedCode.Contains(sharedCodeEnumToAdd))
+            {
+                sharedCode.Insert(0, sharedCodeEnumToAdd);
+            }
+        }
     }
 
     public static List<string> GetAllNugetPackageReferences(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
@@ -66,14 +82,24 @@ internal static partial class SamplesHelper
 
         if (isLanguageModel)
         {
-            if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.OLLAMA))
+            if (models.Values.Any(m => m.IsHttpApi()))
             {
-                AddUnique("Microsoft.Extensions.AI.Ollama");
+                foreach (var m in models)
+                {
+                    if (m.Value.IsHttpApi())
+                    {
+                        var nugetPackages = ExternalModelHelper.GetPackageReferences(m.Value.HardwareAccelerator);
+                        foreach (var nugetPackage in nugetPackages)
+                        {
+                            AddUnique(nugetPackage);
+                        }
+                    }
+                }
             }
             else
             {
                 AddUnique("Microsoft.ML.OnnxRuntimeGenAI.Managed");
-                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.DirectML");
+                AddUnique("Microsoft.ML.OnnxRuntimeGenAI.WinML");
             }
         }
 
@@ -97,6 +123,9 @@ internal static partial class SamplesHelper
 
     [GeneratedRegex(@"(\s*)this.InitializeComponent\(\);")]
     private static partial Regex RegexInitializeComponent();
+
+    [GeneratedRegex(@"(using .+;\s)+", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    private static partial Regex RegexUsingBlocks();
 
     private static string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
     {
@@ -173,31 +202,34 @@ internal static partial class SamplesHelper
         return modelPromptTemplateSb.ToString();
     }
 
-    private static string? GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
+    private static (string? ChatClientLoaderString, string? ChatClientNamespace) GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
         if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
         {
-            return null;
+            return (null, null);
         }
 
         if (isPhiSilica)
         {
-            return "await PhiSilicaClient.CreateAsync()";
+            return ("await PhiSilicaClient.CreateAsync()", null);
         }
-        else if (modelPath[2..^1].StartsWith("ollama", StringComparison.InvariantCultureIgnoreCase))
+        else if (ExternalModelHelper.IsUrlFromExternalProvider(modelPath[2..^1]))
         {
-            var modelId = modelPath[2..^1].Split('/').LastOrDefault();
-
-            return $"new OllamaChatClient(\"{OllamaHelper.GetOllamaUrl()}\", \"{modelId}\")";
+            return (ExternalModelHelper.GetIChatClientString(modelPath[2..^1]), ExternalModelHelper.GetIChatClientNamespace(modelPath[2..^1]));
         }
 
-        return $"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})";
+        return ($"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})", null);
     }
 
     public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
     {
         string cleanCsSource = sample.CSCode;
+
+        string GetValueOrNull(string? value, string ifNull)
+        {
+            return string.IsNullOrEmpty(value) ? ifNull : $"\"{value}\"";
+        }
 
         string modelPathStr;
         if (modelInfos.Count > 1)
@@ -205,8 +237,14 @@ internal static partial class SamplesHelper
             int i = 0;
             foreach (var modelInfo in modelInfos)
             {
+                var winmlOptions = modelInfo.Value.ExpandedModelDetails.WinMlSampleOptions;
+
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.HardwareAccelerators[{i}]", $"HardwareAccelerator.{modelInfo.Value.ExpandedModelDetails.HardwareAccelerator}");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
+
                 i++;
             }
 
@@ -215,7 +253,12 @@ internal static partial class SamplesHelper
         else
         {
             var modelInfo = modelInfos.Values.First();
+            var winmlOptions = modelInfo.ExpandedModelDetails.WinMlSampleOptions;
+
             cleanCsSource = cleanCsSource.Replace("sampleParams.HardwareAccelerator", $"HardwareAccelerator.{modelInfo.ExpandedModelDetails.HardwareAccelerator}");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
         }
@@ -253,22 +296,28 @@ internal static partial class SamplesHelper
             }
 
             var promptTemplate = GetPromptTemplateString(modelPromptTemplate, spaceCount);
-            var chatClientLoader = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
-            if (chatClientLoader != null)
+            var (chatClientLoaderString, chatClientNamespace) = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
+            if (chatClientLoaderString != null)
             {
-                cleanCsSource = cleanCsSource.Replace(search, chatClientLoader);
+                cleanCsSource = cleanCsSource.Replace(search, chatClientLoaderString);
             }
-        }
 
-        if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
-        {
-            cleanCsSource = RegexInitializeComponent().Replace(cleanCsSource, $"$1this.InitializeComponent();$1OnnxRuntimeGenAIChatClientFactory.InitializeGenAI();");
+            if (!string.IsNullOrEmpty(chatClientNamespace))
+            {
+                var matches = RegexUsingBlocks().Matches(cleanCsSource);
+                var lastMatch = matches.LastOrDefault();
+                if (lastMatch != null)
+                {
+                    var usingNamespaces = $"using {chatClientNamespace};";
+                    cleanCsSource = cleanCsSource.Insert(lastMatch.Index + lastMatch.Length, usingNamespaces);
+                }
+            }
         }
 
         return cleanCsSource;
     }
 
-    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails)
+    public static Dictionary<ModelType, ExpandedModelDetails>? GetCacheModelDetailsDictionary(this Sample sample, ModelDetails?[] modelDetails, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (modelDetails.Length == 0 || modelDetails.Length > 2)
         {
@@ -289,7 +338,7 @@ internal static partial class SamplesHelper
 
         if (selectedModelDetails.IsApi())
         {
-            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, selectedModelDetails.Url, selectedModelDetails.Url, 0, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
         else
         {
@@ -299,7 +348,7 @@ internal static partial class SamplesHelper
                 return null;
             }
 
-            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault());
+            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
@@ -318,7 +367,7 @@ internal static partial class SamplesHelper
 
             if (selectedModelDetails2.Size == 0)
             {
-                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, selectedModelDetails2.Url, selectedModelDetails2.Url, 0, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
             else
             {
@@ -328,7 +377,7 @@ internal static partial class SamplesHelper
                     return null;
                 }
 
-                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault());
+                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
 
             var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)

@@ -7,9 +7,10 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.AI.Generative;
-using Microsoft.Windows.Management.Deployment;
+using Microsoft.Windows.AI;
+using Microsoft.Windows.AI.Text;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,17 +40,29 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        if (!LanguageModel.IsAvailable())
+        var readyState = LanguageModel.GetReadyState();
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
-            var operation = await LanguageModel.MakeAvailableAsync();
-
-            if (operation.Status != PackageDeploymentStatus.CompletedSuccess)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
-                // TODO: handle error
+                var operation = await LanguageModel.EnsureReadyAsync();
+
+                if (operation.Status != AIFeatureReadyResultState.Success)
+                {
+                    ShowException(null, $"Phi-Silica is not available");
+                }
             }
+
+            _ = GenerateText(InputTextBox.Text);
+        }
+        else
+        {
+            var msg = readyState == AIFeatureReadyState.DisabledByUser
+                ? "Disabled by user."
+                : "Not supported on this system.";
+            ShowException(null, $"Phi-Silica is not available: {msg}");
         }
 
-        _ = GenerateText(InputTextBox.Text);
         sampleParams.NotifyCompletion();
     }
 
@@ -97,7 +110,14 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        var operation = _languageModel.GenerateResponseWithProgressAsync(prompt);
+        // <exclude>
+        ShowDebugInfo(null);
+        var swEnd = Stopwatch.StartNew();
+        var swTtft = Stopwatch.StartNew();
+        int outputTokens = 0;
+
+        // </exclude>
+        var operation = _languageModel.GenerateResponseAsync(prompt);
         operation.Progress = (asyncInfo, delta) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -109,6 +129,15 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
                     contentStartedBeingGenerated = true;
                 }
 
+                if (outputTokens == 0)
+                {
+                    swTtft.Stop();
+                }
+
+                outputTokens++;
+                double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
                 // </exclude>
                 if (_isProgressVisible)
                 {
@@ -116,7 +145,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
                     IsProgressVisible = false;
                 }
 
-                GenerateTextBlock.Text = asyncInfo.GetResults().Response;
+                GenerateTextBlock.Text += delta;
                 if (_cts?.IsCancellationRequested == true)
                 {
                     operation.Cancel();
@@ -126,6 +155,12 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
         var result = await operation;
 
+        // <exclude>
+        swEnd.Stop();
+        double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+        ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+        // </exclude>
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
         StopBtn.Visibility = Visibility.Collapsed;
         GenerateButton.Visibility = Visibility.Visible;

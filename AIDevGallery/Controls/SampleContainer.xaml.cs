@@ -10,6 +10,7 @@ using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -22,14 +23,28 @@ namespace AIDevGallery.Controls;
 
 internal sealed partial class SampleContainer : UserControl
 {
-    public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Center));
-    private RichTextBlockFormatter codeFormatter;
-    private Dictionary<string, string> codeFiles = new();
+    public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
     public HorizontalAlignment DisclaimerHorizontalAlignment
     {
         get => (HorizontalAlignment)GetValue(DisclaimerHorizontalAlignmentProperty);
         set => SetValue(DisclaimerHorizontalAlignmentProperty, value);
+    }
+
+    public static readonly DependencyProperty FooterContentProperty = DependencyProperty.Register(nameof(FooterContent), typeof(object), typeof(SampleContainer), new PropertyMetadata(defaultValue: null));
+
+    public object FooterContent
+    {
+        get => (object)GetValue(FooterContentProperty);
+        set => SetValue(FooterContentProperty, value);
+    }
+
+    public static readonly DependencyProperty ShowFooterProperty = DependencyProperty.Register(nameof(ShowFooter), typeof(bool), typeof(SampleContainer), new PropertyMetadata(defaultValue: false, OnShowFooterChanged));
+
+    public bool ShowFooter
+    {
+        get => (bool)GetValue(ShowFooterProperty);
+        set => SetValue(ShowFooterProperty, value);
     }
 
     public List<string> NugetPackageReferences
@@ -41,9 +56,12 @@ internal sealed partial class SampleContainer : UserControl
     public static readonly DependencyProperty NugetPackageReferencesProperty =
         DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
 
+    private RichTextBlockFormatter codeFormatter;
+    private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
     private Dictionary<ModelType, ExpandedModelDetails>? _cachedModels;
     private List<ModelDetails>? _modelsCache;
+    private WinMlSampleOptions? _currentWinMlSampleOptions;
     private CancellationTokenSource? _sampleLoadingCts;
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
@@ -108,7 +126,7 @@ internal sealed partial class SampleContainer : UserControl
         };
     }
 
-    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models)
+    public async Task LoadSampleAsync(Sample? sample, List<ModelDetails>? models, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (sample == null)
         {
@@ -117,11 +135,13 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         this.Visibility = Visibility.Visible;
-        if (!LoadSampleMetadata(sample, models))
+        if (!LoadSampleMetadata(sample, models, winMlSampleOptions))
         {
             return;
         }
 
+        SetFooterVisualStates();
+        ShowDebugInfo(null);
         RenderCodeTabs(true);
 
         CancelCTS();
@@ -180,16 +200,22 @@ internal sealed partial class SampleContainer : UserControl
 
             try
             {
-                if (WcrApiHelpers.GetApiAvailability(apiType) != WcrApiAvailability.Available)
+                var state = WcrApiHelpers.GetApiAvailability(apiType);
+                if (state != AIFeatureReadyState.Ready && !WcrApiHelpers.IsModelReadyWorkaround.ContainsKey(apiType))
                 {
-                    modelDownloader.State = WcrApiDownloadState.NotStarted;
-                    modelDownloader.ErrorMessage = string.Empty;
+                    modelDownloader.State = state switch
+                    {
+                        AIFeatureReadyState.NotReady => WcrApiDownloadState.NotStarted,
+                        _ => WcrApiDownloadState.Error
+                    };
+
+                    modelDownloader.ErrorMessage = WcrApiHelpers.GetStringDescription(state);
                     modelDownloader.DownloadProgress = 0;
                     SampleFrame.Content = null;
                     _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.MakeAvailables[apiType]).WaitAsync(token))
+                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
                     {
                         return;
                     }
@@ -223,6 +249,7 @@ internal sealed partial class SampleContainer : UserControl
                 models.First().HardwareAccelerators.First(),
                 models.First().PromptTemplate?.ToLlmPromptTemplate(),
                 _sampleLoadedCompletionSource,
+                winMlSampleOptions,
                 token);
         }
         else
@@ -242,6 +269,7 @@ internal sealed partial class SampleContainer : UserControl
                 [.. hardwareAccelerators],
                 [.. promptTemplates],
                 _sampleLoadedCompletionSource,
+                winMlSampleOptions,
                 token);
         }
 
@@ -270,12 +298,29 @@ internal sealed partial class SampleContainer : UserControl
         VisualStateManager.GoToState(this, "SampleLoaded", true);
     }
 
+    public void ShowDebugInfo(string? contents)
+    {
+        if (string.IsNullOrEmpty(contents))
+        {
+            SampleDebugInfoButton.Visibility = Visibility.Collapsed;
+            SampleDebugInfoButton.Text = string.Empty;
+            SampleDebugInfoContent.Text = string.Empty;
+            return;
+        }
+
+        SampleDebugInfoButton.Text = contents.Split('\n')[0];
+        SampleDebugInfoContent.Text = contents;
+
+        SampleDebugInfoButton.Visibility = Visibility.Visible;
+    }
+
     [MemberNotNull(nameof(_sampleCache))]
-    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models)
+    private bool LoadSampleMetadata(Sample sample, List<ModelDetails>? models, WinMlSampleOptions? winMlSampleOptions = null)
     {
         if (_sampleCache == sample &&
             _modelsCache != null &&
-            models != null)
+            models != null &&
+            winMlSampleOptions == _currentWinMlSampleOptions)
         {
             var modelsAreEqual = true;
             if (_modelsCache.Count != models.Count)
@@ -302,10 +347,11 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         _sampleCache = sample;
+        _currentWinMlSampleOptions = winMlSampleOptions;
 
         if (models != null)
         {
-            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray());
+            _cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), _currentWinMlSampleOptions);
 
             if (_cachedModels != null)
             {
@@ -410,10 +456,12 @@ internal sealed partial class SampleContainer : UserControl
     {
         var models = _modelsCache;
         var sample = _sampleCache;
+        var winMlSampleOptions = _currentWinMlSampleOptions;
         _modelsCache = null;
         _sampleCache = null;
+        _currentWinMlSampleOptions = null;
 
-        return LoadSampleAsync(sample, models);
+        return LoadSampleAsync(sample, models, winMlSampleOptions);
     }
 
     private async void WcrModelDownloader_DownloadClicked(object sender, EventArgs e)
@@ -423,9 +471,9 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
-        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != WcrApiAvailability.Available)
+        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != AIFeatureReadyState.Ready)
         {
-            var op = WcrApiHelpers.MakeAvailables[_wcrApi.Value]();
+            var op = WcrApiHelpers.EnsureReadyFuncs[_wcrApi.Value]();
             if (await modelDownloader.SetDownloadOperation(op))
             {
                 // reload sample
@@ -475,5 +523,41 @@ internal sealed partial class SampleContainer : UserControl
     private void ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
     {
         LineNumbersScroller.ChangeView(null, e.NextView.VerticalOffset, null, true);
+    }
+
+    private static void OnShowFooterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is SampleContainer container)
+        {
+            container.SetFooterVisualStates();
+        }
+    }
+
+    private void SetFooterVisualStates()
+    {
+        if (ShowFooter)
+        {
+            VisualStateManager.GoToState(this, "FooterVisible", true);
+        }
+        else
+        {
+            VisualStateManager.GoToState(this, "FooterHidden", true);
+        }
+    }
+
+    private void FooterGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Calculate if the modelselectors collide with the export/code buttons
+        if (FooterContent != null)
+        {
+            if ((AIContentWarningPanel.ActualWidth + FooterContentPresenter.ActualWidth) >= e.NewSize.Width)
+            {
+                VisualStateManager.GoToState(this, "WarningCollapsed", true);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "WarningVisible", true);
+            }
+        }
     }
 }

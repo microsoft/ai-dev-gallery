@@ -18,7 +18,15 @@
             "Description": "FPN",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ 3, -1, -1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, 4 ],
+              [ -1 ],
+              [ -1 ]
             ],
             "Size": 167330019,
             "License": "mit"
@@ -30,7 +38,15 @@
             "Description": "FPN-fp32",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ 3, -1, -1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, 4 ],
+              [ -1 ],
+              [ -1 ]
             ],
             "Size": 176713194,
             "License": "mit"
@@ -51,7 +67,13 @@
             "Description": "ResNet101 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, 3, 224, 224 ]
+            ],
+            "OutputDimensions": [
+              [ -1, 1000 ]
             ],
             "Size": 178914043,
             "License": "apache-2.0"
@@ -63,7 +85,13 @@
             "Description": "ResNet50 v1 7",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, 3, 224, 224 ]
+            ],
+            "OutputDimensions": [
+              [ -1, 1000 ]
             ],
             "Size": 102583340,
             "License": "apache-2.0"
@@ -84,7 +112,13 @@
             "Description": "MobileNet v2 1.0",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, 3, 224, 224 ]
+            ],
+            "OutputDimensions": [
+              [ -1, 1000]
             ],
             "Size": 13963115,
             "License": "apache-2.0"
@@ -105,8 +139,14 @@
             "Description": "SqueezeNet 1.1",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 224, 224 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 1000 ]
             ],
             "Size": 4956208,
             "License": "apache-2.0"
@@ -127,8 +167,14 @@
             "Description": "HRNet Pose",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 256, 192 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 17, 64, 48 ]
             ],
             "Size": 114232171,
             "License": "bsd-3-clause"
@@ -149,8 +195,14 @@
             "Description": "ESRGAN",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
+              "GPU",
               "QNN"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 128, 128 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 3, 512, 512 ]
             ],
             "Size": 67162397,
             "License": "apache-2.0"
@@ -171,8 +223,14 @@
             "Description": "FFNet 78s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 1024, 2048 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 19, 128, 256 ]
             ],
             "Size": 109974166,
             "License": "bsd-3-clause"
@@ -184,8 +242,14 @@
             "Description": "FFNet 54s",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 1024, 2048 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 19, 128, 256 ]
             ],
             "Size": 72188137,
             "License": "bsd-3-clause"
@@ -206,7 +270,15 @@
             "Description": "YOLOv4 optimizes the speed and accuracy of object detection.",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, 416, 416, 3 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1, -1, 3, 85 ],
+              [ -1, -1, -1, 3, 85 ],
+              [ -1, -1, -1, 3, 85 ]
             ],
             "Size": 257470589,
             "License": "mit"
@@ -227,8 +299,14 @@
             "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 224, 224 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 2, 224, 224 ]
             ],
             "Size": 414444,
             "License": "mit"
@@ -249,8 +327,16 @@
             "Description": "face_det_lite is a machine learning model that detect face in the images",
             "HardwareAccelerator": [
               "CPU",
-              "DML",
-              "QNN"
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 1, 480, 640 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 1, 60, 80 ],
+              [ 1, 4, 60, 80 ],
+              [ 1, 1, 60, 80 ]
             ],
             "Size": 3540725,
             "License": "bsd-3-clause"
