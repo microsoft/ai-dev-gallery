@@ -76,6 +76,24 @@
         "Instructions": "Select a LoRA adapter to use with a language model. Enter a prompt to pass to the model and adapter and generate the response.",
         "Id": "generate-with-lora"
       },
+      "WinAiSummarize": {
+        "Name": "Windows AI Text Summarization",
+        "Description": "Summarize Text using Windows AI Text Summarizer.",
+        "Instructions": "Enter some text into the textbox and click 'Summarize' to get a summary of the text.",
+        "Id": "win-ai-summarize"
+      },
+      "WinAiRewrite": {
+        "Name": "Windows AI Text Rewrite",
+        "Description": "Rewrite Text using Windows AI Text Rewriter.",
+        "Instructions": "Enter some text into the textbox and click 'Rewrite' to get the rewritten text.",
+        "Id": "win-ai-rewrite"
+      },
+      "WinAiTextToTable": {
+        "Name": "Windows AI Text To Table Converter",
+        "Description": "Convert Text To Table.",
+        "Instructions": "Enter some text into the textbox and click 'Convert' to get the converted table.",
+        "Id": "win-ai-text-to-table"
+      },
       "SemanticSearch": {
         "Name": "Semantic Search",
         "Description": "Semantically search text with a local embeddings model.",

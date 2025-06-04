@@ -334,8 +334,9 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 IconGlyph = "{{apiDefinition.IconGlyph}}",
                                 Description = "{{apiDefinition.Description}}",
                                 ReadmeUrl = "{{apiDefinition.ReadmeUrl}}",
-                                License = "{{apiDefinition.License}}",
-                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $"SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
+                                License = "{{apiDefinition.License}}"
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $",SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.Category) ? $",Category = \"{apiDefinition.Category}\"" : string.Empty)}}
                             }
                         },
                 """");
