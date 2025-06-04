@@ -12,8 +12,7 @@ internal static class AIToolkitHelper
     private static Dictionary<AIToolkitAction, ToolkitActionInfo> aiToolkitActionInfos = new()
     {
         { AIToolkitAction.FineTuning, new ToolkitActionInfo() { DisplayName = "Fine Tuning", QueryName = "open_fine_tuning" } },
-        { AIToolkitAction.PromptBuilder, new ToolkitActionInfo() { DisplayName = "Prompt Builder", QueryName = "open_prompt_builder" } },
-        { AIToolkitAction.BulkRun, new ToolkitActionInfo() { DisplayName = "Bulk Run", QueryName = "open_bulk_run" } },
+        { AIToolkitAction.PromptBuilder, new ToolkitActionInfo() { DisplayName = "Agent (Prompt) Builder", QueryName = "open_prompt_builder" } },
         { AIToolkitAction.Playground, new ToolkitActionInfo() { DisplayName = "Playground", QueryName = "open_playground" } }
     };
 
