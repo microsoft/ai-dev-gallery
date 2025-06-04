@@ -4,11 +4,9 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Text;
 using System;
@@ -16,7 +14,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.UI.Text;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 [GallerySample(
@@ -107,7 +104,7 @@ internal sealed partial class TextToTable : BaseSamplePage
 
     public async Task ConvertText(string prompt)
     {
-        if (_textToTableConverter == null) 
+        if (_textToTableConverter == null)
         {
             return;
         }
@@ -131,12 +128,10 @@ internal sealed partial class TextToTable : BaseSamplePage
         if (result.Status == LanguageModelResponseStatus.Complete)
         {
             var rows = result.GetRows().Select(r => new ObservableCollection<string>(r.GetColumns()));
-            //= rows.Select((r, i) => new { FontWeight = i == 0 ? new FontWeight(600) : new FontWeight(400), Background = new SolidColorBrush(i % 2 == 0 ? Colors.AliceBlue : Colors.Green), Row = r });
             Header.ItemsSource = rows.FirstOrDefault();
             TableRepeater.ItemsSource = rows.Skip(1).ToList();
         }
 
-        // </exclude>
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
         StopBtn.Visibility = Visibility.Collapsed;
         ConvertButton.Visibility = Visibility.Visible;

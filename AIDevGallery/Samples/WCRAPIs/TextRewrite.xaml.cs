@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE56")]
-internal sealed partial class TextRewrite: BaseSamplePage
+internal sealed partial class TextRewrite : BaseSamplePage
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -103,6 +103,11 @@ internal sealed partial class TextRewrite: BaseSamplePage
 
     public async Task RewriteText(string prompt)
     {
+        if (_textRewriter == null)
+        {
+            return;
+        }
+
         RewriteTextBlock.Text = string.Empty;
         RewriteButton.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Visible;

@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uE8D4")]
-internal sealed partial class TextSummarize: BaseSamplePage
+internal sealed partial class TextSummarize : BaseSamplePage
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -103,6 +103,11 @@ internal sealed partial class TextSummarize: BaseSamplePage
 
     public async Task SummarizeText(string prompt)
     {
+        if (_textSummarizer == null)
+        {
+            return;
+        }
+
         SummaryTextBlock.Text = string.Empty;
         SummarizeButton.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Visible;
