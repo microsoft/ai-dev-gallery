@@ -58,6 +58,11 @@ internal class SafetyChecker : IDisposable
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
+            sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
+            sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
+            sessionOptions.AddFreeDimensionOverrideByName("height", 224);
+            sessionOptions.AddFreeDimensionOverrideByName("width", 224);
+
             if (policy != null)
             {
                 sessionOptions.SetEpSelectionPolicy(policy.Value);
@@ -88,7 +93,7 @@ internal class SafetyChecker : IDisposable
         var inputTensor = ClipImageFeatureExtractor(resultImage, config);
 
         // images input
-        var inputImagesTensor = ReorderTensor(inputTensor);
+        var inputImagesTensor = inputTensor;
 
         var input = new List<NamedOnnxValue>
         {
