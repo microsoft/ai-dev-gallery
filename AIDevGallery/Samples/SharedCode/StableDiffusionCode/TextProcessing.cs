@@ -14,10 +14,6 @@ namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class TextProcessing : IDisposable
 {
-    private InferenceSession? tokenizerInferenceSession;
-    private InferenceSession? encoderInferenceSession;
-    private bool disposedValue;
-
     private readonly StableDiffusionConfig config = new()
     {
         // Number of denoising steps
@@ -26,6 +22,10 @@ internal class TextProcessing : IDisposable
         // Scale for classifier-free guidance
         GuidanceScale = 7.5
     };
+
+    private InferenceSession? tokenizerInferenceSession;
+    private InferenceSession? encoderInferenceSession;
+    private bool disposedValue;
 
     private TextProcessing()
     {
@@ -68,11 +68,11 @@ internal class TextProcessing : IDisposable
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
-            
+
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
             sessionOptions.AddFreeDimensionOverrideByName("height", config.Height);
-            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width);            
+            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width);
 
             if (policy != null)
             {

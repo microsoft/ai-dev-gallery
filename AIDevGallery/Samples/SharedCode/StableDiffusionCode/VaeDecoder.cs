@@ -14,9 +14,6 @@ namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class VaeDecoder : IDisposable
 {
-    private InferenceSession? vaeDecoderInferenceSession;
-    private bool disposedValue;
-
     private readonly StableDiffusionConfig config = new()
     {
         // Number of denoising steps
@@ -26,6 +23,9 @@ internal class VaeDecoder : IDisposable
         GuidanceScale = 7.5
     };
 
+    private InferenceSession? vaeDecoderInferenceSession;
+    private bool disposedValue;
+    
     private VaeDecoder()
     {
     }
