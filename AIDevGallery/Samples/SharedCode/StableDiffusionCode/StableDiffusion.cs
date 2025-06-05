@@ -84,10 +84,9 @@ internal class StableDiffusion : IDisposable
             sessionOptions.RegisterOrtExtensions();
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 2);
-            sessionOptions.AddFreeDimensionOverrideByName("time_batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-            sessionOptions.AddFreeDimensionOverrideByName("height", 64);
-            sessionOptions.AddFreeDimensionOverrideByName("width", 64);
+            sessionOptions.AddFreeDimensionOverrideByName("height", config.Height / 8);
+            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
             sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
             
 
@@ -116,7 +115,7 @@ internal class StableDiffusion : IDisposable
         {
             NamedOnnxValue.CreateFromTensor("encoder_hidden_states", encoderHiddenStates),
             NamedOnnxValue.CreateFromTensor("sample", sample),
-            NamedOnnxValue.CreateFromTensor("timestep", new DenseTensor<long>(new long[] { timeStep }, [ 1 ]))
+            NamedOnnxValue.CreateFromTensor("timestep", new DenseTensor<long>(new long[] { timeStep, timeStep }, [ 2 ]))
         };
 
         return input;

@@ -18,6 +18,15 @@ internal class TextProcessing : IDisposable
     private InferenceSession? encoderInferenceSession;
     private bool disposedValue;
 
+    private readonly StableDiffusionConfig config = new()
+    {
+        // Number of denoising steps
+        NumInferenceSteps = 15,
+
+        // Scale for classifier-free guidance
+        GuidanceScale = 7.5
+    };
+
     private TextProcessing()
     {
     }
@@ -62,8 +71,8 @@ internal class TextProcessing : IDisposable
             
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
-            sessionOptions.AddFreeDimensionOverrideByName("height", 512);
-            sessionOptions.AddFreeDimensionOverrideByName("width", 512);            
+            sessionOptions.AddFreeDimensionOverrideByName("height", config.Height);
+            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width);            
 
             if (policy != null)
             {

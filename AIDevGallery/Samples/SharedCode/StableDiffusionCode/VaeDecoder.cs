@@ -17,6 +17,15 @@ internal class VaeDecoder : IDisposable
     private InferenceSession? vaeDecoderInferenceSession;
     private bool disposedValue;
 
+    private readonly StableDiffusionConfig config = new()
+    {
+        // Number of denoising steps
+        NumInferenceSteps = 15,
+
+        // Scale for classifier-free guidance
+        GuidanceScale = 7.5
+    };
+
     private VaeDecoder()
     {
     }
@@ -59,8 +68,8 @@ internal class VaeDecoder : IDisposable
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-            sessionOptions.AddFreeDimensionOverrideByName("height", 64);
-            sessionOptions.AddFreeDimensionOverrideByName("width", 64);
+            sessionOptions.AddFreeDimensionOverrideByName("height", config.Height / 8);
+            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
 
             if (policy != null)
             {

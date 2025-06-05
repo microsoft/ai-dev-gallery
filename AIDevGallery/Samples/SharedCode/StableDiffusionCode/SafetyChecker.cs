@@ -93,7 +93,7 @@ internal class SafetyChecker : IDisposable
         var inputTensor = ClipImageFeatureExtractor(resultImage, config);
 
         // images input
-        var inputImagesTensor = ReorderTensor(inputTensor);
+        var inputImagesTensor = inputTensor;
 
         var input = new List<NamedOnnxValue>
         {
