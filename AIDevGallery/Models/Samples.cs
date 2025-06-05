@@ -56,6 +56,7 @@ internal class ApiDefinition
     public string ReadmeUrl { get; init; } = null!;
     public string License { get; init; } = null!;
     public string SampleIdToShowInDocs { get; set; } = null!;
+    public string? Category { get; init; }
 }
 
 internal class ModelDetails

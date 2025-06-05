@@ -72,6 +72,89 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.TextSummarizer, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.Text.Experimental;
+
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+
+                using LanguageModel languageModel = await LanguageModel.CreateAsync();
+                using TextSummarizer textSummarizer = new TextSummarizer(languageModel);
+
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+
+            As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
+            performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
+
+                var result = await textSummarizer.SummarizeParagraphAsync(prompt);
+
+                Console.WriteLine(result.Text);
+            }
+            """"
+        },
+        {
+            ModelType.TextRewriter, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.Text.Experimental;
+
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+
+                using LanguageModel languageModel = await LanguageModel.CreateAsync();
+                using TextRewriter textRewriter = new TextRewriter(languageModel);
+
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+
+            As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
+            performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
+
+                var result = await textRewriter.RewriteAsync(prompt);
+
+                Console.WriteLine(result.Text);
+            }
+            """"
+        },
+        {
+            ModelType.TextToTableConverter, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.Text.Experimental;
+
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+
+                using LanguageModel languageModel = await LanguageModel.CreateAsync();
+                using TextToTableConverter textToTableConverter = new TextToTableConverter(languageModel);
+
+                string prompt = @"{"colors":[{"name":"Red","hex":"#FF0000","rgb":{"r":255,"g":0,"b":0}},{"name":"Green","hex":"#00FF00","rgb":{"r":0,"g":255,"b":0}},
+                {"name":"Blue","hex":"#0000FF","rgb":{"r":0,"g":0,"b":255}},{"name":"Yellow","hex":"#FFFF00","rgb":{"r":255,"g":255,"b":0}},
+                {"name":"Black","hex":"#000000","rgb":{"r":0,"g":0,"b":0}},{"name":"White","hex":"#FFFFFF","rgb":{"r":255,"g":255,"b":255}}]}";
+
+                var result = await textToTableConverter.ConvertAsync(prompt);
+               
+                Console.WriteLine(string.Join("\n", result.GetRows().Select(r => string.Join("\t", r.GetColumns()))));
+            }
+            """"
+        },
+        {
             ModelType.TextRecognitionOCR, """"
             using Microsoft.Graphics.Imaging;
             using Microsoft.Windows.AI.Imaging;
