@@ -25,7 +25,7 @@ internal class VaeDecoder : IDisposable
 
     private InferenceSession? vaeDecoderInferenceSession;
     private bool disposedValue;
-    
+
     private VaeDecoder()
     {
     }

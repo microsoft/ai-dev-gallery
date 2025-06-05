@@ -88,7 +88,7 @@ internal class StableDiffusion : IDisposable
             sessionOptions.AddFreeDimensionOverrideByName("height", config.Height / 8);
             sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
             sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
-            
+
             if (policy != null)
             {
                 sessionOptions.SetEpSelectionPolicy(policy.Value);
