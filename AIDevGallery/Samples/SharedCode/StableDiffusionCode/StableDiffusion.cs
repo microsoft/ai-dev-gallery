@@ -47,9 +47,9 @@ internal class StableDiffusion : IDisposable
     {
         string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
 
-        textProcessor = await TextProcessing.CreateAsync(tokenizerPath, config.TextEncoderModelPath, policy, device, compileOption);
+        textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, policy, device, compileOption);
         unetInferenceSession = await GetInferenceSession(config.UnetModelPath, policy, device, compileOption);
-        vaeDecoder = await VaeDecoder.CreateAsync(config.VaeDecoderModelPath, policy, device, compileOption);
+        vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, policy, device, compileOption);
         safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, policy, device, compileOption);
     }
 

@@ -14,15 +14,6 @@ namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class VaeDecoder : IDisposable
 {
-    private readonly StableDiffusionConfig config = new()
-    {
-        // Number of denoising steps
-        NumInferenceSteps = 15,
-
-        // Scale for classifier-free guidance
-        GuidanceScale = 7.5
-    };
-
     private InferenceSession? vaeDecoderInferenceSession;
     private bool disposedValue;
 
@@ -31,17 +22,18 @@ internal class VaeDecoder : IDisposable
     }
 
     public static async Task<VaeDecoder> CreateAsync(
+        StableDiffusionConfig config,
         string modelPath,
         ExecutionProviderDevicePolicy? policy,
         string? device,
         bool compileOption)
     {
         var instance = new VaeDecoder();
-        instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(modelPath, policy, device, compileOption);
+        instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(config, modelPath, policy, device, compileOption);
         return instance;
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
     {
         return Task.Run(async () =>
         {
