@@ -64,7 +64,7 @@
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
-    <PackageReference Include="Microsoft.Extensions.AI.Ollama" />
+    <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
@@ -320,7 +320,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
+  
   <!-- 
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 
     Explorer "Package and Publish" context menu entry to be enabled for this project even if 

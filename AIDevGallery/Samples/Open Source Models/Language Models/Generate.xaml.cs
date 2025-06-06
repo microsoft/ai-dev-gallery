@@ -165,7 +165,7 @@ internal sealed partial class Generate : BaseSamplePage
                 }
                 catch (Exception ex)
                 {
-                    if (!cts.Token.IsCancellationRequested)
+                    if (cts != null && !cts.Token.IsCancellationRequested)
                     {
                         ShowException(ex);
                     }

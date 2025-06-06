@@ -22,7 +22,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-4-mini-gpu-int4-rtn-block-32"
           },
           "Phi4MiniCPU": {
@@ -36,7 +36,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
@@ -59,7 +59,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3.5-mini-cpu-int4-awq-block-128-acc-level-4-onnx"
           }
         },
@@ -82,7 +82,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3-mini-4k-directml-int4-awq-block-128-onnx"
           },
           "Phi3MiniCPU": {
@@ -96,7 +96,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3-mini-4k-cpu-int4-rtn-block-32-onnx"
           },
           "Phi3MiniCPUACC4": {
@@ -110,7 +110,7 @@
             "ParameterSize": "3.8B",
             "PromptTemplate": "Phi3",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3-mini-4k-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
@@ -166,7 +166,7 @@
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
             "License": "apache-2.0",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "mistral-7b-v02-int4-directml"
           },
           "Mistral7BInstruct02CPU": {
@@ -192,7 +192,7 @@
             "ParameterSize": "7B",
             "PromptTemplate": "Mistral",
             "License": "apache-2.0",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": ["Playground", "PromptBuilder" ],
             "AIToolkitId": "mistral-7b-v02-int4-cpu"
           }
         },

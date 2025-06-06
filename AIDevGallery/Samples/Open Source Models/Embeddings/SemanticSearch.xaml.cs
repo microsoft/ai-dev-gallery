@@ -145,36 +145,26 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             async () =>
             {
-                IVectorStore? vectorStore = new InMemoryVectorStore();
-                IVectorStoreRecordCollection<int, StringData> embeddingsCollection = vectorStore.GetCollection<int, StringData>("embeddings");
-                await embeddingsCollection.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+                VectorStore? vectorStore = new InMemoryVectorStore();
+                VectorStoreCollection<object, Dictionary<string, object?>> embeddingsCollection = vectorStore.GetDynamicCollection("embeddings", StringData.VectorStoreDefinition);
+                await embeddingsCollection.EnsureCollectionExistsAsync(ct).ConfigureAwait(false);
 
                 List<string> sourceContent = ChunkSourceText(sourceText, 512);
                 GeneratedEmbeddings<Embedding<float>> searchVectors = await _embeddings.GenerateAsync([searchText], null, ct).ConfigureAwait(false);
                 GeneratedEmbeddings<Embedding<float>> sourceVectors = await _embeddings.GenerateAsync(sourceContent, null, ct).ConfigureAwait(false);
 
-                await foreach (var key in embeddingsCollection.UpsertBatchAsync(
-                    sourceVectors.Select((x, i) => new StringData
+                await embeddingsCollection.UpsertAsync(
+                    sourceVectors.Select((x, i) => new Dictionary<string, object?>
                     {
-                        Key = i,
-                        Text = sourceContent[i],
-                        Vector = x.Vector
+                        ["Key"] = i,
+                        ["Text"] = sourceContent[i],
+                        ["Vector"] = x.Vector
                     }),
-                    ct).ConfigureAwait(false))
-                {
-                }
-
-                VectorSearchResults<StringData> vectorSearchResults = await embeddingsCollection.VectorizedSearchAsync(
-                    searchVectors[0].Vector,
-                    new VectorSearchOptions<StringData>
-                    {
-                        // Number of results to return
-                        Top = 5,
-                        VectorProperty = (str) => str.Vector
-                    },
                     ct).ConfigureAwait(false);
 
-                var resultMessage = string.Join("\n\n", vectorSearchResults.Results.ToBlockingEnumerable().Select(r => r.Record.Text));
+                var vectorSearchResults = embeddingsCollection.SearchAsync(searchVectors[0].Vector, 5, null, ct).ToBlockingEnumerable();
+
+                var resultMessage = string.Join("\n\n", vectorSearchResults.Select(r => r.Record["Text"]));
 
                 DispatcherQueue.TryEnqueue(() =>
                 {

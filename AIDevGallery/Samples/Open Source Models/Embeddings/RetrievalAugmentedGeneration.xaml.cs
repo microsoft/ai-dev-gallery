@@ -51,8 +51,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 {
     private EmbeddingGenerator? _embeddings;
     private IChatClient? _chatClient;
-    private IVectorStore? _vectorStore;
-    private IVectorStoreRecordCollection<int, PdfPageData>? _pdfPages;
+    private VectorStore? _vectorStore;
+    private VectorStoreCollection<object, Dictionary<string, object?>>? _pdfPages;
     private StorageFile? _pdfFile;
     private InMemoryRandomAccessStream? _inMemoryRandomAccessStream;
     private CancellationTokenSource? _cts;
@@ -63,17 +63,16 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private int selectedPageIndex = -1;
     private string searchTextBoxInitialText = string.Empty;
 
-    public class PdfPageData
+    private static readonly VectorStoreCollectionDefinition VectorStoreDefinition = new()
     {
-        [VectorStoreRecordKey]
-        public required int Key { get; init; }
-        [VectorStoreRecordData]
-        public required uint Page { get; init; }
-        [VectorStoreRecordData]
-        public required string Text { get; init; }
-        [VectorStoreRecordVector(384, DistanceFunction.CosineSimilarity)]
-        public required ReadOnlyMemory<float> Vector { get; init; }
-    }
+        Properties =
+        [
+            new VectorStoreKeyProperty("Key", typeof(int)),
+            new VectorStoreDataProperty("Page", typeof(uint)),
+            new VectorStoreDataProperty("Text", typeof(string)),
+            new VectorStoreVectorProperty("Vector", typeof(ReadOnlyMemory<float>), 384)
+        ]
+    };
 
     public RetrievalAugmentedGeneration()
     {
@@ -159,8 +158,8 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         CancellationToken ct = _cts.Token;
 
         _vectorStore = new InMemoryVectorStore();
-        _pdfPages = _vectorStore.GetCollection<int, PdfPageData>("pages");
-        await _pdfPages.CreateCollectionIfNotExistsAsync(ct).ConfigureAwait(false);
+        _pdfPages = _vectorStore.GetDynamicCollection("pages", VectorStoreDefinition);
+        await _pdfPages.EnsureCollectionExistsAsync(ct).ConfigureAwait(false);
         int chunksProcessedCount = 0;
 
         try
@@ -183,12 +182,12 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                     await foreach (var embedding in _embeddings.GenerateStreamingAsync(pageChunks.Select(c => c.Text), null, ct).ConfigureAwait(false))
                     {
                         await _pdfPages.UpsertAsync(
-                        new PdfPageData
+                        new Dictionary<string, object?>
                         {
-                            Key = chunksProcessedCount,
-                            Page = pageChunks[i].Page,
-                            Text = pageChunks[i].Text,
-                            Vector = embedding.Vector
+                            ["Key"] = chunksProcessedCount,
+                            ["Page"] = pageChunks[i].Page,
+                            ["Text"] = pageChunks[i].Text,
+                            ["Vector"] = embedding.Vector
                         },
                         ct).ConfigureAwait(false);
                         i++;
@@ -265,28 +264,26 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
         // 4) Search the chunks using the user's prompt, with the same model used for indexing
         var searchVector = await _embeddings.GenerateAsync([searchPrompt], null, _cts.Token);
-        var vectorSearchResults = await _pdfPages.VectorizedSearchAsync(
+        var vectorSearchResults = _pdfPages.SearchAsync(
                 searchVector[0].Vector,
-                new VectorSearchOptions<PdfPageData>
-                {
-                    Top = 5,
-                    VectorProperty = (pdfPageData) => pdfPageData.Vector
-                },
+                5,
+                null,
                 _cts.Token);
 
-        var contents = vectorSearchResults.Results.ToBlockingEnumerable()
+        var contents = vectorSearchResults.ToBlockingEnumerable(_cts.Token)
                 .Select(r => r.Record)
-                .DistinctBy(c => c.Page)
-                .OrderBy(c => c.Page);
+                .DistinctBy(c => c["Page"])
+                .OrderBy(c => (uint)c["Page"]!)
+                .ToList();
 
-        selectedPages = contents.Select(c => c.Page).ToList();
+        selectedPages = [.. contents.Select(c => (uint)c["Page"]!)];
 
         PagesUsedRun.Text = string.Join(", ", selectedPages);
         InformationSV.Visibility = Visibility.Visible;
         await UpdatePdfImageAsync();
 
-        var pagesChunks = contents.GroupBy(c => c.Page)
-            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => c.Text))}");
+        var pagesChunks = contents.GroupBy(c => (uint)c["Page"]!)
+            .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => (string)c["Text"]!))}");
 
         AnswerRun.Text = string.Empty;
         var fullResult = string.Empty;
@@ -473,7 +470,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
 
     private void ToSelectState()
     {
-        _pdfPages?.DeleteCollectionAsync();
+        _pdfPages?.EnsureCollectionDeletedAsync();
         HideProgress();
         _isCancellable = false;
         PdfImageGrid.Visibility = Visibility.Collapsed;

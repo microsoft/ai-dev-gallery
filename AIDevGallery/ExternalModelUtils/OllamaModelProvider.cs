@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
+using OllamaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public HardwareAccelerator ModelHardwareAccelerator => HardwareAccelerator.OLLAMA;
 
-    public List<string> NugetPackageReferences => ["Microsoft.Extensions.AI.Ollama"];
+    public List<string> NugetPackageReferences => ["OllamaSharp"];
 
     public string ProviderDescription => "The model will run locally via Ollama";
 
@@ -138,7 +139,7 @@ internal class OllamaModelProvider : IExternalModelProvider
     public IChatClient? GetIChatClient(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return new OllamaChatClient(Url, modelId);
+        return modelId == null ? null : new OllamaApiClient(Url, modelId);
     }
 
     public string? GetDetailsUrl(ModelDetails details)
@@ -151,6 +152,6 @@ internal class OllamaModelProvider : IExternalModelProvider
     public string? GetIChatClientString(string url)
     {
         var modelId = url.Split('/').LastOrDefault();
-        return $"new OllamaChatClient(\"{Url}\", \"{modelId}\")";
+        return modelId == null ? null : $"new OllamaApiClient(\"{Url}\", \"{modelId}\")";
     }
 }

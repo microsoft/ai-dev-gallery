@@ -174,7 +174,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
                     IsProgressVisible = false;
                 }
 
-                // This isn't working in this version for LoRa
                 textBlock.Text += delta;
                 if (_cts?.IsCancellationRequested == true)
                 {
@@ -184,7 +183,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         };
 
         var result = await operation;
-        textBlock.Text = result.Text;
 
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
     }
