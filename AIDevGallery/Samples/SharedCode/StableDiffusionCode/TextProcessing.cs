@@ -14,15 +14,6 @@ namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class TextProcessing : IDisposable
 {
-    private readonly StableDiffusionConfig config = new()
-    {
-        // Number of denoising steps
-        NumInferenceSteps = 15,
-
-        // Scale for classifier-free guidance
-        GuidanceScale = 7.5
-    };
-
     private InferenceSession? tokenizerInferenceSession;
     private InferenceSession? encoderInferenceSession;
     private bool disposedValue;
@@ -32,6 +23,7 @@ internal class TextProcessing : IDisposable
     }
 
     public static async Task<TextProcessing> CreateAsync(
+        StableDiffusionConfig config,
         string tokenizerPath,
         string encoderPath,
         ExecutionProviderDevicePolicy? policy,
@@ -39,12 +31,12 @@ internal class TextProcessing : IDisposable
         bool compileOption)
     {
         var instance = new TextProcessing();
-        instance.tokenizerInferenceSession = await instance.GetInferenceSession(tokenizerPath, policy, device, compileOption);
-        instance.encoderInferenceSession = await instance.GetInferenceSession(encoderPath, policy, device, compileOption);
+        instance.tokenizerInferenceSession = await instance.GetInferenceSession(config, tokenizerPath, policy, device, compileOption);
+        instance.encoderInferenceSession = await instance.GetInferenceSession(config, encoderPath, policy, device, compileOption);
         return instance;
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
     {
         return Task.Run(async () =>
         {
