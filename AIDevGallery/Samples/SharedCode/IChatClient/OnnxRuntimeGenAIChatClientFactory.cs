@@ -20,39 +20,6 @@ internal static class OnnxRuntimeGenAIChatClientFactory
 
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
 
-    // This is a workaround to ensure that the Config object is disposed
-    // Remove after https://github.com/microsoft/onnxruntime-genai/pull/1364 is merged.
-    private sealed class ConfigDisposingOnnxRuntimeGenAIChatClient : IChatClient, IDisposable
-    {
-        private Config _config;
-        private IChatClient _innerChatClient;
-
-        public ConfigDisposingOnnxRuntimeGenAIChatClient(Config config, OnnxRuntimeGenAIChatClientOptions options)
-        {
-            _config = config;
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            _innerChatClient = new OnnxRuntimeGenAIChatClient(new Model(config), true, options);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-        }
-
-        public Task<ChatResponse> GetResponseAsync(
-            IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
-            _innerChatClient.GetResponseAsync(messages, options, cancellationToken);
-
-        public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-            IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
-            _innerChatClient.GetStreamingResponseAsync(messages, options, cancellationToken);
-
-        object? IChatClient.GetService(Type serviceType, object? serviceKey) =>
-            _innerChatClient.GetService(serviceType, serviceKey);
-
-        public void Dispose()
-        {
-            _innerChatClient.Dispose();
-            _config.Dispose();
-        }
-    }
-
     public static async Task<IChatClient?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, string? provider = null, CancellationToken cancellationToken = default)
     {
         var options = new OnnxRuntimeGenAIChatClientOptions
@@ -79,7 +46,7 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                         config.AppendProvider(provider);
                     }
 
-                    chatClient = new ConfigDisposingOnnxRuntimeGenAIChatClient(config, options);
+                    chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
                     cancellationToken.ThrowIfCancellationRequested();
                 },
                 cancellationToken);
