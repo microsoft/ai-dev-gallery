@@ -27,6 +27,15 @@
     <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true'">
+    <!-- Workaround for tests in WinAppSDK1.8Exp3 -->
+    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
+  </PropertyGroup>
+	
+  <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="**\*.xaml" />
   </ItemGroup>
