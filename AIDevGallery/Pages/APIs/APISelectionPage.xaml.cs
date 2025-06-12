@@ -89,10 +89,24 @@ internal sealed partial class APISelectionPage : Page
     {
         foreach (var item in NavView.MenuItems)
         {
-            if (item is NavigationViewItem navItem && navItem.Tag is ModelType mt && mt == selectedType)
+            if (item is NavigationViewItem navItem)
             {
-                NavView.SelectedItem = navItem;
-                return;
+                if (navItem.Tag is ModelType mt && mt == selectedType)
+                {
+                    NavView.SelectedItem = navItem;
+                    return;
+                }
+                else if (navItem.MenuItems != null && navItem.MenuItems.Count > 0)
+                {
+                    foreach (var subItem in navItem.MenuItems.OfType<NavigationViewItem>())
+                    {
+                        if (subItem.Tag is ModelType subType && subType == selectedType)
+                        {
+                            NavView.SelectedItem = subItem;
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
