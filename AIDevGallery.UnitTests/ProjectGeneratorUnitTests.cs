@@ -203,7 +203,7 @@ public class ProjectGenerator
     }
 
     [TestMethod]
-    [DynamicData(nameof(BatchSource))]
+    [DynamicData(nameof(BatchSource), UnfoldingStrategy = TestDataSourceUnfoldingStrategy.Fold)]
     public async Task GenerateForAllSamples(SampleGroup items)
     {
         await Parallel.ForEachAsync(
@@ -334,7 +334,7 @@ public class ProjectGenerator
         return process.ExitCode == 0;
     }
 
-    [ClassCleanup]
+    [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
     public static void Cleanup()
     {
         Directory.Delete(TmpPathProjectGenerator, true);
