@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         dotnet-configuration: [ 'Release' ]
-        dotnet-arch: ['x64' ] # TODO: enable when Microsoft.ML.OnnxRuntimeGenAI 0.4.0 ships to NuGet.org, 'arm64' ]
+        dotnet-arch: ['x64' ] # TODO: enable arm64' ]
     name: Build MSIX - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-latest
+    runs-on: windows-2025
     permissions:
       contents: read
     steps:
@@ -57,9 +57,9 @@ jobs:
       fail-fast: false
       matrix:
         dotnet-configuration: [ 'Release' ]
-        dotnet-arch: ['x64' ] # TODO: enable when Microsoft.ML.OnnxRuntimeGenAI 0.4.0 ships to NuGet.org, 'arm64' ]
+        dotnet-arch: ['x64' ] # TODO: enable arm64' ]
     name: Test - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-latest
+    runs-on: windows-2025
     permissions:
       contents: read
     steps:
@@ -92,8 +92,8 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
     - name: Build Tests
       run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
-    # - name: Run Tests
-    #   run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.1\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+    - name: Run Tests
+      run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.2\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
     - name: Publish Test Builds If Failed
       if: failure()
       uses: actions/upload-artifact@v4
