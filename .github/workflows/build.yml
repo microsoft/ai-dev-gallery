@@ -18,7 +18,7 @@ jobs:
         dotnet-configuration: [ 'Release' ]
         dotnet-arch: ['x64' ] # TODO: enable arm64' ]
     name: Build MSIX - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-2025
+    runs-on: windows-latest
     permissions:
       contents: read
     steps:
@@ -59,7 +59,7 @@ jobs:
         dotnet-configuration: [ 'Release' ]
         dotnet-arch: ['x64' ] # TODO: enable arm64' ]
     name: Test - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-2025
+    runs-on: windows-latest
     permissions:
       contents: read
     steps:
@@ -83,15 +83,15 @@ jobs:
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} -bl:restore.binlog /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
     - name: Build
       run: |
-        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+        dotnet build AIDevGallery.Utils --no-restore -bl:build_utils.binlog /p:Configuration=${{ matrix.dotnet-configuration }}
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 -bl:build_main.binlog /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Setup Dev Tools
       uses: ilammy/msvc-dev-cmd@v1
     - name: Build Tests
-      run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+      run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0  -bl:build_tests.binlog /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Tests
       run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.build.appxrecipe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.2\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
     - name: Publish Test Builds If Failed
@@ -104,6 +104,13 @@ jobs:
             .\AIDevGallery\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
             .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
             .\AIDevGallery.UnitTests\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+    - name: Publish BinLogs
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: binlogs-${{ matrix.dotnet-arch }}
+        path: |
+            .\**\*.binlog
     - name: Publish Test Results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
