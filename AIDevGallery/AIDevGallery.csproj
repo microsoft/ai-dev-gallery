@@ -25,6 +25,8 @@
     <ApplicationIcon>Assets\AppIcon\Icon.ico</ApplicationIcon>
     <AssemblyTitle>AI Dev Gallery</AssemblyTitle>
     <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
+    <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
+    <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true'">
