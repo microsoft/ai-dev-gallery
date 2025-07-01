@@ -329,6 +329,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
                         AnswerButtonLabel.Text = "Answer";
                         SearchTextBox.IsEnabled = true;
                     });
+
+                    _cts?.Dispose();
+                    _cts = null;
                 }
             });
     }
