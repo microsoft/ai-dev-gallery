@@ -5,30 +5,95 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 
 internal class SafetyChecker : IDisposable
 {
-    private readonly InferenceSession safetyCheckerInferenceSession;
-    private readonly SessionOptions sessionOptions;
+    private InferenceSession? safetyCheckerInferenceSession;
     private bool disposedValue;
 
-    public SafetyChecker(string safetyPath, SessionOptions options)
+    private SafetyChecker()
     {
-        sessionOptions = options;
-        safetyCheckerInferenceSession = new InferenceSession(safetyPath, sessionOptions);
+    }
+
+    public static async Task<SafetyChecker> CreateAsync(
+        string modelPath,
+        ExecutionProviderDevicePolicy? policy,
+        string? device,
+        bool compileOption)
+    {
+        var instance = new SafetyChecker();
+        instance.safetyCheckerInferenceSession = await instance.GetInferenceSession(modelPath, policy, device, compileOption);
+        return instance;
+    }
+
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    {
+        return Task.Run(async () =>
+        {
+            if (!File.Exists(modelPath))
+            {
+                throw new FileNotFoundException("Model file not found.", modelPath);
+            }
+
+            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+
+            try
+            {
+                await infrastructure.DownloadPackagesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            }
+
+            await infrastructure.RegisterExecutionProviderLibrariesAsync();
+
+            SessionOptions sessionOptions = new();
+            sessionOptions.RegisterOrtExtensions();
+
+            sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
+            sessionOptions.AddFreeDimensionOverrideByName("channels", 3);
+            sessionOptions.AddFreeDimensionOverrideByName("height", 224);
+            sessionOptions.AddFreeDimensionOverrideByName("width", 224);
+
+            if (policy != null)
+            {
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
+            }
+            else if (device != null)
+            {
+                sessionOptions.AppendExecutionProviderFromEpName(device);
+
+                if (compileOption)
+                {
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                }
+            }
+
+            InferenceSession inferenceSession = new(modelPath, sessionOptions);
+            return inferenceSession;
+        });
     }
 
     public bool IsNotSafe(Tensor<float> resultImage, StableDiffusionConfig config)
     {
+        if (safetyCheckerInferenceSession == null)
+        {
+            throw new InvalidOperationException("SafetyChecker is not initialized.");
+        }
+
         // clip input
         var inputTensor = ClipImageFeatureExtractor(resultImage, config);
 
         // images input
-        var inputImagesTensor = ReorderTensor(inputTensor);
+        var inputImagesTensor = inputTensor;
 
         var input = new List<NamedOnnxValue>
         {
@@ -93,7 +158,7 @@ internal class SafetyChecker : IDisposable
     {
         if (!disposedValue)
         {
-            if (disposing)
+            if (disposing && safetyCheckerInferenceSession != null)
             {
                 safetyCheckerInferenceSession.Dispose();
             }

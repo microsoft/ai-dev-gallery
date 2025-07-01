@@ -119,12 +119,15 @@ internal sealed partial class ScenarioSelectionPage : Page
                 if (filter != null)
                 {
                     var models = GetModelsForScenario(scenario);
-                    if (filter == "gpu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.DML)))
+                    if (filter == "gpu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.DML) || m.HardwareAccelerators.Contains(HardwareAccelerator.GPU)))
                     {
                         continue;
                     }
 
-                    if (filter == "npu" && !models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && !m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
+                    if (filter == "npu"
+                        && !models.Any(m => (m.HardwareAccelerators.Contains(HardwareAccelerator.QNN)
+                            || m.HardwareAccelerators.Contains(HardwareAccelerator.NPU))
+                        && !m.Url.StartsWith("file", System.StringComparison.InvariantCultureIgnoreCase)))
                     {
                         continue;
                     }

@@ -49,7 +49,22 @@ internal sealed partial class APISelectionPage : Page
             {
                 if (ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(item, out var apiDefinition))
                 {
-                    NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
+                    if (!string.IsNullOrWhiteSpace(apiDefinition.Category))
+                    {
+                        NavigationViewItem? existingItem = NavView.MenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => i.Content is string name && name == apiDefinition.Category);
+
+                        if (existingItem == null)
+                        {
+                            existingItem = new NavigationViewItem() { Content = apiDefinition.Category, Icon = new FontIcon() { Glyph = "\uF0E2" }, SelectsOnInvoked = false, IsExpanded = true };
+                            NavView.MenuItems.Add(existingItem);
+                        }
+
+                        existingItem.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
+                    }
+                    else
+                    {
+                        NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
+                    }
                 }
             }
         }
@@ -74,10 +89,24 @@ internal sealed partial class APISelectionPage : Page
     {
         foreach (var item in NavView.MenuItems)
         {
-            if (item is NavigationViewItem navItem && navItem.Tag is ModelType mt && mt == selectedType)
+            if (item is NavigationViewItem navItem)
             {
-                NavView.SelectedItem = navItem;
-                return;
+                if (navItem.Tag is ModelType mt && mt == selectedType)
+                {
+                    NavView.SelectedItem = navItem;
+                    return;
+                }
+                else if (navItem.MenuItems != null && navItem.MenuItems.Count > 0)
+                {
+                    foreach (var subItem in navItem.MenuItems.OfType<NavigationViewItem>())
+                    {
+                        if (subItem.Tag is ModelType subType && subType == selectedType)
+                        {
+                            NavView.SelectedItem = subItem;
+                            return;
+                        }
+                    }
+                }
             }
         }
     }

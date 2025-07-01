@@ -18,7 +18,15 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, -1 ],
+              [ -1, -1 ],
+              [ -1, -1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1, 384]
             ],
             "Size": 90636722,
             "License": "apache-2.0",
@@ -43,7 +51,15 @@
             "Description": "This is an embedding model executed on the CPU or GPU",
             "HardwareAccelerator": [
               "CPU",
-              "DML"
+              "GPU"
+            ],
+            "InputDimensions": [
+              [ -1, -1 ],
+              [ -1, -1 ],
+              [ -1, -1 ]
+            ],
+            "OutputDimensions": [
+              [ -1, -1, 384 ]
             ],
             "Size": 133358075,
             "License": "apache-2.0",

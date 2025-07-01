@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.UI.Xaml;
 using NAudio.Wave;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     ],
     NugetPackageReferences = [
         "NAudio.WinMM",
-        "Microsoft.ML.OnnxRuntime.DirectML",
+        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     Id = "a969cb7a-67c3-4675-9ab1-7c5f9f0f8dd6",
@@ -48,8 +49,16 @@ internal sealed partial class WhisperAudioTranslation : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath);
-        sampleParams.NotifyCompletion();
+        try
+        {
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+            sampleParams.NotifyCompletion();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load model.");
+            return;
+        }
     }
 
     // <exclude>

@@ -135,6 +135,27 @@ internal static class AppUtils
         return string.Join(", ", hardwareAcceleratorsStrings);
     }
 
+    public static string GetModelTypeStringFromHardwareAccelerators(List<HardwareAccelerator> hardwareAccelerators)
+    {
+        if (hardwareAccelerators.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        if (hardwareAccelerators.Any(h => h == HardwareAccelerator.GPU ||
+                                    h == HardwareAccelerator.DML
+                                    || h == HardwareAccelerator.NPU
+                                    || h == HardwareAccelerator.QNN
+                                    || h == HardwareAccelerator.VitisAI
+                                    || h == HardwareAccelerator.OpenVINO
+                                    || h == HardwareAccelerator.CPU))
+        {
+            return "ONNX";
+        }
+
+        return GetHardwareAcceleratorString(hardwareAccelerators.First());
+    }
+
     public static string GetHardwareAcceleratorString(HardwareAccelerator hardwareAccelerator)
     {
         if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))
@@ -149,8 +170,10 @@ internal static class AppUtils
         switch (hardwareAccelerator)
         {
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "GPU";
             case HardwareAccelerator.QNN:
+            case HardwareAccelerator.NPU:
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
                 return "Windows AI API";
@@ -176,13 +199,15 @@ internal static class AppUtils
             case HardwareAccelerator.CPU:
                 return "This model will run on CPU";
             case HardwareAccelerator.DML:
+            case HardwareAccelerator.GPU:
                 return "This model will run on supported GPUs with DirectML";
             case HardwareAccelerator.QNN:
-                return "This model will run on Qualcomm NPUs";
+            case HardwareAccelerator.NPU:
+                return "This model will run on NPUs";
             case HardwareAccelerator.WCRAPI:
                 return "The model used by this Windows AI API will run on NPU";
             case HardwareAccelerator.OLLAMA:
-                return "The model will run localy via Ollama";
+                return "The model will run locally via Ollama";
         }
     }
 
@@ -237,18 +262,11 @@ internal static class AppUtils
     {
         if (url.StartsWith("https://github", StringComparison.OrdinalIgnoreCase))
         {
-            if (App.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light)
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.light.svg"));
-            }
-            else
-            {
-                return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/GitHub.dark.svg"));
-            }
+            return new SvgImageSource(new Uri($"ms-appx:///Assets/ModelIcons/GitHub{GetThemeAssetSuffix()}.svg"));
         }
         else if (url.StartsWith("local", StringComparison.OrdinalIgnoreCase))
         {
-            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/onnx.svg"));
+            return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/Onnx.svg"));
         }
         else
         {
@@ -259,6 +277,11 @@ internal static class AppUtils
 
             return new SvgImageSource(new Uri("ms-appx:///Assets/ModelIcons/HuggingFace.svg"));
         }
+    }
+
+    public static string GetThemeAssetSuffix()
+    {
+        return App.Current.RequestedTheme == ApplicationTheme.Dark ? ".dark" : ".light";
     }
 
     public static StyleDictionary GetCodeHighlightingStyleFromElementTheme(ElementTheme theme)

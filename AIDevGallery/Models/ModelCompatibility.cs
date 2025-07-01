@@ -34,7 +34,7 @@ internal class ModelCompatibility
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
             var availbility = WcrApiHelpers.GetApiAvailability(apiType);
-            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
@@ -54,7 +54,9 @@ internal class ModelCompatibility
         {
             compatibility = ModelCompatibilityState.Compatible;
         }
-        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && !DeviceUtils.IsArm64())
+        else if (
+            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
+            && !DeviceUtils.IsArm64())
         {
             var vram = DeviceUtils.GetVram();
             var minimumSizeNeeded = Math.Round((float)(modelDetails.Size / BytesInGB), 1);
@@ -86,7 +88,9 @@ internal class ModelCompatibility
                 }
             }
         }
-        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) && DeviceUtils.IsArm64())
+        else if (
+            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
+            && DeviceUtils.IsArm64())
         {
             compatibility = ModelCompatibilityState.NotCompatible;
             description = "This model is not currently supported on Arm64 devices.";

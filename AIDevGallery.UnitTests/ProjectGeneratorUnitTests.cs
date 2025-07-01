@@ -203,7 +203,7 @@ public class ProjectGenerator
     }
 
     [TestMethod]
-    [DynamicData(nameof(BatchSource))]
+    [DynamicData(nameof(BatchSource), UnfoldingStrategy = TestDataSourceUnfoldingStrategy.Fold)]
     public async Task GenerateForAllSamples(SampleGroup items)
     {
         await Parallel.ForEachAsync(
@@ -301,7 +301,7 @@ public class ProjectGenerator
         {
             FileName = @"C:\Program Files\dotnet\dotnet",
             WorkingDirectory = projectPath,
-            Arguments = $"build {safeProjectName}.csproj -r win-{arch} -f {Generator.DotNetVersion}-windows10.0.22621.0 /p:Configuration=Release /p:Platform={arch} /flp:logfile={logFileName}",
+            Arguments = $"build {safeProjectName}.csproj -r win-{arch} -f {Generator.DotNetVersion}-windows10.0.26100.0 /p:Configuration=Release /p:Platform={arch} /flp:logfile={logFileName}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -334,7 +334,7 @@ public class ProjectGenerator
         return process.ExitCode == 0;
     }
 
-    [ClassCleanup]
+    [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
     public static void Cleanup()
     {
         Directory.Delete(TmpPathProjectGenerator, true);

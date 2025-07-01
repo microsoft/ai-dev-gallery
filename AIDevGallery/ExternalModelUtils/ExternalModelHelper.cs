@@ -8,7 +8,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils;
@@ -16,14 +18,11 @@ namespace AIDevGallery.ExternalModelUtils;
 internal static class ExternalModelHelper
 {
     private static List<IExternalModelProvider> _modelProviders = [
-        new OllamaModelProvider(),
-        new OpenAIModelProvider()
+        FoundryLocalModelProvider.Instance,
+        OllamaModelProvider.Instance,
+        OpenAIModelProvider.Instance,
+        LemonadeModelProvider.Instance
     ];
-
-    public static async Task InitializeAsync()
-    {
-        await Task.WhenAll(_modelProviders.Select(provider => provider.InitializeAsync()));
-    }
 
     public static async Task<IEnumerable<ModelDetails>> GetAllModelsAsync()
     {
@@ -115,9 +114,7 @@ internal static class ExternalModelHelper
         var provider = GetProvider(url);
         return provider == null
                 ? "HuggingFace.svg"
-            : Microsoft.UI.Xaml.Application.Current.RequestedTheme == Microsoft.UI.Xaml.ApplicationTheme.Light
-                ? provider.LightIcon
-                : provider.DarkIcon;
+            : provider.Icon;
     }
 
     public static IChatClient? GetIChatClient(string url)
@@ -133,5 +130,32 @@ internal static class ExternalModelHelper
     public static string? GetIChatClientString(string url)
     {
         return GetProvider(url)?.GetIChatClientString(url);
+    }
+
+    public static async Task<(string Output, string Error, int ExitCode)?> GetFromProcessAsync(string command, string args, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var p = new Process();
+            p.StartInfo.FileName = command;
+            p.StartInfo.Arguments = args;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+
+            p.Start();
+
+            string output = await p.StandardOutput.ReadToEndAsync(cancellationToken);
+            string error = await p.StandardError.ReadToEndAsync(cancellationToken);
+
+            await p.WaitForExitAsync(cancellationToken);
+
+            return (output, error, p.ExitCode);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }

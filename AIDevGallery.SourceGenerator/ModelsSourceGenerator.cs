@@ -253,6 +253,8 @@ internal class ModelSourceGenerator : IIncrementalGenerator
             var aiToolkitActions = modelDefinition.AIToolkitActions != null ? string.Join(", ", modelDefinition.AIToolkitActions.Select(action => $"AIToolkitAction.{action}")) : string.Empty;
             var aiToolkitId = !string.IsNullOrEmpty(modelDefinition.AIToolkitId) ? $"\"{modelDefinition.AIToolkitId}\"" : "null";
             var aiToolkitFinetuningId = !string.IsNullOrEmpty(modelDefinition.AIToolkitFinetuningId) ? $"\"{modelDefinition.AIToolkitFinetuningId}\"" : "null";
+            var inputDimensions = modelDefinition.InputDimensions != null ? "[ " + string.Join(", ", modelDefinition.InputDimensions.Select(dimension => "[" + string.Join(", ", dimension.Select(d => d.ToString())) + "]")) + "]" : "null";
+            var outputDimensions = modelDefinition.OutputDimensions != null ? "[ " + string.Join(", ", modelDefinition.OutputDimensions.Select(dimension => "[" + string.Join(", ", dimension.Select(d => d.ToString())) + "]")) + "]" : "null";
 
             sourceBuilder.AppendLine(
                 $$""""
@@ -274,7 +276,9 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 FileFilters = [ {{fileFilters}} ],
                                 AIToolkitActions = [ {{aiToolkitActions}} ],
                                 AIToolkitId = {{aiToolkitId}},
-                                AIToolkitFinetuningId = {{aiToolkitFinetuningId}}
+                                AIToolkitFinetuningId = {{aiToolkitFinetuningId}},
+                                InputDimensions = {{inputDimensions}},
+                                OutputDimensions = {{outputDimensions}}
                             }
                         },
                 """");
@@ -330,8 +334,9 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 IconGlyph = "{{apiDefinition.IconGlyph}}",
                                 Description = "{{apiDefinition.Description}}",
                                 ReadmeUrl = "{{apiDefinition.ReadmeUrl}}",
-                                License = "{{apiDefinition.License}}",
-                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $"SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
+                                License = "{{apiDefinition.License}}"
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $",SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.Category) ? $",Category = \"{apiDefinition.Category}\"" : string.Empty)}}
                             }
                         },
                 """");

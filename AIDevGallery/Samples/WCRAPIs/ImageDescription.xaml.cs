@@ -8,8 +8,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.ContentModeration;
-using Microsoft.Windows.AI.Generative;
+using Microsoft.Windows.AI.ContentSafety;
+using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,7 +40,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
     {
         { "Accessible", ImageDescriptionKind.AccessibleDescription },
         { "Caption", ImageDescriptionKind.BriefDescription },
-        { "Detailed", ImageDescriptionKind.DetailedDescrition },
+        { "Detailed", ImageDescriptionKind.DetailedDescription },
         { "OfficeCharts", ImageDescriptionKind.DiagramDescription },
     };
 
@@ -57,9 +57,9 @@ internal sealed partial class ImageDescription : BaseSamplePage
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
         var readyState = ImageDescriptionGenerator.GetReadyState();
-        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.EnsureNeeded)
+        if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
-            if (readyState == AIFeatureReadyState.EnsureNeeded)
+            if (readyState == AIFeatureReadyState.NotReady)
             {
                 var operation = await ImageDescriptionGenerator.EnsureReadyAsync();
 
@@ -167,10 +167,10 @@ internal sealed partial class ImageDescription : BaseSamplePage
         SoftwareBitmap convertedImage = SoftwareBitmap.Convert(inputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         await bitmapSource.SetBitmapAsync(convertedImage);
         ImageSrc.Source = bitmapSource;
-        DescribeImage(inputBitmap, _currentKind);
+        await DescribeImage(inputBitmap, _currentKind);
     }
 
-    private async void DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
+    private async Task DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
     {
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
@@ -185,7 +185,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         var isFirstWord = true;
         try
         {
-            using var bitmapBuffer = ImageBuffer.CreateCopyFromBitmap(bitmap);
+            using var bitmapBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
             _imageDescriptor ??= await ImageDescriptionGenerator.CreateAsync();
             var describeTask = _imageDescriptor.DescribeAsync(bitmapBuffer, descriptionKind, new ContentFilterOptions());
             if (describeTask != null)
@@ -244,7 +244,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
         {
             _currentKind = newKind;
             ScenarioSelectTextblock.Text = flyoutItem.Text;
-            DescribeImage(_currentBitmap!, _currentKind);
+            _ = DescribeImage(_currentBitmap!, _currentKind);
         }
     }
 }
