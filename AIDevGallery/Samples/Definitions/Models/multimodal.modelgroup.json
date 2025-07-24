@@ -21,7 +21,7 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": [ "Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3-vision-128k-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
@@ -43,7 +43,7 @@
             "Icon": "Microsoft.svg",
             "ParameterSize": "4.2B",
             "License": "mit",
-            "AIToolkitActions": [ "BulkRun", "Playground", "PromptBuilder" ],
+            "AIToolkitActions": [ "Playground", "PromptBuilder" ],
             "AIToolkitId": "Phi-3.5-vision-cpu-int4-rtn-block-32-acc-level-4-onnx"
           }
         },
