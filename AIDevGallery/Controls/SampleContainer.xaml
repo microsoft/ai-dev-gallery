@@ -199,16 +199,21 @@
                             HorizontalScrollMode="Auto"
                             VerticalScrollBarVisibility="Auto"
                             ViewChanging="ScrollViewer_ViewChanging">
-                            <RichTextBlock
-                                x:Name="CodeTextBlock"
-                                Grid.Column="1"
-                                Padding="8,16"
-                                FontFamily="Consolas"
-                                FontSize="14"
-                                FontWeight="Light"
-                                IsTextSelectionEnabled="True"
-                                LineHeight="16"
-                                TextWrapping="NoWrap" />
+                            <Border 
+                                IsTabStop="True" 
+                                Background="Transparent" 
+                                x:Name="RichTextBlockBorder">
+                                <RichTextBlock
+                                    x:Name="CodeTextBlock"
+                                    Grid.Column="1"
+                                    Padding="8,16"
+                                    FontFamily="Consolas"
+                                    FontSize="14"
+                                    FontWeight="Light"
+                                    IsTextSelectionEnabled="True"
+                                    LineHeight="16"
+                                    TextWrapping="NoWrap" />
+                            </Border>
                         </ScrollViewer>
                     </Grid>
                 </Grid>
