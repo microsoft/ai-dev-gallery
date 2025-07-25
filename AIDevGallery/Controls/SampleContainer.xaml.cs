@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
@@ -9,6 +9,7 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using System;
@@ -139,6 +140,15 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
+
+        // Narrator speak
+        var peer = FrameworkElementAutomationPeer.FromElement(SampleCardGrid);
+        if (peer == null)
+        {
+            peer = new FrameworkElementAutomationPeer(SampleCardGrid);
+        }
+
+        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, "Loading Ring Container", "LoadingRingContainerId");
 
         SetFooterVisualStates();
         ShowDebugInfo(null);
