@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -142,13 +143,12 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         // Narrator speak
-        var peer = FrameworkElementAutomationPeer.FromElement(SampleCardGrid);
-        if (peer == null)
-        {
-            peer = new FrameworkElementAutomationPeer(SampleCardGrid);
-        }
-
-        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, "Loading Ring Container", "LoadingRingContainerId");
+        SampleCardGrid.Visibility = Visibility.Collapsed;
+        await Task.Delay(100);
+        SampleCardGrid.Visibility = Visibility.Visible;
+        SampleCardGrid.Focus(FocusState.Programmatic);
+        var peer = new FrameworkElementAutomationPeer(SampleCardGrid);
+        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.All, "Loading Ring Container", "LoadingRingContainerId");
 
         SetFooterVisualStates();
         ShowDebugInfo(null);
