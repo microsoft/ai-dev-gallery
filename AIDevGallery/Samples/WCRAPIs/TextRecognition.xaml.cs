@@ -223,18 +223,26 @@ internal sealed partial class TextRecognition : BaseSamplePage
                 Padding = new Thickness(4, 3, 4, 4)
             };
 
-            TextBlock block = new TextBlock
+            try
             {
-                IsTextSelectionEnabled = true,
-                Foreground = new SolidColorBrush(Colors.White),
-                Text = line.Text,
-                FontSize = Math.Abs((int)line.BoundingBox.TopRight.Y - (int)line.BoundingBox.BottomRight.Y) * .85,
-            };
+                var height = Math.Abs((int)line.BoundingBox.TopRight.Y - (int)line.BoundingBox.BottomRight.Y) * .85;
+                TextBlock block = new TextBlock
+                {
+                    IsTextSelectionEnabled = true,
+                    Foreground = new SolidColorBrush(Colors.White),
+                    Text = line.Text,
+                    FontSize = height > 0 ? height : 1,
+                };
 
-            grid.Children.Add(block);
-            RectCanvas.Children.Add(grid);
-            Canvas.SetLeft(grid, line.BoundingBox.TopLeft.X);
-            Canvas.SetTop(grid, line.BoundingBox.TopLeft.Y);
+                grid.Children.Add(block);
+                RectCanvas.Children.Add(grid);
+                Canvas.SetLeft(grid, line.BoundingBox.TopLeft.X);
+                Canvas.SetTop(grid, line.BoundingBox.TopLeft.Y);
+            }
+            catch
+            {
+                continue;
+            }
         }
 
         _recognizedTextString = string.Join('\n', lines);
