@@ -528,6 +528,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         LineNumbersTextBlock.Text = lineNumbers.ToString();
+        RichTextBlockBorder.Focus(FocusState.Programmatic);
     }
 
     private void ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
