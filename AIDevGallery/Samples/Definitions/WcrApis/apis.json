@@ -10,7 +10,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE8F2",
         "Description": "Generate text.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
         "Category": "Phi Silica"
@@ -21,7 +21,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEA54",
         "Description": "Generate text using adapter.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica-lora.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica-lora",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12",
         "Category": "Phi Silica"
@@ -32,7 +32,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEDC6",
         "Description": "Summarizes text.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3b0582ef-3278-489a-8f71-3ee1379aed2b",
         "Category": "Phi Silica"
@@ -43,7 +43,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEE56",
         "Description": "Rewrites text.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b",
         "Category": "Phi Silica"
@@ -54,7 +54,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE80A",
         "Description": "Convert Text To Table.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "ff611809-aa53-47e1-a5d9-5210f01b2e3d",
         "Category": "Phi Silica"
@@ -65,7 +65,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7A8",
         "Description": "Recognize and extract text from an image.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/text-recognition.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/text-recognition",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b"
       },
@@ -75,7 +75,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEF20",
         "Description": "Scales an image to a specified size.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/imaging",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "f1e235d1-f1c9-41c7-b489-7e4f95e54668"
       },
@@ -85,7 +85,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7C5",
         "Description": "Remove the background from an image.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/imaging",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559"
       },
@@ -95,7 +95,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE799",
         "Description": "Generate a description of an image.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/imaging",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "a1b1f64f-bc57-41a3-8fb3-ac8f1536d757"
       },
@@ -105,7 +105,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uED61",
         "Description": "Remove an object from an image.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "ReadmeUrl": "https://learn.microsoft.com/windows/ai/apis/imaging",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       }
