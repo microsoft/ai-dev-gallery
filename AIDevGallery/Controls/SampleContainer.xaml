@@ -11,7 +11,12 @@
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
     mc:Ignorable="d">
-    <Grid VerticalAlignment="Stretch">
+    <Grid
+        VerticalAlignment="Stretch"
+        IsTabStop="True" 
+        Background="Transparent" 
+        x:Name="SampleCardGrid"
+        AutomationProperties.AccessibilityView="Content">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
