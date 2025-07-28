@@ -10,6 +10,5 @@ internal enum AIToolkitAction
 {
     FineTuning,
     PromptBuilder,
-    BulkRun,
     Playground
 }
