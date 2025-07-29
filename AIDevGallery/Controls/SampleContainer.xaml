@@ -11,7 +11,12 @@
     VerticalContentAlignment="Stretch"
     ActualThemeChanged="UserControl_ActualThemeChanged"
     mc:Ignorable="d">
-    <Grid VerticalAlignment="Stretch">
+    <Grid
+        VerticalAlignment="Stretch"
+        IsTabStop="True" 
+        Background="Transparent" 
+        x:Name="SampleCardGrid"
+        AutomationProperties.AccessibilityView="Content">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -199,16 +204,21 @@
                             HorizontalScrollMode="Auto"
                             VerticalScrollBarVisibility="Auto"
                             ViewChanging="ScrollViewer_ViewChanging">
-                            <RichTextBlock
-                                x:Name="CodeTextBlock"
-                                Grid.Column="1"
-                                Padding="8,16"
-                                FontFamily="Consolas"
-                                FontSize="14"
-                                FontWeight="Light"
-                                IsTextSelectionEnabled="True"
-                                LineHeight="16"
-                                TextWrapping="NoWrap" />
+                            <Border 
+                                IsTabStop="True" 
+                                Background="Transparent" 
+                                x:Name="RichTextBlockBorder">
+                                <RichTextBlock
+                                    x:Name="CodeTextBlock"
+                                    Grid.Column="1"
+                                    Padding="8,16"
+                                    FontFamily="Consolas"
+                                    FontSize="14"
+                                    FontWeight="Light"
+                                    IsTextSelectionEnabled="True"
+                                    LineHeight="16"
+                                    TextWrapping="NoWrap" />
+                            </Border>
                         </ScrollViewer>
                     </Grid>
                 </Grid>

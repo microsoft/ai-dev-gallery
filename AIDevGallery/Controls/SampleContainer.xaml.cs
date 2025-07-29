@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
@@ -9,6 +9,7 @@ using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using System;
@@ -139,6 +140,14 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
+
+        // Narrator speak
+        SampleCardGrid.Visibility = Visibility.Collapsed;
+        await Task.Delay(100);
+        SampleCardGrid.Visibility = Visibility.Visible;
+        SampleCardGrid.Focus(FocusState.Programmatic);
+        var peer = new FrameworkElementAutomationPeer(SampleCardGrid);
+        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.All, "Loading Ring Container", "LoadingRingContainerId");
 
         SetFooterVisualStates();
         ShowDebugInfo(null);
@@ -518,6 +527,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         LineNumbersTextBlock.Text = lineNumbers.ToString();
+        RichTextBlockBorder.Focus(FocusState.Programmatic);
     }
 
     private void ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)

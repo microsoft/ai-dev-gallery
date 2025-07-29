@@ -225,7 +225,12 @@ internal sealed partial class MainWindow : WindowEx
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
         {
             var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(sender.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-            SearchBox.ItemsSource = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label);
+            var orderedResults = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label).ToList();
+            SearchBox.ItemsSource = orderedResults;
+
+            var resultCount = orderedResults.Count;
+            string announcement = $"Searching for '{sender.Text}', {resultCount} search result{(resultCount == 1 ? string.Empty : 's')} found";
+            NarratorHelper.Announce(SearchBox, announcement, "searchSuggestionsActivityId");
         }
     }
 
