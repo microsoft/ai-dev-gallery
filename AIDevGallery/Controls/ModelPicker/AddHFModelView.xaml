@@ -80,7 +80,8 @@
                         Content="{ui:FontIcon Glyph=&#xE721;,
                                               FontSize=16}"
                         IsEnabled="{Binding ElementName=SearchTextBox, Path=Text, Converter={StaticResource EmptyStringToObjectConverter}}"
-                        Style="{StaticResource AccentButtonStyle}" />
+                        Style="{StaticResource AccentButtonStyle}"
+                        ToolTipService.ToolTip="Search" />
                 </Grid>
             </StackPanel>
 
