@@ -267,6 +267,7 @@
                                 Padding="0"
                                 VerticalAlignment="Top"
                                 AutomationProperties.Name="Warning"
+                                AutomationProperties.HelpText="{x:Bind Details.Compatibility.CompatibilityIssueDescription}"
                                 Style="{StaticResource SubtleButtonStyle}"
                                 ToolTipService.ToolTip="Warning"
                                 Visibility="{x:Bind VisibleWhenCompatibilityIssue}">
