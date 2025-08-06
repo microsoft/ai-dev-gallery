@@ -23,7 +23,7 @@ This document describes the steps to publish a new version of the AI Dev Gallery
     nbgv prepare-release
     ```
 
-    This will update the version number in the `version.json` file on the current branch (main), and create a commit with an updated version number. By default it will increment the patch version number, but you can find more information about nbgv's cli [here](https://github.com/dotnet/Nerdbank.GitVersioning/blob/main/doc/nbgv-cli.md).
+    This will update the version number in the `version.json` file on the current branch (main), and create a commit with an updated version number. By default it will increment the patch version number, but you can find more information about nbgv's cli [here](https://github.com/dotnet/Nerdbank.GitVersioning/blob/main/docfx/docs/nbgv-cli.md).
 
     It will also create a new branch with the name `rel/vX.Y.Z` where `X.Y.Z` is the `current` version number. This is the release branch, which will be automatically checked out after the command is executed.
 
