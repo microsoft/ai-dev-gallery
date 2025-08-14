@@ -12,6 +12,7 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <NoWarn>CS8305;WMC1501</NoWarn>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
     
@@ -29,6 +30,10 @@
     <!-- 调试配置 -->
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    
+    <!-- WinUI 3 配置 -->
+    <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -70,6 +75,11 @@
     <PackageReference Include="Microsoft.Windows.AI.MachineLearning" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" />
+    <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
+    <PackageReference Include="Microsoft.Graphics.Win2D" />
   </ItemGroup>
 
   <!-- 调试配置 -->
