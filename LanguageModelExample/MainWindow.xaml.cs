@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace LanguageModelExample
 {
@@ -45,7 +46,8 @@ namespace LanguageModelExample
             ClearSummaryButton.Click += ClearSummaryButton_Click;
             ClearRewriteButton.Click += ClearRewriteButton_Click;
             ClearTableButton.Click += ClearTableButton_Click;
-            RefreshDebugInfoButton.Click += RefreshDebugInfoButton_Click;
+            ClearLogButton.Click += ClearLogButton_Click;
+            CopyLogButton.Click += CopyLogButton_Click;
             
             // 初始化日志
             InitializeLogger();
@@ -63,6 +65,8 @@ namespace LanguageModelExample
             {
                 builder.AddDebug();
                 builder.SetMinimumLevel(LogLevel.Debug);
+                // 添加自定义日志提供程序，将日志输出到状态栏
+                builder.AddProvider(new StatusBarLoggerProvider(this));
             });
             _logger = loggerFactory.CreateLogger<MainWindow>();
         }
@@ -383,7 +387,41 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
         private void UpdateStatus(string message)
         {
             StatusTextBlock.Text = message;
+            AddLogMessage($"状态: {message}");
             _logger?.LogInformation("状态更新: {Message}", message);
+        }
+
+        private void AddLogMessage(string message)
+        {
+            try
+            {
+                var timestamp = DateTime.Now.ToString("HH:mm:ss");
+                var logEntry = $"[{timestamp}] {message}";
+                
+                // 在UI线程中更新日志
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (LogTextBlock.Text == "日志将在这里显示...")
+                    {
+                        LogTextBlock.Text = logEntry;
+                    }
+                    else
+                    {
+                        LogTextBlock.Text += $"\n{logEntry}";
+                    }
+                    
+                    // 自动滚动到底部
+                    var scrollViewer = LogTextBlock.Parent as ScrollViewer;
+                    if (scrollViewer != null)
+                    {
+                        scrollViewer.ChangeView(null, scrollViewer.ScrollableHeight, null);
+                    }
+                });
+            }
+            catch
+            {
+                // 忽略日志更新过程中的任何错误
+            }
         }
 
         private void ShowError(string message)
@@ -426,6 +464,95 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
             if (appWindow != null)
             {
                 appWindow.Resize(new Windows.Graphics.SizeInt32 { Width = width, Height = height });
+            }
+        }
+
+        private void ClearLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            LogTextBlock.Text = "日志已清空";
+            AddLogMessage("日志已清空");
+        }
+
+        private async void CopyLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(LogTextBlock.Text);
+                Clipboard.SetContent(dataPackage);
+                
+                UpdateStatus("日志已复制到剪贴板");
+                AddLogMessage("日志已复制到剪贴板");
+            }
+            catch (Exception ex)
+            {
+                ShowError($"复制日志失败: {ex.Message}");
+            }
+        }
+    }
+
+    // 自定义日志提供程序，将日志输出到状态栏
+    public class StatusBarLoggerProvider : ILoggerProvider
+    {
+        private readonly MainWindow _mainWindow;
+
+        public StatusBarLoggerProvider(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+        }
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new StatusBarLogger(_mainWindow);
+        }
+
+        public void Dispose()
+        {
+            // 无需特殊清理
+        }
+    }
+
+    // 自定义日志记录器
+    public class StatusBarLogger : ILogger
+    {
+        private readonly MainWindow _mainWindow;
+
+        public StatusBarLogger(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+        }
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true; // 启用所有日志级别
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            try
+            {
+                var message = formatter(state, exception);
+                var logMessage = $"[{logLevel}] {message}";
+                
+                if (exception != null)
+                {
+                    logMessage += $" | 异常: {exception.Message}";
+                }
+
+                // 在UI线程中更新日志区域，而不是状态栏
+                _mainWindow.DispatcherQueue.TryEnqueue(() =>
+                {
+                    _mainWindow.AddLogMessage(logMessage);
+                });
+            }
+            catch
+            {
+                // 忽略日志记录过程中的任何错误
             }
         }
     }
