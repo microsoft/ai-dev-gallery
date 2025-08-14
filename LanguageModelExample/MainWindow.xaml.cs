@@ -184,6 +184,7 @@ namespace LanguageModelExample
                 AddLogMessage($"❌ 初始化过程中发生异常:");
                 AddLogMessage($"  📋 异常类型: {ex.GetType().Name}");
                 AddLogMessage($"  📋 异常消息: {ex.Message}");
+                AddLogMessage($"  📋 异常消息: {ex.ToString()}");
                 if (ex.InnerException != null)
                 {
                     AddLogMessage($"  📋 内部异常: {ex.InnerException.Message}");
