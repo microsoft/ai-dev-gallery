@@ -470,8 +470,9 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
-
-        if (WcrApiHelpers.GetApiAvailability(_wcrApi.Value) != AIFeatureReadyState.Ready)
+        AIFeatureReadyState readyState;
+        readyState = WcrApiHelpers.GetApiAvailability(_wcrApi.Value);
+        if (readyState != AIFeatureReadyState.Ready)
         {
             var op = WcrApiHelpers.EnsureReadyFuncs[_wcrApi.Value]();
             if (await modelDownloader.SetDownloadOperation(op))
