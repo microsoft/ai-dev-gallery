@@ -75,70 +75,129 @@ namespace LanguageModelExample
         {
             try
             {
-                UpdateStatus("正在初始化AI模型...");
+                // 步骤1: 开始初始化
+                UpdateStatus("🚀 开始初始化AI模型...");
                 ProgressRing.IsActive = true;
-                _logger?.LogInformation("开始初始化AI模型");
-
-                // 检查AI功能状态
+                _logger?.LogInformation("=== AI模型初始化开始 ===");
+                AddLogMessage("🚀 开始初始化AI模型...");
+                
+                // 步骤2: 检查AI功能状态
+                AddLogMessage("📋 步骤1: 检查AI功能状态...");
                 var readyState = LanguageModel.GetReadyState();
-                _logger?.LogInformation("AI功能状态: {ReadyState}", readyState);
+                _logger?.LogInformation("AI功能状态检查结果: {ReadyState}", readyState);
+                AddLogMessage($"📋 AI功能状态: {readyState}");
                 
                 if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
                 {
                     if (readyState == AIFeatureReadyState.NotReady)
                     {
-                        UpdateStatus("正在准备AI功能...");
-                        _logger?.LogInformation("AI功能未就绪，开始准备...");
+                        // 步骤3: 准备AI功能
+                        UpdateStatus("⚙️ 正在准备AI功能...");
+                        AddLogMessage("⚙️ 步骤2: AI功能未就绪，开始准备...");
+                        _logger?.LogInformation("开始准备AI功能...");
+                        
                         var operation = await LanguageModel.EnsureReadyAsync();
+                        AddLogMessage($"⚙️ AI功能准备操作状态: {operation.Status}");
                         
                         if (operation.Status != AIFeatureReadyResultState.Success)
                         {
-                            UpdateStatus("AI功能初始化失败");
+                            UpdateStatus("❌ AI功能初始化失败");
+                            AddLogMessage($"❌ AI功能准备失败，状态: {operation.Status}");
                             _logger?.LogError("AI功能初始化失败: {Status}", operation.Status);
                             ShowError("Phi-Silica 不可用");
                             return;
                         }
+                        
+                        AddLogMessage("✅ AI功能准备完成");
                         _logger?.LogInformation("AI功能准备完成");
                     }
+                    else
+                    {
+                        AddLogMessage("✅ AI功能已就绪，无需额外准备");
+                    }
 
-                    // 创建语言模型
+                    // 步骤4: 创建语言模型
+                    UpdateStatus("🤖 正在创建语言模型...");
+                    AddLogMessage("🤖 步骤3: 创建语言模型...");
+                    _logger?.LogInformation("开始创建语言模型...");
+                    
                     _languageModel = await LanguageModel.CreateAsync();
                     if (_languageModel == null)
                     {
-                        UpdateStatus("无法创建语言模型");
+                        UpdateStatus("❌ 无法创建语言模型");
+                        AddLogMessage("❌ 语言模型创建失败");
                         _logger?.LogError("无法创建语言模型");
                         ShowError("Phi-Silica 不可用");
                         return;
                     }
+                    
+                    AddLogMessage("✅ 语言模型创建成功");
+                    _logger?.LogInformation("语言模型创建成功");
 
-                    // 初始化各种功能
+                    // 步骤5: 初始化各种功能
+                    UpdateStatus("🔧 正在初始化AI功能模块...");
+                    AddLogMessage("🔧 步骤4: 初始化AI功能模块...");
+                    
+                    AddLogMessage("  - 初始化文本摘要器...");
                     _textSummarizer = new TextSummarizer(_languageModel);
+                    AddLogMessage("  ✅ 文本摘要器初始化完成");
+                    
+                    AddLogMessage("  - 初始化文本重写器...");
                     _textRewriter = new TextRewriter(_languageModel);
+                    AddLogMessage("  ✅ 文本重写器初始化完成");
+                    
+                    AddLogMessage("  - 初始化表格转换器...");
                     _textToTableConverter = new TextToTableConverter(_languageModel);
+                    AddLogMessage("  ✅ 表格转换器初始化完成");
 
-                    UpdateStatus("AI模型初始化完成，可以使用所有功能");
+                    // 步骤6: 完成初始化
+                    UpdateStatus("🎉 AI模型初始化完成，可以使用所有功能");
+                    AddLogMessage("🎉 步骤5: AI模型初始化完成！");
+                    AddLogMessage("🎯 所有功能模块已就绪:");
+                    AddLogMessage("  ✅ 基础文本生成");
+                    AddLogMessage("  ✅ 文本摘要");
+                    AddLogMessage("  ✅ 文本重写");
+                    AddLogMessage("  ✅ 文本转表格");
+                    
                     _logger?.LogInformation("AI模型初始化完成");
                     EnableAllButtons(true);
                 }
                 else
                 {
+                    // 步骤7: 处理不可用状态
                     var msg = readyState == AIFeatureReadyState.DisabledByUser
                         ? "用户已禁用"
                         : "系统不支持";
-                    UpdateStatus($"AI功能不可用: {msg}");
+                    
+                    UpdateStatus($"❌ AI功能不可用: {msg}");
+                    AddLogMessage($"❌ AI功能不可用: {msg}");
+                    AddLogMessage($"📋 状态详情: {readyState}");
+                    
                     _logger?.LogWarning("AI功能不可用: {Message}", msg);
                     ShowError($"Phi-Silica 不可用: {msg}");
                 }
             }
             catch (Exception ex)
             {
-                UpdateStatus($"初始化失败: {ex.Message}");
+                // 步骤8: 异常处理
+                UpdateStatus($"❌ 初始化失败: {ex.Message}");
+                AddLogMessage($"❌ 初始化过程中发生异常:");
+                AddLogMessage($"  📋 异常类型: {ex.GetType().Name}");
+                AddLogMessage($"  📋 异常消息: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    AddLogMessage($"  📋 内部异常: {ex.InnerException.Message}");
+                }
+                
                 _logger?.LogError(ex, "AI模型初始化失败");
                 ShowError($"初始化失败: {ex.Message}");
             }
             finally
             {
+                // 步骤9: 清理工作
                 ProgressRing.IsActive = false;
+                AddLogMessage("🔄 初始化流程结束");
+                _logger?.LogInformation("=== AI模型初始化流程结束 ===");
             }
         }
 
@@ -220,7 +279,9 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
 工作目录: {Environment.CurrentDirectory}
 进程ID: {Process.GetCurrentProcess().Id}";
 
-            DebugInfoTextBlock.Text = debugInfo;
+            // 将调试信息添加到日志区域
+            AddLogMessage("调试信息已刷新");
+            AddLogMessage(debugInfo);
             _logger?.LogInformation("刷新调试信息");
         }
 
