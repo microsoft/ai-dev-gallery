@@ -83,7 +83,7 @@ namespace LanguageModelExample
                 
                 // 步骤2: 检查AI功能状态
                 AddLogMessage("📋 步骤1: 检查AI功能状态...");
-
+                var readyState = LanguageModel.GetReadyState();
                 _logger?.LogInformation("AI功能状态检查结果: {ReadyState}", readyState);
                 AddLogMessage($"📋 AI功能状态: {readyState}");
                 
