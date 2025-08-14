@@ -26,7 +26,7 @@
             <StackPanel Spacing="20">
                 
                 <!-- Quick Start Section -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="🚀 快速开始" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
@@ -47,7 +47,7 @@
                 </Border>
 
                 <!-- Basic Text Generation -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="1. 基础文本生成" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
@@ -68,7 +68,7 @@
                 </Border>
 
                 <!-- Text Summarization -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="2. 文本摘要" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
@@ -89,7 +89,7 @@
                 </Border>
 
                 <!-- Text Rewriting -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="3. 文本重写" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
@@ -110,7 +110,7 @@
                 </Border>
 
                 <!-- Text to Table Conversion -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="4. 文本转表格" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
@@ -131,12 +131,12 @@
                 </Border>
 
                 <!-- Status and Progress -->
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
                         CornerRadius="8" Padding="20">
                     <StackPanel>
                         <TextBlock Text="📊 状态信息" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBlock x:Name="StatusTextBlock" Text="准备就绪" 
-                                   FontSize="14" Foreground="{ThemeResource SystemFillColorSecondaryBrush}"/>
+                                   FontSize="14" Foreground="{ThemeResource SystemTextFillColorSecondaryBrush}"/>
                         <ProgressRing x:Name="ProgressRing" IsActive="False" 
                                       Width="20" Height="20" Margin="0,10,0,0"/>
                         
