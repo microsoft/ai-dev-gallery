@@ -27,38 +27,6 @@
         <!-- Main Content -->
         <ScrollViewer Grid.Row="1" Padding="20">
             <StackPanel Spacing="20">
-                                <!-- Status and Progress -->
-                <Border Background="#F5F5F5" 
-                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="📊 状态信息 & 日志" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                        
-                        <!-- 当前状态 -->
-                        <TextBlock Text="当前状态:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="StatusTextBlock" Text="准备就绪" 
-                                   FontSize="14" Foreground="#666666" Margin="0,0,0,10"/>
-                        
-                        <!-- 进度指示器 -->
-                        <ProgressRing x:Name="ProgressRing" IsActive="False" 
-                                      Width="20" Height="20" Margin="0,0,0,15"/>
-                        
-                        <!-- 日志显示区域 -->
-                        <TextBlock Text="运行日志:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                        <ScrollViewer Height="200" Background="White" BorderBrush="#E0E0E0" BorderThickness="1">
-                            <TextBlock x:Name="LogTextBlock" Text="日志将在这里显示..." 
-                                       FontFamily="Consolas" FontSize="11" 
-                                       Foreground="#333333" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                        
-                        <!-- 日志控制按钮 -->
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
-                            <Button x:Name="ClearLogButton" Content="清空日志" 
-                                    Click="ClearLogButton_Click" HorizontalAlignment="Left"/>
-                            <Button x:Name="CopyLogButton" Content="复制日志" 
-                                    Click="CopyLogButton_Click" HorizontalAlignment="Left"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
                 
                 <!-- Quick Start Section -->
                 <Border Background="#F5F5F5" 
@@ -162,6 +130,39 @@
                                  PlaceholderText="表格结果将显示在这里"
                                  AcceptsReturn="True" TextWrapping="Wrap" Height="120" 
                                  Margin="0,15,0,0" IsReadOnly="True"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status and Progress -->
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="📊 状态信息 &amp; 日志" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                        
+                        <!-- 当前状态 -->
+                        <TextBlock Text="当前状态:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="StatusTextBlock" Text="准备就绪" 
+                                   FontSize="14" Foreground="#666666" Margin="0,0,0,10"/>
+                        
+                        <!-- 进度指示器 -->
+                        <ProgressRing x:Name="ProgressRing" IsActive="False" 
+                                      Width="20" Height="20" Margin="0,0,0,15"/>
+                        
+                        <!-- 日志显示区域 -->
+                        <TextBlock Text="运行日志:" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <ScrollViewer Height="200" Background="White" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <TextBlock x:Name="LogTextBlock" Text="日志将在这里显示..." 
+                                       FontFamily="Consolas" FontSize="11" 
+                                       Foreground="#333333" TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                        
+                        <!-- 日志控制按钮 -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                            <Button x:Name="ClearLogButton" Content="清空日志" 
+                                    Click="ClearLogButton_Click" HorizontalAlignment="Left"/>
+                            <Button x:Name="CopyLogButton" Content="复制日志" 
+                                    Click="CopyLogButton_Click" HorizontalAlignment="Left"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
