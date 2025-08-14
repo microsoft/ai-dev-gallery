@@ -384,14 +384,14 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
             }
         }
 
-        private void UpdateStatus(string message)
+        public void UpdateStatus(string message)
         {
             StatusTextBlock.Text = message;
             AddLogMessage($"状态: {message}");
             _logger?.LogInformation("状态更新: {Message}", message);
         }
 
-        private void AddLogMessage(string message)
+        public void AddLogMessage(string message)
         {
             try
             {
