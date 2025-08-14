@@ -17,7 +17,6 @@
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
     
     <!-- Visual Studio 优化配置 -->
-    <StartupObject>LanguageModelExample.App</StartupObject>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyTitle>LanguageModel Example</AssemblyTitle>
     <AssemblyDescription>展示Microsoft.Windows.AI.Text.LanguageModel各项功能的示例应用</AssemblyDescription>
