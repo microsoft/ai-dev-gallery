@@ -388,14 +388,21 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
 
         private void ShowError(string message)
         {
-            var dialog = new ContentDialog
+            // 使用状态栏显示错误信息，避免 ContentDialog 冲突
+            UpdateStatus($"❌ 错误: {message}");
+            
+            // 可选：添加视觉提示，比如改变状态文本的颜色
+            StatusTextBlock.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 220, 53, 69)); // 红色
+            
+            // 3秒后恢复默认颜色
+            _ = Task.Delay(3000).ContinueWith(async _ =>
             {
-                Title = "错误",
-                Content = message,
-                CloseButtonText = "确定",
-                XamlRoot = this.Content.XamlRoot
-            };
-            _ = dialog.ShowAsync();
+                await DispatcherQueue.TryEnqueue(() =>
+                {
+                    StatusTextBlock.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 102, 102, 102)); // 恢复默认颜色
+                });
+            });
+            
             _logger?.LogError("显示错误: {Message}", message);
         }
 
