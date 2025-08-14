@@ -17,7 +17,6 @@
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
     
     <!-- Visual Studio 优化配置 -->
-    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyTitle>LanguageModel Example</AssemblyTitle>
     <AssemblyDescription>展示Microsoft.Windows.AI.Text.LanguageModel各项功能的示例应用</AssemblyDescription>
     <AssemblyCompany>AI Dev Gallery</AssemblyCompany>
@@ -34,16 +33,7 @@
     <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Assets\AppIcon.ico" />
-  </ItemGroup>
+  <!-- Assets will be added later when icon files are available -->
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
