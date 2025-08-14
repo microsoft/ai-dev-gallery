@@ -81,11 +81,35 @@ namespace LanguageModelExample
                 _logger?.LogInformation("=== AI模型初始化开始 ===");
                 AddLogMessage("🚀 开始初始化AI模型...");
                 
+                // 步骤1.5: 系统诊断
+                AddLogMessage("🔍 系统诊断信息:");
+                AddLogMessage($"  - 当前用户: {Environment.UserName}");
+                AddLogMessage($"  - 是否管理员: {IsRunningAsAdministrator()}");
+                AddLogMessage($"  - 操作系统: {Environment.OSVersion}");
+                AddLogMessage($"  - .NET版本: {Environment.Version}");
+                
                 // 步骤2: 检查AI功能状态
-                AddLogMessage("📋 步骤1: 检查AI功能状态...");
-                var readyState = LanguageModel.GetReadyState();
-                _logger?.LogInformation("AI功能状态检查结果: {ReadyState}", readyState);
-                AddLogMessage($"📋 AI功能状态: {readyState}");
+                AddLogMessage("📋 步骤2: 检查AI功能状态...");
+                try
+                {
+                    var readyState = LanguageModel.GetReadyState();
+                    _logger?.LogInformation("AI功能状态检查结果: {ReadyState}", readyState);
+                    AddLogMessage($"📋 AI功能状态: {readyState}");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    AddLogMessage("❌ AI功能状态检查失败 - 权限不足");
+                    AddLogMessage($"  📋 错误详情: {ex.Message}");
+                    AddLogMessage("💡 建议解决方案:");
+                    AddLogMessage("  1. 以管理员身份运行 Visual Studio");
+                    AddLogMessage("  2. 检查 Windows AI 功能是否启用");
+                    AddLogMessage("  3. 重新构建并部署 MSIX 包");
+                    
+                    UpdateStatus("❌ AI功能访问被拒绝，请检查权限设置");
+                    _logger?.LogError(ex, "AI功能状态检查失败 - 权限不足");
+                    ShowError("AI功能访问被拒绝，请以管理员身份运行或检查系统设置");
+                    return;
+                }
                 
                 if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
                 {
@@ -529,10 +553,60 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
             }
         }
 
+        private bool IsRunningAsAdministrator()
+        {
+            try
+            {
+                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void ClearLogButton_Click(object sender, RoutedEventArgs e)
         {
             LogTextBlock.Text = "日志已清空";
             AddLogMessage("日志已清空");
+        }
+
+        private void CheckWindowsAIFeature_Click(object sender, RoutedEventArgs e)
+        {
+            AddLogMessage("🔍 手动检查 Windows AI 功能状态...");
+            try
+            {
+                var readyState = LanguageModel.GetReadyState();
+                AddLogMessage($"✅ Windows AI 功能状态: {readyState}");
+                
+                if (readyState == AIFeatureReadyState.Ready)
+                {
+                    AddLogMessage("🎉 Windows AI 功能已就绪！");
+                }
+                else if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    AddLogMessage("⚙️ Windows AI 功能未就绪，需要准备");
+                }
+                else
+                {
+                    AddLogMessage($"⚠️ Windows AI 功能状态: {readyState}");
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                AddLogMessage("❌ Windows AI 功能访问被拒绝");
+                AddLogMessage($"  📋 错误: {ex.Message}");
+                AddLogMessage("💡 解决方案:");
+                AddLogMessage("  1. 以管理员身份运行程序");
+                AddLogMessage("  2. 检查 Windows AI 功能是否启用");
+                AddLogMessage("  3. 重新安装 MSIX 包");
+            }
+            catch (Exception ex)
+            {
+                AddLogMessage($"❌ 检查 Windows AI 功能时发生错误: {ex.Message}");
+            }
         }
 
         private async void CopyLogButton_Click(object sender, RoutedEventArgs e)

@@ -56,6 +56,8 @@
                                     Click="ClearLogButton_Click" HorizontalAlignment="Left"/>
                             <Button x:Name="CopyLogButton" Content="复制日志" 
                                     Click="CopyLogButton_Click" HorizontalAlignment="Left"/>
+                            <Button x:Name="CheckWindowsAIFeatureButton" Content="检查AI功能" 
+                                    Click="CheckWindowsAIFeature_Click" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
