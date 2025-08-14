@@ -3,8 +3,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Text;
 using Microsoft.Windows.AI.Text.Experimental;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace LanguageModelExample
 {
@@ -14,20 +16,37 @@ namespace LanguageModelExample
         private TextSummarizer? _textSummarizer;
         private TextRewriter? _textRewriter;
         private TextToTableConverter? _textToTableConverter;
+        private ILogger? _logger;
+        private int _currentExampleIndex = 0;
 
         public MainWindow()
         {
             this.InitializeComponent();
-            this.Title = "LanguageModel 功能示例";
+            this.Title = "LanguageModel 功能示例 - Visual Studio 优化版";
             
             // 设置窗口大小
-            this.SetWindowSize(800, 900);
+            this.SetWindowSize(900, 1000);
             
             // 绑定事件
             BasicGenerateButton.Click += BasicGenerateButton_Click;
             SummaryButton.Click += SummaryButton_Click;
             RewriteButton.Click += RewriteButton_Click;
             TableButton.Click += TableButton_Click;
+            
+            // 绑定新的事件
+            LoadBasicPromptButton.Click += LoadBasicPromptButton_Click;
+            LoadSummaryButton.Click += LoadSummaryButton_Click;
+            LoadRewriteButton.Click += LoadRewriteButton_Click;
+            LoadTableButton.Click += LoadTableButton_Click;
+            LoadAllExamplesButton.Click += LoadAllExamplesButton_Click;
+            ClearBasicButton.Click += ClearBasicButton_Click;
+            ClearSummaryButton.Click += ClearSummaryButton_Click;
+            ClearRewriteButton.Click += ClearRewriteButton_Click;
+            ClearTableButton.Click += ClearTableButton_Click;
+            RefreshDebugInfoButton.Click += RefreshDebugInfoButton_Click;
+            
+            // 初始化日志
+            InitializeLogger();
             
             // 加载示例数据
             LoadSampleData();
@@ -36,28 +55,44 @@ namespace LanguageModelExample
             _ = InitializeAIModelAsync();
         }
 
+        private void InitializeLogger()
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddDebug();
+                builder.SetMinimumLevel(LogLevel.Debug);
+            });
+            _logger = loggerFactory.CreateLogger<MainWindow>();
+        }
+
         private async Task InitializeAIModelAsync()
         {
             try
             {
                 UpdateStatus("正在初始化AI模型...");
                 ProgressRing.IsActive = true;
+                _logger?.LogInformation("开始初始化AI模型");
 
                 // 检查AI功能状态
                 var readyState = LanguageModel.GetReadyState();
+                _logger?.LogInformation("AI功能状态: {ReadyState}", readyState);
+                
                 if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
                 {
                     if (readyState == AIFeatureReadyState.NotReady)
                     {
                         UpdateStatus("正在准备AI功能...");
+                        _logger?.LogInformation("AI功能未就绪，开始准备...");
                         var operation = await LanguageModel.EnsureReadyAsync();
                         
                         if (operation.Status != AIFeatureReadyResultState.Success)
                         {
                             UpdateStatus("AI功能初始化失败");
+                            _logger?.LogError("AI功能初始化失败: {Status}", operation.Status);
                             ShowError("Phi-Silica 不可用");
                             return;
                         }
+                        _logger?.LogInformation("AI功能准备完成");
                     }
 
                     // 创建语言模型
@@ -65,6 +100,7 @@ namespace LanguageModelExample
                     if (_languageModel == null)
                     {
                         UpdateStatus("无法创建语言模型");
+                        _logger?.LogError("无法创建语言模型");
                         ShowError("Phi-Silica 不可用");
                         return;
                     }
@@ -75,6 +111,7 @@ namespace LanguageModelExample
                     _textToTableConverter = new TextToTableConverter(_languageModel);
 
                     UpdateStatus("AI模型初始化完成，可以使用所有功能");
+                    _logger?.LogInformation("AI模型初始化完成");
                     EnableAllButtons(true);
                 }
                 else
@@ -83,18 +120,102 @@ namespace LanguageModelExample
                         ? "用户已禁用"
                         : "系统不支持";
                     UpdateStatus($"AI功能不可用: {msg}");
+                    _logger?.LogWarning("AI功能不可用: {Message}", msg);
                     ShowError($"Phi-Silica 不可用: {msg}");
                 }
             }
             catch (Exception ex)
             {
                 UpdateStatus($"初始化失败: {ex.Message}");
+                _logger?.LogError(ex, "AI模型初始化失败");
                 ShowError($"初始化失败: {ex.Message}");
             }
             finally
             {
                 ProgressRing.IsActive = false;
             }
+        }
+
+        // 示例数据加载事件
+        private void LoadBasicPromptButton_Click(object sender, RoutedEventArgs e)
+        {
+            var prompts = SampleData.Prompts.BasicPrompts;
+            BasicPromptTextBox.Text = prompts[_currentExampleIndex % prompts.Length];
+            _logger?.LogInformation("加载文本生成示例: {Index}", _currentExampleIndex % prompts.Length);
+        }
+
+        private void LoadSummaryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var texts = SampleData.Prompts.SummaryTexts;
+            SummaryInputTextBox.Text = texts[_currentExampleIndex % texts.Length];
+            _logger?.LogInformation("加载摘要示例: {Index}", _currentExampleIndex % texts.Length);
+        }
+
+        private void LoadRewriteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var texts = SampleData.Prompts.RewriteTexts;
+            RewriteInputTextBox.Text = texts[_currentExampleIndex % texts.Length];
+            _logger?.LogInformation("加载重写示例: {Index}", _currentExampleIndex % texts.Length);
+        }
+
+        private void LoadTableButton_Click(object sender, RoutedEventArgs e)
+        {
+            var texts = SampleData.Prompts.TableTexts;
+            TableInputTextBox.Text = texts[_currentExampleIndex % texts.Length];
+            _logger?.LogInformation("加载表格示例: {Index}", _currentExampleIndex % texts.Length);
+        }
+
+        private void LoadAllExamplesButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadBasicPromptButton_Click(sender, e);
+            LoadSummaryButton_Click(sender, e);
+            LoadRewriteButton_Click(sender, e);
+            LoadTableButton_Click(sender, e);
+            _currentExampleIndex = (_currentExampleIndex + 1) % 5; // 循环切换示例
+            _logger?.LogInformation("加载所有示例，切换到索引: {Index}", _currentExampleIndex);
+        }
+
+        // 清空功能事件
+        private void ClearBasicButton_Click(object sender, RoutedEventArgs e)
+        {
+            BasicPromptTextBox.Text = string.Empty;
+            BasicResultTextBox.Text = string.Empty;
+        }
+
+        private void ClearSummaryButton_Click(object sender, RoutedEventArgs e)
+        {
+            SummaryInputTextBox.Text = string.Empty;
+            SummaryResultTextBox.Text = string.Empty;
+        }
+
+        private void ClearRewriteButton_Click(object sender, RoutedEventArgs e)
+        {
+            RewriteInputTextBox.Text = string.Empty;
+            RewriteResultTextBox.Text = string.Empty;
+        }
+
+        private void ClearTableButton_Click(object sender, RoutedEventArgs e)
+        {
+            TableInputTextBox.Text = string.Empty;
+            TableResultTextBox.Text = string.Empty;
+        }
+
+        // 调试信息刷新
+        private void RefreshDebugInfoButton_Click(object sender, RoutedEventArgs e)
+        {
+            var debugInfo = $@"调试信息 - {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
+摘要器状态: {(_textSummarizer != null ? "已初始化" : "未初始化")}
+重写器状态: {(_textRewriter != null ? "已初始化" : "未初始化")}
+表格转换器状态: {(_textToTableConverter != null ? "已初始化" : "未初始化")}
+当前示例索引: {_currentExampleIndex}
+.NET版本: {Environment.Version}
+操作系统: {Environment.OSVersion}
+工作目录: {Environment.CurrentDirectory}
+进程ID: {Process.GetCurrentProcess().Id}";
+
+            DebugInfoTextBlock.Text = debugInfo;
+            _logger?.LogInformation("刷新调试信息");
         }
 
         private async void BasicGenerateButton_Click(object sender, RoutedEventArgs e)
@@ -117,15 +238,18 @@ namespace LanguageModelExample
                 BasicGenerateButton.IsEnabled = false;
                 ProgressRing.IsActive = true;
                 UpdateStatus("正在生成文本...");
+                _logger?.LogInformation("开始生成文本，提示词: {Prompt}", prompt);
 
                 var result = await _languageModel.GenerateResponseAsync(prompt);
                 BasicResultTextBox.Text = result.Text;
                 UpdateStatus("文本生成完成");
+                _logger?.LogInformation("文本生成完成，长度: {Length}", result.Text?.Length ?? 0);
             }
             catch (Exception ex)
             {
                 ShowError($"生成失败: {ex.Message}");
                 UpdateStatus($"生成失败: {ex.Message}");
+                _logger?.LogError(ex, "文本生成失败");
             }
             finally
             {
@@ -154,15 +278,18 @@ namespace LanguageModelExample
                 SummaryButton.IsEnabled = false;
                 ProgressRing.IsActive = true;
                 UpdateStatus("正在生成摘要...");
+                _logger?.LogInformation("开始生成摘要，输入长度: {Length}", input.Length);
 
                 var result = await _textSummarizer.SummarizeParagraphAsync(input);
                 SummaryResultTextBox.Text = result.Text;
                 UpdateStatus("摘要生成完成");
+                _logger?.LogInformation("摘要生成完成，输出长度: {Length}", result.Text?.Length ?? 0);
             }
             catch (Exception ex)
             {
                 ShowError($"摘要生成失败: {ex.Message}");
                 UpdateStatus($"摘要生成失败: {ex.Message}");
+                _logger?.LogError(ex, "摘要生成失败");
             }
             finally
             {
@@ -191,15 +318,18 @@ namespace LanguageModelExample
                 RewriteButton.IsEnabled = false;
                 ProgressRing.IsActive = true;
                 UpdateStatus("正在重写文本...");
+                _logger?.LogInformation("开始重写文本，输入长度: {Length}", input.Length);
 
                 var result = await _textRewriter.RewriteAsync(input);
                 RewriteResultTextBox.Text = result.Text;
                 UpdateStatus("文本重写完成");
+                _logger?.LogInformation("文本重写完成，输出长度: {Length}", result.Text?.Length ?? 0);
             }
             catch (Exception ex)
             {
                 ShowError($"文本重写失败: {ex.Message}");
                 UpdateStatus($"文本重写失败: {ex.Message}");
+                _logger?.LogError(ex, "文本重写失败");
             }
             finally
             {
@@ -228,15 +358,18 @@ namespace LanguageModelExample
                 TableButton.IsEnabled = false;
                 ProgressRing.IsActive = true;
                 UpdateStatus("正在转换为表格...");
+                _logger?.LogInformation("开始转换为表格，输入长度: {Length}", input.Length);
 
                 var result = await _textToTableConverter.ConvertAsync(input);
                 TableResultTextBox.Text = result.Text;
                 UpdateStatus("表格转换完成");
+                _logger?.LogInformation("表格转换完成，输出长度: {Length}", result.Text?.Length ?? 0);
             }
             catch (Exception ex)
             {
                 ShowError($"表格转换失败: {ex.Message}");
                 UpdateStatus($"表格转换失败: {ex.Message}");
+                _logger?.LogError(ex, "表格转换失败");
             }
             finally
             {
@@ -248,6 +381,7 @@ namespace LanguageModelExample
         private void UpdateStatus(string message)
         {
             StatusTextBlock.Text = message;
+            _logger?.LogInformation("状态更新: {Message}", message);
         }
 
         private void ShowError(string message)
@@ -260,6 +394,7 @@ namespace LanguageModelExample
                 XamlRoot = this.Content.XamlRoot
             };
             _ = dialog.ShowAsync();
+            _logger?.LogError("显示错误: {Message}", message);
         }
 
         private void EnableAllButtons(bool enable)
@@ -268,6 +403,13 @@ namespace LanguageModelExample
             SummaryButton.IsEnabled = enable;
             RewriteButton.IsEnabled = enable;
             TableButton.IsEnabled = enable;
+            
+            // 示例数据按钮始终可用
+            LoadBasicPromptButton.IsEnabled = true;
+            LoadSummaryButton.IsEnabled = true;
+            LoadRewriteButton.IsEnabled = true;
+            LoadTableButton.IsEnabled = true;
+            LoadAllExamplesButton.IsEnabled = true;
         }
 
         private void LoadSampleData()
@@ -277,6 +419,7 @@ namespace LanguageModelExample
             SummaryInputTextBox.Text = SampleData.Prompts.SummaryTexts[0];
             RewriteInputTextBox.Text = SampleData.Prompts.RewriteTexts[0];
             TableInputTextBox.Text = SampleData.Prompts.TableTexts[0];
+            _logger?.LogInformation("加载初始示例数据");
         }
 
         private void SetWindowSize(int width, int height)
