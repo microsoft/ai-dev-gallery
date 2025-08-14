@@ -52,7 +52,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
-    <PackageReference Include="Microsoft.Windows.SDK" />
+    <!-- Microsoft.Windows.SDK 包在 NuGet 中不存在，已移除 -->
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" />
     <PackageReference Include="Microsoft.Graphics.Win2D" />
