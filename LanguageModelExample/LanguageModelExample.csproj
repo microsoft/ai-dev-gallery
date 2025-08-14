@@ -7,9 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
-    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
-    <EnableMsixTooling>true</EnableMsixTooling>
+    <EnableMsixTooling>false</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
     <NoWarn>CS8305;WMC1501</NoWarn>
@@ -30,7 +29,6 @@
     <DebugSymbols>true</DebugSymbols>
     
     <!-- WinUI 3 配置 -->
-    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
   </PropertyGroup>
 
   <!-- Assets will be added later when icon files are available -->
@@ -40,24 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectCapability Include="Msix"/>
-  </ItemGroup>
-	
-  <ItemGroup>
     <ProjectCapability Include="AIDevGallery" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-  </PropertyGroup>
+  <!-- MSIX tooling disabled for direct debugging -->
 
-  <!-- Publish Properties -->
-  <PropertyGroup>
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
-  </PropertyGroup>
+  <!-- Publish Properties - Disabled for direct debugging -->
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.AI.MachineLearning" />

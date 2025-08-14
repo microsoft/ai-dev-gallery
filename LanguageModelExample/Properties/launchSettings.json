@@ -1,10 +1,5 @@
 {
   "profiles": {
-    "LanguageModelExample (Package)": {
-      "commandName": "MsixPackage",
-      "nativeDebugging": false,
-      "applicationUrl": "http://localhost:5000"
-    },
     "LanguageModelExample (Unpackaged)": {
       "commandName": "Project",
       "nativeDebugging": false,
