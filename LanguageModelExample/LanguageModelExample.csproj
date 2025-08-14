@@ -12,7 +12,6 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
     <NoWarn>CS8305;WMC1501</NoWarn>
-    <WindowsPackageType>MSIX</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     
     <!-- Visual Studio 优化配置 -->
@@ -36,7 +35,6 @@
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
     <Content Include="app.manifest" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" />
   </ItemGroup>
 
   <ItemGroup>

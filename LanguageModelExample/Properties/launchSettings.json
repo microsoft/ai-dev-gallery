@@ -4,6 +4,10 @@
       "commandName": "Project",
       "nativeDebugging": false,
       "applicationUrl": "http://localhost:5000"
+    },
+    "LanguageModelExample (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
     }
   }
 } 
