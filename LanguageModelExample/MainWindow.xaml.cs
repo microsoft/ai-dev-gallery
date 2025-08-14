@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 
 namespace LanguageModelExample
 {
@@ -361,9 +363,9 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
                 _logger?.LogInformation("开始转换为表格，输入长度: {Length}", input.Length);
 
                 var result = await _textToTableConverter.ConvertAsync(input);
-                TableResultTextBox.Text = result.Text;
+                TableResultTextBox.Text = result.ToString();
                 UpdateStatus("表格转换完成");
-                _logger?.LogInformation("表格转换完成，输出长度: {Length}", result.Text?.Length ?? 0);
+                _logger?.LogInformation("表格转换完成，输出长度: {Length}", result.ToString()?.Length ?? 0);
             }
             catch (Exception ex)
             {
@@ -427,7 +429,10 @@ AI模型状态: {(_languageModel != null ? "已初始化" : "未初始化")}
             var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
             var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
             var appWindow = AppWindow.GetFromWindowId(windowId);
-            appWindow.Resize(new Windows.Graphics.SizeInt32 { Width = width, Height = height });
+            if (appWindow != null)
+            {
+                appWindow.Resize(new Windows.Graphics.SizeInt32 { Width = width, Height = height });
+            }
         }
     }
 } 
