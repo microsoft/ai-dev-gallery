@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Window
     x:Class="LanguageModelExample.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -7,18 +8,20 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Background="{ThemeResource SystemAccentColor}" Padding="20">
-            <TextBlock Text="Microsoft.Windows.AI.Text.LanguageModel 示例" 
-                       FontSize="24" FontWeight="Bold" Foreground="White"/>
-            <TextBlock Text="展示LanguageModel的各项功能 - 专为Visual Studio优化" 
-                       FontSize="14" Foreground="White" Opacity="0.8" Margin="0,5,0,0"/>
+        <StackPanel Grid.Row="0" Background="#0078D4" Padding="20">
+            <TextBlock Text="🤖 LanguageModel 功能示例" 
+                       FontSize="24" FontWeight="Bold" 
+                       Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock Text="展示 Microsoft.Windows.AI.Text.LanguageModel 各项功能" 
+                       FontSize="16" Foreground="White" 
+                       HorizontalAlignment="Center" Margin="0,5,0,0"/>
         </StackPanel>
 
         <!-- Main Content -->
@@ -26,8 +29,8 @@
             <StackPanel Spacing="20">
                 
                 <!-- Quick Start Section -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="🚀 快速开始" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBlock Text="选择示例数据快速测试各项功能：" FontSize="14" Margin="0,0,0,10"/>
@@ -47,8 +50,8 @@
                 </Border>
 
                 <!-- Basic Text Generation -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="1. 基础文本生成" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBox x:Name="BasicPromptTextBox" 
@@ -68,8 +71,8 @@
                 </Border>
 
                 <!-- Text Summarization -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="2. 文本摘要" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBox x:Name="SummaryInputTextBox" 
@@ -89,8 +92,8 @@
                 </Border>
 
                 <!-- Text Rewriting -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="3. 文本重写" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBox x:Name="RewriteInputTextBox" 
@@ -110,8 +113,8 @@
                 </Border>
 
                 <!-- Text to Table Conversion -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="4. 文本转表格" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBox x:Name="TableInputTextBox" 
@@ -131,12 +134,12 @@
                 </Border>
 
                 <!-- Status and Progress -->
-                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" 
-                        CornerRadius="8" Padding="20">
+                <Border Background="#F5F5F5" 
+                        CornerRadius="8" Padding="20" BorderBrush="#E0E0E0" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="📊 状态信息" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
                         <TextBlock x:Name="StatusTextBlock" Text="准备就绪" 
-                                   FontSize="14" Foreground="{ThemeResource SystemTextFillColorSecondaryBrush}"/>
+                                   FontSize="14" Foreground="#666666"/>
                         <ProgressRing x:Name="ProgressRing" IsActive="False" 
                                       Width="20" Height="20" Margin="0,10,0,0"/>
                         
