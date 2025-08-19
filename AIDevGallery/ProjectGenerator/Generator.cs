@@ -112,6 +112,11 @@ internal partial class Generator
 
         Directory.CreateDirectory(outputPath);
 
+        if (models == null)
+        {
+            throw new ArgumentNullException(nameof(models), "Models dictionary cannot be null.");
+        }
+
         Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos = [];
         List<string> modelIds = [];
         foreach (var modelType in modelTypes)
