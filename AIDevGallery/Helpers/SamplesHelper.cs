@@ -345,10 +345,13 @@ internal static partial class SamplesHelper
             var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails.Url);
             if (realCachedModel == null)
             {
-                return null;
+                cachedModel = new(selectedModelDetails.Id, "Need Download", selectedModelDetails.Url, selectedModelDetails.Size, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
+            }
+            else
+            {
+                cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
 
-            cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);
@@ -374,10 +377,12 @@ internal static partial class SamplesHelper
                 var realCachedModel = App.ModelCache.GetCachedModel(selectedModelDetails2.Url);
                 if (realCachedModel == null)
                 {
-                    return null;
+                    cachedModel = new(selectedModelDetails2.Id, "Need Download", selectedModelDetails2.Url, selectedModelDetails2.Size, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
                 }
-
-                cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
+                else
+                {
+                    cachedModel = new(selectedModelDetails2.Id, realCachedModel.Path, realCachedModel.Url, realCachedModel.ModelSize, selectedModelDetails2.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
+                }
             }
 
             var model2Type = sample.Model2Types.Any(cachedSampleItem.Contains)

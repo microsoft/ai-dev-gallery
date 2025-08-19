@@ -47,7 +47,40 @@
                 To="0"
                 Duration="0:0:0.1" />
         </animations:ImplicitAnimationSet>
-
+        <ContentDialog
+            x:Name="DownloadDialog"
+            Title="Download model"
+            DefaultButton="Primary"
+            IsPrimaryButtonEnabled="{Binding ElementName=AgreeCheckBox, Path=IsChecked}"
+            PrimaryButtonText="Download"
+            SecondaryButtonText="Cancel">
+            <ContentDialog.Content>
+                <StackPanel MinWidth="360">
+                    <InfoBar
+                        x:Name="WarningInfoBar"
+                        Title="Model is not recommended"
+                        Margin="0,0,0,16"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Warning" />
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="You are about to download" />
+                        <Run x:Name="ModelNameTxt" FontWeight="SemiBold" />
+                        <Run Text="from" />
+                        <Run x:Name="ModelSourceTxt" FontWeight="SemiBold" />
+                        <LineBreak />
+                        <LineBreak /><Run Text="License:" />
+                        <Hyperlink x:Name="ModelLicenseLink">
+                            <Run x:Name="ModelLicenseLabel" />
+                        </Hyperlink>
+                    </TextBlock>
+                    <CheckBox
+                        x:Name="AgreeCheckBox"
+                        Margin="0,16,0,0"
+                        Content="I have reviewed and agree with the license" />
+                </StackPanel>
+            </ContentDialog.Content>
+        </ContentDialog>
     </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -156,8 +189,6 @@
                             </Grid>
                         </StackPanel>
                     </Button>
-                    <!--<ComboBox x:Name="DeviceEpSelectionDevicePolicyComboBox"
-                              Visibility="Collapsed"></ComboBox>-->
                     <Button
                         x:Name="WinMlModelOptionsButton"
                         Padding="0"
@@ -472,7 +503,7 @@
                            Text="Downloading and installing available hardware accelerators for your device. This might take a minute." />
             </StackPanel>
         </Grid>
-
+        
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout" />

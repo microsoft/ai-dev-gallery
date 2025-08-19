@@ -72,8 +72,18 @@ internal partial class Generator
 
         generatedProjectPath = outputPath;
 
-        var modelTypes = sample.Model1Types.Concat(sample.Model2Types ?? Enumerable.Empty<ModelType>())
+        IEnumerable<ModelType> modelTypes;
+        if (models != null)
+        {
+            modelTypes = sample.Model1Types
+                .Concat(sample.Model2Types ?? Enumerable.Empty<ModelType>())
                 .Where(models.ContainsKey);
+        }
+        else
+        {
+            modelTypes = sample.Model1Types
+                .Concat(sample.Model2Types ?? Enumerable.Empty<ModelType>());
+        }
 
         if (copyModelLocally)
         {
@@ -362,11 +372,6 @@ internal partial class Generator
     {
         var cachedModels = sample.GetCacheModelDetailsDictionary(models.ToArray(), winMlSampleOptions);
 
-        if (cachedModels == null)
-        {
-            return;
-        }
-
         var contentStackPanel = new StackPanel
         {
             Orientation = Orientation.Vertical
@@ -380,28 +385,33 @@ internal partial class Generator
 
         RadioButton? copyRadioButton = null;
 
-        var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
-        if (totalSize != 0)
+        var radioButtons = new RadioButtons();
+        radioButtons.Items.Add(new RadioButton
         {
-            var radioButtons = new RadioButtons();
-            radioButtons.Items.Add(new RadioButton
+            Content = "Reference model from model cache",
+            IsChecked = true
+        });
+        if (cachedModels != null)
+        {
+            var cacheModel = cachedModels.FirstOrDefault();
+            if (cacheModel.Value.Path != "Need Download")
             {
-                Content = "Reference model from model cache",
-                IsChecked = true
-            });
-
-            copyRadioButton = new RadioButton
-            {
-                Content = new TextBlock()
+                var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
+                if (totalSize != 0)
                 {
-                    Text = $"Copy model({AppUtils.FileSizeToString(totalSize)}) to project directory"
+                    copyRadioButton = new RadioButton
+                    {
+                        Content = new TextBlock()
+                        {
+                            Text = $"Copy model({AppUtils.FileSizeToString(totalSize)}) to project directory"
+                        }
+                    };
+                    radioButtons.Items.Add(copyRadioButton);
                 }
-            };
-
-            radioButtons.Items.Add(copyRadioButton);
-
-            contentStackPanel.Children.Add(radioButtons);
+            }
         }
+
+        contentStackPanel.Children.Add(radioButtons);
 
         ContentDialog exportDialog = new ContentDialog()
         {

@@ -28,6 +28,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     private ObservableCollection<AvailableModel> AvailableModels { get; } = [];
     private ObservableCollection<DownloadableModel> DownloadableModels { get; } = [];
     private ObservableCollection<BaseModel> UnavailableModels { get; } = [];
+    private AvailableModel SelectedAvailableModel { get; set; }
+    private DownloadableModel SelectedDownloadModel { get; set; }
+
 
     public OnnxPickerView()
     {
@@ -143,6 +146,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         if (sender.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
+            DownloadModelSelectionItemsView.Select(-1);
+        }
+    }
+
+    private void DownloadModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    {
+        if (sender.SelectedItem is DownloadableModel model)
+        {
+            OnSelectedModelChanged(this, model.GetModelDetails());
+            ModelSelectionItemsView.Select(-1);
         }
     }
 
