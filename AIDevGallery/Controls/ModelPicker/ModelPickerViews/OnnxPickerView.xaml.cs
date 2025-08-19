@@ -28,9 +28,6 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     private ObservableCollection<AvailableModel> AvailableModels { get; } = [];
     private ObservableCollection<DownloadableModel> DownloadableModels { get; } = [];
     private ObservableCollection<BaseModel> UnavailableModels { get; } = [];
-    private AvailableModel SelectedAvailableModel { get; set; }
-    private DownloadableModel SelectedDownloadModel { get; set; }
-
 
     public OnnxPickerView()
     {

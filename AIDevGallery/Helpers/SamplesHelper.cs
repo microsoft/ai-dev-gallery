@@ -351,7 +351,6 @@ internal static partial class SamplesHelper
             {
                 cachedModel = new(selectedModelDetails.Id, realCachedModel.Path, realCachedModel.Details.Url, realCachedModel.ModelSize, selectedModelDetails.HardwareAccelerators.FirstOrDefault(), winMlSampleOptions);
             }
-
         }
 
         var cachedSampleItem = App.FindSampleItemById(cachedModel.Id);

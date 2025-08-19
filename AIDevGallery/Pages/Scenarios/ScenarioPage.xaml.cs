@@ -9,7 +9,6 @@ using AIDevGallery.Samples;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
-using AIDevGallery.ViewModels;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -248,7 +247,8 @@ internal sealed partial class ScenarioPage : Page
         }
         else
         {
-            if (!App.ModelCache.IsModelCached(selectedModels[0].Url))
+            var selectedModel = selectedModels.FirstOrDefault(m => m != null);
+            if (selectedModel != null && !App.ModelCache.IsModelCached(selectedModel.Url))
             {
                 SampleContainer.SetNoModelStatus();
             }
