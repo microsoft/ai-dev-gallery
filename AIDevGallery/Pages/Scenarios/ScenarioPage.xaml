@@ -503,7 +503,7 @@
                            Text="Downloading and installing available hardware accelerators for your device. This might take a minute." />
             </StackPanel>
         </Grid>
-        
+
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout" />
