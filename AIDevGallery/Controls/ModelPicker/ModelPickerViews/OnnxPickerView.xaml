@@ -263,15 +263,15 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock
-                                            MaxWidth="268"
-                                            VerticalAlignment="Center"
-                                            Text="{x:Bind ModelDetails.Name}"
-                                            TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                                MaxWidth="268"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind ModelDetails.Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
                                             <ItemsRepeater
-                                            Grid.Column="1"
-                                            Margin="4,0,0,0"
-                                            ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
+                                                Grid.Column="1"
+                                                Margin="4,0,0,0"
+                                                ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
                                                 <ItemsRepeater.Layout>
                                                     <StackLayout Orientation="Horizontal" Spacing="4" />
                                                 </ItemsRepeater.Layout>
