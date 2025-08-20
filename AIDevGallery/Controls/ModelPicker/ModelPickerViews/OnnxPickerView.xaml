@@ -225,11 +225,11 @@
                     </DropDownButton>
                 </Grid>
                 <ItemsView
-                    x:Name="DownloadModelSelectionItemsView"
+                    x:Name="DownloadableModelSelectionItemsView"
                     Grid.Row="2"
                     IsTabStop="False"
                     ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}"
-                    SelectionChanged="DownloadModelSelectionItemsView_SelectionChanged"
+                    SelectionChanged="DownloadableModelSelectionItemsView_SelectionChanged"
                     SelectionMode="Single">
                     <ItemsView.Layout>
                         <StackLayout Spacing="4" />

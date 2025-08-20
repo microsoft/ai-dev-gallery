@@ -148,11 +148,11 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         if (sender.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
-            DispatcherQueue.TryEnqueue(() => DownloadModelSelectionItemsView.DeselectAll());
+            DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.DeselectAll());
         }
     }
 
-    private void DownloadModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void DownloadableModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
         if (sender.SelectedItem is DownloadableModel model)
         {
@@ -178,11 +178,11 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             var downloadableModel = DownloadableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
             if (downloadableModel != null)
             {
-                DispatcherQueue.TryEnqueue(() => DownloadModelSelectionItemsView.Select(DownloadableModels.IndexOf(downloadableModel)));
+                DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.Select(DownloadableModels.IndexOf(downloadableModel)));
             }
             else
             {
-                DispatcherQueue.TryEnqueue(() => DownloadModelSelectionItemsView.DeselectAll());
+                DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.DeselectAll());
             }
         }
         else
