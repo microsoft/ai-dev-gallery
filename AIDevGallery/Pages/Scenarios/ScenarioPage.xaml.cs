@@ -255,6 +255,12 @@ internal sealed partial class ScenarioPage : Page
 
             SampleContainer.ShowFooter = false;
             LoadSample(viableSamples[0]);
+
+            if (selectedModel != null && !App.ModelCache.IsModelCached(selectedModel.Url))
+            {
+                CodeToggle.IsChecked = true;
+                HandleCodePane();
+            }
         }
     }
 

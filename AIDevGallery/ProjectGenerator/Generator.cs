@@ -72,11 +72,16 @@ internal partial class Generator
 
         generatedProjectPath = outputPath;
 
+        if (models == null)
+        {
+            throw new ArgumentNullException(nameof(models), "Models dictionary cannot be null.");
+        }
+
         var modelTypes = sample.Model1Types
             .Concat(sample.Model2Types ?? Enumerable.Empty<ModelType>())
             .Where(models.ContainsKey);
 
-        if (copyModelLocally && models != null)
+        if (copyModelLocally)
         {
             long sumTotalSize = 0;
             foreach (var modelType in modelTypes)
@@ -111,11 +116,6 @@ internal partial class Generator
         }
 
         Directory.CreateDirectory(outputPath);
-
-        if (models == null)
-        {
-            throw new ArgumentNullException(nameof(models), "Models dictionary cannot be null.");
-        }
 
         Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos = [];
         List<string> modelIds = [];
@@ -387,13 +387,25 @@ internal partial class Generator
         RadioButton? copyRadioButton = null;
 
         var radioButtons = new RadioButtons();
-        radioButtons.Items.Add(new RadioButton
-        {
-            Content = "Reference model from model cache",
-            IsChecked = true
-        });
-
         var cacheModel = cachedModels.FirstOrDefault();
+
+        if (cacheModel.Value.Path != "Need Download")
+        {
+            radioButtons.Items.Add(new RadioButton
+            {
+                Content = "Reference model from model cache",
+                IsChecked = true
+            });
+        }
+        else
+        {
+            radioButtons.Items.Add(new RadioButton
+            {
+                Content = "Reference model from model cache(The sample will not work because the model is not downloaded)",
+                IsChecked = true
+            });
+        }
+
         if (cacheModel.Value.Path != "Need Download")
         {
             var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);

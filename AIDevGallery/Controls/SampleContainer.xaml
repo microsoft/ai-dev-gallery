@@ -55,7 +55,7 @@
                     IsClosable="False"
                     IsIconVisible="False"
                     IsOpen="True"
-                    Message="To enable this sample, download the required models."
+                    Message="To enable this sample, please go to the selection window to download the required models."
                     Severity="Informational"
                     Visibility="Collapsed" />
                 <StackPanel
