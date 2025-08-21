@@ -184,7 +184,18 @@ internal sealed partial class Chat : BaseSamplePage
                 ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
 
                 // </exclude>
-                var part = messagePart;
+                
+                // 处理不同类型的响应
+                string part;
+                if (messagePart is ChatResponseUpdate chatUpdate)
+                {
+                    part = chatUpdate.Text ?? string.Empty;
+                }
+                else
+                {
+                    part = messagePart.ToString();
+                }
+                
                 accumulatedContent += part;
                 
                 // 检查是否进入think标签
