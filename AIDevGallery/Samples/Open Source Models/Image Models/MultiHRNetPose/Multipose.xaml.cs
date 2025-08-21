@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -68,13 +69,13 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
+    private Task InitModels(string poseModelPath, string detectionModelPath, WinMlSampleOptions poseSessionOption)
     {
         return Task.Run(async () =>
         {
@@ -89,12 +90,14 @@ internal sealed partial class Multipose : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            _poseSession = await GetInferenceSession(poseModelPath, policy, device, compileModel);
-            _detectionSession = await GetInferenceSession(detectionModelPath, ExecutionProviderDevicePolicy.PREFER_CPU, device, compileModel);
+            var detectSessioOption = new WinMlSampleOptions(ExecutionProviderDevicePolicy.PREFER_CPU, poseSessionOption.EpName, poseSessionOption.CompileModel, poseSessionOption.DeviceType);
+
+            _poseSession = await GetInferenceSession(poseModelPath, poseSessionOption);
+            _detectionSession = await GetInferenceSession(detectionModelPath, detectSessioOption);
         });
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -117,17 +120,17 @@ internal sealed partial class Multipose : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (device != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileOption)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 

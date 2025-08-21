@@ -84,12 +84,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPaths[1];
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)

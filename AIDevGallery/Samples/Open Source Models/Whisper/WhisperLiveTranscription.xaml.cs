@@ -45,7 +45,7 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
     {
         try
         {
-            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

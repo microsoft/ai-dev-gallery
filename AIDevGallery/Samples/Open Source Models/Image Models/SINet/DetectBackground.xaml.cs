@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -62,7 +63,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -74,7 +75,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
         await Detect(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "detection_default.png"));
     }
 
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
+    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -97,17 +98,17 @@ internal sealed partial class DetectBackground : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (device != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileModel)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 

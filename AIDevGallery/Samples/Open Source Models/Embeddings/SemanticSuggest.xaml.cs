@@ -43,12 +43,7 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPath;
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

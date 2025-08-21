@@ -60,12 +60,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPath;
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

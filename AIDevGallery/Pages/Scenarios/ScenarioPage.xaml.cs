@@ -134,16 +134,34 @@ internal sealed partial class ScenarioPage : Page
 
         supportedHardwareAccelerators = [new([HardwareAccelerator.CPU], "CPU", "CPU", "CPU")];
 
-        foreach (string device in WinMLHelpers.GetEpDeviceMap().Keys)
+        foreach (var keyValuePair in WinMLHelpers.GetEpDeviceMap())
         {
-            switch(device)
+            var epName = keyValuePair.Key;
+            var epDevices = keyValuePair.Value;
+            var epDeviceTypes = epDevices.Select(d => d.HardwareDevice.Type.ToString());
+
+            switch(epName)
             {
                 case "VitisAIExecutionProvider":
                     supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
                     break;
 
                 case "OpenVINOExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
+                    if (epDeviceTypes.Contains("CPU"))
+                    {
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.CPU], "OpenVINOExecutionProvider", "OpenVINO", "CPU"));
+                    }
+
+                    if (epDeviceTypes.Contains("GPU"))
+                    {
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.GPU], "OpenVINOExecutionProvider", "OpenVINO", "GPU"));
+                    }
+
+                    if (epDeviceTypes.Contains("NPU"))
+                    {
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
+                    }
+
                     break;
 
                 case "QNNExecutionProvider":
@@ -201,7 +219,7 @@ internal sealed partial class ScenarioPage : Page
                 }
             }
 
-            foreach (var ep in eps)
+            foreach (var ep in eps.OrderBy(ep => ep.Name))
             {
                 DeviceComboBox.Items.Add(ep);
             }
@@ -427,13 +445,13 @@ internal sealed partial class ScenarioPage : Page
         {
             var key = (ExecutionPolicyComboBox.SelectedItem as string) ?? executionProviderDevicePolicies.Keys.First();
             WinMlModelOptionsButtonText.Text = key;
-            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false);
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(executionProviderDevicePolicies[key], null, false, null);
         }
         else
         {
             var device = (DeviceComboBox.SelectedItem as WinMlEp) ?? (DeviceComboBox.Items.First() as WinMlEp);
             WinMlModelOptionsButtonText.Text = device!.ShortName;
-            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device.Name, CompileModelCheckBox.IsChecked!.Value);
+            App.AppData.WinMLSampleOptions = new WinMlSampleOptions(null, device.Name, CompileModelCheckBox.IsChecked!.Value, device.DeviceType);
         }
 
         if (oldOptions == App.AppData.WinMLSampleOptions)

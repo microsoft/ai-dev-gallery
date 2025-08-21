@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -50,12 +51,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPath;
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            await InitModel(modelPath, policy, epName, compileModel);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -74,7 +70,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
     }
 
     // </exclude>
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
+    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -97,17 +93,17 @@ internal sealed partial class ImageClassification : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (epName != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(epName);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileModel)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 
