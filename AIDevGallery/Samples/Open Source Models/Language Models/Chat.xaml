@@ -56,7 +56,7 @@
                                     IsTextSelectionEnabled="True"
                                     Text="{x:Bind Text, Mode=OneWay}"
                                     TextWrapping="Wrap"
-                                    FontStyle="{x:Bind Type.ToFontStyle(), Mode=OneWay}" />
+                                    FontStyle="{x:Bind FontStyle, Mode=OneWay}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

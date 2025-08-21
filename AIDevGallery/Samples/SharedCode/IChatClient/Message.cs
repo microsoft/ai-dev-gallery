@@ -46,23 +46,17 @@ public class ContentBlock
         Text = text;
         Type = type;
     }
+    
+    // 添加FontStyle属性，XAML可以直接绑定
+    public FontStyle FontStyle => Type switch
+    {
+        ContentBlockType.Think => FontStyle.Italic,
+        _ => FontStyle.Normal
+    };
 }
 
 public enum ContentBlockType
 {
     Normal,
     Think
-}
-
-// 扩展方法，直接返回FontStyle
-public static class ContentBlockTypeExtensions
-{
-    public static FontStyle ToFontStyle(this ContentBlockType blockType)
-    {
-        return blockType switch
-        {
-            ContentBlockType.Think => FontStyle.Italic,
-            _ => FontStyle.Normal
-        };
-    }
 }
