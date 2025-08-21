@@ -41,7 +41,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "Microsoft.Extensions.AI",
         "Microsoft.ML.Tokenizers",
         "Microsoft.SemanticKernel.Connectors.InMemory",
-        "Microsoft.Windows.AI.MachineLearning",
         "PdfPig",
         "System.Numerics.Tensors",
     ],

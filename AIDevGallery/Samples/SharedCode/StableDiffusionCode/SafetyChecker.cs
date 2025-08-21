@@ -42,18 +42,17 @@ internal class SafetyChecker : IDisposable
                 throw new FileNotFoundException("Model file not found.", modelPath);
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();

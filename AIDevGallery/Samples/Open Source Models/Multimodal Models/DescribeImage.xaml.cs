@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels;
     Id = "58c3565d-dbe0-46c7-accc-2c088db2bdf9",
     Icon = "\uE8D4",
     NugetPackageReferences = [
-        "Microsoft.ML.OnnxRuntimeGenAI.WinML"
+        "Microsoft.ML.OnnxRuntimeGenAI.WindowsAppSDK"
     ],
     Name = "Describe Image")]
 internal sealed partial class DescribeImage : BaseSamplePage
@@ -133,11 +133,12 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
         using GeneratorParams generatorParams = new(model);
         generatorParams.SetSearchOption("max_length", 4096);
-        generatorParams.SetInputs(inputTensors);
 
         ct.ThrowIfCancellationRequested();
 
         using var generator = new Generator(model, generatorParams);
+        generator.SetInputs(inputTensors);
+
         while (!generator.IsDone())
         {
             ct.ThrowIfCancellationRequested();

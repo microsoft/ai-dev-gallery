@@ -35,7 +35,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     NugetPackageReferences = [
         "System.Numerics.Tensors",
         "Microsoft.ML.Tokenizers",
-        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.Extensions.AI",
         "Microsoft.SemanticKernel.Connectors.InMemory"
     ],

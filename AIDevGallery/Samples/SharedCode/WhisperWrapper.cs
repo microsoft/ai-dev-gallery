@@ -20,18 +20,16 @@ internal class WhisperWrapper : IDisposable
 
     public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
     {
-        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+        var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
         try
         {
-            await infrastructure.DownloadPackagesAsync();
+            var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
         }
-
-        await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         SessionOptions sessionOptions = new();

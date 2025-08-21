@@ -50,7 +50,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         "MathNet.Numerics",
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.Extensions",
-        "Microsoft.Windows.AI.MachineLearning"
     ],
     Icon = "\uEE71")]
 

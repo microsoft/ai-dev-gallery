@@ -34,7 +34,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions"
     ],
     AssetFilenames = [
@@ -79,18 +78,16 @@ internal sealed partial class Multipose : BaseSamplePage
     {
         return Task.Run(async () =>
         {
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             _poseSession = await GetInferenceSession(poseModelPath, policy, device, compileModel);
             _detectionSession = await GetInferenceSession(detectionModelPath, ExecutionProviderDevicePolicy.PREFER_CPU, device, compileModel);
@@ -106,18 +103,16 @@ internal sealed partial class Multipose : BaseSamplePage
                 throw new FileNotFoundException("Model file not found.", modelPath);
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();

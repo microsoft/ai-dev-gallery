@@ -34,7 +34,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions",
         "CommunityToolkit.WinUI.Helpers",
         "CommunityToolkit.WinUI.Controls.CameraPreview",
@@ -128,18 +127,16 @@ internal sealed partial class FaceDetection : BaseSamplePage
                 return;
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
