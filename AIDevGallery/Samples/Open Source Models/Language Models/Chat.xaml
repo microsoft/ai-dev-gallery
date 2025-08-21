@@ -15,7 +15,7 @@
             UserTemplate="{StaticResource UserDataTemplate}" />
         
         <!-- 内容块类型到字体样式的转换器 -->
-        <shared:ContentBlockTypeToFontStyleConverter x:Key="ContentBlockTypeToFontStyleConverter" />
+        <ContentBlockTypeToFontStyleConverter x:Key="ContentBlockTypeToFontStyleConverter" />
         
         <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
             <StackPanel
