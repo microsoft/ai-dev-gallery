@@ -4,6 +4,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.AI;
 using System;
+using System.Collections.Generic;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -11,6 +12,10 @@ internal partial class Message : ObservableObject
 {
     [ObservableProperty]
     public partial string Content { get; set; }
+    
+    [ObservableProperty]
+    public partial List<ContentBlock> ContentBlocks { get; set; }
+    
     public DateTime MsgDateTime { get; private set; }
 
     public ChatRole Role { get; set; }
@@ -18,6 +23,7 @@ internal partial class Message : ObservableObject
     public Message(string content, DateTime dateTime, ChatRole role)
     {
         Content = content;
+        ContentBlocks = new List<ContentBlock>();
         MsgDateTime = dateTime;
         Role = role;
     }
@@ -26,4 +32,22 @@ internal partial class Message : ObservableObject
     {
         return $"{MsgDateTime} {Content}";
     }
+}
+
+public class ContentBlock
+{
+    public string Text { get; set; }
+    public ContentBlockType Type { get; set; }
+    
+    public ContentBlock(string text, ContentBlockType type)
+    {
+        Text = text;
+        Type = type;
+    }
+}
+
+public enum ContentBlockType
+{
+    Normal,
+    Think
 }

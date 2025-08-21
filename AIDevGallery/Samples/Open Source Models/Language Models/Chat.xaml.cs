@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -17,6 +18,24 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
+
+// 内容块类型到字体样式的转换器
+public class ContentBlockTypeToFontStyleConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is ContentBlockType blockType)
+        {
+            return blockType == ContentBlockType.Think ? FontStyle.Italic : FontStyle.Normal;
+        }
+        return FontStyle.Normal;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
 
 [GallerySample(
     Name = "Chat",
@@ -165,6 +184,11 @@ internal sealed partial class Chat : BaseSamplePage
             int outputTokens = 0;
 
             // </exclude>
+            
+            var accumulatedContent = string.Empty;
+            var currentThinkContent = string.Empty;
+            var isInThinkBlock = false;
+            
             await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
             {
                 // <exclude>
@@ -179,6 +203,98 @@ internal sealed partial class Chat : BaseSamplePage
 
                 // </exclude>
                 var part = messagePart;
+                accumulatedContent += part;
+                
+                // 检查是否进入think标签
+                if (part.Contains("<think>"))
+                {
+                    isInThinkBlock = true;
+                    currentThinkContent = string.Empty;
+                    
+                    // 如果之前有普通内容，先添加到ContentBlocks
+                    var normalContent = accumulatedContent.Replace("<think>", "").Trim();
+                    if (!string.IsNullOrEmpty(normalContent))
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            responseMessage.ContentBlocks.Add(new ContentBlock(normalContent, ContentBlockType.Normal));
+                        });
+                    }
+                    
+                    accumulatedContent = string.Empty;
+                }
+                
+                // 如果在think标签内
+                if (isInThinkBlock)
+                {
+                    currentThinkContent += part;
+                    
+                    // 检查是否结束think标签
+                    if (part.Contains("</think>"))
+                    {
+                        isInThinkBlock = false;
+                        
+                        // 提取think内容（去除标签）
+                        var thinkContent = currentThinkContent
+                            .Replace("<think>", "")
+                            .Replace("</think>", "")
+                            .Trim();
+                        
+                        if (!string.IsNullOrEmpty(thinkContent))
+                        {
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                responseMessage.ContentBlocks.Add(new ContentBlock(thinkContent, ContentBlockType.Think));
+                            });
+                        }
+                        
+                        currentThinkContent = string.Empty;
+                        accumulatedContent = string.Empty;
+                    }
+                }
+                else
+                {
+                    // 不在think标签内，检查是否有完整的think标签
+                    if (accumulatedContent.Contains("</think>"))
+                    {
+                        // 处理完整的think标签
+                        var parts = accumulatedContent.Split(new[] { "</think>" }, StringSplitOptions.None);
+                        if (parts.Length >= 2)
+                        {
+                            var beforeThink = parts[0].Replace("<think>", "").Trim();
+                            var thinkContent = parts[0].Substring(parts[0].IndexOf("<think>") + 7).Trim();
+                            var afterThink = parts[1].Trim();
+                            
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                if (!string.IsNullOrEmpty(beforeThink))
+                                {
+                                    responseMessage.ContentBlocks.Add(new ContentBlock(beforeThink, ContentBlockType.Normal));
+                                }
+                                if (!string.IsNullOrEmpty(thinkContent))
+                                {
+                                    responseMessage.ContentBlocks.Add(new ContentBlock(thinkContent, ContentBlockType.Think));
+                                }
+                                if (!string.IsNullOrEmpty(afterThink))
+                                {
+                                    responseMessage.ContentBlocks.Add(new ContentBlock(afterThink, ContentBlockType.Normal));
+                                }
+                            });
+                        }
+                        accumulatedContent = string.Empty;
+                    }
+                    else if (!accumulatedContent.Contains("<think>"))
+                    {
+                        // 没有think标签，直接添加普通内容
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            responseMessage.ContentBlocks.Add(new ContentBlock(accumulatedContent, ContentBlockType.Normal));
+                        });
+                        accumulatedContent = string.Empty;
+                    }
+                }
+
+                // 保持原有的Content属性更新以保持向后兼容
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     responseMessage.Content += part;
@@ -193,12 +309,24 @@ internal sealed partial class Chat : BaseSamplePage
                     // </exclude>
                 });
             }
+            
+            // 处理剩余的内容
+            if (!string.IsNullOrEmpty(accumulatedContent))
+            {
+                var finalContent = accumulatedContent.Trim();
+                if (!string.IsNullOrEmpty(finalContent))
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        responseMessage.ContentBlocks.Add(new ContentBlock(finalContent, ContentBlockType.Normal));
+                    });
+                }
+            }
 
             // <exclude>
             swEnd.Stop();
             double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
             ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
-
             // </exclude>
             cts?.Dispose();
             cts = null;
