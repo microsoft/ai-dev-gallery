@@ -10,7 +10,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Data;
-using Windows.UI.Text;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -19,24 +18,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
-
-// 内容块类型到字体样式的转换器
-public class ContentBlockTypeToFontStyleConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, string language)
-    {
-        if (value is ContentBlockType blockType)
-        {
-            return blockType == ContentBlockType.Think ? FontStyle.Italic : FontStyle.Normal;
-        }
-        return FontStyle.Normal;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language)
-    {
-        throw new NotImplementedException();
-    }
-}
 
 [GallerySample(
     Name = "Chat",

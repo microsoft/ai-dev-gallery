@@ -3,6 +3,8 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.AI;
+using Microsoft.UI.Xaml.Media;
+using Windows.UI.Text;
 using System;
 using System.Collections.Generic;
 
@@ -50,4 +52,17 @@ public enum ContentBlockType
 {
     Normal,
     Think
+}
+
+// 扩展方法，直接返回FontStyle
+public static class ContentBlockTypeExtensions
+{
+    public static FontStyle ToFontStyle(this ContentBlockType blockType)
+    {
+        return blockType switch
+        {
+            ContentBlockType.Think => FontStyle.Italic,
+            _ => FontStyle.Normal
+        };
+    }
 }

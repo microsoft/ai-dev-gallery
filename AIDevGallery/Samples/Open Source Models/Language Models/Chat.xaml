@@ -14,9 +14,6 @@
             AssistantTemplate="{StaticResource AssistantDataTemplate}"
             UserTemplate="{StaticResource UserDataTemplate}" />
         
-        <!-- 内容块类型到字体样式的转换器 -->
-        <ContentBlockTypeToFontStyleConverter x:Key="ContentBlockTypeToFontStyleConverter" />
-        
         <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
             <StackPanel
                 MaxWidth="486"
@@ -59,7 +56,7 @@
                                     IsTextSelectionEnabled="True"
                                     Text="{x:Bind Text, Mode=OneWay}"
                                     TextWrapping="Wrap"
-                                    FontStyle="{x:Bind Type, Converter={StaticResource ContentBlockTypeToFontStyleConverter}, Mode=OneWay}" />
+                                    FontStyle="{x:Bind Type.ToFontStyle(), Mode=OneWay}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
