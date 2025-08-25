@@ -10,7 +10,19 @@ namespace AIDevGallery.Samples.SharedCode;
 internal partial class Message : ObservableObject
 {
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsThinking))]
+    [NotifyPropertyChangedFor(nameof(DisplayContent))]
     public partial string Content { get; set; }
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasThink))]
+    [NotifyPropertyChangedFor(nameof(IsThinking))]
+    [NotifyPropertyChangedFor(nameof(DisplayContent))]
+    public partial string ThinkContent { get; set; }
+
+    public bool HasThink => !string.IsNullOrEmpty(ThinkContent);
+    public bool IsThinking => HasThink && string.IsNullOrEmpty(Content);
+    public string DisplayContent => IsThinking ? "Thinking..." : Content;
     public DateTime MsgDateTime { get; private set; }
 
     public ChatRole Role { get; set; }

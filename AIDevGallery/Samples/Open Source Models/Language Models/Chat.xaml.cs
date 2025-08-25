@@ -165,6 +165,11 @@ internal sealed partial class Chat : BaseSamplePage
             int outputTokens = 0;
 
             // </exclude>
+            bool thinkMode = false;
+            string rolling = string.Empty;
+            const string thinkOpen = "<think>";
+            const string thinkClose = "</think>";
+
             await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
             {
                 // <exclude>
@@ -179,9 +184,71 @@ internal sealed partial class Chat : BaseSamplePage
 
                 // </exclude>
                 var part = messagePart;
+                System.Diagnostics.Debug.WriteLine(part);
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    responseMessage.Content += part;
+                    // 逐字符/分片解析，识别 <think>...</think>
+                    rolling += part;
+
+                    while (true)
+                    {
+                        if (!thinkMode)
+                        {
+                            int openIdx = rolling.IndexOf(thinkOpen, StringComparison.Ordinal);
+                            if (openIdx >= 0)
+                            {
+                                // 输出起始标记前的安全内容
+                                if (openIdx > 0)
+                                {
+                                    responseMessage.Content += rolling.Substring(0, openIdx);
+                                }
+                                // 进入 think 模式，丢弃标记文本本身
+                                rolling = rolling.Substring(openIdx + thinkOpen.Length);
+                                thinkMode = true;
+                                continue;
+                            }
+                            else
+                            {
+                                // 未发现起始标记：仅刷新安全部分，保留可能形成标记的尾部
+                                int keep = thinkOpen.Length - 1; // 保留可能与下个分片组成标记的尾部
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.Content += rolling.Substring(0, flushLen);
+                                    rolling = rolling.Substring(flushLen);
+                                }
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            int closeIdx = rolling.IndexOf(thinkClose, StringComparison.Ordinal);
+                            if (closeIdx >= 0)
+                            {
+                                // 将关闭标记前的内容追加到思考框
+                                if (closeIdx > 0)
+                                {
+                                    responseMessage.ThinkContent += rolling.Substring(0, closeIdx);
+                                }
+                                // 退出 think 模式，丢弃关闭标记
+                                rolling = rolling.Substring(closeIdx + thinkClose.Length);
+                                thinkMode = false;
+                                continue;
+                            }
+                            else
+                            {
+                                // 未发现关闭标记：仅刷新安全部分，保留可能形成标记的尾部
+                                int keep = thinkClose.Length - 1;
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.ThinkContent += rolling.Substring(0, flushLen);
+                                    rolling = rolling.Substring(flushLen);
+                                }
+                                break;
+                            }
+                        }
+                    }
 
                     // <exclude>
                     if (!contentStartedBeingGenerated)
@@ -193,6 +260,22 @@ internal sealed partial class Chat : BaseSamplePage
                     // </exclude>
                 });
             }
+
+            // 刷新尾部残留（若有）
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!string.IsNullOrEmpty(rolling))
+                {
+                    if (thinkMode)
+                    {
+                        responseMessage.ThinkContent += rolling;
+                    }
+                    else
+                    {
+                        responseMessage.Content += rolling;
+                    }
+                }
+            });
 
             // <exclude>
             swEnd.Stop();
