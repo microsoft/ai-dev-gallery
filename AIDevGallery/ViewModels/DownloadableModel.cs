@@ -77,6 +77,11 @@ internal partial class DownloadableModel : BaseModel
     {
     }
 
+    public ModelDetails GetModelDetails()
+    {
+        return ModelDetails;
+    }
+
     public void StartDownload()
     {
         ModelDownload ??= App.ModelDownloadQueue.AddModel(ModelDetails);

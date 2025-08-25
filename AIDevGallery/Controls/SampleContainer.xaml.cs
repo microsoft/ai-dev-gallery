@@ -138,6 +138,7 @@ internal sealed partial class SampleContainer : UserControl
         this.Visibility = Visibility.Visible;
         if (!LoadSampleMetadata(sample, models, winMlSampleOptions))
         {
+            VisualStateManager.GoToState(this, "SampleLoaded", true);
             return;
         }
 
@@ -437,6 +438,11 @@ internal sealed partial class SampleContainer : UserControl
     {
         codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
         RenderCode();
+    }
+
+    public void SetNoModelStatus()
+    {
+        VisualStateManager.GoToState(this, "Disabled", true);
     }
 
     public void ShowCode()

@@ -247,8 +247,20 @@ internal sealed partial class ScenarioPage : Page
         }
         else
         {
+            var selectedModel = selectedModels.FirstOrDefault(m => m != null);
+            if (selectedModel != null && !App.ModelCache.IsModelCached(selectedModel.Url))
+            {
+                SampleContainer.SetNoModelStatus();
+            }
+
             SampleContainer.ShowFooter = false;
             LoadSample(viableSamples[0]);
+
+            if (selectedModel != null && !App.ModelCache.IsModelCached(selectedModel.Url))
+            {
+                CodeToggle.IsChecked = true;
+                HandleCodePane();
+            }
         }
     }
 
