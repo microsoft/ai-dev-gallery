@@ -7,8 +7,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    xmlns:conv="using:AIDevGallery.Converters"
     mc:Ignorable="d">
     <Page.Resources>
+        <conv:SplitLinesConverter x:Key="SplitLinesConverter" />
         <shared:ChatTemplateSelector
             x:Key="ChatTemplateSelector"
             AssistantTemplate="{StaticResource AssistantDataTemplate}"
@@ -36,23 +38,36 @@
         </DataTemplate>
         <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
             <Grid Margin="0,4" HorizontalAlignment="Left">
-                <StackPanel
-                    MaxWidth="486"
-                    Padding="12"
-                    HorizontalAlignment="Right"
-                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource OverlayCornerRadius}"
-                    Spacing="8">
+                <StackPanel MaxWidth="486" Spacing="8">
+                    <ItemsControl
+                        ItemsSource="{x:Bind Content, Mode=OneWay, Converter={StaticResource SplitLinesConverter}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Grid Margin="0,4" HorizontalAlignment="Left">
+                                    <StackPanel
+                                        Padding="12"
+                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource OverlayCornerRadius}">
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                            IsTextSelectionEnabled="True"
+                                            Text="{x:Bind}"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <TextBlock
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        Text="{x:Bind Content, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        HorizontalAlignment="Left"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Text="{x:Bind MsgDateTime}" />
                 </StackPanel>
