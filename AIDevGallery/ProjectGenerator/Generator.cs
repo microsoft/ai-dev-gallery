@@ -401,7 +401,7 @@ internal partial class Generator
         {
             radioButtons.Items.Add(new RadioButton
             {
-                Content = "Reference model from model cache(The sample will not work because the model is not downloaded)",
+                Content = "Reference model from cache. (The sample will not run because the model has not been downloaded)",
                 IsChecked = true
             });
         }
