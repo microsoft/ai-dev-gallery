@@ -195,7 +195,7 @@
                     Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Vertical" Spacing="4">
                         <FontIcon FontSize="14" Glyph="&#xE72A;" />
-                        <TextBlock Text="Select Model" />
+                        <TextBlock Text="Select model" />
                     </StackPanel>
                 </Button>
             </Grid>
