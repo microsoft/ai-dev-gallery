@@ -187,7 +187,7 @@ internal sealed partial class Chat : BaseSamplePage
 
                 // </exclude>
                 var part = messagePart;
-                System.Diagnostics.Debug.WriteLine(part);
+                
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     if (responseMessage.IsPending)
