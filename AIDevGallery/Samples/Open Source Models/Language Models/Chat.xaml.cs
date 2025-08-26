@@ -187,13 +187,14 @@ internal sealed partial class Chat : BaseSamplePage
 
                 // </exclude>
                 var part = messagePart;
-                
+
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     if (responseMessage.IsPending)
                     {
                         responseMessage.IsPending = false;
                     }
+
                     // Parse character by character/fragment to identify <think>...</think>
                     rolling += part;
 
@@ -209,6 +210,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 {
                                     responseMessage.Content += rolling.Substring(0, openIdx);
                                 }
+
                                 // Enter think mode, discard the marker text itself
                                 rolling = rolling.Substring(openIdx + thinkOpen.Length);
                                 thinkMode = true;
@@ -217,7 +219,14 @@ internal sealed partial class Chat : BaseSamplePage
                             else
                             {
                                 // Start marker not found: only flush safe parts, keep the tail that might form a marker
-                                ProcessUnmatchedContent(rolling, thinkOpen.Length, ref rolling, content => responseMessage.Content = responseMessage.Content.TrimStart() + content);
+                                int keep = thinkOpen.Length - 1;
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.Content = responseMessage.Content.TrimStart() + rolling.Substring(0, flushLen);
+                                    rolling = rolling.Substring(flushLen);
+                                }
+
                                 break;
                             }
                         }
@@ -231,6 +240,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 {
                                     responseMessage.ThinkContent += rolling.Substring(0, closeIdx);
                                 }
+
                                 // Exit think mode, discard the closing marker
                                 rolling = rolling.Substring(closeIdx + thinkClose.Length);
                                 thinkMode = false;
@@ -239,7 +249,14 @@ internal sealed partial class Chat : BaseSamplePage
                             else
                             {
                                 // Closing marker not found: only flush safe parts, keep the tail that might form a marker
-                                ProcessUnmatchedContent(rolling, thinkClose.Length, ref rolling, content => responseMessage.ThinkContent += content);
+                                int keep = thinkClose.Length - 1;
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.ThinkContent += rolling.Substring(0, flushLen);
+                                    rolling = rolling.Substring(flushLen);
+                                }
+
                                 break;
                             }
                         }
@@ -290,17 +307,6 @@ internal sealed partial class Chat : BaseSamplePage
                 EnableInputBoxWithPlaceholder();
             });
         });
-    }
-
-    private static void ProcessUnmatchedContent(string rolling, int markerLength, ref string rollingRef, Action<string> contentHandler)
-    {
-        int keep = markerLength - 1; // Keep the tail that might form a marker with the next fragment
-        if (rolling.Length > keep)
-        {
-            int flushLen = rolling.Length - keep;
-            contentHandler(rolling.Substring(0, flushLen));
-            rollingRef = rolling.Substring(flushLen);
-        }
     }
 
     private void SendBtn_Click(object sender, RoutedEventArgs e)
