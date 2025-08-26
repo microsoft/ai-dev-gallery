@@ -281,7 +281,7 @@ internal sealed partial class ScenarioPage : Page
         }
         else if (options.EpName != null)
         {
-            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.EpName).FirstOrDefault();
+            var selectedDevice = DeviceComboBox.Items.Where(i => (i as WinMlEp)?.Name == options.EpName && (i as WinMlEp)?.DeviceType == options.DeviceType).FirstOrDefault();
             if (selectedDevice != null)
             {
                 DeviceComboBox.SelectedItem = selectedDevice;
