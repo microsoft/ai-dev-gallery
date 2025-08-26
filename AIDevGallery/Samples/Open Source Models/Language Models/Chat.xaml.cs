@@ -208,7 +208,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 // Output safe content before the start marker
                                 if (openIdx > 0)
                                 {
-                                    responseMessage.Content += rolling.Substring(0, openIdx);
+                                    responseMessage.Content = string.Concat(responseMessage.Content, rolling.AsSpan(0, openIdx));
                                 }
 
                                 // Enter think mode, discard the marker text itself
@@ -223,7 +223,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 if (rolling.Length > keep)
                                 {
                                     int flushLen = rolling.Length - keep;
-                                    responseMessage.Content = responseMessage.Content.TrimStart() + rolling.Substring(0, flushLen);
+                                    responseMessage.Content = string.Concat(responseMessage.Content.TrimStart(), rolling.AsSpan(0, flushLen));
                                     rolling = rolling.Substring(flushLen);
                                 }
 
@@ -238,7 +238,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 // Append content before the closing marker to the think box
                                 if (closeIdx > 0)
                                 {
-                                    responseMessage.ThinkContent += rolling.Substring(0, closeIdx);
+                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, closeIdx));
                                 }
 
                                 // Exit think mode, discard the closing marker
@@ -253,7 +253,7 @@ internal sealed partial class Chat : BaseSamplePage
                                 if (rolling.Length > keep)
                                 {
                                     int flushLen = rolling.Length - keep;
-                                    responseMessage.ThinkContent += rolling.Substring(0, flushLen);
+                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, flushLen));
                                     rolling = rolling.Substring(flushLen);
                                 }
 

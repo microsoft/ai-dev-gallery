@@ -13,7 +13,6 @@ internal partial class Message : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsThinking))]
     [NotifyPropertyChangedFor(nameof(DisplayContent))]
     public partial string Content { get; set; }
-    
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasThink))]
     [NotifyPropertyChangedFor(nameof(IsThinking))]
