@@ -144,7 +144,10 @@ internal sealed partial class Chat : BaseSamplePage
         {
             var history = Messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
 
-            var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant);
+            var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant)
+            {
+                IsPending = true
+            };
 
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -187,7 +190,11 @@ internal sealed partial class Chat : BaseSamplePage
                 System.Diagnostics.Debug.WriteLine(part);
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    // 逐字符/分片解析，识别 <think>...</think>
+                    if (responseMessage.IsPending)
+                    {
+                        responseMessage.IsPending = false;
+                    }
+                    // Parse character by character/fragment to identify <think>...</think>
                     rolling += part;
 
                     while (true)
@@ -197,26 +204,20 @@ internal sealed partial class Chat : BaseSamplePage
                             int openIdx = rolling.IndexOf(thinkOpen, StringComparison.Ordinal);
                             if (openIdx >= 0)
                             {
-                                // 输出起始标记前的安全内容
+                                // Output safe content before the start marker
                                 if (openIdx > 0)
                                 {
                                     responseMessage.Content += rolling.Substring(0, openIdx);
                                 }
-                                // 进入 think 模式，丢弃标记文本本身
+                                // Enter think mode, discard the marker text itself
                                 rolling = rolling.Substring(openIdx + thinkOpen.Length);
                                 thinkMode = true;
                                 continue;
                             }
                             else
                             {
-                                // 未发现起始标记：仅刷新安全部分，保留可能形成标记的尾部
-                                int keep = thinkOpen.Length - 1; // 保留可能与下个分片组成标记的尾部
-                                if (rolling.Length > keep)
-                                {
-                                    int flushLen = rolling.Length - keep;
-                                    responseMessage.Content += rolling.Substring(0, flushLen);
-                                    rolling = rolling.Substring(flushLen);
-                                }
+                                // Start marker not found: only flush safe parts, keep the tail that might form a marker
+                                ProcessUnmatchedContent(rolling, thinkOpen.Length, ref rolling, content => responseMessage.Content = responseMessage.Content.TrimStart() + content);
                                 break;
                             }
                         }
@@ -225,26 +226,20 @@ internal sealed partial class Chat : BaseSamplePage
                             int closeIdx = rolling.IndexOf(thinkClose, StringComparison.Ordinal);
                             if (closeIdx >= 0)
                             {
-                                // 将关闭标记前的内容追加到思考框
+                                // Append content before the closing marker to the think box
                                 if (closeIdx > 0)
                                 {
                                     responseMessage.ThinkContent += rolling.Substring(0, closeIdx);
                                 }
-                                // 退出 think 模式，丢弃关闭标记
+                                // Exit think mode, discard the closing marker
                                 rolling = rolling.Substring(closeIdx + thinkClose.Length);
                                 thinkMode = false;
                                 continue;
                             }
                             else
                             {
-                                // 未发现关闭标记：仅刷新安全部分，保留可能形成标记的尾部
-                                int keep = thinkClose.Length - 1;
-                                if (rolling.Length > keep)
-                                {
-                                    int flushLen = rolling.Length - keep;
-                                    responseMessage.ThinkContent += rolling.Substring(0, flushLen);
-                                    rolling = rolling.Substring(flushLen);
-                                }
+                                // Closing marker not found: only flush safe parts, keep the tail that might form a marker
+                                ProcessUnmatchedContent(rolling, thinkClose.Length, ref rolling, content => responseMessage.ThinkContent += content);
                                 break;
                             }
                         }
@@ -261,9 +256,10 @@ internal sealed partial class Chat : BaseSamplePage
                 });
             }
 
-            // 刷新尾部残留（若有）
+            // Flush remaining tail content (if any)
             DispatcherQueue.TryEnqueue(() =>
             {
+                responseMessage.IsPending = false;
                 if (!string.IsNullOrEmpty(rolling))
                 {
                     if (thinkMode)
@@ -272,7 +268,7 @@ internal sealed partial class Chat : BaseSamplePage
                     }
                     else
                     {
-                        responseMessage.Content += rolling;
+                        responseMessage.Content = responseMessage.Content.TrimStart() + rolling;
                     }
                 }
             });
@@ -294,6 +290,17 @@ internal sealed partial class Chat : BaseSamplePage
                 EnableInputBoxWithPlaceholder();
             });
         });
+    }
+
+    private static void ProcessUnmatchedContent(string rolling, int markerLength, ref string rollingRef, Action<string> contentHandler)
+    {
+        int keep = markerLength - 1; // Keep the tail that might form a marker with the next fragment
+        if (rolling.Length > keep)
+        {
+            int flushLen = rolling.Length - keep;
+            contentHandler(rolling.Substring(0, flushLen));
+            rollingRef = rolling.Substring(flushLen);
+        }
     }
 
     private void SendBtn_Click(object sender, RoutedEventArgs e)

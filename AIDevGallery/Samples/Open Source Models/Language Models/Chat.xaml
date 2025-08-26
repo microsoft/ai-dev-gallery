@@ -48,8 +48,7 @@
                             IsTextSelectionEnabled="True"
                             Text="{x:Bind ThinkContent, Mode=OneWay}"
                             TextWrapping="Wrap"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            FontStyle="Italic"/>
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     </Border>
                     <StackPanel
                         Padding="12"

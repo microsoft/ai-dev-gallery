@@ -20,9 +20,14 @@ internal partial class Message : ObservableObject
     [NotifyPropertyChangedFor(nameof(DisplayContent))]
     public partial string ThinkContent { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsThinking))]
+    [NotifyPropertyChangedFor(nameof(DisplayContent))]
+    public partial bool IsPending { get; set; }
+
     public bool HasThink => !string.IsNullOrEmpty(ThinkContent);
-    public bool IsThinking => HasThink && string.IsNullOrEmpty(Content);
-    public string DisplayContent => IsThinking ? "Thinking..." : Content;
+    public bool IsThinking => (HasThink && string.IsNullOrEmpty(Content)) || IsPending;
+    public string DisplayContent => IsThinking ? "<Thinking...>" : Content;
     public DateTime MsgDateTime { get; private set; }
 
     public ChatRole Role { get; set; }
