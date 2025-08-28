@@ -36,25 +36,38 @@
         </DataTemplate>
         <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
             <Grid Margin="0,4" HorizontalAlignment="Left">
-                <StackPanel
-                    MaxWidth="486"
-                    Padding="12"
-                    HorizontalAlignment="Right"
-                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource OverlayCornerRadius}"
-                    Spacing="8">
-                    <TextBlock
-                        HorizontalAlignment="Right"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        Text="{x:Bind Content, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="{x:Bind MsgDateTime}" />
+                <StackPanel MaxWidth="486" Spacing="4">
+                    <Border
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="8"
+                        x:Name="ThinkContainer"
+                        x:Load="{x:Bind HasThink, Mode=OneWay}">
+                        <TextBlock
+                            IsTextSelectionEnabled="True"
+                            Text="{x:Bind ThinkContent, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </Border>
+                    <StackPanel
+                        Padding="12"
+                        HorizontalAlignment="Left"
+                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource OverlayCornerRadius}"
+                        Spacing="8">
+                        <TextBlock
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            IsTextSelectionEnabled="True"
+                            Text="{x:Bind DisplayContent, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind MsgDateTime}" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </DataTemplate>
