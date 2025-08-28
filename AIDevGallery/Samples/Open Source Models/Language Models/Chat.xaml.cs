@@ -67,6 +67,7 @@ internal sealed partial class Chat : BaseSamplePage
     private void Page_Loaded()
     {
         InputBox.Focus(FocusState.Programmatic);
+        UpdateRewriteButtonState();
     }
 
     // </exclude>
@@ -136,6 +137,7 @@ internal sealed partial class Chat : BaseSamplePage
         }
 
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
+        UpdateRewriteButtonState();
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
         SendSampleInteractedEvent("AddMessage"); // <exclude-line>
@@ -223,6 +225,16 @@ internal sealed partial class Chat : BaseSamplePage
         CancelResponse();
     }
 
+    private void ClearBtn_Click(object sender, RoutedEventArgs e)
+    {
+        ClearChat();
+    }
+
+    private void RewriteBtn_Click(object sender, RoutedEventArgs e)
+    {
+        RewriteLastMessage();
+    }
+
     private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         SendBtn.IsEnabled = !string.IsNullOrWhiteSpace(InputBox.Text);
@@ -232,6 +244,32 @@ internal sealed partial class Chat : BaseSamplePage
     {
         InputBox.IsEnabled = true;
         InputBox.PlaceholderText = "Enter your prompt (Press Shift + Enter to insert a newline)";
+    }
+
+    private void ClearChat()
+    {
+        Messages.Clear();
+        UpdateRewriteButtonState();
+        SendSampleInteractedEvent("ClearChat"); // <exclude-line>
+    }
+
+    private void RewriteLastMessage()
+    {
+        var lastUserMessage = Messages.LastOrDefault(m => m.Role == ChatRole.User);
+        if (lastUserMessage != null)
+        {
+            InputBox.Text = lastUserMessage.Content;
+            InputBox.Focus(FocusState.Programmatic);
+
+            InputBox.SelectionStart = InputBox.Text.Length;
+            InputBox.SelectionLength = 0;
+            SendSampleInteractedEvent("RewriteLastMessage"); // <exclude-line>
+        }
+    }
+
+    private void UpdateRewriteButtonState()
+    {
+        RewriteBtn.IsEnabled = Messages.Any(m => m.Role == ChatRole.User);
     }
 
     private void InvertedListView_Loaded(object sender, RoutedEventArgs e)
