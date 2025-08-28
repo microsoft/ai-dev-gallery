@@ -40,6 +40,12 @@ internal sealed partial class Chat : BaseSamplePage
     private bool isImeActive = true;
 
     private IChatClient? model;
+
+    // Markers for the assistant's think area (displayed in a dedicated UI region).
+    private static readonly string[] ThinkTagOpens = new[] { "<think>", "<thought>", "<reasoning>" };
+    private static readonly string[] ThinkTagCloses = new[] { "</think>", "</thought>", "</reasoning>" };
+    private static readonly int MaxOpenThinkMarkerLength = ThinkTagOpens.Max(s => s.Length);
+
     public Chat()
     {
         this.Unloaded += (s, e) => CleanUp();
@@ -168,10 +174,8 @@ internal sealed partial class Chat : BaseSamplePage
             int outputTokens = 0;
 
             // </exclude>
-            bool thinkMode = false;
+            int currentThinkTagIndex = -1; // -1 means not inside any think/auxiliary section
             string rolling = string.Empty;
-            const string thinkOpen = "<think>";
-            const string thinkClose = "</think>";
 
             await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
             {
@@ -195,31 +199,43 @@ internal sealed partial class Chat : BaseSamplePage
                         responseMessage.IsPending = false;
                     }
 
-                    // Parse character by character/fragment to identify <think>...</think>
+                    // Parse character by character/fragment to identify think tags (e.g., <think>...</think>, <thought>...</thought>)
                     rolling += part;
 
-                    while (true)
+                    while (!string.IsNullOrEmpty(rolling))
                     {
-                        if (!thinkMode)
+                        if (currentThinkTagIndex == -1)
                         {
-                            int openIdx = rolling.IndexOf(thinkOpen, StringComparison.Ordinal);
-                            if (openIdx >= 0)
+                            // Find the earliest occurring open marker among supported think tags
+                            int earliestIdx = -1;
+                            int foundTagIndex = -1;
+                            for (int i = 0; i < ThinkTagOpens.Length; i++)
+                            {
+                                int idx = rolling.IndexOf(ThinkTagOpens[i], StringComparison.Ordinal);
+                                if (idx >= 0 && (earliestIdx == -1 || idx < earliestIdx))
+                                {
+                                    earliestIdx = idx;
+                                    foundTagIndex = i;
+                                }
+                            }
+
+                            if (earliestIdx >= 0)
                             {
                                 // Output safe content before the start marker
-                                if (openIdx > 0)
+                                if (earliestIdx > 0)
                                 {
-                                    responseMessage.Content = string.Concat(responseMessage.Content, rolling.AsSpan(0, openIdx));
+                                    responseMessage.Content = string.Concat(responseMessage.Content, rolling.AsSpan(0, earliestIdx));
                                 }
 
                                 // Enter think mode, discard the marker text itself
-                                rolling = rolling.Substring(openIdx + thinkOpen.Length);
-                                thinkMode = true;
+                                rolling = rolling.Substring(earliestIdx + ThinkTagOpens[foundTagIndex].Length);
+                                currentThinkTagIndex = foundTagIndex;
                                 continue;
                             }
                             else
                             {
                                 // Start marker not found: only flush safe parts, keep the tail that might form a marker
-                                int keep = thinkOpen.Length - 1;
+                                int keep = MaxOpenThinkMarkerLength - 1;
                                 if (rolling.Length > keep)
                                 {
                                     int flushLen = rolling.Length - keep;
@@ -232,7 +248,8 @@ internal sealed partial class Chat : BaseSamplePage
                         }
                         else
                         {
-                            int closeIdx = rolling.IndexOf(thinkClose, StringComparison.Ordinal);
+                            string closeMarker = ThinkTagCloses[currentThinkTagIndex];
+                            int closeIdx = rolling.IndexOf(closeMarker, StringComparison.Ordinal);
                             if (closeIdx >= 0)
                             {
                                 // Append content before the closing marker to the think box
@@ -242,14 +259,14 @@ internal sealed partial class Chat : BaseSamplePage
                                 }
 
                                 // Exit think mode, discard the closing marker
-                                rolling = rolling.Substring(closeIdx + thinkClose.Length);
-                                thinkMode = false;
+                                rolling = rolling.Substring(closeIdx + closeMarker.Length);
+                                currentThinkTagIndex = -1;
                                 continue;
                             }
                             else
                             {
                                 // Closing marker not found: only flush safe parts, keep the tail that might form a marker
-                                int keep = thinkClose.Length - 1;
+                                int keep = closeMarker.Length - 1;
                                 if (rolling.Length > keep)
                                 {
                                     int flushLen = rolling.Length - keep;
@@ -279,7 +296,7 @@ internal sealed partial class Chat : BaseSamplePage
                 responseMessage.IsPending = false;
                 if (!string.IsNullOrEmpty(rolling))
                 {
-                    if (thinkMode)
+                    if (currentThinkTagIndex != -1)
                     {
                         responseMessage.ThinkContent += rolling;
                     }
