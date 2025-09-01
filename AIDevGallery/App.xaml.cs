@@ -11,6 +11,7 @@ using Microsoft.Windows.AppLifecycle;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 
 namespace AIDevGallery;
 
@@ -40,6 +41,9 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // Unlock Limited Access Features for AI Language Model
+        LimitedAccessFeaturesHelper.TryUnlockAILanguageModel();
+        
         await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
@@ -47,6 +51,8 @@ public partial class App : Application
 
         MainWindow.Activate();
     }
+
+
 
     internal static List<ModelType> FindSampleItemById(string id)
     {
