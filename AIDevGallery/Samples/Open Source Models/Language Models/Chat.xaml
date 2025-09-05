@@ -61,12 +61,29 @@
     </Page.Resources>
     <Grid MaxWidth="1000">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- Chat Actions Bar -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button x:Name="ClearBtn"
+                        AutomationProperties.Name="Clear Chat History"
+                        Click="ClearBtn_Click"
+                        ToolTipService.ToolTip="Clear all chat messages">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                        <TextBlock Text="Clear Chat" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
         <ListView
             x:Name="InvertedListView"
+            Grid.Row="1"
             Padding="-12,0,-12,24"
             ItemTemplateSelector="{StaticResource ChatTemplateSelector}"
             ItemsSource="{x:Bind Messages}"
@@ -83,14 +100,13 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-        <Grid Grid.Row="1" ColumnSpacing="8">
+        <Grid Grid.Row="2" ColumnSpacing="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox
                 x:Name="InputBox"
-                Grid.Row="1"
                 AutomationProperties.Name="Prompt input"
                 KeyUp="TextBox_KeyUp"
                 PreviewKeyDown="TextBox_PreviewKeyDown"
@@ -101,12 +117,6 @@
                 MaxHeight="148"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                <Button x:Name="ClearBtn"
-                        AutomationProperties.Name="Clear Chat"
-                        Click="ClearBtn_Click"
-                        ToolTipService.ToolTip="Clear all messages">
-                    <FontIcon FontSize="16" Glyph="&#xE74D;" />
-                </Button>
                 <Button x:Name="RewriteBtn"
                         AutomationProperties.Name="Rewrite Last Message"
                         Click="RewriteBtn_Click"
