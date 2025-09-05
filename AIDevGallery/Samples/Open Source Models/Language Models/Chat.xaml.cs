@@ -68,6 +68,7 @@ internal sealed partial class Chat : BaseSamplePage
     {
         InputBox.Focus(FocusState.Programmatic);
         UpdateRewriteButtonState();
+        UpdateClearButtonState();
     }
 
     // </exclude>
@@ -138,6 +139,7 @@ internal sealed partial class Chat : BaseSamplePage
 
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
         UpdateRewriteButtonState();
+        UpdateClearButtonState();
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
         SendSampleInteractedEvent("AddMessage"); // <exclude-line>
@@ -151,6 +153,7 @@ internal sealed partial class Chat : BaseSamplePage
             DispatcherQueue.TryEnqueue(() =>
             {
                 Messages.Add(responseMessage);
+                UpdateClearButtonState();
                 StopBtn.Visibility = Visibility.Visible;
                 InputBox.IsEnabled = false;
                 InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
@@ -250,6 +253,7 @@ internal sealed partial class Chat : BaseSamplePage
     {
         Messages.Clear();
         UpdateRewriteButtonState();
+        UpdateClearButtonState();
         SendSampleInteractedEvent("ClearChat"); // <exclude-line>
     }
 
@@ -270,6 +274,11 @@ internal sealed partial class Chat : BaseSamplePage
     private void UpdateRewriteButtonState()
     {
         RewriteBtn.IsEnabled = Messages.Any(m => m.Role == ChatRole.User);
+    }
+
+    private void UpdateClearButtonState()
+    {
+        ClearBtn.IsEnabled = Messages.Count > 0;
     }
 
     private void InvertedListView_Loaded(object sender, RoutedEventArgs e)
