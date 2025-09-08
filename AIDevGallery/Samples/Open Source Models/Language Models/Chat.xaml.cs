@@ -273,7 +273,13 @@ internal sealed partial class Chat : BaseSamplePage
 
     private void UpdateRewriteButtonState()
     {
-        RewriteBtn.IsEnabled = Messages.Any(m => m.Role == ChatRole.User);
+        foreach (var message in Messages.Where(m => m.Role == ChatRole.User))
+        {
+            message.IsLastUserMessage = false;
+        }
+
+        var lastUserMessage = Messages.LastOrDefault(m => m.Role == ChatRole.User);
+        lastUserMessage?.IsLastUserMessage = true;
     }
 
     private void UpdateClearButtonState()

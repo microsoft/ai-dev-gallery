@@ -15,6 +15,9 @@ internal partial class Message : ObservableObject
 
     public ChatRole Role { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsLastUserMessage { get; set; }
+
     public Message(string content, DateTime dateTime, ChatRole role)
     {
         Content = content;

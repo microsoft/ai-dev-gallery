@@ -7,31 +7,50 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
+    xmlns:tkconverters="using:CommunityToolkit.WinUI.Converters"
     mc:Ignorable="d">
     <Page.Resources>
+        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <shared:ChatTemplateSelector
             x:Key="ChatTemplateSelector"
             AssistantTemplate="{StaticResource AssistantDataTemplate}"
             UserTemplate="{StaticResource UserDataTemplate}" />
         <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
-            <StackPanel
-                MaxWidth="486"
-                Padding="12"
-                HorizontalAlignment="Right"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="{StaticResource OverlayCornerRadius}"
-                Spacing="8">
-                <TextBlock
-                    IsTextSelectionEnabled="True"
-                    Text="{x:Bind Content, Mode=OneWay}"
-                    TextWrapping="Wrap" />
-                <TextBlock
+            <StackPanel Spacing="4">
+                <StackPanel
+                    MaxWidth="486"
+                    Padding="12"
                     HorizontalAlignment="Right"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind MsgDateTime}" />
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource OverlayCornerRadius}"
+                    Spacing="8">
+                    <TextBlock
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind Content, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        HorizontalAlignment="Right"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind MsgDateTime}" />
+                </StackPanel>
+                <HyperlinkButton x:Name="RewriteButton"
+                        AutomationProperties.Name="Rewrite This Message"
+                        ToolTipService.ToolTip="Edit and resend this message"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,8,0"
+                        Padding="4,2"
+                        Click="RewriteBtn_Click"
+                        Visibility="{x:Bind IsLastUserMessage, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon FontSize="10"
+                                  Glyph="&#xE70F;" />
+                        <TextBlock Text="Rewrite"
+                                   FontSize="11" />
+                    </StackPanel>
+                </HyperlinkButton>
             </StackPanel>
         </DataTemplate>
         <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
@@ -118,13 +137,6 @@
                 MaxHeight="148"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                <Button x:Name="RewriteBtn"
-                        AutomationProperties.Name="Rewrite Last Message"
-                        Click="RewriteBtn_Click"
-                        ToolTipService.ToolTip="Edit and resend last message"
-                        IsEnabled="False">
-                    <FontIcon FontSize="16" Glyph="&#xE70F;" />
-                </Button>
                 <Button x:Name="SendBtn"
                         AutomationProperties.Name="Send Message"
                         Click="SendBtn_Click"
