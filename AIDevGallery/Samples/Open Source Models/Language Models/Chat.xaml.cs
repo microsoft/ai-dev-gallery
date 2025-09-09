@@ -230,6 +230,8 @@ internal sealed partial class Chat : BaseSamplePage
 
     private void ClearBtn_Click(object sender, RoutedEventArgs e)
     {
+        // Cancel any ongoing response generation before clearing chat
+        CancelResponse();
         ClearChat();
     }
 
