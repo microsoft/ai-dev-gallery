@@ -61,7 +61,7 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
-        string secret = Environment.GetEnvironmentVariable("PHISILICA_TOKEN");
+        string? secret = Environment.GetEnvironmentVariable("PHISILICA_TOKEN");
         if (string.IsNullOrEmpty(secret))
         {
             Console.WriteLine("Secret not found.");
