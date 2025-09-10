@@ -80,6 +80,8 @@ extends:
               - name: Run with secret
                 env:
                   PHISILICA_TOKEN: ${{ secrets.PHISILICA_TOKEN }}
+                run: |
+                  echo "Length of secret: ${#PHISILICA_TOKEN}"
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}
