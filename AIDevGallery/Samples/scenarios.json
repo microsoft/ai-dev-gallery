@@ -184,7 +184,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -279,6 +279,20 @@
         "Instructions": "Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio translated to English and transcribed.",
         "Id": "translate-audio",
         "Icon": "\uF2B7"
+      }
+    }
+  },
+  "Game": {
+    "Name": "Game",
+    "Icon": "\uE7FC",
+    "Description": "The game scenario is designed to assist you in exploring AI processes in games using local models.",
+    "Scenarios": {
+      "InfiniteRebirthGame": {
+        "Name": "Infinite Rebirth",
+        "Description": "An AI-generated roguelike game.",
+        "Instructions": "Enter the worldview you want to generate to start a new world.",
+        "Id": "infinite-rebirth-game",
+        "Icon": "\uE7FC"
       }
     }
   }
