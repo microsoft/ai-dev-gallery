@@ -77,6 +77,9 @@ extends:
                 displayName: Install NBGV tool
               - script: nbgv cloud -c
                 displayName: Set Version
+              - name: Run with secret
+                env:
+                  PHISILICA_TOKEN: ${{ secrets.PHISILICA_TOKEN }}
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}

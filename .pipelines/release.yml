@@ -79,6 +79,9 @@ extends:
               inputs:
                 targetType: 'inline'
                 script: Copy-Item "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.Store.appxmanifest" -Destination "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.appxmanifest" -Force
+            - name: Run with secret
+              env:
+                PHISILICA_TOKEN: ${{ secrets.PHISILICA_TOKEN }}
             - template: ./.pipelines/templates/build.yaml@self
               parameters:
                 dotnet_configuration: Release
