@@ -26,6 +26,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
+        "CommunityToolkit.WinUI.Converters",
         "Microsoft.Extensions.AI"
     ],
     SharedCode = [
@@ -147,7 +148,7 @@ internal sealed partial class Chat : BaseSamplePage
         UpdateRewriteButtonState();
         UpdateClearButtonState();
         var contentStartedBeingGenerated = false; // <exclude-line>
-        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
+        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("AddMessage"); // <exclude-line>
 
         Task.Run(async () =>
