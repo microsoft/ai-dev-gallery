@@ -108,7 +108,17 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
+      },
+        "SemanticSearch": {
+          "Id": "F8465A45-8E23-4485-8C16-9909E96EACF6",
+          "Name": "Semantic Search and Knowledge Retrieval",
+          "Icon": "WCRAPI.svg",
+          "IconGlyph": "\uED37",
+          "Description": "Search image and text by semantic meaning.",
+          "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
+          "License": "ms-pl",
+          "SampleIdToShowInDocs": "F8465A45-8E23-4485-8C16-9909E96EACF6"
+        }
       }
     }
-  }
 }

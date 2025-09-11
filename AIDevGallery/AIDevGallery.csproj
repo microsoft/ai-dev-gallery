@@ -73,6 +73,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Experimental.AppContentIndexerPreview" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
