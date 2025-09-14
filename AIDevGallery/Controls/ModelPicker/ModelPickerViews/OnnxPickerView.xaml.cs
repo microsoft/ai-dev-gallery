@@ -401,6 +401,15 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
     }
 
+    private void ViewDocumentationButton_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo()
+        {
+            FileName = "https://learn.microsoft.com/windows/ai/new-windows-ml/overview",
+            UseShellExecute = true
+        });
+    }
+
     private async void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = $"Error:\n{ex?.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}";

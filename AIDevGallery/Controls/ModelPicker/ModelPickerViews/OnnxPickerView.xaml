@@ -31,30 +31,40 @@
                         Margin="0,0,0,0"
                         Spacing="12">
                         <TextBlock
-                            x:Name="CustomModelsTitle"
-                            Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="Custom models" />
+                        x:Name="CustomModelsTitle"
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Custom models" />
                         <TextBlock
-                            x:Name="CustomModelsTxt"
-                            Grid.Row="1"
-                            TextWrapping="Wrap" 
-                            Text="If you want to use a custom model, convert it to be WindowsML compatible using the AI Toolkit conversion tool. Note: Only certain models can be converted in AI Toolkit at this time, with more models to come." />
-                        <Button
+                        x:Name="CustomModelsTxt"
+                        Grid.Row="1"
+                        TextWrapping="Wrap" 
+                        Text="If you want to use a custom model, convert it to be WindowsML compatible using the AI Toolkit conversion tool. Note: Only certain models can be converted in AI Toolkit at this time, with more models to come." />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button
                             x:Name="OpenAIToolkitButton"
                             Click="OpenAIToolkitButton_Click"
                             Visibility="Visible">
-                            <StackPanel Orientation="Horizontal">
-                                <Image Width="16">
-                                    <Image.Source>
-                                        <BitmapImage
-                                DecodePixelHeight="16"
-                                DecodePixelWidth="16"
-                                UriSource="ms-appx:///Assets/AITKIcon.png" />
-                                    </Image.Source>
-                                </Image>
-                                <TextBlock Text="Open AI Toolkit`s Conversion tool" Margin="5,0,0,0" />
-                            </StackPanel>
-                        </Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Width="16">
+                                        <Image.Source>
+                                            <BitmapImage
+                                        DecodePixelHeight="16"
+                                        DecodePixelWidth="16"
+                                        UriSource="ms-appx:///Assets/AITKIcon.png" />
+                                        </Image.Source>
+                                    </Image>
+                                    <TextBlock Text="Open AI Toolkit`s Conversion tool" Margin="5,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                            x:Name="ViewDocumentationButton"
+                            Click="ViewDocumentationButton_Click"
+                            Visibility="Visible">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="View documentation" Margin="5,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
                     <StackPanel
                     Margin="0,12"
