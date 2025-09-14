@@ -13,21 +13,21 @@ internal class ModelPickerDefinition
     public static readonly Dictionary<string, ModelPickerDefinition> Definitions = new()
     {
         {
-            "onnx", new ModelPickerDefinition()
-            {
-                Name = "ONNX",
-                Id = "onnx",
-                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
-                CreatePicker = () => new OnnxPickerView()
-            }
-        },
-        {
             "winai", new ModelPickerDefinition()
             {
                 Name = "Windows AI APIs",
                 Id = "winai",
                 Icon = "ms-appx:///Assets/ModelIcons/WCRAPI.png",
                 CreatePicker = () => new WinAIApiPickerView()
+            }
+        },
+        {
+            "onnx", new ModelPickerDefinition()
+            {
+                Name = "ONNX",
+                Id = "onnx",
+                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
+                CreatePicker = () => new OnnxPickerView()
             }
         },
         {
