@@ -24,30 +24,62 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <StackPanel
+
+                <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,0" Spacing="12">
+                    <StackPanel 
+                        Orientation="Vertical"
+                        Margin="0,0,0,0"
+                        Spacing="12">
+                        <TextBlock
+                            x:Name="CustomModelsTitle"
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Custom models" />
+                        <TextBlock
+                            x:Name="CustomModelsTxt"
+                            Grid.Row="1"
+                            TextWrapping="Wrap" 
+                            Text="If you want to use a custom model, convert it to be WindowsML compatible using the AI Toolkit conversion tool. Note: Only certain models can be converted in AI Toolkit at this time, with more models to come." />
+                        <Button
+                            x:Name="OpenAIToolkitButton"
+                            Click="OpenAIToolkitButton_Click"
+                            Visibility="Visible">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Width="16">
+                                    <Image.Source>
+                                        <BitmapImage
+                                DecodePixelHeight="16"
+                                DecodePixelWidth="16"
+                                UriSource="ms-appx:///Assets/AITKIcon.png" />
+                                    </Image.Source>
+                                </Image>
+                                <TextBlock Text="Open AI Toolkit`s Conversion tool" Margin="5,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel
                     Margin="0,12"
                     HorizontalAlignment="Center"
                     Orientation="Vertical"
                     Visibility="{x:Bind utils:XamlHelpers.VisibleWhenEmpty(AvailableModels), Mode=OneWay}">
-                    <FontIcon
+                        <FontIcon
                         Margin="0,0,0,12"
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="24"
                         Glyph="&#xF158;" />
-                    <TextBlock
+                        <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="12"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="No models downloaded"
                         TextAlignment="Center" />
-                    <TextBlock
+                        <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="12"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="Download or add a local model below"
                         TextAlignment="Center" />
-                </StackPanel>
-                <ItemsView
+                    </StackPanel>
+                    <ItemsView
                     x:Name="ModelSelectionItemsView"
                     ItemsSource="{x:Bind AvailableModels, Mode=OneWay}"
                     SelectionChanged="ModelSelectionItemsView_SelectionChanged"
@@ -176,7 +208,8 @@
                             </ItemContainer>
                         </DataTemplate>
                     </ItemsView.ItemTemplate>
-                </ItemsView>
+                    </ItemsView>
+                </StackPanel>
 
                 <Grid Grid.Row="1" Margin="0,32,0,8">
                     <Grid.ColumnDefinitions>

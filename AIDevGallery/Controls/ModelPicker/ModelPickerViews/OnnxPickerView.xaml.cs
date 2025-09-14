@@ -374,6 +374,11 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
     }
 
+    private void OpenAIToolkitButton_Click(object sender, RoutedEventArgs e)
+    {
+        return;
+    }
+
     private async void ShowException(Exception? ex, string? optionalMessage = null)
     {
         var msg = $"Error:\n{ex?.Message}{(optionalMessage != null ? "\n" + optionalMessage : string.Empty)}";
