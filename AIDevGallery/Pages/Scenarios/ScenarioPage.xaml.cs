@@ -26,7 +26,6 @@ internal record WinMlEp(List<HardwareAccelerator> HardwareAccelerators, string N
 
 internal sealed partial class ScenarioPage : Page
 {
-
 #if PHISILICA_TOKEN
     public const string PhiSilicaToken = PHISILICA_TOKEN;
 #else
@@ -76,7 +75,7 @@ internal sealed partial class ScenarioPage : Page
         {
             Console.WriteLine("Secret loaded successfully.");
         }
-        
+
         if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
