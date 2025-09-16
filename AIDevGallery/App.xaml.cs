@@ -9,10 +9,9 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using Windows.ApplicationModel;
 
 namespace AIDevGallery;
 
@@ -52,6 +51,7 @@ public partial class App : Application
         {
             Debug.WriteLine("Secret loaded successfully.");
         }
+
         await LoadSamples();
         AppActivationArguments appActivationArguments = Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);

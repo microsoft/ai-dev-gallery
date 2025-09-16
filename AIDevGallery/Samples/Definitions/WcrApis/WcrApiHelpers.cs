@@ -2,12 +2,12 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
 using System;
 using System.Collections.Generic;
-using AIDevGallery.Utils;
 using Windows.Foundation;
 
 namespace AIDevGallery.Samples;
@@ -132,6 +132,7 @@ internal static class WcrApiHelpers
                 {
                     return "Limited Access Feature for AI Language Model is unavailable. Configure LAF_TOKEN/LAF_PUBLISHER_ID and ensure access is granted.";
                 }
+
                 return "Not supported on this system.";
             default:
                 return string.Empty;

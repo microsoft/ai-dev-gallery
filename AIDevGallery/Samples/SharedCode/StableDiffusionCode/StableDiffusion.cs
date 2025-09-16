@@ -166,7 +166,7 @@ internal class StableDiffusion : IDisposable
 
     public Bitmap? Inference(string prompt, CancellationToken token)
     {
-        if(unetInferenceSession == null || textProcessor == null || vaeDecoder == null || safetyChecker == null)
+        if (unetInferenceSession == null || textProcessor == null || vaeDecoder == null || safetyChecker == null)
         {
             throw new InvalidOperationException("StableDiffusion is not initialized.");
         }

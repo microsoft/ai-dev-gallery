@@ -77,7 +77,7 @@ internal static class ActivationHelper
     {
         var queryParams = HttpUtility.ParseQueryString(uri.Query);
 
-        if(!queryParams.AllKeys.Contains("modelPath") || !queryParams.AllKeys.Contains("scenarioId"))
+        if (!queryParams.AllKeys.Contains("modelPath") || !queryParams.AllKeys.Contains("scenarioId"))
         {
             return null;
         }
@@ -85,7 +85,7 @@ internal static class ActivationHelper
         string? modelPath = queryParams["modelpath"];
         Scenario? scenario = App.FindScenarioById(queryParams["scenarioId"] ?? string.Empty);
 
-        if(modelPath == null || scenario == null)
+        if (modelPath == null || scenario == null)
         {
             return null;
         }

@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Windows.ApplicationModel;
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using Windows.ApplicationModel;
 
 namespace AIDevGallery.Utils;
 
@@ -17,11 +17,12 @@ internal static class LimitedAccessFeaturesHelper
     /// Feature ID for AI Language Model
     /// </summary>
     private const string AI_LANGUAGE_MODEL_FEATURE_ID = "com.microsoft.windows.ai.languagemodel";
-    
+
     /// <summary>
     /// Token for AI Language Model feature
     /// </summary>
     private const string AI_LANGUAGE_MODEL_TOKEN_ENV = "LAF_TOKEN";
+
     /// <summary>
     /// Publisher/Identifier used in the usage description, read from env var
     /// </summary>
@@ -30,6 +31,7 @@ internal static class LimitedAccessFeaturesHelper
     /// <summary>
     /// Reads the AI Language Model token, preferring AssemblyMetadata over environment variables
     /// </summary>
+    /// <returns></returns>
     public static string GetAiLanguageModelToken()
     {
         // Prefer value embedded via AssemblyMetadata (from MSBuild) if present
@@ -54,6 +56,7 @@ internal static class LimitedAccessFeaturesHelper
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
         }
+
         publisherId = string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
         return $"{publisherId} has registered their use of {AI_LANGUAGE_MODEL_FEATURE_ID} with Microsoft and agrees to the terms of use.";
     }
@@ -77,6 +80,7 @@ internal static class LimitedAccessFeaturesHelper
         {
             Debug.WriteLine($"Failed to read AssemblyMetadata '{key}': {ex.Message}");
         }
+
         return string.Empty;
     }
 

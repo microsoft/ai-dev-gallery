@@ -138,7 +138,7 @@ internal sealed partial class ScenarioPage : Page
 
         foreach (string device in WinMLHelpers.GetEpDeviceMap().Keys)
         {
-            switch(device)
+            switch (device)
             {
                 case "VitisAIExecutionProvider":
                     supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));

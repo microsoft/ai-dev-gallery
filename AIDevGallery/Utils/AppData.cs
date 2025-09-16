@@ -152,12 +152,12 @@ internal class AppData
     {
         string modelTypeString = modelType.ToString();
 
-        if(ModelTypeToUserAddedModelsMapping is null)
+        if (ModelTypeToUserAddedModelsMapping is null)
         {
             ModelTypeToUserAddedModelsMapping = new Dictionary<string, List<string>>();
         }
 
-        if(ModelTypeToUserAddedModelsMapping.TryGetValue(modelTypeString, out List<string>? value))
+        if (ModelTypeToUserAddedModelsMapping.TryGetValue(modelTypeString, out List<string>? value))
         {
             value.Add(modelId);
         }
@@ -169,7 +169,7 @@ internal class AppData
 
     public async Task DeleteUserAddedModelMapping(string modelId)
     {
-        if(ModelTypeToUserAddedModelsMapping == null)
+        if (ModelTypeToUserAddedModelsMapping == null)
         {
             return;
         }
