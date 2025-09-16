@@ -376,7 +376,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void OpenAIToolkitButton_Click(object sender, RoutedEventArgs e)
     {
-        string toolkitDeeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
+        string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(null, AIToolkitAction.Conversion);
         bool wasDeeplinkSuccessful = true;
         try
         {
@@ -393,11 +393,11 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
                 UseShellExecute = true
             });
-            wasDeeplinkSuccesful = false;
+            wasDeeplinkSuccessful = false;
         }
         finally
         {
-            AIToolkitActionClickedEvent.Log("open_playground", "no model", wasDeeplinkSuccesful);
+            AIToolkitActionClickedEvent.Log("open_playground", "no model", wasDeeplinkSuccessful);
         }
     }
 
