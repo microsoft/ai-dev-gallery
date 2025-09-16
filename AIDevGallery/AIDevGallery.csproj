@@ -339,6 +339,7 @@
   -->
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+    <DefineConstants>$(DefineConstants);PHISILICA_TOKEN="$(PHISILICA_TOKEN)"</DefineConstants>
   </PropertyGroup>
 
   <ProjectExtensions>
