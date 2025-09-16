@@ -27,6 +27,7 @@
 
                 <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,0" Spacing="12">
                     <StackPanel 
+                        x:Name="CustomModelInfo"
                         Orientation="Vertical"
                         Margin="0,0,0,0"
                         Spacing="12">
@@ -438,5 +439,20 @@
                 </StackPanel>
             </ContentDialog.Content>
         </ContentDialog>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="SideCustomModelInfoVisibilityStates">
+                <VisualState x:Name="SideCustomModelInfoVisible">
+                    <VisualState.Setters>
+                        <Setter Target="CustomModelInfo.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SideCustomModelInfoCollapsed">
+                    <VisualState.Setters>
+                        <Setter Target="CustomModelInfo.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </local:BaseModelPickerView>

@@ -38,6 +38,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     public override Task Load(List<ModelType> types)
     {
+        VisualStateManager.GoToState(this, "SideCustomModelInfoCollapsed", true);
         modelTypes = types;
 
         ResetAndLoadModelList();
@@ -46,6 +47,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         if (types.Contains(ModelType.LanguageModels))
         {
+            VisualStateManager.GoToState(this, "SideCustomModelInfoVisible", true);
             AddHFModelButton.Visibility = Visibility.Visible;
             isAddModelButtonsVisible = true;
         }
