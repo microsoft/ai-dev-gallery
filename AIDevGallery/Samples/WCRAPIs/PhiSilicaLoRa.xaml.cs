@@ -206,7 +206,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             LowRankAdaptation? loraAdapter;
             try
             {
-                 loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
+                loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
             }
             catch (Exception ex)
             {

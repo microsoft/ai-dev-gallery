@@ -93,7 +93,7 @@ internal sealed partial class ModelPage : Page
             DocumentationCard.Visibility = Visibility.Collapsed;
         }
 
-        if(models.Count > 0)
+        if (models.Count > 0)
         {
             BuildAIToolkitButton();
         }
@@ -195,9 +195,9 @@ internal sealed partial class ModelPage : Page
     {
         Dictionary<AIToolkitAction, MenuFlyoutSubItem> actionSubmenus = new();
 
-        foreach(ModelDetails modelDetails in modelActionDict.Keys)
+        foreach (ModelDetails modelDetails in modelActionDict.Keys)
         {
-            foreach(AIToolkitAction action in modelActionDict[modelDetails])
+            foreach (AIToolkitAction action in modelActionDict[modelDetails])
             {
                 MenuFlyoutSubItem? actionFlyoutItem;
                 if (!actionSubmenus.TryGetValue(action, out actionFlyoutItem))
@@ -243,7 +243,7 @@ internal sealed partial class ModelPage : Page
 
     private void ToolkitActionFlyoutItem_Click(object sender, RoutedEventArgs e)
     {
-        if(sender is MenuFlyoutItem actionFlyoutItem)
+        if (sender is MenuFlyoutItem actionFlyoutItem)
         {
             (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
 

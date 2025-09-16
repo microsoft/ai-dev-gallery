@@ -141,7 +141,7 @@ internal static class UserAddedModelUtil
 
         if (file != null)
         {
-            if(App.ModelCache.IsModelCached($"local-file:///{file.Path}"))
+            if (App.ModelCache.IsModelCached($"local-file:///{file.Path}"))
             {
                 ContentDialog modelAlreadyAddedDialog = new()
                 {
@@ -304,9 +304,9 @@ internal static class UserAddedModelUtil
 
     public static bool IsModelsDetailsListUploadCompatible(this IEnumerable<ModelDetails> modelDetailsList)
     {
-        foreach(ModelDetails modelDetails in modelDetailsList)
+        foreach (ModelDetails modelDetails in modelDetailsList)
         {
-            if(modelDetails.InputDimensions != null && modelDetails.OutputDimensions != null)
+            if (modelDetails.InputDimensions != null && modelDetails.OutputDimensions != null)
             {
                 return true;
             }

@@ -125,7 +125,7 @@ internal partial class BaseSamplePage : Page
 
         if (ex != null)
         {
-          exceptionDetails += GetExceptionDetails(ex);
+            exceptionDetails += GetExceptionDetails(ex);
         }
 
         DataPackage dataPackage = new DataPackage();
