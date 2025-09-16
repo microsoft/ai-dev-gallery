@@ -26,6 +26,13 @@ internal record WinMlEp(List<HardwareAccelerator> HardwareAccelerators, string N
 
 internal sealed partial class ScenarioPage : Page
 {
+
+#if PHISILICA_TOKEN
+    public const string PhiSilicaToken = PHISILICA_TOKEN;
+#else
+    public const string PhiSilicaToken = "default-or-empty";
+#endif
+
     private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
     {
         { "Default", ExecutionProviderDevicePolicy.DEFAULT },
@@ -61,8 +68,7 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
-        string? secret = Environment.GetEnvironmentVariable("PHISILICA_TOKEN");
-        if (string.IsNullOrEmpty(secret))
+        if (string.IsNullOrEmpty(PhiSilicaToken))
         {
             Console.WriteLine("Secret not found.");
         }
@@ -70,7 +76,7 @@ internal sealed partial class ScenarioPage : Page
         {
             Console.WriteLine("Secret loaded successfully.");
         }
-
+        
         if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
