@@ -20,12 +20,32 @@ internal static class LimitedAccessFeaturesHelper
     /// <summary>
     /// Token for AI Language Model feature
     /// </summary>
-    private const string AI_LANGUAGE_MODEL_TOKEN = "";
+    private const string AI_LANGUAGE_MODEL_TOKEN_ENV = "LAF_TOKEN";
+
+    /// <summary>
+    /// Publisher/Identifier used in the usage description, read from env var
+    /// </summary>
+    private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
+
+    /// <summary>
+    /// Reads the AI Language Model token from environment variables
+    /// </summary>
+    private static string GetAiLanguageModelToken()
+    {
+        // Read from User/Machine/Process environment. Return empty string if not set.
+        var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
+        return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
+    }
     
     /// <summary>
-    /// Usage description for AI Language Model feature
+    /// Builds the usage description for AI Language Model feature from environment
     /// </summary>
-    private const string AI_LANGUAGE_MODEL_USAGE = "has registered their use of com.microsoft.windows.ai.languagemodel with Microsoft and agrees to the terms of use.";
+    private static string GetAiLanguageModelUsage()
+    {
+        var publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        publisherId = string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
+        return $"{publisherId} has registered their use of {AI_LANGUAGE_MODEL_FEATURE_ID} with Microsoft and agrees to the terms of use.";
+    }
 
     /// <summary>
     /// Attempts to unlock the AI Language Model Limited Access Feature
@@ -37,8 +57,8 @@ internal static class LimitedAccessFeaturesHelper
         {
             var access = LimitedAccessFeatures.TryUnlockFeature(
                 AI_LANGUAGE_MODEL_FEATURE_ID,
-                AI_LANGUAGE_MODEL_TOKEN,
-                AI_LANGUAGE_MODEL_USAGE);
+                GetAiLanguageModelToken(),
+                GetAiLanguageModelUsage());
 
             bool isAvailable = (access.Status == LimitedAccessFeatureStatus.Available) ||
                               (access.Status == LimitedAccessFeatureStatus.AvailableWithoutToken);
@@ -71,8 +91,8 @@ internal static class LimitedAccessFeaturesHelper
         {
             var access = LimitedAccessFeatures.TryUnlockFeature(
                 AI_LANGUAGE_MODEL_FEATURE_ID,
-                AI_LANGUAGE_MODEL_TOKEN,
-                AI_LANGUAGE_MODEL_USAGE);
+                GetAiLanguageModelToken(),
+                GetAiLanguageModelUsage());
 
             return (access.Status == LimitedAccessFeatureStatus.Available) ||
                    (access.Status == LimitedAccessFeatureStatus.AvailableWithoutToken);
@@ -94,8 +114,8 @@ internal static class LimitedAccessFeaturesHelper
         {
             var access = LimitedAccessFeatures.TryUnlockFeature(
                 AI_LANGUAGE_MODEL_FEATURE_ID,
-                AI_LANGUAGE_MODEL_TOKEN,
-                AI_LANGUAGE_MODEL_USAGE);
+                GetAiLanguageModelToken(),
+                GetAiLanguageModelUsage());
 
             return access.Status;
         }

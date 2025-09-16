@@ -45,6 +45,8 @@ Ensure that the `AIDevGallery` project is set as the startup project in Visual S
 
 Press <kbd>F5</kbd> to run AI Dev Gallery!
 
+> Setting up environment variables for Limited Access Features? See [Configuring LAF_TOKEN and LAF_PUBLISHER_ID](docs/Configuring-LAF-Environment-Variables.md).
+
 >**⚠️ Note**: On ARM64-based Copilot+ PCs, make sure to build and run the solution as `ARM64` (and not as `x64`). This is required especially when running the samples that invoke the Windows AI Foundry to communicate with models such as Phi Silica.
 
 >**⚠️ Note**: Having issues installing the app on your machine? Let us know by <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">opening an issue </a> and our team will do our best to help!
