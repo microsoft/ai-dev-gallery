@@ -377,7 +377,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     private void OpenAIToolkitButton_Click(object sender, RoutedEventArgs e)
     {
         string toolkitDeeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
-        bool wasDeeplinkSuccesful = true;
+        bool wasDeeplinkSuccessful = true;
         try
         {
             Process.Start(new ProcessStartInfo()
