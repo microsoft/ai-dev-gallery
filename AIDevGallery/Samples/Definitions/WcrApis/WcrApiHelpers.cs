@@ -7,11 +7,20 @@ using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
 using System;
 using System.Collections.Generic;
+using AIDevGallery.Utils;
 using Windows.Foundation;
 
 namespace AIDevGallery.Samples;
 internal static class WcrApiHelpers
 {
+    private static readonly HashSet<ModelType> LanguageModelBacked = new()
+    {
+        ModelType.PhiSilica,
+        ModelType.PhiSilicaLora,
+        ModelType.TextSummarizer,
+        ModelType.TextRewriter,
+        ModelType.TextToTableConverter
+    };
     private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
@@ -94,6 +103,12 @@ internal static class WcrApiHelpers
 
         try
         {
+            // Pre-check LAF availability for LanguageModel-backed APIs
+            if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
+            {
+                return AIFeatureReadyState.NotSupportedOnCurrentSystem;
+            }
+
             return getReadyStateFunction();
         }
         catch
@@ -102,18 +117,22 @@ internal static class WcrApiHelpers
         }
     }
 
-    public static string GetStringDescription(this AIFeatureReadyState state)
+    public static string GetStringDescription(ModelType type, AIFeatureReadyState state)
     {
         switch (state)
         {
             case AIFeatureReadyState.Ready:
                 return "Ready";
-            case AIFeatureReadyState.NotSupportedOnCurrentSystem:
-                return "Not supported on this system.";
-            case AIFeatureReadyState.DisabledByUser:
-                return "API is disabled by the user in the Windows settings.";
             case AIFeatureReadyState.NotReady:
                 return "API requires a model download or update.";
+            case AIFeatureReadyState.DisabledByUser:
+                return "API is disabled by the user in the Windows settings.";
+            case AIFeatureReadyState.NotSupportedOnCurrentSystem:
+                if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
+                {
+                    return "Limited Access Feature for AI Language Model is unavailable. Configure LAF_TOKEN/LAF_PUBLISHER_ID and ensure access is granted.";
+                }
+                return "Not supported on this system.";
             default:
                 return string.Empty;
         }

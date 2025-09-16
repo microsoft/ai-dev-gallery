@@ -218,7 +218,7 @@ internal sealed partial class SampleContainer : UserControl
                         _ => WcrApiDownloadState.Error
                     };
 
-                    modelDownloader.ErrorMessage = WcrApiHelpers.GetStringDescription(state);
+                    modelDownloader.ErrorMessage = WcrApiHelpers.GetStringDescription(apiType, state);
                     modelDownloader.DownloadProgress = 0;
                     SampleFrame.Content = null;
                     _wcrApi = apiType;

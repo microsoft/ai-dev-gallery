@@ -36,7 +36,7 @@ internal static class LimitedAccessFeaturesHelper
         var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
         return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
     }
-    
+
     /// <summary>
     /// Builds the usage description for AI Language Model feature from environment
     /// </summary>
