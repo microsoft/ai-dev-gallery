@@ -11,6 +11,7 @@ using Microsoft.Windows.AppLifecycle;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Windows.ApplicationModel;
 
 namespace AIDevGallery;
@@ -42,8 +43,15 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         // Unlock Limited Access Features for AI Language Model
-        LimitedAccessFeaturesHelper.TryUnlockAILanguageModel();
-
+        // LimitedAccessFeaturesHelper.TryUnlockAILanguageModel();
+        if (string.IsNullOrEmpty(LimitedAccessFeaturesHelper.GetAiLanguageModelToken()))
+        {
+            Debug.WriteLine("Secret not found.");
+        }
+        else
+        {
+            Debug.WriteLine("Secret loaded successfully.");
+        }
         await LoadSamples();
         AppActivationArguments appActivationArguments = Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);

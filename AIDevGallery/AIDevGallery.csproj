@@ -288,6 +288,17 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(LAF_TOKEN)' != ''">
+      <_Parameter1>LAF_TOKEN</_Parameter1>
+      <_Parameter2>$(LAF_TOKEN)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(LAF_PUBLISHER_ID)' != ''">
+      <_Parameter1>LAF_PUBLISHER_ID</_Parameter1>
+      <_Parameter2>$(LAF_PUBLISHER_ID)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <!-- 
     Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
     Tools extension to be activated for this project even if the Windows App SDK Nuget
@@ -339,7 +350,6 @@
   -->
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-    <DefineConstants>$(DefineConstants);PHISILICA_TOKEN="$(PHISILICA_TOKEN)"</DefineConstants>
   </PropertyGroup>
 
   <ProjectExtensions>

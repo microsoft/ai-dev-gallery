@@ -80,7 +80,7 @@ extends:
               - task: DotNetCoreCLI@2
                 inputs:
                   command: build
-                  arguments: /p:PHISILICA_TOKEN=$(PHISILICA_TOKEN)
+                  arguments: /p:LAF_TOKEN=$(LAF_TOKEN)
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}

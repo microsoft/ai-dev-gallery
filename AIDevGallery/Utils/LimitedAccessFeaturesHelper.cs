@@ -4,6 +4,7 @@
 using Windows.ApplicationModel;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace AIDevGallery.Utils;
 
@@ -21,30 +22,62 @@ internal static class LimitedAccessFeaturesHelper
     /// Token for AI Language Model feature
     /// </summary>
     private const string AI_LANGUAGE_MODEL_TOKEN_ENV = "LAF_TOKEN";
-
     /// <summary>
     /// Publisher/Identifier used in the usage description, read from env var
     /// </summary>
     private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
 
     /// <summary>
-    /// Reads the AI Language Model token from environment variables
+    /// Reads the AI Language Model token, preferring AssemblyMetadata over environment variables
     /// </summary>
-    private static string GetAiLanguageModelToken()
+    public static string GetAiLanguageModelToken()
     {
-        // Read from User/Machine/Process environment. Return empty string if not set.
+        // Prefer value embedded via AssemblyMetadata (from MSBuild) if present
+        var metadataToken = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_TOKEN_ENV);
+        if (!string.IsNullOrWhiteSpace(metadataToken))
+        {
+            return metadataToken;
+        }
+
+        // Fallback to User/Machine/Process environment variable. Return empty string if not set.
         var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
         return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
     }
 
     /// <summary>
-    /// Builds the usage description for AI Language Model feature from environment
+    /// Builds the usage description for AI Language Model feature from AssemblyMetadata/env
     /// </summary>
     private static string GetAiLanguageModelUsage()
     {
-        var publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        var publisherId = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        if (string.IsNullOrWhiteSpace(publisherId))
+        {
+            publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        }
         publisherId = string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
         return $"{publisherId} has registered their use of {AI_LANGUAGE_MODEL_FEATURE_ID} with Microsoft and agrees to the terms of use.";
+    }
+
+    /// <summary>
+    /// Reads a value from AssemblyMetadata attributes by key; returns empty string if missing
+    /// </summary>
+    private static string GetAssemblyMetadataValue(string key)
+    {
+        try
+        {
+            foreach (var attribute in typeof(LimitedAccessFeaturesHelper).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
+            {
+                if (string.Equals(attribute.Key, key, StringComparison.Ordinal))
+                {
+                    return attribute.Value ?? string.Empty;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to read AssemblyMetadata '{key}': {ex.Message}");
+        }
+        return string.Empty;
     }
 
     /// <summary>
