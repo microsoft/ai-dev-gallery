@@ -399,7 +399,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
         finally
         {
-            AIToolkitActionClickedEvent.Log("open_playground", "no model", wasDeeplinkSuccessful);
+            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[AIToolkitAction.Conversion].QueryName, string.Empty, wasDeeplinkSuccessful);
         }
     }
 
