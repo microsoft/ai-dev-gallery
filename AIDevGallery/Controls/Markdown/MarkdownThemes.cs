@@ -57,9 +57,9 @@ internal sealed class MarkdownThemes : DependencyObject
 
     public Brush InlineCodeBorderBrush { get; set; } = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
 
-    public Thickness InlineCodeBorderThickness { get; set; } = new (1);
+    public Thickness InlineCodeBorderThickness { get; set; } = new(1);
 
-    public CornerRadius InlineCodeCornerRadius { get; set; } = new (2);
+    public CornerRadius InlineCodeCornerRadius { get; set; } = new(2);
 
     public Thickness InlineCodePadding { get; set; } = new(0);
 

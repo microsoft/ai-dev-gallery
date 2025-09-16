@@ -301,7 +301,7 @@ internal sealed partial class SmartTextBox : Control
     private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         string text = (string)e.NewValue;
-        if(text != null)
+        if (text != null)
         {
             SmartTextBox smartTextBox = (SmartTextBox)d;
             smartTextBox._text = text;

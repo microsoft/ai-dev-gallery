@@ -85,7 +85,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
             stableDiffusion = new StableDiffusion(parentFolder);
             await stableDiffusion.InitializeAsync(policy, epName, compileOption);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             ShowException(ex);
         }
@@ -234,7 +234,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
         nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(new Window());
         FileSavePicker picker = new FileSavePicker
         {
-           SuggestedStartLocation = PickerLocationId.PicturesLibrary
+            SuggestedStartLocation = PickerLocationId.PicturesLibrary
         };
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
         picker.SuggestedFileName = "image.png";
@@ -242,7 +242,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
         StorageFile file = await picker.PickSaveFileAsync();
 
-        if(file != null && DefaultImage.Source != null)
+        if (file != null && DefaultImage.Source != null)
         {
             SendSampleInteractedEvent("SaveFile"); // <exclude-line>
             RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap();

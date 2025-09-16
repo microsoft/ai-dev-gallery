@@ -114,11 +114,11 @@ internal class MyImage : IAddChild
                     HttpResponseMessage response = await client.GetAsync(_uri);
 
                     // Get the Content-Type header
-    #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-    #pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     string contentType = response.Content.Headers.ContentType.MediaType;
-    #pragma warning restore CS8602 // Dereference of a possibly null reference.
-    #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
                     if (contentType == "image/svg+xml")
                     {
