@@ -399,7 +399,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         }
         finally
         {
-            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[AIToolkitAction.Conversion].QueryName, "0", wasDeeplinkSuccessful);
+            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[AIToolkitAction.Conversion].QueryName, "null", wasDeeplinkSuccessful);
         }
     }
 
