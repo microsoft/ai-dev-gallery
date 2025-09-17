@@ -42,6 +42,18 @@ internal static class AIToolkitHelper
         return deeplink;
     }
 
+    public static string CreateAiToolkitDeeplink(AIToolkitAction action)
+    {
+        ToolkitActionInfo? actionInfo;
+        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
+        if (action == AIToolkitAction.Conversion)
+        {
+            deeplink = deeplink + "open_model_lab_conversion?action=add_model";
+        }
+
+        return deeplink;
+    }
+
     public static bool ValidateForFineTuning(this ModelDetails modelDetails)
     {
         return modelDetails.AIToolkitActions != null && modelDetails.AIToolkitActions.Contains(AIToolkitAction.FineTuning) && !string.IsNullOrEmpty(modelDetails.AIToolkitFinetuningId);

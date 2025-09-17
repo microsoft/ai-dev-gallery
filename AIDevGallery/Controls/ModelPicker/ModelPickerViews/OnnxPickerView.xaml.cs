@@ -378,7 +378,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void OpenAIToolkitButton_Click(object sender, RoutedEventArgs e)
     {
-        string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(null, AIToolkitAction.Conversion);
+        string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(AIToolkitAction.Conversion);
         bool wasDeeplinkSuccessful = true;
         try
         {
