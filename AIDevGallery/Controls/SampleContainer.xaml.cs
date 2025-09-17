@@ -210,6 +210,16 @@ internal sealed partial class SampleContainer : UserControl
             try
             {
                 var state = WcrApiHelpers.GetApiAvailability(apiType);
+                // If LAF (AI Language Model) is unavailable and this manifests as NotSupportedOnCurrentSystem,
+                // show a detailed reason in the wcrModelUnavailable panel instead of the downloader.
+                if (state == AIFeatureReadyState.NotSupportedOnCurrentSystem && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
+                {
+                    SampleFrame.Content = null;
+                    VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
+                    wcrModelUnavailableDetails.Text = LimitedAccessFeaturesHelper.GetAILanguageModelUnavailabilityMessage();
+                    wcrModelUnavailableDetails.Visibility = Visibility.Visible;
+                    return;
+                }
                 if (state != AIFeatureReadyState.Ready && !WcrApiHelpers.IsModelReadyWorkaround.ContainsKey(apiType))
                 {
                     modelDownloader.State = state switch

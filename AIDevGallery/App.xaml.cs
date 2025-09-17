@@ -41,8 +41,6 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        // Unlock Limited Access Features for AI Language Model
-        // LimitedAccessFeaturesHelper.TryUnlockAILanguageModel();
         if (string.IsNullOrEmpty(LimitedAccessFeaturesHelper.GetAiLanguageModelToken()))
         {
             Debug.WriteLine("Secret not found.");
