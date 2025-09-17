@@ -407,7 +407,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
     {
         Process.Start(new ProcessStartInfo()
         {
-            FileName = "https://learn.microsoft.com/windows/ai/new-windows-ml/overview",
+            FileName = "https://aka.ms/winml-gallery-tutorial",
             UseShellExecute = true
         });
     }
