@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

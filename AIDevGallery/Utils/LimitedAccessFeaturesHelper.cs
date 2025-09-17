@@ -64,7 +64,7 @@ internal static class LimitedAccessFeaturesHelper
     /// <summary>
     /// Gets the configured publisher identifier for AI Language Model feature from AssemblyMetadata/env
     /// </summary>
-    public static string GetAiLanguageModelPublisherId()
+    private static string GetAiLanguageModelPublisherId()
     {
         var publisherId = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
         if (string.IsNullOrWhiteSpace(publisherId))
@@ -175,35 +175,5 @@ internal static class LimitedAccessFeaturesHelper
             Debug.WriteLine($"Failed to get AI Language Model Limited Access Feature status: {ex.Message}");
             return LimitedAccessFeatureStatus.Unknown;
         }
-    }
-
-    /// <summary>
-    /// Builds a user-facing message describing why the AI Language Model LAF is unavailable.
-    /// </summary>
-    public static string GetAILanguageModelUnavailabilityMessage()
-    {
-        var status = GetAILanguageModelStatus();
-        var token = GetAiLanguageModelToken();
-        var publisherId = GetAiLanguageModelPublisherId();
-
-        // Base message with status string
-        var message = $"Limited Access Feature for AI Language Model is unavailable. Status: {status}.";
-
-        // Add common hints
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            message += "\n- LAF_TOKEN is missing (no token found in env or AssemblyMetadata).";
-        }
-
-        if (string.IsNullOrWhiteSpace(publisherId))
-        {
-            message += "\n- LAF_PUBLISHER_ID is missing (not set in env or AssemblyMetadata).";
-        }
-
-        message += "\n- Ensure your device meets Copilot+ PC and Windows Insider build prerequisites.";
-        message += "\n- Configure LAF_TOKEN/LAF_PUBLISHER_ID and ensure access is granted.";
-        message += "\n  See: https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites";
-
-        return message;
     }
 }

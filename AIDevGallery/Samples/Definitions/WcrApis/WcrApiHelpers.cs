@@ -130,7 +130,7 @@ internal static class WcrApiHelpers
             case AIFeatureReadyState.NotSupportedOnCurrentSystem:
                 if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
                 {
-                    return "Limited Access Feature for AI Language Model is unavailable. Configure LAF_TOKEN/LAF_PUBLISHER_ID and ensure access is granted.";
+                    return "Limited Access Feature for AI Language Model is unavailable.";
                 }
 
                 return "Not supported on this system.";

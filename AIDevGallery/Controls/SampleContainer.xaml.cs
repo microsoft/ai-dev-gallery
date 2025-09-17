@@ -24,6 +24,14 @@ namespace AIDevGallery.Controls;
 
 internal sealed partial class SampleContainer : UserControl
 {
+    public static readonly DependencyProperty WcrUnavailableReasonProperty = DependencyProperty.Register(nameof(WcrUnavailableReason), typeof(string), typeof(SampleContainer), new PropertyMetadata(string.Empty));
+
+    public string WcrUnavailableReason
+    {
+        get => (string)GetValue(WcrUnavailableReasonProperty);
+        set => SetValue(WcrUnavailableReasonProperty, value);
+    }
+
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
     public HorizontalAlignment DisclaimerHorizontalAlignment
@@ -194,6 +202,8 @@ internal sealed partial class SampleContainer : UserControl
         // show that models are not compatible with this device
         if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
         {
+            var first = models.First(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
+            WcrUnavailableReason = first.Compatibility.CompatibilityIssueDescription;
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;
@@ -210,16 +220,6 @@ internal sealed partial class SampleContainer : UserControl
             try
             {
                 var state = WcrApiHelpers.GetApiAvailability(apiType);
-                // If LAF (AI Language Model) is unavailable and this manifests as NotSupportedOnCurrentSystem,
-                // show a detailed reason in the wcrModelUnavailable panel instead of the downloader.
-                if (state == AIFeatureReadyState.NotSupportedOnCurrentSystem && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
-                {
-                    SampleFrame.Content = null;
-                    VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
-                    wcrModelUnavailableDetails.Text = LimitedAccessFeaturesHelper.GetAILanguageModelUnavailabilityMessage();
-                    wcrModelUnavailableDetails.Visibility = Visibility.Visible;
-                    return;
-                }
                 if (state != AIFeatureReadyState.Ready && !WcrApiHelpers.IsModelReadyWorkaround.ContainsKey(apiType))
                 {
                     modelDownloader.State = state switch
