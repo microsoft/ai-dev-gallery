@@ -85,7 +85,7 @@
                     <Image Width="36" Source="ms-appx:///Assets/ModelIcons/WCRAPI.svg" />
                     <TextBlock
                         FontWeight="SemiBold"
-                        Text="Copilot+ PC required"
+                        Text="{x:Bind WcrUnavailableTitle, Mode=OneWay}"
                         TextAlignment="Center" />
                     <TextBlock
                         FontSize="12"

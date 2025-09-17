@@ -32,6 +32,14 @@ internal sealed partial class SampleContainer : UserControl
         set => SetValue(WcrUnavailableReasonProperty, value);
     }
 
+    public static readonly DependencyProperty WcrUnavailableTitleProperty = DependencyProperty.Register(nameof(WcrUnavailableTitle), typeof(string), typeof(SampleContainer), new PropertyMetadata("Copilot+ PC required"));
+
+    public string WcrUnavailableTitle
+    {
+        get => (string)GetValue(WcrUnavailableTitleProperty);
+        set => SetValue(WcrUnavailableTitleProperty, value);
+    }
+
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
     public HorizontalAlignment DisclaimerHorizontalAlignment
@@ -204,6 +212,17 @@ internal sealed partial class SampleContainer : UserControl
         {
             var first = models.First(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
             WcrUnavailableReason = first.Compatibility.CompatibilityIssueDescription;
+            
+            // Set appropriate title based on the reason
+            if (first.Compatibility.CompatibilityIssueDescription.Contains("Limited Access Feature for Phi Silica is unavailable"))
+            {
+                WcrUnavailableTitle = "Limited Access Feature is unavailable.";
+            }
+            else
+            {
+                WcrUnavailableTitle = "Copilot+ PC required";
+            }
+            
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;

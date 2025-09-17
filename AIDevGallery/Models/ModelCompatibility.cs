@@ -41,7 +41,7 @@ internal class ModelCompatibility
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"{WcrApiHelpers.GetStringDescription(apiType, availbility)} This Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)";
+                description = $"{WcrApiHelpers.GetStringDescription(apiType, availbility)}\nThis Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)";
             }
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
