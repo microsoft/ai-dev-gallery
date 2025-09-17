@@ -31,7 +31,7 @@ internal static class LimitedAccessFeaturesHelper
     /// <summary>
     /// Reads the AI Language Model token, preferring AssemblyMetadata over environment variables
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The AI Language Model token string, or empty string if not available</returns>
     public static string GetAiLanguageModelToken()
     {
         // Prefer value embedded via AssemblyMetadata (from MSBuild) if present
