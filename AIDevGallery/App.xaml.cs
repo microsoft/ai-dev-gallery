@@ -9,7 +9,6 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,17 +40,8 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        if (string.IsNullOrEmpty(LimitedAccessFeaturesHelper.GetAiLanguageModelToken()))
-        {
-            Debug.WriteLine("Secret not found.");
-        }
-        else
-        {
-            Debug.WriteLine("Secret loaded successfully.");
-        }
-
         await LoadSamples();
-        AppActivationArguments appActivationArguments = Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().GetActivatedEventArgs();
+        AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
         MainWindow = new MainWindow(activationParam);
 

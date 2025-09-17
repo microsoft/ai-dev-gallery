@@ -96,14 +96,6 @@
                         <Run Text="{x:Bind WcrUnavailableReason, Mode=OneWay}" /> <LineBreak /><Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">Learn more</Hyperlink> <LineBreak />  <LineBreak />
                         <Run Text="You can still view the code and export the sample." />
                     </TextBlock>
-                    <TextBlock
-                        x:Name="wcrModelUnavailableDetails"
-                        FontSize="12"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap"
-                        Visibility="Collapsed" />
                 </StackPanel>
             </Grid>
             <Grid
