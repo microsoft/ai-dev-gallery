@@ -196,7 +196,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         {
             string sentence = sourceSentences[i];
 
-            if(sentence.Length > maxLength)
+            if (sentence.Length > maxLength)
             {
                 int indexOfLastSpace = sentence[0..maxLength].LastIndexOf(' ');
                 string firstSentenceChunk = sentence[0..indexOfLastSpace].Trim();

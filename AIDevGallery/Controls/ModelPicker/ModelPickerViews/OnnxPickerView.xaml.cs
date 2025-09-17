@@ -368,7 +368,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
             ResetAndLoadModelList();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             ShowException(ex);
         }

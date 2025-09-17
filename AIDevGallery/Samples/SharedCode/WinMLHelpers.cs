@@ -23,7 +23,7 @@ internal static class WinMLHelpers
         if (epDeviceMap.TryGetValue(epName, out var devices))
         {
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
-            switch(epName)
+            switch (epName)
             {
                 case "OpenVINOExecutionProvider":
                     // Configure threading for OpenVINO EP

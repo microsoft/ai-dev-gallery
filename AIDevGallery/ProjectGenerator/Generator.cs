@@ -553,7 +553,7 @@ internal partial class Generator
 
     internal void CleanUp()
     {
-        if(!string.IsNullOrEmpty(generatedProjectPath) && Directory.Exists(generatedProjectPath))
+        if (!string.IsNullOrEmpty(generatedProjectPath) && Directory.Exists(generatedProjectPath))
         {
             Directory.Delete(generatedProjectPath, true);
             generatedProjectPath = string.Empty;
