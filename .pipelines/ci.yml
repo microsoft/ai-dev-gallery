@@ -80,7 +80,7 @@ extends:
               - task: DotNetCoreCLI@2
                 inputs:
                   command: build
-                  arguments: /p:LAF_TOKEN=$(LAF_TOKEN)
+                  arguments: /p:LAF_TOKEN=$(LAF_TOKEN) /p:LAF_PUBLISHER_ID=$(LAF_PUBLISHER_ID)
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}
