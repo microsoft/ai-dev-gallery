@@ -54,7 +54,7 @@ internal partial class SamplesCarousel : UserControl
         }
 
         int i;
-        for(i = 0; i < description.Length; i++)
+        for (i = 0; i < description.Length; i++)
         {
             if (description[i] == '.')
             {

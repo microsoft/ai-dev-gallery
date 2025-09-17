@@ -24,7 +24,7 @@ internal static class WinMLHelpers
         if (epDeviceMap.TryGetValue(epName, out var devices))
         {
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
-            switch(epName)
+            switch (epName)
             {
                 case "OpenVINOExecutionProvider":
                     var device = devices.Where(d => d.HardwareDevice.Type.ToString().Equals(deviceType, StringComparison.Ordinal)).FirstOrDefault();

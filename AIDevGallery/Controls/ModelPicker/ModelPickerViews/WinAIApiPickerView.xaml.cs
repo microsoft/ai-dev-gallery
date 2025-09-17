@@ -62,7 +62,7 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
 
     public override void SelectModel(ModelDetails? modelDetails)
     {
-        if (modelDetails != null )
+        if (modelDetails != null)
         {
             var foundModel = models.FirstOrDefault(m => m.Id == modelDetails.Id);
             if (foundModel != null)

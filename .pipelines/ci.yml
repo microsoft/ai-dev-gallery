@@ -77,6 +77,10 @@ extends:
                 displayName: Install NBGV tool
               - script: nbgv cloud -c
                 displayName: Set Version
+              - task: DotNetCoreCLI@2
+                inputs:
+                  command: build
+                  arguments: /p:LAF_TOKEN=$(LAF_TOKEN)
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}
