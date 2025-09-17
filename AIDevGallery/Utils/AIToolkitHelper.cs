@@ -22,33 +22,27 @@ internal static class AIToolkitHelper
         get { return aiToolkitActionInfos; }
     }
 
+    public static string CreateAiToolkitDeeplink(AIToolkitAction action)
+    {
+        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
+        if (action == AIToolkitAction.Conversion)
+        {
+            deeplink = deeplink + "open_model_lab_conversion?action=add_model";
+        }
+
+        return deeplink;
+    }
+
     public static string CreateAiToolkitDeeplink(this ModelDetails modelDetails, AIToolkitAction action)
     {
         ToolkitActionInfo? actionInfo;
-        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
-        if(action == AIToolkitAction.Conversion)
-        {
-            deeplink = deeplink + "open_model_lab_conversion?action=add_model";
-            return deeplink;
-        }
+        string deeplink = CreateAiToolkitDeeplink(action);
 
         string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
 
         if(aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
         {
             deeplink = deeplink + $"{actionInfo.QueryName}?model_id={modelId}&track_from=AIDevGallery";
-        }
-
-        return deeplink;
-    }
-
-    public static string CreateAiToolkitDeeplink(AIToolkitAction action)
-    {
-        ToolkitActionInfo? actionInfo;
-        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
-        if (action == AIToolkitAction.Conversion)
-        {
-            deeplink = deeplink + "open_model_lab_conversion?action=add_model";
         }
 
         return deeplink;
