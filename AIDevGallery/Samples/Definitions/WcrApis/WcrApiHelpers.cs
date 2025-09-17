@@ -130,7 +130,7 @@ internal static class WcrApiHelpers
             case AIFeatureReadyState.NotSupportedOnCurrentSystem:
                 if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
                 {
-                    return "Limited Access Feature for AI Language Model is unavailable.";
+                    return "Limited Access Feature for Phi Silica is unavailable.";
                 }
 
                 return "Not supported on this system.";
