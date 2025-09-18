@@ -37,12 +37,14 @@ internal static class AIToolkitHelper
     {
         ToolkitActionInfo? actionInfo;
         string deeplink = CreateAiToolkitDeeplink(action);
-
-        string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
-
-        if(aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
+        if(action != AIToolkitAction.Conversion)
         {
-            deeplink = deeplink + $"{actionInfo.QueryName}?model_id={modelId}&track_from=AIDevGallery";
+            string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
+
+            if (aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
+            {
+                deeplink = deeplink + $"{actionInfo.QueryName}?model_id={modelId}&track_from=AIDevGallery";
+            }
         }
 
         return deeplink;
