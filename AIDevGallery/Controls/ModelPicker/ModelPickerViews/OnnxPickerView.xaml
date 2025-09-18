@@ -39,7 +39,7 @@
                         x:Name="CustomModelsTxt"
                         Grid.Row="1"
                         TextWrapping="Wrap" 
-                        Text="If you want to use a custom model, convert it to be WindowsML compatible using the AI Toolkit conversion tool. Note: Only certain models can be converted in AI Toolkit at this time, with more models to come." />
+                        Text="To use a custom model, convert it to a WindowsML-compatible format using the AI Toolkit conversion tool. Note: Currently, only select models are supported for conversion in AI Toolkit, with additional models coming soon." />
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button
                             x:Name="OpenAIToolkitButton"
