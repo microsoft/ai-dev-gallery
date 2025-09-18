@@ -5,6 +5,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.ContentSafety;
 using Microsoft.Windows.AI.Text;
+using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.ApplicationModel;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -60,6 +62,24 @@ internal class PhiSilicaClient : IChatClient
 
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
+        // This is a demo LAF Token and cannot be used for production code and won't be accepted in the Store
+        // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
+        const string demoToken = "Zv6LUQWEwhJTahzvwSGjHQ==";
+        const string demoPublisherId = "z0sq19pdabnaj";
+        const string featureId = "com.microsoft.windows.ai.languagemodel";
+        
+        var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
+            featureId,
+            demoToken,
+            $"{demoPublisherId} has registered their use of {featureId} with Microsoft and agrees to the terms of use.");
+        
+        if ((limitedAccessFeatureResult.Status == LimitedAccessFeatureStatus.Available) || (limitedAccessFeatureResult.Status == LimitedAccessFeatureStatus.AvailableWithoutToken))
+        {
+            ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            sampleParams.NotifyCompletion();
+            return;
+        }
+
         var readyState = LanguageModel.GetReadyState();
 
         if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
