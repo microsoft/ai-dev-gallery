@@ -71,7 +71,7 @@ internal class StableDiffusion : IDisposable
 
             try
             {
-                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {

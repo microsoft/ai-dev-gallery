@@ -83,7 +83,7 @@ internal sealed partial class Multipose : BaseSamplePage
 
             try
             {
-                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {
@@ -110,7 +110,7 @@ internal sealed partial class Multipose : BaseSamplePage
 
             try
             {
-                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {

@@ -126,7 +126,7 @@ internal sealed partial class ScenarioPage : Page
 
         try
         {
-            var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
         }
         catch (Exception)
         {

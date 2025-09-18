@@ -88,7 +88,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
 
             try
             {
-                var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {
