@@ -126,7 +126,7 @@ internal sealed partial class ScenarioPage : Page
 
         try
         {
-            var registeredProviders = await catalog.EnsureAndRegisterAllAsync();
+            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
         }
         catch (Exception)
         {
@@ -140,7 +140,7 @@ internal sealed partial class ScenarioPage : Page
             var epDevices = keyValuePair.Value;
             var epDeviceTypes = epDevices.Select(d => d.HardwareDevice.Type.ToString());
 
-            switch (epName)
+            switch(epName)
             {
                 case "VitisAIExecutionProvider":
                     supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
