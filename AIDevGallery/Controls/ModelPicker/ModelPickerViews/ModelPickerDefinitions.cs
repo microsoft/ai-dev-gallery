@@ -13,15 +13,6 @@ internal class ModelPickerDefinition
     public static readonly Dictionary<string, ModelPickerDefinition> Definitions = new()
     {
         {
-            "onnx", new ModelPickerDefinition()
-            {
-                Name = "Custom models",
-                Id = "onnx",
-                Icon = "ms-appx:///Assets/ModelIcons/CustomModel.png",
-                CreatePicker = () => new OnnxPickerView()
-            }
-        },
-        {
             "winai", new ModelPickerDefinition()
             {
                 Name = "Windows AI APIs",
@@ -37,6 +28,15 @@ internal class ModelPickerDefinition
                 Id = "fl",
                 Icon = "ms-appx:///Assets/ModelIcons/Foundry.png",
                 CreatePicker = () => new FoundryLocalPickerView()
+            }
+        },
+        {
+            "onnx", new ModelPickerDefinition()
+            {
+                Name = "Custom models",
+                Id = "onnx",
+                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
+                CreatePicker = () => new OnnxPickerView()
             }
         },
         {
