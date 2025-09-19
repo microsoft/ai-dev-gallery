@@ -22,21 +22,21 @@ internal class ModelPickerDefinition
             }
         },
         {
-            "onnx", new ModelPickerDefinition()
-            {
-                Name = "ONNX",
-                Id = "onnx",
-                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
-                CreatePicker = () => new OnnxPickerView()
-            }
-        },
-        {
             "fl", new ModelPickerDefinition()
             {
                 Name = "Foundry Local",
                 Id = "fl",
                 Icon = "ms-appx:///Assets/ModelIcons/Foundry.png",
                 CreatePicker = () => new FoundryLocalPickerView()
+            }
+        },
+        {
+            "onnx", new ModelPickerDefinition()
+            {
+                Name = "Custom models",
+                Id = "onnx",
+                Icon = "ms-appx:///Assets/ModelIcons/Onnx.png",
+                CreatePicker = () => new OnnxPickerView()
             }
         },
         {
