@@ -268,82 +268,93 @@
                         </DropDownButton.Flyout>
                     </DropDownButton>
                 </Grid>
-                <ItemsRepeater
+                <ItemsView
+                    x:Name="DownloadableModelSelectionItemsView"
                     Grid.Row="2"
                     IsTabStop="False"
-                    ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
+                    ItemsSource="{x:Bind DownloadableModels, Mode=OneWay}"
+                    SelectionChanged="DownloadableModelSelectionItemsView_SelectionChanged"
+                    SelectionMode="Single">
+                    <ItemsView.Layout>
                         <StackLayout Spacing="4" />
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
+                    </ItemsView.Layout>
+                    <ItemsView.ItemTemplate>
                         <DataTemplate x:DataType="vm:DownloadableModel">
-                            <toolkit:SettingsCard
-                                MinHeight="48"
-                                Padding="20,8,16,6"
-                                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                                Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}"
+                            <ItemContainer
+                                CornerRadius="{StaticResource ControlCornerRadius}"
                                 GotFocus="ItemContainer_GotFocus"
                                 PointerEntered="ItemContainer_PointerEntered"
                                 Tag="{x:Bind}">
-                                <toolkit:SettingsCard.Resources>
-                                    <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
-                                    <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
-                                    <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
-                                </toolkit:SettingsCard.Resources>
-                                <toolkit:SettingsCard.Header>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            MaxWidth="268"
-                                            VerticalAlignment="Center"
-                                            Text="{x:Bind ModelDetails.Name}"
-                                            TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
-                                        <ItemsRepeater
-                                            Grid.Column="1"
-                                            Margin="4,0,0,0"
-                                            ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
-                                            <ItemsRepeater.Layout>
-                                                <StackLayout Orientation="Horizontal" Spacing="4" />
-                                            </ItemsRepeater.Layout>
-                                            <ItemsRepeater.ItemTemplate>
-                                                <DataTemplate x:DataType="models:HardwareAccelerator">
-                                                    <Button
+                                <ItemContainer.Resources>
+                                    <SolidColorBrush x:Key="ItemContainerPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerSelectedPointerOverBackground" Color="Transparent" />
+                                    <SolidColorBrush x:Key="ItemContainerPressedBackground" Color="Transparent" />
+                                </ItemContainer.Resources>
+                                <toolkit:SettingsCard
+                                    MinHeight="48"
+                                    Padding="20,8,16,6"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}">
+                                    <toolkit:SettingsCard.Resources>
+                                        <Thickness x:Key="SettingsCardHeaderIconMargin">0,0,14,0</Thickness>
+                                        <x:Double x:Key="SettingsCardWrapThreshold">286</x:Double>
+                                        <x:Double x:Key="SettingsCardHeaderIconMaxSize">18</x:Double>
+                                    </toolkit:SettingsCard.Resources>
+                                    <toolkit:SettingsCard.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                MaxWidth="268"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind ModelDetails.Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                            <ItemsRepeater
+                                                Grid.Column="1"
+                                                Margin="4,0,0,0"
+                                                ItemsSource="{x:Bind ModelDetails.HardwareAccelerators}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:HardwareAccelerator">
+                                                        <Button
                                                         VerticalAlignment="Center"
                                                         AutomationProperties.Name="More info"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
+                                                        Tapped="StopPropagatingHandler"
                                                         ToolTipService.ToolTip="More info">
-                                                        <Button.Flyout>
-                                                            <Flyout ShouldConstrainToRootBounds="False">
-                                                                <TextBlock
+                                                            <Button.Flyout>
+                                                                <Flyout ShouldConstrainToRootBounds="False">
+                                                                    <TextBlock
                                                                     MaxWidth="360"
                                                                     Text="{x:Bind utils:AppUtils.GetHardwareAcceleratorDescription((models:HardwareAccelerator))}"
                                                                     TextWrapping="Wrap" />
-                                                            </Flyout>
-                                                        </Button.Flyout>
-                                                    </Button>
-                                                </DataTemplate>
-                                            </ItemsRepeater.ItemTemplate>
-                                        </ItemsRepeater>
-                                    </Grid>
-                                </toolkit:SettingsCard.Header>
-                                <toolkit:SettingsCard.HeaderIcon>
-                                    <ImageIcon
+                                                                </Flyout>
+                                                            </Button.Flyout>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </Grid>
+                                    </toolkit:SettingsCard.Header>
+                                    <toolkit:SettingsCard.HeaderIcon>
+                                        <ImageIcon
                                         AutomationProperties.AccessibilityView="Control"
                                         AutomationProperties.Name="Model source icon"
                                         Source="{x:Bind ModelDetails.Icon}" />
-                                </toolkit:SettingsCard.HeaderIcon>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Border
+                                    </toolkit:SettingsCard.HeaderIcon>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border
                                         Width="28"
                                         Height="28"
                                         Margin="0,0,1,0"
                                         Padding="0">
-                                        <Button
+                                            <Button
                                             Width="28"
                                             Height="28"
                                             Padding="0"
@@ -354,24 +365,24 @@
                                             Style="{StaticResource SubtleButtonStyle}"
                                             ToolTipService.ToolTip="More options"
                                             Visibility="{x:Bind OptionsVisible, Mode=OneWay}">
-                                            <Button.Flyout>
-                                                <MenuFlyout Placement="Bottom">
-                                                    <MenuFlyoutItem
+                                                <Button.Flyout>
+                                                    <MenuFlyout Placement="Bottom">
+                                                        <MenuFlyoutItem
                                                         Click="ModelCard_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE8A5;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View model card" />
-                                                    <MenuFlyoutItem
+                                                        <MenuFlyoutItem
                                                         Click="ViewLicense_Click"
                                                         Icon="{ui:FontIcon Glyph=&#xE82D;}"
                                                         Tag="{x:Bind ModelDetails}"
                                                         Text="View model license" />
-                                                </MenuFlyout>
-                                            </Button.Flyout>
-                                        </Button>
-                                    </Border>
-                                    <Grid>
-                                        <Button
+                                                    </MenuFlyout>
+                                                </Button.Flyout>
+                                            </Button>
+                                        </Border>
+                                        <Grid>
+                                            <Button
                                             Padding="4"
                                             VerticalAlignment="Center"
                                             AutomationProperties.HelpText="Download model"
@@ -386,19 +397,20 @@
                                             ToolTipService.ToolTip="Download model"
                                             Visibility="{x:Bind CanDownload, Mode=OneWay}" />
 
-                                        <ProgressRing
+                                            <ProgressRing
                                             Width="24"
                                             Height="24"
                                             Background="{ThemeResource ControlStrongStrokeColorDisabledBrush}"
                                             IsIndeterminate="False"
                                             Visibility="{x:Bind vm:DownloadableModel.BoolToVisibilityInverse(CanDownload), Mode=OneWay}"
                                             Value="{x:Bind Progress, Mode=OneWay}" />
-                                    </Grid>
-                                </StackPanel>
-                            </toolkit:SettingsCard>
+                                        </Grid>
+                                    </StackPanel>
+                                </toolkit:SettingsCard>
+                            </ItemContainer>
                         </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
+                    </ItemsView.ItemTemplate>
+                </ItemsView>
             </Grid>
         </ScrollViewer>
         <mpControls:AddHFModelView

@@ -133,6 +133,11 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 }
             }
         }
+
+        if (Selected != null)
+        {
+            SelectModel(Selected);
+        }
     }
 
     private void CacheStore_ModelsChanged(ModelCacheStore sender)
@@ -145,6 +150,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         if (sender.SelectedItem is AvailableModel model)
         {
             OnSelectedModelChanged(this, model.ModelDetails);
+            DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.DeselectAll());
+        }
+    }
+
+    private void DownloadableModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    {
+        if (sender.SelectedItem is DownloadableModel model)
+        {
+            OnSelectedModelChanged(this, model.GetModelDetails());
+            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
         }
     }
 
@@ -160,6 +175,16 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
             else
             {
                 DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
+            }
+
+            var downloadableModel = DownloadableModels.FirstOrDefault(m => m.ModelDetails.Id == modelDetails.Id);
+            if (downloadableModel != null)
+            {
+                DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.Select(DownloadableModels.IndexOf(downloadableModel)));
+            }
+            else
+            {
+                DispatcherQueue.TryEnqueue(() => DownloadableModelSelectionItemsView.DeselectAll());
             }
         }
         else
