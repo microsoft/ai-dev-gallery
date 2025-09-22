@@ -66,7 +66,8 @@ jobs:
         Add-Content $filePath "  /// </summary>"
         Add-Content $filePath "  public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath "}"
-        Add-Content $filePath ""
+
+        (Get-Content $filePath) | ForEach-Object { $_.TrimEnd() } + "" | Set-Content $filePath
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
@@ -143,7 +144,8 @@ jobs:
         Add-Content $filePath "  /// </summary>"
         Add-Content $filePath "  public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath "}"
-        Add-Content $filePath ""
+        
+        (Get-Content $filePath) | ForEach-Object { $_.TrimEnd() } + "" | Set-Content $filePath
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
