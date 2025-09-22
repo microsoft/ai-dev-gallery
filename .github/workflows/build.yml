@@ -68,8 +68,10 @@ jobs:
         Add-Content $filePath "}"
 
         $content = Get-Content $filePath | ForEach-Object { $_.TrimEnd() }
-        $content += ""
-        Set-Content $filePath $content
+        while ($content.Count -gt 0 -and $content[-1] -eq "") {
+            $content = $content[0..($content.Count - 2)]
+        }
+        Set-Content -NoNewline $filePath $content
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
@@ -148,8 +150,10 @@ jobs:
         Add-Content $filePath "}"
         
         $content = Get-Content $filePath | ForEach-Object { $_.TrimEnd() }
-        $content += ""
-        Set-Content $filePath $content
+        while ($content.Count -gt 0 -and $content[-1] -eq "") {
+            $content = $content[0..($content.Count - 2)]
+        }
+        Set-Content -NoNewline $filePath $content
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
