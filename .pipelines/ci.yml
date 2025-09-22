@@ -44,6 +44,9 @@ extends:
       - ${{ each dotnet_config in parameters.dotnet_configurations }}:
         - ${{ each platform in parameters.platforms }}:
           - job: Build_${{ dotnet_config }}_${{ platform.dotnet_platform }}
+            env:
+              LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+              LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
             pool:
               name: ${{ platform.pool_name }}
               image: ${{ platform.pool_image }}
@@ -80,7 +83,7 @@ extends:
               - task: DotNetCoreCLI@2
                 inputs:
                   command: build
-                  arguments: /p:PHISILICA_TOKEN=$(PHISILICA_TOKEN)
+                  arguments: /p:LAF_TOKEN=$(LAF_TOKEN) /p:LAF_PUBLISHER_ID=$(LAF_PUBLISHER_ID)
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}
