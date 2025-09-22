@@ -24,7 +24,6 @@
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <ApplicationIcon>Assets\AppIcon\Icon.ico</ApplicationIcon>
     <AssemblyTitle>AI Dev Gallery</AssemblyTitle>
-    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
   </PropertyGroup>
