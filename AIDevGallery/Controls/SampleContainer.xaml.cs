@@ -24,21 +24,6 @@ namespace AIDevGallery.Controls;
 
 internal sealed partial class SampleContainer : UserControl
 {
-    public static readonly DependencyProperty WcrUnavailableReasonProperty = DependencyProperty.Register(nameof(WcrUnavailableReason), typeof(string), typeof(SampleContainer), new PropertyMetadata(string.Empty));
-
-    public string WcrUnavailableReason
-    {
-        get => (string)GetValue(WcrUnavailableReasonProperty);
-        set => SetValue(WcrUnavailableReasonProperty, value);
-    }
-
-    public static readonly DependencyProperty WcrUnavailableTitleProperty = DependencyProperty.Register(nameof(WcrUnavailableTitle), typeof(string), typeof(SampleContainer), new PropertyMetadata("Copilot+ PC required"));
-
-    public string WcrUnavailableTitle
-    {
-        get => (string)GetValue(WcrUnavailableTitleProperty);
-        set => SetValue(WcrUnavailableTitleProperty, value);
-    }
 
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
@@ -210,19 +195,6 @@ internal sealed partial class SampleContainer : UserControl
         // show that models are not compatible with this device
         if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
         {
-            var first = models.First(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
-            WcrUnavailableReason = first.Compatibility.CompatibilityIssueDescription;
-
-            // Set appropriate title based on the reason
-            if (first.Compatibility.CompatibilityIssueDescription.Contains("Limited Access Feature for Phi Silica is unavailable"))
-            {
-                WcrUnavailableTitle = "Limited Access Feature is unavailable.";
-            }
-            else
-            {
-                WcrUnavailableTitle = "Copilot+ PC required";
-            }
-
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;
