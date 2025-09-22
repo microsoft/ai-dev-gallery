@@ -44,8 +44,8 @@ jobs:
     - name: Generate LafConstants.cs
       shell: pwsh
       run: |
-        $filePath = "$GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs"
-        mkdir $GITHUB_WORKSPACE/AIDevGallery/Generated
+        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
         Set-Content $filePath "// Copyright (c) Microsoft Corporation. All rights reserved."
         Add-Content $filePath "// Licensed under the MIT License."
         Add-Content $filePath ""
@@ -66,7 +66,7 @@ jobs:
         Add-Content $filePath "   public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath " } "
 
-        Write-Output "Generated file path: $GITHUB_WORKSPACE/AIDevGallery/Generated"
+        Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
               Write-Output "File exists: $filePath"
             } else {
@@ -119,8 +119,8 @@ jobs:
     - name: Generate LafConstants.cs
       shell: pwsh
       run: |
-        $filePath = "$GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs"
-        mkdir $GITHUB_WORKSPACE/AIDevGallery/Generated
+        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
         Set-Content $filePath "// Copyright (c) Microsoft Corporation. All rights reserved."
         Add-Content $filePath "// Licensed under the MIT License."
         Add-Content $filePath ""
@@ -141,7 +141,7 @@ jobs:
         Add-Content $filePath "   public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath " } "
 
-        Write-Output "Generated file path: $GITHUB_WORKSPACE/AIDevGallery/Generated"
+        Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
               Write-Output "File exists: $filePath"
             } else {
