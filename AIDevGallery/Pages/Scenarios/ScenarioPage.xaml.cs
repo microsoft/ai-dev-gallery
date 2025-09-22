@@ -16,6 +16,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ internal sealed partial class ScenarioPage : Page
 
         try
         {
-            File.WriteAllText(filePath, content.Length.ToString());
+            File.WriteAllText(filePath, content.Length.ToString(CultureInfo.InvariantCulture));
             Console.WriteLine("success");
         }
         catch (UnauthorizedAccessException)
