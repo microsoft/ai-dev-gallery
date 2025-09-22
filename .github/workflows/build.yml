@@ -67,6 +67,9 @@ jobs:
         Add-Content $filePath "  public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath "}"
 
+        if ([string]::IsNullOrWhiteSpace($filePath)) {
+            throw "filePath is empty. Please check the path assignment."
+        }
         $content = Get-Content $filePath | ForEach-Object { $_.TrimEnd() }
         while ($content.Count -gt 0 -and $content[-1] -eq "") {
             $content = $content[0..($content.Count - 2)]
@@ -149,6 +152,9 @@ jobs:
         Add-Content $filePath "  public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
         Add-Content $filePath "}"
         
+        if ([string]::IsNullOrWhiteSpace($filePath)) {
+            throw "filePath is empty. Please check the path assignment."
+        }
         $content = Get-Content $filePath | ForEach-Object { $_.TrimEnd() }
         while ($content.Count -gt 0 -and $content[-1] -eq "") {
             $content = $content[0..($content.Count - 2)]
