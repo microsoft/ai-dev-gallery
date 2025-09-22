@@ -27,12 +27,6 @@ internal record WinMlEp(List<HardwareAccelerator> HardwareAccelerators, string N
 
 internal sealed partial class ScenarioPage : Page
 {
-#if PHISILICA_TOKEN
-    public const string PhiSilicaToken = PHISILICA_TOKEN;
-#else
-    public const string PhiSilicaToken = "default-or-empty";
-#endif
-
     private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
     {
         { "Default", ExecutionProviderDevicePolicy.DEFAULT },
