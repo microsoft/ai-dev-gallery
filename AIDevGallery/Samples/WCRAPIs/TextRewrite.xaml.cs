@@ -42,7 +42,7 @@ internal sealed partial class TextRewrite : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        // This is a demo LAF Token and cannot be used for production code and won't be accepted in the Store
+        // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
         // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
         const string demoToken = "Zv6LUQWEwhJTahzvwSGjHQ==";
         const string demoPublisherId = "z0sq19pdabnaj";
