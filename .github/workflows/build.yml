@@ -75,7 +75,16 @@ jobs:
             $content = $content[0..($content.Count - 2)]
         }
         $finalContent = $content -join "`n"
-        Set-Content -Path $filePath -Value $finalContent
+        $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+        for ($i = 0; $i -lt $content.Count; $i++) {
+            if ($i -lt $content.Count - 1) {
+                $writer.WriteLine($content[$i])
+            } else {
+                $writer.Write($content[$i])
+            }
+        }
+        $writer.Close()
+
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
