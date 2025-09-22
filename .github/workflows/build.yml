@@ -42,27 +42,31 @@ jobs:
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
     - name: Generate LafConstants.cs
+      shell: pwsh
       run: |
         mkdir $GITHUB_WORKSPACE/AIDevGallery/Generated
-        echo // Copyright (c) Microsoft Corporation. All rights reserved. > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo // Licensed under the MIT License. > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo. >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo namespace AIDevGallery; > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo. >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// <summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// Provides LAF-related constants. > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// </summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo public static class LafConstants { >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// <summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// The authentication token for LAF. > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// </summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo   public const string Token = "\"${{ secrets.LAF_TOKEN }}\";" >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo. >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// <summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// The publisher ID for LAF. > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo /// </summary> > $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo   public const string PublisherId = "\"${{ secrets.LAF_PUBLISHER_ID }}\";" >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
-        echo } >> $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs
+        Set-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "// Copyright (c) Microsoft Corporation. All rights reserved."
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "// Licensed under the MIT License."
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ""
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " namespace AIDevGallery;"
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ""
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// Provides LAF-related constants. "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " public static class LafConstants { "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// The authentication token for LAF. "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "   public const string Token = `"`$env:LAF_TOKEN`";"
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ". >"
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// The publisher ID for LAF. "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "   public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
+        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " } "
+      env:
+        LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+        LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build
