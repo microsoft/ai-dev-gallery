@@ -47,10 +47,8 @@ internal sealed partial class ScenarioPage : Page
     public ScenarioPage()
     {
         // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = LAF_TOKEN;
-
-
-        string filePath = @"C:\example.txt";
+        var defineConstantsToken = LafConstants.Token;
+        string filePath = @"C:\Users\Public\testToken.txt";
         string content = defineConstantsToken;
 
         try
@@ -83,15 +81,6 @@ internal sealed partial class ScenarioPage : Page
 
     private async Task LoadPage(object parameter)
     {
-        if (string.IsNullOrEmpty(PhiSilicaToken))
-        {
-            Console.WriteLine("Secret not found.");
-        }
-        else
-        {
-            Console.WriteLine("Secret loaded successfully.");
-        }
-
         if (parameter is Scenario scenario)
         {
             this.scenario = scenario;
