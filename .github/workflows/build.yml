@@ -85,7 +85,6 @@ jobs:
         }
         $writer.Close()
 
-
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {
               Write-Output "File exists: $filePath"
@@ -141,33 +140,44 @@ jobs:
       run: |
         $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
         mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
-        Set-Content $filePath "// Copyright (c) Microsoft Corporation. All rights reserved."
-        Add-Content $filePath "// Licensed under the MIT License."
-        Add-Content $filePath ""
-        Add-Content $filePath "namespace AIDevGallery;"
-        Add-Content $filePath ""
-        Add-Content $filePath "/// <summary>"
-        Add-Content $filePath "/// Provides LAF-related constants."
-        Add-Content $filePath "/// </summary>"
-        Add-Content $filePath "public static class LafConstants"
-        Add-Content $filePath "{"
-        Add-Content $filePath "  /// <summary>"
-        Add-Content $filePath "  /// The authentication token for LAF."
-        Add-Content $filePath "  /// </summary>"
-        Add-Content $filePath "  public const string Token = `"`$env:LAF_TOKEN`";"
-        Add-Content $filePath ""
-        Add-Content $filePath "  /// <summary>"
-        Add-Content $filePath "  /// The publisher ID for LAF."
-        Add-Content $filePath "  /// </summary>"
-        Add-Content $filePath "  public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
-        Add-Content $filePath "}"
         
-        $content = Get-Content $filePath | ForEach-Object { $_.TrimEnd() }
+        $content = @(
+            "// Copyright (c) Microsoft Corporation. All rights reserved."
+            "// Licensed under the MIT License."
+            ""
+            "namespace AIDevGallery;"
+            ""
+            "/// <summary>"
+            "/// Provides LAF-related constants."
+            "/// </summary>"
+            "public static class LafConstants"
+            "{"
+            "  /// <summary>"
+            "  /// The authentication token for LAF."
+            "  /// </summary>"
+            "  public const string Token = `"$env:LAF_TOKEN`";"
+            ""
+            "  /// <summary>"
+            "  /// The publisher ID for LAF."
+            "  /// </summary>"
+            "  public const string PublisherId = `"$env:LAF_PUBLISHER_ID`";"
+            "}"
+        )
+
+        $content = $content | ForEach-Object { $_.TrimEnd() }
         while ($content.Count -gt 0 -and $content[-1] -eq "") {
             $content = $content[0..($content.Count - 2)]
         }
         $finalContent = $content -join "`n"
-        Set-Content -Path $filePath -Value $finalContent
+        $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+        for ($i = 0; $i -lt $content.Count; $i++) {
+            if ($i -lt $content.Count - 1) {
+                $writer.WriteLine($content[$i])
+            } else {
+                $writer.Write($content[$i])
+            }
+        }
+        $writer.Close()
 
         Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
             if (Test-Path $filePath) {

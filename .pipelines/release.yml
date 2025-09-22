@@ -82,29 +82,53 @@ extends:
               inputs:
                 targetType: 'inline'
                 script: |
-                  $genDir = "$(Build.SourcesDirectory)\AIDevGallery\Generated"
-                  if (!(Test-Path $genDir)) { New-Item -ItemType Directory -Path $genDir }
-                  $file = "$genDir\LafConstants.cs"
-                  Set-Content $file "// Copyright (c) Microsoft Corporation. All rights reserved."
-                  Add-Content $file "// Licensed under the MIT License."
-                  Add-Content $file ""
-                  Add-Content $file "namespace AIDevGallery;"
-                  Add-Content $file ""
-                  Add-Content $file "/// <summary>"
-                  Add-Content $file "/// Provides LAF-related constants."
-                  Add-Content $file "/// </summary>"
-                  Add-Content $file "public static class LafConstants"
-                  Add-Content $file "{"
-                  Add-Content $file "    /// <summary>"
-                  Add-Content $file "    /// The authentication token for LAF."
-                  Add-Content $file "    /// </summary>"
-                  Add-Content $file "    public const string Token = `"`$(LAF_TOKEN)`";"
-                  Add-Content $file ""
-                  Add-Content $file "    /// <summary>"
-                  Add-Content $file "    /// The publisher ID for LAF."
-                  Add-Content $file "    /// </summary>"
-                  Add-Content $file "    public const string PublisherId = `"`$(LAF_PUBLISHER_ID)`";"
-                  Add-Content $file "}"
+                  $filePath = "$(Build.SourcesDirectory)/AIDevGallery/Generated/LafConstants.cs"
+                  $dirPath = "$(Build.SourcesDirectory)/AIDevGallery/Generated"
+                  if (-not (Test-Path $dirPath)) {
+                    New-Item -ItemType Directory -Path $dirPath | Out-Null
+                  }
+                  $content = @(
+                      "// Copyright (c) Microsoft Corporation. All rights reserved."
+                      "// Licensed under the MIT License."
+                      ""
+                      "namespace AIDevGallery;"
+                      ""
+                      "/// <summary>"
+                      "/// Provides LAF-related constants."
+                      "/// </summary>"
+                      "public static class LafConstants"
+                      "{"
+                      "  /// <summary>"
+                      "  /// The authentication token for LAF."
+                      "  /// </summary>"
+                      "  public const string Token = `"$env:LAF_TOKEN`";"
+                      ""
+                      "  /// <summary>"
+                      "  /// The publisher ID for LAF."
+                      "  /// </summary>"
+                      "  public const string PublisherId = `"$env:LAF_PUBLISHER_ID`";"
+                      "}"
+                  )
+                  $content = $content | ForEach-Object { $_.TrimEnd() }
+                  while ($content.Count -gt 0 -and $content[-1] -eq "") {
+                      $content = $content[0..($content.Count - 2)]
+                  }
+                  $finalContent = $content -join "`n"
+                  $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+                  for ($i = 0; $i -lt $content.Count; $i++) {
+                      if ($i -lt $content.Count - 1) {
+                          $writer.WriteLine($content[$i])
+                      } else {
+                          $writer.Write($content[$i])
+                      }
+                  }
+                  $writer.Close()
+                  Write-Output "Generated file path: $filePath"
+                  if (Test-Path $filePath) {
+                    Write-Output "File exists: $filePath"
+                  } else {
+                    Write-Output "File does not exist: $filePath"
+                  }
               env:
                 LAF_TOKEN: $(LAF_TOKEN)
                 LAF_PUBLISHER_ID: $(LAF_PUBLISHER_ID)
