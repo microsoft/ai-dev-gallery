@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.UI.Xaml.Controls;
+using AIDevGallery.Utils;
 
 namespace AIDevGallery.Controls;
 
@@ -11,6 +12,8 @@ internal sealed partial class GettingStartedSection : UserControl
     {
         this.InitializeComponent();
     }
+
+    public string AiLanguageModelToken => LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
 
     private void APIButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {

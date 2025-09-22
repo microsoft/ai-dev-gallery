@@ -290,7 +290,7 @@
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="Open-source"
                     TextWrapping="Wrap" />
-                <TextBlock Text="This project is open-source, and contributions are always welcome. Check out the repository to learn how it works, report issues, or submit your own improvements and new samples" TextWrapping="Wrap" />
+                <TextBlock Text="{x:Bind AiLanguageModelToken, Mode=OneWay}" TextWrapping="Wrap" />
                 <HyperlinkButton
                     Grid.Row="1"
                     Padding="0"
