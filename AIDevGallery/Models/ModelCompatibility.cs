@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Helpers;
@@ -41,7 +41,7 @@ internal class ModelCompatibility
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"{WcrApiHelpers.GetStringDescription(apiType, availbility)}\nThis Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)";
+                description = $"{availbility.GetStringDescription()} This Windows AI API requires a Copilot+ PC and a Windows 11 Insider Preview Build 26120.3073.";
             }
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
