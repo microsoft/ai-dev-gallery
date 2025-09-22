@@ -212,7 +212,7 @@ internal sealed partial class SampleContainer : UserControl
         {
             var first = models.First(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
             WcrUnavailableReason = first.Compatibility.CompatibilityIssueDescription;
-            
+
             // Set appropriate title based on the reason
             if (first.Compatibility.CompatibilityIssueDescription.Contains("Limited Access Feature for Phi Silica is unavailable"))
             {
@@ -222,7 +222,7 @@ internal sealed partial class SampleContainer : UserControl
             {
                 WcrUnavailableTitle = "Copilot+ PC required";
             }
-            
+
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;

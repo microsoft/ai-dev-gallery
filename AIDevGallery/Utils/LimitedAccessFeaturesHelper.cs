@@ -74,7 +74,6 @@ internal static class LimitedAccessFeaturesHelper
         return string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
     }
 
-
     /// <summary>
     /// Reads a value from DefineConstants by key; returns empty string if missing
     /// </summary>

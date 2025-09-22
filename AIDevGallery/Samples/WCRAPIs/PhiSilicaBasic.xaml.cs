@@ -46,12 +46,12 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         const string demoToken = "Zv6LUQWEwhJTahzvwSGjHQ==";
         const string demoPublisherId = "z0sq19pdabnaj";
         const string featureId = "com.microsoft.windows.ai.languagemodel";
-        
+
         var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
             featureId,
             demoToken,
             $"{demoPublisherId} has registered their use of {featureId} with Microsoft and agrees to the terms of use.");
-        
+
         if ((limitedAccessFeatureResult.Status == LimitedAccessFeatureStatus.Available) || (limitedAccessFeatureResult.Status == LimitedAccessFeatureStatus.AvailableWithoutToken))
         {
             ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");

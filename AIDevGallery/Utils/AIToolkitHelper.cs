@@ -37,7 +37,7 @@ internal static class AIToolkitHelper
     {
         ToolkitActionInfo? actionInfo;
         string deeplink = CreateAiToolkitDeeplink(action);
-        if(action != AIToolkitAction.Conversion)
+        if (action != AIToolkitAction.Conversion)
         {
             string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
 
@@ -62,12 +62,12 @@ internal static class AIToolkitHelper
 
     public static bool ValidateAction(this ModelDetails modelDetails, AIToolkitAction action)
     {
-        if(modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
+        if (modelDetails.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible)
         {
             return false;
         }
 
-        if(action == AIToolkitAction.FineTuning)
+        if (action == AIToolkitAction.FineTuning)
         {
             return modelDetails.ValidateForFineTuning();
         }
@@ -91,13 +91,13 @@ internal static class AIToolkitHelper
             var actionsList = new List<AIToolkitAction>();
             foreach (AIToolkitAction action in details.AIToolkitActions)
             {
-                if(details.ValidateAction(action))
+                if (details.ValidateAction(action))
                 {
                     actionsList.Add(action);
                 }
             }
 
-            if(actionsList.Count > 0)
+            if (actionsList.Count > 0)
             {
                 validatedDetailsActionListMap.Add(details, actionsList);
             }
