@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Reflection;
 using Windows.ApplicationModel;
 
 namespace AIDevGallery.Utils;
@@ -29,16 +28,16 @@ internal static class LimitedAccessFeaturesHelper
     private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
 
     /// <summary>
-    /// Reads the AI Language Model token, preferring AssemblyMetadata over environment variables
+    /// Reads the AI Language Model token, preferring DefineConstants over environment variables
     /// </summary>
     /// <returns>The AI Language Model token string, or empty string if not available</returns>
     public static string GetAiLanguageModelToken()
     {
-        // Prefer value embedded via AssemblyMetadata (from MSBuild) if present
-        var metadataToken = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_TOKEN_ENV);
-        if (!string.IsNullOrWhiteSpace(metadataToken))
+        // Prefer value from DefineConstants (from MSBuild) if present
+        var defineConstantsToken = GetDefineConstantsValue("LAF_TOKEN");
+        if (!string.IsNullOrWhiteSpace(defineConstantsToken))
         {
-            return metadataToken;
+            return defineConstantsToken;
         }
 
         // Fallback to User/Machine/Process environment variable. Return empty string if not set.
@@ -47,11 +46,11 @@ internal static class LimitedAccessFeaturesHelper
     }
 
     /// <summary>
-    /// Builds the usage description for AI Language Model feature from AssemblyMetadata/env
+    /// Builds the usage description for AI Language Model feature from DefineConstants/env
     /// </summary>
     private static string GetAiLanguageModelUsage()
     {
-        var publisherId = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        var publisherId = GetDefineConstantsValue("LAF_PUBLISHER_ID");
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
@@ -62,11 +61,11 @@ internal static class LimitedAccessFeaturesHelper
     }
 
     /// <summary>
-    /// Gets the configured publisher identifier for AI Language Model feature from AssemblyMetadata/env
+    /// Gets the configured publisher identifier for AI Language Model feature from DefineConstants/env
     /// </summary>
     private static string GetAiLanguageModelPublisherId()
     {
-        var publisherId = GetAssemblyMetadataValue(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
+        var publisherId = GetDefineConstantsValue("LAF_PUBLISHER_ID");
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
@@ -75,24 +74,30 @@ internal static class LimitedAccessFeaturesHelper
         return string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
     }
 
+
     /// <summary>
-    /// Reads a value from AssemblyMetadata attributes by key; returns empty string if missing
+    /// Reads a value from DefineConstants by key; returns empty string if missing
     /// </summary>
-    private static string GetAssemblyMetadataValue(string key)
+    private static string GetDefineConstantsValue(string key)
     {
         try
         {
-            foreach (var attribute in typeof(LimitedAccessFeaturesHelper).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
+#if LAF_TOKEN
+            if (string.Equals(key, "LAF_TOKEN", StringComparison.Ordinal))
             {
-                if (string.Equals(attribute.Key, key, StringComparison.Ordinal))
-                {
-                    return attribute.Value ?? string.Empty;
-                }
+                return LAF_TOKEN;
             }
+#endif
+#if LAF_PUBLISHER_ID
+            if (string.Equals(key, "LAF_PUBLISHER_ID", StringComparison.Ordinal))
+            {
+                return LAF_PUBLISHER_ID;
+            }
+#endif
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to read AssemblyMetadata '{key}': {ex.Message}");
+            Debug.WriteLine($"Failed to read DefineConstants '{key}': {ex.Message}");
         }
 
         return string.Empty;
