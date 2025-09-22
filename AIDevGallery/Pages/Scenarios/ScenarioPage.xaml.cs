@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using System.IO;
 
 namespace AIDevGallery.Pages;
 
@@ -52,7 +53,7 @@ internal sealed partial class ScenarioPage : Page
     public ScenarioPage()
     {
         // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = GetDefineConstantsValue("LAF_TOKEN");
+        var defineConstantsToken = LAF_TOKEN;
 
 
         string filePath = @"C:\example.txt";
