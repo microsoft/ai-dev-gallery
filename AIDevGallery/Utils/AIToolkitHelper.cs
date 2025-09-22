@@ -38,7 +38,7 @@ internal static class AIToolkitHelper
         ToolkitActionInfo? actionInfo;
 
         string deeplink = CreateAiToolkitDeeplink(action);
-        if(action != AIToolkitAction.Conversion)
+        if (action != AIToolkitAction.Conversion)
         {
             string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
 
