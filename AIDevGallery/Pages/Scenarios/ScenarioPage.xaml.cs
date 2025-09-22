@@ -53,7 +53,7 @@ internal sealed partial class ScenarioPage : Page
 
         try
         {
-            File.WriteAllText(filePath, content.Length);
+            File.WriteAllText(filePath, content.Length.ToString());
             Console.WriteLine("success");
         }
         catch (UnauthorizedAccessException)
