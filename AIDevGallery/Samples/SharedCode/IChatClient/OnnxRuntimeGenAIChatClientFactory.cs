@@ -5,6 +5,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntimeGenAI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,17 @@ internal static class OnnxRuntimeGenAIChatClientFactory
 
     public static async Task<IChatClient?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, string? provider = null, CancellationToken cancellationToken = default)
     {
+        var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
+
+        try
+        {
+            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
+        }
+
         var options = new OnnxRuntimeGenAIChatClientOptions
         {
             StopSequences = template?.Stop ?? Array.Empty<string>(),
