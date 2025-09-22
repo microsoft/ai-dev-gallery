@@ -44,26 +44,34 @@ jobs:
     - name: Generate LafConstants.cs
       shell: pwsh
       run: |
+        $filePath = "$GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs"
         mkdir $GITHUB_WORKSPACE/AIDevGallery/Generated
-        Set-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "// Copyright (c) Microsoft Corporation. All rights reserved."
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "// Licensed under the MIT License."
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ""
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " namespace AIDevGallery;"
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ""
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// Provides LAF-related constants. "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " public static class LafConstants { "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// The authentication token for LAF. "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "   public const string Token = `"`$env:LAF_TOKEN`";"
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs ". >"
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// <summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// The publisher ID for LAF. "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " /// </summary> "
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs "   public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
-        Add-Content $GITHUB_WORKSPACE/AIDevGallery/Generated/LafConstants.cs " } "
+        Set-Content $filePath "// Copyright (c) Microsoft Corporation. All rights reserved."
+        Add-Content $filePath "// Licensed under the MIT License."
+        Add-Content $filePath ""
+        Add-Content $filePath " namespace AIDevGallery;"
+        Add-Content $filePath ""
+        Add-Content $filePath " /// <summary> "
+        Add-Content $filePath " /// Provides LAF-related constants. "
+        Add-Content $filePath " /// </summary> "
+        Add-Content $filePath " public static class LafConstants { "
+        Add-Content $filePath " /// <summary> "
+        Add-Content $filePath " /// The authentication token for LAF. "
+        Add-Content $filePath " /// </summary> "
+        Add-Content $filePath "   public const string Token = `"`$env:LAF_TOKEN`";"
+        Add-Content $filePath ". >"
+        Add-Content $filePath " /// <summary> "
+        Add-Content $filePath " /// The publisher ID for LAF. "
+        Add-Content $filePath " /// </summary> "
+        Add-Content $filePath "   public const string PublisherId = `"`$env:LAF_PUBLISHER_ID`";"
+        Add-Content $filePath " } "
+
+        Write-Output "Generated file path: $GITHUB_WORKSPACE/AIDevGallery/Generated"
+            if (Test-Path $filePath) {
+              Write-Output "File exists: $filePath"
+            } else {
+              Write-Output "File does not exist: $filePath"
+            }
       env:
         LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
         LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
