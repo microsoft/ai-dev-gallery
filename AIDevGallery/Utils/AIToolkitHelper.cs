@@ -13,7 +13,8 @@ internal static class AIToolkitHelper
     {
         { AIToolkitAction.FineTuning, new ToolkitActionInfo() { DisplayName = "Fine Tuning", QueryName = "open_fine_tuning" } },
         { AIToolkitAction.PromptBuilder, new ToolkitActionInfo() { DisplayName = "Agent (Prompt) Builder", QueryName = "open_prompt_builder" } },
-        { AIToolkitAction.Playground, new ToolkitActionInfo() { DisplayName = "Playground", QueryName = "open_playground" } }
+        { AIToolkitAction.Playground, new ToolkitActionInfo() { DisplayName = "Playground", QueryName = "open_playground" } },
+        { AIToolkitAction.Conversion, new ToolkitActionInfo() { DisplayName = "Conversion", QueryName = "open_conversion" } }
     };
 
     public static Dictionary<AIToolkitAction, ToolkitActionInfo> AIToolkitActionInfos
@@ -21,15 +22,30 @@ internal static class AIToolkitHelper
         get { return aiToolkitActionInfos; }
     }
 
+    public static string CreateAiToolkitDeeplink(AIToolkitAction action)
+    {
+        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
+        if (action == AIToolkitAction.Conversion)
+        {
+            deeplink = deeplink + "open_model_lab_conversion?action=add_model";
+        }
+
+        return deeplink;
+    }
+
     public static string CreateAiToolkitDeeplink(this ModelDetails modelDetails, AIToolkitAction action)
     {
         ToolkitActionInfo? actionInfo;
-        string deeplink = "vscode://ms-windows-ai-studio.windows-ai-studio/";
-        string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
 
-        if (aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
+        string deeplink = CreateAiToolkitDeeplink(action);
+        if(action != AIToolkitAction.Conversion)
         {
-            deeplink = deeplink + $"{actionInfo.QueryName}?model_id={modelId}&track_from=AIDevGallery";
+            string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
+
+            if (aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
+            {
+                deeplink = deeplink + $"{actionInfo.QueryName}?model_id={modelId}&track_from=AIDevGallery";
+            }
         }
 
         return deeplink;
