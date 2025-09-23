@@ -103,16 +103,6 @@ public partial class SampleUIData : ObservableObject
 #pragma warning restore MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 
 [TestClass]
-public class ProjectVoid
-{
-    [TestMethod]
-    public void Void()
-    {
-    }
-}
-
-[TestClass]
-[Ignore]
 public class ProjectGenerator
 {
     private readonly Generator generator = new();
