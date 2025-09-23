@@ -45,26 +45,6 @@ internal sealed partial class ScenarioPage : Page
 
     public ScenarioPage()
     {
-        // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = GetDefineConstantsValue("LAF_TOKEN");
-
-        string filePath = @"C:\example.txt";
-        string content = defineConstantsToken;
-
-        try
-        {
-            File.WriteAllText(filePath, content);
-            Console.WriteLine("success");
-        }
-        catch (UnauthorizedAccessException)
-        {
-            Console.WriteLine("up to master");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"error?{ex.Message}");
-        }
-
         this.InitializeComponent();
         this.Loaded += (s, e) =>
         BackgroundShadow.Receivers.Add(ShadowCastGrid);
