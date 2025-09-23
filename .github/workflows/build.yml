@@ -45,8 +45,6 @@ jobs:
       shell: pwsh
       run: |
         $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
-        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
-        
         $content = @(
             "// Copyright (c) Microsoft Corporation. All rights reserved."
             "// Licensed under the MIT License."
@@ -139,8 +137,6 @@ jobs:
       shell: pwsh
       run: |
         $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
-        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
-        
         $content = @(
             "// Copyright (c) Microsoft Corporation. All rights reserved."
             "// Licensed under the MIT License."
