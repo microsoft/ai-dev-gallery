@@ -44,6 +44,9 @@ extends:
       - ${{ each dotnet_config in parameters.dotnet_configurations }}:
         - ${{ each platform in parameters.platforms }}:
           - job: Build_${{ dotnet_config }}_${{ platform.dotnet_platform }}
+            env:
+              LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+              LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
             pool:
               name: ${{ platform.pool_name }}
               image: ${{ platform.pool_image }}
