@@ -66,7 +66,7 @@ internal static class LimitedAccessFeaturesHelper
     /// <returns>The publisher identifier string, or empty string if not configured</returns>
     public static string GetAiLanguageModelPublisherId()
     {
-        var publisherId = GetDefineConstantsValue("LAF_PUBLISHER_ID");
+        var publisherId = LafConstants.PublisherId;
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
