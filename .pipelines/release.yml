@@ -37,6 +37,9 @@ extends:
       jobs:
       - ${{ each platform in parameters.platforms }}:
         - job: Build_${{ platform.dotnet_platform }}
+          env:
+            LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+            LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
           pool:
             name: ${{ platform.pool_name }}
             image: ${{ platform.pool_image }}
@@ -75,10 +78,69 @@ extends:
             - script: nbgv cloud -c
               displayName: Set Version
             - task: PowerShell@2
+              displayName: 'Generate LafConstants.cs'
+              inputs:
+                targetType: 'inline'
+                script: |
+                  $filePath = "$(Build.SourcesDirectory)/AIDevGallery/Generated/LafConstants.cs"
+                  $dirPath = "$(Build.SourcesDirectory)/AIDevGallery/Generated"
+                  if (-not (Test-Path $dirPath)) {
+                    New-Item -ItemType Directory -Path $dirPath | Out-Null
+                  }
+                  $content = @(
+                      "// Copyright (c) Microsoft Corporation. All rights reserved."
+                      "// Licensed under the MIT License."
+                      ""
+                      "namespace AIDevGallery;"
+                      ""
+                      "/// <summary>"
+                      "/// Provides LAF-related constants."
+                      "/// </summary>"
+                      "public static class LafConstants"
+                      "{"
+                      "  /// <summary>"
+                      "  /// The authentication token for LAF."
+                      "  /// </summary>"
+                      "  public const string Token = `"$env:LAF_TOKEN`";"
+                      ""
+                      "  /// <summary>"
+                      "  /// The publisher ID for LAF."
+                      "  /// </summary>"
+                      "  public const string PublisherId = `"$env:LAF_PUBLISHER_ID`";"
+                      "}"
+                  )
+                  $content = $content | ForEach-Object { $_.TrimEnd() }
+                  while ($content.Count -gt 0 -and $content[-1] -eq "") {
+                      $content = $content[0..($content.Count - 2)]
+                  }
+                  $finalContent = $content -join "`n"
+                  $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+                  for ($i = 0; $i -lt $content.Count; $i++) {
+                      if ($i -lt $content.Count - 1) {
+                          $writer.WriteLine($content[$i])
+                      } else {
+                          $writer.Write($content[$i])
+                      }
+                  }
+                  $writer.Close()
+                  Write-Output "Generated file path: $filePath"
+                  if (Test-Path $filePath) {
+                    Write-Output "File exists: $filePath"
+                  } else {
+                    Write-Output "File does not exist: $filePath"
+                  }
+              env:
+                LAF_TOKEN: $(LAF_TOKEN)
+                LAF_PUBLISHER_ID: $(LAF_PUBLISHER_ID)
+            - task: PowerShell@2
               displayName: 'Replace Official AppxManifest'
               inputs:
                 targetType: 'inline'
                 script: Copy-Item "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.Store.appxmanifest" -Destination "$(System.DefaultWorkingDirectory)\AIDevGallery\Package.appxmanifest" -Force
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: build
+                arguments: /p:LAF_TOKEN=$(LAF_TOKEN) /p:LAF_PUBLISHER_ID=$(LAF_PUBLISHER_ID)
             - template: ./.pipelines/templates/build.yaml@self
               parameters:
                 dotnet_configuration: Release

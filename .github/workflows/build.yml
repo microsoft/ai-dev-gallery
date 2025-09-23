@@ -41,6 +41,59 @@ jobs:
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
+    - name: Generate LafConstants.cs
+      shell: pwsh
+      run: |
+        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
+        
+        $content = @(
+            "// Copyright (c) Microsoft Corporation. All rights reserved."
+            "// Licensed under the MIT License."
+            ""
+            "namespace AIDevGallery;"
+            ""
+            "/// <summary>"
+            "/// Provides LAF-related constants."
+            "/// </summary>"
+            "public static class LafConstants"
+            "{"
+            "  /// <summary>"
+            "  /// The authentication token for LAF."
+            "  /// </summary>"
+            "  public const string Token = `"$env:LAF_TOKEN`";"
+            ""
+            "  /// <summary>"
+            "  /// The publisher ID for LAF."
+            "  /// </summary>"
+            "  public const string PublisherId = `"$env:LAF_PUBLISHER_ID`";"
+            "}"
+        )
+
+        $content = $content | ForEach-Object { $_.TrimEnd() }
+        while ($content.Count -gt 0 -and $content[-1] -eq "") {
+            $content = $content[0..($content.Count - 2)]
+        }
+        $finalContent = $content -join "`n"
+        $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+        for ($i = 0; $i -lt $content.Count; $i++) {
+            if ($i -lt $content.Count - 1) {
+                $writer.WriteLine($content[$i])
+            } else {
+                $writer.Write($content[$i])
+            }
+        }
+        $writer.Close()
+
+        Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
+            if (Test-Path $filePath) {
+              Write-Output "File exists: $filePath"
+            } else {
+              Write-Output "File does not exist: $filePath"
+            }
+      env:
+        LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+        LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build
@@ -82,6 +135,59 @@ jobs:
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
+    - name: Generate LafConstants.cs
+      shell: pwsh
+      run: |
+        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        mkdir D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated
+        
+        $content = @(
+            "// Copyright (c) Microsoft Corporation. All rights reserved."
+            "// Licensed under the MIT License."
+            ""
+            "namespace AIDevGallery;"
+            ""
+            "/// <summary>"
+            "/// Provides LAF-related constants."
+            "/// </summary>"
+            "public static class LafConstants"
+            "{"
+            "  /// <summary>"
+            "  /// The authentication token for LAF."
+            "  /// </summary>"
+            "  public const string Token = `"$env:LAF_TOKEN`";"
+            ""
+            "  /// <summary>"
+            "  /// The publisher ID for LAF."
+            "  /// </summary>"
+            "  public const string PublisherId = `"$env:LAF_PUBLISHER_ID`";"
+            "}"
+        )
+
+        $content = $content | ForEach-Object { $_.TrimEnd() }
+        while ($content.Count -gt 0 -and $content[-1] -eq "") {
+            $content = $content[0..($content.Count - 2)]
+        }
+        $finalContent = $content -join "`n"
+        $writer = [System.IO.StreamWriter]::new($filePath, $false, [System.Text.Encoding]::UTF8)
+        for ($i = 0; $i -lt $content.Count; $i++) {
+            if ($i -lt $content.Count - 1) {
+                $writer.WriteLine($content[$i])
+            } else {
+                $writer.Write($content[$i])
+            }
+        }
+        $writer.Close()
+
+        Write-Output "Generated file path: D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated"
+            if (Test-Path $filePath) {
+              Write-Output "File exists: $filePath"
+            } else {
+              Write-Output "File does not exist: $filePath"
+            }
+      env:
+        LAF_TOKEN: ${{ secrets.LAF_TOKEN }}
+        LAF_PUBLISHER_ID: ${{ secrets.LAF_PUBLISHER_ID }}
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
     - name: Build
