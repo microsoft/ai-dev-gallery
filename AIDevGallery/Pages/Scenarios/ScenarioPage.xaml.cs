@@ -211,14 +211,6 @@ internal sealed partial class ScenarioPage : Page
             UpdateWinMLFlyout();
 
             WinMlModelOptionsButton.Visibility = Visibility.Visible;
-
-            foreach (var model in modelDetails)
-            {
-                if (model != null && model.IsLanguageModel())
-                {
-                    WinMlModelOptionsButton.Visibility = Visibility.Collapsed;
-                }
-            }
         }
         else
         {
