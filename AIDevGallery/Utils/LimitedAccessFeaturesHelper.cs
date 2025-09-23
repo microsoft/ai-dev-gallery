@@ -34,7 +34,7 @@ internal static class LimitedAccessFeaturesHelper
     public static string GetAiLanguageModelToken()
     {
         // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = GetDefineConstantsValue("LAF_TOKEN");
+        var defineConstantsToken = LafConstants.Token;
         if (!string.IsNullOrWhiteSpace(defineConstantsToken))
         {
             return defineConstantsToken;
@@ -50,7 +50,7 @@ internal static class LimitedAccessFeaturesHelper
     /// </summary>
     private static string GetAiLanguageModelUsage()
     {
-        var publisherId = GetDefineConstantsValue("LAF_PUBLISHER_ID");
+        var publisherId = LafConstants.PublisherId;
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
