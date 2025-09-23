@@ -9,16 +9,16 @@
   IgnorableNamespaces="uap rescap systemai">
 
   <Identity
-    Name="gzy-e7af07c0-77d2-43e5-ab82-9cdb9daa11b3"
-    Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-    Version="0.4.8.0" />
-  
+    Name="e7af07c0-77d2-43e5-ab82-9cdb9daa11b3"
+    Publisher="CN=nikolame"
+    Version="0.0.3.0" />
+
   <mp:PhoneIdentity PhoneProductId="e7af07c0-77d2-43e5-ab82-9cdb9daa11b3" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
-  
+
   <Properties>
-  <DisplayName>AI Dev Gallery Dev</DisplayName>
-  <PublisherDisplayName>Microsoft Corporation</PublisherDisplayName>
-  <Logo>Assets\AppIcon\StoreLogo.png</Logo>
+    <DisplayName>AI Dev Gallery Dev</DisplayName>
+    <PublisherDisplayName>nikol</PublisherDisplayName>
+    <Logo>Assets\AppIcon\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>

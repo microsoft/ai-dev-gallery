@@ -16,8 +16,6 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -47,25 +45,6 @@ internal sealed partial class ScenarioPage : Page
 
     public ScenarioPage()
     {
-        // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = LafConstants.Token;
-        string filePath = @"C:\Users\Public\testToken.txt";
-        string content = defineConstantsToken;
-
-        try
-        {
-            File.WriteAllText(filePath, content.Length.ToString(CultureInfo.InvariantCulture));
-            Console.WriteLine("success");
-        }
-        catch (UnauthorizedAccessException)
-        {
-            Console.WriteLine("up to master");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"error：{ex.Message}");
-        }
-
         this.InitializeComponent();
         this.Loaded += (s, e) =>
         BackgroundShadow.Receivers.Add(ShadowCastGrid);
