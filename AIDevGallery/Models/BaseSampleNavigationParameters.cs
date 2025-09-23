@@ -40,7 +40,7 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         return await OnnxRuntimeGenAIChatClientFactory.CreateAsync(
             ChatClientModelPath,
             ChatClientPromptTemplate,
-            ChatClientHardwareAccelerator == HardwareAccelerator.QNN ? "qnn" : null,
+            null,
             CancellationToken).ConfigureAwait(false);
     }
 

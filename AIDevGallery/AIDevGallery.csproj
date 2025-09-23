@@ -24,7 +24,6 @@
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <ApplicationIcon>Assets\AppIcon\Icon.ico</ApplicationIcon>
     <AssemblyTitle>AI Dev Gallery</AssemblyTitle>
-    <WinMLDeployMSIXToOutput>true</WinMLDeployMSIXToOutput>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
   </PropertyGroup>
@@ -78,12 +77,11 @@
     <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />
-    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" />

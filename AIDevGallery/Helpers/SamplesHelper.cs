@@ -21,12 +21,6 @@ internal static partial class SamplesHelper
         var sharedCode = sample.SharedCode.ToList();
         var packageReferences = sample.NugetPackageReferences.ToList();
 
-        if (packageReferences.Contains("Microsoft.Windows.AI.MachineLearning"))
-        {
-            InsertUniqueFirst(SharedCodeEnum.WinMLHelpers);
-            AddUnique(SharedCodeEnum.DeviceUtils);
-        }
-
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(models.Keys.First(), ModelType.LanguageModels);
 
         if (isLanguageModel)
@@ -35,6 +29,11 @@ internal static partial class SamplesHelper
             {
                 AddUnique(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory);
             }
+        }
+        else
+        {
+            InsertUniqueFirst(SharedCodeEnum.WinMLHelpers);
+            AddUnique(SharedCodeEnum.DeviceUtils);
         }
 
         if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))

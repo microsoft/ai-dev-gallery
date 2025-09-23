@@ -28,7 +28,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "Microsoft.ML.Tokenizers",
         "Microsoft.Extensions.AI",
         "Microsoft.SemanticKernel.Connectors.InMemory",
-        "Microsoft.Windows.AI.MachineLearning",
         "System.Numerics.Tensors"
     ],
     Id = "c0d6c4f1-8daa-409f-a686-3de388edbf91",
@@ -44,12 +43,7 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPath;
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

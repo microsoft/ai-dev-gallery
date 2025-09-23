@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
@@ -18,37 +19,35 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
-        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+        var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
         try
         {
-            await infrastructure.DownloadPackagesAsync();
+            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
         }
-
-        await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         SessionOptions sessionOptions = new();
 #pragma warning restore CA2000 // Dispose objects before losing scope
         sessionOptions.RegisterOrtExtensions();
 
-        if (policy != null)
+        if (winMlSampleOptions.Policy != null)
         {
-            sessionOptions.SetEpSelectionPolicy(policy.Value);
+            sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
         }
-        else if (device != null)
+        else if (winMlSampleOptions.EpName != null)
         {
-            sessionOptions.AppendExecutionProviderFromEpName(device);
+            sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-            if (compileModel)
+            if (winMlSampleOptions.CompileModel)
             {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
             }
         }
 

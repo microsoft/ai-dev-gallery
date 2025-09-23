@@ -3,6 +3,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Canvas;
@@ -34,7 +35,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.ML.OnnxRuntime.Extensions",
         "CommunityToolkit.WinUI.Helpers",
         "CommunityToolkit.WinUI.Controls.CameraPreview",
@@ -107,7 +107,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -119,7 +119,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
         InitializeCameraPreviewControl();
     }
 
-    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileModel)
+    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -128,33 +128,31 @@ internal sealed partial class FaceDetection : BaseSamplePage
                 return;
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (device != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileModel)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 

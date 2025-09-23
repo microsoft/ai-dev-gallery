@@ -35,7 +35,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     NugetPackageReferences = [
         "System.Numerics.Tensors",
         "Microsoft.ML.Tokenizers",
-        "Microsoft.Windows.AI.MachineLearning",
         "Microsoft.Extensions.AI",
         "Microsoft.SemanticKernel.Connectors.InMemory"
     ],
@@ -61,12 +60,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPath;
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

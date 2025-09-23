@@ -4,7 +4,6 @@
 using AIDevGallery.Helpers;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.AI.MachineLearning.Bootstrap;
 using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Diagnostics;
@@ -24,8 +23,6 @@ public class Program
         [global::System.Runtime.CompilerServices.ModuleInitializer]
         internal static void Initialize()
         {
-            int hr = NativeMethods.WinMLDeployMainPackage();
-            Debug.WriteLine(hr);
         }
     }
 
@@ -48,8 +45,6 @@ public class Program
                 _ = new App();
             });
         }
-
-        NativeMethods.WinMLUninitialize();
     }
 
     private static bool DecideRedirection()

@@ -48,7 +48,7 @@ internal class AppData
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
-        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false);
+        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
     }
 
     private static string GetConfigFilePath()
@@ -263,4 +263,4 @@ internal class CustomParametersState
 
 internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);
 
-internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel);
+internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel, string? DeviceType);

@@ -5,11 +5,12 @@ using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace AIDevGallery.Samples.SharedCode;
 internal static class WinMLHelpers
 {
-    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, OrtEnv? environment = null)
+    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType, OrtEnv? environment = null)
     {
         if (epName == "CPU")
         {
@@ -25,10 +26,15 @@ internal static class WinMLHelpers
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
             switch(epName)
             {
+                case "DmlExecutionProvider":
+                    // Configure performance mode for Dml EP
+                    // Dml some times have multiple devices which cause exception, we pick the first one here
+                    sessionOptions.AppendExecutionProvider(environment, [devices[0]], epOptions);
+                    return true;
                 case "OpenVINOExecutionProvider":
-                    // Configure threading for OpenVINO EP
-                    epOptions["num_of_threads"] = "4";
-                    break;
+                    var device = devices.Where(d => d.HardwareDevice.Type.ToString().Equals(deviceType, StringComparison.Ordinal)).FirstOrDefault();
+                    sessionOptions.AppendExecutionProvider(environment, [device], epOptions);
+                    return true;
                 case "QNNExecutionProvider":
                     // Configure performance mode for QNN EP
                     epOptions["htp_performance_mode"] = "high_performance";

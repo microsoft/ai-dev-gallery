@@ -50,7 +50,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         "MathNet.Numerics",
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.Extensions",
-        "Microsoft.Windows.AI.MachineLearning"
     ],
     Icon = "\uEE71")]
 
@@ -76,14 +75,10 @@ internal sealed partial class GenerateImage : BaseSamplePage
     {
         string parentFolder = sampleParams.ModelPath;
 
-        ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-        string? epName = sampleParams.WinMlSampleOptions.EpName;
-        bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
-
         try
         {
             stableDiffusion = new StableDiffusion(parentFolder);
-            await stableDiffusion.InitializeAsync(policy, epName, compileOption);
+            await stableDiffusion.InitializeAsync(sampleParams.WinMlSampleOptions);
         }
         catch(Exception ex)
         {
