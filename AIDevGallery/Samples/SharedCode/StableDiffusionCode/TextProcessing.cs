@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
@@ -26,17 +27,15 @@ internal class TextProcessing : IDisposable
         StableDiffusionConfig config,
         string tokenizerPath,
         string encoderPath,
-        ExecutionProviderDevicePolicy? policy,
-        string? device,
-        bool compileOption)
+        WinMlSampleOptions winMlSampleOptions)
     {
         var instance = new TextProcessing();
-        instance.tokenizerInferenceSession = await instance.GetInferenceSession(config, tokenizerPath, policy, device, compileOption);
-        instance.encoderInferenceSession = await instance.GetInferenceSession(config, encoderPath, policy, device, compileOption);
+        instance.tokenizerInferenceSession = await instance.GetInferenceSession(config, tokenizerPath, winMlSampleOptions);
+        instance.encoderInferenceSession = await instance.GetInferenceSession(config, encoderPath, winMlSampleOptions);
         return instance;
     }
 
-    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -45,18 +44,16 @@ internal class TextProcessing : IDisposable
                 throw new FileNotFoundException("Model file not found.", modelPath);
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
@@ -66,17 +63,17 @@ internal class TextProcessing : IDisposable
             sessionOptions.AddFreeDimensionOverrideByName("height", config.Height);
             sessionOptions.AddFreeDimensionOverrideByName("width", config.Width);
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (device != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileOption)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 

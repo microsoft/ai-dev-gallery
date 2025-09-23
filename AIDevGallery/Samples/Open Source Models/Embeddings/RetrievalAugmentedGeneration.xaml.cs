@@ -6,7 +6,6 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -34,6 +33,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         SharedCodeEnum.EmbeddingGenerator,
         SharedCodeEnum.EmbeddingModelInput,
         SharedCodeEnum.TokenizerExtensions,
+        SharedCodeEnum.WinMLHelpers,
         SharedCodeEnum.DeviceUtils,
         SharedCodeEnum.StringData
     ],
@@ -41,7 +41,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
         "Microsoft.Extensions.AI",
         "Microsoft.ML.Tokenizers",
         "Microsoft.SemanticKernel.Connectors.InMemory",
-        "Microsoft.Windows.AI.MachineLearning",
         "PdfPig",
         "System.Numerics.Tensors",
     ],
@@ -85,12 +84,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            string modelPath = sampleParams.ModelPaths[1];
-            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-            string? epName = sampleParams.WinMlSampleOptions.EpName;
-            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
-
-            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel);
+            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
