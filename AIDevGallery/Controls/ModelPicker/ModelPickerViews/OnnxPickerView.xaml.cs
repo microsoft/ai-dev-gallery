@@ -38,6 +38,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     public override Task Load(List<ModelType> types)
     {
+        VisualStateManager.GoToState(this, "SideCustomModelInfoCollapsed", true);
         modelTypes = types;
 
         ResetAndLoadModelList();
@@ -46,6 +47,7 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
         if (types.Contains(ModelType.LanguageModels))
         {
+            VisualStateManager.GoToState(this, "SideCustomModelInfoVisible", true);
             AddHFModelButton.Visibility = Visibility.Visible;
             isAddModelButtonsVisible = true;
         }
@@ -372,6 +374,42 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         {
             ShowException(ex);
         }
+    }
+
+    private void OpenAIToolkitButton_Click(object sender, RoutedEventArgs e)
+    {
+        string toolkitDeeplink = AIToolkitHelper.CreateAiToolkitDeeplink(AIToolkitAction.Conversion);
+        bool wasDeeplinkSuccessful = true;
+        try
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = toolkitDeeplink,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
+                UseShellExecute = true
+            });
+            wasDeeplinkSuccessful = false;
+        }
+        finally
+        {
+            AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[AIToolkitAction.Conversion].QueryName, "null", wasDeeplinkSuccessful);
+        }
+    }
+
+    private void ViewDocumentationButton_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo()
+        {
+            FileName = "https://aka.ms/winml-gallery-tutorial",
+            UseShellExecute = true
+        });
     }
 
     private async void ShowException(Exception? ex, string? optionalMessage = null)
