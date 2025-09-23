@@ -63,7 +63,7 @@ internal static class LimitedAccessFeaturesHelper
     /// <summary>
     /// Gets the configured publisher identifier for AI Language Model feature from DefineConstants/env
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The publisher identifier string, or empty string if not configured</returns>
     public static string GetAiLanguageModelPublisherId()
     {
         var publisherId = GetDefineConstantsValue("LAF_PUBLISHER_ID");
