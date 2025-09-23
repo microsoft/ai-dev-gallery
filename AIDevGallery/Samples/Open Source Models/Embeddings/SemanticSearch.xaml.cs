@@ -6,7 +6,6 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -190,7 +189,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         {
             string sentence = sourceSentences[i];
 
-            if(sentence.Length > maxLength)
+            if (sentence.Length > maxLength)
             {
                 int indexOfLastSpace = sentence[0..maxLength].LastIndexOf(' ');
                 string firstSentenceChunk = sentence[0..indexOfLastSpace].Trim();

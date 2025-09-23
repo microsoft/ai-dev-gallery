@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -12,6 +13,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Storage.Pickers;
 
@@ -44,6 +46,29 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
+        const string featureId = "com.microsoft.windows.ai.languagemodel";
+
+        // IMPORTANT!!
+        // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
+        // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
+        // var demoToken = "Zv6LUQWEwhJTahzvwSGjHQ=="
+        var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
+
+        // var demoPublisherId = "z0sq19pdabnaj";
+        var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
+
+        var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
+            featureId,
+            demoToken,
+            $"{demoPublisherId} has registered their use of {featureId} with Microsoft and agrees to the terms of use.");
+
+        if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
+        {
+            ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            sampleParams.NotifyCompletion();
+            return;
+        }
+
         var readyState = LanguageModel.GetReadyState();
         if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
