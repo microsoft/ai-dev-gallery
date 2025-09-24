@@ -78,25 +78,19 @@ extends:
               - script: nbgv cloud -c
                 displayName: Set Version
               - task: PowerShell@2
-                displayName: Inject LAF
+                displayName: Set LAF build props
                 env:
                   LAF_TOKEN: $(LAF_TOKEN)
                   LAF_PUBLISHER_ID: $(LAF_PUBLISHER_ID)
                 inputs:
                   targetType: 'inline'
                   script: |
-                    $file = "$(Build.SourcesDirectory)\AIDevGallery\Utils\LimitedAccessFeaturesHelper.cs"
-                    if (Test-Path $file) {
-                      $content = Get-Content $file -Raw
-                      $token = $env:LAF_TOKEN
-                      $publisher = $env:LAF_PUBLISHER_ID
-                      if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
-                        $content = $content.Replace('string.Empty/* INJECT_LAF_TOKEN */', '"' + $token + '"')
-                      }
-                      if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
-                        $content = $content.Replace('string.Empty/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
-                      }
-                      Set-Content $file -Value $content -NoNewline
+                    # Set pipeline variables for use in later steps
+                    if (-not [string]::IsNullOrWhiteSpace($env:LAF_TOKEN)) {
+                      Write-Host "##vso[task.setvariable variable=LAF_TOKEN;isOutput=false;issecret=true;]$($env:LAF_TOKEN)"
+                    }
+                    if (-not [string]::IsNullOrWhiteSpace($env:LAF_PUBLISHER_ID)) {
+                      Write-Host "##vso[task.setvariable variable=LAF_PUBLISHER_ID;isOutput=false;issecret=true;]$($env:LAF_PUBLISHER_ID)"
                     }
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
