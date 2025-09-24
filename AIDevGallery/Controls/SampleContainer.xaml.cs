@@ -57,59 +57,6 @@ internal sealed partial class SampleContainer : UserControl
     public static readonly DependencyProperty NugetPackageReferencesProperty =
         DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
 
-    public static readonly DependencyProperty WcrModelUnavailableTitleProperty =
-        DependencyProperty.Register(
-            nameof(WcrModelUnavailableTitle),
-            typeof(string),
-            typeof(SampleContainer),
-            new PropertyMetadata("Copilot+ PC required"));
-
-    public string WcrModelUnavailableTitle
-    {
-        get => (string)GetValue(WcrModelUnavailableTitleProperty);
-        set => SetValue(WcrModelUnavailableTitleProperty, value);
-    }
-
-    public static readonly DependencyProperty WcrModelUnavailableMessageProperty =
-        DependencyProperty.Register(
-            nameof(WcrModelUnavailableMessage),
-            typeof(string),
-            typeof(SampleContainer),
-            new PropertyMetadata("This Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073 (Dev or Beta Channel)."));
-
-    public string WcrModelUnavailableMessage
-    {
-        get => (string)GetValue(WcrModelUnavailableMessageProperty);
-        set => SetValue(WcrModelUnavailableMessageProperty, value);
-    }
-
-    public static readonly DependencyProperty WcrModelUnavailableLearnMoreTextProperty =
-        DependencyProperty.Register(
-            nameof(WcrModelUnavailableLearnMoreText),
-            typeof(string),
-            typeof(SampleContainer),
-            new PropertyMetadata("Learn more"));
-
-    public string WcrModelUnavailableLearnMoreText
-    {
-        get => (string)GetValue(WcrModelUnavailableLearnMoreTextProperty);
-        set => SetValue(WcrModelUnavailableLearnMoreTextProperty, value);
-    }
-
-    public static readonly DependencyProperty WcrModelUnavailableLearnMoreUriProperty =
-        DependencyProperty.Register(
-            nameof(WcrModelUnavailableLearnMoreUri),
-            typeof(Uri),
-            typeof(SampleContainer),
-            new PropertyMetadata(new Uri("https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites")));
-
-    public Uri WcrModelUnavailableLearnMoreUri
-    {
-        get => (Uri)GetValue(WcrModelUnavailableLearnMoreUriProperty);
-        set => SetValue(WcrModelUnavailableLearnMoreUriProperty, value);
-    }
-
-
     private RichTextBlockFormatter codeFormatter;
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
@@ -245,8 +192,15 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         // show that models are not compatible with this device
-        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
+        var notCompatibleModel = models.FirstOrDefault(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
+        if (notCompatibleModel != null)
         {
+            var issue = notCompatibleModel.Compatibility?.CompatibilityIssueDescription;
+            if (!string.IsNullOrWhiteSpace(issue))
+            {
+                wcrModelUnavailable.Message = issue!;
+            }
+
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;
