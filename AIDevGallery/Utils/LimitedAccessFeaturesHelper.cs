@@ -68,6 +68,7 @@ internal static class LimitedAccessFeaturesHelper
                 return attribute.Value;
             }
         }
+
         return string.Empty;
     }
 
