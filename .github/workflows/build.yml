@@ -92,7 +92,7 @@ jobs:
       run: ./nbgv cloud -c
     - name: Update Package Manifest Version
       run: |
-        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.Store.appxmanifest"
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
