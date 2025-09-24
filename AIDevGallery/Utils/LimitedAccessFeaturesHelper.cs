@@ -85,10 +85,9 @@ internal static class LimitedAccessFeaturesHelper
                 string packageFamilyName = Package.Current.Id.FamilyName;
                 if (!string.IsNullOrWhiteSpace(packageFamilyName))
                 {
-                    string[] familyNameParts = packageFamilyName.Split('_');
-                    if (familyNameParts.Length >= 2)
+                    string publisherHash = GetPublisherHash();
+                    if (!string.IsNullOrWhiteSpace(publisherHash))
                     {
-                        string publisherHash = familyNameParts[1];
                         if (publisherHash != publisherId)
                         {
                             Debug.WriteLine($"Publisher ID mismatch: expected '{publisherHash}' but got '{publisherId}'");
@@ -146,6 +145,28 @@ internal static class LimitedAccessFeaturesHelper
     public static string GetAiLanguageModelPublisherId()
     {
         return S_aiLanguageModelPublisherId.Value;
+    }
+
+    /// <summary>
+    /// Extracts the publisher hash from a package family name.
+    /// Returns empty string when input is null/empty or format is invalid.
+    /// </summary>
+    /// <returns>Publisher hash string or empty string.</returns>
+    public static string GetPublisherHash()
+    {
+        string packageFamilyName = Package.Current.Id.FamilyName;
+        if (string.IsNullOrWhiteSpace(packageFamilyName))
+        {
+            return string.Empty;
+        }
+
+        string[] parts = packageFamilyName.Split('_');
+        if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
+        {
+            return parts[1];
+        }
+
+        return string.Empty;
     }
 
     /// <summary>
