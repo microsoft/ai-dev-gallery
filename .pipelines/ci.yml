@@ -78,6 +78,11 @@ extends:
               - script: nbgv cloud -c
                 displayName: Set Version
               - task: PowerShell@2
+                displayName: 'Replace Official AppxManifest'
+                inputs:
+                  targetType: 'inline'
+                  script: Copy-Item "$(Build.SourcesDirectory)\AIDevGallery\Package.Store.appxmanifest" -Destination "$(Build.SourcesDirectory)\AIDevGallery\Package.appxmanifest" -Force
+              - task: PowerShell@2
                 displayName: Inject LAF
                 env:
                   LAF_TOKEN: $(LAF_TOKEN)
