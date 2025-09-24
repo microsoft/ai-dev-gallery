@@ -336,7 +336,6 @@
   -->
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-    <DefineConstants>$(DefineConstants);LAF_TOKEN="$(LAF_TOKEN)";LAF_PUBLISHER_ID="$(LAF_PUBLISHER_ID)"</DefineConstants>
   </PropertyGroup>
 
   <ProjectExtensions>
