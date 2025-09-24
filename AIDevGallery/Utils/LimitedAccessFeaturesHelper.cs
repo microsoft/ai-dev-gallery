@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using Windows.ApplicationModel;
 
 namespace AIDevGallery.Utils;
@@ -54,13 +55,29 @@ internal static class LimitedAccessFeaturesHelper
     /// </summary>
     private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
 
+    /// <summary>
+    /// Reads a value from assembly metadata by key. Returns null if not present.
+    /// </summary>
+    private static string? ReadAssemblyMetadata(string key)
+    {
+        var assembly = typeof(LimitedAccessFeaturesHelper).Assembly;
+        foreach (var attribute in assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
+        {
+            if (string.Equals(attribute.Key, key, StringComparison.Ordinal))
+            {
+                return attribute.Value;
+            }
+        }
+        return string.Empty;
+    }
+
     // Lazy caches to avoid repeated environment/MSBuild reads and string allocations
     private static readonly Lazy<string> S_aiLanguageModelToken = new Lazy<string>(() =>
     {
-        var defineConstantsToken = string.Empty/* INJECT_LAF_TOKEN */;
-        if (!string.IsNullOrWhiteSpace(defineConstantsToken))
+        var metadataToken = ReadAssemblyMetadata(AI_LANGUAGE_MODEL_TOKEN_ENV);
+        if (!string.IsNullOrWhiteSpace(metadataToken))
         {
-            return defineConstantsToken;
+            return metadataToken!;
         }
 
         var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
@@ -69,7 +86,7 @@ internal static class LimitedAccessFeaturesHelper
 
     private static readonly Lazy<string> S_aiLanguageModelPublisherId = new Lazy<string>(() =>
     {
-        var publisherId = string.Empty/* INJECT_LAF_PUBLISHER_ID */;
+        var publisherId = ReadAssemblyMetadata(AI_LANGUAGE_MODEL_PUBLISHER_ENV) ?? string.Empty;
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);

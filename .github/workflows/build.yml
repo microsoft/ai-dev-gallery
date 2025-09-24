@@ -41,26 +41,21 @@ jobs:
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
-    - name: Inject LAF
+    - name: Set LAF build props
       shell: pwsh
       run: |
-        $file = "${{ github.workspace }}\AIDevGallery\Utils\LimitedAccessFeaturesHelper.cs"
-        $content = Get-Content $file -Raw
-        $token = "${{ secrets.LAF_TOKEN }}"
-        $publisher = "${{ secrets.LAF_PUBLISHER_ID }}"
-        if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
-          $content = $content.Replace('string.Empty/* INJECT_LAF_TOKEN */', '"' + $token + '"')
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_TOKEN }}")) {
+          echo "LAF_TOKEN=${{ secrets.LAF_TOKEN }}" >> $env:GITHUB_ENV
         }
-        if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
-          $content = $content.Replace('string.Empty/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
+          echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
         }
-        Set-Content $file -Value $content -NoNewline
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build
       run: |
-        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true
+        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Upload Artifact - MSIX
       uses: actions/upload-artifact@v4
       with:
@@ -96,26 +91,21 @@ jobs:
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
-    - name: Inject LAF
+    - name: Set LAF build props
       shell: pwsh
       run: |
-        $file = "${{ github.workspace }}\AIDevGallery\Utils\LimitedAccessFeaturesHelper.cs"
-        $content = Get-Content $file -Raw
-        $token = "${{ secrets.LAF_TOKEN }}"
-        $publisher = "${{ secrets.LAF_PUBLISHER_ID }}"
-        if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
-          $content = $content.Replace('string.Empty/* INJECT_LAF_TOKEN */', '"' + $token + '"')
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_TOKEN }}")) {
+          echo "LAF_TOKEN=${{ secrets.LAF_TOKEN }}" >> $env:GITHUB_ENV
         }
-        if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
-          $content = $content.Replace('string.Empty/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
+          echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
         }
-        Set-Content $file -Value $content -NoNewline
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
     - name: Build
       run: |
-        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Setup Dev Tools
       uses: ilammy/msvc-dev-cmd@v1
     - name: Build Tests

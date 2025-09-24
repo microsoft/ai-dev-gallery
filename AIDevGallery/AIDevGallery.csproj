@@ -285,6 +285,16 @@
       <_Parameter1>AIDevGallery.UnitTests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>LAF_TOKEN</_Parameter1>
+      <_Parameter2>$(LafToken)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>LAF_PUBLISHER_ID</_Parameter1>
+      <_Parameter2>$(LafPublisherId)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
   <!-- 
     Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
     Tools extension to be activated for this project even if the Windows App SDK Nuget
