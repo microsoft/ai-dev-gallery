@@ -57,7 +57,7 @@ internal static class LimitedAccessFeaturesHelper
     // Lazy caches to avoid repeated environment/MSBuild reads and string allocations
     private static readonly Lazy<string> S_aiLanguageModelToken = new Lazy<string>(() =>
     {
-        var defineConstantsToken = ""/* INJECT_LAF_TOKEN */;
+        var defineConstantsToken = string.Empty/* INJECT_LAF_TOKEN */;
         if (!string.IsNullOrWhiteSpace(defineConstantsToken))
         {
             return defineConstantsToken;
@@ -69,7 +69,7 @@ internal static class LimitedAccessFeaturesHelper
 
     private static readonly Lazy<string> S_aiLanguageModelPublisherId = new Lazy<string>(() =>
     {
-        var publisherId = ""/* INJECT_LAF_PUBLISHER_ID */;
+        var publisherId = string.Empty/* INJECT_LAF_PUBLISHER_ID */;
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
