@@ -93,14 +93,14 @@ internal static class LimitedAccessFeaturesHelper
                         {
                             Debug.WriteLine($"Publisher ID mismatch: expected '{publisherHash}' but got '{publisherId}'");
                             lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.PublisherIdMismatch;
-                            return string.Empty;
+                            return publisherId;
                         }
                     }
                     else
                     {
                         Debug.WriteLine($"Invalid package family name format: '{packageFamilyName}'");
                         lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.InvalidPackageFamilyNameFormat;
-                        return string.Empty;
+                        return publisherId;
                     }
                 }
             }
