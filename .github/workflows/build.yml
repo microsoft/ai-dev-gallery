@@ -49,10 +49,10 @@ jobs:
         $token = "${{ secrets.LAF_TOKEN }}"
         $publisher = "${{ secrets.LAF_PUBLISHER_ID }}"
         if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
-          $content = $content.Replace('""/* INJECT_LAF_TOKEN */', '"' + $token + '"/* INJECT_LAF_TOKEN */')
+          $content = $content.Replace('""/* INJECT_LAF_TOKEN */', '"' + $token + '"')
         }
         if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
-          $content = $content.Replace('""/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"/* INJECT_LAF_PUBLISHER_ID */')
+          $content = $content.Replace('""/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
         }
         Set-Content $file -Value $content -NoNewline
     - name: Restore dependencies
@@ -104,10 +104,10 @@ jobs:
         $token = "${{ secrets.LAF_TOKEN }}"
         $publisher = "${{ secrets.LAF_PUBLISHER_ID }}"
         if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
-          $content = $content.Replace('""/* INJECT_LAF_TOKEN */', '"' + $token + '"/* INJECT_LAF_TOKEN */')
+          $content = $content.Replace('""/* INJECT_LAF_TOKEN */', '"' + $token + '"')
         }
         if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
-          $content = $content.Replace('""/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"/* INJECT_LAF_PUBLISHER_ID */')
+          $content = $content.Replace('""/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
         }
         Set-Content $file -Value $content -NoNewline
     - name: Restore dependencies

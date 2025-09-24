@@ -123,7 +123,7 @@ internal static class WcrApiHelpers
             case AIFeatureReadyState.NotSupportedOnCurrentSystem:
                 if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
                 {
-                    return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
+                    return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode() + LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
                 }
 
                 return "Not supported on this system.";
