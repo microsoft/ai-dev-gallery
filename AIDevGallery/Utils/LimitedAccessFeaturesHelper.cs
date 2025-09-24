@@ -39,8 +39,20 @@ internal sealed class LimitedAccessFeatureExtendedResult
 /// </summary>
 internal static class LimitedAccessFeaturesHelper
 {
-    // Tracks the last publisher/package validation outcome for extended diagnostics
-    private static LimitedAccessFeatureExtendedStatus lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.None;
+    /// <summary>
+    /// Feature ID for AI Language Model
+    /// </summary>
+    private const string AI_LANGUAGE_MODEL_FEATURE_ID = "com.microsoft.windows.ai.languagemodel";
+
+    /// <summary>
+    /// Token for AI Language Model feature
+    /// </summary>
+    private const string AI_LANGUAGE_MODEL_TOKEN_ENV = "LAF_TOKEN";
+
+    /// <summary>
+    /// Publisher/Identifier used in the usage description, read from env var
+    /// </summary>
+    private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
 
     // Lazy caches to avoid repeated environment/MSBuild reads and string allocations
     private static readonly Lazy<string> S_aiLanguageModelToken = new Lazy<string>(() =>
@@ -110,20 +122,8 @@ internal static class LimitedAccessFeaturesHelper
         return $"{publisherId} has registered their use of {AI_LANGUAGE_MODEL_FEATURE_ID} with Microsoft and agrees to the terms of use.";
     });
 
-    /// <summary>
-    /// Feature ID for AI Language Model
-    /// </summary>
-    private const string AI_LANGUAGE_MODEL_FEATURE_ID = "com.microsoft.windows.ai.languagemodel";
-
-    /// <summary>
-    /// Token for AI Language Model feature
-    /// </summary>
-    private const string AI_LANGUAGE_MODEL_TOKEN_ENV = "LAF_TOKEN";
-
-    /// <summary>
-    /// Publisher/Identifier used in the usage description, read from env var
-    /// </summary>
-    private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
+    // Tracks the last publisher/package validation outcome for extended diagnostics
+    private static LimitedAccessFeatureExtendedStatus lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.None;
 
     /// <summary>
     /// Reads the AI Language Model token, preferring DefineConstants over environment variables
@@ -203,7 +203,7 @@ internal static class LimitedAccessFeaturesHelper
     /// Returns an agreed error code representing the current extended status.
     /// This is intended for UI display without leaking detailed diagnostics.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Stable short code for the current extended status (e.g., "OK").</returns>
     public static string GetCurrentExtendedStatusCode()
     {
         var result = GetCurrentExtendedStatus();
