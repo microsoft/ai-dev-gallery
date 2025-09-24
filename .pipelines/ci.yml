@@ -77,6 +77,27 @@ extends:
                 displayName: Install NBGV tool
               - script: nbgv cloud -c
                 displayName: Set Version
+              - task: PowerShell@2
+                displayName: Inject LAF
+                env:
+                  LAF_TOKEN: $(LAF_TOKEN)
+                  LAF_PUBLISHER_ID: $(LAF_PUBLISHER_ID)
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    $file = "$(Build.SourcesDirectory)\AIDevGallery\Utils\LimitedAccessFeaturesHelper.cs"
+                    if (Test-Path $file) {
+                      $content = Get-Content $file -Raw
+                      $token = $env:LAF_TOKEN
+                      $publisher = $env:LAF_PUBLISHER_ID
+                      if ($null -ne $token -and ($token.Trim()).Length -gt 0) {
+                        $content = $content.Replace('""/* INJECT_LAF_TOKEN */', '"' + $token + '"')
+                      }
+                      if ($null -ne $publisher -and ($publisher.Trim()).Length -gt 0) {
+                        $content = $content.Replace('""/* INJECT_LAF_PUBLISHER_ID */', '"' + $publisher + '"')
+                      }
+                      Set-Content $file -Value $content -NoNewline
+                    }
               - template: ./.pipelines/templates/build.yaml@self
                 parameters:
                   dotnet_configuration: ${{ dotnet_config }}
