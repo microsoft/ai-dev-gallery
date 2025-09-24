@@ -35,9 +35,12 @@ jobs:
       run: dotnet tool install --tool-path . nbgv
     - name: Set Version
       run: ./nbgv cloud -c
+    - name: Replace Official AppxManifest
+      shell: pwsh
+      run: Copy-Item "${{ github.workspace }}\AIDevGallery\Package.Store.appxmanifest" -Destination "${{ github.workspace }}\AIDevGallery\Package.appxmanifest" -Force
     - name: Update Package Manifest Version
       run: |
-        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.Store.appxmanifest"
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
@@ -90,9 +93,12 @@ jobs:
       run: dotnet tool install --tool-path . nbgv
     - name: Set Version
       run: ./nbgv cloud -c
+    - name: Replace Official AppxManifest
+      shell: pwsh
+      run: Copy-Item "${{ github.workspace }}\AIDevGallery\Package.Store.appxmanifest" -Destination "${{ github.workspace }}\AIDevGallery\Package.appxmanifest" -Force
     - name: Update Package Manifest Version
       run: |
-        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.Store.appxmanifest"
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
