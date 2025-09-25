@@ -189,7 +189,8 @@ internal enum AIToolkitAction
 {
     FineTuning,
     PromptBuilder,
-    Playground
+    Playground,
+    Conversion
 }
 
 #pragma warning restore SA1402 // File may only contain a single type

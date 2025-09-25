@@ -5,7 +5,6 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Samples.SharedCode.StableDiffusionCode;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -50,7 +49,6 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
         "MathNet.Numerics",
         "System.Drawing.Common",
         "Microsoft.ML.OnnxRuntime.Extensions",
-        "Microsoft.Windows.AI.MachineLearning"
     ],
     Icon = "\uEE71")]
 
@@ -76,16 +74,12 @@ internal sealed partial class GenerateImage : BaseSamplePage
     {
         string parentFolder = sampleParams.ModelPath;
 
-        ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
-        string? epName = sampleParams.WinMlSampleOptions.EpName;
-        bool compileOption = sampleParams.WinMlSampleOptions.CompileModel;
-
         try
         {
             stableDiffusion = new StableDiffusion(parentFolder);
-            await stableDiffusion.InitializeAsync(policy, epName, compileOption);
+            await stableDiffusion.InitializeAsync(sampleParams.WinMlSampleOptions);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             ShowException(ex);
         }
@@ -234,7 +228,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
         nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(new Window());
         FileSavePicker picker = new FileSavePicker
         {
-           SuggestedStartLocation = PickerLocationId.PicturesLibrary
+            SuggestedStartLocation = PickerLocationId.PicturesLibrary
         };
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
         picker.SuggestedFileName = "image.png";
@@ -242,7 +236,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
         StorageFile file = await picker.PickSaveFileAsync();
 
-        if(file != null && DefaultImage.Source != null)
+        if (file != null && DefaultImage.Source != null)
         {
             SendSampleInteractedEvent("SaveFile"); // <exclude-line>
             RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap();

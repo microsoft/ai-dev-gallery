@@ -43,14 +43,14 @@ internal class StableDiffusion : IDisposable
         config.DeviceId = DeviceUtils.GetBestDeviceId();
     }
 
-    public async Task InitializeAsync(ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    public async Task InitializeAsync(WinMlSampleOptions winMlSampleOptions)
     {
         string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
 
-        textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, policy, device, compileOption);
-        unetInferenceSession = await GetInferenceSession(config.UnetModelPath, policy, device, compileOption);
-        vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, policy, device, compileOption);
-        safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, policy, device, compileOption);
+        textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, winMlSampleOptions);
+        unetInferenceSession = await GetInferenceSession(config.UnetModelPath, winMlSampleOptions);
+        vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, winMlSampleOptions);
+        safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, winMlSampleOptions);
     }
 
     public StableDiffusion(string modelFolder)
@@ -58,7 +58,7 @@ internal class StableDiffusion : IDisposable
     {
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? device, bool compileOption)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         return Task.Run(async () =>
         {
@@ -67,18 +67,16 @@ internal class StableDiffusion : IDisposable
                 throw new FileNotFoundException("Model file not found.", modelPath);
             }
 
-            Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
             try
             {
-                await infrastructure.DownloadPackagesAsync();
+                var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+                Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
-
-            await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
@@ -89,17 +87,17 @@ internal class StableDiffusion : IDisposable
             sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
             sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
 
-            if (policy != null)
+            if (winMlSampleOptions.Policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(policy.Value);
+                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
             }
-            else if (device != null)
+            else if (winMlSampleOptions.EpName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(device);
+                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-                if (compileOption)
+                if (winMlSampleOptions.CompileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, device) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
                 }
             }
 
@@ -166,7 +164,7 @@ internal class StableDiffusion : IDisposable
 
     public Bitmap? Inference(string prompt, CancellationToken token)
     {
-        if(unetInferenceSession == null || textProcessor == null || vaeDecoder == null || safetyChecker == null)
+        if (unetInferenceSession == null || textProcessor == null || vaeDecoder == null || safetyChecker == null)
         {
             throw new InvalidOperationException("StableDiffusion is not initialized.");
         }

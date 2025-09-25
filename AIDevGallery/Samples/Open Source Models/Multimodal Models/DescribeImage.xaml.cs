@@ -133,11 +133,12 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
         using GeneratorParams generatorParams = new(model);
         generatorParams.SetSearchOption("max_length", 4096);
-        generatorParams.SetInputs(inputTensors);
 
         ct.ThrowIfCancellationRequested();
 
         using var generator = new Generator(model, generatorParams);
+        generator.SetInputs(inputTensors);
+
         while (!generator.IsDone())
         {
             ct.ThrowIfCancellationRequested();

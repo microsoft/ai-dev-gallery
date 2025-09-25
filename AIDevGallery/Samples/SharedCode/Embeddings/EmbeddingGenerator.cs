@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -33,38 +34,36 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel)
+    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, WinMlSampleOptions winMlSampleOptions)
     {
         var vocabPath = Path.Join(modelPath, "vocab.txt");
         modelPath = Path.Join(modelPath, "onnx", "model.onnx");
 
-        Microsoft.Windows.AI.MachineLearning.Infrastructure infrastructure = new();
+        var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
         try
         {
-            await infrastructure.DownloadPackagesAsync();
+            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"WARNING: Failed to download packages: {ex.Message}");
+            Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
         }
-
-        await infrastructure.RegisterExecutionProviderLibrariesAsync();
 
         SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
-        if (policy != null)
+        if (winMlSampleOptions.Policy != null)
         {
-            sessionOptions.SetEpSelectionPolicy(policy.Value);
+            sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
         }
-        else if (epName != null)
+        else if (winMlSampleOptions.EpName != null)
         {
-            sessionOptions.AppendExecutionProviderFromEpName(epName);
+            sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
 
-            if (compileModel)
+            if (winMlSampleOptions.CompileModel)
             {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
+                modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
             }
         }
 

@@ -27,7 +27,7 @@ internal class MultiModelSampleNavigationParameters(
     protected override HardwareAccelerator ChatClientHardwareAccelerator => HardwareAccelerators[0];
     protected override LlmPromptTemplate? ChatClientPromptTemplate => promptTemplates[0];
 
-    public override WinMlSampleOptions WinMlSampleOptions => winMlSampleOptions ??= new WinMlSampleOptions(null, null, false);
+    public override WinMlSampleOptions WinMlSampleOptions => winMlSampleOptions ??= new WinMlSampleOptions(null, null, false, null);
 
     // temporary until samples are moved away
     public string PreferedEP => "CPU";

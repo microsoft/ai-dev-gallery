@@ -48,7 +48,7 @@ internal class AppData
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
-        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false);
+        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
     }
 
     private static string GetConfigFilePath()
@@ -152,12 +152,12 @@ internal class AppData
     {
         string modelTypeString = modelType.ToString();
 
-        if(ModelTypeToUserAddedModelsMapping is null)
+        if (ModelTypeToUserAddedModelsMapping is null)
         {
             ModelTypeToUserAddedModelsMapping = new Dictionary<string, List<string>>();
         }
 
-        if(ModelTypeToUserAddedModelsMapping.TryGetValue(modelTypeString, out List<string>? value))
+        if (ModelTypeToUserAddedModelsMapping.TryGetValue(modelTypeString, out List<string>? value))
         {
             value.Add(modelId);
         }
@@ -169,7 +169,7 @@ internal class AppData
 
     public async Task DeleteUserAddedModelMapping(string modelId)
     {
-        if(ModelTypeToUserAddedModelsMapping == null)
+        if (ModelTypeToUserAddedModelsMapping == null)
         {
             return;
         }
@@ -263,4 +263,4 @@ internal class CustomParametersState
 
 internal record UsageHistory(string Id, HardwareAccelerator? HardwareAccelerator);
 
-internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel);
+internal record WinMlSampleOptions(ExecutionProviderDevicePolicy? Policy, string? EpName, bool CompileModel, string? DeviceType);
