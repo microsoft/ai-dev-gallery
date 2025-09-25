@@ -15,9 +15,6 @@
     <NoWarn>CS1591</NoWarn>
     <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-    <WindowsPackageType>None</WindowsPackageType>
-    <EnablePreviewMsixTooling>false</EnablePreviewMsixTooling>
-    <UseWindowsPackage>true</UseWindowsPackage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
