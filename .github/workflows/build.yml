@@ -50,7 +50,7 @@ jobs:
     - name: Generate LafConstants.cs
       shell: pwsh
       run: |
-        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        $filePath = "${{ github.workspace }}\AIDevGallery\Generated\LafConstants.cs"
         $content = @(
             "// Copyright (c) Microsoft Corporation. All rights reserved."
             "// Licensed under the MIT License."
@@ -142,7 +142,7 @@ jobs:
     - name: Generate LafConstants.cs
       shell: pwsh
       run: |
-        $filePath = "D:/a/ai-dev-gallery/ai-dev-gallery/AIDevGallery/Generated/LafConstants.cs"
+        $filePath = "${{ github.workspace }}\AIDevGallery\Generated\LafConstants.cs"
         $content = @(
             "// Copyright (c) Microsoft Corporation. All rights reserved."
             "// Licensed under the MIT License."
