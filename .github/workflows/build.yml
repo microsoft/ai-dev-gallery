@@ -15,10 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-2025, windows-11-arm]
         dotnet-configuration: [ 'Release' ]
-        dotnet-arch: ['x64' ] # TODO: enable arm64' ]
+        dotnet-arch: ['x64', 'arm64' ] # TODO: enable arm64' ]
     name: Build MSIX - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-2025
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     steps:
