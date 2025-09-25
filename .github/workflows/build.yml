@@ -15,7 +15,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-configuration: [ 'Release' ]
         include:
           - os: windows-2025
             dotnet-arch: 'x64'
@@ -113,7 +112,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-configuration: [ 'Release' ]
         include:
           - os: windows-2025
             dotnet-arch: 'x64'
