@@ -5,6 +5,7 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry;
+using AIDevGallery.Services;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
@@ -19,6 +20,7 @@ namespace AIDevGallery;
 /// </summary>
 public partial class App : Application
 {
+    private LocalHttpServer? _localHttpServer;
     /// <summary>
     /// Gets, or initializes, the singleton application object. This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -41,11 +43,28 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         await LoadSamples();
+        try
+        {
+            _localHttpServer = await LocalHttpServer.StartAsync(System.Threading.CancellationToken.None);
+        }
+        catch
+        {
+            // Swallow errors to avoid blocking app startup; server is optional for core UI.
+        }
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
         MainWindow = new MainWindow(activationParam);
 
         MainWindow.Activate();
+
+        MainWindow.Closed += async (sender, e) =>
+        {
+            if (_localHttpServer != null)
+            {
+                await _localHttpServer.DisposeAsync();
+                _localHttpServer = null;
+            }
+        };
     }
 
     internal static List<ModelType> FindSampleItemById(string id)

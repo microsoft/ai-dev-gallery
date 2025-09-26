@@ -109,6 +109,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="**\*.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
