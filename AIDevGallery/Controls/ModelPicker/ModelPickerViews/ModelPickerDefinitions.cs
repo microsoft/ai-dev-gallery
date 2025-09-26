@@ -35,7 +35,7 @@ internal class ModelPickerDefinition
             {
                 Name = "Custom models",
                 Id = "onnx",
-                Icon = "ms-appx:///Assets/ModelIcons/CustomModel.png",
+                Icon = $"ms-appx:///Assets/ModelIcons/CustomModel{AppUtils.GetThemeAssetSuffix()}.png",
                 CreatePicker = () => new OnnxPickerView()
             }
         },
