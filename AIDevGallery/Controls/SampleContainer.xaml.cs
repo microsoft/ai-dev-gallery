@@ -192,8 +192,15 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         // show that models are not compatible with this device
-        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible))
+        var notCompatibleModel = models.FirstOrDefault(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
+        if (notCompatibleModel != null)
         {
+            var issue = notCompatibleModel.Compatibility?.CompatibilityIssueDescription;
+            if (!string.IsNullOrWhiteSpace(issue))
+            {
+                wcrModelUnavailable.Message = issue!;
+            }
+
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;
