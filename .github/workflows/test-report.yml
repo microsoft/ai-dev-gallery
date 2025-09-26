@@ -13,9 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-arch: ['x64' ]
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+          - os: windows-11-arm
+            dotnet-arch: 'arm64'
     name: Test - ${{ matrix.dotnet-arch }}
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Display test results
       uses: dorny/test-reporter@v2
