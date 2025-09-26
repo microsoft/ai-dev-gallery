@@ -25,18 +25,21 @@ This document describes the steps to publish a new version of the AI Dev Gallery
 
     This will update the version number in the `version.json` file on the current branch (main), and create a commit with an updated version number. By default it will increment the patch version number, but you can find more information about nbgv's cli [here](https://github.com/dotnet/Nerdbank.GitVersioning/blob/main/docfx/docs/nbgv-cli.md).
 
-    It will also create a new branch with the name `rel/vX.Y.Z` where `X.Y.Z` is the `current` version number. This is the release branch, which will be automatically checked out after the command is executed.
+    It will also create a new branch with the name `rel/vX.Y.Z` where `X.Y.Z` is the `current` version number.
 
 4. Now you can push the changes to the remote repository by running the following command:
 
     ```console
+    git checkout rel/vX.Y.Z
     git push -u origin rel/vX.Y.Z
     ```
 
-5. To make sure eveybody is now working on the new release, checkout the main branch and push the changes to the remote repository:
+5. To make sure eveybody is now working on the new release, make a pull request from "alias/publish_X.Y.Z" branch to "main" branch.
 
     ```console
     git checkout main
-    git push
+    git checkout -b alias/publish_X.Y.Z
+    git push -u origin alias/publish_X.Y.Z
     ```
+    
     > Note: This will automatically spin up a new release build in ADO, which automatically uploads the new version to the Microsoft Store.
