@@ -4,6 +4,8 @@
 >
 > This document is intended for contributors to AI Dev Gallery. It explains how to configure LAF values (via MSBuild properties/AssemblyMetadata or environment variables) for this repository’s own development/build/CI workflows.
 >
+> For AI Dev Gallery specifically, obtain the full LAF token directly from the project owner team. Do not commit any LAF tokens or secrets to public repositories; always use the organization’s secure variable/secret store (e.g., pipeline/variable library) to manage them.
+> 
 > If you need a Limited Access Features (LAF) token for your own application, please visit the official Microsoft entry point to learn more and request access: [aka.ms/laffeatures](https://aka.ms/laffeatures). The example values here (e.g., "E1t/*********") are for this repository’s development only and are not valid for your app.
 
 This repository now reads Limited Access Feature (LAF) values from two sources, in this order:
