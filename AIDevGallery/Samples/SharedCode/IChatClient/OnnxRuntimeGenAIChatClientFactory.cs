@@ -58,7 +58,17 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                         config.AppendProvider(provider);
                     }
 
-                    chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
+                    // First try with EP context cache enabled for faster startup. If the cached
+                    // context is incompatible (e.g., QNN error code 5005), fall back to no cache.
+                    try
+                    {
+                        chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
+                    }
+                    catch (OnnxRuntimeGenAIException ex)
+                    {
+                        Debug.WriteLine($"INFO: Failed to create chat client with EP cache: {ex.Message}. Falling back to no cache.");
+                        chatClient = new OnnxRuntimeGenAIChatClient(config, false, options);
+                    }
                     cancellationToken.ThrowIfCancellationRequested();
                 },
                 cancellationToken);
