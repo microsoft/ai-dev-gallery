@@ -31,13 +31,8 @@ public partial class OpacityMaskView : ContentControl
     private const string RootGridTemplateName = "PART_RootGrid";
 
     private readonly Compositor _compositor = CompositionTarget.GetCompositorForCurrentThread();
-
-    // Composition resources we create and need to tear down explicitly to avoid retaining composition references longer than necessary
     private CompositionBrush? _mask;
     private CompositionMaskBrush? _maskBrush;
-    private CompositionSurfaceBrush? _sourceBrush;
-    private Grid? _rootGrid;
-    private SpriteVisual? _redirectVisual;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpacityMaskView"/> class.
@@ -46,9 +41,6 @@ public partial class OpacityMaskView : ContentControl
     public OpacityMaskView()
     {
         DefaultStyleKey = typeof(OpacityMaskView);
-
-        // Ensure composition resources are cleaned up when control unloads
-        Unloaded += OpacityMaskView_Unloaded;
     }
 
     /// <summary>
@@ -65,35 +57,22 @@ public partial class OpacityMaskView : ContentControl
     {
         base.OnApplyTemplate();
 
-        // Clean up any prior composition resources (e.g., when the template is re-applied)
-        CleanupComposition();
-
         Grid rootGrid = (Grid)GetTemplateChild(RootGridTemplateName);
         ContentPresenter contentPresenter = (ContentPresenter)GetTemplateChild(ContentPresenterTemplateName);
         Border maskContainer = (Border)GetTemplateChild(MaskContainerTemplateName);
 
-        _rootGrid = rootGrid;
-
-        // Create mask brush and its sources
         _maskBrush = _compositor.CreateMaskBrush();
-
-        // Source is the content we want to render through the mask
-        _sourceBrush = GetVisualBrush(contentPresenter);
-        _maskBrush.Source = _sourceBrush;
-
-        // Mask is the opacity mask visual brush
+        _maskBrush.Source = GetVisualBrush(contentPresenter);
         _mask = GetVisualBrush(maskContainer);
         _maskBrush.Mask = OpacityMask is null ? null : _mask;
 
-        // Create a sprite visual that draws with the mask brush, and redirect the control visual to it
         SpriteVisual redirectVisual = _compositor.CreateSpriteVisual();
         redirectVisual.RelativeSizeAdjustment = Vector2.One;
         redirectVisual.Brush = _maskBrush;
         ElementCompositionPreview.SetElementChildVisual(rootGrid, redirectVisual);
-        _redirectVisual = redirectVisual;
     }
 
-    private static CompositionSurfaceBrush GetVisualBrush(UIElement element)
+    private static CompositionBrush GetVisualBrush(UIElement element)
     {
         Visual visual = ElementCompositionPreview.GetElementVisual(element);
 
@@ -121,51 +100,6 @@ public partial class OpacityMaskView : ContentControl
         }
 
         UIElement? opacityMask = (UIElement?)e.NewValue;
-
-        // Switch to the mask brush if an opacity mask is set; otherwise remove the mask
         maskBrush.Mask = opacityMask is null ? null : self._mask;
-    }
-
-    // On control unload, ensure we tear down composition resources and clear the child visual
-    private void OpacityMaskView_Unloaded(object sender, RoutedEventArgs e) => CleanupComposition();
-
-    /// <summary>
-    /// Clears the ElementCompositionPreview child visual and disposes all composition resources created by this control.
-    /// This prevents composition resource retention across template reapplications or when the control is unloaded.
-    /// </summary>
-    private void CleanupComposition()
-    {
-        // Detach the child visual from the root grid if present
-        if (_rootGrid != null)
-        {
-            ElementCompositionPreview.SetElementChildVisual(_rootGrid, null);
-        }
-
-        // Dispose the redirect visual
-        if (_redirectVisual != null)
-        {
-            _redirectVisual.Brush = null;
-            _redirectVisual.Dispose();
-            _redirectVisual = null;
-        }
-
-        // Dispose mask brush and its sources
-        if (_maskBrush != null)
-        {
-            _maskBrush.Source = null;
-            _maskBrush.Mask = null;
-            _maskBrush.Dispose();
-            _maskBrush = null;
-        }
-
-        // Dispose the source content brush explicitly
-        _sourceBrush?.Dispose();
-        _sourceBrush = null;
-
-        // Dispose the mask brush instance if we created one
-        _mask?.Dispose();
-        _mask = null;
-
-        _rootGrid = null;
     }
 }
