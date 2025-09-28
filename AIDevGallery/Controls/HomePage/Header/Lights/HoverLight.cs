@@ -92,6 +92,10 @@ internal partial class HoverLight : XamlLight
 
     protected override void OnDisconnected(UIElement oldElement)
     {
+        // Unsubscribe event handlers to avoid retaining references and leaking the light or target element
+		oldElement.PointerMoved -= TargetElement_PointerMoved;
+		oldElement.PointerExited -= TargetElement_PointerExited;
+    
         // Dispose Light and Composition resources when it is removed from the tree
         RemoveTargetElement(GetId(), oldElement);
         CompositionLight.Dispose();
