@@ -26,6 +26,23 @@ internal sealed partial class HomePage : Page
         NavigatedToPageEvent.Log(nameof(HomePage));
     }
 
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        // Remove all UI elements to trigger Unloaded and composition cleanup
+        if (this.Content is Grid rootGrid)
+        {
+            rootGrid.Children.Clear();
+        }
+
+        // Clear any MRU data
+        mostRecentlyUsedItems.Clear();
+
+        // Remove all content to guarantee nothing can be rendered
+        this.Content = null;
+
+        base.OnNavigatingFrom(e);
+    }
+
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         if (!App.AppData.IsDiagnosticsMessageDismissed && PrivacyConsentHelpers.IsPrivacySensitiveRegion())
