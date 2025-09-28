@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
@@ -43,6 +44,8 @@ internal sealed partial class SettingsPage : Page
         GetStorageInfo();
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
+        LocalLoggingToggleSwitch.IsOn = App.AppData.IsLocalLoggingEnabled;
+        LogsButtonsPanel.Visibility = App.AppData.IsLocalLoggingEnabled ? Visibility.Visible : Visibility.Collapsed;
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
@@ -160,6 +163,18 @@ internal sealed partial class SettingsPage : Page
             App.AppData.IsDiagnosticDataEnabled = DiagnosticDataToggleSwitch.IsOn;
             await App.AppData.SaveAsync();
         }
+    }
+
+    private async void LocalLoggingToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        var enabled = LocalLoggingToggleSwitch.IsOn;
+        if (App.AppData.IsLocalLoggingEnabled != enabled)
+        {
+            App.AppData.IsLocalLoggingEnabled = enabled;
+            await App.AppData.SaveAsync();
+        }
+
+        LogsButtonsPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void ChangeCacheFolder_Click(object sender, RoutedEventArgs e)
@@ -297,5 +312,150 @@ Do you want to proceed with the move?",
         ProgressDialog?.Hide();
         _cts?.Dispose();
         _cts = null;
+    }
+
+    private void OpenLogsFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+            string logsDir = Path.Combine(localFolder, "Logs");
+            Directory.CreateDirectory(logsDir);
+            Process.Start("explorer.exe", logsDir);
+        }
+        catch (Exception ex)
+        {
+            _ = new ContentDialog
+            {
+                Title = "Open logs folder failed",
+                Content = ex.Message,
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "OK"
+            }.ShowAsync();
+        }
+    }
+
+    private async void StartEtwQuickSample_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string sessionName = "AIDevGalleryTrace";
+            string etlPath = Path.Combine(Path.GetTempPath(), "AIDevGalleryTrace.etl");
+
+            // Stop existing session if any
+            _ = await RunProcessAsync("logman", $"stop {sessionName} -ets");
+
+            // Start new session: provider Microsoft.Windows.AIDevGallery, all keywords, Verbose level (5)
+            var startRes = await RunProcessAsync("logman", $"start {sessionName} -o \"{etlPath}\" -p Microsoft.Windows.AIDevGallery 0xFFFFFFFFFFFFFFFF 5 -ets");
+            if (startRes.ExitCode != 0)
+            {
+                await new ContentDialog
+                {
+                    Title = "ETW capture failed to start",
+                    Content = $"logman start failed.\nExitCode: {startRes.ExitCode}\n{startRes.StdErr}\n{startRes.StdOut}\n\nTip: Try running the app as Administrator.",
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                }.ShowAsync();
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(30));
+
+            var stopRes = await RunProcessAsync("logman", $"stop {sessionName} -ets");
+            if (stopRes.ExitCode != 0)
+            {
+                await new ContentDialog
+                {
+                    Title = "ETW capture failed to stop",
+                    Content = $"logman stop failed.\nExitCode: {stopRes.ExitCode}\n{stopRes.StdErr}\n{stopRes.StdOut}",
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                }.ShowAsync();
+            }
+
+            // Open ETL file or containing folder
+            if (File.Exists(etlPath))
+            {
+                Process.Start("explorer.exe", $"/select,\"{etlPath}\"");
+            }
+            else
+            {
+                Process.Start("explorer.exe", Path.GetDirectoryName(etlPath)!);
+                await new ContentDialog
+                {
+                    Title = "ETL file not found",
+                    Content = $"Expected ETL at:\n{etlPath}\n\nThe session may not have started due to permissions. Try running the app as Administrator.",
+                    XamlRoot = this.Content.XamlRoot,
+                    CloseButtonText = "OK"
+                }.ShowAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _ = new ContentDialog
+            {
+                Title = "ETW capture failed",
+                Content = ex.Message,
+                XamlRoot = this.Content.XamlRoot,
+                CloseButtonText = "OK"
+            }.ShowAsync();
+        }
+    }
+
+    private sealed class ProcessResult
+    {
+        public int ExitCode { get; init; }
+        public string StdOut { get; init; } = string.Empty;
+        public string StdErr { get; init; } = string.Empty;
+    }
+
+    private static Task<ProcessResult> RunProcessAsync(string fileName, string arguments)
+    {
+        var tcs = new TaskCompletionSource<ProcessResult>();
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+            string stdOut = string.Empty;
+            string stdErr = string.Empty;
+            proc.OutputDataReceived += (s, e) =>
+            {
+                if (e.Data != null)
+                {
+                    stdOut += e.Data + Environment.NewLine;
+                }
+            };
+            proc.ErrorDataReceived += (s, e) =>
+            {
+                if (e.Data != null)
+                {
+                    stdErr += e.Data + Environment.NewLine;
+                }
+            };
+            proc.Exited += (s, e) =>
+            {
+                var result = new ProcessResult { ExitCode = proc.ExitCode, StdOut = stdOut, StdErr = stdErr };
+                proc.Dispose();
+                tcs.TrySetResult(result);
+            };
+            _ = proc.Start();
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
+        }
+        catch (Exception ex)
+        {
+            tcs.TrySetException(ex);
+        }
+
+        return tcs.Task;
     }
 }

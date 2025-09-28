@@ -5,7 +5,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntimeGenAI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -23,17 +22,6 @@ internal static class OnnxRuntimeGenAIChatClientFactory
 
     public static async Task<IChatClient?> CreateAsync(string modelDir, LlmPromptTemplate? template = null, string? provider = null, CancellationToken cancellationToken = default)
     {
-        var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
-
-        try
-        {
-            var registeredProviders = await catalog.EnsureAndRegisterCertifiedAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
-        }
-
         var options = new OnnxRuntimeGenAIChatClientOptions
         {
             StopSequences = template?.Stop ?? Array.Empty<string>(),
@@ -58,17 +46,7 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                         config.AppendProvider(provider);
                     }
 
-                    // First try with EP context cache enabled for faster startup. If the cached
-                    // context is incompatible (e.g., QNN error code 5005), fall back to no cache.
-                    try
-                    {
-                        chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
-                    }
-                    catch (OnnxRuntimeGenAIException ex)
-                    {
-                        Debug.WriteLine($"INFO: Failed to create chat client with EP cache: {ex.Message}. Falling back to no cache.");
-                        chatClient = new OnnxRuntimeGenAIChatClient(config, false, options);
-                    }
+                    chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
                     cancellationToken.ThrowIfCancellationRequested();
                 },
                 cancellationToken);

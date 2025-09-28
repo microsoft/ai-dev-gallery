@@ -5,13 +5,12 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry;
-using AIDevGallery.Services;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,8 +21,8 @@ namespace AIDevGallery;
 /// </summary>
 public partial class App : Application
 {
-    private LocalHttpServer? _localHttpServer;
-	private TextWriterTraceListener? _fileTraceListener;
+    private TextWriterTraceListener? _fileTraceListener;
+
     /// <summary>
     /// Gets, or initializes, the singleton application object. This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -45,88 +44,76 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-		// Initialize file logging for Debug/Trace output
-		try
-		{
-			var logsFolderPath = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-			var logsDir = Path.Combine(logsFolderPath, "Logs");
-			Directory.CreateDirectory(logsDir);
-
-			// Prune logs older than 24 hours
-			var retention = System.TimeSpan.FromHours(24);
-			try
-			{
-				foreach (var file in Directory.EnumerateFiles(logsDir, "AIDevGallery_*.log"))
-				{
-					var lastWriteUtc = File.GetLastWriteTimeUtc(file);
-					if ((System.DateTime.UtcNow - lastWriteUtc) > retention)
-					{
-						File.Delete(file);
-					}
-				}
-			}
-			catch
-			{
-				// Ignore retention cleanup errors
-			}
-
-			// Create a timestamped log file for this session
-			var logFileName = $"AIDevGallery_{System.DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
-			var logPath = Path.Combine(logsDir, logFileName);
-			var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-			_fileTraceListener = new TextWriterTraceListener(stream, "FileLogger");
-			Debug.Listeners.Add(_fileTraceListener);
-			Trace.Listeners.Add(_fileTraceListener);
-			Debug.AutoFlush = true;
-			Trace.AutoFlush = true;
-			Debug.WriteLine($"Logging started: {System.DateTime.Now:O}");
-		}
-		catch
-		{
-			// If logging initialization fails, continue without blocking app startup
-		}
-
-        await LoadSamples();
+        // Initialize file logging for Debug/Trace output if enabled by user
         try
         {
-            _localHttpServer = await LocalHttpServer.StartAsync(System.Threading.CancellationToken.None);
+            AppData = await AppData.GetForApp();
+            if (AppData.IsLocalLoggingEnabled)
+            {
+                var logsFolderPath = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+                var logsDir = Path.Combine(logsFolderPath, "Logs");
+                Directory.CreateDirectory(logsDir);
+
+                // Prune logs older than 24 hours
+                var retention = System.TimeSpan.FromHours(24);
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(logsDir, "AIDevGallery_*.log"))
+                    {
+                        var lastWriteUtc = File.GetLastWriteTimeUtc(file);
+                        if ((System.DateTime.UtcNow - lastWriteUtc) > retention)
+                        {
+                            File.Delete(file);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore retention cleanup errors
+                }
+
+                // Create a timestamped log file for this session
+                var logFileName = $"AIDevGallery_{System.DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
+                var logPath = Path.Combine(logsDir, logFileName);
+                var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                _fileTraceListener = new TextWriterTraceListener(stream, "FileLogger");
+                Trace.Listeners.Add(_fileTraceListener);
+                Debug.AutoFlush = true;
+                Trace.AutoFlush = true;
+                Debug.WriteLine($"Logging started: {System.DateTime.Now:O}");
+            }
         }
         catch
         {
-            // Swallow errors to avoid blocking app startup; server is optional for core UI.
+            // If logging initialization fails, continue without blocking app startup
         }
+
+        await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
         MainWindow = new MainWindow(activationParam);
 
         MainWindow.Activate();
 
-		MainWindow.Closed += async (sender, e) =>
+        MainWindow.Closed += (sender, e) =>
         {
-            if (_localHttpServer != null)
+            // Flush and close file logger
+            try
             {
-                await _localHttpServer.DisposeAsync();
-                _localHttpServer = null;
+                if (_fileTraceListener != null)
+                {
+                    Debug.WriteLine("Logging ended");
+                    _fileTraceListener.Flush();
+                    _fileTraceListener.Close();
+                    Trace.Listeners.Remove(_fileTraceListener);
+                    _fileTraceListener.Dispose();
+                    _fileTraceListener = null;
+                }
             }
-
-			// Flush and close file logger
-			try
-			{
-				if (_fileTraceListener != null)
-				{
-					Debug.WriteLine("Logging ended");
-					_fileTraceListener.Flush();
-					_fileTraceListener.Close();
-					Debug.Listeners.Remove(_fileTraceListener);
-					Trace.Listeners.Remove(_fileTraceListener);
-					_fileTraceListener.Dispose();
-					_fileTraceListener = null;
-				}
-			}
-			catch
-			{
-				// ignore logging disposal errors
-			}
+            catch
+            {
+                // ignore logging disposal errors
+            }
         };
     }
 

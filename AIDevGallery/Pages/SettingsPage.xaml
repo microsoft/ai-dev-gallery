@@ -113,6 +113,19 @@
                         <ToggleSwitch x:Name="DiagnosticDataToggleSwitch" Toggled="DiagnosticDataToggleSwitch_Toggled" />
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard
+                        Header="Logs &amp; tracing"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE7BA;}"
+                        Description="Open session logs or run a quick ETW capture">
+                        <StackPanel Orientation="Vertical" Spacing="8">
+                            <ToggleSwitch x:Name="LocalLoggingToggleSwitch" Toggled="LocalLoggingToggleSwitch_Toggled" HorizontalAlignment="Right" />
+                            <StackPanel Orientation="Horizontal" Spacing="8" x:Name="LogsButtonsPanel" Visibility="Collapsed">
+                                <Button Click="OpenLogsFolder_Click" Content="Open logs folder" />
+                                <Button Click="StartEtwQuickSample_Click" Content="Quick ETW capture (30s)" />
+                            </StackPanel>
+                        </StackPanel>
+                    </toolkit:SettingsCard>
+
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="About" />
                     <toolkit:SettingsExpander
                         AutomationProperties.AccessibilityView="Raw"

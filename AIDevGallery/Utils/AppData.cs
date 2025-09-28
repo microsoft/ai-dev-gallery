@@ -28,6 +28,8 @@ internal class AppData
 
     public bool IsDiagnosticDataEnabled { get; set; }
 
+    public bool IsLocalLoggingEnabled { get; set; }
+
     public bool IsFirstRun { get; set; }
 
     public bool IsDiagnosticsMessageDismissed { get; set; }
@@ -44,6 +46,7 @@ internal class AppData
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
+        IsLocalLoggingEnabled = false;
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
