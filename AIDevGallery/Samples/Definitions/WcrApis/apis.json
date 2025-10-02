@@ -109,16 +109,39 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       },
-        "SemanticSearch": {
-          "Id": "F8465A45-8E23-4485-8C16-9909E96EACF6",
-          "Name": "Semantic Search and Knowledge Retrieval",
-          "Icon": "WCRAPI.svg",
-          "IconGlyph": "\uED37",
-          "Description": "Search image and text by semantic meaning.",
-          "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
-          "License": "ms-pl",
-          "SampleIdToShowInDocs": "F8465A45-8E23-4485-8C16-9909E96EACF6"
-        }
-      }
+      "SemanticSearch": {
+        "Id": "F8465A45-8E23-4485-8C16-9909E96EACF6",
+        "Name": "Semantic Search",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uED37",
+        "Description": "Search image and text by semantic meaning.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "F8465A45-8E23-4485-8C16-9909E96EACF6",
+        "Category": "App Content Indexer"
+      },
+      "KnowledgeRetrieval": {
+        "Id": "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+        "Name": "Knowledge Retrieval (RAG)",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEAB7",
+        "Description": "Search image and text by semantic meaning.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+        "Category": "App Content Indexer"
+      },
+      "IndexCapability": {
+        "Id": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
+        "Name": "Index Capabilities",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEDA2",
+        "Description": "Search image and text by semantic meaning.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
+        "Category": "App Content Indexer"
+      },
     }
+  }
 }
