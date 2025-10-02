@@ -49,7 +49,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var result = AppContentIndexer.GetOrCreateIndexerAsync("myIndex");
+        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
         if (!result.Succeeded)
         {
