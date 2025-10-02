@@ -12,7 +12,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
-using Microsoft.Windows.AI.Search.Experimental.ApplicationContentIndex;
+using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,7 +49,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var result = ApplicationContentIndexer.GetOrCreateIndexerAsync("myIndex");
+        var result = AppContentIndexer.GetOrCreateIndexerAsync("myIndex");
 
         if (!result.Succeeded)
         {
