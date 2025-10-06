@@ -9,76 +9,68 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Grid
-            MinWidth="240"
-            MaxWidth="600"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource ControlStrongStrokeColorDefaultBrush}"
-            BorderThickness="2"
-            CornerRadius="{StaticResource OverlayCornerRadius}">
-            <Viewbox x:Name="ImageViewbox" MaxHeight="600">
-                <Grid
-                    x:Name="PaneGrid"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    CornerRadius="{ThemeResource OverlayCornerRadius}">
-                    <Image x:Name="ImageSrc" Stretch="Uniform" />
-                    <Canvas
-                        x:Name="RectCanvas"
-                        Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                        Visibility="Collapsed" />
-                </Grid>
-            </Viewbox>
-            <Grid
-                Margin="8"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Spacing="8">
+            <TextBox
+            x:Name="SourceTextBox"
+            TextChanged="SemanticTextBox_TextChanged"
+            AcceptsReturn="True"
+            Height="240"
+            PlaceholderText="Paste in a block of text to search..."
+            TextWrapping="Wrap" />
+            <TextBox
+            x:Name="SearchTextBox"
+            AutomationProperties.Name="Prompt input"
+            PlaceholderText="Enter a word or phrase to search for"
+            TextChanged="SemanticTextBox_TextChanged"
+            KeyUp="TextBox_KeyUp"
+            TextWrapping="Wrap" />
+            <ProgressBar
+            x:Name="OutputProgressBar"
+            VerticalAlignment="Bottom"
+            IsIndeterminate="True"
+            Visibility="Collapsed" />
+            <Grid HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <InfoBar
+                x:Name="ErrorMessage"
+                IsOpen="False"
+                Severity="Warning"
+                Title="Error"
+                Message="Content is required in both of the above boxes to execute a search." 
+                Padding="0"/>
+                <Button
+                x:Name="SearchButton"
+                Grid.Column="1"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                CornerRadius="{StaticResource ControlCornerRadius}">
-                <DropDownButton
-                    Padding="8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    AutomationProperties.Name="Select image"
-                    ToolTipService.ToolTip="Select image">
-                    <DropDownButton.Flyout>
-                        <MenuFlyout Placement="Bottom">
-                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
-                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
-                        </MenuFlyout>
-                    </DropDownButton.Flyout>
-                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
-                </DropDownButton>
+                Click="SearchButton_Click"
+                Content="Search"
+                Margin="10,0,0,0"
+                IsEnabled="False"
+                Style="{StaticResource AccentButtonStyle}" />
             </Grid>
-
-            <StackPanel
-                Margin="8"
-                Padding="8"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-                CornerRadius="{StaticResource ControlCornerRadius}"
-                Orientation="Horizontal"
-                Spacing="8">
-                <Button
-                    x:Name="ViewToggle"
-                    AutomationProperties.Name="Show or hide extracted text"
-                    Click="ViewToggle_Click"
-                    ToolTipService.ToolTip="Show or hide extracted text"
-                    Visibility="Collapsed">
-                    <FontIcon FontSize="16" Glyph="&#xE890;" />
-                </Button>
-
-                <Button
-                    x:Name="CopyTextButton"
-                    Click="CopyText_Click"
-                    ToolTipService.ToolTip="Copy all text to clipboard"
-                    Visibility="Collapsed">
-                    <FontIcon FontSize="16" Glyph="&#xF0E3;" />
-                </Button>
-            </StackPanel>
+        </StackPanel>
+        <Grid
+        x:Name="ResultsGrid"
+        Grid.Row="2"
+        Visibility="Collapsed">
+            <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
+            <ScrollViewer
+            Margin="0,25,0,0"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Visible">
+                <TextBlock
+                x:Name="ResultsTextBlock"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                TextWrapping="WrapWholeWords" />
+            </ScrollViewer>
         </Grid>
     </Grid>
 </samples:BaseSamplePage>
