@@ -35,10 +35,10 @@ using Windows.Storage.Streams;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Semantic Search",
+    Name = "Index Capabilities",
     Model1Types = [ModelType.SemanticSearch],
     Scenario = ScenarioType.TextSemanticSearch,
-    Id = "F8465A45-8E23-4485-8C16-9909E96EACF6",
+    Id = "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
     AssetFilenames = [
         "OCR.png"
     ],
@@ -47,9 +47,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-internal sealed partial class SemanticSearch : BaseSamplePage
+internal sealed partial class IndexCapability : BaseSamplePage
 {
-    public SemanticSearch()
+    public IndexCapability()
     {
         this.InitializeComponent();
     }
