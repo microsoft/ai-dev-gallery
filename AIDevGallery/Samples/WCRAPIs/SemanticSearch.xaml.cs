@@ -202,7 +202,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         string newId;
         do
         {
-            newId = $"item{TextDataItems.Count + 1}";
+            newId = $"item{TextDataItems.Count + nextIndex}";
             nextIndex++;
         } while (simpleTextData.ContainsKey(newId));
 
@@ -223,6 +223,34 @@ internal sealed partial class SemanticSearch : BaseSamplePage
            await IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
+    }
+
+    private async void DataTabView_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
+    {
+        if (args.Item is TextDataItem item)
+        {
+            TextDataItems.Remove(item);
+
+            if (simpleTextData.ContainsKey(item.Id))
+            {
+                simpleTextData.Remove(item.Id);
+            }
+
+            RemovedItemMessage.IsOpen = true;
+            RemovedItemMessage.Message = $"Removed {item.Id} from index";
+            await Task.Run(async () =>
+            {
+                await RemoveItemFromIndex(item.Id);
+            });
+            RemovedItemMessage.IsOpen = false;
+        }
+    }
+
+    private async Task RemoveItemFromIndex(string id)
+    {
+        // Remove item from index
+        //_indexer.Remove(id);
+        await Task.Delay(2000);
     }
 
     private async Task IndexTextData(string id, string value)
