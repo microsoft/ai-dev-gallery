@@ -292,6 +292,85 @@ internal static class WcrApiCodeSnippet
                 Console.WriteLine(languageModelResponse.Description);
             }
             """"
+        },
+        {
+            ModelType.SemanticSearch, """"
+
+            """"
+        },
+        {
+            ModelType.KnowledgeRetrieval, """"
+
+            """"
+        },
+        {
+            ModelType.AppIndexCapability, """"
+            using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+
+            // Get index capabilities of current system
+            public void SimpleCapabilitiesSample()
+            {
+                IndexCapabilitiesOfCurrentSystem capabilities = AppContentIndexer.GetIndexCapabilitiesOfCurrentSystem();
+
+                // Status is one of: Ready, NotReady, DisabledByPolicy or NotSupported.
+                Console.WriteLine($"Lexical Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextLexical)}");
+                Console.WriteLine($"Semantic Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextSemantic)}");
+                Console.WriteLine($"OCR Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageOcr)}");
+                Console.WriteLine($"Semantic Image Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageSemantic)}");
+            }
+
+            // Get index capabilities of current index instance
+            public async void IndexCapabilitiesSample()
+            {
+                using AppContentIndexer indexer = AppContentIndexer.GetOrCreateIndex("myindex").Indexer;
+
+                // Some capabilities will initially be unavailable and the indexer will automatically load them in the background.
+                // Wait for the indexer to attempt to load the required components.
+                // Note that this may take a significant amount of time as components may need to be downloaded and installed by Windows.
+                await indexer.WaitForIndexCapabilitiesAsync();
+
+                IndexCapabilities capabilities = indexer.GetIndexCapabilities();
+
+                // Each status will be one of: Unknown, Initialized, Initializing, Suppressed, Unsupported, DisabledByPolicy, InitializationError
+                // If status is Initialized, that capability is ready for use
+
+                if (capabilities.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+                {
+                    Console.WriteLine("Lexical text indexing and search is available.");
+                }
+                else
+                {
+                    Console.WriteLine("Text indexing and search is not currenlty possible.");
+                }
+
+                if (capabilities.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+                {
+                    Console.WriteLine("Semantic text indexing and search is available.");
+                }
+                else
+                {
+                    Console.WriteLine("Only lexical text search is currently possible.");
+                }
+
+                if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+                {
+                    Console.WriteLine("Semantic image indexing and search is available.");
+                }
+                else
+                {
+                    Console.WriteLine("Semantic image search is not currently possible");
+                }
+
+                if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+                {
+                    Console.WriteLine("OCR is available. Searching text within images is possible.");
+                }
+                else
+                {
+                    Console.WriteLine("Search for text within images is not currently possible.");
+                }
+            }
+            """"
         }
     };
 }

@@ -131,7 +131,7 @@
         "SampleIdToShowInDocs": "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
         "Category": "App Content Indexer"
       },
-      "IndexCapability": {
+      "AppIndexCapability": {
         "Id": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
         "Name": "Index Capabilities",
         "Icon": "WCRAPI.svg",
@@ -141,7 +141,7 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
         "Category": "App Content Indexer"
-      },
+      }
     }
   }
 }
