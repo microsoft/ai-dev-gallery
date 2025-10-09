@@ -14,7 +14,7 @@
     <LangVersion>preview</LangVersion>
     <NoWarn>CS8305;WMC1501</NoWarn>
     <!-- https://github.com/microsoft/CsWin32/issues/1273 -->
-    <NoWarn>$(NoWarn);IL2050</NoWarn>
+    <NoWarn>$(NoWarn);IL2050;NU1608;NU1107</NoWarn>
     <!-- Microsoft.Xaml.Interactivity.EventTriggerBehavior is not trimmable -->
     <NoWarn>$(NoWarn);IL2026</NoWarn>
     <IsAotCompatible>true</IsAotCompatible>

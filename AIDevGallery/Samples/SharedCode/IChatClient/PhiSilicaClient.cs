@@ -12,8 +12,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.Foundation;
+
+/*
+using Windows.ApplicationModel;
+*/
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -62,7 +65,7 @@ internal class PhiSilicaClient : IChatClient
 
     public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
-        const string featureId = "com.microsoft.windows.ai.languagemodel";
+        // const string featureId = "com.microsoft.windows.ai.languagemodel";
 
         // IMPORTANT!!
         // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
@@ -73,6 +76,7 @@ internal class PhiSilicaClient : IChatClient
         // var demoPublisherId = "z0sq19pdabnaj";
         var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
 
+        /*
         var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
             featureId,
             demoToken,
@@ -82,6 +86,7 @@ internal class PhiSilicaClient : IChatClient
         {
             throw new WCRException($"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
         }
+        */
 
         var readyState = LanguageModel.GetReadyState();
 
