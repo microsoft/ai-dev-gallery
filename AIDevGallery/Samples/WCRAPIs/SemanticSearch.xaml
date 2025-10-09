@@ -5,6 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:AIDevGallery.Samples.WCRAPIs"
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
 
@@ -14,62 +16,73 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Spacing="8">
+            <controls:TabView x:Name="DataTabView"
+                  TabItemsSource="{x:Bind TextDataItems}"
+                  AddTabButtonClick="DataTabView_AddTabButtonClick"
+                  CanDrag="False"
+                  CanDragTabs="False"
+                  SelectedIndex="0">
+                <TabView.TabItemTemplate>
+                    <DataTemplate x:DataType="local:TextDataItem">
+                        <TabViewItem Header="{x:Bind Id}" IsClosable="False">
+                            <TextBox Text="{x:Bind Value, Mode=TwoWay}"
+                                     Tag="{x:Bind Id}"
+                                     TextChanged="SemanticTextBox_TextChanged"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     Height="120"
+                                     Margin="0,7,0,0"/>
+                        </TabViewItem>
+                    </DataTemplate>
+                </TabView.TabItemTemplate>
+            </controls:TabView>
             <TextBox
-            x:Name="SourceTextBox"
-            TextChanged="SemanticTextBox_TextChanged"
-            AcceptsReturn="True"
-            Height="240"
-            PlaceholderText="Paste in a block of text to search..."
-            TextWrapping="Wrap" />
-            <TextBox
-            x:Name="SearchTextBox"
-            AutomationProperties.Name="Prompt input"
-            PlaceholderText="Enter a word or phrase to search for"
-            TextChanged="SemanticTextBox_TextChanged"
-            KeyUp="TextBox_KeyUp"
-            TextWrapping="Wrap" />
+                 x:Name="SearchTextBox"
+                 AutomationProperties.Name="Prompt input"
+                 PlaceholderText="Enter a word or phrase to search for"
+                 TextWrapping="Wrap" />
             <ProgressBar
-            x:Name="OutputProgressBar"
-            VerticalAlignment="Bottom"
-            IsIndeterminate="True"
-            Visibility="Collapsed" />
+                x:Name="OutputProgressBar"
+                VerticalAlignment="Bottom"
+                IsIndeterminate="True"
+                Visibility="Collapsed" />
             <Grid HorizontalAlignment="Stretch">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <InfoBar
-                x:Name="ErrorMessage"
-                IsOpen="False"
-                Severity="Warning"
-                Title="Error"
-                Message="Content is required in both of the above boxes to execute a search." 
-                Padding="0"/>
+                    x:Name="IndexingMessage"
+                    IsOpen="False"
+                    Severity="Informational"
+                    Title="Indexing"
+                    Message="Partial results may be available." 
+                    Padding="0"/>
                 <Button
-                x:Name="SearchButton"
-                Grid.Column="1"
-                HorizontalAlignment="Right"
-                Click="SearchButton_Click"
-                Content="Search"
-                Margin="10,0,0,0"
-                IsEnabled="False"
-                Style="{StaticResource AccentButtonStyle}" />
+                    x:Name="SearchButton"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Click="SearchButton_Click"
+                    Content="Search"
+                    Margin="10,0,0,0"
+                    IsEnabled="False"
+                    Style="{StaticResource AccentButtonStyle}" />
             </Grid>
         </StackPanel>
         <Grid
-        x:Name="ResultsGrid"
-        Grid.Row="2"
-        Visibility="Collapsed">
+            x:Name="ResultsGrid"
+            Grid.Row="2"
+            Visibility="Collapsed">
             <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
             <ScrollViewer
-            Margin="0,25,0,0"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Visible">
+                Margin="0,25,0,0"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Visible">
                 <TextBlock
-                x:Name="ResultsTextBlock"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                IsTextSelectionEnabled="True"
-                TextWrapping="WrapWholeWords" />
+                    x:Name="ResultsTextBlock"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    IsTextSelectionEnabled="True"
+                    TextWrapping="WrapWholeWords" />
             </ScrollViewer>
         </Grid>
     </Grid>

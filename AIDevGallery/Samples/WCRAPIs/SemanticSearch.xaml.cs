@@ -4,6 +4,9 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using ColorCode.Compilation.Languages;
+using CommunityToolkit.WinUI;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 using Microsoft.Graphics.Imaging;
@@ -12,14 +15,17 @@ using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,11 +53,35 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
+
 internal sealed partial class SemanticSearch : BaseSamplePage
 {
+    ObservableCollection<TextDataItem> TextDataItems { get; } = new();
+
+    // This is some text data that we want to add to the index:
+    Dictionary<string, string> simpleTextData = new Dictionary<string, string>
+    {
+        {"item1", "Here is some information about Cats: Cats are cute and fluffy. Young cats are very playful." },
+        {"item2", "Dogs are loyal and affectionate animals known for their companionship, intelligence, and diverse breeds." },
+        {"item3", "Fish are aquatic creatures that breathe through gills and come in a vast variety of shapes, sizes, and colors." },
+        {"item4", "Broccoli is a nutritious green vegetable rich in vitamins, fiber, and antioxidants." },
+        {"item5", "Computers are powerful electronic devices that process information, perform calculations, and enable communication worldwide." },
+        {"item6", "Music is a universal language that expresses emotions, tells stories, and connects people through rhythm and melody." },
+    };
+
+    private AppContentIndexer _indexer;
+    private CancellationTokenSource cts = new();
+
     public SemanticSearch()
     {
         this.InitializeComponent();
+        this.Unloaded += (s, e) =>
+        {
+            CleanUp();
+        };
+        this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
+
+        PopulateTextData();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -73,53 +103,158 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         //    Console.WriteLine("Opened an existing index");
         //}
 
-        //using AppContentIndexer indexer = result.Indexer;
-        //var isIdle = await indexer.WaitForIndexingIdleAsync(50000);
+        //_indexer = result.Indexer;
+        //var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
 
         sampleParams.NotifyCompletion();
     }
 
-    private void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    // <exclude>
+    private void Page_Loaded()
     {
-        this.SearchButton.IsEnabled = !string.IsNullOrEmpty(this.SearchTextBox.Text) && !string.IsNullOrEmpty(this.SourceTextBox.Text);
-        ErrorMessage.IsOpen = string.IsNullOrEmpty(this.SearchTextBox.Text) || string.IsNullOrEmpty(this.SourceTextBox.Text);
+        DataTabView.Focus(FocusState.Programmatic);
+    }
+
+    // </exclude>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        CleanUp();
+    }
+
+    private void CleanUp()
+    {
+        _indexer?.Dispose();
+    }
+
+    private async void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox textBox)
+        {
+            string id = textBox.Tag as string;
+            string value = textBox.Text;
+
+            // Update local dictionary and observable collection
+            var item = TextDataItems.FirstOrDefault(x => x.Id == id);
+            if (item != null)
+            {
+                item.Value = value;
+            }
+
+            if (simpleTextData.ContainsKey(id))
+            {
+                simpleTextData[id] = value;
+            }
+
+            IndexingMessage.IsOpen = true;
+            await Task.Run(async () =>
+            {
+                await IndexTextData(id, value);
+            });
+            IndexingMessage.IsOpen = false;
+        }
     }
 
     private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
-        var sourceText = this.SourceTextBox.Text;
-        var searchText = this.SearchTextBox.Text;
+        string results = "";
+        CancellationToken ct = CancelGenerationAndGetNewToken();
 
-        if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
+        Task.Run(() =>
+        {
+            // We search the index using a semantic query:
+            AppIndexQuery queryCursor = _indexer.CreateQuery(SearchTextBox.Text);
+            IReadOnlyList<TextQueryMatch> textMatches = queryCursor.GetNextTextMatches(5);
+
+            // Nothing in the index exactly matches what we queried but item1 is similar to the query so we expect
+            // that to be the first match.
+            foreach (var match in textMatches)
+            {
+                Console.WriteLine(match.ContentId);
+                if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                {
+                    AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+
+                    // Only part of the original string may match the query. So we can use TextOffset and TextLength to extract the match.
+                    // In this example, we might imagine that the substring "Cats are cute and fluffy" from "item1" is the top match for the query.
+                    string matchingData = simpleTextData[match.ContentId];
+                    string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
+
+                    results += matchingString + "\n\n";
+                }
+            }
+        },
+        ct);
+
+        DispatcherQueue.TryEnqueue(() =>
         {
             this.OutputProgressBar.Visibility = Visibility.Visible;
             this.ResultsGrid.Visibility = Visibility.Visible;
-            Search(sourceText, searchText);
-        }
+
+            ResultsTextBlock.Text = results;
+        });
     }
 
-    private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+    private async void DataTabView_AddTabButtonClick(TabView sender, object args)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && SearchTextBox.Text.Length > 0)
+        // Generate a unique id for the new item
+        int nextIndex = 1;
+        string newId;
+        do
         {
-            var sourceText = this.SourceTextBox.Text;
-            var searchText = this.SearchTextBox.Text;
+            newId = $"item{TextDataItems.Count + 1}";
+            nextIndex++;
+        } while (simpleTextData.ContainsKey(newId));
 
-            if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
-            {
-                this.OutputProgressBar.Visibility = Visibility.Visible;
-                this.ResultsGrid.Visibility = Visibility.Visible;
-                SearchTextBox.IsEnabled = false;
-                Search(sourceText, searchText);
-            }
+        string defaultValue = "New item text...";
+
+        // Add to dictionary
+        simpleTextData[newId] = defaultValue;
+
+        // Add to observable collection
+        var newItem = new TextDataItem { Id = newId, Value = defaultValue };
+        TextDataItems.Add(newItem);
+
+        DataTabView.SelectedIndex = TextDataItems.Count - 1;
+
+        IndexingMessage.IsOpen = true;
+        await Task.Run(async () =>
+        { 
+           await IndexTextData(newId, defaultValue);
+        });
+        IndexingMessage.IsOpen = false;
+    }
+
+    private async Task IndexTextData(string id, string value)
+    {
+        // Index Textbox content
+        //IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
+        //_indexer.AddOrUpdate(textContent);
+
+        //var isIdle = await _indexer.WaitForIndexingIdleAsync(50000); 
+
+        await Task.Delay(2000);
+    }
+    private CancellationToken CancelGenerationAndGetNewToken()
+    {
+        cts.Cancel();
+        cts.Dispose();
+        cts = new CancellationTokenSource();
+        return cts.Token;
+    }
+
+    private void PopulateTextData()
+    {
+        // Populate SelectorItems from simpleTextData
+        foreach (var kvp in simpleTextData)
+        {
+            TextDataItems.Add(new TextDataItem { Id = kvp.Key, Value = kvp.Value });
         }
     }
-
-    public void Search(string sourceText, string searchText)
-    {
-        //CancellationToken ct = CancelGenerationAndGetNewToken();
-
-        
-    }
+}
+internal record class TextDataItem
+{
+    public string Id { get; set; }
+    public string Value { get; set; }
 
 }
