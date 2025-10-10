@@ -59,9 +59,9 @@
                  TextWrapping="Wrap" />
             <ProgressBar
                 x:Name="OutputProgressBar"
-                VerticalAlignment="Bottom"
-                IsIndeterminate="True"
-                Visibility="Collapsed" />
+                    VerticalAlignment="Bottom"
+                    IsIndeterminate="True"
+                    Visibility="Collapsed" />
             <Grid HorizontalAlignment="Stretch">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -108,6 +108,18 @@
                     IsTextSelectionEnabled="True"
                     TextWrapping="WrapWholeWords" />
             </ScrollViewer>
+            <ItemsControl x:Name="ImageResultsBox" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapGrid Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding}" Height="100" Width="100" Margin="5"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
     </Grid>
 </samples:BaseSamplePage>

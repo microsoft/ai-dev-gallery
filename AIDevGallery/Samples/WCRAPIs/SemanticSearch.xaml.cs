@@ -223,20 +223,23 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
+        CancellationToken ct = CancelGenerationAndGetNewToken();
+
         string results = "";
         string searchText = SearchTextBox.Text;
-        CancellationToken ct = CancelGenerationAndGetNewToken();
+        var imageResults = new List<string>();
 
         Task.Run(
             async () =>
             {
-                // We search the index using a semantic query:
+                // Create query
                 AppIndexQuery query = await Task.Run(() =>
                 {
                     return _indexer.CreateQuery(searchText);
                 });
 
-                IReadOnlyList < TextQueryMatch > textMatches = await Task.Run(() =>
+                // Get text matches
+                IReadOnlyList<TextQueryMatch> textMatches = await Task.Run(() =>
                 {
                     return query.GetNextTextMatches(5);
                 });
@@ -249,26 +252,52 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                         {
                             AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-
-                            // Only part of the original string may match the query. So we can use TextOffset and TextLength to extract the match.
-                            // In this example, we might imagine that the substring "Cats are cute and fluffy" from "item1" is the top match for the query.
                             string matchingData = simpleTextData[match.ContentId];
                             string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
-
                             results += matchingString + "\n\n";
                         }
                     }
                 }
+
+                // Get image matches
+                IReadOnlyList<ImageQueryMatch> imageMatches = await Task.Run(() =>
+                {
+                    return query.GetNextImageMatches(5);
+                });
+
+
+                if (imageMatches != null && imageMatches.Count > 0)
+                {
+                    foreach (var match in imageMatches)
+                    {
+                        if (simpleImageData.TryGetValue(match.ContentId, out var imagePath))
+                        {
+                            // If imagePath is just the file name, prepend the ms-appx URI
+                            var uri = imagePath.StartsWith("ms-appx") ? imagePath : $"ms-appx:///Assets/{imagePath}";
+                            imageResults.Add(uri);
+                        }
+                    }
+                }
+
+                // Update UI
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    this.ResultsGrid.Visibility = Visibility.Visible;
+                    ResultsTextBlock.Text = results;
+
+                    if (imageResults.Count > 0)
+                    {
+                        ImageResultsBox.ItemsSource = imageResults;
+                        ImageResultsBox.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        ImageResultsBox.ItemsSource = null;
+                        ImageResultsBox.Visibility = Visibility.Collapsed;
+                    }
+                });
             },
             ct);
-
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            //this.OutputProgressBar.Visibility = Visibility.Visible;
-            this.ResultsGrid.Visibility = Visibility.Visible;
-
-            ResultsTextBlock.Text = results;
-        });
     }
 
     private async void DataTabView_AddTabButtonClick(TabView sender, object args)
@@ -303,20 +332,37 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async void DataTabView_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
     {
-        if (args.Item is TextDataItem item)
+        if (args.Item is TextDataItem textItem)
         {
-            TextDataItems.Remove(item);
+            TextDataItems.Remove(textItem);
 
-            if (simpleTextData.ContainsKey(item.Id))
+            if (simpleTextData.ContainsKey(textItem.Id))
             {
-                simpleTextData.Remove(item.Id);
+                simpleTextData.Remove(textItem.Id);
             }
 
             RemovedItemMessage.IsOpen = true;
-            RemovedItemMessage.Message = $"Removed {item.Id} from index";
+            RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
             await Task.Run(async () =>
             {
-                await RemoveItemFromIndex(item.Id);
+                await RemoveItemFromIndex(textItem.Id);
+            });
+            RemovedItemMessage.IsOpen = false;
+        }
+        else if (args.Item is ImageDataItem imageItem)
+        {
+            ImageDataItems.Remove(imageItem);
+
+            if (simpleImageData.ContainsKey(imageItem.Id))
+            {
+                simpleImageData.Remove(imageItem.Id);
+            }
+
+            RemovedItemMessage.IsOpen = true;
+            RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
+            await Task.Run(async () =>
+            {
+                await RemoveItemFromIndex(imageItem.Id);
             });
             RemovedItemMessage.IsOpen = false;
         }
