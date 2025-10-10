@@ -46,7 +46,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Scenario = ScenarioType.TextSemanticSearch,
     Id = "F8465A45-8E23-4485-8C16-9909E96EACF6",
     AssetFilenames = [
-        "OCR.png"
+        "OCR.png",
+        "Enhance.png",
+        "Road.png",
     ],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
@@ -57,6 +59,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
 internal sealed partial class SemanticSearch : BaseSamplePage
 {
     ObservableCollection<TextDataItem> TextDataItems { get; } = new();
+    ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
 
     // This is some text data that we want to add to the index:
     Dictionary<string, string> simpleTextData = new Dictionary<string, string>
@@ -67,6 +70,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         {"item4", "Broccoli is a nutritious green vegetable rich in vitamins, fiber, and antioxidants." },
         {"item5", "Computers are powerful electronic devices that process information, perform calculations, and enable communication worldwide." },
         {"item6", "Music is a universal language that expresses emotions, tells stories, and connects people through rhythm and melody." },
+    };
+
+    Dictionary<string, string> simpleImageData = new Dictionary<string, string>
+    {
+        {"image1", "Enhance.png" },
+        {"image2", "OCR.png" },
+        {"image3", "Road.png" },
     };
 
     private AppContentIndexer _indexer;
@@ -82,6 +92,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
 
         PopulateTextData();
+        PopulateImageData();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -112,7 +123,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     // <exclude>
     private void Page_Loaded()
     {
-        DataTabView.Focus(FocusState.Programmatic);
+        TextDataTabView.Focus(FocusState.Programmatic);
     }
 
     // </exclude>
@@ -215,7 +226,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         var newItem = new TextDataItem { Id = newId, Value = defaultValue };
         TextDataItems.Add(newItem);
 
-        DataTabView.SelectedIndex = TextDataItems.Count - 1;
+        (sender as TabView).SelectedIndex = TextDataItems.Count - 1;
 
         IndexingMessage.IsOpen = true;
         await Task.Run(async () =>
@@ -273,10 +284,18 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void PopulateTextData()
     {
-        // Populate SelectorItems from simpleTextData
         foreach (var kvp in simpleTextData)
         {
             TextDataItems.Add(new TextDataItem { Id = kvp.Key, Value = kvp.Value });
+        }
+    }
+
+    private void PopulateImageData()
+    {
+        foreach (var kvp in simpleImageData)
+        {
+            var uri = $"ms-appx:///Assets/{kvp.Value}";
+            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
         }
     }
 }
@@ -284,5 +303,12 @@ internal record class TextDataItem
 {
     public string Id { get; set; }
     public string Value { get; set; }
+
+}
+
+internal record class ImageDataItem
+{
+    public string Id { get; set; }
+    public string ImageSource { get; set; }
 
 }

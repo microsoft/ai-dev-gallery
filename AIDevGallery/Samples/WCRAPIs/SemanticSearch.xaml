@@ -16,7 +16,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Spacing="8">
-            <controls:TabView x:Name="DataTabView"
+            <controls:TabView x:Name="TextDataTabView"
                 TabItemsSource="{x:Bind TextDataItems}"
                 AddTabButtonClick="DataTabView_AddTabButtonClick"
                 TabCloseRequested="DataTabView_TabCloseRequested"
@@ -33,6 +33,21 @@
                                      TextWrapping="Wrap"
                                      Height="120"
                                      Margin="0,7,0,0"/>
+                        </TabViewItem>
+                    </DataTemplate>
+                </TabView.TabItemTemplate>
+            </controls:TabView>
+            <controls:TabView x:Name="ImageDataTabView"
+                TabItemsSource="{x:Bind ImageDataItems}"
+                AddTabButtonClick="DataTabView_AddTabButtonClick"
+                TabCloseRequested="DataTabView_TabCloseRequested"
+                CanDrag="False"
+                CanDragTabs="False"
+                SelectedIndex="0">
+                <TabView.TabItemTemplate>
+                    <DataTemplate x:DataType="local:ImageDataItem">
+                        <TabViewItem Header="{x:Bind Id}">
+                            <Image Source="{x:Bind ImageSource}" Height="150" Margin="12" Stretch="Uniform"></Image>
                         </TabViewItem>
                     </DataTemplate>
                 </TabView.TabItemTemplate>
