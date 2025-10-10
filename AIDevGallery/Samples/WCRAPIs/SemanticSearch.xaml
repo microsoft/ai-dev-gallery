@@ -10,13 +10,15 @@
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          BorderThickness="0,0,0,1"
+          Margin="-20"
+          Padding="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <StackPanel Spacing="8">
-
             <TextBlock 
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
@@ -122,7 +124,14 @@
                     <StackLayout Orientation="Horizontal" />
                 </controls:ItemsView.Layout>
             </controls:ItemsView>
-            
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" 
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            Margin="-20"
+            Padding="20">
             <TextBox
                  x:Name="SearchTextBox"
                  AutomationProperties.Name="Prompt input"
@@ -130,9 +139,9 @@
                  TextWrapping="Wrap" />
             <ProgressBar
                 x:Name="OutputProgressBar"
-                    VerticalAlignment="Bottom"
-                    IsIndeterminate="True"
-                    Visibility="Collapsed" />
+                VerticalAlignment="Bottom"
+                IsIndeterminate="True"
+                Visibility="Collapsed" />
             <Grid HorizontalAlignment="Stretch">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -155,7 +164,7 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Vertical" 
-                        Grid.Column="1">
+                    Grid.Column="1">
                     <Button
                         x:Name="SearchButton"
                         HorizontalAlignment="Right"
@@ -204,7 +213,7 @@
         </StackPanel>
         <Grid
             x:Name="ResultsGrid"
-            Grid.Row="2"
+            Grid.Column="1"
             Visibility="Collapsed">
             <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
             <ScrollViewer
