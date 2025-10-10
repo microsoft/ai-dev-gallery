@@ -9,6 +9,7 @@ using CommunityToolkit.WinUI;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Imaging;
 using Microsoft.ML.OnnxRuntimeGenAI;
 using Microsoft.SemanticKernel.Connectors.InMemory;
@@ -184,7 +185,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             {
                 try
                 {
-                    var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+                    StorageFile file;
+                    if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+                    }
+                    else
+                    {
+                        // Assume it's a file path for user-uploaded images
+                        file = await StorageFile.GetFileFromPathAsync(uriString);
+                    }
+
                     using var stream = await file.OpenAsync(FileAccessMode.Read);
                     var decoder = await BitmapDecoder.CreateAsync(stream);
                     bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
@@ -324,8 +335,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
         IndexingMessage.IsOpen = true;
         await Task.Run(async () =>
-        { 
-           await IndexTextData(newId, defaultValue);
+        {
+            await IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
     }
@@ -437,7 +448,51 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
         }
     }
+   
+    private async void UploadImageButton_Click(object sender, RoutedEventArgs e)
+    {
+        SendSampleInteractedEvent("LoadImageClicked");
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+        var picker = new FileOpenPicker();
+
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".jpg");
+
+        picker.ViewMode = PickerViewMode.Thumbnail;
+
+        StorageFile file = await picker.PickSingleFileAsync();
+        if (file != null)
+        {
+            // Generate a unique id for the new image
+            int nextIndex = 1;
+            string newId;
+            do
+            {
+                newId = $"image{ImageDataItems.Count + nextIndex}";
+                nextIndex++;
+            } while (ImageDataItems.Any(i => i.Id == newId));
+
+            // Create a ms-appx URI for the image (or use file path for local images)
+            var imageUri = file.Path;
+
+            // Add to collection and dictionary
+            ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
+            simpleImageData[newId] = imageUri;
+        }
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
+    }
 }
+
 internal record class TextDataItem
 {
     public string Id { get; set; }

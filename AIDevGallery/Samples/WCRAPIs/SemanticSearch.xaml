@@ -38,44 +38,62 @@
                 </TabView.TabItemTemplate>
             </controls:TabView>
 
-            <controls:ItemsView
-                x:Name="ImageDataItemsView"
-                ItemsSource="{x:Bind ImageDataItems}"
-                SelectionMode="None"
-                IsItemInvokedEnabled="False">
-                <controls:ItemsView.ItemTemplate>
-                    <DataTemplate x:DataType="local:ImageDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
-                            <Grid>
-                                <Image Source="{x:Bind ImageSource}"
-                                       Tag="{x:Bind Id}"
-                                       ImageOpened="ImageData_ImageOpened" 
-                                       Stretch="Fill" 
-                                       HorizontalAlignment="Stretch" 
-                                       VerticalAlignment="Stretch" 
-                                       MinWidth="70"/>
-                                <Button
-                                    x:Name="imageCloseButton"
-                                    Click="imageCloseButton_Click"
-                                    Tag="{x:Bind}"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    Margin="0,4,4,0"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Style="{StaticResource SubtleButtonStyle}">
-                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
-                                </Button>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:ItemsView
+                    x:Name="ImageDataItemsView"
+                    ItemsSource="{x:Bind ImageDataItems}"
+                    SelectionMode="None"
+                    IsItemInvokedEnabled="False"
+                    Grid.Column="0">
+                    <controls:ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="local:ImageDataItem">
+                            <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                                <Grid>
+                                    <Image Source="{x:Bind ImageSource}"
+                                           Tag="{x:Bind Id}"
+                                           ImageOpened="ImageData_ImageOpened" 
+                                           Stretch="Fill" 
+                                           HorizontalAlignment="Stretch" 
+                                           VerticalAlignment="Stretch" 
+                                           MinWidth="70"/>
+                                    <Button
+                                        x:Name="imageCloseButton"
+                                        Click="imageCloseButton_Click"
+                                        Tag="{x:Bind}"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="0,4,4,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Style="{StaticResource SubtleButtonStyle}">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
+                                    </Button>
 
-                                <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
-                            </Grid>
-                        </controls:ItemContainer>
-                    </DataTemplate>
-                </controls:ItemsView.ItemTemplate>
-                <ItemsView.Layout>
-                    <StackLayout Orientation="Horizontal" />
-                </ItemsView.Layout>
-            </controls:ItemsView>
+                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
+                                </Grid>
+                            </controls:ItemContainer>
+                        </DataTemplate>
+                    </controls:ItemsView.ItemTemplate>
+                    <controls:ItemsView.Layout>
+                        <StackLayout Orientation="Horizontal" />
+                    </controls:ItemsView.Layout>
+                </controls:ItemsView>
+                <Button
+                    Grid.Column="1"
+                    VerticalAlignment="Top"
+                    Margin="12,0,0,0"
+                    Click="UploadImageButton_Click"
+                    Style="{StaticResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
+                        <TextBlock Text="Upload Image"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
             <TextBox
                  x:Name="SearchTextBox"
                  AutomationProperties.Name="Prompt input"
