@@ -16,28 +16,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Spacing="8">
-            <!--<controls:TabView x:Name="TextDataTabView"
-                TabItemsSource="{x:Bind TextDataItems}"
-                AddTabButtonClick="DataTabView_AddTabButtonClick"
-                TabCloseRequested="DataTabView_TabCloseRequested"
-                CanDrag="False"
-                CanDragTabs="False"
-                SelectedIndex="0">
-                <TabView.TabItemTemplate>
-                    <DataTemplate x:DataType="local:TextDataItem">
-                        <TabViewItem Header="{x:Bind Id}">
-                            <TextBox Text="{x:Bind Value, Mode=TwoWay}"
-                                     Tag="{x:Bind Id}"
-                                     TextChanged="SemanticTextBox_TextChanged"
-                                     AcceptsReturn="True"
-                                     TextWrapping="Wrap"
-                                     Height="120"
-                                     Margin="0,7,0,0"/>
-                        </TabViewItem>
-                    </DataTemplate>
-                </TabView.TabItemTemplate>
-            </controls:TabView>-->
-
+            <TextBlock 
+                Style="{StaticResource CaptionTextBlockStyle}" 
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                Text="Sample text data:"
+                Margin="0"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -48,7 +31,8 @@
                     ItemsSource="{x:Bind TextDataItems}"
                     SelectionMode="None"
                     IsItemInvokedEnabled="False"
-                    Grid.Column="0">
+                    Grid.Column="0"
+                    Padding="0,0,0,12">
                     <controls:ItemsView.ItemTemplate>
                         <DataTemplate x:DataType="local:TextDataItem">
                             <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
@@ -58,8 +42,8 @@
                                          TextChanged="SemanticTextBox_TextChanged"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
-                                         Height="120"
-                                         Margin="0,7,0,0"/>
+                                         Padding="11,32,11,11"
+                                         Height="120"/>
                                     <Button
                                         x:Name="textCloseButton"
                                         Click="closeButton_Click"
@@ -73,7 +57,7 @@
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
                                     </Button>
 
-                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
+                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                                 </Grid>
                             </controls:ItemContainer>
                         </DataTemplate>
@@ -94,6 +78,7 @@
                 </Button>
             </Grid>
 
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Sample image data:" />
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -116,6 +101,7 @@
                                            HorizontalAlignment="Stretch" 
                                            VerticalAlignment="Stretch" 
                                            MinWidth="70"/>
+                                    <Border Background="{ThemeResource LayerFillColorAltBrush}" Height="34" VerticalAlignment="Top" />
                                     <Button
                                         x:Name="imageCloseButton"
                                         Click="closeButton_Click"
@@ -129,7 +115,7 @@
                                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
                                     </Button>
 
-                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
+                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                                 </Grid>
                             </controls:ItemContainer>
                         </DataTemplate>
