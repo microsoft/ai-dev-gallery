@@ -47,7 +47,7 @@
                 <TabView.TabItemTemplate>
                     <DataTemplate x:DataType="local:ImageDataItem">
                         <TabViewItem Header="{x:Bind Id}">
-                            <Image Source="{x:Bind ImageSource}" Height="150" Margin="12" Stretch="Uniform"></Image>
+                            <Image Source="{x:Bind ImageSource}" Tag="{x:Bind Id}" Height="150" Margin="12" Stretch="Uniform" ImageOpened="ImageData_ImageOpened"/>
                         </TabViewItem>
                     </DataTemplate>
                 </TabView.TabItemTemplate>
@@ -90,7 +90,6 @@
                     Click="SearchButton_Click"
                     Content="Search"
                     Margin="10,0,0,0"
-                    IsEnabled="False"
                     Style="{StaticResource AccentButtonStyle}" />
             </Grid>
         </StackPanel>

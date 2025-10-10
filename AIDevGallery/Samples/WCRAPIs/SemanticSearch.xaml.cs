@@ -26,6 +26,7 @@ using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -97,25 +98,25 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        //var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
-        //if (!result.Succeeded)
-        //{
-        //    throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        //}
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+        }
 
-        //// If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        //if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-        //{
-        //    Console.WriteLine("Created a new index");
-        //}
-        //else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        //{
-        //    Console.WriteLine("Opened an existing index");
-        //}
+        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+        {
+            Console.WriteLine("Created a new index");
+        }
+        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+        {
+            Console.WriteLine("Opened an existing index");
+        }
 
-        //_indexer = result.Indexer;
-        //var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+        _indexer = result.Indexer;
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
 
         sampleParams.NotifyCompletion();
     }
@@ -166,40 +167,104 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
+    private async void ImageData_ImageOpened(object sender, RoutedEventArgs e)
+    {
+        if (sender is Microsoft.UI.Xaml.Controls.Image image)
+        {
+            string id = image.Tag as string;
+            string uriString = null;
+
+            if (image.Source is BitmapImage bitmapImage && bitmapImage.UriSource != null)
+            {
+                uriString = bitmapImage.UriSource.ToString();
+            }
+
+            SoftwareBitmap bitmap = null;
+            if (!string.IsNullOrEmpty(uriString))
+            {
+                try
+                {
+                    var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+                    using var stream = await file.OpenAsync(FileAccessMode.Read);
+                    var decoder = await BitmapDecoder.CreateAsync(stream);
+                    bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
+                }
+            }
+
+            // Update local dictionary and observable collection
+            var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
+            if (item != null)
+            {
+                var fileName = Path.GetFileName(uriString);
+                item.ImageSource = fileName;
+            }
+
+            if (simpleImageData.ContainsKey(id))
+            {
+                simpleImageData[id] = uriString;
+            }
+            else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
+            {
+                simpleImageData.Add(id, uriString);
+            }
+
+            IndexingMessage.IsOpen = true;
+            await Task.Run(async () =>
+            {
+                await IndexImageData(id, bitmap);
+            });
+            IndexingMessage.IsOpen = false;
+        }
+    }
+
     private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
         string results = "";
+        string searchText = SearchTextBox.Text;
         CancellationToken ct = CancelGenerationAndGetNewToken();
 
-        Task.Run(() =>
-        {
-            // We search the index using a semantic query:
-            AppIndexQuery queryCursor = _indexer.CreateQuery(SearchTextBox.Text);
-            IReadOnlyList<TextQueryMatch> textMatches = queryCursor.GetNextTextMatches(5);
-
-            // Nothing in the index exactly matches what we queried but item1 is similar to the query so we expect
-            // that to be the first match.
-            foreach (var match in textMatches)
+        Task.Run(
+            async () =>
             {
-                Console.WriteLine(match.ContentId);
-                if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                // We search the index using a semantic query:
+                AppIndexQuery query = await Task.Run(() =>
                 {
-                    AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                    return _indexer.CreateQuery(searchText);
+                });
 
-                    // Only part of the original string may match the query. So we can use TextOffset and TextLength to extract the match.
-                    // In this example, we might imagine that the substring "Cats are cute and fluffy" from "item1" is the top match for the query.
-                    string matchingData = simpleTextData[match.ContentId];
-                    string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
+                IReadOnlyList < TextQueryMatch > textMatches = await Task.Run(() =>
+                {
+                    return query.GetNextTextMatches(5);
+                });
 
-                    results += matchingString + "\n\n";
+                if (textMatches != null && textMatches.Count > 0)
+                {
+                    foreach (var match in textMatches)
+                    {
+                        Console.WriteLine(match.ContentId);
+                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                        {
+                            AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+
+                            // Only part of the original string may match the query. So we can use TextOffset and TextLength to extract the match.
+                            // In this example, we might imagine that the substring "Cats are cute and fluffy" from "item1" is the top match for the query.
+                            string matchingData = simpleTextData[match.ContentId];
+                            string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
+
+                            results += matchingString + "\n\n";
+                        }
+                    }
                 }
-            }
-        },
-        ct);
+            },
+            ct);
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            this.OutputProgressBar.Visibility = Visibility.Visible;
+            //this.OutputProgressBar.Visibility = Visibility.Visible;
             this.ResultsGrid.Visibility = Visibility.Visible;
 
             ResultsTextBlock.Text = results;
@@ -260,20 +325,27 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     private async Task RemoveItemFromIndex(string id)
     {
         // Remove item from index
-        //_indexer.Remove(id);
-        await Task.Delay(2000);
+        _indexer.Remove(id);
     }
 
     private async Task IndexTextData(string id, string value)
     {
         // Index Textbox content
-        //IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
-        //_indexer.AddOrUpdate(textContent);
+        IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
+        _indexer.AddOrUpdate(textContent);
 
-        //var isIdle = await _indexer.WaitForIndexingIdleAsync(50000); 
-
-        await Task.Delay(2000);
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }
+
+    private async Task IndexImageData(string id, SoftwareBitmap bitmap)
+    {
+        // Index inage content
+        IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
+        _indexer.AddOrUpdate(imageContent);
+
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+    }
+
     private CancellationToken CancelGenerationAndGetNewToken()
     {
         cts.Cancel();

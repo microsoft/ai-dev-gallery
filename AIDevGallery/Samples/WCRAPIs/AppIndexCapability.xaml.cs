@@ -39,11 +39,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.AppIndexCapability],
     Scenario = ScenarioType.TextSemanticSearch,
     Id = "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
-    AssetFilenames = [
-        "OCR.png"
-    ],
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI"
+        "Microsoft.Extensions.AI",
+        "Microsoft.WindowsAppSDK"
     ],
     Icon = "\uEE6F")]
 
@@ -81,9 +79,12 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
         sampleParams.NotifyCompletion();
     }
 
-    private void LoadSystemCapabilities()
+    private async void LoadSystemCapabilities()
     {
-        IndexCapabilitiesOfCurrentSystem capabilities = AppContentIndexer.GetIndexCapabilitiesOfCurrentSystem();
+        IndexCapabilitiesOfCurrentSystem capabilities = await Task.Run(() =>
+        {
+            return AppContentIndexer.GetIndexCapabilitiesOfCurrentSystem();
+        });
 
         // Status is one of: Ready, NotReady, DisabledByPolicy or NotSupported.
         lexicalCapabilityResultText.Text = capabilities.GetIndexCapabilityStatus(IndexCapability.TextLexical).ToString();
