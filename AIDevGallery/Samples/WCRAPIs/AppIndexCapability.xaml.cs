@@ -56,27 +56,27 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        //var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
-        //if (!result.Succeeded)
-        //{
-        //    throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        //}
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+        }
 
-        //// If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        //if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-        //{
-        //    Console.WriteLine("Created a new index");
-        //}
-        //else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        //{
-        //    Console.WriteLine("Opened an existing index");
-        //}
+        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+        {
+            Console.WriteLine("Created a new index");
+        }
+        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+        {
+            Console.WriteLine("Opened an existing index");
+        }
 
-        //using AppContentIndexer indexer = result.Indexer;
-        //var isIdle = await indexer.WaitForIndexingIdleAsync(50000);
-        //indexer.Listener.IndexCapabilitiesChanged += Listener_IndexCapabilitiesChanged;
-        //LoadSystemCapabilities();
+        using AppContentIndexer indexer = result.Indexer;
+        var isIdle = await indexer.WaitForIndexingIdleAsync(50000);
+        indexer.Listener.IndexCapabilitiesChanged += Listener_IndexCapabilitiesChanged;
+        LoadSystemCapabilities();
 
         sampleParams.NotifyCompletion();
     }
