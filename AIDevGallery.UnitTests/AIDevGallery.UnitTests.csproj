@@ -12,7 +12,7 @@
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <EnableMsixTooling>false</EnableMsixTooling>
-    <NoWarn>CS1591;NU1608</NoWarn>
+    <NoWarn>CS1591</NoWarn>
     <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>

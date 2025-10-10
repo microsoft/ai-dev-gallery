@@ -20,7 +20,7 @@
     <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')" PrivateAssets="All" />
   </ItemGroup>
   <PropertyGroup Condition="$(Configuration)=='Release'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Turn on/off depending on weather the WinAppSDK is prerelease or not -->
