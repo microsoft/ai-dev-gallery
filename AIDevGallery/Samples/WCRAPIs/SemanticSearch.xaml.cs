@@ -368,6 +368,27 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
+    private async void imageCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is ImageDataItem imageItem)
+        {
+            ImageDataItems.Remove(imageItem);
+
+            if (simpleImageData.ContainsKey(imageItem.Id))
+            {
+                simpleImageData.Remove(imageItem.Id);
+            }
+
+            RemovedItemMessage.IsOpen = true;
+            RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
+            await Task.Run(async () =>
+            {
+                await RemoveItemFromIndex(imageItem.Id);
+            });
+            RemovedItemMessage.IsOpen = false;
+        }
+    }
+
     private async Task RemoveItemFromIndex(string id)
     {
         // Remove item from index

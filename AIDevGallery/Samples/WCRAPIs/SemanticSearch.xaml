@@ -37,21 +37,45 @@
                     </DataTemplate>
                 </TabView.TabItemTemplate>
             </controls:TabView>
-            <controls:TabView x:Name="ImageDataTabView"
-                TabItemsSource="{x:Bind ImageDataItems}"
-                AddTabButtonClick="DataTabView_AddTabButtonClick"
-                TabCloseRequested="DataTabView_TabCloseRequested"
-                CanDrag="False"
-                CanDragTabs="False"
-                SelectedIndex="0">
-                <TabView.TabItemTemplate>
+
+            <controls:ItemsView
+                x:Name="ImageDataItemsView"
+                ItemsSource="{x:Bind ImageDataItems}"
+                SelectionMode="None"
+                IsItemInvokedEnabled="False">
+                <controls:ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="local:ImageDataItem">
-                        <TabViewItem Header="{x:Bind Id}">
-                            <Image Source="{x:Bind ImageSource}" Tag="{x:Bind Id}" Height="150" Margin="12" Stretch="Uniform" ImageOpened="ImageData_ImageOpened"/>
-                        </TabViewItem>
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                            <Grid>
+                                <Image Source="{x:Bind ImageSource}"
+                                       Tag="{x:Bind Id}"
+                                       ImageOpened="ImageData_ImageOpened" 
+                                       Stretch="Fill" 
+                                       HorizontalAlignment="Stretch" 
+                                       VerticalAlignment="Stretch" 
+                                       MinWidth="70"/>
+                                <Button
+                                    x:Name="imageCloseButton"
+                                    Click="imageCloseButton_Click"
+                                    Tag="{x:Bind}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,4,4,0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
+                                </Button>
+
+                                <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
+                            </Grid>
+                        </controls:ItemContainer>
                     </DataTemplate>
-                </TabView.TabItemTemplate>
-            </controls:TabView>
+                </controls:ItemsView.ItemTemplate>
+                <ItemsView.Layout>
+                    <StackLayout Orientation="Horizontal" />
+                </ItemsView.Layout>
+            </controls:ItemsView>
             <TextBox
                  x:Name="SearchTextBox"
                  AutomationProperties.Name="Prompt input"
