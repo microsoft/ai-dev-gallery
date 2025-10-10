@@ -30,7 +30,6 @@
 
   <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true'">
     <!-- Workaround for tests in WinAppSDK1.8Exp3 -->
-    <PackageVersionOverride Include="Microsoft.WindowsAppSDK.ML" Version="2.0.28-experimental" />
     <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
   </PropertyGroup>
 	
