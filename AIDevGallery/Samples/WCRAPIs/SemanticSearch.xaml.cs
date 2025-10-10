@@ -232,7 +232,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
-    private void SearchButton_Click(object sender, RoutedEventArgs e)
+    private void SearchButton_Click(object sender, SplitButtonClickEventArgs e)
     {
         string searchText = SearchTextBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))

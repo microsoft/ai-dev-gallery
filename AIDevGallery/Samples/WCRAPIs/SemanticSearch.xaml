@@ -86,8 +86,7 @@
                     Grid.Column="1"
                     VerticalAlignment="Top"
                     Margin="12,0,0,0"
-                    Click="UploadImageButton_Click"
-                    Style="{StaticResource AccentButtonStyle}">
+                    Click="UploadImageButton_Click">
                     <StackPanel Orientation="Horizontal">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
                         <TextBlock Text="Upload Image"/>
@@ -135,36 +134,42 @@
                         Margin="10,0,0,0"
                         Style="{StaticResource AccentButtonStyle}" />
 
-                    <!-- Query Options -->
-                    <TextBlock Text="Query Options" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                    <TextBox x:Name="QueryLanguageTextBox" Header="Query Language" PlaceholderText="e.g., en-US"/>
+                    <AppBarButton AllowFocusOnInteraction="True" Icon="Edit" Label="Edit">
+                        <AppBarButton.Flyout>
+                            <Flyout>
+                                <StackPanel>
+                                    <!-- Query Options -->
+                                    <TextBlock Text="Query Options" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="QueryLanguageTextBox" Header="Query Language" PlaceholderText="e.g., en-US"/>
 
-                    <!--Text Match Options--> 
-                    <TextBlock Text="Text Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
-                        <ComboBoxItem Content="Unconstrained"/>
-                        <ComboBoxItem Content="Region"/>
-                        <ComboBoxItem Content="ContentItem"/>
-                    </ComboBox>
-                    <ComboBox x:Name="TextMatchTypeComboBox" Header="Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
-                        <ComboBoxItem Content="Fuzzy"/>
-                        <ComboBoxItem Content="Exact"/>
-                    </ComboBox>
+                                    <!--Text Match Options-->
+                                    <TextBlock Text="Text Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
+                                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
+                                        <ComboBoxItem Content="Unconstrained"/>
+                                        <ComboBoxItem Content="Region"/>
+                                        <ComboBoxItem Content="ContentItem"/>
+                                    </ComboBox>
+                                    <ComboBox x:Name="TextMatchTypeComboBox" Header="Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
+                                        <ComboBoxItem Content="Fuzzy"/>
+                                        <ComboBoxItem Content="Exact"/>
+                                    </ComboBox>
 
-                     <!--Image Match Options--> 
-                    <TextBlock Text="Image Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
-                        <ComboBoxItem Content="Unconstrained"/>
-                        <ComboBoxItem Content="Region"/>
-                        <ComboBoxItem Content="ContentItem"/>
-                    </ComboBox>
-                    <ComboBox x:Name="ImageOcrTextMatchTypeComboBox" Header="OCR Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
-                        <ComboBoxItem Content="Fuzzy"/>
-                        <ComboBoxItem Content="Exact"/>
-                    </ComboBox>
+                                    <!--Image Match Options-->
+                                    <TextBlock Text="Image Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
+                                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
+                                        <ComboBoxItem Content="Unconstrained"/>
+                                        <ComboBoxItem Content="Region"/>
+                                        <ComboBoxItem Content="ContentItem"/>
+                                    </ComboBox>
+                                    <ComboBox x:Name="ImageOcrTextMatchTypeComboBox" Header="OCR Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
+                                        <ComboBoxItem Content="Fuzzy"/>
+                                        <ComboBoxItem Content="Exact"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Flyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
                 </StackPanel>
-                
-                
             </Grid>
         </StackPanel>
         <Grid
