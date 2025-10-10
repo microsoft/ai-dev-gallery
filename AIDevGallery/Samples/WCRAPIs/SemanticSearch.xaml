@@ -124,15 +124,47 @@
                         Message="Item has been removed" 
                         Padding="0"/>
                 </StackPanel>
+
+                <StackPanel Orientation="Vertical" 
+                        Grid.Column="1">
+                    <Button
+                        x:Name="SearchButton"
+                        HorizontalAlignment="Right"
+                        Click="SearchButton_Click"
+                        Content="Search"
+                        Margin="10,0,0,0"
+                        Style="{StaticResource AccentButtonStyle}" />
+
+                    <!-- Query Options -->
+                    <TextBlock Text="Query Options" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBox x:Name="QueryLanguageTextBox" Header="Query Language" PlaceholderText="e.g., en-US"/>
+
+                    <!--Text Match Options--> 
+                    <TextBlock Text="Text Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
+                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
+                        <ComboBoxItem Content="Unconstrained"/>
+                        <ComboBoxItem Content="Region"/>
+                        <ComboBoxItem Content="ContentItem"/>
+                    </ComboBox>
+                    <ComboBox x:Name="TextMatchTypeComboBox" Header="Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
+                        <ComboBoxItem Content="Fuzzy"/>
+                        <ComboBoxItem Content="Exact"/>
+                    </ComboBox>
+
+                     <!--Image Match Options--> 
+                    <TextBlock Text="Image Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
+                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
+                        <ComboBoxItem Content="Unconstrained"/>
+                        <ComboBoxItem Content="Region"/>
+                        <ComboBoxItem Content="ContentItem"/>
+                    </ComboBox>
+                    <ComboBox x:Name="ImageOcrTextMatchTypeComboBox" Header="OCR Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
+                        <ComboBoxItem Content="Fuzzy"/>
+                        <ComboBoxItem Content="Exact"/>
+                    </ComboBox>
+                </StackPanel>
                 
-                <Button
-                    x:Name="SearchButton"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    Click="SearchButton_Click"
-                    Content="Search"
-                    Margin="10,0,0,0"
-                    Style="{StaticResource AccentButtonStyle}" />
+                
             </Grid>
         </StackPanel>
         <Grid

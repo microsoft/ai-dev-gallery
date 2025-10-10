@@ -234,10 +234,40 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
-        CancellationToken ct = CancelGenerationAndGetNewToken();
-
-        string results = "";
         string searchText = SearchTextBox.Text;
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            Console.WriteLine("Search text is empty.");
+            return; 
+        }
+
+        // Create query options
+        AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
+
+        // Set language if provided
+        string queryLanguage = QueryLanguageTextBox.Text;
+        if (!string.IsNullOrWhiteSpace(queryLanguage))
+        {
+            queryOptions.Language = queryLanguage;
+        }
+
+        // Create text match options
+        TextMatchOptions textMatchOptions = new TextMatchOptions
+        {
+            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
+            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
+        };
+
+        // Create image match options
+        ImageMatchOptions imageMatchOptions = new ImageMatchOptions
+        {
+            MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
+            ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
+        };
+
+        CancellationToken ct = CancelGenerationAndGetNewToken();
+   
+        string textResults = "";
         var imageResults = new List<string>();
 
         Task.Run(
@@ -246,7 +276,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 // Create query
                 AppIndexQuery query = await Task.Run(() =>
                 {
-                    return _indexer.CreateQuery(searchText);
+                    return _indexer.CreateQuery(searchText, queryOptions);
                 });
 
                 // Get text matches
@@ -265,7 +295,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                             AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
                             string matchingData = simpleTextData[match.ContentId];
                             string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
-                            results += matchingString + "\n\n";
+                            textResults += matchingString + "\n\n";
                         }
                     }
                 }
@@ -294,7 +324,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     this.ResultsGrid.Visibility = Visibility.Visible;
-                    ResultsTextBlock.Text = results;
+                    ResultsTextBlock.Text = textResults;
 
                     if (imageResults.Count > 0)
                     {
@@ -379,6 +409,43 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
+    private async void UploadImageButton_Click(object sender, RoutedEventArgs e)
+    {
+        SendSampleInteractedEvent("LoadImageClicked");
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+        var picker = new FileOpenPicker();
+
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".jpg");
+
+        picker.ViewMode = PickerViewMode.Thumbnail;
+
+        StorageFile file = await picker.PickSingleFileAsync();
+        if (file != null)
+        {
+            // Generate a unique id for the new image
+            int nextIndex = 1;
+            string newId;
+            do
+            {
+                newId = $"image{ImageDataItems.Count + nextIndex}";
+                nextIndex++;
+            } while (ImageDataItems.Any(i => i.Id == newId));
+
+            // Create a ms-appx URI for the image (or use file path for local images)
+            var imageUri = file.Path;
+
+            // Add to collection and dictionary
+            ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
+            simpleImageData[newId] = imageUri;
+        }
+    }
+
     private async void imageCloseButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is ImageDataItem imageItem)
@@ -424,14 +491,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }
 
-    private CancellationToken CancelGenerationAndGetNewToken()
-    {
-        cts.Cancel();
-        cts.Dispose();
-        cts = new CancellationTokenSource();
-        return cts.Token;
-    }
-
     private void PopulateTextData()
     {
         foreach (var kvp in simpleTextData)
@@ -449,41 +508,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
    
-    private async void UploadImageButton_Click(object sender, RoutedEventArgs e)
+    private CancellationToken CancelGenerationAndGetNewToken()
     {
-        SendSampleInteractedEvent("LoadImageClicked");
-        var window = new Window();
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-        var picker = new FileOpenPicker();
-
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        picker.FileTypeFilter.Add(".png");
-        picker.FileTypeFilter.Add(".jpeg");
-        picker.FileTypeFilter.Add(".jpg");
-
-        picker.ViewMode = PickerViewMode.Thumbnail;
-
-        StorageFile file = await picker.PickSingleFileAsync();
-        if (file != null)
-        {
-            // Generate a unique id for the new image
-            int nextIndex = 1;
-            string newId;
-            do
-            {
-                newId = $"image{ImageDataItems.Count + nextIndex}";
-                nextIndex++;
-            } while (ImageDataItems.Any(i => i.Id == newId));
-
-            // Create a ms-appx URI for the image (or use file path for local images)
-            var imageUri = file.Path;
-
-            // Add to collection and dictionary
-            ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
-            simpleImageData[newId] = imageUri;
-        }
+        cts.Cancel();
+        cts.Dispose();
+        cts = new CancellationTokenSource();
+        return cts.Token;
     }
 
     private static bool IsImageFile(string fileName)
