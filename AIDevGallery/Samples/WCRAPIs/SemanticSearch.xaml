@@ -16,125 +16,112 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Spacing="8">
+
             <TextBlock 
                 Style="{StaticResource CaptionTextBlockStyle}" 
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
-                Text="Sample text data:"
-                Margin="0"/>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:ItemsView
-                    x:Name="textDataItemsView"
-                    ItemsSource="{x:Bind TextDataItems}"
-                    SelectionMode="None"
-                    IsItemInvokedEnabled="False"
-                    Grid.Column="0"
-                    Padding="0,0,0,12">
-                    <controls:ItemsView.ItemTemplate>
-                        <DataTemplate x:DataType="local:TextDataItem">
-                            <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
-                                <Grid>
-                                    <TextBox Text="{x:Bind Value, Mode=TwoWay}"
-                                         Tag="{x:Bind Id}"
-                                         TextChanged="SemanticTextBox_TextChanged"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         Padding="11,32,11,11"
-                                         Height="120"/>
-                                    <Button
-                                        x:Name="textCloseButton"
-                                        Click="closeButton_Click"
-                                        Tag="{x:Bind}"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="0,4,4,0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Style="{StaticResource SubtleButtonStyle}">
-                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
-                                    </Button>
+                Text="Sample text data:"/>
+            <Button
+                Grid.Column="1"
+                Margin="3,0,0,0"
+                Click="AddTextDataButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
+                    <TextBlock Text="Add Text Data"/>
+                </StackPanel>
+            </Button>
+            <controls:ItemsView
+                x:Name="textDataItemsView"
+                ItemsSource="{x:Bind TextDataItems}"
+                SelectionMode="None"
+                IsItemInvokedEnabled="False"
+                Grid.Column="0"
+                Padding="0,0,0,12">
+                <controls:ItemsView.ItemTemplate>
+                    <DataTemplate x:DataType="local:TextDataItem">
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                            <Grid>
+                                <TextBox Text="{x:Bind Value, Mode=TwoWay}"
+                                        Tag="{x:Bind Id}"
+                                        TextChanged="SemanticTextBox_TextChanged"
+                                        AcceptsReturn="True"
+                                        TextWrapping="Wrap"
+                                        Padding="11,32,11,11"
+                                        Height="120"/>
+                                <Button
+                                    x:Name="textCloseButton"
+                                    Click="closeButton_Click"
+                                    Tag="{x:Bind}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,4,4,0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
+                                </Button>
 
-                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-                                </Grid>
-                            </controls:ItemContainer>
-                        </DataTemplate>
-                    </controls:ItemsView.ItemTemplate>
-                    <controls:ItemsView.Layout>
-                        <StackLayout Orientation="Horizontal" />
-                    </controls:ItemsView.Layout>
-                </controls:ItemsView>
-                <Button
-                    Grid.Column="1"
-                    VerticalAlignment="Top"
-                    Margin="12,0,0,0"
-                    Click="AddTextDataButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
-                        <TextBlock Text="Add Text Data"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
+                                <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            </Grid>
+                        </controls:ItemContainer>
+                    </DataTemplate>
+                </controls:ItemsView.ItemTemplate>
+                <controls:ItemsView.Layout>
+                    <StackLayout Orientation="Horizontal" />
+                </controls:ItemsView.Layout>
+            </controls:ItemsView>
 
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Sample image data:" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:ItemsView
-                    x:Name="ImageDataItemsView"
-                    ItemsSource="{x:Bind ImageDataItems}"
-                    SelectionMode="None"
-                    IsItemInvokedEnabled="False"
-                    Grid.Column="0">
-                    <controls:ItemsView.ItemTemplate>
-                        <DataTemplate x:DataType="local:ImageDataItem">
-                            <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
-                                <Grid>
-                                    <Image Source="{x:Bind ImageSource}"
-                                           Tag="{x:Bind Id}"
-                                           ImageOpened="ImageData_ImageOpened" 
-                                           Stretch="Fill" 
-                                           HorizontalAlignment="Stretch" 
-                                           VerticalAlignment="Stretch" 
-                                           MinWidth="70"/>
-                                    <Border Background="{ThemeResource LayerFillColorAltBrush}" Height="34" VerticalAlignment="Top" />
-                                    <Button
-                                        x:Name="imageCloseButton"
-                                        Click="closeButton_Click"
-                                        Tag="{x:Bind}"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="0,4,4,0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Style="{StaticResource SubtleButtonStyle}">
-                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
-                                    </Button>
+            <Button
+                Grid.Column="1"
+                VerticalAlignment="Top"
+                Margin="3,0,0,0"
+                Click="UploadImageButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
+                    <TextBlock Text="Add Image Data"/>
+                </StackPanel>
+            </Button>
+            <controls:ItemsView
+                x:Name="ImageDataItemsView"
+                ItemsSource="{x:Bind ImageDataItems}"
+                SelectionMode="None"
+                IsItemInvokedEnabled="False"
+                Grid.Column="0">
+                <controls:ItemsView.ItemTemplate>
+                    <DataTemplate x:DataType="local:ImageDataItem">
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                            <Grid>
+                                <Image Source="{x:Bind ImageSource}"
+                                        Tag="{x:Bind Id}"
+                                        ImageOpened="ImageData_ImageOpened" 
+                                        Stretch="Fill" 
+                                        HorizontalAlignment="Stretch" 
+                                        VerticalAlignment="Stretch" 
+                                        MinWidth="70"/>
+                                <Border Background="{ThemeResource LayerFillColorAltBrush}" Height="34" VerticalAlignment="Top" />
+                                <Button
+                                    x:Name="imageCloseButton"
+                                    Click="closeButton_Click"
+                                    Tag="{x:Bind}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,4,4,0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
+                                </Button>
 
-                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-                                </Grid>
-                            </controls:ItemContainer>
-                        </DataTemplate>
-                    </controls:ItemsView.ItemTemplate>
-                    <controls:ItemsView.Layout>
-                        <StackLayout Orientation="Horizontal" />
-                    </controls:ItemsView.Layout>
-                </controls:ItemsView>
-                <Button
-                    Grid.Column="1"
-                    VerticalAlignment="Top"
-                    Margin="12,0,0,0"
-                    Click="UploadImageButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
-                        <TextBlock Text="Upload Image"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
+                                <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            </Grid>
+                        </controls:ItemContainer>
+                    </DataTemplate>
+                </controls:ItemsView.ItemTemplate>
+                <controls:ItemsView.Layout>
+                    <StackLayout Orientation="Horizontal" />
+                </controls:ItemsView.Layout>
+            </controls:ItemsView>
             
             <TextBox
                  x:Name="SearchTextBox"
