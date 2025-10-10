@@ -16,7 +16,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Spacing="8">
-            <controls:TabView x:Name="TextDataTabView"
+            <!--<controls:TabView x:Name="TextDataTabView"
                 TabItemsSource="{x:Bind TextDataItems}"
                 AddTabButtonClick="DataTabView_AddTabButtonClick"
                 TabCloseRequested="DataTabView_TabCloseRequested"
@@ -36,7 +36,63 @@
                         </TabViewItem>
                     </DataTemplate>
                 </TabView.TabItemTemplate>
-            </controls:TabView>
+            </controls:TabView>-->
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:ItemsView
+                    x:Name="textDataItemsView"
+                    ItemsSource="{x:Bind TextDataItems}"
+                    SelectionMode="None"
+                    IsItemInvokedEnabled="False"
+                    Grid.Column="0">
+                    <controls:ItemsView.ItemTemplate>
+                        <DataTemplate x:DataType="local:TextDataItem">
+                            <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                                <Grid>
+                                    <TextBox Text="{x:Bind Value, Mode=TwoWay}"
+                                         Tag="{x:Bind Id}"
+                                         TextChanged="SemanticTextBox_TextChanged"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         Height="120"
+                                         Margin="0,7,0,0"/>
+                                    <Button
+                                        x:Name="textCloseButton"
+                                        Click="closeButton_Click"
+                                        Tag="{x:Bind}"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="0,4,4,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Style="{StaticResource SubtleButtonStyle}">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
+                                    </Button>
+
+                                    <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,8"/>
+                                </Grid>
+                            </controls:ItemContainer>
+                        </DataTemplate>
+                    </controls:ItemsView.ItemTemplate>
+                    <controls:ItemsView.Layout>
+                        <StackLayout Orientation="Horizontal" />
+                    </controls:ItemsView.Layout>
+                </controls:ItemsView>
+                <Button
+                    Grid.Column="1"
+                    VerticalAlignment="Top"
+                    Margin="12,0,0,0"
+                    Click="AddTextDataButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
+                        <TextBlock Text="Add Text Data"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -62,7 +118,7 @@
                                            MinWidth="70"/>
                                     <Button
                                         x:Name="imageCloseButton"
-                                        Click="imageCloseButton_Click"
+                                        Click="closeButton_Click"
                                         Tag="{x:Bind}"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Top"
@@ -93,6 +149,7 @@
                     </StackPanel>
                 </Button>
             </Grid>
+            
             <TextBox
                  x:Name="SearchTextBox"
                  AutomationProperties.Name="Prompt input"

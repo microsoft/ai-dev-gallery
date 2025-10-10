@@ -125,7 +125,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     // <exclude>
     private void Page_Loaded()
     {
-        TextDataTabView.Focus(FocusState.Programmatic);
+        textDataItemsView.Focus(FocusState.Programmatic);
     }
 
     // </exclude>
@@ -232,7 +232,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
-    private void SearchButton_Click(object sender, SplitButtonClickEventArgs e)
+    private void SearchButton_Click(object sender, RoutedEventArgs e)
     {
         string searchText = SearchTextBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))
@@ -341,7 +341,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             ct);
     }
 
-    private async void DataTabView_AddTabButtonClick(TabView sender, object args)
+    private async void AddTextDataButton_Click(object sender, RoutedEventArgs e)
     {
         // Generate a unique id for the new item
         int nextIndex = 1;
@@ -361,8 +361,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         var newItem = new TextDataItem { Id = newId, Value = defaultValue };
         TextDataItems.Add(newItem);
 
-        (sender as TabView).SelectedIndex = TextDataItems.Count - 1;
-
         IndexingMessage.IsOpen = true;
         await Task.Run(async () =>
         {
@@ -371,41 +369,44 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         IndexingMessage.IsOpen = false;
     }
 
-    private async void DataTabView_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
+    private async void closeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (args.Item is TextDataItem textItem)
+        if (sender is Button button)
         {
-            TextDataItems.Remove(textItem);
-
-            if (simpleTextData.ContainsKey(textItem.Id))
+            if (button.Tag is TextDataItem textItem)
             {
-                simpleTextData.Remove(textItem.Id);
+                TextDataItems.Remove(textItem);
+
+                if (simpleTextData.ContainsKey(textItem.Id))
+                {
+                    simpleTextData.Remove(textItem.Id);
+                }
+
+                RemovedItemMessage.IsOpen = true;
+                RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
+                await Task.Run(async () =>
+                {
+                    await RemoveItemFromIndex(textItem.Id);
+                });
+                RemovedItemMessage.IsOpen = false;
             }
-
-            RemovedItemMessage.IsOpen = true;
-            RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
-            await Task.Run(async () =>
+            else if (button.Tag is ImageDataItem imageItem)
             {
-                await RemoveItemFromIndex(textItem.Id);
-            });
-            RemovedItemMessage.IsOpen = false;
-        }
-        else if (args.Item is ImageDataItem imageItem)
-        {
-            ImageDataItems.Remove(imageItem);
+                ImageDataItems.Remove(imageItem);
 
-            if (simpleImageData.ContainsKey(imageItem.Id))
-            {
-                simpleImageData.Remove(imageItem.Id);
+                if (simpleImageData.ContainsKey(imageItem.Id))
+                {
+                    simpleImageData.Remove(imageItem.Id);
+                }
+
+                RemovedItemMessage.IsOpen = true;
+                RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
+                await Task.Run(async () =>
+                {
+                    await RemoveItemFromIndex(imageItem.Id);
+                });
+                RemovedItemMessage.IsOpen = false;
             }
-
-            RemovedItemMessage.IsOpen = true;
-            RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
-            await Task.Run(async () =>
-            {
-                await RemoveItemFromIndex(imageItem.Id);
-            });
-            RemovedItemMessage.IsOpen = false;
         }
     }
 
@@ -443,27 +444,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             // Add to collection and dictionary
             ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
             simpleImageData[newId] = imageUri;
-        }
-    }
-
-    private async void imageCloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is ImageDataItem imageItem)
-        {
-            ImageDataItems.Remove(imageItem);
-
-            if (simpleImageData.ContainsKey(imageItem.Id))
-            {
-                simpleImageData.Remove(imageItem.Id);
-            }
-
-            RemovedItemMessage.IsOpen = true;
-            RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
-            await Task.Run(async () =>
-            {
-                await RemoveItemFromIndex(imageItem.Id);
-            });
-            RemovedItemMessage.IsOpen = false;
         }
     }
 
