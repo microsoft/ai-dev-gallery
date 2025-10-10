@@ -232,9 +232,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
-    private void SearchButton_Click(object sender, RoutedEventArgs e)
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        string searchText = SearchTextBox.Text;
+        string searchText = sender.Text;
         if (string.IsNullOrWhiteSpace(searchText))
         {
             Console.WriteLine("Search text is empty.");

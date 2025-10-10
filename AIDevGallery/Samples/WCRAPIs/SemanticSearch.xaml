@@ -16,7 +16,7 @@
           Padding="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="0.3*" MinWidth="200" />
         </Grid.ColumnDefinitions>
         <StackPanel Spacing="8">
             <TextBlock 
@@ -126,55 +126,30 @@
             </controls:ItemsView>
         </StackPanel>
 
-        <StackPanel Grid.Column="1" 
+        <Grid Grid.Column="1" 
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            Margin="-20"
+            BorderThickness="1,1,1,0"
+            Margin="0,-20,-20,-20"
             Padding="20">
-            <TextBox
-                 x:Name="SearchTextBox"
-                 AutomationProperties.Name="Prompt input"
-                 PlaceholderText="Enter a word or phrase to search for"
-                 TextWrapping="Wrap" />
-            <ProgressBar
-                x:Name="OutputProgressBar"
-                VerticalAlignment="Bottom"
-                IsIndeterminate="True"
-                Visibility="Collapsed" />
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <InfoBar
-                        x:Name="IndexingMessage"
-                        IsOpen="False"
-                        Severity="Informational"
-                        Title="Indexing"
-                        Message="Partial results may be available." 
-                        Padding="0"/>
-                    <InfoBar
-                        x:Name="RemovedItemMessage"
-                        IsOpen="False"
-                        Severity="Informational"
-                        Message="Item has been removed" 
-                        Padding="0"/>
-                </StackPanel>
 
-                <StackPanel Orientation="Vertical" 
-                    Grid.Column="1">
-                    <Button
-                        x:Name="SearchButton"
-                        HorizontalAlignment="Right"
-                        Click="SearchButton_Click"
-                        Content="Search"
-                        Margin="10,0,0,0"
-                        Style="{StaticResource AccentButtonStyle}" />
-
-                    <AppBarButton AllowFocusOnInteraction="True" Icon="Edit" Label="Edit">
-                        <AppBarButton.Flyout>
+            <StackPanel>
+                <TextBlock 
+                    Style="{StaticResource CaptionTextBlockStyle}" 
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                    Text="Search sample data:"/>
+                <Grid Grid.ColumnDefinitions="*,Auto">
+                    <controls:AutoSuggestBox x:Name="SearchBox"
+                         AutomationProperties.Name="Prompt input"
+                         PlaceholderText="ie. pets"
+                         QueryIcon="Find"
+                         QuerySubmitted="SearchBox_QuerySubmitted"
+                         Margin="0,7"/>
+                    <Button Style="{StaticResource SubtleButtonStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Grid.Column="1" Margin="3,0">
+                        <Button.Content>
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="14"/>
+                        </Button.Content>
+                        <Button.Flyout>
                             <Flyout>
                                 <StackPanel>
                                     <!-- Query Options -->
@@ -206,38 +181,64 @@
                                     </ComboBox>
                                 </StackPanel>
                             </Flyout>
-                        </AppBarButton.Flyout>
-                    </AppBarButton>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+
+                <ProgressBar
+                        x:Name="OutputProgressBar"
+                        VerticalAlignment="Bottom"
+                        IsIndeterminate="True"
+                        Visibility="Collapsed" />
+
+                <Grid
+                    x:Name="ResultsGrid"
+                    Grid.Column="1"
+                    Visibility="Collapsed">
+                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
+                    <ScrollViewer
+                        Margin="0,25,0,0"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Visible">
+                        <TextBlock
+                            x:Name="ResultsTextBlock"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            IsTextSelectionEnabled="True"
+                            TextWrapping="WrapWholeWords" />
+                    </ScrollViewer>
+                    <ItemsControl x:Name="ImageResultsBox" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapGrid Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding}" Height="100" Width="100" Margin="5"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </StackPanel>
+
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                <StackPanel Spacing="7">
+                    <InfoBar
+                        x:Name="IndexingMessage"
+                        IsOpen="False"
+                        Severity="Informational"
+                        Title="Indexing"
+                        Message="Partial results may be available." 
+                        Padding="0"/>
+                    <InfoBar
+                        x:Name="RemovedItemMessage"
+                        IsOpen="False"
+                        Severity="Informational"
+                        Message="Item has been removed" 
+                        Padding="0"/>
                 </StackPanel>
             </Grid>
-        </StackPanel>
-        <Grid
-            x:Name="ResultsGrid"
-            Grid.Column="1"
-            Visibility="Collapsed">
-            <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
-            <ScrollViewer
-                Margin="0,25,0,0"
-                HorizontalScrollBarVisibility="Disabled"
-                VerticalScrollBarVisibility="Visible">
-                <TextBlock
-                    x:Name="ResultsTextBlock"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    IsTextSelectionEnabled="True"
-                    TextWrapping="WrapWholeWords" />
-            </ScrollViewer>
-            <ItemsControl x:Name="ImageResultsBox" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapGrid Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Image Source="{Binding}" Height="100" Width="100" Margin="5"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
         </Grid>
     </Grid>
+
 </samples:BaseSamplePage>
