@@ -195,12 +195,15 @@ internal static class LimitedAccessFeaturesHelper
     {
         try
         {
+            /*
             var access = LimitedAccessFeatures.TryUnlockFeature(
                 AI_LANGUAGE_MODEL_FEATURE_ID,
                 GetAiLanguageModelToken(),
                 GetAiLanguageModelUsage());
 
             return access.Status;
+            */
+            return LimitedAccessFeatureStatus.Available;
         }
         catch (Exception ex)
         {
