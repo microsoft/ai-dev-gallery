@@ -15,11 +15,13 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -38,7 +40,10 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Knowledge Retrieval (RAG)",
     Model1Types = [ModelType.SemanticSearch],
     Scenario = ScenarioType.TextSemanticSearch,
-    Id = "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+    Id = "6A526FDD-359F-4EAC-9AA6-F01DB11AE542", 
+    SharedCode = [
+        SharedCodeEnum.DataItems
+    ],
     AssetFilenames = [
         "OCR.png"
     ],
@@ -49,77 +54,452 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 {
+    ObservableCollection<TextDataItem> TextDataItems { get; } = new();
+    ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
+
+    // This is some text data that we want to add to the index:
+    Dictionary<string, string> simpleTextData = new Dictionary<string, string>
+    {
+        {"item1", "Here is some information about Cats: Cats are cute and fluffy. Young cats are very playful." },
+        {"item2", "Dogs are loyal and affectionate animals known for their companionship, intelligence, and diverse breeds." },
+        {"item3", "Fish are aquatic creatures that breathe through gills and come in a vast variety of shapes, sizes, and colors." },
+        {"item4", "Broccoli is a nutritious green vegetable rich in vitamins, fiber, and antioxidants." },
+        {"item5", "Computers are powerful electronic devices that process information, perform calculations, and enable communication worldwide." },
+        {"item6", "Music is a universal language that expresses emotions, tells stories, and connects people through rhythm and melody." },
+    };
+
+    Dictionary<string, string> simpleImageData = new Dictionary<string, string>
+    {
+        {"image1", "Enhance.png" },
+        {"image2", "OCR.png" },
+        {"image3", "Road.png" },
+    };
+
+    private AppContentIndexer _indexer;
+    private CancellationTokenSource cts = new();
+
     public KnowledgeRetrieval()
     {
         this.InitializeComponent();
+        this.Unloaded += (s, e) =>
+        {
+            CleanUp();
+        };
+        this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
+
+        PopulateTextData();
+        PopulateImageData();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        //var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
-        //if (!result.Succeeded)
-        //{
-        //    throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        //}
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+        }
 
-        //// If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        //if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-        //{
-        //    Console.WriteLine("Created a new index");
-        //}
-        //else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        //{
-        //    Console.WriteLine("Opened an existing index");
-        //}
+        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+        {
+            Console.WriteLine("Created a new index");
+        }
+        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+        {
+            Console.WriteLine("Opened an existing index");
+        }
 
-        //using AppContentIndexer indexer = result.Indexer;
-        //var isIdle = await indexer.WaitForIndexingIdleAsync(50000);
+        _indexer = result.Indexer;
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
 
         sampleParams.NotifyCompletion();
     }
 
-    private void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    // <exclude>
+    private void Page_Loaded()
     {
-        this.SearchButton.IsEnabled = !string.IsNullOrEmpty(this.SearchTextBox.Text) && !string.IsNullOrEmpty(this.SourceTextBox.Text);
-        ErrorMessage.IsOpen = string.IsNullOrEmpty(this.SearchTextBox.Text) || string.IsNullOrEmpty(this.SourceTextBox.Text);
+        textDataItemsView.Focus(FocusState.Programmatic);
     }
 
-    private void SearchButton_Click(object sender, RoutedEventArgs e)
+    // </exclude>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        var sourceText = this.SourceTextBox.Text;
-        var searchText = this.SearchTextBox.Text;
+        base.OnNavigatedFrom(e);
+        CleanUp();
+    }
 
-        if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
+    private void CleanUp()
+    {
+        _indexer?.Dispose();
+    }
+
+    private async void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox textBox)
         {
-            this.OutputProgressBar.Visibility = Visibility.Visible;
-            this.ResultsGrid.Visibility = Visibility.Visible;
-            Search(sourceText, searchText);
+            string id = textBox.Tag as string;
+            string value = textBox.Text;
+
+            // Update local dictionary and observable collection
+            var item = TextDataItems.FirstOrDefault(x => x.Id == id);
+            if (item != null)
+            {
+                item.Value = value;
+            }
+
+            if (simpleTextData.ContainsKey(id))
+            {
+                simpleTextData[id] = value;
+            }
+
+            IndexingMessage.IsOpen = true;
+            await Task.Run(async () =>
+            {
+                await IndexTextData(id, value);
+            });
+            IndexingMessage.IsOpen = false;
         }
     }
 
-    private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+    private async void ImageData_ImageOpened(object sender, RoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && SearchTextBox.Text.Length > 0)
+        if (sender is Microsoft.UI.Xaml.Controls.Image image)
         {
-            var sourceText = this.SourceTextBox.Text;
-            var searchText = this.SearchTextBox.Text;
+            string id = image.Tag as string;
+            string uriString = null;
 
-            if (!string.IsNullOrEmpty(sourceText) && !string.IsNullOrEmpty(searchText))
+            if (image.Source is BitmapImage bitmapImage && bitmapImage.UriSource != null)
             {
-                this.OutputProgressBar.Visibility = Visibility.Visible;
-                this.ResultsGrid.Visibility = Visibility.Visible;
-                SearchTextBox.IsEnabled = false;
-                Search(sourceText, searchText);
+                uriString = bitmapImage.UriSource.ToString();
+            }
+
+            SoftwareBitmap bitmap = null;
+            if (!string.IsNullOrEmpty(uriString))
+            {
+                try
+                {
+                    StorageFile file;
+                    if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+                    }
+                    else
+                    {
+                        // Assume it's a file path for user-uploaded images
+                        file = await StorageFile.GetFileFromPathAsync(uriString);
+                    }
+
+                    using var stream = await file.OpenAsync(FileAccessMode.Read);
+                    var decoder = await BitmapDecoder.CreateAsync(stream);
+                    bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
+                }
+            }
+
+            // Update local dictionary and observable collection
+            var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
+            if (item != null)
+            {
+                var fileName = Path.GetFileName(uriString);
+                item.ImageSource = fileName;
+            }
+
+            if (simpleImageData.ContainsKey(id))
+            {
+                simpleImageData[id] = uriString;
+            }
+            else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
+            {
+                simpleImageData.Add(id, uriString);
+            }
+
+            IndexingMessage.IsOpen = true;
+            await Task.Run(async () =>
+            {
+                await IndexImageData(id, bitmap);
+            });
+            IndexingMessage.IsOpen = false;
+        }
+    }
+
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        string searchText = SearchBox.Text;
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            Console.WriteLine("Search text is empty.");
+            return;
+        }
+
+        if (_indexer == null) return;
+
+        // Create query options
+        AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
+
+        // Set language if provided
+        string queryLanguage = QueryLanguageTextBox.Text;
+        if (!string.IsNullOrWhiteSpace(queryLanguage))
+        {
+            queryOptions.Language = queryLanguage;
+        }
+
+        // Create text match options
+        TextMatchOptions textMatchOptions = new TextMatchOptions
+        {
+            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
+            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
+        };
+
+        // Create image match options
+        ImageMatchOptions imageMatchOptions = new ImageMatchOptions
+        {
+            MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
+            ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
+        };
+
+        CancellationToken ct = CancelGenerationAndGetNewToken();
+
+        string textResults = "";
+        var imageResults = new List<string>();
+
+        Task.Run(
+            async () =>
+            {
+                // Create query
+                AppIndexQuery query = await Task.Run(() =>
+                {
+                    return _indexer.CreateQuery(searchText, queryOptions);
+                });
+
+                // Get text matches
+                IReadOnlyList<TextQueryMatch> textMatches = await Task.Run(() =>
+                {
+                    return query.GetNextTextMatches(5);
+                });
+
+                if (textMatches != null && textMatches.Count > 0)
+                {
+                    foreach (var match in textMatches)
+                    {
+                        Console.WriteLine(match.ContentId);
+                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                        {
+                            AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                            string matchingData = simpleTextData[match.ContentId];
+                            string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
+                            textResults += matchingString + "\n\n";
+                        }
+                    }
+                }
+
+                // Get image matches
+                IReadOnlyList<ImageQueryMatch> imageMatches = await Task.Run(() =>
+                {
+                    return query.GetNextImageMatches(5);
+                });
+
+
+                if (imageMatches != null && imageMatches.Count > 0)
+                {
+                    foreach (var match in imageMatches)
+                    {
+                        if (simpleImageData.TryGetValue(match.ContentId, out var imagePath))
+                        {
+                            // If imagePath is just the file name, prepend the ms-appx URI
+                            var uri = imagePath.StartsWith("ms-appx") ? imagePath : $"ms-appx:///Assets/{imagePath}";
+                            imageResults.Add(uri);
+                        }
+                    }
+                }
+
+                // Update UI
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    this.ResultsGrid.Visibility = Visibility.Visible;
+                    ResultsTextBlock.Text = textResults;
+
+                    if (imageResults.Count > 0)
+                    {
+                        ImageResultsBox.ItemsSource = imageResults;
+                        ImageResultsBox.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        ImageResultsBox.ItemsSource = null;
+                        ImageResultsBox.Visibility = Visibility.Collapsed;
+                    }
+                });
+            },
+            ct);
+    }
+
+    private async void AddTextDataButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Generate a unique id for the new item
+        int nextIndex = 1;
+        string newId;
+        do
+        {
+            newId = $"item{TextDataItems.Count + nextIndex}";
+            nextIndex++;
+        } while (simpleTextData.ContainsKey(newId));
+
+        string defaultValue = "New item text...";
+
+        // Add to dictionary
+        simpleTextData[newId] = defaultValue;
+
+        // Add to observable collection
+        var newItem = new TextDataItem { Id = newId, Value = defaultValue };
+        TextDataItems.Add(newItem);
+
+        IndexingMessage.IsOpen = true;
+        await Task.Run(async () =>
+        {
+            await IndexTextData(newId, defaultValue);
+        });
+        IndexingMessage.IsOpen = false;
+    }
+
+    private async void closeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button)
+        {
+            if (button.Tag is TextDataItem textItem)
+            {
+                TextDataItems.Remove(textItem);
+
+                if (simpleTextData.ContainsKey(textItem.Id))
+                {
+                    simpleTextData.Remove(textItem.Id);
+                }
+
+                RemovedItemMessage.IsOpen = true;
+                RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
+                await Task.Run(async () =>
+                {
+                    await RemoveItemFromIndex(textItem.Id);
+                });
+                RemovedItemMessage.IsOpen = false;
+            }
+            else if (button.Tag is ImageDataItem imageItem)
+            {
+                ImageDataItems.Remove(imageItem);
+
+                if (simpleImageData.ContainsKey(imageItem.Id))
+                {
+                    simpleImageData.Remove(imageItem.Id);
+                }
+
+                RemovedItemMessage.IsOpen = true;
+                RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
+                await Task.Run(async () =>
+                {
+                    await RemoveItemFromIndex(imageItem.Id);
+                });
+                RemovedItemMessage.IsOpen = false;
             }
         }
     }
 
-    public void Search(string sourceText, string searchText)
+    private async void UploadImageButton_Click(object sender, RoutedEventArgs e)
     {
-        //CancellationToken ct = CancelGenerationAndGetNewToken();
+        SendSampleInteractedEvent("LoadImageClicked");
+        var window = new Window();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
 
-        
+        var picker = new FileOpenPicker();
+
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".jpg");
+
+        picker.ViewMode = PickerViewMode.Thumbnail;
+
+        StorageFile file = await picker.PickSingleFileAsync();
+        if (file != null)
+        {
+            // Generate a unique id for the new image
+            int nextIndex = 1;
+            string newId;
+            do
+            {
+                newId = $"image{ImageDataItems.Count + nextIndex}";
+                nextIndex++;
+            } while (ImageDataItems.Any(i => i.Id == newId));
+
+            // Create a ms-appx URI for the image (or use file path for local images)
+            var imageUri = file.Path;
+
+            // Add to collection and dictionary
+            ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
+            simpleImageData[newId] = imageUri;
+        }
     }
 
+    private async Task RemoveItemFromIndex(string id)
+    {
+        // Remove item from index
+        _indexer.Remove(id);
+    }
+
+    private async Task IndexTextData(string id, string value)
+    {
+        if (_indexer == null) return;
+
+        // Index Textbox content
+        IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
+        _indexer.AddOrUpdate(textContent);
+
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+    }
+
+    private async Task IndexImageData(string id, SoftwareBitmap bitmap)
+    {
+        if (_indexer == null) return;
+
+        // Index inage content
+        IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
+        _indexer.AddOrUpdate(imageContent);
+
+        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+    }
+
+    private void PopulateTextData()
+    {
+        foreach (var kvp in simpleTextData)
+        {
+            TextDataItems.Add(new TextDataItem { Id = kvp.Key, Value = kvp.Value });
+        }
+    }
+
+    private void PopulateImageData()
+    {
+        foreach (var kvp in simpleImageData)
+        {
+            var uri = $"ms-appx:///Assets/{kvp.Value}";
+            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
+        }
+    }
+
+    private CancellationToken CancelGenerationAndGetNewToken()
+    {
+        cts.Cancel();
+        cts.Dispose();
+        cts = new CancellationTokenSource();
+        return cts.Token;
+    }
+
+    private static bool IsImageFile(string fileName)
+    {
+        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
+    }
 }
+

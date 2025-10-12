@@ -47,6 +47,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Model1Types = [ModelType.SemanticSearch],
     Scenario = ScenarioType.TextSemanticSearch,
     Id = "F8465A45-8E23-4485-8C16-9909E96EACF6",
+    SharedCode = [
+        SharedCodeEnum.DataItems
+    ],
     AssetFilenames = [
         "OCR.png",
         "Enhance.png",
@@ -234,12 +237,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        string searchText = sender.Text;
+        string searchText = SearchBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))
         {
             Console.WriteLine("Search text is empty.");
             return; 
         }
+
+        if (_indexer == null) return;
 
         // Create query options
         AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
@@ -455,6 +460,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task IndexTextData(string id, string value)
     {
+        if (_indexer == null) return;
+
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
         _indexer.AddOrUpdate(textContent);
@@ -464,6 +471,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task IndexImageData(string id, SoftwareBitmap bitmap)
     {
+        if (_indexer == null) return;
+
         // Index inage content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
         _indexer.AddOrUpdate(imageContent);
@@ -495,24 +504,4 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         cts = new CancellationTokenSource();
         return cts.Token;
     }
-
-    private static bool IsImageFile(string fileName)
-    {
-        string[] imageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
-        return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
-    }
-}
-
-internal record class TextDataItem
-{
-    public string Id { get; set; }
-    public string Value { get; set; }
-
-}
-
-internal record class ImageDataItem
-{
-    public string Id { get; set; }
-    public string ImageSource { get; set; }
-
 }
