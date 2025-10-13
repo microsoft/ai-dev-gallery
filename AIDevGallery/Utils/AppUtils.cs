@@ -174,6 +174,8 @@ internal static class AppUtils
                 return "GPU";
             case HardwareAccelerator.QNN:
             case HardwareAccelerator.NPU:
+            case HardwareAccelerator.OpenVINO:
+            case HardwareAccelerator.VitisAI:
                 return "NPU";
             case HardwareAccelerator.WCRAPI:
                 return "Windows AI API";
@@ -203,6 +205,8 @@ internal static class AppUtils
                 return "This model will run on supported GPUs with DirectML";
             case HardwareAccelerator.QNN:
             case HardwareAccelerator.NPU:
+            case HardwareAccelerator.OpenVINO:
+            case HardwareAccelerator.VitisAI:
                 return "This model will run on NPUs";
             case HardwareAccelerator.WCRAPI:
                 return "The model used by this Windows AI API will run on NPU";

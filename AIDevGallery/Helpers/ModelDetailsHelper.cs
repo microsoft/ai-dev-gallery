@@ -220,7 +220,9 @@ internal static class ModelDetailsHelper
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.NPU)
             || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU)
-            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN);
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OpenVINO)
+            || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.VitisAI);
     }
 
     public static Visibility ShowWhenOnnxModel(ModelDetails modelDetails)

@@ -328,6 +328,16 @@ internal static class UserAddedModelUtil
             throw new InvalidDataException("genai_config.json is not valid");
         }
 
+        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.OpenVINO != null))
+        {
+            return HardwareAccelerator.OpenVINO;
+        }
+
+        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.VitisAI != null))
+        {
+            return HardwareAccelerator.VitisAI;
+        }
+
         if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
         {
             return HardwareAccelerator.DML;

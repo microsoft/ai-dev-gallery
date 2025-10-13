@@ -50,7 +50,9 @@ internal class ModelCompatibility
             description = "This model is not currently supported on Arm64 devices.";
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
-            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
+            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()) ||
+            modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OpenVINO) ||
+            modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.VitisAI))
         {
             compatibility = ModelCompatibilityState.Compatible;
         }

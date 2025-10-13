@@ -39,6 +39,10 @@ internal class ProviderOptions
     public Dml? Dml { get; set; }
     [JsonPropertyName("cuda")]
     public Cuda? Cuda { get; set; }
+    [JsonPropertyName("OpenVINO")]
+    public OpenVINO? OpenVINO { get; set; }
+    [JsonPropertyName("VitisAI")]
+    public VitisAI? VitisAI { get; set; }
 }
 
 internal class Dml
@@ -46,5 +50,13 @@ internal class Dml
 }
 
 internal class Cuda
+{
+}
+
+internal class OpenVINO
+{
+}
+
+internal class VitisAI
 {
 }
