@@ -17,7 +17,7 @@ internal partial class Message : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasThink))]
     [NotifyPropertyChangedFor(nameof(IsThinking))]
     [NotifyPropertyChangedFor(nameof(DisplayContent))]
-    public partial string ThinkContent { get; set; }
+    public partial string ThinkContent { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsThinking))]
