@@ -221,7 +221,13 @@ internal static partial class SamplesHelper
         return ($"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})", null);
     }
 
-    public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos)
+    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelToken\(\)")]
+    private static partial Regex RegexLafTokenAssignment();
+
+    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelPublisherId\(\)")]
+    private static partial Regex RegexLafPublisherAssignment();
+
+    public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos, bool forExport = false)
     {
         string cleanCsSource = sample.CSCode;
 
@@ -311,6 +317,13 @@ internal static partial class SamplesHelper
                     cleanCsSource = cleanCsSource.Insert(lastMatch.Index + lastMatch.Length, usingNamespaces);
                 }
             }
+        }
+
+        // When exporting example projects, replace demoToken retrieval with a constant value in any sample file
+        if (forExport)
+        {
+            cleanCsSource = RegexLafTokenAssignment().Replace(cleanCsSource, "\"Zv6LUQWEwhJTahzvwSGjHQ==\"");
+            cleanCsSource = RegexLafPublisherAssignment().Replace(cleanCsSource, "\"z0sq19pdabnaj\"");
         }
 
         return cleanCsSource;

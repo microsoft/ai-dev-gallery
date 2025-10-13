@@ -547,7 +547,7 @@ internal partial class Generator
 
         if (!string.IsNullOrEmpty(sample.CSCode))
         {
-            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), sample.GetCleanCSCode(modelInfos), cancellationToken);
+            await File.WriteAllTextAsync(Path.Join(outputPath, $"Sample.xaml.cs"), sample.GetCleanCSCode(modelInfos, forExport: true), cancellationToken);
         }
     }
 
