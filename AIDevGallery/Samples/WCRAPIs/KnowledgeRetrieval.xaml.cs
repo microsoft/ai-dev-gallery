@@ -115,15 +115,16 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         try
         {
             var ragSampleParams = new SampleNavigationParameters(
-                sampleId: "6A526FDD-359F-4EAC-9AA6-F01DB11AE542", // use the correct sample id
-                modelId: "PhiSilica",                   // set to the PhiSilica model id
+                sampleId: "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+                modelId: "PhiSilica",
                 modelPath: $"file://{ModelType.PhiSilica}",
-                hardwareAccelerator: HardwareAccelerator.CPU, // or the appropriate accelerator
-                promptTemplate: null, // or your prompt template
+                hardwareAccelerator: HardwareAccelerator.CPU,
+                promptTemplate: null,
                 sampleLoadedCompletionSource: new TaskCompletionSource(),
-                winMlSampleOptions: null, // or your options
+                winMlSampleOptions: null,
                 loadingCanceledToken: CancellationToken.None
             );
+
             _model = await ragSampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)

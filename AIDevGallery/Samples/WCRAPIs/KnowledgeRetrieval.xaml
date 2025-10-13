@@ -233,7 +233,7 @@
                         AutomationProperties.Name="Prompt input"
                         KeyUp="TextBox_KeyUp"
                         PreviewKeyDown="TextBox_PreviewKeyDown"
-                        PlaceholderText="Enter your prompt (Press Shift + Enter to insert a newline)"
+                        PlaceholderText="Ask about the sample data"
                         TextChanged="InputBox_TextChanged"
                         TextWrapping="Wrap" 
                         AcceptsReturn="True"
@@ -245,12 +245,8 @@
                             Click="SendBtn_Click"
                             Style="{StaticResource AccentButtonStyle}"
                             IsEnabled="False">
-                            <StackPanel Orientation="Horizontal"
-                            Spacing="8">
-                                <FontIcon FontSize="16"
+                            <FontIcon FontSize="16"
                               Glyph="&#xE725;" />
-                                <TextBlock Text="Send" />
-                            </StackPanel>
                         </Button>
                         <Button x:Name="StopBtn"
                             AutomationProperties.Name="Stop"
