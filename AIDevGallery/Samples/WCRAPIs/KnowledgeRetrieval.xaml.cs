@@ -19,9 +19,11 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+using OllamaSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -38,17 +40,23 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
     Name = "Knowledge Retrieval (RAG)",
-    Model1Types = [ModelType.SemanticSearch],
-    Scenario = ScenarioType.TextSemanticSearch,
-    Id = "6A526FDD-359F-4EAC-9AA6-F01DB11AE542", 
+    Model1Types = [ModelType.KnowledgeRetrieval, ModelType.PhiSilica],
+    Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
+    Id = "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
     SharedCode = [
-        SharedCodeEnum.DataItems
+        SharedCodeEnum.DataItems,
+        SharedCodeEnum.Message,
+        SharedCodeEnum.ChatTemplateSelector
     ],
     AssetFilenames = [
-        "OCR.png"
+        "OCR.png",
+        "Enhance.png",
+        "Road.png",
     ],
     NugetPackageReferences = [
-        "Microsoft.Extensions.AI"
+        "CommunityToolkit.Mvvm",
+        "Microsoft.Extensions.AI",
+        "Microsoft.WindowsAppSDK"
     ],
     Icon = "\uEE6F")]
 
@@ -56,6 +64,16 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 {
     ObservableCollection<TextDataItem> TextDataItems { get; } = new();
     ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
+    public ObservableCollection<Message> Messages { get; } = [];
+
+    private IChatClient? _model;
+    private ScrollViewer? _scrollViewer;
+    private bool _isImeActive = true;
+
+    // Markers for the assistant's think area (displayed in a dedicated UI region).
+    private static readonly string[] ThinkTagOpens = new[] { "<think>", "<thought>", "<reasoning>" };
+    private static readonly string[] ThinkTagCloses = new[] { "</think>", "</thought>", "</reasoning>" };
+    private static readonly int MaxOpenThinkMarkerLength = ThinkTagOpens.Max(s => s.Length);
 
     // This is some text data that we want to add to the index:
     Dictionary<string, string> simpleTextData = new Dictionary<string, string>
@@ -93,6 +111,27 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
+        // Load chat client
+        try
+        {
+            var ragSampleParams = new SampleNavigationParameters(
+                sampleId: "6A526FDD-359F-4EAC-9AA6-F01DB11AE542", // use the correct sample id
+                modelId: "PhiSilica",                   // set to the PhiSilica model id
+                modelPath: $"file://{ModelType.PhiSilica}",
+                hardwareAccelerator: HardwareAccelerator.CPU, // or the appropriate accelerator
+                promptTemplate: null, // or your prompt template
+                sampleLoadedCompletionSource: new TaskCompletionSource(),
+                winMlSampleOptions: null, // or your options
+                loadingCanceledToken: CancellationToken.None
+            );
+            _model = await ragSampleParams.GetIChatClientAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+        }
+
+        // Load AppContentIndexer
         var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
         if (!result.Succeeded)
@@ -119,7 +158,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     // <exclude>
     private void Page_Loaded()
     {
-        textDataItemsView.Focus(FocusState.Programmatic);
+        InputBox.Focus(FocusState.Programmatic);
     }
 
     // </exclude>
@@ -131,7 +170,323 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private void CleanUp()
     {
+        CancelResponse();
+        _model?.Dispose();
         _indexer?.Dispose();
+    }
+
+    private void CancelResponse()
+    {
+        StopBtn.Visibility = Visibility.Collapsed;
+        SendBtn.Visibility = Visibility.Visible;
+        EnableInputBoxWithPlaceholder();
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = null;
+    }
+
+    private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter &&
+            !Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift)
+                .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down) &&
+            sender is TextBox &&
+            !string.IsNullOrWhiteSpace(InputBox.Text) &&
+            _isImeActive == false)
+        {
+            var cursorPosition = InputBox.SelectionStart;
+            var text = InputBox.Text;
+            if (cursorPosition > 0 && (text[cursorPosition - 1] == '\n' || text[cursorPosition - 1] == '\r'))
+            {
+                text = text.Remove(cursorPosition - 1, 1);
+                InputBox.Text = text;
+            }
+
+            InputBox.SelectionStart = cursorPosition - 1;
+
+            SendMessage();
+        }
+        else
+        {
+            _isImeActive = true;
+        }
+    }
+
+    private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        _isImeActive = false;
+    }
+
+    private void SendMessage()
+    {
+        if (InputBox.Text.Length > 0)
+        {
+            AddMessage(InputBox.Text);
+            InputBox.Text = string.Empty;
+            SendBtn.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void AddMessage(string text)
+    {
+        if (_model == null)
+        {
+            return;
+        }
+
+        Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
+        var contentStartedBeingGenerated = false; // <exclude-line>
+        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
+        SendSampleInteractedEvent("AddMessage"); // <exclude-line>
+
+        Task.Run(async () =>
+        {
+            var history = Messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
+
+            var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant)
+            {
+                IsPending = true
+            };
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Messages.Add(responseMessage);
+                StopBtn.Visibility = Visibility.Visible;
+                InputBox.IsEnabled = false;
+                InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
+            });
+
+            cts = new CancellationTokenSource();
+
+            history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));
+
+            // <exclude>
+            ShowDebugInfo(null);
+            var swEnd = Stopwatch.StartNew();
+            var swTtft = Stopwatch.StartNew();
+            int outputTokens = 0;
+
+            // </exclude>
+            int currentThinkTagIndex = -1; // -1 means not inside any think/auxiliary section
+            string rolling = string.Empty;
+
+            await foreach (var messagePart in _model.GetStreamingResponseAsync(history, null, cts.Token))
+            {
+                // <exclude>
+                if (outputTokens == 0)
+                {
+                    swTtft.Stop();
+                }
+
+                outputTokens++;
+                double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+                ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+                // </exclude>
+                var part = messagePart;
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (responseMessage.IsPending)
+                    {
+                        responseMessage.IsPending = false;
+                    }
+
+                    // Parse character by character/fragment to identify think tags (e.g., <think>...</think>, <thought>...</thought>)
+                    rolling += part;
+
+                    while (!string.IsNullOrEmpty(rolling))
+                    {
+                        if (currentThinkTagIndex == -1)
+                        {
+                            // Find the earliest occurring open marker among supported think tags
+                            int earliestIdx = -1;
+                            int foundTagIndex = -1;
+                            for (int i = 0; i < ThinkTagOpens.Length; i++)
+                            {
+                                int idx = rolling.IndexOf(ThinkTagOpens[i], StringComparison.Ordinal);
+                                if (idx >= 0 && (earliestIdx == -1 || idx < earliestIdx))
+                                {
+                                    earliestIdx = idx;
+                                    foundTagIndex = i;
+                                }
+                            }
+
+                            if (earliestIdx >= 0)
+                            {
+                                // Output safe content before the start marker
+                                if (earliestIdx > 0)
+                                {
+                                    responseMessage.Content = string.Concat(responseMessage.Content, rolling.AsSpan(0, earliestIdx));
+                                }
+
+                                // Enter think mode, discard the marker text itself
+                                rolling = rolling.Substring(earliestIdx + ThinkTagOpens[foundTagIndex].Length);
+                                currentThinkTagIndex = foundTagIndex;
+                                continue;
+                            }
+                            else
+                            {
+                                // Start marker not found: only flush safe parts, keep the tail that might form a marker
+                                int keep = MaxOpenThinkMarkerLength - 1;
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.Content = string.Concat(responseMessage.Content.TrimStart(), rolling.AsSpan(0, flushLen));
+                                    rolling = rolling.Substring(flushLen);
+                                }
+
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            string closeMarker = ThinkTagCloses[currentThinkTagIndex];
+                            int closeIdx = rolling.IndexOf(closeMarker, StringComparison.Ordinal);
+                            if (closeIdx >= 0)
+                            {
+                                // Append content before the closing marker to the think box
+                                if (closeIdx > 0)
+                                {
+                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, closeIdx));
+                                }
+
+                                // Exit think mode, discard the closing marker
+                                rolling = rolling.Substring(closeIdx + closeMarker.Length);
+                                currentThinkTagIndex = -1;
+                                continue;
+                            }
+                            else
+                            {
+                                // Closing marker not found: only flush safe parts, keep the tail that might form a marker
+                                int keep = closeMarker.Length - 1;
+                                if (rolling.Length > keep)
+                                {
+                                    int flushLen = rolling.Length - keep;
+                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, flushLen));
+                                    rolling = rolling.Substring(flushLen);
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    // <exclude>
+                    if (!contentStartedBeingGenerated)
+                    {
+                        NarratorHelper.Announce(InputBox, "Response has started generating.", "ChatResponseAnnouncementActivityId");
+                        contentStartedBeingGenerated = true;
+                    }
+
+                    // </exclude>
+                });
+            }
+
+            // Flush remaining tail content (if any)
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                responseMessage.IsPending = false;
+                if (!string.IsNullOrEmpty(rolling))
+                {
+                    if (currentThinkTagIndex != -1)
+                    {
+                        responseMessage.ThinkContent += rolling;
+                    }
+                    else
+                    {
+                        responseMessage.Content = responseMessage.Content.TrimStart() + rolling;
+                    }
+                }
+            });
+
+            // <exclude>
+            swEnd.Stop();
+            double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
+            ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+
+            // </exclude>
+            cts?.Dispose();
+            cts = null;
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                NarratorHelper.Announce(InputBox, "Content has finished generating.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
+                StopBtn.Visibility = Visibility.Collapsed;
+                SendBtn.Visibility = Visibility.Visible;
+                EnableInputBoxWithPlaceholder();
+            });
+        });
+    }
+
+    private void SendBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SendMessage();
+    }
+
+    private void StopBtn_Click(object sender, RoutedEventArgs e)
+    {
+        CancelResponse();
+    }
+
+    private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        SendBtn.IsEnabled = !string.IsNullOrWhiteSpace(InputBox.Text);
+    }
+
+    private void EnableInputBoxWithPlaceholder()
+    {
+        InputBox.IsEnabled = true;
+        InputBox.PlaceholderText = "Enter your prompt (Press Shift + Enter to insert a newline)";
+    }
+
+    private void InvertedListView_Loaded(object sender, RoutedEventArgs e)
+    {
+        _scrollViewer = FindElement<ScrollViewer>(InvertedListView);
+
+        ItemsStackPanel? itemsStackPanel = FindElement<ItemsStackPanel>(InvertedListView);
+        if (itemsStackPanel != null)
+        {
+            itemsStackPanel.SizeChanged += ItemsStackPanel_SizeChanged;
+        }
+    }
+
+    private void ItemsStackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_scrollViewer != null)
+        {
+            bool isScrollbarVisible = _scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible;
+
+            if (isScrollbarVisible)
+            {
+                InvertedListView.Padding = new Thickness(-12, 0, 12, 24);
+            }
+            else
+            {
+                InvertedListView.Padding = new Thickness(-12, 0, -12, 24);
+            }
+        }
+    }
+
+    private T? FindElement<T>(DependencyObject element)
+        where T : DependencyObject
+    {
+        if (element is T targetElement)
+        {
+            return targetElement;
+        }
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+        {
+            var child = VisualTreeHelper.GetChild(element, i);
+            var result = FindElement<T>(child);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private async void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -228,7 +583,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        string searchText = SearchBox.Text;
+        string searchText = InputBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))
         {
             Console.WriteLine("Search text is empty.");
@@ -241,25 +596,25 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
 
         // Set language if provided
-        string queryLanguage = QueryLanguageTextBox.Text;
-        if (!string.IsNullOrWhiteSpace(queryLanguage))
-        {
-            queryOptions.Language = queryLanguage;
-        }
+        //string queryLanguage = QueryLanguageTextBox.Text;
+        //if (!string.IsNullOrWhiteSpace(queryLanguage))
+        //{
+        //    queryOptions.Language = queryLanguage;
+        //}
 
-        // Create text match options
-        TextMatchOptions textMatchOptions = new TextMatchOptions
-        {
-            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
-            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
-        };
+        //// Create text match options
+        //TextMatchOptions textMatchOptions = new TextMatchOptions
+        //{
+        //    MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
+        //    TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
+        //};
 
-        // Create image match options
-        ImageMatchOptions imageMatchOptions = new ImageMatchOptions
-        {
-            MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
-            ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
-        };
+        //// Create image match options
+        //ImageMatchOptions imageMatchOptions = new ImageMatchOptions
+        //{
+        //    MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
+        //    ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
+        //};
 
         CancellationToken ct = CancelGenerationAndGetNewToken();
 
@@ -315,24 +670,6 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                         }
                     }
                 }
-
-                // Update UI
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    this.ResultsGrid.Visibility = Visibility.Visible;
-                    ResultsTextBlock.Text = textResults;
-
-                    if (imageResults.Count > 0)
-                    {
-                        ImageResultsBox.ItemsSource = imageResults;
-                        ImageResultsBox.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        ImageResultsBox.ItemsSource = null;
-                        ImageResultsBox.Visibility = Visibility.Collapsed;
-                    }
-                });
             },
             ct);
     }

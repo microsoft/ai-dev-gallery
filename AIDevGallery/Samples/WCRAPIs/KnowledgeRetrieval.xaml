@@ -10,6 +10,71 @@
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <shared:ChatTemplateSelector
+             x:Key="ChatTemplateSelector"
+             AssistantTemplate="{StaticResource AssistantDataTemplate}"
+             UserTemplate="{StaticResource UserDataTemplate}" />
+        <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
+            <StackPanel
+             MaxWidth="486"
+             Padding="12"
+             HorizontalAlignment="Right"
+             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+             BorderThickness="1"
+             CornerRadius="{StaticResource OverlayCornerRadius}"
+             Spacing="8">
+                <TextBlock
+                 IsTextSelectionEnabled="True"
+                 Text="{x:Bind Content, Mode=OneWay}"
+                 TextWrapping="Wrap" />
+                <TextBlock
+                 HorizontalAlignment="Right"
+                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                 Style="{StaticResource CaptionTextBlockStyle}"
+                 Text="{x:Bind MsgDateTime}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
+            <Grid Margin="0,4" HorizontalAlignment="Left">
+                <StackPanel MaxWidth="486" Spacing="4">
+                    <Border
+                     Background="Transparent"
+                     BorderBrush="Transparent"
+                     BorderThickness="0"
+                     Padding="8"
+                     x:Name="ThinkContainer"
+                     x:Load="{x:Bind HasThink, Mode=OneWay}">
+                        <TextBlock
+                         IsTextSelectionEnabled="True"
+                         Text="{x:Bind ThinkContent, Mode=OneWay}"
+                         TextWrapping="Wrap"
+                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </Border>
+                    <StackPanel
+                     Padding="12"
+                     HorizontalAlignment="Left"
+                     Background="{ThemeResource AccentFillColorDefaultBrush}"
+                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                     BorderThickness="1"
+                     CornerRadius="{StaticResource OverlayCornerRadius}"
+                     Spacing="8">
+                        <TextBlock
+                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                         IsTextSelectionEnabled="True"
+                         Text="{x:Bind DisplayContent, Mode=OneWay}"
+                         TextWrapping="Wrap" />
+                        <TextBlock
+                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                         Style="{StaticResource CaptionTextBlockStyle}"
+                         Text="{x:Bind MsgDateTime}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
     <Grid BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
       BorderThickness="0,0,0,1"
       Margin="-20"
@@ -20,25 +85,25 @@
         </Grid.ColumnDefinitions>
         <StackPanel Spacing="8">
             <TextBlock 
-            Style="{StaticResource CaptionTextBlockStyle}" 
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
-            Text="Sample text data:"/>
+                Style="{StaticResource CaptionTextBlockStyle}" 
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                Text="Sample text data:"/>
             <Button
-            Grid.Column="1"
-            Margin="3,0,0,0"
-            Click="AddTextDataButton_Click">
+                Grid.Column="1"
+                Margin="3,0,0,0"
+                Click="AddTextDataButton_Click">
                 <StackPanel Orientation="Horizontal">
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE898;" FontSize="16" Margin="0,0,4,0"/>
                     <TextBlock Text="Add Text Data"/>
                 </StackPanel>
             </Button>
             <controls:ItemsView
-            x:Name="textDataItemsView"
-            ItemsSource="{x:Bind TextDataItems}"
-            SelectionMode="None"
-            IsItemInvokedEnabled="False"
-            Grid.Column="0"
-            Padding="0,0,0,12">
+                x:Name="textDataItemsView"
+                ItemsSource="{x:Bind TextDataItems}"
+                SelectionMode="None"
+                IsItemInvokedEnabled="False"
+                Grid.Column="0"
+                Padding="0,0,0,12">
                 <controls:ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:TextDataItem">
                         <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
@@ -51,15 +116,15 @@
                                     Padding="11,32,11,11"
                                     Height="120"/>
                                 <Button
-                                x:Name="textCloseButton"
-                                Click="closeButton_Click"
-                                Tag="{x:Bind}"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Margin="0,4,4,0"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Style="{StaticResource SubtleButtonStyle}">
+                                    x:Name="textCloseButton"
+                                    Click="closeButton_Click"
+                                    Tag="{x:Bind}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,4,4,0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Style="{StaticResource SubtleButtonStyle}">
                                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="16"/>
                                 </Button>
 
@@ -133,110 +198,93 @@
             Margin="0,-20,-20,-20"
             Padding="20">
 
-            <StackPanel>
-                <TextBlock 
-                Style="{StaticResource CaptionTextBlockStyle}" 
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
-                Text="Search sample data:"/>
-                <Grid Grid.ColumnDefinitions="*,Auto">
-                    <controls:AutoSuggestBox x:Name="SearchBox"
-                     AutomationProperties.Name="Prompt input"
-                     PlaceholderText="ie. pets"
-                     QueryIcon="Find"
-                     QuerySubmitted="SearchBox_QuerySubmitted"
-                     Margin="0,7"/>
-                    <Button Style="{StaticResource SubtleButtonStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Grid.Column="1" Margin="3,0">
-                        <Button.Content>
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="14"/>
-                        </Button.Content>
-                        <Button.Flyout>
-                            <Flyout>
-                                <StackPanel>
-                                    <!-- Query Options -->
-                                    <TextBlock Text="Query Options" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <TextBox x:Name="QueryLanguageTextBox" Header="Query Language" PlaceholderText="e.g., en-US"/>
+            <Grid MaxWidth="1000">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                                    <!--Text Match Options-->
-                                    <TextBlock Text="Text Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
-                                        <ComboBoxItem Content="Unconstrained"/>
-                                        <ComboBoxItem Content="Region"/>
-                                        <ComboBoxItem Content="ContentItem"/>
-                                    </ComboBox>
-                                    <ComboBox x:Name="TextMatchTypeComboBox" Header="Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
-                                        <ComboBoxItem Content="Fuzzy"/>
-                                        <ComboBoxItem Content="Exact"/>
-                                    </ComboBox>
+                <ListView
+                    x:Name="InvertedListView"
+                    Padding="-12,0,-12,24"
+                    ItemTemplateSelector="{StaticResource ChatTemplateSelector}"
+                    ItemsSource="{x:Bind Messages}"
+                    SelectionMode="None"
+                    Loaded="InvertedListView_Loaded">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+                <Grid Grid.Row="1" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="InputBox"
+                        Grid.Row="1"
+                        AutomationProperties.Name="Prompt input"
+                        KeyUp="TextBox_KeyUp"
+                        PreviewKeyDown="TextBox_PreviewKeyDown"
+                        PlaceholderText="Enter your prompt (Press Shift + Enter to insert a newline)"
+                        TextChanged="InputBox_TextChanged"
+                        TextWrapping="Wrap" 
+                        AcceptsReturn="True"
+                        MaxHeight="148"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="SendBtn"
+                            AutomationProperties.Name="Send Message"
+                            Click="SendBtn_Click"
+                            Style="{StaticResource AccentButtonStyle}"
+                            IsEnabled="False">
+                            <StackPanel Orientation="Horizontal"
+                            Spacing="8">
+                                <FontIcon FontSize="16"
+                              Glyph="&#xE725;" />
+                                <TextBlock Text="Send" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="StopBtn"
+                            AutomationProperties.Name="Stop"
+                            Click="StopBtn_Click"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                                <FontIcon FontSize="16"
+                                    Glyph="&#xE73B;" />
+                                <TextBlock Text="Stop" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
-                                    <!--Image Match Options-->
-                                    <TextBlock Text="Image Match Options" FontWeight="SemiBold" Margin="0,12,0,4"/>
-                                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0">
-                                        <ComboBoxItem Content="Unconstrained"/>
-                                        <ComboBoxItem Content="Region"/>
-                                        <ComboBoxItem Content="ContentItem"/>
-                                    </ComboBox>
-                                    <ComboBox x:Name="ImageOcrTextMatchTypeComboBox" Header="OCR Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
-                                        <ComboBoxItem Content="Fuzzy"/>
-                                        <ComboBoxItem Content="Exact"/>
-                                    </ComboBox>
-                                </StackPanel>
-                            </Flyout>
-                        </Button.Flyout>
-                    </Button>
                 </Grid>
 
-                <ProgressBar
-                    x:Name="OutputProgressBar"
-                    VerticalAlignment="Bottom"
-                    IsIndeterminate="True"
-                    Visibility="Collapsed" />
-
-                <Grid
-                x:Name="ResultsGrid"
-                Grid.Column="1"
-                Visibility="Collapsed">
-                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
-                    <ScrollViewer
-                    Margin="0,25,0,0"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Visible">
-                        <TextBlock
-                        x:Name="ResultsTextBlock"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        IsTextSelectionEnabled="True"
-                        TextWrapping="WrapWholeWords" />
-                    </ScrollViewer>
-                    <ItemsControl x:Name="ImageResultsBox" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapGrid Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding}" Height="100" Width="100" Margin="5"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                    <StackPanel Spacing="7">
+                        <InfoBar
+                            x:Name="IndexingMessage"
+                            IsOpen="False"
+                            Severity="Informational"
+                            Title="Indexing"
+                            Message="Partial results may be available." 
+                            Padding="0"/>
+                        <InfoBar
+                            x:Name="RemovedItemMessage"
+                            IsOpen="False"
+                            Severity="Informational"
+                            Message="Item has been removed" 
+                            Padding="0"/>
+                    </StackPanel>
                 </Grid>
-            </StackPanel>
-
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-                <StackPanel Spacing="7">
-                    <InfoBar
-                    x:Name="IndexingMessage"
-                    IsOpen="False"
-                    Severity="Informational"
-                    Title="Indexing"
-                    Message="Partial results may be available." 
-                    Padding="0"/>
-                    <InfoBar
-                    x:Name="RemovedItemMessage"
-                    IsOpen="False"
-                    Severity="Informational"
-                    Message="Item has been removed" 
-                    Padding="0"/>
-                </StackPanel>
             </Grid>
         </Grid>
     </Grid>
