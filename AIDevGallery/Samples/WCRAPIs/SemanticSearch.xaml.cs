@@ -51,9 +51,9 @@ namespace AIDevGallery.Samples.WCRAPIs;
         SharedCodeEnum.DataItems
     ],
     AssetFilenames = [
-        "OCR.png",
-        "Enhance.png",
-        "Road.png",
+        "InteriorDesign.png",
+        "TofuBowlRecipe.png",
+        "ShakshukaRecipe.png"
     ],
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
@@ -79,9 +79,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     Dictionary<string, string> simpleImageData = new Dictionary<string, string>
     {
-        {"image1", "Enhance.png" },
-        {"image2", "OCR.png" },
-        {"image3", "Road.png" },
+        {"image1", "InteriorDesign.png" },
+        {"image2", "TofuBowlRecipe.png" },
+        {"image3", "ShakshukaRecipe.png" },
     };
 
     private AppContentIndexer _indexer;
@@ -222,6 +222,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
+        ResultsGrid.Visibility = Visibility.Visible;
+        ResultStatusTextBlock.Text = "Searching...";
+
         string searchText = SearchBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))
         {
@@ -314,7 +317,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                     foreach (var match in imageMatches)
                     {
                         Console.WriteLine(match.ContentId);
-                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                        if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
                         {
                             AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
 
@@ -331,8 +334,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 // Update UI
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    this.ResultsGrid.Visibility = Visibility.Visible;
-
                     if ((textMatches == null || textMatches.Count == 0) && (imageResults == null || imageResults.Count == 0))
                     {
                         ResultStatusTextBlock.Text = "No results found.";
@@ -344,12 +345,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                     if (textMatches != null && textMatches.Count > 0)
                     {
-                        this.ResultsTextBlock.Visibility = Visibility.Visible;
+                        ResultsTextBlock.Visibility = Visibility.Visible;
                         ResultsTextBlock.Text = textResults;
                     }
                     else
                     {
-                        this.ResultsTextBlock.Visibility = Visibility.Collapsed;
+                        ResultsTextBlock.Visibility = Visibility.Collapsed;
                     }
 
                     if (imageResults != null && imageResults.Count > 0)

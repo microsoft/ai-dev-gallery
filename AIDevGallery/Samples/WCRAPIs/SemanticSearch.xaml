@@ -93,12 +93,12 @@
                 Grid.Column="0">
                 <controls:ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:ImageDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Height="200" Margin="3">
                             <Grid>
                                 <Image Source="{x:Bind ImageSource}"
                                         Tag="{x:Bind Id}"
                                         ImageOpened="ImageData_ImageOpened" 
-                                        Stretch="Fill" 
+                                        Stretch="UniformToFill" 
                                         HorizontalAlignment="Stretch" 
                                         VerticalAlignment="Stretch" 
                                         MinWidth="70"/>
@@ -188,16 +188,10 @@
                     </Button>
                 </Grid>
 
-                <ProgressBar
-                        x:Name="OutputProgressBar"
-                        VerticalAlignment="Bottom"
-                        IsIndeterminate="True"
-                        Visibility="Collapsed" />
-
                 <Grid
                     x:Name="ResultsGrid"
                     Grid.Column="1"
-                    MaxHeight="345"
+                    MaxHeight="415"
                     Visibility="Collapsed">
 
                     <StackPanel>

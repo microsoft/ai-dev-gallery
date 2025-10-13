@@ -49,11 +49,6 @@ namespace AIDevGallery.Samples.WCRAPIs;
         SharedCodeEnum.Message,
         SharedCodeEnum.ChatTemplateSelector
     ],
-    AssetFilenames = [
-        "OCR.png",
-        "Enhance.png",
-        "Road.png",
-    ],
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
         "Microsoft.Extensions.AI",
@@ -127,7 +122,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             }
 
             // Load AppContentIndexer
-            var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+            var result = AppContentIndexer.GetOrCreateIndex("knowledgeRetrievalIndex");
 
             if (!result.Succeeded)
             {
