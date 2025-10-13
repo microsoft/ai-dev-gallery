@@ -41,7 +41,7 @@
                 Padding="0,0,0,12">
                 <controls:ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:TextDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3" IsTabStop="False">
                             <Grid>
                                 <TextBox Text="{x:Bind Value, Mode=TwoWay}"
                                         Tag="{x:Bind Id}"
@@ -197,30 +197,39 @@
                 <Grid
                     x:Name="ResultsGrid"
                     Grid.Column="1"
+                    MaxHeight="345"
                     Visibility="Collapsed">
-                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
-                    <ScrollViewer
-                        Margin="0,25,0,0"
-                        HorizontalScrollBarVisibility="Disabled"
-                        VerticalScrollBarVisibility="Visible">
-                        <TextBlock
-                            x:Name="ResultsTextBlock"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            IsTextSelectionEnabled="True"
-                            TextWrapping="WrapWholeWords" />
-                    </ScrollViewer>
-                    <ItemsControl x:Name="ImageResultsBox" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapGrid Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding}" Height="100" Width="100" Margin="5"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+
+                    <StackPanel>
+                        <TextBlock x:Name="ResultStatusTextBlock" Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="0,12" />
+                        <ScrollViewer
+                            MaxHeight="350"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Visible">
+                            <StackPanel Padding="0,0,0,48">
+                                <TextBlock
+                                     x:Name="ResultsTextBlock"
+                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                     IsTextSelectionEnabled="True"
+                                     TextWrapping="WrapWholeWords" />
+                                <ItemsView x:Name="ImageResultsBox" Grid.Row="2" Visibility="Collapsed">
+                                    <ItemsView.Layout>
+                                        <LinedFlowLayout />
+                                    </ItemsView.Layout>
+                                    <ItemsView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ItemContainer MaxWidth="150" Margin="4">
+                                                <Image Source="{Binding}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </ItemContainer>
+                                        </DataTemplate>
+                                    </ItemsView.ItemTemplate>
+                                </ItemsView>
+                            </StackPanel>
+                            
+                           
+                        </ScrollViewer>
+                        
+                    </StackPanel>
                 </Grid>
             </StackPanel>
 

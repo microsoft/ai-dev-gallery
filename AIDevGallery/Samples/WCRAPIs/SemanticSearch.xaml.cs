@@ -284,8 +284,20 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         {
                             AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
                             string matchingData = simpleTextData[match.ContentId];
-                            string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
-                            textResults += matchingString + "\n\n";
+                            int offset = textResult.TextOffset;
+                            int length = textResult.TextLength;
+
+                            // Ensure offset and length are within bounds
+                            if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
+                            {
+                                string matchingString = matchingData.Substring(offset, length);
+                                textResults += matchingString + "\n\n";
+                            }
+                            else
+                            {
+                                // Fallback: use a safe substring or the whole string, or skip
+                                string matchingString = matchingData;
+                            }
                         }
                     }
                 }
@@ -314,9 +326,27 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     this.ResultsGrid.Visibility = Visibility.Visible;
-                    ResultsTextBlock.Text = textResults;
 
-                    if (imageResults.Count > 0)
+                    if ((textMatches == null || textMatches.Count == 0) && (imageResults == null || imageResults.Count == 0))
+                    {
+                        ResultStatusTextBlock.Text = "No results found.";
+                    }
+                    else
+                    {
+                        ResultStatusTextBlock.Text = "Search Results:";
+                    }
+
+                    if (textMatches != null && textMatches.Count > 0)
+                    {
+                        this.ResultsGrid.Visibility = Visibility.Visible;
+                        ResultsTextBlock.Text = textResults;
+                    }
+                    else
+                    {
+                        this.ResultsGrid.Visibility = Visibility.Collapsed;
+                    }
+
+                    if (imageResults != null && imageResults.Count > 0)
                     {
                         ImageResultsBox.ItemsSource = imageResults;
                         ImageResultsBox.Visibility = Visibility.Visible;
