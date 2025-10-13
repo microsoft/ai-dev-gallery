@@ -21,7 +21,10 @@ namespace AIDevGallery;
 /// </summary>
 public partial class App : Application
 {
-    private TextWriterTraceListener? _fileTraceListener;
+    private TextWriterTraceListener? _debugListener;
+    private TextWriterTraceListener? _traceListener;
+    private StreamWriter? _sharedLogWriter;
+    private object _logWriteLock = new();
 
     /// <summary>
     /// Gets, or initializes, the singleton application object. This is the first line of authored code
@@ -75,11 +78,23 @@ public partial class App : Application
                 // Create a timestamped log file for this session
                 var logFileName = $"AIDevGallery_{System.DateTime.UtcNow:yyyyMMdd_HHmmss}.log";
                 var logPath = Path.Combine(logsDir, logFileName);
-                var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                _fileTraceListener = new TextWriterTraceListener(stream, "FileLogger");
-                Trace.Listeners.Add(_fileTraceListener);
+                var baseStream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                _sharedLogWriter = new StreamWriter(baseStream) { AutoFlush = true };
+
+                // Create prefixed listeners for Debug and Trace
+                var debugWriter = new PrefixedTextWriter(_sharedLogWriter, _logWriteLock, "[Debug] ");
+                var traceWriter = new PrefixedTextWriter(_sharedLogWriter, _logWriteLock, "[Trace] ");
+                _debugListener = new TextWriterTraceListener(debugWriter, "DebugFileLogger");
+                _traceListener = new TextWriterTraceListener(traceWriter, "TraceFileLogger");
+                Debug.Listeners.Add(_debugListener);
+                Trace.Listeners.Add(_traceListener);
                 Debug.AutoFlush = true;
                 Trace.AutoFlush = true;
+
+                // Redirect Console to the same writer with prefix
+                var consoleWriter = new PrefixedTextWriter(_sharedLogWriter, _logWriteLock, "[Console] ");
+                Console.SetOut(consoleWriter);
+                Console.SetError(consoleWriter);
                 Debug.WriteLine($"Logging started: {System.DateTime.Now:O}");
             }
         }
@@ -100,14 +115,30 @@ public partial class App : Application
             // Flush and close file logger
             try
             {
-                if (_fileTraceListener != null)
+                if (_debugListener != null)
                 {
                     Debug.WriteLine("Logging ended");
-                    _fileTraceListener.Flush();
-                    _fileTraceListener.Close();
-                    Trace.Listeners.Remove(_fileTraceListener);
-                    _fileTraceListener.Dispose();
-                    _fileTraceListener = null;
+                    _debugListener.Flush();
+                    _debugListener.Close();
+                    Debug.Listeners.Remove(_debugListener);
+                    _debugListener.Dispose();
+                    _debugListener = null;
+                }
+
+                if (_traceListener != null)
+                {
+                    _traceListener.Flush();
+                    _traceListener.Close();
+                    Trace.Listeners.Remove(_traceListener);
+                    _traceListener.Dispose();
+                    _traceListener = null;
+                }
+
+                if (_sharedLogWriter != null)
+                {
+                    _sharedLogWriter.Flush();
+                    _sharedLogWriter.Dispose();
+                    _sharedLogWriter = null;
                 }
             }
             catch
@@ -221,6 +252,80 @@ public partial class App : Application
                             SearchIndex.Add(new SearchResult() { Label = apiDefinition.Name, Icon = apiDefinition.Icon, Description = apiDefinition.Name!, Tag = childNavigationItem });
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private sealed class PrefixedTextWriter : TextWriter
+    {
+        private readonly TextWriter _inner;
+        private readonly object _lock;
+        private readonly string _prefix;
+        private bool _atLineStart = true;
+
+        public PrefixedTextWriter(TextWriter inner, object @lock, string prefix)
+        {
+            _inner = inner;
+            _lock = @lock;
+            _prefix = prefix;
+        }
+
+        public override System.Text.Encoding Encoding => _inner.Encoding;
+
+        public override void Write(string? value)
+        {
+            if (value == null) return;
+            lock (_lock)
+            {
+                WriteWithPrefix(value);
+            }
+        }
+
+        public override void WriteLine(string? value)
+        {
+            lock (_lock)
+            {
+                if (value == null)
+                {
+                    if (_atLineStart)
+                    {
+                        _inner.Write(_prefix);
+                    }
+                    _inner.WriteLine();
+                    _atLineStart = true;
+                    return;
+                }
+
+                WriteWithPrefix(value + Environment.NewLine);
+                _atLineStart = true;
+            }
+        }
+
+        private void WriteWithPrefix(string text)
+        {
+            int i = 0;
+            while (i < text.Length)
+            {
+                if (_atLineStart)
+                {
+                    _inner.Write(_prefix);
+                    _atLineStart = false;
+                }
+
+                char ch = text[i++];
+                _inner.Write(ch);
+                if (ch == '\n')
+                {
+                    _atLineStart = true;
+                }
+                else if (ch == '\r')
+                {
+                    if (i < text.Length && text[i] == '\n')
+                    {
+                        _inner.Write(text[i++]);
+                    }
+                    _atLineStart = true;
                 }
             }
         }
