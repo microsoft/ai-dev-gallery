@@ -104,7 +104,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         await Task.Run(async () =>
         {
-            var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+            var result = AppContentIndexer.GetOrCreateIndex("semanticSearchIndex");
 
             if (!result.Succeeded)
             {

@@ -154,11 +154,11 @@
                             <Flyout>
                                 <StackPanel>
                                     <!-- Query Options -->
-                                    <TextBlock Text="Query Options:" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Query Options:" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,12"/>
                                     <TextBox x:Name="QueryLanguageTextBox" Header="Query Language" PlaceholderText="e.g., en-US"/>
 
                                     <!--Text Match Options-->
-                                    <TextBlock Text="Text Match Options:" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,12,0,4"/>
+                                    <TextBlock Text="Text Match Options:" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,18,0,12"/>
                                     <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,7">
                                         <ComboBoxItem Content="Unconstrained"/>
                                         <ComboBoxItem Content="Region"/>
@@ -170,7 +170,7 @@
                                     </ComboBox>
 
                                     <!--Image Match Options-->
-                                    <TextBlock Text="Image Match Options" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,12,0,4"/>
+                                    <TextBlock Text="Image Match Options" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,18,0,12"/>
                                     <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,7">
                                         <ComboBoxItem Content="Unconstrained"/>
                                         <ComboBoxItem Content="Region"/>

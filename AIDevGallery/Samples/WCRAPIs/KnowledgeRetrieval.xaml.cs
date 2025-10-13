@@ -111,49 +111,52 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        // Load chat client
-        try
+        await Task.Run(async ()=>
         {
-            var ragSampleParams = new SampleNavigationParameters(
-                sampleId: "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
-                modelId: "PhiSilica",
-                modelPath: $"file://{ModelType.PhiSilica}",
-                hardwareAccelerator: HardwareAccelerator.CPU,
-                promptTemplate: null,
-                sampleLoadedCompletionSource: new TaskCompletionSource(),
-                winMlSampleOptions: null,
-                loadingCanceledToken: CancellationToken.None
-            );
+            // Load chat client
+            try
+            {
+                var ragSampleParams = new SampleNavigationParameters(
+                    sampleId: "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+                    modelId: "PhiSilica",
+                    modelPath: $"file://{ModelType.PhiSilica}",
+                    hardwareAccelerator: HardwareAccelerator.CPU,
+                    promptTemplate: null,
+                    sampleLoadedCompletionSource: new TaskCompletionSource(),
+                    winMlSampleOptions: null,
+                    loadingCanceledToken: CancellationToken.None
+                );
 
-            _model = await ragSampleParams.GetIChatClientAsync();
-        }
-        catch (Exception ex)
-        {
-            ShowException(ex);
-        }
+                _model = await ragSampleParams.GetIChatClientAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex);
+            }
 
-        // Load AppContentIndexer
-        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
+            // Load AppContentIndexer
+            var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        }
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+            }
 
-        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-        {
-            Console.WriteLine("Created a new index");
-        }
-        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        {
-            Console.WriteLine("Opened an existing index");
-        }
+            // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+            if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+            {
+                Console.WriteLine("Created a new index");
+            }
+            else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+            {
+                Console.WriteLine("Opened an existing index");
+            }
 
-        _indexer = result.Indexer;
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+            _indexer = result.Indexer;
+            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
 
-        sampleParams.NotifyCompletion();
+            sampleParams.NotifyCompletion();
+        });
     }
 
     // <exclude>

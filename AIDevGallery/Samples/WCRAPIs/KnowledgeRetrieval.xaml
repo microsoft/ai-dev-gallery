@@ -106,7 +106,7 @@
                 Padding="0,0,0,12">
                 <controls:ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:TextDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3">
+                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3" IsTabStop="False">
                             <Grid>
                                 <TextBox Text="{x:Bind Value, Mode=TwoWay}"
                                     Tag="{x:Bind Id}"
