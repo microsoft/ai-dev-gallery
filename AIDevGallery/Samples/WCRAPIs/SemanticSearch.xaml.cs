@@ -102,27 +102,32 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var result = AppContentIndexer.GetOrCreateIndex("myIndex");
-
-        if (!result.Succeeded)
+        await Task.Run(async () =>
         {
-            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        }
+            var result = AppContentIndexer.GetOrCreateIndex("myIndex");
 
-        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-        {
-            Console.WriteLine("Created a new index");
-        }
-        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        {
-            Console.WriteLine("Opened an existing index");
-        }
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+            }
 
-        _indexer = result.Indexer;
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+            // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+            if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+            {
+                Console.WriteLine("Created a new index");
+                IndexAll();
 
-        sampleParams.NotifyCompletion();
+            }
+            else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+            {
+                Console.WriteLine("Opened an existing index");
+            }
+
+            _indexer = result.Indexer;
+            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+
+            sampleParams.NotifyCompletion();
+        });
     }
 
     // <exclude>
@@ -186,27 +191,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             SoftwareBitmap bitmap = null;
             if (!string.IsNullOrEmpty(uriString))
             {
-                try
-                {
-                    StorageFile file;
-                    if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
-                    {
-                        file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
-                    }
-                    else
-                    {
-                        // Assume it's a file path for user-uploaded images
-                        file = await StorageFile.GetFileFromPathAsync(uriString);
-                    }
-
-                    using var stream = await file.OpenAsync(FileAccessMode.Read);
-                    var decoder = await BitmapDecoder.CreateAsync(stream);
-                    bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
-                }
+                bitmap = await LoadBitmap(uriString);
             }
 
             // Update local dictionary and observable collection
@@ -478,6 +463,60 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         _indexer.AddOrUpdate(imageContent);
 
         var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+    }
+
+    private async void IndexAll()
+    {
+        IndexingMessage.IsOpen = true;
+
+        await Task.Run(async () =>
+        {
+            foreach (var kvp in simpleTextData)
+            {
+                await IndexTextData(kvp.Key, kvp.Value);
+            }
+
+            foreach (var kvp in simpleImageData)
+            {
+                SoftwareBitmap bitmap = await LoadBitmap(kvp.Value);
+                await IndexImageData(kvp.Key, bitmap);
+            }
+        });
+
+        IndexingMessage.IsOpen = false;
+    }
+
+    private void IndexAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        IndexAll();
+    }
+
+    private async Task<SoftwareBitmap> LoadBitmap(string uriString)
+    {
+        try
+        {
+            StorageFile file;
+            if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
+            {
+                file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+            }
+            else
+            {
+                // Assume it's a file path for user-uploaded images
+                file = await StorageFile.GetFileFromPathAsync(uriString);
+            }
+
+            using var stream = await file.OpenAsync(FileAccessMode.Read);
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+
+            return await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
+        }
+
+        return null;
     }
 
     private void PopulateTextData()
