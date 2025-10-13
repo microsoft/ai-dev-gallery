@@ -17,35 +17,30 @@
              UserTemplate="{StaticResource UserDataTemplate}" />
         <DataTemplate x:Key="UserDataTemplate" x:DataType="shared:Message">
             <StackPanel
-             MaxWidth="486"
-             Padding="12"
-             HorizontalAlignment="Right"
-             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-             BorderThickness="1"
-             CornerRadius="{StaticResource OverlayCornerRadius}"
-             Spacing="8">
-                <TextBlock
-                 IsTextSelectionEnabled="True"
-                 Text="{x:Bind Content, Mode=OneWay}"
-                 TextWrapping="Wrap" />
-                <TextBlock
+                 MaxWidth="486"
+                 Padding="12"
                  HorizontalAlignment="Right"
-                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                 Style="{StaticResource CaptionTextBlockStyle}"
-                 Text="{x:Bind MsgDateTime}" />
+                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                 BorderThickness="1"
+                 CornerRadius="{StaticResource OverlayCornerRadius}"
+                 Spacing="8">
+                <TextBlock
+                     IsTextSelectionEnabled="True"
+                     Text="{x:Bind Content, Mode=OneWay}"
+                     TextWrapping="Wrap" />
             </StackPanel>
         </DataTemplate>
         <DataTemplate x:Key="AssistantDataTemplate" x:DataType="shared:Message">
             <Grid Margin="0,4" HorizontalAlignment="Left">
                 <StackPanel MaxWidth="486" Spacing="4">
                     <Border
-                     Background="Transparent"
-                     BorderBrush="Transparent"
-                     BorderThickness="0"
-                     Padding="8"
-                     x:Name="ThinkContainer"
-                     x:Load="{x:Bind HasThink, Mode=OneWay}">
+                         Background="Transparent"
+                         BorderBrush="Transparent"
+                         BorderThickness="0"
+                         Padding="8"
+                         x:Name="ThinkContainer"
+                         x:Load="{x:Bind HasThink, Mode=OneWay}">
                         <TextBlock
                          IsTextSelectionEnabled="True"
                          Text="{x:Bind ThinkContent, Mode=OneWay}"
@@ -53,22 +48,18 @@
                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     </Border>
                     <StackPanel
-                     Padding="12"
-                     HorizontalAlignment="Left"
-                     Background="{ThemeResource AccentFillColorDefaultBrush}"
-                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                     BorderThickness="1"
-                     CornerRadius="{StaticResource OverlayCornerRadius}"
-                     Spacing="8">
+                         Padding="12"
+                         HorizontalAlignment="Left"
+                         Background="{ThemeResource AccentFillColorDefaultBrush}"
+                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                         BorderThickness="1"
+                         CornerRadius="{StaticResource OverlayCornerRadius}"
+                         Spacing="8">
                         <TextBlock
                          Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                          IsTextSelectionEnabled="True"
                          Text="{x:Bind DisplayContent, Mode=OneWay}"
                          TextWrapping="Wrap" />
-                        <TextBlock
-                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                         Style="{StaticResource CaptionTextBlockStyle}"
-                         Text="{x:Bind MsgDateTime}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -204,24 +195,27 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <ListView
-                    x:Name="InvertedListView"
-                    Padding="-12,0,-12,24"
-                    ItemTemplateSelector="{StaticResource ChatTemplateSelector}"
-                    ItemsSource="{x:Bind Messages}"
-                    SelectionMode="None"
-                    Loaded="InvertedListView_Loaded">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
+                <ScrollViewer MaxHeight="345">
+                    <ListView
+                         x:Name="InvertedListView"
+                         Padding="-12,0,-12,24"
+                         ItemTemplateSelector="{StaticResource ChatTemplateSelector}"
+                         ItemsSource="{x:Bind Messages}"
+                         SelectionMode="None"
+                         Loaded="InvertedListView_Loaded">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                </ScrollViewer>
+               
                 <Grid Grid.Row="1" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -264,7 +258,7 @@
 
                 </Grid>
 
-                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
                     <StackPanel Spacing="7">
                         <InfoBar
                             x:Name="IndexingMessage"

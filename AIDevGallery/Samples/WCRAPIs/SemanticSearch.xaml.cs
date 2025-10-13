@@ -313,11 +313,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 {
                     foreach (var match in imageMatches)
                     {
-                        if (simpleImageData.TryGetValue(match.ContentId, out var imagePath))
+                        Console.WriteLine(match.ContentId);
+                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                         {
-                            // If imagePath is just the file name, prepend the ms-appx URI
-                            var uri = imagePath.StartsWith("ms-appx") ? imagePath : $"ms-appx:///Assets/{imagePath}";
-                            imageResults.Add(uri);
+                            AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
+
+                            if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
+                            {
+                                // If imagePath is just the file name, prepend the ms-appx URI
+                                var uri = imagePath.StartsWith("ms-appx") ? imagePath : $"ms-appx:///Assets/{imagePath}";
+                                imageResults.Add(uri);
+                            }
                         }
                     }
                 }
@@ -338,12 +344,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                     if (textMatches != null && textMatches.Count > 0)
                     {
-                        this.ResultsGrid.Visibility = Visibility.Visible;
+                        this.ResultsTextBlock.Visibility = Visibility.Visible;
                         ResultsTextBlock.Text = textResults;
                     }
                     else
                     {
-                        this.ResultsGrid.Visibility = Visibility.Collapsed;
+                        this.ResultsTextBlock.Visibility = Visibility.Collapsed;
                     }
 
                     if (imageResults != null && imageResults.Count > 0)

@@ -26,6 +26,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -146,6 +147,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
                 Console.WriteLine("Created a new index");
+                IndexAll();
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
@@ -231,6 +233,75 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         }
     }
 
+    private async Task<string> BuildContextFromUserPrompt(string queryText)
+    {
+        if (_indexer == null) return "";
+
+        var queryPrompt = await Task.Run(async () =>
+        {
+            // We execute a query against the index using the user's prompt string as the query text.
+            AppIndexQuery query = _indexer.CreateQuery(queryText);
+
+            IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
+            IReadOnlyList<ImageQueryMatch> imageMatches = query.GetNextImageMatches(5);
+
+            StringBuilder promptStringBuilder = new StringBuilder();
+            promptStringBuilder.AppendLine("You are a helpful assistant. Please only refer to the following pieces of information when responding to the user's prompt:");
+
+            // For each of the matches found, we include the relevant snippets of the text files in the augmented query that we send to the language model
+            if (textMatches != null && textMatches.Count > 0)
+            {
+                foreach (var match in textMatches)
+                {
+                    Console.WriteLine(match.ContentId);
+                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                    {
+                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                        string matchingData = simpleTextData[match.ContentId];
+                        int offset = textResult.TextOffset;
+                        int length = textResult.TextLength;
+                        string matchingString;
+
+                        if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
+                        {
+                            // Find the substring within the loaded text that contains the match:
+                            matchingString = matchingData.Substring(offset, length);
+                        }
+                        else
+                        {
+                            matchingString = matchingData;
+                        }
+
+                        promptStringBuilder.AppendLine(matchingString);
+                        promptStringBuilder.AppendLine();
+                    }
+                }
+            }
+
+            //if (imageMatches != null && imageMatches.Count > 0)
+            //{
+            //    foreach (var match in imageMatches)
+            //    {
+            //        Console.WriteLine(match.ContentId);
+            //        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+            //        {
+            //            AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
+            //            string matchingData = simpleImageData[match.ContentId];
+
+                        
+            //        }
+            //    }
+            //}
+
+            promptStringBuilder.AppendLine("Please provide a short response of less than 50 words to the following user prompt:");
+            promptStringBuilder.AppendLine(queryText);
+
+            return promptStringBuilder;
+        });
+
+        return queryPrompt.ToString();
+    }
+
     private void AddMessage(string text)
     {
         if (_model == null)
@@ -257,12 +328,13 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                 Messages.Add(responseMessage);
                 StopBtn.Visibility = Visibility.Visible;
                 InputBox.IsEnabled = false;
-                InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
             });
 
             cts = new CancellationTokenSource();
 
-            history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));
+            string userPrompt = await BuildContextFromUserPrompt(text);
+
+            history.Insert(0, new ChatMessage(ChatRole.System, userPrompt));
 
             // <exclude>
             ShowDebugInfo(null);
@@ -441,7 +513,6 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     private void EnableInputBoxWithPlaceholder()
     {
         InputBox.IsEnabled = true;
-        InputBox.PlaceholderText = "Enter your prompt (Press Shift + Enter to insert a newline)";
     }
 
     private void InvertedListView_Loaded(object sender, RoutedEventArgs e)
@@ -536,27 +607,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             SoftwareBitmap bitmap = null;
             if (!string.IsNullOrEmpty(uriString))
             {
-                try
-                {
-                    StorageFile file;
-                    if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
-                    {
-                        file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
-                    }
-                    else
-                    {
-                        // Assume it's a file path for user-uploaded images
-                        file = await StorageFile.GetFileFromPathAsync(uriString);
-                    }
-
-                    using var stream = await file.OpenAsync(FileAccessMode.Read);
-                    var decoder = await BitmapDecoder.CreateAsync(stream);
-                    bitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
-                }
+                bitmap = await LoadBitmap(uriString);
             }
 
             // Update local dictionary and observable collection
@@ -810,6 +861,55 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         _indexer.AddOrUpdate(imageContent);
 
         var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+    }
+
+    private async void IndexAll()
+    {
+        IndexingMessage.IsOpen = true;
+
+        await Task.Run(async () =>
+        {
+            foreach (var kvp in simpleTextData)
+            {
+                await IndexTextData(kvp.Key, kvp.Value);
+            }
+
+            foreach (var kvp in simpleImageData)
+            {
+                SoftwareBitmap bitmap = await LoadBitmap(kvp.Value);
+                await IndexImageData(kvp.Key, bitmap);
+            }
+        });
+
+        IndexingMessage.IsOpen = false;
+    }
+
+    private async Task<SoftwareBitmap> LoadBitmap(string uriString)
+    {
+        try
+        {
+            StorageFile file;
+            if (uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
+            {
+                file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uriString));
+            }
+            else
+            {
+                // Assume it's a file path for user-uploaded images
+                file = await StorageFile.GetFileFromPathAsync(uriString);
+            }
+
+            using var stream = await file.OpenAsync(FileAccessMode.Read);
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+
+            return await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading image: {ex.Message}");
+        }
+
+        return null;
     }
 
     private void PopulateTextData()
