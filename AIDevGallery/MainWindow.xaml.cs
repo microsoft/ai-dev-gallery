@@ -9,10 +9,12 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.System;
 using WinUIEx;
 
@@ -20,6 +22,7 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
+    private AppContentIndexer _indexer;
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
 
     public MainWindow(object? obj = null)
@@ -43,6 +46,33 @@ internal sealed partial class MainWindow : WindowEx
                 Close();
             }
         };
+
+        // Load AppContentIndexer
+        Task.Run(async () =>
+        {
+            var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+            }
+
+            _indexer = result.Indexer;
+            await _indexer.WaitForIndexCapabilitiesAsync();
+
+            // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+            if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+            {
+                Console.WriteLine("Created a new index");
+                
+            }
+            else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+            {
+                Console.WriteLine("Opened an existing index");
+            }
+
+            IndexAppSearchIndex();
+        });
     }
 
     public void NavigateToPage(object? obj)
@@ -220,16 +250,52 @@ internal sealed partial class MainWindow : WindowEx
         NavFrame.Navigate(typeof(SettingsPage), "ModelManagement");
     }
 
-    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
         {
-            var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(sender.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-            var orderedResults = filteredSearchResults.OrderByDescending(i => i.Label.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase)).ThenBy(i => i.Label).ToList();
+            var searchText = sender.Text;
+            List<SearchResult> orderedResults = new();
+
+            if (_indexer != null)
+            {
+                await Task.Run(async () =>
+                {
+                    // Use AppContentIndexer to search
+                    var query = _indexer.CreateQuery(searchText);
+                    IReadOnlyList<TextQueryMatch> matches = await Task.Run(() =>
+                    {
+                        return query.GetNextTextMatches(5);
+                    });
+
+
+                    if (matches != null && matches.Count > 0)
+                    {
+                        foreach (var match in matches)
+                        {
+                            var sr = App.SearchIndex.FirstOrDefault(s => s.Label == match.ContentId);
+                            if (sr != null)
+                            {
+                                orderedResults.Add(sr);
+                            }
+                        }
+                    }
+                });
+            }
+            else
+            {
+                // Fallback to in-memory search
+                var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+                orderedResults = filteredSearchResults
+                    .OrderByDescending(i => i.Label.StartsWith(searchText, StringComparison.CurrentCultureIgnoreCase))
+                    .ThenBy(i => i.Label)
+                    .ToList();
+            }
+
             SearchBox.ItemsSource = orderedResults;
 
             var resultCount = orderedResults.Count;
-            string announcement = $"Searching for '{sender.Text}', {resultCount} search result{(resultCount == 1 ? string.Empty : 's')} found";
+            string announcement = $"Searching for '{searchText}', {resultCount} search result{(resultCount == 1 ? string.Empty : "s")} found";
             NarratorHelper.Announce(SearchBox, announcement, "searchSuggestionsActivityId");
         }
     }
@@ -289,5 +355,26 @@ internal sealed partial class MainWindow : WindowEx
         {
             titleBarIcon.Margin = new Thickness(16, 0, 0, 0);
         }
+    }
+
+    private async void IndexAppSearchIndex()
+    {
+        if (_indexer == null || App.SearchIndex == null)
+        {
+            return;
+        }
+
+        await Task.Run(async () =>
+        {
+            foreach (var item in App.SearchIndex)
+            {
+                string id = item.Label;
+                string value = $"{item.Label}\n{item.Description}";
+                IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
+                _indexer.AddOrUpdate(textContent);
+            }
+        });
+
+        await _indexer.WaitForIndexingIdleAsync(50000);
     }
 }
