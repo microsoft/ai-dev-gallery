@@ -6,9 +6,12 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
@@ -64,14 +67,14 @@ internal sealed partial class MainWindow : WindowEx
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
                 Console.WriteLine("Created a new index");
-                
+                IndexAppSearchIndex();
+
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
                 Console.WriteLine("Opened an existing index");
+                SetSearchBoxIndexingCompleted();
             }
-
-            IndexAppSearchIndex();
         });
     }
 
@@ -357,6 +360,15 @@ internal sealed partial class MainWindow : WindowEx
         }
     }
 
+    private void SetSearchBoxIndexingCompleted()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            SearchBoxQueryIcon.Foreground = Application.Current.Resources["AIAccentGradientBrush"] as Brush;
+            SearchBoxQueryIcon.Glyph = "\uED37";
+        });
+    }
+
     private async void IndexAppSearchIndex()
     {
         if (_indexer == null || App.SearchIndex == null)
@@ -376,5 +388,7 @@ internal sealed partial class MainWindow : WindowEx
         });
 
         await _indexer.WaitForIndexingIdleAsync(50000);
+
+        SetSearchBoxIndexingCompleted();
     }
 }
