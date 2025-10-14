@@ -319,11 +319,11 @@ internal static partial class SamplesHelper
             }
         }
 
-        // When exporting example projects, replace demoToken retrieval with a constant value in any sample file
+        // When exporting example projects, replace demoToken and demoPublisherId retrieval with a mock value in any sample file
         if (forExport)
         {
-            cleanCsSource = RegexLafTokenAssignment().Replace(cleanCsSource, "\"Zv6LUQWEwhJTahzvwSGjHQ==\"");
-            cleanCsSource = RegexLafPublisherAssignment().Replace(cleanCsSource, "\"z0sq19pdabnaj\"");
+            cleanCsSource = RegexLafTokenAssignment().Replace(cleanCsSource, "\"_YOUR_LAF_TOKEN_\"");
+            cleanCsSource = RegexLafPublisherAssignment().Replace(cleanCsSource, "\"_YOUR_PUBLISHER_ID_\"");
         }
 
         return cleanCsSource;
