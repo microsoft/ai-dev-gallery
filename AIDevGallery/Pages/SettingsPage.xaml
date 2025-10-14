@@ -105,6 +105,14 @@
                         </toolkit:SettingsExpander.ItemTemplate>
                     </toolkit:SettingsExpander>
 
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="App Content Search" />
+                    <toolkit:SettingsCard
+                        Description="Enable app semantic search with AppContentIndexer. If disabled, search falls back to in-memory lexical search."
+                        Header="Enable App Content Search"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xED37;}">
+                        <ToggleSwitch x:Name="SemanticSearchToggleSwitch" Toggled="SemanticSearchToggleSwitch_Toggled"/>
+                    </toolkit:SettingsCard>
+
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
                     <toolkit:SettingsCard
                         Description="Help us improve this app by sharing optional diagnostics data to inform bug fixes, performance, and feature enhancements"

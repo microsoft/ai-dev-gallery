@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,29 +54,51 @@ internal sealed partial class MainWindow : WindowEx
         // Load AppContentIndexer
         Task.Run(async () =>
         {
-            var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
-
-            if (!result.Succeeded)
-            {
-                throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-            }
-
-            _indexer = result.Indexer;
-            await _indexer.WaitForIndexCapabilitiesAsync();
-
-            // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-            if (result.Status == GetOrCreateIndexStatus.CreatedNew)
-            {
-                Console.WriteLine("Created a new index");
-                IndexAppSearchIndex();
-
-            }
-            else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-            {
-                Console.WriteLine("Opened an existing index");
-                SetSearchBoxIndexingCompleted();
-            }
+            LoadAppSearchIndex();
         });
+
+        App.AppData.PropertyChanged += AppData_PropertyChanged;
+    }
+
+    private async void LoadAppSearchIndex()
+    {
+        var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+        }
+
+        _indexer = result.Indexer;
+        await _indexer.WaitForIndexCapabilitiesAsync();
+
+        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
+        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+        {
+            Console.WriteLine("Created a new index");
+            IndexAppSearchIndex();
+
+        }
+        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
+        {
+            Console.WriteLine("Opened an existing index");
+            SetSearchBoxIndexingCompleted();
+        }
+    }
+
+    private void AppData_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppData.IsAppContentSearchEnabled))
+        {
+            if (App.AppData.IsAppContentSearchEnabled)
+            {
+                LoadAppSearchIndex();
+            }
+            else
+            {
+                SetSearchBoxACSDisabled();
+            }
+        }
     }
 
     public void NavigateToPage(object? obj)
@@ -260,7 +283,7 @@ internal sealed partial class MainWindow : WindowEx
             var searchText = sender.Text;
             List<SearchResult> orderedResults = new();
 
-            if (_indexer != null)
+            if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
             {
                 await Task.Run(async () =>
                 {
@@ -369,10 +392,20 @@ internal sealed partial class MainWindow : WindowEx
         });
     }
 
+    private void SetSearchBoxACSDisabled()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            SearchBoxQueryIcon.Foreground = Application.Current.Resources["TextFillColorPrimaryBrush"] as Brush;
+            SearchBoxQueryIcon.Glyph = "\uE721";
+        });
+    }
+
     private async void IndexAppSearchIndex()
     {
         if (_indexer == null || App.SearchIndex == null)
         {
+            SetSearchBoxACSDisabled();
             return;
         }
 
@@ -388,7 +421,6 @@ internal sealed partial class MainWindow : WindowEx
         });
 
         await _indexer.WaitForIndexingIdleAsync(50000);
-
         SetSearchBoxIndexingCompleted();
     }
 }

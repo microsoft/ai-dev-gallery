@@ -36,7 +36,7 @@ internal static class ModelDetailsHelper
         var hardwareAccelerator = HardwareAccelerator.WCRAPI;
 
         // ACI is a subset of WCRAPIs but without the same set of hardware restrictions. Adding exception here.
-        if (apiDefinition.Category == "App Content Indexer")
+        if (apiDefinition.Category == "App Content Search")
         {
             hardwareAccelerator = HardwareAccelerator.ACI;
         }
