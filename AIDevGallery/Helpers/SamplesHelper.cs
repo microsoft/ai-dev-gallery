@@ -126,6 +126,12 @@ internal static partial class SamplesHelper
     [GeneratedRegex(@"(using .+;\s)+", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
     private static partial Regex RegexUsingBlocks();
 
+    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelToken\(\)")]
+    private static partial Regex RegexLafTokenAssignment();
+
+    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelPublisherId\(\)")]
+    private static partial Regex RegexLafPublisherAssignment();
+    
     private static string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
     {
         static string EscapeNewLines(string str)
@@ -220,12 +226,6 @@ internal static partial class SamplesHelper
 
         return ($"await OnnxRuntimeGenAIChatClientFactory.CreateAsync({modelPath}, {promptTemplate})", null);
     }
-
-    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelToken\(\)")]
-    private static partial Regex RegexLafTokenAssignment();
-
-    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelPublisherId\(\)")]
-    private static partial Regex RegexLafPublisherAssignment();
 
     public static string GetCleanCSCode(this Sample sample, Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> modelInfos, bool forExport = false)
     {
