@@ -136,6 +136,11 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
+    private async void Reindex_Click(object sender, RoutedEventArgs e)
+    {
+        MainWindow.IndexAppSearchIndexStatic();
+    }
+
     private void ModelFolder_Click(object sender, RoutedEventArgs e)
     {
         if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is CachedModel model)

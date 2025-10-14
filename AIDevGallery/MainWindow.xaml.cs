@@ -423,4 +423,10 @@ internal sealed partial class MainWindow : WindowEx
         await _indexer.WaitForIndexingIdleAsync(50000);
         SetSearchBoxIndexingCompleted();
     }
+
+    public static void IndexAppSearchIndexStatic()
+    {
+        var mainWindow = (MainWindow)App.MainWindow;
+        mainWindow?.IndexAppSearchIndex();
+    }
 }
