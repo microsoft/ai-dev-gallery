@@ -98,7 +98,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        await Task.Run(async ()=>
+        await Task.Run(async () =>
         {
             // Load chat client
             try
@@ -133,7 +133,6 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
                 Console.WriteLine("Created a new index");
-                IndexAll();
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
@@ -141,10 +140,12 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             }
 
             _indexer = result.Indexer;
-            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+            await _indexer.WaitForIndexCapabilitiesAsync();
 
             sampleParams.NotifyCompletion();
         });
+
+        IndexAll();
     }
 
     // <exclude>
@@ -221,7 +222,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async Task<List<string>> BuildContextFromUserPrompt(string queryText)
     {
-        if (_indexer == null) new List<string>();
+        if (_indexer == null) return new List<string>();
 
         var queryPrompts = await Task.Run(async () =>
         {
@@ -626,6 +627,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async Task RemoveItemFromIndex(string id)
     {
+        if (_indexer == null) return;
+
         // Remove item from index
         _indexer.Remove(id);
     }
@@ -637,17 +640,6 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
         _indexer.AddOrUpdate(textContent);
-
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
-    }
-
-    private async Task IndexImageData(string id, SoftwareBitmap bitmap)
-    {
-        if (_indexer == null) return;
-
-        // Index inage content
-        IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
-        _indexer.AddOrUpdate(imageContent);
 
         var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }

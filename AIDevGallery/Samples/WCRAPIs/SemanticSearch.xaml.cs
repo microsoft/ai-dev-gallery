@@ -115,7 +115,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
                 Console.WriteLine("Created a new index");
-                IndexAll();
 
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
@@ -124,10 +123,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             }
 
             _indexer = result.Indexer;
-            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+            await _indexer.WaitForIndexCapabilitiesAsync();
 
             sampleParams.NotifyCompletion();
         });
+
+        IndexAll();
     }
 
     // <exclude>
@@ -476,6 +477,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task RemoveItemFromIndex(string id)
     {
+        if (_indexer == null) return;
+
         // Remove item from index
         _indexer.Remove(id);
     }

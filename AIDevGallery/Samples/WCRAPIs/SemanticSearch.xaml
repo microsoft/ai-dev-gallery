@@ -142,7 +142,7 @@
                 <Grid Grid.ColumnDefinitions="*,Auto">
                     <controls:AutoSuggestBox x:Name="SearchBox"
                          AutomationProperties.Name="Prompt input"
-                         PlaceholderText="ie. pets"
+                         PlaceholderText="Search with a word or sentence."
                          QueryIcon="Find"
                          QuerySubmitted="SearchBox_QuerySubmitted"
                          Margin="0,7"/>
