@@ -20,6 +20,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Windows AI TextRewriter",
     Model1Types = [ModelType.TextRewriter],

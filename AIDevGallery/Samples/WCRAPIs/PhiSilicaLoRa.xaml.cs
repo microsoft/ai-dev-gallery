@@ -21,6 +21,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 {
     internal enum GenerationType

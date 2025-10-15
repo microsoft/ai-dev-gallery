@@ -20,6 +20,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Generate with Phi Silica",
     Model1Types = [ModelType.PhiSilica],
