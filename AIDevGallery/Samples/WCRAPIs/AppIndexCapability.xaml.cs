@@ -103,6 +103,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
     private void CleanUp()
     {
         _indexer?.Dispose();
+        _indexer = null;
     }
 
     private async void LoadSystemCapabilities()

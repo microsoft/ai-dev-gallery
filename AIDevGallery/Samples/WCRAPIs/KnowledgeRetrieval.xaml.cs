@@ -166,6 +166,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         CancelResponse();
         _model?.Dispose();
         _indexer?.Dispose();
+        _indexer = null;
     }
 
     private void CancelResponse()

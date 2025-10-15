@@ -147,6 +147,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     private void CleanUp()
     {
         _indexer?.Dispose();
+        _indexer = null;
     }
 
     private async void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
