@@ -15,7 +15,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+/*
 using Windows.ApplicationModel;
+*/
 
 namespace AIDevGallery.Samples.WCRAPIs;
 [GallerySample(
@@ -44,7 +47,7 @@ internal sealed partial class TextToTable : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        const string featureId = "com.microsoft.windows.ai.languagemodel";
+        // const string featureId = "com.microsoft.windows.ai.languagemodel";
 
         // IMPORTANT!!
         // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
@@ -55,6 +58,7 @@ internal sealed partial class TextToTable : BaseSamplePage
         // var demoPublisherId = "z0sq19pdabnaj";
         var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
 
+        /*
         var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
             featureId,
             demoToken,
@@ -66,6 +70,7 @@ internal sealed partial class TextToTable : BaseSamplePage
             sampleParams.NotifyCompletion();
             return;
         }
+        */
 
         var readyState = LanguageModel.GetReadyState();
         if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)

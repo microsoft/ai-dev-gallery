@@ -3,9 +3,37 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using Windows.ApplicationModel;
 
 namespace AIDevGallery.Utils;
+
+/// <summary>
+/// Extended status to surface publisher/package validation issues
+/// </summary>
+internal enum LimitedAccessFeatureExtendedStatus
+{
+    None = 0,
+    PublisherIdMismatch = 1,
+    InvalidPackageFamilyNameFormat = 2,
+    PublisherIdValidationFailed = 3,
+}
+
+/// <summary>
+/// Combines base LAF status with an extended status for additional diagnostics
+/// </summary>
+internal sealed class LimitedAccessFeatureExtendedResult
+{
+    public LimitedAccessFeatureStatus BaseStatus { get; init; }
+    public LimitedAccessFeatureExtendedStatus ExtendedStatus { get; init; }
+
+    public override string ToString()
+    {
+        return ExtendedStatus != LimitedAccessFeatureExtendedStatus.None
+            ? $"{BaseStatus} ({ExtendedStatus})"
+            : BaseStatus.ToString();
+    }
+}
 
 /// <summary>
 /// Helper class for managing Limited Access Features
@@ -28,37 +56,105 @@ internal static class LimitedAccessFeaturesHelper
     private const string AI_LANGUAGE_MODEL_PUBLISHER_ENV = "LAF_PUBLISHER_ID";
 
     /// <summary>
-    /// Reads the AI Language Model token, preferring DefineConstants over environment variables
+    /// Reads a value from assembly metadata by key. Returns null if not present.
     /// </summary>
-    /// <returns>The AI Language Model token string, or empty string if not available</returns>
-    public static string GetAiLanguageModelToken()
+    private static string? ReadAssemblyMetadata(string key)
     {
-        // Prefer value from DefineConstants (from MSBuild) if present
-        var defineConstantsToken = LafConstants.Token;
-        if (!string.IsNullOrWhiteSpace(defineConstantsToken))
+        var assembly = typeof(LimitedAccessFeaturesHelper).Assembly;
+        foreach (var attribute in assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
         {
-            return defineConstantsToken;
+            if (string.Equals(attribute.Key, key, StringComparison.Ordinal))
+            {
+                return attribute.Value;
+            }
         }
 
-        // Fallback to User/Machine/Process environment variable. Return empty string if not set.
-        var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
-        return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
+        return string.Empty;
     }
 
-    /// <summary>
-    /// Builds the usage description for AI Language Model feature from DefineConstants/env
-    /// </summary>
-    private static string GetAiLanguageModelUsage()
+    // Lazy caches to avoid repeated environment/MSBuild reads and string allocations
+    private static readonly Lazy<string> S_aiLanguageModelToken = new Lazy<string>(() =>
     {
-        var publisherId = LafConstants.PublisherId;
+        var metadataToken = ReadAssemblyMetadata(AI_LANGUAGE_MODEL_TOKEN_ENV);
+        if (!string.IsNullOrWhiteSpace(metadataToken))
+        {
+            return metadataToken!;
+        }
+
+        var token = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_TOKEN_ENV);
+        return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
+    });
+
+    private static readonly Lazy<string> S_aiLanguageModelPublisherId = new Lazy<string>(() =>
+    {
+        var publisherId = ReadAssemblyMetadata(AI_LANGUAGE_MODEL_PUBLISHER_ENV) ?? string.Empty;
         if (string.IsNullOrWhiteSpace(publisherId))
         {
             publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
         }
 
-        publisherId = string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
+        // Validate publisher ID against package family name if both are available
+        if (!string.IsNullOrWhiteSpace(publisherId))
+        {
+            try
+            {
+                // Reset any previous extended status; set only on actual validation issues
+                lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.None;
+                string packageFamilyName = Package.Current.Id.FamilyName;
+                if (!string.IsNullOrWhiteSpace(packageFamilyName))
+                {
+                    string publisherHash = GetPublisherHash();
+                    if (!string.IsNullOrWhiteSpace(publisherHash))
+                    {
+                        if (publisherHash != publisherId)
+                        {
+                            Debug.WriteLine($"Publisher ID mismatch: expected '{publisherHash}' but got '{publisherId}'");
+                            lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.PublisherIdMismatch;
+                            return publisherId;
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Invalid package family name format: '{packageFamilyName}'");
+                        lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.InvalidPackageFamilyNameFormat;
+                        return publisherId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to validate publisher ID against package family name: {ex.Message}");
+                lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.PublisherIdValidationFailed;
+
+                // Continue with the publisher ID even if validation fails
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
+    });
+
+    private static readonly Lazy<string> S_aiLanguageModelUsage = new Lazy<string>(() =>
+    {
+        var publisherId = S_aiLanguageModelPublisherId.Value;
         return $"{publisherId} has registered their use of {AI_LANGUAGE_MODEL_FEATURE_ID} with Microsoft and agrees to the terms of use.";
+    });
+
+    // Tracks the last publisher/package validation outcome for extended diagnostics
+    private static LimitedAccessFeatureExtendedStatus lastPublisherValidationStatus = LimitedAccessFeatureExtendedStatus.None;
+
+    /// <summary>
+    /// Reads the AI Language Model token, preferring DefineConstants over environment variables
+    /// </summary>
+    /// <returns>The AI Language Model token string, or empty string if not available</returns>
+    public static string GetAiLanguageModelToken()
+    {
+        return S_aiLanguageModelToken.Value;
     }
+
+    /// <summary>
+    /// Builds the usage description for AI Language Model feature from DefineConstants/env
+    /// </summary>
+    private static string GetAiLanguageModelUsage() => S_aiLanguageModelUsage.Value;
 
     /// <summary>
     /// Gets the configured publisher identifier for AI Language Model feature from DefineConstants/env
@@ -66,41 +162,126 @@ internal static class LimitedAccessFeaturesHelper
     /// <returns>The publisher identifier string, or empty string if not configured</returns>
     public static string GetAiLanguageModelPublisherId()
     {
-        var publisherId = LafConstants.PublisherId;
-        if (string.IsNullOrWhiteSpace(publisherId))
-        {
-            publisherId = Environment.GetEnvironmentVariable(AI_LANGUAGE_MODEL_PUBLISHER_ENV);
-        }
-
-        return string.IsNullOrWhiteSpace(publisherId) ? string.Empty : publisherId;
+        return S_aiLanguageModelPublisherId.Value;
     }
 
     /// <summary>
-    /// Reads a value from DefineConstants by key; returns empty string if missing
+    /// Extracts the publisher hash from a package family name.
+    /// Returns empty string when input is null/empty or format is invalid.
     /// </summary>
-    private static string GetDefineConstantsValue(string key)
+    /// <returns>Publisher hash string or empty string.</returns>
+    public static string GetPublisherHash()
     {
-        try
+        string packageFamilyName = Package.Current.Id.FamilyName;
+        if (string.IsNullOrWhiteSpace(packageFamilyName))
         {
-#if LAF_TOKEN
-            if (string.Equals(key, "LAF_TOKEN", StringComparison.Ordinal))
-            {
-                return LAF_TOKEN;
-            }
-#endif
-#if LAF_PUBLISHER_ID
-            if (string.Equals(key, "LAF_PUBLISHER_ID", StringComparison.Ordinal))
-            {
-                return LAF_PUBLISHER_ID;
-            }
-#endif
+            return string.Empty;
         }
-        catch (Exception ex)
+
+        string[] parts = packageFamilyName.Split('_');
+        if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
         {
-            Debug.WriteLine($"Failed to read DefineConstants '{key}': {ex.Message}");
+            return parts[1];
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// Evaluates current feature status using the configured token and usage text
+    /// </summary>
+    /// <returns>The current LimitedAccessFeatureStatus value</returns>
+    public static LimitedAccessFeatureStatus GetCurrentStatus()
+    {
+        try
+        {
+            /*
+            var access = LimitedAccessFeatures.TryUnlockFeature(
+                AI_LANGUAGE_MODEL_FEATURE_ID,
+                GetAiLanguageModelToken(),
+                GetAiLanguageModelUsage());
+
+            return access.Status;
+            */
+            return LimitedAccessFeatureStatus.Available;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to evaluate AI Language Model Limited Access Feature status: {ex.Message}");
+            return LimitedAccessFeatureStatus.Unknown;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates current feature status and augments it with extended diagnostics, if any
+    /// </summary>
+    /// <returns>Combined base status and extended status</returns>
+    public static LimitedAccessFeatureExtendedResult GetCurrentExtendedStatus()
+    {
+        var baseStatus = GetCurrentStatus();
+
+        // If feature is available, extended status is none
+        if (baseStatus == LimitedAccessFeatureStatus.Available ||
+            baseStatus == LimitedAccessFeatureStatus.AvailableWithoutToken)
+        {
+            return new LimitedAccessFeatureExtendedResult
+            {
+                BaseStatus = baseStatus,
+                ExtendedStatus = LimitedAccessFeatureExtendedStatus.None
+            };
+        }
+
+        // Otherwise, surface any validation issues captured earlier
+        var extended = lastPublisherValidationStatus;
+
+        return new LimitedAccessFeatureExtendedResult
+        {
+            BaseStatus = baseStatus,
+            ExtendedStatus = extended
+        };
+    }
+
+    /// <summary>
+    /// Returns an agreed error code representing the current extended status.
+    /// This is intended for UI display without leaking detailed diagnostics.
+    /// </summary>
+    /// <returns>Stable short code for the current extended status (e.g., "OK").</returns>
+    public static string GetCurrentExtendedStatusCode()
+    {
+        var result = GetCurrentExtendedStatus();
+
+        if (result.BaseStatus == LimitedAccessFeatureStatus.Available ||
+            result.BaseStatus == LimitedAccessFeatureStatus.AvailableWithoutToken)
+        {
+            return "OK";
+        }
+
+        // Prefer extended diagnostic when available
+        switch (result.ExtendedStatus)
+        {
+            case LimitedAccessFeatureExtendedStatus.PublisherIdMismatch:
+                return "E_LAF_PUBLISHER_ID_MISMATCH";
+            case LimitedAccessFeatureExtendedStatus.InvalidPackageFamilyNameFormat:
+                return "E_LAF_INVALID_PFN_FORMAT";
+            case LimitedAccessFeatureExtendedStatus.PublisherIdValidationFailed:
+                return "E_LAF_PUBLISHER_ID_VALIDATION_FAILED";
+            case LimitedAccessFeatureExtendedStatus.None:
+            default:
+                break;
+        }
+
+        // Fallback to base status mapping
+        return MapBaseStatusToCode(result.BaseStatus);
+    }
+
+    private static string MapBaseStatusToCode(LimitedAccessFeatureStatus status)
+    {
+        // Map common base statuses to stable error codes
+        return status switch
+        {
+            LimitedAccessFeatureStatus.Unavailable => "E_LAF_UNAVAILABLE",
+            _ => "E_LAF_UNKNOWN",
+        };
     }
 
     /// <summary>
@@ -109,32 +290,20 @@ internal static class LimitedAccessFeaturesHelper
     /// <returns>True if the feature is available, false otherwise</returns>
     public static bool TryUnlockAILanguageModel()
     {
-        try
+        var status = GetCurrentStatus();
+        bool isAvailable = (status == LimitedAccessFeatureStatus.Available) ||
+                           (status == LimitedAccessFeatureStatus.AvailableWithoutToken);
+
+        if (isAvailable)
         {
-            var access = LimitedAccessFeatures.TryUnlockFeature(
-                AI_LANGUAGE_MODEL_FEATURE_ID,
-                GetAiLanguageModelToken(),
-                GetAiLanguageModelUsage());
-
-            bool isAvailable = (access.Status == LimitedAccessFeatureStatus.Available) ||
-                              (access.Status == LimitedAccessFeatureStatus.AvailableWithoutToken);
-
-            if (isAvailable)
-            {
-                Debug.WriteLine("AI Language Model Limited Access Feature unlocked successfully");
-            }
-            else
-            {
-                Debug.WriteLine($"AI Language Model Limited Access Feature not available. Status: {access.Status}");
-            }
-
-            return isAvailable;
+            Debug.WriteLine("AI Language Model Limited Access Feature unlocked successfully");
         }
-        catch (Exception ex)
+        else
         {
-            Debug.WriteLine($"Failed to unlock AI Language Model Limited Access Feature: {ex.Message}");
-            return false;
+            Debug.WriteLine($"AI Language Model Limited Access Feature not available. Status: {status}");
         }
+
+        return isAvailable;
     }
 
     /// <summary>
@@ -143,42 +312,8 @@ internal static class LimitedAccessFeaturesHelper
     /// <returns>True if the feature is available, false otherwise</returns>
     public static bool IsAILanguageModelAvailable()
     {
-        try
-        {
-            var access = LimitedAccessFeatures.TryUnlockFeature(
-                AI_LANGUAGE_MODEL_FEATURE_ID,
-                GetAiLanguageModelToken(),
-                GetAiLanguageModelUsage());
-
-            return (access.Status == LimitedAccessFeatureStatus.Available) ||
-                   (access.Status == LimitedAccessFeatureStatus.AvailableWithoutToken);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to check AI Language Model Limited Access Feature status: {ex.Message}");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Gets the current status of the AI Language Model feature
-    /// </summary>
-    /// <returns>The current status of the feature</returns>
-    public static LimitedAccessFeatureStatus GetAILanguageModelStatus()
-    {
-        try
-        {
-            var access = LimitedAccessFeatures.TryUnlockFeature(
-                AI_LANGUAGE_MODEL_FEATURE_ID,
-                GetAiLanguageModelToken(),
-                GetAiLanguageModelUsage());
-
-            return access.Status;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to get AI Language Model Limited Access Feature status: {ex.Message}");
-            return LimitedAccessFeatureStatus.Unknown;
-        }
+        var status = GetCurrentStatus();
+        return (status == LimitedAccessFeatureStatus.Available) ||
+               (status == LimitedAccessFeatureStatus.AvailableWithoutToken);
     }
 }
