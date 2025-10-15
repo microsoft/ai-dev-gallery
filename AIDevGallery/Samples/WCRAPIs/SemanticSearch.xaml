@@ -24,6 +24,7 @@
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                 Text="Sample text data:"/>
             <Button
+                x:Name="uploadTextButton"
                 Grid.Column="1"
                 Margin="3,0,0,0"
                 Click="AddTextDataButton_Click">
@@ -76,6 +77,7 @@
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Sample image data:" />
             
             <Button
+                x:Name="uploadImageButton"
                 Grid.Column="1"
                 VerticalAlignment="Top"
                 Margin="3,0,0,0"
@@ -159,7 +161,7 @@
 
                                     <!--Text Match Options-->
                                     <TextBlock Text="Text Match Options:" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,18,0,12"/>
-                                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,7">
+                                    <ComboBox x:Name="TextMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,12">
                                         <ComboBoxItem Content="Unconstrained"/>
                                         <ComboBoxItem Content="Region"/>
                                         <ComboBoxItem Content="ContentItem"/>
@@ -171,7 +173,7 @@
 
                                     <!--Image Match Options-->
                                     <TextBlock Text="Image Match Options" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,18,0,12"/>
-                                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,7">
+                                    <ComboBox x:Name="ImageMatchScopeComboBox" Header="Match Scope" HorizontalAlignment="Stretch" SelectedIndex="0" Margin="0,0,0,12">
                                         <ComboBoxItem Content="Unconstrained"/>
                                         <ComboBoxItem Content="Region"/>
                                         <ComboBoxItem Content="ContentItem"/>
@@ -181,7 +183,9 @@
                                         <ComboBoxItem Content="Exact"/>
                                     </ComboBox>
 
-                                    <Button Content="Index All Manually" Click="IndexAllButton_Click" Style="{StaticResource SubtleButtonStyle}" Margin="0,24,0,4"/>
+                                    <Button Content="Index All Manually" Click="IndexAllButton_Click" Margin="0,24"/>
+
+                                    <TextBlock x:Name="AllIndexAvailableTextBlock" Text="All index capabilities are available." Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                 </StackPanel>
                             </Flyout>
                         </Button.Flyout>
@@ -241,6 +245,13 @@
                         IsOpen="False"
                         Severity="Informational"
                         Message="Item has been removed" 
+                        Padding="0"/>
+                    <InfoBar
+                        x:Name="IndexCapabilitiesMessage"
+                        IsOpen="False"
+                        Severity="Warning"
+                        IsClosable="False"
+                        Title="Some index capabilities are unavailable."
                         Padding="0"/>
                 </StackPanel>
             </Grid>

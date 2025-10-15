@@ -108,7 +108,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             if (!result.Succeeded)
             {
-                throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+                ShowException(null, $"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
+                return;
             }
 
             // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
@@ -124,6 +125,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             _indexer = result.Indexer;
             await _indexer.WaitForIndexCapabilitiesAsync();
+
+            _indexer.Listener.IndexCapabilitiesChanged += Listener_IndexCapabilitiesChanged;
+            LoadAppIndexCapabilities();
 
             sampleParams.NotifyCompletion();
         });
@@ -231,7 +235,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         if (string.IsNullOrWhiteSpace(searchText))
         {
             Console.WriteLine("Search text is empty.");
-            return; 
+            return;
         }
 
         if (_indexer == null) return;
@@ -530,6 +534,60 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     private void IndexAllButton_Click(object sender, RoutedEventArgs e)
     {
         IndexAll();
+    }
+
+    private async void LoadAppIndexCapabilities()
+    {
+        if (_indexer == null) return;
+
+        IndexCapabilities capabilities = await Task.Run(() =>
+        {
+            return _indexer.GetIndexCapabilities();
+        });
+
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            bool textLexicalAvailable =
+                capabilities.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus == IndexCapabilityInitializationStatus.Initialized;
+            bool textSemanticAvailable =
+                capabilities.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized;
+            bool imageSemanticAvailable =
+                capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized;
+            bool imageOcrAvailable =
+                capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized;
+
+            // Disable text sample if both text capabilities are unavailable
+            textDataItemsView.IsEnabled = textLexicalAvailable || textSemanticAvailable;
+            uploadTextButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+
+            // Disable image sample if both image capabilities are unavailable
+            ImageDataItemsView.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+            uploadImageButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+
+            var unavailable = new List<string>();
+            if (!textLexicalAvailable) unavailable.Add("TextLexical");
+            if (!textSemanticAvailable) unavailable.Add("TextSemantic");
+            if (!imageSemanticAvailable) unavailable.Add("ImageSemantic");
+            if (!imageOcrAvailable) unavailable.Add("ImageOcr");
+
+            if (unavailable.Count > 0)
+            {
+                IndexCapabilitiesMessage.Message = $"Unavailable: {string.Join(", ", unavailable)}";
+                IndexCapabilitiesMessage.IsOpen = true;
+                AllIndexAvailableTextBlock.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                // All capabilities are available
+                IndexCapabilitiesMessage.IsOpen = false;
+                AllIndexAvailableTextBlock.Visibility = Visibility.Visible;
+            }
+        });
+    }
+
+    private void Listener_IndexCapabilitiesChanged(AppContentIndexer indexer, IndexCapabilities statusResult)
+    {
+        LoadAppIndexCapabilities();
     }
 
     private async Task<SoftwareBitmap> LoadBitmap(string uriString)
