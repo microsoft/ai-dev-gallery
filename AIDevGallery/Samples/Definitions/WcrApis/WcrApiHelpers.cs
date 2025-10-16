@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Windows.Foundation;
 
 namespace AIDevGallery.Samples;
+
 internal static class WcrApiHelpers
 {
     private static readonly HashSet<ModelType> LanguageModelBacked = new()

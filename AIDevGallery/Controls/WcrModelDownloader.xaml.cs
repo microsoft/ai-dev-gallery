@@ -15,6 +15,7 @@ using Windows.Foundation;
 using Windows.System;
 
 namespace AIDevGallery.Controls;
+
 internal sealed partial class WcrModelDownloader : UserControl
 {
     public event EventHandler? DownloadClicked;
