@@ -28,13 +28,7 @@ internal sealed partial class HomePage : Page
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
-        // Remove all UI elements to trigger Unloaded and composition cleanup
-        if (this.Content is Grid rootGrid)
-        {
-            rootGrid.Children.Clear();
-        }
-
-        // Remove all content to guarantee nothing can be rendered
+        // Remove all content to guarantee nothing can be rendered; reference issue: https://github.com/microsoft/ai-dev-gallery/pull/460
         this.Content = null;
 
         base.OnNavigatingFrom(e);
