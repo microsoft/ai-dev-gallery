@@ -15,10 +15,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-configuration: [ 'Release' ]
-        dotnet-arch: ['x64' ] # TODO: enable arm64' ]
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+            dotnet-configuration: 'Release'
+          - os: windows-11-arm
+            dotnet-arch: 'arm64'
+            dotnet-configuration: 'Release'
     name: Build MSIX - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-2025
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     steps:
@@ -65,10 +70,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dotnet-configuration: [ 'Release' ]
-        dotnet-arch: ['x64' ] # TODO: enable arm64' ]
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+            dotnet-configuration: 'Release'
+          - os: windows-11-arm
+            dotnet-arch: 'arm64'
+            dotnet-configuration: 'Release'
     name: Test - win-${{ matrix.dotnet-arch }}
-    runs-on: windows-2025
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     steps:
