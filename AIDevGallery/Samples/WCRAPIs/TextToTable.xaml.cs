@@ -21,6 +21,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Windows AI Text To Table Converter",
     Model1Types = [ModelType.TextToTableConverter],

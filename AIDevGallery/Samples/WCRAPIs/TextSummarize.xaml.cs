@@ -20,6 +20,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Windows AI Text Summarizer",
     Model1Types = [ModelType.TextSummarizer],

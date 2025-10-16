@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace AIDevGallery.Pages;
+
 internal sealed partial class APIOverview : Page
 {
     private ObservableCollection<ApiDefinition> wcrAPIs = new();
