@@ -137,7 +137,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                 }
                 catch
                 {
-                    Console.WriteLine("Invalid Image File");
+                    Debug.WriteLine("Invalid Image File");
                 }
             }
         }

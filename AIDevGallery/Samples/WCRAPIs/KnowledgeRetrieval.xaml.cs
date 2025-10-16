@@ -5,37 +5,22 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.VectorData;
-using Microsoft.Graphics.Imaging;
-using Microsoft.ML.OnnxRuntimeGenAI;
-using Microsoft.SemanticKernel.Connectors.InMemory;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
-using OllamaSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.DataTransfer;
-using Windows.Data.Xml.Dom;
-using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
-using Windows.Storage.Pickers;
-using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
@@ -132,11 +117,11 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
-                Console.WriteLine("Created a new index");
+                Debug.WriteLine("Created a new index");
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
-                Console.WriteLine("Opened an existing index");
+                Debug.WriteLine("Opened an existing index");
             }
 
             _indexer = result.Indexer;
@@ -165,6 +150,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     {
         CancelResponse();
         _model?.Dispose();
+        _indexer.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -242,7 +228,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             {
                 foreach (var match in textMatches)
                 {
-                    Console.WriteLine(match.ContentId);
+                    Debug.WriteLine(match.ContentId);
                     if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
                         AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;

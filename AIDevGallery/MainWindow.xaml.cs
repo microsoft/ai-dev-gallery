@@ -16,6 +16,7 @@ using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,13 +76,13 @@ internal sealed partial class MainWindow : WindowEx
         // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
         if (result.Status == GetOrCreateIndexStatus.CreatedNew)
         {
-            Console.WriteLine("Created a new index");
-            IndexAppSearchIndex();
+            Debug.WriteLine("Created a new index");
+            IndexContentsWithAppContentSearch();
 
         }
         else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
         {
-            Console.WriteLine("Opened an existing index");
+            Debug.WriteLine("Opened an existing index");
             SetSearchBoxIndexingCompleted();
         }
     }
@@ -401,7 +402,7 @@ internal sealed partial class MainWindow : WindowEx
         });
     }
 
-    private async void IndexAppSearchIndex()
+    private async void IndexContentsWithAppContentSearch()
     {
         if (_indexer == null || App.SearchIndex == null)
         {
@@ -427,6 +428,6 @@ internal sealed partial class MainWindow : WindowEx
     public static void IndexAppSearchIndexStatic()
     {
         var mainWindow = (MainWindow)App.MainWindow;
-        mainWindow?.IndexAppSearchIndex();
+        mainWindow?.IndexContentsWithAppContentSearch();
     }
 }

@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
@@ -33,16 +32,16 @@
                     <TextBlock Text="Add Text Data"/>
                 </StackPanel>
             </Button>
-            <controls:ItemsView
+            <ItemsView
                 x:Name="textDataItemsView"
                 ItemsSource="{x:Bind TextDataItems}"
                 SelectionMode="None"
                 IsItemInvokedEnabled="False"
                 Grid.Column="0"
                 Padding="0,0,0,12">
-                <controls:ItemsView.ItemTemplate>
+                <ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:TextDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3" IsTabStop="False">
+                        <ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Margin="3" IsTabStop="False">
                             <Grid>
                                 <TextBox Text="{x:Bind Value, Mode=TwoWay}"
                                         Tag="{x:Bind Id}"
@@ -66,13 +65,13 @@
 
                                 <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                             </Grid>
-                        </controls:ItemContainer>
+                        </ItemContainer>
                     </DataTemplate>
-                </controls:ItemsView.ItemTemplate>
-                <controls:ItemsView.Layout>
+                </ItemsView.ItemTemplate>
+                <ItemsView.Layout>
                     <StackLayout Orientation="Horizontal" />
-                </controls:ItemsView.Layout>
-            </controls:ItemsView>
+                </ItemsView.Layout>
+            </ItemsView>
 
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Sample image data:" />
             
@@ -87,15 +86,15 @@
                     <TextBlock Text="Add Image Data"/>
                 </StackPanel>
             </Button>
-            <controls:ItemsView
+            <ItemsView
                 x:Name="ImageDataItemsView"
                 ItemsSource="{x:Bind ImageDataItems}"
                 SelectionMode="None"
                 IsItemInvokedEnabled="False"
                 Grid.Column="0">
-                <controls:ItemsView.ItemTemplate>
+                <ItemsView.ItemTemplate>
                     <DataTemplate x:DataType="shared:ImageDataItem">
-                        <controls:ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Height="200" Margin="3">
+                        <ItemContainer AutomationProperties.Name="{x:Bind Id}" Width="200" Height="200" Margin="3">
                             <Grid>
                                 <Image Source="{x:Bind ImageSource}"
                                         Tag="{x:Bind Id}"
@@ -120,13 +119,13 @@
 
                                 <TextBlock Text="{x:Bind Id}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,7" Style="{StaticResource BodyStrongTextBlockStyle}"/>
                             </Grid>
-                        </controls:ItemContainer>
+                        </ItemContainer>
                     </DataTemplate>
-                </controls:ItemsView.ItemTemplate>
-                <controls:ItemsView.Layout>
+                </ItemsView.ItemTemplate>
+                <ItemsView.Layout>
                     <StackLayout Orientation="Horizontal" />
-                </controls:ItemsView.Layout>
-            </controls:ItemsView>
+                </ItemsView.Layout>
+            </ItemsView>
         </StackPanel>
 
         <Grid Grid.Column="1" 
@@ -142,7 +141,7 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                     Text="Search sample data:"/>
                 <Grid Grid.ColumnDefinitions="*,Auto">
-                    <controls:AutoSuggestBox x:Name="SearchBox"
+                    <AutoSuggestBox x:Name="SearchBox"
                          AutomationProperties.Name="Prompt input"
                          PlaceholderText="Search with a word or sentence."
                          QueryIcon="Find"

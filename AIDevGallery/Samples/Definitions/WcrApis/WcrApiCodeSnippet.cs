@@ -88,7 +88,7 @@ internal static class WcrApiCodeSnippet
 
                 var result = await textSummarizer.SummarizeParagraphAsync(prompt);
 
-                Console.WriteLine(result.Text);
+                Debug.WriteLine(result.Text);
             }
             """"
         },
@@ -116,7 +116,7 @@ internal static class WcrApiCodeSnippet
 
                 var result = await textRewriter.RewriteAsync(prompt);
 
-                Console.WriteLine(result.Text);
+                Debug.WriteLine(result.Text);
             }
             """"
         },
@@ -143,7 +143,7 @@ internal static class WcrApiCodeSnippet
 
                 var result = await textToTableConverter.ConvertAsync(prompt);
                
-                Console.WriteLine(string.Join("\n", result.GetRows().Select(r => string.Join("\t", r.GetColumns()))));
+                Debug.WriteLine(string.Join("\n", result.GetRows().Select(r => string.Join("\t", r.GetColumns()))));
             }
             """"
         },
@@ -166,7 +166,7 @@ internal static class WcrApiCodeSnippet
                 ImageBuffer imageBuffer = ImageBuffer.CreateForSoftwareBitmap(bitmap);
                 RecognizedText? result = textRecognizer?.RecognizeTextFromImage(imageBuffer);
 
-                Console.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
+                Debug.WriteLine(string.Join("\n", result.Lines.Select(l => l.Text)));
             }
             """"
         },
@@ -289,7 +289,7 @@ internal static class WcrApiCodeSnippet
 
                 ImageDescriptionResult languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionKind.DiagramDescription, filterOptions);
 
-                Console.WriteLine(languageModelResponse.Description);
+                Debug.WriteLine(languageModelResponse.Description);
             }
             """"
         },
@@ -332,7 +332,7 @@ internal static class WcrApiCodeSnippet
                 // that to be the first match.
                 foreach (var match in textMatches)
                 {
-                    Console.WriteLine(match.ContentId);
+                    Debug.WriteLine(match.ContentId);
                     if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
                         AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
@@ -341,7 +341,7 @@ internal static class WcrApiCodeSnippet
                         // In this example, we might imagine that the substring "Cats are cute and fluffy" from "item1" is the top match for the query.
                         string matchingData = simpleTextData[match.ContentId];
                         string matchingString = matchingData.Substring(textResult.TextOffset, textResult.TextLength);
-                        Console.WriteLine(matchingString);
+                        Debug.WriteLine(matchingString);
                     }
                 }
             }
@@ -384,7 +384,7 @@ internal static class WcrApiCodeSnippet
                 // One of the images that we indexed was a photo of a cat. We expect this to be the first match to match the query.
                 foreach (var match in imageMatches)
                 {
-                    Console.WriteLine(match.ContentId);
+                    Debug.WriteLine(match.ContentId);
                     if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
                     {
                         AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
@@ -392,7 +392,7 @@ internal static class WcrApiCodeSnippet
 
                         // It might be that the match is at a particular region in the image. The result includes
                         // the subregion of the image that includes the match.
-                        Console.WriteLine($"Matching file: '{matchingFileName}' at location {imageResult.Subregion}");
+                        Debug.WriteLine($"Matching file: '{matchingFileName}' at location {imageResult.Subregion}");
                     }
                 }
             }
@@ -445,7 +445,7 @@ internal static class WcrApiCodeSnippet
 
                 var response = Helpers.GetResponseFromChatAgent(promptStringBuilder.ToString());
 
-                Console.WriteLine(response);
+                Debug.WriteLine(response);
             }
             """"
         },
@@ -459,10 +459,10 @@ internal static class WcrApiCodeSnippet
                 IndexCapabilitiesOfCurrentSystem capabilities = AppContentIndexer.GetIndexCapabilitiesOfCurrentSystem();
 
                 // Status is one of: Ready, NotReady, DisabledByPolicy or NotSupported.
-                Console.WriteLine($"Lexical Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextLexical)}");
-                Console.WriteLine($"Semantic Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextSemantic)}");
-                Console.WriteLine($"OCR Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageOcr)}");
-                Console.WriteLine($"Semantic Image Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageSemantic)}");
+                Debug.WriteLine($"Lexical Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextLexical)}");
+                Debug.WriteLine($"Semantic Text Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.TextSemantic)}");
+                Debug.WriteLine($"OCR Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageOcr)}");
+                Debug.WriteLine($"Semantic Image Capability Status: {capabilities.GetIndexCapabilityStatus(IndexCapability.ImageSemantic)}");
             }
 
             // Get index capabilities of current index instance
@@ -482,38 +482,38 @@ internal static class WcrApiCodeSnippet
 
                 if (capabilities.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
                 {
-                    Console.WriteLine("Lexical text indexing and search is available.");
+                    Debug.WriteLine("Lexical text indexing and search is available.");
                 }
                 else
                 {
-                    Console.WriteLine("Text indexing and search is not currenlty possible.");
+                    Debug.WriteLine("Text indexing and search is not currenlty possible.");
                 }
 
                 if (capabilities.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
                 {
-                    Console.WriteLine("Semantic text indexing and search is available.");
+                    Debug.WriteLine("Semantic text indexing and search is available.");
                 }
                 else
                 {
-                    Console.WriteLine("Only lexical text search is currently possible.");
+                    Debug.WriteLine("Only lexical text search is currently possible.");
                 }
 
                 if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
                 {
-                    Console.WriteLine("Semantic image indexing and search is available.");
+                    Debug.WriteLine("Semantic image indexing and search is available.");
                 }
                 else
                 {
-                    Console.WriteLine("Semantic image search is not currently possible");
+                    Debug.WriteLine("Semantic image search is not currently possible");
                 }
 
                 if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
                 {
-                    Console.WriteLine("OCR is available. Searching text within images is possible.");
+                    Debug.WriteLine("OCR is available. Searching text within images is possible.");
                 }
                 else
                 {
-                    Console.WriteLine("Search for text within images is not currently possible.");
+                    Debug.WriteLine("Search for text within images is not currently possible.");
                 }
             }
             """"

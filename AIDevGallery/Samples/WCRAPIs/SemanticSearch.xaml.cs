@@ -4,41 +4,22 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using ColorCode.Compilation.Languages;
-using CommunityToolkit.WinUI;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.VectorData;
-using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Imaging;
-using Microsoft.ML.OnnxRuntimeGenAI;
-using Microsoft.SemanticKernel.Connectors.InMemory;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.DataTransfer;
-using Windows.Data.Xml.Dom;
-using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
-using Windows.Storage.Streams;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
@@ -115,12 +96,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
-                Console.WriteLine("Created a new index");
+                Debug.WriteLine("Created a new index");
 
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
-                Console.WriteLine("Opened an existing index");
+                Debug.WriteLine("Opened an existing index");
             }
 
             _indexer = result.Indexer;
@@ -150,10 +131,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void CleanUp()
     {
+        _indexer.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
     }
 
+    // Update and index local test text data on TextBox text changed
     private async void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is TextBox textBox)
@@ -173,15 +156,18 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 simpleTextData[id] = value;
             }
 
+            // Index text data
             IndexingMessage.IsOpen = true;
             await Task.Run(async () =>
             {
                 await IndexTextData(id, value);
+                var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
             });
             IndexingMessage.IsOpen = false;
         }
     }
 
+    // Update and index local test image data on image opened
     private async void ImageData_ImageOpened(object sender, RoutedEventArgs e)
     {
         if (sender is Microsoft.UI.Xaml.Controls.Image image)
@@ -221,6 +207,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             await Task.Run(async () =>
             {
                 await IndexImageData(id, bitmap);
+                var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
             });
             IndexingMessage.IsOpen = false;
         }
@@ -228,17 +215,21 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        ResultsGrid.Visibility = Visibility.Visible;
-        ResultStatusTextBlock.Text = "Searching...";
-
         string searchText = SearchBox.Text;
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            Console.WriteLine("Search text is empty.");
+            Debug.WriteLine("Search text is empty.");
             return;
         }
 
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            ResultStatusTextBlock.Text = "Indexer is unavailable.";
+            return;
+        }
+
+        ResultsGrid.Visibility = Visibility.Visible;
+        ResultStatusTextBlock.Text = "Searching...";
 
         // Create query options
         AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
@@ -265,30 +256,24 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         };
 
         CancellationToken ct = CancelGenerationAndGetNewToken();
-   
-        string textResults = "";
+
+        string textResults = string.Empty;
         var imageResults = new List<string>();
 
         Task.Run(
             async () =>
             {
                 // Create query
-                AppIndexQuery query = await Task.Run(() =>
-                {
-                    return _indexer.CreateQuery(searchText, queryOptions);
-                });
+                AppIndexQuery query = _indexer.CreateQuery(searchText, queryOptions);
 
                 // Get text matches
-                IReadOnlyList<TextQueryMatch> textMatches = await Task.Run(() =>
-                {
-                    return query.GetNextTextMatches(5);
-                });
+                IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
 
                 if (textMatches != null && textMatches.Count > 0)
                 {
                     foreach (var match in textMatches)
                     {
-                        Console.WriteLine(match.ContentId);
+                        Debug.WriteLine(match.ContentId);
                         if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                         {
                             AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
@@ -312,17 +297,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 }
 
                 // Get image matches
-                IReadOnlyList<ImageQueryMatch> imageMatches = await Task.Run(() =>
-                {
-                    return query.GetNextImageMatches(5);
-                });
-
+                IReadOnlyList<ImageQueryMatch> imageMatches = query.GetNextImageMatches(5);
 
                 if (imageMatches != null && imageMatches.Count > 0)
                 {
                     foreach (var match in imageMatches)
                     {
-                        Console.WriteLine(match.ContentId);
+                        Debug.WriteLine(match.ContentId);
                         if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
                         {
                             AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
@@ -337,7 +318,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                     }
                 }
 
-                // Update UI
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     if ((textMatches == null || textMatches.Count == 0) && (imageResults == null || imageResults.Count == 0))
@@ -495,8 +475,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
         _indexer.AddOrUpdate(textContent);
-
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }
 
     private async Task IndexImageData(string id, SoftwareBitmap bitmap)
@@ -505,9 +483,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
         // Index inage content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
-        _indexer.AddOrUpdate(imageContent);
-
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }
 
     private async void IndexAll()
@@ -526,6 +501,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 SoftwareBitmap bitmap = await LoadBitmap(kvp.Value);
                 await IndexImageData(kvp.Key, bitmap);
             }
+
+            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
         });
 
         IndexingMessage.IsOpen = false;
