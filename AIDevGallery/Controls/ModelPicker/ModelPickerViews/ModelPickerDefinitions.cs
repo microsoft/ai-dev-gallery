@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
+
 internal class ModelPickerDefinition
 {
     public static readonly Dictionary<string, ModelPickerDefinition> Definitions = new()
