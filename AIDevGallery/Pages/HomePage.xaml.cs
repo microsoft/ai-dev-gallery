@@ -34,9 +34,6 @@ internal sealed partial class HomePage : Page
             rootGrid.Children.Clear();
         }
 
-        // Clear any MRU data
-        mostRecentlyUsedItems.Clear();
-
         // Remove all content to guarantee nothing can be rendered
         this.Content = null;
 
