@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 
 namespace AIDevGallery.Samples.SharedCode;
+
 internal static class WinMLHelpers
 {
     public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType, OrtEnv? environment = null)

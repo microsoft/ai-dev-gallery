@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace AIDevGallery.Controls.ModelPickerViews;
+
 internal sealed partial class OnnxPickerView : BaseModelPickerView
 {
     private List<ModelDetails> models = [];

@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 
 namespace AIDevGallery.Controls;
+
 internal partial class AnimatedImage : UserControl
 {
     private AnimationSet? selectAnimation;

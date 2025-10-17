@@ -20,6 +20,7 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Windows AI TextRewriter",
     Model1Types = [ModelType.TextRewriter],
@@ -51,10 +52,7 @@ internal sealed partial class TextRewrite : BaseSamplePage
         // IMPORTANT!!
         // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
         // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
-        // var demoToken = "Zv6LUQWEwhJTahzvwSGjHQ=="
         var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
-
-        // var demoPublisherId = "z0sq19pdabnaj";
         var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
 
         /*
