@@ -5,6 +5,7 @@ using MathNet.Numerics;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;

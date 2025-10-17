@@ -481,7 +481,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         if (_indexer == null) return;
 
-        // Index inage content
+        // Index image content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
     }
 
