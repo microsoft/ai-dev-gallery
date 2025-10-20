@@ -50,12 +50,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     // This is some text data that we want to add to the index:
     Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
-        {"item1", "Here is some information about Cats: Cats are cute and fluffy. Young cats are very playful." },
-        {"item2", "Dogs are loyal and affectionate animals known for their companionship, intelligence, and diverse breeds." },
-        {"item3", "Fish are aquatic creatures that breathe through gills and come in a vast variety of shapes, sizes, and colors." },
-        {"item4", "Broccoli is a nutritious green vegetable rich in vitamins, fiber, and antioxidants." },
-        {"item5", "Computers are powerful electronic devices that process information, perform calculations, and enable communication worldwide." },
-        {"item6", "Music is a universal language that expresses emotions, tells stories, and connects people through rhythm and melody." },
+        { "item1", "Restoring Renaissance paintings requires restraint, documentation, and reversible techniques. Conservators analyze condition with raking light and UV imaging before cleaning aged varnish. Losses are inpainted using stable media confined to damaged areas. Every intervention is logged to preserve historical integrity while clarifying the artist's original intent." },
+        { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
+        { "item3", "Domestic cats communicate through posture, tail flicks, and vocalizations. Play mimics hunting behaviors like stalking and pouncing, supporting agility and mental stimulation. Scratching maintains claws and marks territory, so provide sturdy posts. Balanced diets, hydration, and routine veterinary care sustain health. Safe retreats and vertical spaces reduce stress and encourage exploration." },
+        { "item4", "Sourdough fermentation shapes flavor and structure. A lively levain ensures timing control, while autolyse hydrates flour for extensibility. Salt moderates enzymes and strengthens gluten. Gentle folds preserve gas pockets during bulk. Cold proofing sharpens taste and steadies scoring. Steam early for oven spring, then vent for caramelization and crisp crust." },
+        { "item5", "Urban beekeeping thrives with diverse forage across seasons. Rooftop hives benefit from trees, herbs, and staggered blooms. Provide shallow water sources and shade to counter heat stress. Prevent swarms through timely inspections and splits. Monitor mites with sugar rolls and rotate treatments. Honey reflects city terroir with surprising floral complexity." }
     };
 
     Dictionary<string, string> simpleImageData = new Dictionary<string, string>
@@ -174,6 +173,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         {
             string id = image.Tag as string;
             string uriString = null;
+            string fileName = null;
 
             if (image.Source is BitmapImage bitmapImage && bitmapImage.UriSource != null)
             {
@@ -190,17 +190,19 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
             if (item != null)
             {
-                var fileName = Path.GetFileName(uriString);
+                fileName = Path.GetFileName(uriString);
                 item.ImageSource = fileName;
             }
 
+            string imageVal = uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase) ? fileName : uriString;
+
             if (simpleImageData.ContainsKey(id))
             {
-                simpleImageData[id] = uriString;
+                simpleImageData[id] = imageVal;
             }
             else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
             {
-                simpleImageData.Add(id, uriString);
+                simpleImageData.Add(id, imageVal);
             }
 
             IndexingMessage.IsOpen = true;
@@ -310,9 +312,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                             if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
                             {
-                                // If imagePath is just the file name, prepend the ms-appx URI
-                                var uri = imagePath.StartsWith("ms-appx") ? imagePath : $"ms-appx:///Assets/{imagePath}";
-                                imageResults.Add(uri);
+                                imageResults.Add(imagePath);
                             }
                         }
                     }
@@ -483,6 +483,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
         // Index image content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
+        _indexer.AddOrUpdate(imageContent);
     }
 
     private async void IndexAll()
@@ -498,7 +499,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             foreach (var kvp in simpleImageData)
             {
-                SoftwareBitmap bitmap = await LoadBitmap(kvp.Value);
+                var uri = $"ms-appx:///Assets/{kvp.Value}";
+                SoftwareBitmap bitmap = await LoadBitmap(uri);
                 await IndexImageData(kvp.Key, bitmap);
             }
 
