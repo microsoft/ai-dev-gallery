@@ -71,7 +71,7 @@
       Padding="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="0.3*" MinWidth="200" />
+            <ColumnDefinition Width="0.35*" MinWidth="200" />
         </Grid.ColumnDefinitions>
         <StackPanel Spacing="8">
             <TextBlock 

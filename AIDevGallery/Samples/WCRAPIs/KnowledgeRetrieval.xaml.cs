@@ -58,12 +58,11 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     // This is some text data that we want to add to the index:
     Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
-        {"item1", "Here is some information about Cats: Cats are cute and fluffy. Young cats are very playful." },
-        {"item2", "Dogs are loyal and affectionate animals known for their companionship, intelligence, and diverse breeds." },
-        {"item3", "Fish are aquatic creatures that breathe through gills and come in a vast variety of shapes, sizes, and colors." },
-        {"item4", "Broccoli is a nutritious green vegetable rich in vitamins, fiber, and antioxidants." },
-        {"item5", "Computers are powerful electronic devices that process information, perform calculations, and enable communication worldwide." },
-        {"item6", "Music is a universal language that expresses emotions, tells stories, and connects people through rhythm and melody." },
+        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
+        { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
+        { "item3", "Domestic cats communicate through posture, tail flicks, and vocalizations. Play mimics hunting behaviors like stalking and pouncing, supporting agility and mental stimulation. Scratching maintains claws and marks territory, so provide sturdy posts. Balanced diets, hydration, and routine veterinary care sustain health. Safe retreats and vertical spaces reduce stress and encourage exploration." },
+        { "item4", "Snowboarding across pristine slopes combines agility, balance, and speed. Riders carve smooth turns on powder, adjust stance for control, and master jumps in terrain parks. Essential gear includes boots, bindings, and helmets for safety. Embrace crisp alpine air while perfecting tricks and enjoying the thrill of winter adventure." },
+        { "item5", "Urban beekeeping thrives with diverse forage across seasons. Rooftop hives benefit from trees, herbs, and staggered blooms. Provide shallow water sources and shade to counter heat stress. Prevent swarms through timely inspections and splits. Monitor mites with sugar rolls and rotate treatments. Honey reflects city terroir with surprising floral complexity." }
     };
 
     private AppContentIndexer _indexer;
