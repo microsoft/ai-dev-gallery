@@ -15,7 +15,7 @@
           Padding="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="0.3*" MinWidth="200" />
+            <ColumnDefinition Width="0.35*" MinWidth="200" />
         </Grid.ColumnDefinitions>
         <StackPanel Spacing="8">
             <TextBlock 
@@ -143,7 +143,7 @@
                 <Grid Grid.ColumnDefinitions="*,Auto">
                     <AutoSuggestBox x:Name="SearchBox"
                          AutomationProperties.Name="Prompt input"
-                         PlaceholderText="Search with a word or sentence."
+                         PlaceholderText="e.g., Meal preparation"
                          QueryIcon="Find"
                          QuerySubmitted="SearchBox_QuerySubmitted"
                          Margin="0,7"/>
