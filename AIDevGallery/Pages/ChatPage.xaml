@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.ChatPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <!-- Initial State: Center input with suggestions -->
+        <Grid x:Name="InitialStateGrid" Visibility="Visible">
+            <StackPanel 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Spacing="24"
+                MaxWidth="600">
+                
+                <TextBlock 
+                    Text="Hey, nice to see you. What's new?" 
+                    FontSize="32"
+                    FontWeight="SemiBold"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Left"/>
+                
+                <Border 
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Button 
+                            Grid.Column="0"
+                            Margin="0,0,8,0"
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            ToolTipService.ToolTip="Attach file (Coming soon)"
+                            IsEnabled="False">
+                            <FontIcon Glyph="&#xE710;" FontSize="16"/>
+                        </Button>
+                        
+                        <TextBox 
+                            x:Name="InitialInputBox"
+                            Grid.Column="1"
+                            PlaceholderText="Message Copilot"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            VerticalAlignment="Center"/>
+                        
+                        <Button 
+                            Grid.Column="2"
+                            Margin="8,0,0,0"
+                            Width="32"
+                            Height="32"
+                            Padding="0"
+                            ToolTipService.ToolTip="Voice input (Coming soon)"
+                            IsEnabled="False">
+                            <FontIcon Glyph="&#xE720;" FontSize="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                
+                <!-- Suggestion Buttons -->
+                <StackPanel Spacing="8">
+                    <TextBlock 
+                        Text="Quick response"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Margin="0,8,0,0"/>
+                    
+                <ItemsControl x:Name="SuggestionButtons">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button 
+                                    Content="{Binding}" 
+                                    Click="SuggestionButton_Click"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    Padding="12,8"
+                                    Margin="0,0,8,8"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Chat State: Messages list + bottom input -->
+        <Grid x:Name="ChatStateGrid" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Messages ScrollViewer -->
+            <ScrollViewer 
+                x:Name="MessagesScrollViewer"
+                Grid.Row="0" 
+                Padding="24">
+                <ItemsControl x:Name="MessagesItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,16">
+                                <!-- User Message -->
+                                <Border 
+                                    HorizontalAlignment="Right"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="8"
+                                    Padding="12"
+                                    MaxWidth="600"
+                                    Visibility="{Binding IsUserVisibility}">
+                                    <TextBlock 
+                                        Text="{Binding Text}" 
+                                        TextWrapping="Wrap"
+                                        Foreground="White"/>
+                                </Border>
+                                
+                                <!-- AI Message -->
+                                <StackPanel 
+                                    HorizontalAlignment="Left"
+                                    MaxWidth="600"
+                                    Spacing="8"
+                                    Visibility="{Binding IsAssistantVisibility}">
+                                    <Border 
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12">
+                                        <TextBlock 
+                                            Text="{Binding Text}" 
+                                            TextWrapping="Wrap"/>
+                                    </Border>
+                                    
+                                    <!-- Image if present -->
+                                    <Image 
+                                        Source="{Binding ImageSource}"
+                                        Stretch="Uniform"
+                                        MaxHeight="400"
+                                        Visibility="{Binding HasImageVisibility}"/>
+                                    
+                                    <!-- Progress Ring for loading -->
+                                    <ProgressRing 
+                                        IsActive="{Binding IsLoading}"
+                                        Visibility="{Binding IsLoadingVisibility}"
+                                        Width="40"
+                                        Height="40"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Bottom Input -->
+            <Border 
+                Grid.Row="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="24,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBox 
+                        x:Name="ChatInputBox"
+                        Grid.Column="0"
+                        PlaceholderText="Type your message..."
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12"
+                        KeyDown="ChatInputBox_KeyDown"
+                        VerticalAlignment="Center"/>
+                    
+                    <Button 
+                        x:Name="SendButton"
+                        Grid.Column="1"
+                        Content="Send"
+                        Click="SendButton_Click"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- License Dialog -->
+        <ContentDialog 
+            x:Name="LicenseDialog"
+            Title="Download Model License"
+            PrimaryButtonText="Download"
+            CloseButtonText="Cancel"
+            DefaultButton="Primary"
+            PrimaryButtonClick="LicenseDialog_PrimaryButtonClick">
+            <StackPanel Spacing="12">
+                <TextBlock TextWrapping="Wrap">
+                    To use the Stable Diffusion v1.4 model, you need to review and accept the license agreement.
+                </TextBlock>
+                
+                <ScrollViewer MaxHeight="200" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Padding="8">
+                    <TextBlock TextWrapping="Wrap" FontSize="12">
+                        This is a simplified license dialog for the prototype.
+                        
+                        In the real implementation, this would show the actual model license text.
+                        
+                        By clicking "Download", you agree to the terms and conditions of using this AI model.
+                    </TextBlock>
+                </ScrollViewer>
+                
+                <CheckBox 
+                    x:Name="LicenseCheckBox"
+                    Content="I have reviewed and agree with the license"
+                    Checked="LicenseCheckBox_Changed"
+                    Unchecked="LicenseCheckBox_Changed"/>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

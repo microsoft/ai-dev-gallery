@@ -99,6 +99,9 @@ internal sealed partial class MainWindow : WindowEx
             case "home":
                 Navigate(typeof(HomePage));
                 break;
+            case "chat":
+                Navigate(typeof(ChatPage));
+                break;
             case "samples":
                 Navigate(typeof(ScenarioSelectionPage), obj);
                 break;

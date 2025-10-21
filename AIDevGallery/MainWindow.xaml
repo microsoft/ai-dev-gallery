@@ -93,6 +93,10 @@
                     Icon="Home"
                     Tag="Home" />
                 <NavigationViewItem
+                    Content="Chat"
+                    Icon="{ui:FontIcon Glyph=&#xE8F2;}"
+                    Tag="Chat" />
+                <NavigationViewItem
                     Content="Samples"
                     Icon="{ui:FontIcon Glyph=&#xE754;}"
                     Tag="Samples" />
