@@ -37,12 +37,20 @@ public sealed partial class ChatPage : Page
     private CancellationTokenSource? cts;
     private ModelDownload? currentModelDownload;
     private ChatMessage? downloadingMessage;
+    private DispatcherTimer? progressTimer;
 
     public ChatPage()
     {
         this.InitializeComponent();
         this.Loaded += ChatPage_Loaded;
         this.Unloaded += ChatPage_Unloaded;
+        
+        // Initialize progress timer (same as DownloadableModel)
+        progressTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(300)
+        };
+        progressTimer.Tick += ProgressTimer_Tick;
     }
 
     private void ChatPage_Loaded(object sender, RoutedEventArgs e)
@@ -68,6 +76,12 @@ public sealed partial class ChatPage : Page
         cts?.Cancel();
         cts?.Dispose();
         stableDiffusion?.Dispose();
+        
+        if (progressTimer != null)
+        {
+            progressTimer.Stop();
+            progressTimer.Tick -= ProgressTimer_Tick;
+        }
         
         if (currentModelDownload != null)
         {
@@ -159,14 +173,19 @@ public sealed partial class ChatPage : Page
             if (downloadingMessage == null)
                 return;
 
-            if (e.Status == DownloadStatus.InProgress)
+            // Start timer to update progress (same pattern as DownloadableModel)
+            if (progressTimer != null && !progressTimer.IsEnabled)
             {
-                // Use the same format as the download progress list (one decimal place)
-                float progressPercent = (float)Math.Round(Math.Min(Math.Max(e.Progress, 0), 100), 1);
-                downloadingMessage.Text = $"Downloading model... {progressPercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}%";
+                progressTimer.Start();
             }
-            else if (e.Status == DownloadStatus.Completed)
+
+            if (e.Status == DownloadStatus.Completed)
             {
+                if (progressTimer != null)
+                {
+                    progressTimer.Stop();
+                }
+
                 downloadingMessage.Text = "Model download complete! Running the sample for you. What image would you like to create?";
                 downloadingMessage.IsLoading = false;
 
@@ -181,6 +200,11 @@ public sealed partial class ChatPage : Page
             }
             else if (e.Status == DownloadStatus.Canceled)
             {
+                if (progressTimer != null)
+                {
+                    progressTimer.Stop();
+                }
+
                 downloadingMessage.Text = "Model download was canceled.";
                 downloadingMessage.IsLoading = false;
 
@@ -191,6 +215,21 @@ public sealed partial class ChatPage : Page
                 }
             }
         });
+    }
+
+    private void ProgressTimer_Tick(object? sender, object e)
+    {
+        if (progressTimer != null)
+        {
+            progressTimer.Stop();
+        }
+
+        if (currentModelDownload != null && downloadingMessage != null)
+        {
+            // Read current progress from ModelDownload (same as DownloadableModel)
+            float progressPercent = currentModelDownload.DownloadProgress * 100;
+            downloadingMessage.Text = $"Downloading model... {progressPercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}%";
+        }
     }
 
     private async Task LoadModelAsync()
