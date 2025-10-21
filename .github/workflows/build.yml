@@ -118,12 +118,38 @@ jobs:
         dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Setup Dev Tools
       uses: ilammy/msvc-dev-cmd@v1
-    - name: Build Tests
-      run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Build Tests (MSIX)
+      run: |
+        dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 \
+          /p:Configuration=${{ matrix.dotnet-configuration }} \
+          /p:Platform=${{ matrix.dotnet-arch }} \
+          /p:AppxPackageDir="AppPackages/UnitTests/" \
+          /p:UapAppxPackageBuildMode=SideloadOnly \
+          /p:AppxBundle=Never \
+          /p:GenerateAppxPackageOnBuild=true
+    - name: Locate .appxrecipe
+      id: locate_appxrecipe
+      shell: pwsh
+      run: |
+        $tfm = 'net9.0-windows10.0.26100.0'
+        $rid = "win-${{ matrix.dotnet-arch }}"
+        $cfg = "${{ matrix.dotnet-configuration }}"
+        $base = Join-Path "${{ github.workspace }}" "AIDevGallery.UnitTests"
+        $pattern1 = Join-Path $base "bin/${{ matrix.dotnet-arch }}/$cfg/$tfm/$rid/*.appxrecipe"
+        $pattern2 = Join-Path $base "obj/${{ matrix.dotnet-arch }}/$cfg/$tfm/$rid/*.appxrecipe"
+        $files = @()
+        $files += Get-ChildItem -Path $pattern1 -ErrorAction SilentlyContinue
+        $files += Get-ChildItem -Path $pattern2 -ErrorAction SilentlyContinue
+        if (-not $files -or $files.Count -eq 0) { throw "No .appxrecipe found." }
+        $recipe = $files[0].FullName
+        echo "appxrecipe=$recipe" >> $env:GITHUB_OUTPUT
+        Write-Host "Found appxrecipe: $recipe"
     - name: Ensure TestResults Directory
       run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
-    - name: Run Tests
-      run: vstest.console.exe .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.UnitTests.exe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.2\buildTransitive\net9.0" /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+    - name: Run Tests (AppContainer)
+      run: |
+        $recipe = '${{ steps.locate_appxrecipe.outputs.appxrecipe }}'
+        vstest.console.exe "$recipe" /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.2\buildTransitive\net9.0" /framework:FrameworkUap10 /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
     - name: Publish Test Builds If Failed
       if: failure()
       uses: actions/upload-artifact@v4
@@ -134,6 +160,7 @@ jobs:
             .\AIDevGallery\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
             .\AIDevGallery.UnitTests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
             .\AIDevGallery.UnitTests\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+            .\AIDevGallery.UnitTests\AppPackages\UnitTests\
     - name: Publish Test Results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
