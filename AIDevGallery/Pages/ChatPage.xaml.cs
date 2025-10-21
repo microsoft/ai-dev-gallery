@@ -104,6 +104,9 @@ public sealed partial class ChatPage : Page
         // Add assistant response about the model
         AddAssistantMessage("Great! I recommend using Stable Diffusion v1.4 for image generation. Let me help you download the model.");
 
+        // Add a small delay before showing the license dialog
+        await Task.Delay(800);
+
         // Check if model is already cached
         await Task.Delay(500); // Small delay for better UX
 
@@ -120,7 +123,6 @@ public sealed partial class ChatPage : Page
         {
             // Show license dialog
             LicenseCheckBox.IsChecked = false;
-            LicenseDialog.IsPrimaryButtonEnabled = false;
             await LicenseDialog.ShowAsync();
         }
     }
@@ -159,8 +161,9 @@ public sealed partial class ChatPage : Page
 
             if (e.Status == DownloadStatus.InProgress)
             {
-                int progressPercent = (int)(e.Progress * 100);
-                downloadingMessage.Text = $"Downloading model... {progressPercent}%";
+                // Use the same format as the download progress list (one decimal place)
+                float progressPercent = (float)Math.Round(Math.Min(Math.Max(e.Progress, 0), 100), 1);
+                downloadingMessage.Text = $"Downloading model... {progressPercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}%";
             }
             else if (e.Status == DownloadStatus.Completed)
             {
@@ -188,11 +191,6 @@ public sealed partial class ChatPage : Page
                 }
             }
         });
-    }
-
-    private void LicenseCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        LicenseDialog.IsPrimaryButtonEnabled = LicenseCheckBox.IsChecked == true;
     }
 
     private async Task LoadModelAsync()

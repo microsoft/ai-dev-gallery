@@ -138,7 +138,8 @@
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
-                                        Padding="12">
+                                        Padding="12"
+                                        HorizontalAlignment="Left">
                                         <TextBlock 
                                             Text="{Binding Text}" 
                                             TextWrapping="Wrap"/>
@@ -166,7 +167,8 @@
                                             </StackPanel>
                                         </Button>
                                         <Button 
-                                            Click="ExportProjectButton_Click">
+                                            Click="ExportProjectButton_Click"
+                                            Style="{StaticResource AccentButtonStyle}">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <FontIcon Glyph="&#xE8A7;" FontSize="16"/>
                                                 <TextBlock Text="Export VS Project"/>
@@ -238,31 +240,28 @@
         <!-- License Dialog -->
         <ContentDialog 
             x:Name="LicenseDialog"
-            Title="Download Model License"
+            Title="Download model"
+            DefaultButton="Primary"
+            IsPrimaryButtonEnabled="{Binding ElementName=LicenseCheckBox, Path=IsChecked}"
             PrimaryButtonText="Download"
             CloseButtonText="Cancel"
-            DefaultButton="Primary"
             PrimaryButtonClick="LicenseDialog_PrimaryButtonClick">
-            <StackPanel Spacing="12">
+            <StackPanel MinWidth="360">
                 <TextBlock TextWrapping="Wrap">
-                    To use the Stable Diffusion v1.4 model, you need to review and accept the license agreement.
+                    <Run Text="You are about to download" />
+                    <Run Text="Stable Diffusion v1.4" FontWeight="SemiBold" />
+                    <Run Text="from" />
+                    <Run Text="Hugging Face" FontWeight="SemiBold" />
+                    <LineBreak />
+                    <LineBreak /><Run Text="License:" />
+                    <Hyperlink NavigateUri="https://huggingface.co/CompVis/stable-diffusion-v1-4">
+                        <Run Text="CreativeML Open RAIL-M" />
+                    </Hyperlink>
                 </TextBlock>
-                
-                <ScrollViewer MaxHeight="200" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Padding="8">
-                    <TextBlock TextWrapping="Wrap" FontSize="12">
-                        This is a simplified license dialog for the prototype.
-                        
-                        In the real implementation, this would show the actual model license text.
-                        
-                        By clicking "Download", you agree to the terms and conditions of using this AI model.
-                    </TextBlock>
-                </ScrollViewer>
-                
-                <CheckBox 
+                <CheckBox
                     x:Name="LicenseCheckBox"
-                    Content="I have reviewed and agree with the license"
-                    Checked="LicenseCheckBox_Changed"
-                    Unchecked="LicenseCheckBox_Changed"/>
+                    Margin="0,16,0,0"
+                    Content="I have reviewed and agree with the license" />
             </StackPanel>
         </ContentDialog>
     </Grid>
