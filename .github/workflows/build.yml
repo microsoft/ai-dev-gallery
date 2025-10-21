@@ -119,14 +119,7 @@ jobs:
     - name: Setup Dev Tools
       uses: ilammy/msvc-dev-cmd@v1
     - name: Build Tests (MSIX)
-      run: |
-        dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 \
-          /p:Configuration=${{ matrix.dotnet-configuration }} \
-          /p:Platform=${{ matrix.dotnet-arch }} \
-          /p:AppxPackageDir="AppPackages/UnitTests/" \
-          /p:UapAppxPackageBuildMode=SideloadOnly \
-          /p:AppxBundle=Never \
-          /p:GenerateAppxPackageOnBuild=true
+      run: dotnet build AIDevGallery.UnitTests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/UnitTests/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true
     - name: Locate .appxrecipe
       id: locate_appxrecipe
       shell: pwsh
