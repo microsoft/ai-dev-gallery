@@ -3,9 +3,12 @@
 
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
+using AIDevGallery.ProjectGenerator;
+using AIDevGallery.Samples;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Samples.SharedCode.StableDiffusionCode;
 using AIDevGallery.Utils;
+using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -15,8 +18,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -314,6 +319,9 @@ public sealed partial class ChatPage : Page
                 
                 // Scroll to bottom
                 ScrollToBottom();
+
+                // Add follow-up message with options
+                AddFollowUpOptionsMessage();
             }
             else
             {
@@ -377,6 +385,393 @@ public sealed partial class ChatPage : Page
             MessagesScrollViewer.ChangeView(null, MessagesScrollViewer.ScrollableHeight, null);
         });
     }
+
+    private void AddFollowUpOptionsMessage()
+    {
+        var message = new ChatMessage
+        {
+            Text = "What would you like to do next?",
+            IsUser = false,
+            IsAssistant = true,
+            HasActions = true
+        };
+        messages.Add(message);
+        ScrollToBottom();
+    }
+
+    private async void ShowSourceCodeButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Get the Generate Image sample
+        var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == "1574f6ad-d7ba-49f8-bd57-34e0d98ce4e1");
+        
+        if (sample == null)
+        {
+            AddAssistantMessage("Sorry, I couldn't find the sample source code.");
+            return;
+        }
+
+        if (selectedModel == null)
+        {
+            AddAssistantMessage("Model information not available.");
+            return;
+        }
+
+        AddAssistantMessage("Opening source code viewer...");
+
+        try
+        {
+            // Get the cached model
+            var cachedModelPath = App.ModelCache.GetCachedModel(selectedModel.Url);
+            if (cachedModelPath == null)
+            {
+                AddAssistantMessage("Model not found in cache.");
+                return;
+            }
+
+            // Create ExpandedModelDetails for code generation
+            var expandedModel = new ExpandedModelDetails(
+                Id: selectedModel.Id,
+                Path: cachedModelPath.Path,
+                Url: selectedModel.Url,
+                ModelSize: cachedModelPath.ModelSize,
+                HardwareAccelerator: selectedModel.HardwareAccelerators.FirstOrDefault(),
+                WinMlSampleOptions: App.AppData.WinMLSampleOptions
+            );
+
+            // Collect all code files
+            var codeFiles = new Dictionary<string, string>();
+
+            // Create model info dictionary for GetCleanCSCode
+            var modelInfos = new Dictionary<ModelType, (ExpandedModelDetails, string)>
+            {
+                { 
+                    ModelType.StableDiffusion, 
+                    (expandedModel, $"@\"{cachedModelPath.Path}\"") 
+                }
+            };
+
+            // Add Sample.xaml.cs
+            if (!string.IsNullOrEmpty(sample.CSCode))
+            {
+                codeFiles["Sample.xaml.cs"] = sample.GetCleanCSCode(modelInfos);
+            }
+
+            // Add Sample.xaml
+            if (!string.IsNullOrEmpty(sample.XAMLCode))
+            {
+                codeFiles["Sample.xaml"] = sample.XAMLCode;
+            }
+
+            // Add shared code files
+            var expandedModels = new Dictionary<ModelType, ExpandedModelDetails>
+            {
+                { ModelType.StableDiffusion, expandedModel }
+            };
+
+            foreach (var sharedCodeEnum in sample.GetAllSharedCode(expandedModels))
+            {
+                string sharedCodeName = SharedCodeHelpers.GetName(sharedCodeEnum);
+                string sharedCodeContent = SharedCodeHelpers.GetSource(sharedCodeEnum);
+                codeFiles[sharedCodeName] = sharedCodeContent;
+            }
+
+            // Create the code viewer dialog
+            var codeViewerContent = CreateCodeViewerContent(codeFiles);
+
+            var codeDialog = new ContentDialog
+            {
+                Title = "Stable Diffusion Image Generation - Source Code",
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot,
+                Content = codeViewerContent
+            };
+
+            await codeDialog.ShowAsync();
+            AddAssistantMessage("✅ Source code displayed!");
+        }
+        catch (Exception ex)
+        {
+            AddAssistantMessage($"Error displaying source code: {ex.Message}");
+        }
+    }
+
+    private Grid CreateCodeViewerContent(Dictionary<string, string> codeFiles)
+    {
+        // Create code formatter with syntax highlighting
+        var codeFormatter = new RichTextBlockFormatter(AppUtils.GetCodeHighlightingStyleFromElementTheme(ActualTheme));
+
+        // Create TabView for multiple files
+        var codeTabView = new TabView
+        {
+            IsAddTabButtonVisible = false,
+            TabWidthMode = TabViewWidthMode.SizeToContent
+        };
+
+        // Add tabs for each code file
+        foreach (var codeFile in codeFiles)
+        {
+            var tabItem = new TabViewItem
+            {
+                Header = codeFile.Key,
+                IsClosable = false
+            };
+            codeTabView.TabItems.Add(tabItem);
+        }
+
+        // Create the code display area
+        var codeTextBlock = new RichTextBlock
+        {
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+            FontSize = 14,
+            IsTextSelectionEnabled = true,
+            LineHeight = 16,
+            TextWrapping = TextWrapping.NoWrap,
+            Padding = new Thickness(8, 16, 8, 16)
+        };
+
+        var scrollViewer = new ScrollViewer
+        {
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Microsoft.UI.Colors.Transparent)
+        };
+
+        scrollViewer.Content = codeTextBlock;
+
+        // Handle tab selection changed
+        codeTabView.SelectionChanged += (s, args) =>
+        {
+            var selectedTab = codeTabView.SelectedItem as TabViewItem;
+            if (selectedTab != null && selectedTab.Header is string fileName)
+            {
+                var code = codeFiles[fileName];
+                var extension = fileName.Split('.').LastOrDefault();
+                
+                codeTextBlock.Blocks.Clear();
+                codeFormatter.FormatRichTextBlock(
+                    code, 
+                    Languages.FindById(extension) ?? Languages.CSharp, 
+                    codeTextBlock);
+            }
+        };
+
+        // Select first tab by default
+        if (codeTabView.TabItems.Count > 0)
+        {
+            codeTabView.SelectedIndex = 0;
+        }
+
+        // Create container grid
+        var grid = new Grid
+        {
+            Width = 800,
+            Height = 600,
+            RowDefinitions =
+            {
+                new RowDefinition { Height = GridLength.Auto },
+                new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
+            }
+        };
+
+        Grid.SetRow(codeTabView, 0);
+        Grid.SetRow(scrollViewer, 1);
+
+        grid.Children.Add(codeTabView);
+        grid.Children.Add(scrollViewer);
+
+        return grid;
+    }
+
+    private void AddCodeTabToView(TabView tabView, string header, string code)
+    {
+        // Use RichTextBlock for better multi-line text display
+        var richTextBlock = new RichTextBlock
+        {
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+            FontSize = 12,
+            IsTextSelectionEnabled = true,
+            TextWrapping = TextWrapping.NoWrap,
+            LineHeight = 16
+        };
+
+        // Add the code as a single paragraph
+        var paragraph = new Microsoft.UI.Xaml.Documents.Paragraph();
+        var run = new Microsoft.UI.Xaml.Documents.Run
+        {
+            Text = code
+        };
+        paragraph.Inlines.Add(run);
+        richTextBlock.Blocks.Add(paragraph);
+
+        var scrollViewer = new ScrollViewer
+        {
+            Content = richTextBlock,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            Padding = new Thickness(8)
+        };
+
+        tabView.TabItems.Add(new TabViewItem
+        {
+            Header = header,
+            Content = scrollViewer,
+            IsClosable = false
+        });
+    }
+
+    private async void ExportProjectButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Get the Generate Image sample
+        var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == "1574f6ad-d7ba-49f8-bd57-34e0d98ce4e1");
+        
+        if (sample == null)
+        {
+            AddAssistantMessage("Sorry, I couldn't find the sample information.");
+            return;
+        }
+
+        // Get the model details
+        if (selectedModel == null)
+        {
+            AddAssistantMessage("Model information not available.");
+            return;
+        }
+
+        AddAssistantMessage("Let me help you export this as a Visual Studio project. You'll be able to choose where to save it and whether to copy the model.");
+
+        try
+        {
+            // Get cached models
+            var models = new[] { selectedModel };
+            var cachedModels = sample.GetCacheModelDetailsDictionary(models, App.AppData.WinMLSampleOptions);
+
+            if (cachedModels == null)
+            {
+                AddAssistantMessage("Failed to prepare model information.");
+                return;
+            }
+
+            // Ask user about copying model
+            var contentStackPanel = new StackPanel { Orientation = Orientation.Vertical };
+            contentStackPanel.Children.Add(new TextBlock
+            {
+                Text = "Create a standalone VS project based on this sample.",
+                Margin = new Thickness(0, 0, 0, 16)
+            });
+
+            RadioButton? copyRadioButton = null;
+            var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
+            if (totalSize != 0)
+            {
+                var radioButtons = new RadioButtons();
+                radioButtons.Items.Add(new RadioButton
+                {
+                    Content = "Reference model from model cache",
+                    IsChecked = true
+                });
+
+                copyRadioButton = new RadioButton
+                {
+                    Content = new TextBlock()
+                    {
+                        Text = $"Copy model ({AppUtils.FileSizeToString(totalSize)}) to project directory"
+                    }
+                };
+                radioButtons.Items.Add(copyRadioButton);
+                contentStackPanel.Children.Add(radioButtons);
+            }
+
+            var exportDialog = new ContentDialog()
+            {
+                Title = "Export Visual Studio project",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                PrimaryButtonText = "Export",
+                XamlRoot = XamlRoot,
+                Content = contentStackPanel
+            };
+
+            var output = await exportDialog.ShowAsync();
+
+            if (output != ContentDialogResult.Primary)
+            {
+                AddAssistantMessage("Export cancelled.");
+                return;
+            }
+
+            // Pick folder
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.FileTypeFilter.Add("*");
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            var folder = await picker.PickSingleFolderAsync();
+            
+            if (folder == null)
+            {
+                AddAssistantMessage("No folder selected. Export cancelled.");
+                return;
+            }
+
+            // Show progress
+            var progressDialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = "Creating Visual Studio project...",
+                Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+            };
+            _ = progressDialog.ShowAsync();
+
+            // Generate project
+            var generator = new Generator();
+            bool copyModel = copyRadioButton != null && copyRadioButton.IsChecked == true;
+            var projectPath = await generator.GenerateAsync(
+                sample,
+                cachedModels,
+                copyModel,
+                folder.Path,
+                CancellationToken.None);
+
+            progressDialog.Hide();
+
+            // Add success message with open folder button
+            AddProjectExportSuccessMessage(projectPath);
+        }
+        catch (Exception ex)
+        {
+            AddAssistantMessage($"❌ Error exporting project: {ex.Message}");
+        }
+    }
+
+    private void AddProjectExportSuccessMessage(string projectPath)
+    {
+        var message = new ChatMessage
+        {
+            Text = $"✅ Project exported successfully to:\n{projectPath}",
+            IsUser = false,
+            IsAssistant = true,
+            ProjectPath = projectPath,
+            HasOpenFolderButton = true
+        };
+        messages.Add(message);
+        ScrollToBottom();
+    }
+
+    private async void OpenProjectFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string folderPath)
+        {
+            try
+            {
+                await Windows.System.Launcher.LaunchFolderPathAsync(folderPath);
+            }
+            catch (Exception ex)
+            {
+                AddAssistantMessage($"Failed to open folder: {ex.Message}");
+            }
+        }
+    }
 }
 
 public class ChatMessage : INotifyPropertyChanged
@@ -386,6 +781,9 @@ public class ChatMessage : INotifyPropertyChanged
     private bool isAssistant;
     private BitmapImage? imageSource;
     private bool isLoading;
+    private bool hasActions;
+    private bool hasOpenFolderButton;
+    private string? projectPath;
 
     public string Text
     {
@@ -442,11 +840,45 @@ public class ChatMessage : INotifyPropertyChanged
         }
     }
 
+    public bool HasActions
+    {
+        get => hasActions;
+        set
+        {
+            hasActions = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasActionsVisibility));
+        }
+    }
+
+    public bool HasOpenFolderButton
+    {
+        get => hasOpenFolderButton;
+        set
+        {
+            hasOpenFolderButton = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasOpenFolderButtonVisibility));
+        }
+    }
+
+    public string? ProjectPath
+    {
+        get => projectPath;
+        set
+        {
+            projectPath = value;
+            OnPropertyChanged();
+        }
+    }
+
     public Visibility IsUserVisibility => IsUser ? Visibility.Visible : Visibility.Collapsed;
     public Visibility IsAssistantVisibility => IsAssistant ? Visibility.Visible : Visibility.Collapsed;
     public bool HasImage => ImageSource != null;
     public Visibility HasImageVisibility => HasImage ? Visibility.Visible : Visibility.Collapsed;
     public Visibility IsLoadingVisibility => IsLoading ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility HasActionsVisibility => HasActions ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility HasOpenFolderButtonVisibility => HasOpenFolderButton ? Visibility.Visible : Visibility.Collapsed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
