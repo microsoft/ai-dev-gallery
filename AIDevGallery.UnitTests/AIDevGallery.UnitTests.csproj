@@ -52,6 +52,11 @@
     <ProjectReference Include="..\AIDevGallery\AIDevGallery.csproj" />
   </ItemGroup>
 
+  <!-- Exclude duplicate resources.pri from referenced app project when packaging tests -->
+  <ItemGroup>
+    <AppxPackagePayload Remove="..\AIDevGallery\bin\**\resources.pri" />
+  </ItemGroup>
+
   <!-- 
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 
     Explorer "Package and Publish" context menu entry to be enabled for this project even if 
