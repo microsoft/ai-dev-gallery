@@ -175,25 +175,22 @@
                         </ListView.ItemContainerStyle>
                     </ListView>
                 </ScrollViewer>
-               
+
                 <Grid Grid.Row="1" ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
                     <TextBox
                         x:Name="InputBox"
                         Grid.Row="1"
                         AutomationProperties.Name="Prompt input"
                         KeyUp="TextBox_KeyUp"
                         PreviewKeyDown="TextBox_PreviewKeyDown"
-                        PlaceholderText="Ask about the sample data"
+                        PlaceholderText="Ask about the sample data e.g., 'What ingredients do I need for soup?'"
                         TextChanged="InputBox_TextChanged"
                         TextWrapping="Wrap" 
                         AcceptsReturn="True"
                         MaxHeight="148"
+                        Padding="7,7,60,7"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8">
                         <Button x:Name="SendBtn"
                             AutomationProperties.Name="Send Message"
                             Click="SendBtn_Click"
