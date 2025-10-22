@@ -60,7 +60,6 @@ public sealed partial class ChatPage : Page
         suggestions.Add("Summarize text");
         suggestions.Add("Explain code");
         suggestions.Add("Draft a text");
-        suggestions.Add("Improve writing");
         
         SuggestionButtons.ItemsSource = suggestions;
         MessagesItemsControl.ItemsSource = messages;
@@ -98,11 +97,7 @@ public sealed partial class ChatPage : Page
             {
                 HandleCreateImageRequest();
             }
-            else
-            {
-                // Other suggestions are not implemented in this prototype
-                AddAssistantMessage("This feature is coming soon! For this prototype, only 'Create an image' is functional.");
-            }
+            // Other suggestions are not implemented yet - do nothing
         }
     }
 

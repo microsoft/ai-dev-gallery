@@ -17,7 +17,7 @@
                 MaxWidth="600">
                 
                 <TextBlock 
-                    Text="Hey, nice to see you. What's new?" 
+                    Text="Hey, what's on your mind today?" 
                     FontSize="32"
                     FontWeight="SemiBold"
                     TextWrapping="Wrap"
@@ -50,7 +50,7 @@
                         <TextBox 
                             x:Name="InitialInputBox"
                             Grid.Column="1"
-                            PlaceholderText="Message Copilot"
+                            PlaceholderText="Message AI"
                             BorderThickness="0"
                             Background="Transparent"
                             VerticalAlignment="Center"/>
