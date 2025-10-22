@@ -3,7 +3,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using CommunityToolkit.WinUI.Controls;
 using CommunityToolkit.WinUI.Helpers;
 using Microsoft.Graphics.Canvas;
@@ -20,6 +19,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Windows.Media;
 
 namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
@@ -38,7 +38,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
         "Microsoft.ML.OnnxRuntime.Extensions",
         "CommunityToolkit.WinUI.Helpers",
         "CommunityToolkit.WinUI.Controls.CameraPreview",
-        "Microsoft.Graphics.Win2D"
+        "Microsoft.Graphics.Win2D",
+        "System.Numerics.Tensors"
     ],
     Name = "Face Detection",
     Id = "9b74ccc0-f5f7-417f-bed0-712ffc063508",
@@ -107,7 +108,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -119,7 +120,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
         InitializeCameraPreviewControl();
     }
 
-    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -142,17 +143,17 @@ internal sealed partial class FaceDetection : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 

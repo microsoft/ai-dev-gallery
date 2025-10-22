@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -35,7 +34,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultiHRNetPose;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.Extensions"
+        "Microsoft.ML.OnnxRuntime.Extensions",
+        "System.Numerics.Tensors"
     ],
     AssetFilenames = [
         "team.jpg"
@@ -69,13 +69,13 @@ internal sealed partial class Multipose : BaseSamplePage
     // </exclude>
     protected override async Task LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)
     {
-        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
+        await InitModels(sampleParams.ModelPaths[0], sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
         sampleParams.NotifyCompletion();
 
         await RunPipeline(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModels(string poseModelPath, string detectionModelPath, WinMlSampleOptions poseSessionOption)
+    private Task InitModels(string poseModelPath, string detectionModelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -90,14 +90,12 @@ internal sealed partial class Multipose : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            var detectSessioOption = new WinMlSampleOptions(ExecutionProviderDevicePolicy.PREFER_CPU, poseSessionOption.EpName, poseSessionOption.CompileModel, poseSessionOption.DeviceType);
-
-            _poseSession = await GetInferenceSession(poseModelPath, poseSessionOption);
-            _detectionSession = await GetInferenceSession(detectionModelPath, detectSessioOption);
+            _poseSession = await GetInferenceSession(poseModelPath, policy, epName, compileModel, deviceType);
+            _detectionSession = await GetInferenceSession(detectionModelPath, ExecutionProviderDevicePolicy.PREFER_CPU, epName, compileModel, deviceType);
         });
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -120,17 +118,17 @@ internal sealed partial class Multipose : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 

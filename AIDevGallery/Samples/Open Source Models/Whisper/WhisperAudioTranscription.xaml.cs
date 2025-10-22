@@ -23,7 +23,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     ],
     NugetPackageReferences = [
         "NAudio.WinMM",
-        "Microsoft.ML.OnnxRuntime.Extensions"
+        "Microsoft.ML.OnnxRuntime.Extensions",
+        "System.Numerics.Tensors"
     ],
     Id = "c7e248af-86e8-49ba-9f44-022230963261",
     Icon = "\uE8D4")]
@@ -51,7 +52,7 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
     {
         try
         {
-            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

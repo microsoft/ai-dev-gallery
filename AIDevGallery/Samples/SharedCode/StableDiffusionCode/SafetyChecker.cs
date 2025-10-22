@@ -23,14 +23,14 @@ internal class SafetyChecker : IDisposable
     {
     }
 
-    public static async Task<SafetyChecker> CreateAsync(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    public static async Task<SafetyChecker> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         var instance = new SafetyChecker();
-        instance.safetyCheckerInferenceSession = await instance.GetInferenceSession(modelPath, winMlSampleOptions);
+        instance.safetyCheckerInferenceSession = await instance.GetInferenceSession(modelPath, policy, epName, compileModel, deviceType);
         return instance;
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -58,17 +58,17 @@ internal class SafetyChecker : IDisposable
             sessionOptions.AddFreeDimensionOverrideByName("height", 224);
             sessionOptions.AddFreeDimensionOverrideByName("width", 224);
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 

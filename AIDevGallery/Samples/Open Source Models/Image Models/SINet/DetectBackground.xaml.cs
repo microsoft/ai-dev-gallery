@@ -32,7 +32,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.SINet;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.Extensions"
+        "Microsoft.ML.OnnxRuntime.Extensions",
+        "System.Numerics.Tensors"
     ],
     AssetFilenames = [
         "detection_default.png"
@@ -63,7 +64,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -75,7 +76,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
         await Detect(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "detection_default.png"));
     }
 
-    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -98,17 +99,17 @@ internal sealed partial class DetectBackground : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 
