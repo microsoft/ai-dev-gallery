@@ -163,12 +163,6 @@ internal class OnnxModelDownload : ModelDownload
         long modelSize = filesToDownload.Sum(f => f.Size);
         long bytesDownloaded = 0;
 
-        var internalProgress = new Progress<long>(p =>
-        {
-            var percentage = (float)(bytesDownloaded + p) / (float)modelSize;
-            progress?.Report(percentage);
-        });
-
         using var client = new HttpClient();
 
         foreach (var downloadableFile in filesToDownload)
@@ -190,6 +184,14 @@ internal class OnnxModelDownload : ModelDownload
                     continue;
                 }
             }
+
+            // Create a new progress reporter for each file to avoid cross-file contamination
+            var currentFileBytesDownloaded = bytesDownloaded; // Capture current value
+            var internalProgress = new Progress<long>(p =>
+            {
+                var percentage = (float)(currentFileBytesDownloaded + p) / (float)modelSize;
+                progress?.Report(percentage);
+            });
 
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
             using (FileStream file = new(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
