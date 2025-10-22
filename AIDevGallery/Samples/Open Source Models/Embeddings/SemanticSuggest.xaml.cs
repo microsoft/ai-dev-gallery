@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -42,7 +43,13 @@ internal sealed partial class SemanticSuggest : BaseSamplePage
     {
         try
         {
-            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+            string? deviceType = sampleParams.WinMlSampleOptions.DeviceType;
+
+            MySemanticComboBox.EmbeddingGenerator = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel, deviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)

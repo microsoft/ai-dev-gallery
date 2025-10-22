@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -84,7 +85,13 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     {
         try
         {
-            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPaths[1], sampleParams.WinMlSampleOptions);
+            string modelPath = sampleParams.ModelPaths[1];
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+            string? deviceType = sampleParams.WinMlSampleOptions.DeviceType;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel, deviceType);
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)

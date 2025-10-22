@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI.Xaml;
@@ -31,7 +30,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
     ],
     NugetPackageReferences = [
         "System.Drawing.Common",
-        "Microsoft.ML.OnnxRuntime.Extensions"
+        "Microsoft.ML.OnnxRuntime.Extensions",
+        "System.Numerics.Tensors"
     ],
     AssetFilenames = [
         "team.jpg"
@@ -62,7 +62,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
     {
         try
         {
-            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            await InitModel(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -75,7 +75,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
         await DetectObjects(Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "team.jpg"));
     }
 
-    private Task InitModel(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task InitModel(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -98,17 +98,17 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
             SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 
