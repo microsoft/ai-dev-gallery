@@ -16,11 +16,13 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <ThemeShadow x:Name="DialogShadow" />
+        <SolidColorBrush x:Key="AppSmokeBrush" Color="#66000000" />
     </UserControl.Resources>
     <Grid>
         <Grid
             x:Name="ShadowGrid"
-            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Background="{ThemeResource AppSmokeBrush}"
+            HighContrastAdjustment="None"
             Loaded="ShadowGrid_Loaded"
             Tapped="ShadowGrid_Tapped" />
 
