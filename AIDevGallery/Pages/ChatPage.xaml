@@ -281,43 +281,6 @@
                                         MaxHeight="400"
                                         Visibility="{Binding HasImageVisibility}"/>
                                     
-                                    <!-- Action Buttons if has actions -->
-                                    <StackPanel 
-                                        Orientation="Horizontal" 
-                                        Spacing="12"
-                                        Margin="0,8,0,0"
-                                        Visibility="{Binding HasActionsVisibility}">
-                                        <Button 
-                                            Click="ShowSourceCodeButton_Click"
-                                            Style="{StaticResource AccentButtonStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <FontIcon Glyph="&#xE943;" FontSize="16"/>
-                                                <TextBlock Text="Show Source Code"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button 
-                                            Click="ExportProjectButton_Click"
-                                            Style="{StaticResource AccentButtonStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <FontIcon Glyph="&#xE8A7;" FontSize="16"/>
-                                                <TextBlock Text="Export VS Project"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                    
-                                    <!-- Open Folder Button for exported projects -->
-                                    <Button 
-                                        Margin="0,8,0,0"
-                                        Click="OpenProjectFolderButton_Click"
-                                        Tag="{Binding ProjectPath}"
-                                        Visibility="{Binding HasOpenFolderButtonVisibility}"
-                                        Style="{StaticResource AccentButtonStyle}">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <FontIcon Glyph="&#xE8DA;" FontSize="16"/>
-                                            <TextBlock Text="Open Project Folder"/>
-                                        </StackPanel>
-                                    </Button>
-                                    
                                     <!-- Progress Ring for loading -->
                                     <ProgressRing 
                                         IsActive="{Binding IsLoading}"
