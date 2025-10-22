@@ -34,6 +34,7 @@ public sealed partial class ChatPage : Page
     private StableDiffusion? stableDiffusion;
     private ModelDetails? selectedModel;
     private bool isModelReady;
+    private bool isLoadingModel; // Flag to prevent duplicate loading
     private CancellationTokenSource? cts;
     private ModelDownload? currentModelDownload;
     private ChatMessage? downloadingMessage;
@@ -125,8 +126,14 @@ public sealed partial class ChatPage : Page
         if (selectedModel != null && App.ModelCache.IsModelCached(selectedModel.Url))
         {
             // Model already cached
-            AddAssistantMessage("Model is already downloaded! Running the sample for you. What image would you like to create?");
+            AddAssistantMessage("Model is already downloaded! Preparing the model for you...");
             await LoadModelAsync();
+            
+            // After model is loaded, prompt for input
+            if (isModelReady)
+            {
+                AddAssistantMessage("All set! What image would you like to create?");
+            }
         }
         else
         {
@@ -150,9 +157,15 @@ public sealed partial class ChatPage : Page
         if (currentModelDownload == null)
         {
             // Model was already in cache
-            downloadingMessage.Text = "Model is already downloaded!";
+            downloadingMessage.Text = "Model is already downloaded! Preparing the model for you...";
             downloadingMessage.IsLoading = false;
             await LoadModelAsync();
+            
+            // After model is loaded, prompt for input
+            if (isModelReady)
+            {
+                AddAssistantMessage("All set! What image would you like to create?");
+            }
         }
         else
         {
@@ -181,7 +194,7 @@ public sealed partial class ChatPage : Page
                     progressTimer.Stop();
                 }
 
-                downloadingMessage.Text = "Model download complete! Running the sample for you. What image would you like to create?";
+                downloadingMessage.Text = "Model download complete! Preparing the model for you...";
                 downloadingMessage.IsLoading = false;
 
                 if (currentModelDownload != null)
@@ -190,8 +203,19 @@ public sealed partial class ChatPage : Page
                     currentModelDownload = null;
                 }
 
-                // Load the model
-                await LoadModelAsync();
+                // Load the model (only if not already loading)
+                if (!isLoadingModel && !isModelReady)
+                {
+                    isLoadingModel = true;
+                    await LoadModelAsync();
+                    isLoadingModel = false;
+                    
+                    // After model is loaded, prompt for input
+                    if (isModelReady)
+                    {
+                        AddAssistantMessage("All set! What image would you like to create?");
+                    }
+                }
             }
             else if (e.Status == DownloadStatus.Canceled)
             {
