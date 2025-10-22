@@ -11,6 +11,7 @@ using AIDevGallery.Utils;
 using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
@@ -127,8 +128,9 @@ public sealed partial class ChatPage : Page
         {
             // Model already cached
             AddAssistantMessage("Model is already downloaded! Preparing the model for you...");
+            UpdateModelButton();
             await LoadModelAsync();
-            
+
             // After model is loaded, prompt for input
             if (isModelReady)
             {
@@ -159,8 +161,9 @@ public sealed partial class ChatPage : Page
             // Model was already in cache
             downloadingMessage.Text = "Model is already downloaded! Preparing the model for you...";
             downloadingMessage.IsLoading = false;
+            UpdateModelButton();
             await LoadModelAsync();
-            
+
             // After model is loaded, prompt for input
             if (isModelReady)
             {
@@ -196,6 +199,7 @@ public sealed partial class ChatPage : Page
 
                 downloadingMessage.Text = "Model download complete! Preparing the model for you...";
                 downloadingMessage.IsLoading = false;
+                UpdateModelButton();
 
                 if (currentModelDownload != null)
                 {
@@ -941,5 +945,42 @@ public class ChatMessage : INotifyPropertyChanged
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+// Extension methods for top bar buttons
+partial class ChatPage
+{
+    private void ChatCodeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        // Toggle code view - reuse existing ShowSourceCodeButton_Click logic
+        ShowSourceCodeButton_Click(sender, e);
+
+        // Update toggle state
+        if (sender is ToggleButton toggle)
+        {
+            // If code was shown, keep it checked
+            toggle.IsChecked = true;
+        }
+    }
+
+    private async void ChatExportToggle_Click(object sender, RoutedEventArgs e)
+    {
+        // Export project - reuse existing ExportProjectButton_Click logic
+        await ExportProjectButton_ClickAsync(sender, e);
+    }
+
+    // Renamed to allow async/await without changing the signature of the DataTemplate version
+    private async Task ExportProjectButton_ClickAsync(object sender, RoutedEventArgs e)
+    {
+        // Call the existing export logic
+        ExportProjectButton_Click(sender, e);
+    }
+
+    private void UpdateModelButton()
+    {
+        // Show model info, hide placeholder
+        ChatModelPlaceholder.Visibility = Visibility.Collapsed;
+        ChatModelInfo.Visibility = Visibility.Visible;
     }
 }
