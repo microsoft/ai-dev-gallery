@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Windows.Media;
 
 namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;

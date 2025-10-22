@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
@@ -25,7 +24,10 @@ internal class VaeDecoder : IDisposable
     public static async Task<VaeDecoder> CreateAsync(
         StableDiffusionConfig config,
         string modelPath,
-        ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
+        ExecutionProviderDevicePolicy? policy,
+        string? epName,
+        bool compileModel, 
+        string? deviceType)
     {
         var instance = new VaeDecoder();
         instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(config, modelPath, policy, epName, compileModel, deviceType);
