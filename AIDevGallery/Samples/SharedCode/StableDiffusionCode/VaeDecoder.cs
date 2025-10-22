@@ -26,7 +26,7 @@ internal class VaeDecoder : IDisposable
         string modelPath,
         ExecutionProviderDevicePolicy? policy,
         string? epName,
-        bool compileModel, 
+        bool compileModel,
         string? deviceType)
     {
         var instance = new VaeDecoder();
