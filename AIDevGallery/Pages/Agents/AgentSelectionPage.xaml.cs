@@ -41,7 +41,7 @@ internal sealed partial class AgentSelectionPage : Page
     private void SetUpAgents()
     {
         NavView.MenuItems.Clear();
-        
+
         // Overview item
         NavView.MenuItems.Add(new NavigationViewItem() 
         { 
@@ -49,14 +49,14 @@ internal sealed partial class AgentSelectionPage : Page
             Icon = new FontIcon() { Glyph = "\uF0E2" }, 
             Tag = "Overview" 
         });
-        
+
         NavView.MenuItems.Add(new NavigationViewItemSeparator());
-        
+
         // Agent category
         var agentCategory = new NavigationViewItem() 
         { 
             Content = "Agents", 
-            Icon = new FontIcon() { Glyph = "\uE99A" }, 
+            Icon = new FontIcon() { Glyph = "\uF0B9" }, 
             Tag = "AgentCategory",
             SelectsOnInvoked = false
         };

@@ -166,6 +166,13 @@ internal class Scenario
     public ScenarioType ScenarioType { get; set; }
 }
 
+internal class AgentDetails
+{
+    public string Id { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public string Description { get; set; } = null!;
+}
+
 [JsonConverter(typeof(JsonStringEnumConverter<HardwareAccelerator>))]
 internal enum HardwareAccelerator
 {

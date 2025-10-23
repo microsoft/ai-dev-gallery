@@ -98,7 +98,7 @@
                     Tag="Samples" />
                 <NavigationViewItem
                     Content="Agents"
-                    Icon="{ui:FontIcon Glyph=&#xE99A;}"
+                    Icon="{ui:FontIcon Glyph=&#xF0B9;}"
                     Tag="Agents" />
                 <NavigationViewItem
                     Content="Models"
@@ -227,4 +227,5 @@
             </animations:Implicit.HideAnimations>
         </controls:ModelOrApiPicker>
     </Grid>
+    
 </winuiex:WindowEx>

@@ -27,7 +27,7 @@
                                 VerticalAlignment="Top"
                                 Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
                                 Style="{StaticResource CardGridStyle}">
-                                <FontIcon FontSize="28" Glyph="&#xE99A;" />
+                                <FontIcon FontSize="28" Glyph="&#xF0B9;" />
                             </Grid>
                         </Grid>
                     </controls:OverviewPageHeader.ImageContent>
