@@ -195,8 +195,8 @@ This format groups multiple related model families together with additional meta
 - `Id`: Unique identifier for the model family
 - `Name`: Display name
 - `Description`: Description of the model family
-- `DocsUrl`: Link to documentation
-- `ReadmeUrl`: Link to README file
+- `DocsUrl`: External link to the model family's documentation homepage/repository overview, used for external link and source display.
+- `ReadmeUrl`: Direct link to the model family's README markdown that the app fetches and renders in-app
 - `Models`: Dictionary of model variations with different hardware requirements
   - `Url`: HuggingFace URL - can point to repo root, a subfolder, or a single file
   - `HardwareAccelerator`: One or more of: "CPU", "GPU", "DML", "QNN", "NPU", "WCRAPI", "OLLAMA", "OPENAI", "VitisAI", "OpenVINO" (or an array like ["CPU", "GPU"])
@@ -237,9 +237,28 @@ To add a sample, follow these steps:
    - Make your sample class inherit from `BaseSamplePage`
    - Add the `[GallerySample]` attribute with appropriate metadata (use `Model1Types` array, `Scenario`, etc.)
    - Override `LoadModelAsync(SampleNavigationParameters sampleParams)` for single-model samples, or `LoadModelAsync(MultiModelSampleNavigationParameters sampleParams)` for dual-model samples
-   - Use `await sampleParams.GetIChatClientAsync()` for language models or appropriate methods for other model types
+   - Use `await sampleParams.GetIChatClientAsync()` for language models or appropriate methods for other model types (See [Common entry points cheat sheet](#common-entry-points))
    - For WinML-based models, use `sampleParams.WinMlSampleOptions` for EP policy, device type, and compile options
    - Call `sampleParams.NotifyCompletion()` when initialization is complete
    - Register cleanup code in the `Unloaded` event handler
 
 5. **Test**: Run the app - the sample should show up as part of the model or API collection, or as a standalone page if it's not part of a collection.
+
+### Common entry points
+
+- Language models
+  - Use from navigation params: `await sampleParams.GetIChatClientAsync()`
+  - Factory (direct use): `await OnnxRuntimeGenAIChatClientFactory.CreateAsync(modelDir, LlmPromptTemplate?)`
+  - Phi Silica: `await PhiSilicaClient.CreateAsync()`
+
+- Embeddings
+  - Create: `var embeddings = await EmbeddingGenerator.CreateAsync(modelPath, sampleParams.WinMlSampleOptions)`
+  - Use: `await embeddings.GenerateAsync(values)` or `await foreach (var v in embeddings.GenerateStreamingAsync(values)) { ... }`
+
+- Speech (Whisper)
+  - Create: `var whisper = await WhisperWrapper.CreateAsync(modelPath, sampleParams.WinMlSampleOptions)`
+  - Use: `await whisper.TranscribeAsync(pcmBytes, language, WhisperWrapper.TaskType.Transcribe)`
+
+- Image generation (Stable Diffusion)
+  - Init: `var sd = new StableDiffusion(modelFolder); await sd.InitializeAsync(sampleParams.WinMlSampleOptions);`
+  - Inference: `var image = sd.Inference(prompt, cancellationToken);`
