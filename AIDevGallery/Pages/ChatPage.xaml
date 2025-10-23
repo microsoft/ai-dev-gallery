@@ -281,6 +281,19 @@
                                         MaxHeight="400"
                                         Visibility="{Binding HasImageVisibility}"/>
                                     
+                                    <!-- Export Button if available -->
+                                    <Button 
+                                        Margin="0,8,0,0"
+                                        Click="ExportProjectButton_Click"
+                                        Tag="{Binding ExportPrompt}"
+                                        Visibility="{Binding HasExportButtonVisibility}"
+                                        Style="{StaticResource AccentButtonStyle}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE8A7;" FontSize="16"/>
+                                            <TextBlock Text="Export as Visual Studio Project"/>
+                                        </StackPanel>
+                                    </Button>
+                                    
                                     <!-- Progress Ring for loading -->
                                     <ProgressRing 
                                         IsActive="{Binding IsLoading}"

@@ -40,6 +40,7 @@ public sealed partial class ChatPage : Page
     private ModelDownload? currentModelDownload;
     private ChatMessage? downloadingMessage;
     private DispatcherTimer? progressTimer;
+    private string? lastGeneratedPrompt; // Store the last prompt used for image generation
 
     public ChatPage()
     {
@@ -377,8 +378,14 @@ public sealed partial class ChatPage : Page
                 generatingMessage.ImageSource = bitmapImage;
                 generatingMessage.IsLoading = false;
                 
+                // Save the prompt for potential export
+                lastGeneratedPrompt = prompt;
+                
                 // Scroll to bottom
                 ScrollToBottom();
+
+                // Ask user if they want to export as VS project
+                await AskUserToExportProject(prompt);
             }
             else
             {
@@ -395,6 +402,35 @@ public sealed partial class ChatPage : Page
         {
             generatingMessage.Text = $"Error generating image: {ex.Message}";
             generatingMessage.IsLoading = false;
+        }
+    }
+
+    private async Task AskUserToExportProject(string prompt)
+    {
+        // Instead of showing a dialog, add an inline message with export button
+        var exportMessage = new ChatMessage
+        {
+            Text = "Would you like to export this as a Visual Studio project? The project will be pre-configured with your prompt.",
+            IsUser = false,
+            IsAssistant = true,
+            HasExportButton = true,
+            ExportPrompt = prompt
+        };
+        messages.Add(exportMessage);
+        ScrollToBottom();
+    }
+
+    private async void ExportProjectButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Get the prompt from the button's Tag
+        if (sender is Button button && button.Tag is string prompt)
+        {
+            var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == "1574f6ad-d7ba-49f8-bd57-34e0d98ce4e1");
+            
+            if (sample != null && selectedModel != null)
+            {
+                await ExportProjectWithPromptAsync(sample, selectedModel, prompt);
+            }
         }
     }
 
@@ -539,6 +575,8 @@ public class ChatMessage : INotifyPropertyChanged
     private bool isAssistant;
     private BitmapImage? imageSource;
     private bool isLoading;
+    private bool hasExportButton;
+    private string? exportPrompt;
 
     public string Text
     {
@@ -595,11 +633,33 @@ public class ChatMessage : INotifyPropertyChanged
         }
     }
 
+    public bool HasExportButton
+    {
+        get => hasExportButton;
+        set
+        {
+            hasExportButton = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasExportButtonVisibility));
+        }
+    }
+
+    public string? ExportPrompt
+    {
+        get => exportPrompt;
+        set
+        {
+            exportPrompt = value;
+            OnPropertyChanged();
+        }
+    }
+
     public Visibility IsUserVisibility => IsUser ? Visibility.Visible : Visibility.Collapsed;
     public Visibility IsAssistantVisibility => IsAssistant ? Visibility.Visible : Visibility.Collapsed;
     public bool HasImage => ImageSource != null;
     public Visibility HasImageVisibility => HasImage ? Visibility.Visible : Visibility.Collapsed;
     public Visibility IsLoadingVisibility => IsLoading ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility HasExportButtonVisibility => HasExportButton ? Visibility.Visible : Visibility.Collapsed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -708,13 +768,200 @@ partial class ChatPage
             return;
         }
 
-        // Use the existing Generator.AskGenerateAndOpenAsync method
-        // This provides the same export experience as the Generate Image sample page
-        await Generator.AskGenerateAndOpenAsync(
-            sample,
-            new[] { selectedModel },
-            App.AppData.WinMLSampleOptions,
-            this.XamlRoot);
+        // If we have a prompt from the last generation, use custom export with prompt injection
+        if (!string.IsNullOrEmpty(lastGeneratedPrompt))
+        {
+            await ExportProjectWithPromptAsync(sample, selectedModel, lastGeneratedPrompt);
+        }
+        else
+        {
+            // Fallback to standard export
+            await Generator.AskGenerateAndOpenAsync(
+                sample,
+                new[] { selectedModel },
+                App.AppData.WinMLSampleOptions,
+                this.XamlRoot);
+        }
+    }
+
+    private async Task ExportProjectWithPromptAsync(Sample sample, ModelDetails model, string userPrompt)
+    {
+        var cachedModels = sample.GetCacheModelDetailsDictionary(new[] { model }, App.AppData.WinMLSampleOptions);
+
+        if (cachedModels == null)
+        {
+            return;
+        }
+
+        var contentStackPanel = new StackPanel
+        {
+            Orientation = Orientation.Vertical
+        };
+
+        contentStackPanel.Children.Add(new TextBlock
+        {
+            Text = "Create a standalone VS project based on this sample.",
+            Margin = new Thickness(0, 0, 0, 16)
+        });
+
+        RadioButton? copyRadioButton = null;
+
+        var totalSize = cachedModels.Sum(cm => cm.Value.ModelSize);
+        if (totalSize != 0)
+        {
+            var radioButtons = new RadioButtons();
+            radioButtons.Items.Add(new RadioButton
+            {
+                Content = "Reference model from model cache",
+                IsChecked = true
+            });
+
+            copyRadioButton = new RadioButton
+            {
+                Content = new TextBlock()
+                {
+                    Text = $"Copy model({AppUtils.FileSizeToString(totalSize)}) to project directory"
+                }
+            };
+
+            radioButtons.Items.Add(copyRadioButton);
+
+            contentStackPanel.Children.Add(radioButtons);
+        }
+
+        ContentDialog exportDialog = new ContentDialog()
+        {
+            Title = "Export Visual Studio project",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            PrimaryButtonText = "Export",
+            XamlRoot = this.XamlRoot,
+            Content = contentStackPanel
+        };
+
+        ContentDialog? progressDialog = null;
+        try
+        {
+            var output = await exportDialog.ShowAsync();
+
+            if (output == ContentDialogResult.Primary)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+                var picker = new Windows.Storage.Pickers.FolderPicker();
+                picker.FileTypeFilter.Add("*");
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var folder = await picker.PickSingleFolderAsync();
+                
+                if (folder != null)
+                {
+                    progressDialog = new ContentDialog
+                    {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Creating Visual Studio project..",
+                        Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+                    };
+                    _ = progressDialog.ShowAsync();
+
+                    var generator = new Generator();
+                    var projectPath = await generator.GenerateAsync(
+                        sample,
+                        cachedModels,
+                        copyRadioButton != null && copyRadioButton.IsChecked != null && copyRadioButton.IsChecked.Value,
+                        folder.Path,
+                        CancellationToken.None);
+
+                    // Post-process: Inject the user's prompt into the generated code
+                    await InjectPromptIntoGeneratedProject(projectPath, userPrompt);
+
+                    progressDialog.Closed += async (_, _) =>
+                    {
+                        var confirmationDialog = new ContentDialog
+                        {
+                            XamlRoot = this.XamlRoot,
+                            Title = "Project exported",
+                            Content = new TextBlock
+                            {
+                                Text = $"The project has been successfully exported with your prompt: \"{userPrompt}\"",
+                                TextWrapping = TextWrapping.WrapWholeWords
+                            },
+                            PrimaryButtonText = "Open folder",
+                            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+                            CloseButtonText = "Close"
+                        };
+
+                        var shouldOpenFolder = await confirmationDialog.ShowAsync();
+                        if (shouldOpenFolder == ContentDialogResult.Primary)
+                        {
+                            await Windows.System.Launcher.LaunchFolderPathAsync(projectPath);
+                        }
+                    };
+                    
+                    progressDialog.Hide();
+                    progressDialog = null;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            progressDialog?.Hide();
+            
+            var errorDialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Export failed",
+                Content = new TextBlock
+                {
+                    Text = $"Failed to export project: {ex.Message}",
+                    TextWrapping = TextWrapping.WrapWholeWords
+                },
+                CloseButtonText = "Close"
+            };
+            await errorDialog.ShowAsync();
+        }
+    }
+
+    private async Task InjectPromptIntoGeneratedProject(string projectPath, string prompt)
+    {
+        try
+        {
+            string csPath = Path.Join(projectPath, "Sample.xaml.cs");
+            
+            if (!File.Exists(csPath))
+            {
+                return;
+            }
+
+            string csCode = await File.ReadAllTextAsync(csPath);
+
+            // Replace the empty prompt with the user's prompt
+            // This makes it visible in the code when opening the project
+            csCode = csCode.Replace(
+                "private string prompt = string.Empty;",
+                $"private string prompt = \"{EscapeForCSharp(prompt)}\";");
+
+            // Optional: Also pre-fill the TextBox in Page_Loaded for better demo experience
+            // Users can still see and modify the prompt in the UI
+            csCode = csCode.Replace(
+                "InputBox.Focus(FocusState.Programmatic);",
+                $"InputBox.Text = \"{EscapeForCSharp(prompt)}\";\n        InputBox.Focus(FocusState.Programmatic);");
+
+            await File.WriteAllTextAsync(csPath, csCode);
+        }
+        catch (Exception ex)
+        {
+            // Silently fail - the project is still usable even if injection fails
+            System.Diagnostics.Debug.WriteLine($"Failed to inject prompt: {ex.Message}");
+        }
+    }
+
+    private string EscapeForCSharp(string text)
+    {
+        // Escape special characters for C# string literals
+        return text.Replace("\\", "\\\\")
+                   .Replace("\"", "\\\"")
+                   .Replace("\n", "\\n")
+                   .Replace("\r", "\\r")
+                   .Replace("\t", "\\t");
     }
 
     private void UpdateModelButton()
