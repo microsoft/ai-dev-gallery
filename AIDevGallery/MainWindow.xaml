@@ -97,6 +97,10 @@
                     Icon="{ui:FontIcon Glyph=&#xE754;}"
                     Tag="Samples" />
                 <NavigationViewItem
+                    Content="Agents"
+                    Icon="{ui:FontIcon Glyph=&#xE99A;}"
+                    Tag="Agents" />
+                <NavigationViewItem
                     Content="Models"
                     Icon="{ui:FontIcon Glyph=&#xF158;}"
                     Tag="Models" />
@@ -152,7 +156,7 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
                     ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"
-                    PlaceholderText="Search samples, models &amp; APIs.."
+                    PlaceholderText="Search samples, agents, models &amp; APIs.."
                     QueryIcon="Find"
                     QuerySubmitted="SearchBox_QuerySubmitted"
                     TextChanged="SearchBox_TextChanged"

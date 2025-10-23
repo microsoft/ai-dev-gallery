@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.AgentSelectionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <NavigationView
+        x:Name="NavView"
+        CompactModeThresholdWidth="0"
+        ExpandedModeThresholdWidth="0"
+        IsBackButtonVisible="Collapsed"
+        IsPaneOpen="True"
+        IsPaneToggleButtonVisible="False"
+        IsPaneVisible="True"
+        IsSettingsVisible="False"
+        OpenPaneLength="276"
+        SelectionChanged="NavView_SelectionChanged">
+        <NavigationView.Resources>
+            <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
+            <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0,0,0,0</CornerRadius>
+            <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+        </NavigationView.Resources>
+        <NavigationView.PaneHeader>
+            <Grid Margin="16,12,0,12">
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Agents" />
+            </Grid>
+        </NavigationView.PaneHeader>
+        <NavigationView.Content>
+            <Frame x:Name="NavFrame" />
+        </NavigationView.Content>
+    </NavigationView>
+</Page>

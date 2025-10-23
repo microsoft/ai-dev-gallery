@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AIDevGallery.Pages.AgentOverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AIDevGallery.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1,0,0,0">
+        <ScrollViewer>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <controls:OverviewPageHeader
+                    Title="Agents Overview"
+                    Background="{ThemeResource CardGradient1Brush}"
+                    Description="Explore AI agents and Model Context Protocol (MCP) integrations to build intelligent, context-aware applications.">
+                    <controls:OverviewPageHeader.ImageContent>
+                        <Grid Margin="24,8,24,16">
+                            <Grid
+                                Margin="160,140,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{ThemeResource ControlOnImageFillColorDefaultBrush}"
+                                Style="{StaticResource CardGridStyle}">
+                                <FontIcon FontSize="28" Glyph="&#xE99A;" />
+                            </Grid>
+                        </Grid>
+                    </controls:OverviewPageHeader.ImageContent>
+                </controls:OverviewPageHeader>
+
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="48,32,48,48"
+                    Spacing="24">
+                    <TextBlock
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Coming Soon" />
+                    <TextBlock
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        Text="Agent samples and MCP integrations are under development."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>

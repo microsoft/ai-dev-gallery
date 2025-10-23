@@ -102,6 +102,9 @@ internal sealed partial class MainWindow : WindowEx
             case "samples":
                 Navigate(typeof(ScenarioSelectionPage), obj);
                 break;
+            case "agents":
+                Navigate(typeof(AgentSelectionPage), obj);
+                break;
             case "models":
                 Navigate(typeof(ModelSelectionPage), obj);
                 break;
@@ -133,6 +136,11 @@ internal sealed partial class MainWindow : WindowEx
                 // No need to navigate to the ScenarioSelectionPage again, we just want to navigate to the right subpage
                 scenarioPage.HandleNavigation(param);
             }
+            else if (page == typeof(AgentSelectionPage) && NavFrame.Content is AgentSelectionPage agentPage && param != null)
+            {
+                // No need to navigate to the AgentSelectionPage again, we just want to navigate to the right subpage
+                agentPage.HandleNavigation(param);
+            }
             else
             {
                 if (param == null && NavFrame.Content != null && NavFrame.Content.GetType() == page)
@@ -148,6 +156,10 @@ internal sealed partial class MainWindow : WindowEx
                     else if (NavFrame.Content is APISelectionPage api)
                     {
                         api.ShowHideNavPane();
+                    }
+                    else if (NavFrame.Content is AgentSelectionPage agent)
+                    {
+                        agent.ShowHideNavPane();
                     }
 
                     return;
