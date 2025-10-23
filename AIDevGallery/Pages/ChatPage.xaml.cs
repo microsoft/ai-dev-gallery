@@ -672,6 +672,128 @@ public class ChatMessage : INotifyPropertyChanged
 // Extension methods for top bar buttons
 partial class ChatPage
 {
+    // Initial State button handlers (for Chat sample)
+    private async void InitialCodeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Get the Chat sample (Language Models)
+            var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == "feb39ede-cb55-4e36-9ec6-cf7c5333254f");
+            
+            if (sample == null)
+            {
+                return;
+            }
+
+            await ShowSampleCodeAsync(sample);
+        }
+        catch (Exception)
+        {
+            // Silently fail for demo purposes
+        }
+    }
+
+    private async void InitialExportToggle_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Get the Chat sample (Language Models)
+            var sample = SampleDetails.Samples.FirstOrDefault(s => s.Id == "feb39ede-cb55-4e36-9ec6-cf7c5333254f");
+            
+            if (sample == null)
+            {
+                return;
+            }
+
+            // Get a default language model for the Chat sample
+            // Chat sample requires ModelType.LanguageModels or ModelType.PhiSilica
+            ModelDetails? languageModel = null;
+            
+            // Try to find a compatible language model
+            if (ModelTypeHelpers.ModelDetails.TryGetValue(ModelType.LanguageModels, out var langModel))
+            {
+                languageModel = langModel;
+            }
+            else if (ModelTypeHelpers.ModelDetails.TryGetValue(ModelType.PhiSilica, out var phiModel))
+            {
+                languageModel = phiModel;
+            }
+
+            if (languageModel == null)
+            {
+                return;
+            }
+
+            // Use the existing Generator.AskGenerateAndOpenAsync method
+            await Generator.AskGenerateAndOpenAsync(
+                sample,
+                new ModelDetails[] { languageModel },
+                App.AppData.WinMLSampleOptions,
+                this.XamlRoot);
+        }
+        catch (Exception)
+        {
+            // Silently fail for demo purposes
+        }
+    }
+
+    private async Task ShowSampleCodeAsync(Sample sample)
+    {
+        try
+        {
+            // Collect all code files (similar to ChatCodeToggle_Click for Stable Diffusion)
+            var codeFiles = new Dictionary<string, string>();
+
+            // We'll use a minimal model info dictionary since Chat sample is generic
+            var modelInfos = new Dictionary<ModelType, (ExpandedModelDetails, string)>();
+
+            // Add Sample.xaml.cs
+            if (!string.IsNullOrEmpty(sample.CSCode))
+            {
+                codeFiles["Sample.xaml.cs"] = sample.GetCleanCSCode(modelInfos);
+            }
+
+            // Add Sample.xaml
+            if (!string.IsNullOrEmpty(sample.XAMLCode))
+            {
+                codeFiles["Sample.xaml"] = sample.XAMLCode;
+            }
+
+            // Add shared code files
+            var expandedModels = new Dictionary<ModelType, ExpandedModelDetails>();
+            foreach (var sharedCodeEnum in sample.GetAllSharedCode(expandedModels))
+            {
+                string sharedCodeName = SharedCodeHelpers.GetName(sharedCodeEnum);
+                string sharedCodeContent = SharedCodeHelpers.GetSource(sharedCodeEnum);
+                codeFiles[sharedCodeName] = sharedCodeContent;
+            }
+
+            if (codeFiles.Count == 0)
+            {
+                return;
+            }
+
+            // Create the code viewer dialog
+            var codeViewerContent = CreateCodeViewerContent(codeFiles);
+
+            var codeDialog = new ContentDialog
+            {
+                Title = "Chat Sample - Source Code",
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.XamlRoot,
+                Content = codeViewerContent
+            };
+
+            await codeDialog.ShowAsync();
+        }
+        catch (Exception)
+        {
+            // Silently fail for demo purposes
+        }
+    }
+
+    // Chat State button handlers (for Stable Diffusion sample)
     private async void ChatCodeToggle_Click(object sender, RoutedEventArgs e)
     {
         // Get the Generate Image sample
