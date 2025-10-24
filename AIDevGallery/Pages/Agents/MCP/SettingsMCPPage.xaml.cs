@@ -16,6 +16,7 @@ namespace AIDevGallery.Pages;
 internal sealed partial class SettingsMCPPage : Page
 {
     private McpClient? mcpClient;
+    private McpClientTool? selectedTool;
     private const string SettingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
 
     public SettingsMCPPage()
@@ -91,8 +92,10 @@ internal sealed partial class SettingsMCPPage : Page
             ConnectButton.IsEnabled = true;
             DisconnectButton.IsEnabled = false;
             ToolsPanel.Visibility = Visibility.Collapsed;
+            InputPanel.Visibility = Visibility.Collapsed;
             ResultPanel.Visibility = Visibility.Collapsed;
             ToolsList.ItemsSource = null;
+            selectedTool = null;
         }
     }
 
@@ -113,25 +116,25 @@ internal sealed partial class SettingsMCPPage : Page
                 return;
             }
 
-            // Create buttons for each tool
+            // Create radio buttons for each tool (only one can be selected at a time)
             var toolButtons = new List<UIElement>();
             foreach (var tool in tools)
             {
-                var button = new Button
+                var radioButton = new RadioButton
                 {
                     Content = $"{tool.Name}",
                     Tag = tool,
-                    Margin = new Thickness(0, 0, 8, 8),
-                    HorizontalAlignment = HorizontalAlignment.Left
+                    GroupName = "SettingsTools",
+                    Margin = new Thickness(0, 0, 8, 8)
                 };
-                button.Click += ToolButton_Click;
+                radioButton.Click += ToolRadioButton_Click;
 
                 var stackPanel = new StackPanel
                 {
                     Margin = new Thickness(0, 0, 0, 12)
                 };
 
-                stackPanel.Children.Add(button);
+                stackPanel.Children.Add(radioButton);
 
                 if (!string.IsNullOrEmpty(tool.Description))
                 {
@@ -158,17 +161,58 @@ internal sealed partial class SettingsMCPPage : Page
         }
     }
 
-    private async void ToolButton_Click(object sender, RoutedEventArgs e)
+    private void ToolRadioButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button button)
+        if (sender is not RadioButton radioButton)
         {
-            ShowError($"Sender is not a button. Sender type: {sender?.GetType().Name ?? "null"}");
+            ShowError($"Sender is not a radio button. Sender type: {sender?.GetType().Name ?? "null"}");
             return;
         }
 
-        if (button.Tag is not McpClientTool tool)
+        if (radioButton.Tag is not McpClientTool tool)
         {
-            ShowError($"Button tag is not a McpClientTool object. Tag type: {button.Tag?.GetType().Name ?? "null"}, Tag value: {button.Tag}");
+            ShowError($"RadioButton tag is not a McpClientTool object. Tag type: {radioButton.Tag?.GetType().Name ?? "null"}, Tag value: {radioButton.Tag}");
+            return;
+        }
+
+        selectedTool = tool;
+        ShowInputPanelForTool(tool);
+    }
+
+    private void ShowInputPanelForTool(McpClientTool tool)
+    {
+        // Hide all input panels first
+        SettingsChangeRequestPanel.Visibility = Visibility.Collapsed;
+        UndoIdPanel.Visibility = Visibility.Collapsed;
+        
+        // Clear previous input
+        SettingsChangeRequestTextBox.Text = string.Empty;
+        UndoIdTextBox.Text = string.Empty;
+        
+        // Show appropriate input panel based on tool
+        switch (tool.Name)
+        {
+            case "undo_settings_change":
+                UndoIdPanel.Visibility = Visibility.Visible;
+                break;
+            case "is_settings_change_applicable":
+            case "make_settings_change":
+            case "open_settings_page":
+                SettingsChangeRequestPanel.Visibility = Visibility.Visible;
+                break;
+        }
+
+        InputPanel.Visibility = Visibility.Visible;
+        ExecuteToolButton.IsEnabled = true;
+        ResultPanel.Visibility = Visibility.Collapsed;
+        ErrorPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (selectedTool == null)
+        {
+            ShowError("No tool selected.");
             return;
         }
 
@@ -180,16 +224,58 @@ internal sealed partial class SettingsMCPPage : Page
 
         try
         {
-            button.IsEnabled = false;
+            ExecuteToolButton.IsEnabled = false;
             ResultPanel.Visibility = Visibility.Collapsed;
             ErrorPanel.Visibility = Visibility.Collapsed;
 
+            // Prepare arguments based on the tool
+            var arguments = new Dictionary<string, object>();
+
+            switch (selectedTool.Name)
+            {
+                case "undo_settings_change":
+                    var undoId = UndoIdTextBox.Text.Trim();
+                    if (string.IsNullOrEmpty(undoId))
+                    {
+                        ShowError("Please enter an Undo ID.");
+                        return;
+                    }
+                    arguments["UndoId"] = undoId;
+                    break;
+
+                case "is_settings_change_applicable":
+                case "make_settings_change":
+                case "open_settings_page":
+                    var settingsRequest = SettingsChangeRequestTextBox.Text.Trim();
+                    if (string.IsNullOrEmpty(settingsRequest))
+                    {
+                        ShowError("Please enter a settings change request.");
+                        return;
+                    }
+                    arguments["SettingsChangeRequest"] = settingsRequest;
+                    break;
+
+                default:
+                    ShowError($"Unknown tool: {selectedTool.Name}");
+                    return;
+            }
+
+            // Show tool call information
+            var toolCallJson = JsonSerializer.Serialize(new Dictionary<string, object>
+            {
+                ["tool"] = selectedTool.Name,
+                ["arguments"] = arguments
+            }, new JsonSerializerOptions { WriteIndented = true });
+
+            var displayText = $"🔧 Tool Call:\n{toolCallJson}\n\n";
+
             // Show a loading indicator
-            ResultTextBlock.Text = $"Executing {tool.Name}...";
+            displayText += $"⏳ Executing {selectedTool.Name}...\n\n";
+            ResultTextBlock.Text = displayText;
             ResultPanel.Visibility = Visibility.Visible;
 
-            // Call the tool with empty arguments dictionary
-            var result = await mcpClient.CallToolAsync(tool.Name, new Dictionary<string, object>());
+            // Call the tool with the prepared arguments
+            var result = await mcpClient.CallToolAsync(selectedTool.Name, arguments);
 
             if (result.Content != null && result.Content.Count > 0)
             {
@@ -221,25 +307,38 @@ internal sealed partial class SettingsMCPPage : Page
                 }
                 catch
                 {
-                    // Not JSON, keep as-is
+                    // Not JSON or invalid JSON, keep as-is
                 }
 
-                ResultTextBlock.Text = resultText;
+                // Build the complete output with tool call and response
+                var completeOutput = $"🔧 Tool Call:\n{toolCallJson}\n\n";
+                completeOutput += $"📋 Response:\n{resultText}";
+
+                // Add special note for make_settings_change to highlight UndoId
+                if (selectedTool.Name == "make_settings_change" && resultText.Contains("UndoId"))
+                {
+                    completeOutput += "\n\n⚠️ IMPORTANT: Save the UndoId from the response above!\n" +
+                                     "You'll need it to undo this change using the 'undo_settings_change' tool.";
+                }
+
+                ResultTextBlock.Text = completeOutput;
                 ResultPanel.Visibility = Visibility.Visible;
             }
             else
             {
-                ResultTextBlock.Text = "No content returned from the tool.";
+                var completeOutput = $"🔧 Tool Call:\n{toolCallJson}\n\n";
+                completeOutput += "📋 Response:\nNo content returned from the tool.";
+                ResultTextBlock.Text = completeOutput;
                 ResultPanel.Visibility = Visibility.Visible;
             }
         }
         catch (Exception ex)
         {
-            ShowError($"Failed to execute tool '{tool.Name}': {ex.Message}\n\nStack trace: {ex.StackTrace}");
+            ShowError($"Failed to execute tool '{selectedTool.Name}': {ex.Message}\n\nStack trace: {ex.StackTrace}");
         }
         finally
         {
-            button.IsEnabled = true;
+            ExecuteToolButton.IsEnabled = true;
         }
     }
 

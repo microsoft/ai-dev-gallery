@@ -18,7 +18,7 @@
                     Style="{StaticResource BodyTextBlockStyle}"
                     TextWrapping="Wrap">
                     This demo shows how to interact with the built-in Windows Settings MCP Server using the Model Context Protocol.
-                    The Settings MCP Server provides tools to manage Windows settings.
+                    The Settings MCP Server provides tools to check, modify, and manage Windows settings programmatically.
                 </TextBlock>
 
                 <InfoBar
@@ -74,7 +74,7 @@
                             Style="{StaticResource CaptionTextBlockStyle}"
                             TextWrapping="Wrap"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                            Select a tool to execute. Results appear on the right.
+                            Select a tool below and provide the required input to execute it.
                         </TextBlock>
                         
                         <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
@@ -82,25 +82,76 @@
                         </ScrollViewer>
                     </StackPanel>
 
-                    <StackPanel x:Name="ResultPanel" Grid.Column="1" Spacing="12" Margin="24,0,0,0" Visibility="Collapsed">
-                        <TextBlock
-                            Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="Results" />
-                        
-                        <Border
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16">
-                            <ScrollViewer MaxHeight="600">
+                    <StackPanel Grid.Column="1" Spacing="12" Margin="24,0,0,0">
+                        <!-- Input Panel -->
+                        <StackPanel x:Name="InputPanel" Spacing="12" Visibility="Collapsed">
+                            <TextBlock
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="Input" />
+                            
+                            <!-- Settings Change Request Input -->
+                            <StackPanel x:Name="SettingsChangeRequestPanel" Spacing="8" Visibility="Collapsed">
                                 <TextBlock
-                                    x:Name="ResultTextBlock"
-                                    FontFamily="Consolas"
-                                    IsTextSelectionEnabled="True"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="Settings Change Request:" />
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Enter the settings change you want to make. Examples: 'change to dark theme', 'enable night light', 'set volume to 50%', 'turn on bluetooth'." />
+                                <TextBox
+                                    x:Name="SettingsChangeRequestTextBox"
+                                    PlaceholderText="e.g., change to light theme"
+                                    MinHeight="40"
                                     TextWrapping="Wrap" />
-                            </ScrollViewer>
-                        </Border>
+                            </StackPanel>
+
+                            <!-- Undo ID Input -->
+                            <StackPanel x:Name="UndoIdPanel" Spacing="8" Visibility="Collapsed">
+                                <TextBlock
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="Undo ID:" />
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    TextWrapping="Wrap"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Enter the Undo ID from a previous settings change to revert it. You can find the Undo ID in the results of a successful make_settings_change call." />
+                                <TextBox
+                                    x:Name="UndoIdTextBox"
+                                    PlaceholderText="e.g., 52abfaa0-c310-472c-9aa4-4d9283056589"
+                                    MinHeight="40"
+                                    FontFamily="Consolas" />
+                            </StackPanel>
+
+                            <Button
+                                x:Name="ExecuteToolButton"
+                                Content="Execute Tool"
+                                Click="ExecuteToolButton_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                IsEnabled="False" />
+                        </StackPanel>
+
+                        <!-- Results Panel -->
+                        <StackPanel x:Name="ResultPanel" Spacing="12" Visibility="Collapsed">
+                            <TextBlock
+                                Style="{StaticResource SubtitleTextBlockStyle}"
+                                Text="Results" />
+                            
+                            <Border
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                                <ScrollViewer MaxHeight="600">
+                                    <TextBlock
+                                        x:Name="ResultTextBlock"
+                                        FontFamily="Consolas"
+                                        IsTextSelectionEnabled="True"
+                                        TextWrapping="Wrap" />
+                                </ScrollViewer>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 
