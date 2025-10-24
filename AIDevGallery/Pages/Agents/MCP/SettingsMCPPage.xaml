@@ -13,10 +13,104 @@
                 <TextBlock
                     Style="{StaticResource TitleTextBlockStyle}"
                     Text="Settings MCP" />
+                
                 <TextBlock
                     Style="{StaticResource BodyTextBlockStyle}"
-                    Text="Settings Model Context Protocol integration placeholder."
-                    TextWrapping="Wrap" />
+                    TextWrapping="Wrap">
+                    This demo shows how to interact with the built-in Windows Settings MCP Server using the Model Context Protocol.
+                    The Settings MCP Server provides tools to manage Windows settings.
+                </TextBlock>
+
+                <InfoBar
+                    x:Name="PrerequisiteInfoBar"
+                    IsOpen="True"
+                    Severity="Informational"
+                    Title="Prerequisites"
+                    Message="This demo requires Windows MCP Private Preview 3 or later with odr.exe available. The Settings MCP Server must be enabled in Settings > System > AI Components." />
+
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="Connection Status" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button
+                            x:Name="ConnectButton"
+                            Content="Connect to Settings Server"
+                            Click="ConnectButton_Click"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        
+                        <Button
+                            x:Name="DisconnectButton"
+                            Content="Disconnect"
+                            Click="DisconnectButton_Click"
+                            IsEnabled="False" />
+                        
+                        <ProgressRing
+                            x:Name="ConnectionProgressRing"
+                            Width="20"
+                            Height="20"
+                            IsActive="False" />
+                        
+                        <TextBlock
+                            x:Name="ConnectionStatusText"
+                            VerticalAlignment="Center"
+                            Text="Not connected" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Grid x:Name="ToolsPanel" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="400" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="12">
+                        <TextBlock
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Available Tools" />
+                        
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                            Select a tool to execute. Results appear on the right.
+                        </TextBlock>
+                        
+                        <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="ToolsList" />
+                        </ScrollViewer>
+                    </StackPanel>
+
+                    <StackPanel x:Name="ResultPanel" Grid.Column="1" Spacing="12" Margin="24,0,0,0" Visibility="Collapsed">
+                        <TextBlock
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="Results" />
+                        
+                        <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16">
+                            <ScrollViewer MaxHeight="600">
+                                <TextBlock
+                                    x:Name="ResultTextBlock"
+                                    FontFamily="Consolas"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel x:Name="ErrorPanel" Spacing="12" Visibility="Collapsed">
+                    <InfoBar
+                        x:Name="ErrorInfoBar"
+                        Severity="Error"
+                        IsOpen="True"
+                        Title="Error" />
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>
