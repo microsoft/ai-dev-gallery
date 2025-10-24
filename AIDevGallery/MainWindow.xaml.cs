@@ -266,13 +266,17 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavView.SelectedItem = NavView.MenuItems[1];
         }
-        else if (e.SourcePageType == typeof(ModelSelectionPage))
+        else if (e.SourcePageType == typeof(AgentSelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[2];
         }
-        else if (e.SourcePageType == typeof(APISelectionPage))
+        else if (e.SourcePageType == typeof(ModelSelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[3];
+        }
+        else if (e.SourcePageType == typeof(APISelectionPage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[4];
         }
         else if (e.SourcePageType == typeof(SettingsPage))
         {
