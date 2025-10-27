@@ -13,7 +13,7 @@
                 <TextBlock
                     Style="{StaticResource TitleTextBlockStyle}"
                     Text="File Operations MCP" />
-                
+
                 <TextBlock
                     Style="{StaticResource BodyTextBlockStyle}"
                     TextWrapping="Wrap">
@@ -32,26 +32,26 @@
                     <TextBlock
                         Style="{StaticResource SubtitleTextBlockStyle}"
                         Text="Connection Status" />
-                    
+
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button
                             x:Name="ConnectButton"
                             Content="Connect to File Server"
                             Click="ConnectButton_Click"
                             Style="{StaticResource AccentButtonStyle}" />
-                        
+
                         <Button
                             x:Name="DisconnectButton"
                             Content="Disconnect"
                             Click="DisconnectButton_Click"
                             IsEnabled="False" />
-                        
+
                         <ProgressRing
                             x:Name="ConnectionProgressRing"
                             Width="20"
                             Height="20"
                             IsActive="False" />
-                        
+
                         <TextBlock
                             x:Name="ConnectionStatusText"
                             VerticalAlignment="Center"
@@ -69,38 +69,72 @@
                         <TextBlock
                             Style="{StaticResource SubtitleTextBlockStyle}"
                             Text="Available Tools" />
-                        
+
                         <TextBlock
                             Style="{StaticResource CaptionTextBlockStyle}"
                             TextWrapping="Wrap"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}">
                             Select a tool below to execute it. File operation tools may require parameters such as file paths.
                         </TextBlock>
-                        
+
                         <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="ToolsList" />
                         </ScrollViewer>
                     </StackPanel>
 
-                    <StackPanel x:Name="ResultPanel" Grid.Column="1" Spacing="12" Margin="24,0,0,0" Visibility="Collapsed">
-                        <TextBlock
-                            Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="Results" />
-                        
-                        <Border
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="16">
-                            <ScrollViewer MaxHeight="600">
-                                <TextBlock
-                                    x:Name="ResultTextBlock"
-                                    FontFamily="Consolas"
-                                    IsTextSelectionEnabled="True"
-                                    TextWrapping="Wrap" />
-                            </ScrollViewer>
+                    <StackPanel Grid.Column="1" Spacing="12" Margin="24,0,0,0">
+                        <Border x:Name="SelectedToolPanel" Visibility="Collapsed"
+							Background="{ThemeResource LayerFillColorDefaultBrush}"
+							BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+							BorderThickness="1"
+							CornerRadius="8"
+							Padding="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="SelectedToolNameText" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                <TextBlock x:Name="SelectedToolDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
                         </Border>
+                        <StackPanel x:Name="InputPanel" Spacing="12" Visibility="Collapsed">
+                            <TextBlock
+								Style="{StaticResource SubtitleTextBlockStyle}"
+								Text="Parameters" />
+
+                            <Border
+								Background="{ThemeResource LayerFillColorDefaultBrush}"
+								BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+								BorderThickness="1"
+								CornerRadius="8"
+								Padding="16">
+                                <ScrollViewer MaxHeight="400">
+                                    <StackPanel x:Name="DynamicFormPanel" Spacing="12" />
+                                </ScrollViewer>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Button x:Name="ExecuteToolButton" Content="Execute" Click="ExecuteToolButton_Click" IsEnabled="False" Style="{StaticResource AccentButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel x:Name="ResultPanel" Spacing="12" Visibility="Collapsed">
+                            <TextBlock
+								Style="{StaticResource SubtitleTextBlockStyle}"
+								Text="Results" />
+
+                            <Border
+								Background="{ThemeResource LayerFillColorDefaultBrush}"
+								BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+								BorderThickness="1"
+								CornerRadius="8"
+								Padding="16">
+                                <ScrollViewer MaxHeight="600">
+                                    <TextBlock
+										x:Name="ResultTextBlock"
+										FontFamily="Consolas"
+										IsTextSelectionEnabled="True"
+										TextWrapping="Wrap" />
+                                </ScrollViewer>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 

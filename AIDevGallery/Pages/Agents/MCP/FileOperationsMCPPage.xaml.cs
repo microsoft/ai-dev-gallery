@@ -15,8 +15,10 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class FileOperationsMCPPage : Page
 {
-    private McpClient? mcpClient;
     private const string FileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
+    private readonly Dictionary<string, FrameworkElement> currentParameterInputs = new();
+    private McpClient? mcpClient;
+    private McpClientTool? selectedTool;
 
     public FileOperationsMCPPage()
     {
@@ -63,7 +65,7 @@ internal sealed partial class FileOperationsMCPPage : Page
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            
+
             mcpClient = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             ConnectionStatusText.Text = "Connected";
@@ -91,8 +93,26 @@ internal sealed partial class FileOperationsMCPPage : Page
             ConnectButton.IsEnabled = true;
             DisconnectButton.IsEnabled = false;
             ToolsPanel.Visibility = Visibility.Collapsed;
+            InputPanel.Visibility = Visibility.Collapsed;
             ResultPanel.Visibility = Visibility.Collapsed;
+            if (SelectedToolPanel != null)
+            {
+                SelectedToolPanel.Visibility = Visibility.Collapsed;
+            }
+
+            if (SelectedToolNameText != null)
+            {
+                SelectedToolNameText.Text = string.Empty;
+            }
+
+            if (SelectedToolDescriptionText != null)
+            {
+                SelectedToolDescriptionText.Text = string.Empty;
+            }
+
             ToolsList.ItemsSource = null;
+            selectedTool = null;
+            currentParameterInputs.Clear();
         }
     }
 
@@ -184,8 +204,263 @@ internal sealed partial class FileOperationsMCPPage : Page
             ResultPanel.Visibility = Visibility.Collapsed;
             ErrorPanel.Visibility = Visibility.Collapsed;
 
-            // Call the tool with empty arguments dictionary (note: file operations may require parameters)
-            var result = await mcpClient.CallToolAsync(tool.Name, new Dictionary<string, object>());
+            // Build and show dynamic input form from tool schema
+            selectedTool = tool;
+            if (SelectedToolNameText != null)
+            {
+                SelectedToolNameText.Text = tool.Name ?? string.Empty;
+            }
+
+            if (SelectedToolDescriptionText != null)
+            {
+                SelectedToolDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description) ? string.Empty : tool.Description;
+            }
+
+            if (SelectedToolPanel != null) SelectedToolPanel.Visibility = Visibility.Visible;
+            BuildDynamicFormFromSchema(tool);
+            InputPanel.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Failed to execute tool '{tool.Name}': {ex.Message}");
+        }
+        finally
+        {
+            button.IsEnabled = true;
+        }
+    }
+
+    private void BuildDynamicFormFromSchema(McpClientTool tool)
+    {
+        // Clear previous form
+        currentParameterInputs.Clear();
+        DynamicFormPanel.Children.Clear();
+        ExecuteToolButton.IsEnabled = true;
+
+        try
+        {
+            // If schema not present, show a note and allow execute with empty args
+            var schema = tool.JsonSchema; // Expected to be JsonElement
+            if (schema.ValueKind != JsonValueKind.Object)
+            {
+                DynamicFormPanel.Children.Add(new TextBlock
+                {
+                    Text = "This tool does not require parameters.",
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
+                });
+                return;
+            }
+
+            // required array
+            var requiredSet = new HashSet<string>(StringComparer.Ordinal);
+            if (schema.TryGetProperty("required", out var requiredProp) && requiredProp.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in requiredProp.EnumerateArray())
+                {
+                    if (item.ValueKind == JsonValueKind.String)
+                    {
+                        requiredSet.Add(item.GetString() ?? string.Empty);
+                    }
+                }
+            }
+
+            // properties object
+            if (!schema.TryGetProperty("properties", out var properties) || properties.ValueKind != JsonValueKind.Object)
+            {
+                DynamicFormPanel.Children.Add(new TextBlock
+                {
+                    Text = "This tool does not declare any parameters.",
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
+                });
+                return;
+            }
+
+            foreach (var property in properties.EnumerateObject())
+            {
+                var name = property.Name;
+                var def = property.Value;
+                var isRequired = requiredSet.Contains(name);
+
+                string? type = null;
+                if (def.TryGetProperty("type", out var typeProp) && typeProp.ValueKind == JsonValueKind.String)
+                {
+                    type = typeProp.GetString();
+                }
+
+                string? description = null;
+                if (def.TryGetProperty("description", out var descProp) && descProp.ValueKind == JsonValueKind.String)
+                {
+                    description = descProp.GetString();
+                }
+
+                // Label
+                var label = new TextBlock
+                {
+                    Text = isRequired ? $"{name} *" : name,
+                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+                };
+                DynamicFormPanel.Children.Add(label);
+
+                // Control selection by type and enum
+                FrameworkElement inputControl;
+                if (def.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
+                {
+                    var combo = new ComboBox
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Stretch
+                    };
+                    foreach (var opt in enumProp.EnumerateArray())
+                    {
+                        if (opt.ValueKind == JsonValueKind.String)
+                        {
+                            combo.Items.Add(opt.GetString());
+                        }
+                        else
+                        {
+                            combo.Items.Add(opt.ToString());
+                        }
+                    }
+                    inputControl = combo;
+                }
+                else if (string.Equals(type, "boolean", StringComparison.OrdinalIgnoreCase))
+                {
+                    inputControl = new CheckBox();
+                }
+                else
+                {
+                    // default to text input for string/number/integer/unknown
+                    inputControl = new TextBox
+                    {
+                        PlaceholderText = description ?? string.Empty
+                    };
+                }
+
+                currentParameterInputs[name] = inputControl;
+                DynamicFormPanel.Children.Add(inputControl);
+
+                if (!string.IsNullOrEmpty(description))
+                {
+                    DynamicFormPanel.Children.Add(new TextBlock
+                    {
+                        Text = description,
+                        Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            DynamicFormPanel.Children.Clear();
+            DynamicFormPanel.Children.Add(new TextBlock
+            {
+                Text = $"Failed to build parameter form: {ex.Message}",
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
+            });
+        }
+    }
+
+    private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (selectedTool == null)
+        {
+            ShowError("No tool selected.");
+            return;
+        }
+        if (mcpClient == null)
+        {
+            ShowError("MCP Client is not connected.");
+            return;
+        }
+
+        try
+        {
+            ExecuteToolButton.IsEnabled = false;
+            ResultPanel.Visibility = Visibility.Collapsed;
+            ErrorPanel.Visibility = Visibility.Collapsed;
+
+            // Validate and collect arguments according to schema
+            var arguments = new Dictionary<string, object>();
+            var schema = selectedTool.JsonSchema;
+
+            var requiredSet = new HashSet<string>(StringComparer.Ordinal);
+            if (schema.ValueKind == JsonValueKind.Object && schema.TryGetProperty("required", out var requiredProp) && requiredProp.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in requiredProp.EnumerateArray())
+                {
+                    if (item.ValueKind == JsonValueKind.String)
+                    {
+                        requiredSet.Add(item.GetString() ?? string.Empty);
+                    }
+                }
+            }
+
+            foreach (var kvp in currentParameterInputs)
+            {
+                var key = kvp.Key;
+                var control = kvp.Value;
+                object? value = null;
+
+                switch (control)
+                {
+                    case TextBox tb:
+                        var text = tb.Text?.Trim() ?? string.Empty;
+                        if (requiredSet.Contains(key) && string.IsNullOrEmpty(text))
+                        {
+                            ShowError($"Please enter a value for '{key}'.");
+                            ExecuteToolButton.IsEnabled = true;
+                            return;
+                        }
+
+                        if (!string.IsNullOrEmpty(text))
+                        {
+                            value = text;
+                        }
+
+                        break;
+                    case CheckBox cb:
+                        value = cb.IsChecked == true;
+                        break;
+                    case ComboBox combo:
+                        if (combo.SelectedItem is string s)
+                        {
+                            value = s;
+                        }
+                        else if (combo.SelectedItem != null)
+                        {
+                            value = combo.SelectedItem.ToString();
+                        }
+
+                        if (requiredSet.Contains(key) && value == null)
+                        {
+                            ShowError($"Please select a value for '{key}'.");
+                            ExecuteToolButton.IsEnabled = true;
+                            return;
+                        }
+
+                        break;
+                }
+
+                if (value != null)
+                {
+                    arguments[key] = value;
+                }
+            }
+
+            // Show tool call
+            var toolCallJson = JsonSerializer.Serialize(new Dictionary<string, object>
+            {
+                ["tool"] = selectedTool.Name,
+                ["arguments"] = arguments
+            }, new JsonSerializerOptions { WriteIndented = true });
+
+            var displayText = $"Tool Call:\n{toolCallJson}\n\n";
+            displayText += $"Executing {selectedTool.Name}...\n\n";
+            ResultTextBlock.Text = displayText;
+            ResultPanel.Visibility = Visibility.Visible;
+
+            // Execute
+            var result = await mcpClient.CallToolAsync(selectedTool.Name, arguments);
 
             if (result.Content != null && result.Content.Count > 0)
             {
@@ -231,11 +506,11 @@ internal sealed partial class FileOperationsMCPPage : Page
         }
         catch (Exception ex)
         {
-            ShowError($"Failed to execute tool '{tool.Name}': {ex.Message}");
+            ShowError($"Failed to execute tool '{selectedTool?.Name}': {ex.Message}");
         }
         finally
         {
-            button.IsEnabled = true;
+            ExecuteToolButton.IsEnabled = true;
         }
     }
 
