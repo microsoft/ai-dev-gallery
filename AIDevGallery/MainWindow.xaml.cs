@@ -6,11 +6,9 @@ using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
 using AIDevGallery.Utils;
-using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
@@ -74,7 +72,7 @@ internal sealed partial class MainWindow : WindowEx
         await _indexer.WaitForIndexCapabilitiesAsync();
 
         // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        if (result.Status == GetOrCreateIndexStatus.CreatedNew)
+        if (result.Status == GetOrCreateIndexStatus.CreatedNew || !App.AppData.IsAppContentIndexCompleted)
         {
             Debug.WriteLine("Created a new index");
             IndexContentsWithAppContentSearch();
@@ -423,6 +421,11 @@ internal sealed partial class MainWindow : WindowEx
 
         await _indexer.WaitForIndexingIdleAsync(50000);
         SetSearchBoxIndexingCompleted();
+
+        // Adding a check here since if the user closes in the middle of the indexing loop, we will never fully finish indexing.
+        // The next app launch will open the existing index and consider everything done.
+        App.AppData.IsAppContentIndexCompleted = true;
+        await App.AppData.SaveAsync();
     }
 
     public static void IndexAppSearchIndexStatic()

@@ -35,6 +35,7 @@ internal partial class AppData : ObservableObject
 
     [ObservableProperty]
     public partial bool IsAppContentSearchEnabled { get; set; }
+    public bool IsAppContentIndexCompleted { get; set; }
     public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
     public string LastAdapterPath { get; set; }
@@ -50,7 +51,6 @@ internal partial class AppData : ObservableObject
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
-        IsAppContentSearchEnabled = true;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
         WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
