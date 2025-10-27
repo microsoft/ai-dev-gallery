@@ -561,14 +561,16 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async void AddTextDataButton_Click(object sender, RoutedEventArgs e)
     {
-        // Generate a unique id for the new item
+        // Find the lowest unused id in the form itemN
         int nextIndex = 1;
         string newId;
+        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id)));
         do
         {
-            newId = $"item{TextDataItems.Count + nextIndex}";
+            newId = $"item{nextIndex}";
             nextIndex++;
-        } while (simpleTextData.ContainsKey(newId));
+        }
+        while (existingIds.Contains(newId));
 
         string defaultValue = "New item text...";
 

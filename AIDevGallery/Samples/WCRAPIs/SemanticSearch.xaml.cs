@@ -282,18 +282,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                             string matchingData = simpleTextData[match.ContentId];
                             int offset = textResult.TextOffset;
                             int length = textResult.TextLength;
-
-                            // Ensure offset and length are within bounds
-                            if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
-                            {
-                                string matchingString = matchingData.Substring(offset, length);
-                                textResults += matchingString + "\n\n";
-                            }
-                            else
-                            {
-                                // Fallback: use a safe substring or the whole string, or skip
-                                string matchingString = matchingData;
-                            }
+                            string matchingString = matchingData.Substring(offset, length);
+                            textResults += matchingString + "\n\n";
                         }
                     }
                 }
@@ -357,14 +347,16 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async void AddTextDataButton_Click(object sender, RoutedEventArgs e)
     {
-        // Generate a unique id for the new item
+        // Find the lowest unused id in the form itemN
         int nextIndex = 1;
         string newId;
+        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id)));
         do
         {
-            newId = $"item{TextDataItems.Count + nextIndex}";
+            newId = $"item{nextIndex}";
             nextIndex++;
-        } while (simpleTextData.ContainsKey(newId));
+        }
+        while (existingIds.Contains(newId));
 
         string defaultValue = "New item text...";
 
@@ -614,7 +606,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
         }
     }
-   
+
     private CancellationToken CancelGenerationAndGetNewToken()
     {
         cts.Cancel();
