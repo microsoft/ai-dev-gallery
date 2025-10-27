@@ -21,6 +21,7 @@
         <Grid
             x:Name="ShadowGrid"
             Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            HighContrastAdjustment="None"
             Loaded="ShadowGrid_Loaded"
             Tapped="ShadowGrid_Tapped" />
 

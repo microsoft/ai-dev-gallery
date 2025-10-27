@@ -4,9 +4,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -236,6 +236,7 @@ internal sealed partial class SettingsMCPPage : Page
         ErrorPanel.Visibility = Visibility.Collapsed;
     }
 
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -281,6 +282,7 @@ internal sealed partial class SettingsMCPPage : Page
                         ShowError("Please enter a settings change request.");
                         return;
                     }
+
                     arguments["SettingsChangeRequest"] = settingsRequest;
                     break;
 

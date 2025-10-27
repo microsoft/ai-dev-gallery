@@ -43,59 +43,58 @@ internal sealed partial class AgentSelectionPage : Page
         NavView.MenuItems.Clear();
 
         // Overview item
-        NavView.MenuItems.Add(new NavigationViewItem() 
-        { 
-            Content = "Overview", 
-            Icon = new FontIcon() { Glyph = "\uF0E2" }, 
-            Tag = "Overview" 
+        NavView.MenuItems.Add(new NavigationViewItem()
+        {
+            Content = "Overview",
+            Icon = new FontIcon() { Glyph = "\uF0E2" },
+            Tag = "Overview"
         });
 
         NavView.MenuItems.Add(new NavigationViewItemSeparator());
 
         // Agent category
-        var agentCategory = new NavigationViewItem() 
-        { 
-            Content = "Agents", 
-            Icon = new FontIcon() { Glyph = "\uF0B9" }, 
+        var agentCategory = new NavigationViewItem()
+        {
+            Content = "Agents",
+            Icon = new FontIcon() { Glyph = "\uF0B9" },
             Tag = "AgentCategory",
             SelectsOnInvoked = false
         };
         ToolTip agentToolTip = new() { Content = "Agents" };
         ToolTipService.SetToolTip(agentCategory, agentToolTip);
-        
+
         // Add placeholder agent items
         // TODO: Add actual agent items when available
-        
         NavView.MenuItems.Add(agentCategory);
-        
+
         // MCP category
-        var mcpCategory = new NavigationViewItem() 
-        { 
-            Content = "Model Context Protocol", 
-            Icon = new FontIcon() { Glyph = "\uE8F1" }, 
+        var mcpCategory = new NavigationViewItem()
+        {
+            Content = "Model Context Protocol",
+            Icon = new FontIcon() { Glyph = "\uE8F1" },
             Tag = "MCPCategory",
             SelectsOnInvoked = false
         };
         ToolTip mcpToolTip = new() { Content = "Model Context Protocol" };
         ToolTipService.SetToolTip(mcpCategory, mcpToolTip);
-        
+
         // Add MCP sub-items
-        mcpCategory.MenuItems.Add(new NavigationViewItem() 
-        { 
-            Content = "File Operations MCP", 
-            Tag = "FileOperationsMCP" 
+        mcpCategory.MenuItems.Add(new NavigationViewItem()
+        {
+            Content = "File Operations MCP",
+            Tag = "FileOperationsMCP"
         });
-        mcpCategory.MenuItems.Add(new NavigationViewItem() 
-        { 
-            Content = "System Info MCP", 
-            Tag = "SystemInfoMCP" 
+        mcpCategory.MenuItems.Add(new NavigationViewItem()
+        {
+            Content = "System Info MCP",
+            Tag = "SystemInfoMCP"
         });
-        mcpCategory.MenuItems.Add(new NavigationViewItem() 
-        { 
-            Content = "Settings MCP", 
-            Tag = "SettingsMCP" 
+        mcpCategory.MenuItems.Add(new NavigationViewItem()
+        {
+            Content = "Settings MCP",
+            Tag = "SettingsMCP"
         });
-        
+
         NavView.MenuItems.Add(mcpCategory);
     }
 

@@ -3,11 +3,11 @@
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -64,7 +64,7 @@ internal sealed partial class SystemInfoMCPPage : Page
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            
+
             mcpClient = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             ConnectionStatusText.Text = "Connected";
@@ -159,6 +159,7 @@ internal sealed partial class SystemInfoMCPPage : Page
         }
     }
 
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button)

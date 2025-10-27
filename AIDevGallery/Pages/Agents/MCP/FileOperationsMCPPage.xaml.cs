@@ -7,6 +7,7 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -101,6 +102,7 @@ internal sealed partial class FileOperationsMCPPage : Page
             {
                 SelectedToolPanel.Visibility = Visibility.Collapsed;
             }
+
             if (ExecuteToolButton != null)
             {
                 ExecuteToolButton.Visibility = Visibility.Collapsed;
@@ -185,24 +187,24 @@ internal sealed partial class FileOperationsMCPPage : Page
         }
     }
 
-    private async void ToolButton_Click(object sender, RoutedEventArgs e)
+    private void ToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button)
         {
             ShowError($"Sender is not a button. Sender type: {sender?.GetType().Name ?? "null"}");
-            return;
+            return new ValueTask();
         }
 
         if (button.Tag is not McpClientTool tool)
         {
             ShowError($"Button tag is not a McpClientTool object. Tag type: {button.Tag?.GetType().Name ?? "null"}, Tag value: {button.Tag}");
-            return;
+            return new ValueTask();
         }
 
         if (mcpClient == null)
         {
             ShowError("MCP Client is not connected.");
-            return;
+            return new ValueTask();
         }
 
         try
@@ -223,7 +225,11 @@ internal sealed partial class FileOperationsMCPPage : Page
                 SelectedToolDescriptionText.Text = string.IsNullOrWhiteSpace(tool.Description) ? string.Empty : tool.Description;
             }
 
-            if (SelectedToolPanel != null) SelectedToolPanel.Visibility = Visibility.Visible;
+            if (SelectedToolPanel != null)
+            {
+                SelectedToolPanel.Visibility = Visibility.Visible;
+            }
+
             var hasParams = BuildDynamicFormFromSchema(tool);
             InputPanel.Visibility = hasParams ? Visibility.Visible : Visibility.Collapsed;
             if (ExecuteToolButton != null)
@@ -322,6 +328,7 @@ internal sealed partial class FileOperationsMCPPage : Page
                             combo.Items.Add(opt.ToString());
                         }
                     }
+
                     inputControl = combo;
                 }
                 else if (string.Equals(type, "string", StringComparison.OrdinalIgnoreCase) && name.Contains("path", StringComparison.OrdinalIgnoreCase))
@@ -344,40 +351,40 @@ internal sealed partial class FileOperationsMCPPage : Page
                     };
                     Grid.SetColumn(browseButton, 1);
 
-						browseButton.Click += async (s, e2) =>
-						{
-							try
-							{
-								var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
-								bool pickDirectory = !string.IsNullOrEmpty(description) && description!.Contains("directory", StringComparison.OrdinalIgnoreCase);
+                    browseButton.Click += async (s, e2) =>
+                    {
+                        try
+                        {
+                            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+                            bool pickDirectory = !string.IsNullOrEmpty(description) && description!.Contains("directory", StringComparison.OrdinalIgnoreCase);
 
-								if (pickDirectory)
-								{
-									var folderPicker = new FolderPicker();
-									InitializeWithWindow.Initialize(folderPicker, hwnd);
-									var folder = await folderPicker.PickSingleFolderAsync();
-									if (folder != null)
-									{
-										pathTextBox.Text = folder.Path;
-									}
-								}
-								else
-								{
-									var filePicker = new FileOpenPicker();
-									InitializeWithWindow.Initialize(filePicker, hwnd);
-									filePicker.FileTypeFilter.Add("*");
-									var file = await filePicker.PickSingleFileAsync();
-									if (file != null)
-									{
-										pathTextBox.Text = file.Path;
-									}
-								}
-							}
-							catch (Exception ex)
-							{
-								ShowError($"Failed to open picker: {ex.Message}");
-							}
-						};
+                            if (pickDirectory)
+                            {
+                                var folderPicker = new FolderPicker();
+                                InitializeWithWindow.Initialize(folderPicker, hwnd);
+                                var folder = await folderPicker.PickSingleFolderAsync();
+                                if (folder != null)
+                                {
+                                    pathTextBox.Text = folder.Path;
+                                }
+                            }
+                            else
+                            {
+                                var filePicker = new FileOpenPicker();
+                                InitializeWithWindow.Initialize(filePicker, hwnd);
+                                filePicker.FileTypeFilter.Add("*");
+                                var file = await filePicker.PickSingleFileAsync();
+                                if (file != null)
+                                {
+                                    pathTextBox.Text = file.Path;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ShowError($"Failed to open picker: {ex.Message}");
+                        }
+                    };
 
                     row.Children.Add(pathTextBox);
                     row.Children.Add(browseButton);
@@ -415,6 +422,7 @@ internal sealed partial class FileOperationsMCPPage : Page
                     });
                 }
             }
+
             // If we created no inputs, hide parameters panel
             return currentParameterInputs.Count > 0;
         }
@@ -430,6 +438,7 @@ internal sealed partial class FileOperationsMCPPage : Page
         }
     }
 
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -437,6 +446,7 @@ internal sealed partial class FileOperationsMCPPage : Page
             ShowError("No tool selected.");
             return;
         }
+
         if (mcpClient == null)
         {
             ShowError("MCP Client is not connected.");
@@ -518,7 +528,8 @@ internal sealed partial class FileOperationsMCPPage : Page
             }
 
             // Show tool call
-            var toolCallJson = JsonSerializer.Serialize(new Dictionary<string, object>
+            var toolCallJson = JsonSerializer.Serialize(
+                new Dictionary<string, object>
             {
                 ["tool"] = selectedTool.Name,
                 ["arguments"] = arguments
