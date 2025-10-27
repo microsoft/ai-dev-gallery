@@ -64,7 +64,7 @@ internal sealed partial class SettingsMCPPage : Page
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            
+
             mcpClient = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             ConnectionStatusText.Text = "Connected";
@@ -116,26 +116,34 @@ internal sealed partial class SettingsMCPPage : Page
                 return;
             }
 
-            // Create radio buttons for each tool (only one can be selected at a time)
+            // Create button-style cards for each tool
             var toolButtons = new List<UIElement>();
             foreach (var tool in tools)
             {
-                var radioButton = new RadioButton
+                // Create a button that looks like a card
+                var button = new Button
                 {
-                    Content = $"{tool.Name}",
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalContentAlignment = HorizontalAlignment.Left,
+                    Padding = new Thickness(16, 12, 16, 12),
+                    Margin = new Thickness(0, 0, 0, 8),
                     Tag = tool,
-                    GroupName = "SettingsTools",
-                    Margin = new Thickness(0, 0, 8, 8)
+                    Style = (Style)Application.Current.Resources["DefaultButtonStyle"]
                 };
-                radioButton.Click += ToolRadioButton_Click;
 
-                var stackPanel = new StackPanel
+                button.Click += ToolButton_Click;
+
+                var cardContent = new StackPanel();
+
+                // Tool name
+                var toolNameText = new TextBlock
                 {
-                    Margin = new Thickness(0, 0, 0, 12)
+                    Text = tool.Name,
+                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
                 };
+                cardContent.Children.Add(toolNameText);
 
-                stackPanel.Children.Add(radioButton);
-
+                // Tool description
                 if (!string.IsNullOrEmpty(tool.Description))
                 {
                     var description = new TextBlock
@@ -146,10 +154,11 @@ internal sealed partial class SettingsMCPPage : Page
                         Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
                         Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
                     };
-                    stackPanel.Children.Add(description);
+                    cardContent.Children.Add(description);
                 }
 
-                toolButtons.Add(stackPanel);
+                button.Content = cardContent;
+                toolButtons.Add(button);
             }
 
             ToolsList.ItemsSource = toolButtons;
@@ -161,19 +170,38 @@ internal sealed partial class SettingsMCPPage : Page
         }
     }
 
-    private void ToolRadioButton_Click(object sender, RoutedEventArgs e)
+    private void ToolButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not RadioButton radioButton)
+        if (sender is not Button button)
         {
-            ShowError($"Sender is not a radio button. Sender type: {sender?.GetType().Name ?? "null"}");
+            ShowError($"Sender is not a button. Sender type: {sender?.GetType().Name ?? "null"}");
             return;
         }
 
-        if (radioButton.Tag is not McpClientTool tool)
+        if (button.Tag is not McpClientTool tool)
         {
-            ShowError($"RadioButton tag is not a McpClientTool object. Tag type: {radioButton.Tag?.GetType().Name ?? "null"}, Tag value: {radioButton.Tag}");
+            ShowError($"Button tag is not a McpClientTool object. Tag type: {button.Tag?.GetType().Name ?? "null"}, Tag value: {button.Tag}");
             return;
         }
+
+        // Reset all buttons to default style
+        if (ToolsList.ItemsSource is List<UIElement> toolElements)
+        {
+            foreach (var element in toolElements)
+            {
+                if (element is Button btn)
+                {
+                    btn.Style = (Style)Application.Current.Resources["DefaultButtonStyle"];
+                    btn.BorderThickness = new Thickness(1);
+                    btn.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+                }
+            }
+        }
+
+        // Highlight selected button with subtle accent border
+        button.Style = (Style)Application.Current.Resources["DefaultButtonStyle"];
+        button.BorderThickness = new Thickness(2);
+        button.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
 
         selectedTool = tool;
         ShowInputPanelForTool(tool);
@@ -184,11 +212,11 @@ internal sealed partial class SettingsMCPPage : Page
         // Hide all input panels first
         SettingsChangeRequestPanel.Visibility = Visibility.Collapsed;
         UndoIdPanel.Visibility = Visibility.Collapsed;
-        
+
         // Clear previous input
         SettingsChangeRequestTextBox.Text = string.Empty;
         UndoIdTextBox.Text = string.Empty;
-        
+
         // Show appropriate input panel based on tool
         switch (tool.Name)
         {
@@ -240,6 +268,7 @@ internal sealed partial class SettingsMCPPage : Page
                         ShowError("Please enter an Undo ID.");
                         return;
                     }
+
                     arguments["UndoId"] = undoId;
                     break;
 
@@ -260,77 +289,30 @@ internal sealed partial class SettingsMCPPage : Page
                     return;
             }
 
-            // Show tool call information
-            var toolCallJson = JsonSerializer.Serialize(new Dictionary<string, object>
-            {
-                ["tool"] = selectedTool.Name,
-                ["arguments"] = arguments
-            }, new JsonSerializerOptions { WriteIndented = true });
-
-            var displayText = $"🔧 Tool Call:\n{toolCallJson}\n\n";
-
             // Show a loading indicator
-            displayText += $"⏳ Executing {selectedTool.Name}...\n\n";
-            ResultTextBlock.Text = displayText;
+            ResultTextBlock.Text = $"Executing {selectedTool.Name}...";
             ResultPanel.Visibility = Visibility.Visible;
 
             // Call the tool with the prepared arguments
             var result = await mcpClient.CallToolAsync(selectedTool.Name, arguments);
 
-            if (result.Content != null && result.Content.Count > 0)
+            // Display the raw result as JSON (similar to SystemInfoMCP page)
+            var resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
             {
-                var resultText = string.Empty;
-                foreach (var content in result.Content)
-                {
-                    if (content is TextContentBlock textBlock)
-                    {
-                        resultText += textBlock.Text + "\n\n";
-                    }
-                    else if (content is ImageContentBlock imageBlock)
-                    {
-                        resultText += $"[Image: {imageBlock.Data}]\n\n";
-                    }
-                    else
-                    {
-                        resultText += $"[Content Type: {content.Type}]\n\n";
-                    }
-                }
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
 
-                // Try to format as JSON if it looks like JSON
-                try
-                {
-                    if (resultText.TrimStart().StartsWith("{") || resultText.TrimStart().StartsWith("["))
-                    {
-                        var jsonDoc = JsonDocument.Parse(resultText);
-                        resultText = JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions { WriteIndented = true });
-                    }
-                }
-                catch
-                {
-                    // Not JSON or invalid JSON, keep as-is
-                }
-
-                // Build the complete output with tool call and response
-                var completeOutput = $"🔧 Tool Call:\n{toolCallJson}\n\n";
-                completeOutput += $"📋 Response:\n{resultText}";
-
-                // Add special note for make_settings_change to highlight UndoId
-                if (selectedTool.Name == "make_settings_change" && resultText.Contains("UndoId"))
-                {
-                    completeOutput += "\n\n⚠️ IMPORTANT: Save the UndoId from the response above!\n" +
-                                     "You'll need it to undo this change using the 'undo_settings_change' tool.";
-                }
-
-                ResultTextBlock.Text = completeOutput;
-                ResultPanel.Visibility = Visibility.Visible;
-            }
-            else
+            // Add special note for make_settings_change to highlight UndoId
+            var displayText = resultJson;
+            if (selectedTool.Name == "make_settings_change" && resultJson.Contains("UndoId"))
             {
-                var completeOutput = $"🔧 Tool Call:\n{toolCallJson}\n\n";
-                completeOutput += "📋 Response:\nNo content returned from the tool.";
-                ResultTextBlock.Text = completeOutput;
-                ResultPanel.Visibility = Visibility.Visible;
+                displayText += "IMPORTANT: Save the UndoId from the response above!\n" +
+                              "You'll need it to undo this change using the 'undo_settings_change' tool.";
             }
+
+            ResultTextBlock.Text = displayText;
+            ResultPanel.Visibility = Visibility.Visible;
         }
         catch (Exception ex)
         {

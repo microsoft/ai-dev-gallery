@@ -98,7 +98,7 @@
                                     Style="{StaticResource CaptionTextBlockStyle}"
                                     TextWrapping="Wrap"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Text="Enter the settings change you want to make. Examples: 'change to dark theme', 'enable night light', 'set volume to 50%', 'turn on bluetooth'." />
+                                    Text="Enter the settings change you want to make. Examples: 'change to dark theme', 'enable night light'." />
                                 <TextBox
                                     x:Name="SettingsChangeRequestTextBox"
                                     PlaceholderText="e.g., change to light theme"
