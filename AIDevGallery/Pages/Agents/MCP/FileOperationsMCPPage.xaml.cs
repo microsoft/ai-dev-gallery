@@ -192,19 +192,19 @@ internal sealed partial class FileOperationsMCPPage : Page
         if (sender is not Button button)
         {
             ShowError($"Sender is not a button. Sender type: {sender?.GetType().Name ?? "null"}");
-            return new ValueTask();
+            return;
         }
 
         if (button.Tag is not McpClientTool tool)
         {
             ShowError($"Button tag is not a McpClientTool object. Tag type: {button.Tag?.GetType().Name ?? "null"}, Tag value: {button.Tag}");
-            return new ValueTask();
+            return;
         }
 
         if (mcpClient == null)
         {
             ShowError("MCP Client is not connected.");
-            return new ValueTask();
+            return;
         }
 
         try
