@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace AIDevGallery.Pages;
 
@@ -98,6 +100,11 @@ internal sealed partial class FileOperationsMCPPage : Page
             if (SelectedToolPanel != null)
             {
                 SelectedToolPanel.Visibility = Visibility.Collapsed;
+            }
+            if (ExecuteToolButton != null)
+            {
+                ExecuteToolButton.Visibility = Visibility.Collapsed;
+                ExecuteToolButton.IsEnabled = false;
             }
 
             if (SelectedToolNameText != null)
@@ -217,8 +224,13 @@ internal sealed partial class FileOperationsMCPPage : Page
             }
 
             if (SelectedToolPanel != null) SelectedToolPanel.Visibility = Visibility.Visible;
-            BuildDynamicFormFromSchema(tool);
-            InputPanel.Visibility = Visibility.Visible;
+            var hasParams = BuildDynamicFormFromSchema(tool);
+            InputPanel.Visibility = hasParams ? Visibility.Visible : Visibility.Collapsed;
+            if (ExecuteToolButton != null)
+            {
+                ExecuteToolButton.Visibility = Visibility.Visible;
+                ExecuteToolButton.IsEnabled = true;
+            }
         }
         catch (Exception ex)
         {
@@ -230,7 +242,7 @@ internal sealed partial class FileOperationsMCPPage : Page
         }
     }
 
-    private void BuildDynamicFormFromSchema(McpClientTool tool)
+    private bool BuildDynamicFormFromSchema(McpClientTool tool)
     {
         // Clear previous form
         currentParameterInputs.Clear();
@@ -243,12 +255,7 @@ internal sealed partial class FileOperationsMCPPage : Page
             var schema = tool.JsonSchema; // Expected to be JsonElement
             if (schema.ValueKind != JsonValueKind.Object)
             {
-                DynamicFormPanel.Children.Add(new TextBlock
-                {
-                    Text = "This tool does not require parameters.",
-                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
-                });
-                return;
+                return false;
             }
 
             // required array
@@ -267,12 +274,7 @@ internal sealed partial class FileOperationsMCPPage : Page
             // properties object
             if (!schema.TryGetProperty("properties", out var properties) || properties.ValueKind != JsonValueKind.Object)
             {
-                DynamicFormPanel.Children.Add(new TextBlock
-                {
-                    Text = "This tool does not declare any parameters.",
-                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
-                });
-                return;
+                return false;
             }
 
             foreach (var property in properties.EnumerateObject())
@@ -322,6 +324,68 @@ internal sealed partial class FileOperationsMCPPage : Page
                     }
                     inputControl = combo;
                 }
+                else if (string.Equals(type, "string", StringComparison.OrdinalIgnoreCase) && name.Contains("path", StringComparison.OrdinalIgnoreCase))
+                {
+                    // File path helper: textbox + browse button
+                    var row = new Grid();
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                    var pathTextBox = new TextBox
+                    {
+                        PlaceholderText = description ?? string.Empty
+                    };
+                    Grid.SetColumn(pathTextBox, 0);
+
+                    var browseButton = new Button
+                    {
+                        Content = "Browse...",
+                        Margin = new Thickness(8, 0, 0, 0)
+                    };
+                    Grid.SetColumn(browseButton, 1);
+
+						browseButton.Click += async (s, e2) =>
+						{
+							try
+							{
+								var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+								bool pickDirectory = !string.IsNullOrEmpty(description) && description!.Contains("directory", StringComparison.OrdinalIgnoreCase);
+
+								if (pickDirectory)
+								{
+									var folderPicker = new FolderPicker();
+									InitializeWithWindow.Initialize(folderPicker, hwnd);
+									var folder = await folderPicker.PickSingleFolderAsync();
+									if (folder != null)
+									{
+										pathTextBox.Text = folder.Path;
+									}
+								}
+								else
+								{
+									var filePicker = new FileOpenPicker();
+									InitializeWithWindow.Initialize(filePicker, hwnd);
+									filePicker.FileTypeFilter.Add("*");
+									var file = await filePicker.PickSingleFileAsync();
+									if (file != null)
+									{
+										pathTextBox.Text = file.Path;
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								ShowError($"Failed to open picker: {ex.Message}");
+							}
+						};
+
+                    row.Children.Add(pathTextBox);
+                    row.Children.Add(browseButton);
+
+                    // store the textbox as the input control for value collection
+                    inputControl = pathTextBox;
+                    DynamicFormPanel.Children.Add(row);
+                }
                 else if (string.Equals(type, "boolean", StringComparison.OrdinalIgnoreCase))
                 {
                     inputControl = new CheckBox();
@@ -336,7 +400,10 @@ internal sealed partial class FileOperationsMCPPage : Page
                 }
 
                 currentParameterInputs[name] = inputControl;
-                DynamicFormPanel.Children.Add(inputControl);
+                if (inputControl is not TextBox || !name.Contains("path", StringComparison.OrdinalIgnoreCase))
+                {
+                    DynamicFormPanel.Children.Add(inputControl);
+                }
 
                 if (!string.IsNullOrEmpty(description))
                 {
@@ -348,6 +415,8 @@ internal sealed partial class FileOperationsMCPPage : Page
                     });
                 }
             }
+            // If we created no inputs, hide parameters panel
+            return currentParameterInputs.Count > 0;
         }
         catch (Exception ex)
         {
@@ -357,6 +426,7 @@ internal sealed partial class FileOperationsMCPPage : Page
                 Text = $"Failed to build parameter form: {ex.Message}",
                 Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"]
             });
+            return false;
         }
     }
 

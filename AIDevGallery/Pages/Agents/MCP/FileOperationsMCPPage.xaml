@@ -110,10 +110,11 @@
                                 </ScrollViewer>
                             </Border>
 
-                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Button x:Name="ExecuteToolButton" Content="Execute" Click="ExecuteToolButton_Click" IsEnabled="False" Style="{StaticResource AccentButtonStyle}" />
-                            </StackPanel>
-                        </StackPanel>
+						</StackPanel>
+
+						<StackPanel Orientation="Horizontal" Spacing="12">
+							<Button x:Name="ExecuteToolButton" Content="Execute" Click="ExecuteToolButton_Click" IsEnabled="False" Visibility="Collapsed" Style="{StaticResource AccentButtonStyle}" />
+						</StackPanel>
 
                         <StackPanel x:Name="ResultPanel" Spacing="12" Visibility="Collapsed">
                             <TextBlock
