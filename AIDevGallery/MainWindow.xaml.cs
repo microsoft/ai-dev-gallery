@@ -17,6 +17,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
 using WinUIEx;
@@ -26,6 +27,7 @@ namespace AIDevGallery;
 internal sealed partial class MainWindow : WindowEx
 {
     private AppContentIndexer _indexer;
+    private CancellationTokenSource? _searchCts; // Added for search cancellation
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
 
     public MainWindow(object? obj = null)
@@ -279,25 +281,26 @@ internal sealed partial class MainWindow : WindowEx
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
         {
+            // Cancel previous search if running
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
             var searchText = sender.Text;
             List<SearchResult> orderedResults = new();
 
-            if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
+            try
             {
-                await Task.Run(async () =>
+                if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
                 {
                     // Use AppContentIndexer to search
                     var query = _indexer.CreateQuery(searchText);
-                    IReadOnlyList<TextQueryMatch> matches = await Task.Run(() =>
-                    {
-                        return query.GetNextTextMatches(5);
-                    });
+                    IReadOnlyList<TextQueryMatch>? matches = await Task.Run(() => query.GetNextTextMatches(5), token);
 
-
-                    if (matches != null && matches.Count > 0)
+                    if (!token.IsCancellationRequested && matches != null && matches.Count > 0)
                     {
                         foreach (var match in matches)
                         {
+                            if (token.IsCancellationRequested) break;
                             var sr = App.SearchIndex.FirstOrDefault(s => s.Label == match.ContentId);
                             if (sr != null)
                             {
@@ -305,23 +308,29 @@ internal sealed partial class MainWindow : WindowEx
                             }
                         }
                     }
-                });
+                }
+                else
+                {
+                    // Fallback to in-memory search
+                    var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+                    orderedResults = filteredSearchResults
+                        .OrderByDescending(i => i.Label.StartsWith(searchText, StringComparison.CurrentCultureIgnoreCase))
+                        .ThenBy(i => i.Label)
+                        .ToList();
+                }
+
+                if (!token.IsCancellationRequested)
+                {
+                    SearchBox.ItemsSource = orderedResults;
+                    var resultCount = orderedResults.Count;
+                    string announcement = $"Searching for '{searchText}', {resultCount} search result{(resultCount == 1 ? string.Empty : "s")} found";
+                    NarratorHelper.Announce(SearchBox, announcement, "searchSuggestionsActivityId");
+                }
             }
-            else
+            catch (OperationCanceledException)
             {
-                // Fallback to in-memory search
-                var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-                orderedResults = filteredSearchResults
-                    .OrderByDescending(i => i.Label.StartsWith(searchText, StringComparison.CurrentCultureIgnoreCase))
-                    .ThenBy(i => i.Label)
-                    .ToList();
+                // Search was cancelled, do nothing
             }
-
-            SearchBox.ItemsSource = orderedResults;
-
-            var resultCount = orderedResults.Count;
-            string announcement = $"Searching for '{searchText}', {resultCount} search result{(resultCount == 1 ? string.Empty : "s")} found";
-            NarratorHelper.Announce(SearchBox, announcement, "searchSuggestionsActivityId");
         }
     }
 
