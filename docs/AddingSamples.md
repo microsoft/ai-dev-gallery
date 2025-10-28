@@ -12,7 +12,7 @@ If your sample uses a Model that hasn't been used before in the gallery app, you
 - `.model.json` - A simpler format for defining a single model family
 - `.modelgroup.json` - Used to define a group of related model families with additional grouping metadata
 
-If your sample uses a Windows AI API, add it to an `apis.json` file anywhere under the `Samples\Definitions\` directory. These files are used to group samples together in the app and they show up as a single page where all samples are rendered at the same time.
+If your sample uses a specific API, add it to an `apis.json` file anywhere under the `Samples\Definitions\` directory. The `.model.json`, `.modelgroup.json`, and `apis.json` files are used to group samples together in the app and they show up as a single page where all samples are rendered at the same time.
 
 A sample folder that is not inside a model or api folder renders as a single sample in the app. These are good for samples that are higher level concepts (such as guides), or samples that combine multiple models or APIs.
 
@@ -227,7 +227,6 @@ To add a sample, follow these steps:
    - The `.model.json` file is used to define a collection of samples that use a specific model family
    - You can also add a `.modelgroup.json` file to organize the model family within a model group
    - The `apis.json` file is used to define a collection of samples that use a specific API
-   - The `.model.json`, `.modelgroup.json`, and `apis.json` files are used to group samples together in the app and they show up as a single page where all samples are rendered at the same time.
 
 3. **Create the sample files**: Add a new WinUI Blank Page in the appropriate folder: `Samples\[CategoryName]\[SampleName].xaml`
 
