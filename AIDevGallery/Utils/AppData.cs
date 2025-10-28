@@ -48,7 +48,7 @@ internal class AppData
         IsDiagnosticsMessageDismissed = false;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
-        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
+        WinMLSampleOptions = new WinMlSampleOptions(null, "CPU", false, null);
     }
 
     private static string GetConfigFilePath()
