@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
@@ -34,7 +33,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
     private readonly BertTokenizer _tokenizer;
     private readonly int _chunkSize = 128;
 
-    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    public static async Task<EmbeddingGenerator> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         var vocabPath = Path.Join(modelPath, "vocab.txt");
         modelPath = Path.Join(modelPath, "onnx", "model.onnx");
@@ -53,17 +52,17 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
-        if (winMlSampleOptions.Policy != null)
+        if (policy != null)
         {
-            sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
         }
-        else if (winMlSampleOptions.EpName != null)
+        else if (epName != null)
         {
-            sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+            sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-            if (winMlSampleOptions.CompileModel)
+            if (compileModel)
             {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
             }
         }
 
