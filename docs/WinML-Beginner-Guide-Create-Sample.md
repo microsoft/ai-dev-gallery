@@ -262,4 +262,7 @@ namespace AIDevGallery.Samples.MySamples
 - Copy the minimal sample, change the namespace/class/model type/scenario, and run the app to see your page appear.
 - If you need grouped presentation or a new model family, add `.model.json` / `.modelgroup.json` or `apis.json` under `Samples/Definitions`.
 
+## Related links
 
+- [Use ONNX APIs in Windows ML](https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/use-onnx-apis)
+- [Get started with Windows ML](https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/get-started)
