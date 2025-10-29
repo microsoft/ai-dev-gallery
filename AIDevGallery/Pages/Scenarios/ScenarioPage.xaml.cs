@@ -179,6 +179,7 @@ internal sealed partial class ScenarioPage : Page
                     {
                         System.Diagnostics.Debug.WriteLine("[ScenarioPage] DML is reported by ONNX Runtime but not available. Skipping DML option.");
                     }
+
                     break;
 
                 case "NvTensorRTRTXExecutionProvider":
@@ -305,6 +306,9 @@ internal sealed partial class ScenarioPage : Page
             CompileModelCheckBox.IsChecked = options.CompileModel;
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
+
+            // Update compile model checkbox visibility based on selected EP
+            UpdateCompileModelVisibility();
         }
 
         // in case already saved options do not apply to this sample
@@ -475,5 +479,22 @@ internal sealed partial class ScenarioPage : Page
     private void WinMLOptionsFlyout_Opening(object sender, object e)
     {
         UpdateWinMLFlyout();
+        UpdateCompileModelVisibility();
+    }
+
+    private void DeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateCompileModelVisibility();
+    }
+
+    private void UpdateCompileModelVisibility()
+    {
+        var device = DeviceComboBox.SelectedItem as WinMlEp;
+        bool supported = device != null && WinMLHelpers.IsCompileModelSupported(device.Name);
+        CompileModelCheckBox.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
+        if (!supported)
+        {
+            CompileModelCheckBox.IsChecked = false;
+        }
     }
 }

@@ -55,6 +55,24 @@ internal static class WinMLHelpers
 
     public static string? GetCompiledModel(this SessionOptions sessionOptions, string modelPath, string device)
     {
+        // NOTE: Skip compilation for the CPU execution provider.
+        // Rationale:
+        // - EPContext is an EP-specific offline-compiled/partitioned graph artifact that requires the
+        //   execution provider to implement serialization/deserialization of its optimized graph.
+        // - ONNX Runtime's CPU EP does NOT implement EPContext model generation or loading. Invoking
+        //   OrtModelCompilationOptions.CompileModel() for CPU attempts to emit a "*.CPU.onnx" EPContext
+        //   artifact, which fails (commonly with InvalidProtobuf) because no EPContext is produced/understood
+        //   by the CPU EP.
+        // Behavior:
+        // - For CPU, we return null here so callers fall back to the original ONNX model without attempting
+        //   EPContext compilation.
+        // - Other EPs (e.g., DirectML, OpenVINO, QNN) may support EPContext depending on the ORT build,
+        //   platform drivers, and hardware; for those we allow compilation to proceed.
+        if (string.Equals(device, "CPU", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
         var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{device}.onnx";
 
         if (!File.Exists(compiledModelPath))
@@ -93,6 +111,48 @@ internal static class WinMLHelpers
         }
 
         return epDeviceMap;
+    }
+
+    /// <summary>
+    /// Determines whether EPContext compilation is supported for the specified execution provider
+    /// in the current runtime environment.
+    /// </summary>
+    /// <param name="epName">The execution provider name returned by ONNX Runtime (e.g., "DmlExecutionProvider").</param>
+    /// <param name="environment">Optional ORT environment; if null, the singleton instance is used.</param>
+    /// <returns>True if EPContext compilation is supported; otherwise, false.</returns>
+    public static bool IsCompileModelSupported(string? epName, OrtEnv? environment = null)
+    {
+        if (string.IsNullOrWhiteSpace(epName))
+        {
+            return false;
+        }
+
+        // CPU EP does not implement EPContext serialization/deserialization
+        if (string.Equals(epName, "CPU", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Known EPs that (in appropriate builds/drivers) can support EPContext compilation
+        // This is a conservative allow-list to avoid surfacing the option when unsupported.
+        HashSet<string> knownSupportingEps = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "DmlExecutionProvider",
+            "OpenVINOExecutionProvider",
+            "QNNExecutionProvider",
+            "VitisAIExecutionProvider",
+            "NvTensorRTRTXExecutionProvider",
+        };
+
+        if (!knownSupportingEps.Contains(epName))
+        {
+            return false;
+        }
+
+        // Verify the EP is present with at least one device on this machine
+        environment ??= OrtEnv.Instance();
+        var epMap = GetEpDeviceMap(environment);
+        return epMap.TryGetValue(epName, out var devices) && devices.Count > 0;
     }
 
     /// <summary>
