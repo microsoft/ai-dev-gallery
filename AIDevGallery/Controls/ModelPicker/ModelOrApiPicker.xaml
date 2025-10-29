@@ -16,7 +16,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <ThemeShadow x:Name="DialogShadow" />
-        <SolidColorBrush x:Key="AppSmokeBrush" Color="#66000000" />
+        <SolidColorBrush x:Key="AppSmokeBrush" Color="#4D000000" />
     </UserControl.Resources>
     <Grid>
         <Grid
