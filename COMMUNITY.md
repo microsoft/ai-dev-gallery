@@ -37,5 +37,6 @@ We believe the strength of open source comes from community collaboration. Thank
 - [@gregwoo-microsoft](https://github.com/gregwoo-microsoft) - Greg Woo - Product Manager
 - [@jamrobot](https://github.com/jamrobot) - Jerry Xu - Dev Lead
 - [@haoliuu](https://github.com/haoliuu) - Hao Liu - Dev
+- [@weiyuanyue](https://github.com/weiyuanyue) - Milly Way - Dev
 - [@wang563681252](https://github.com/wang563681252) - Zhaopeng Wang - Dev
 - [@ziyuanguo1998](https://github.com/ziyuanguo1998) - Ziyuan Guo - Dev
