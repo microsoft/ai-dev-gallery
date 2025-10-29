@@ -4,8 +4,10 @@
 using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -91,5 +93,55 @@ internal static class WinMLHelpers
         }
 
         return epDeviceMap;
+    }
+
+    /// <summary>
+    /// Tests if DirectML execution provider is available on the system.
+    /// </summary>
+    /// <returns>True if DML is available, false otherwise.</returns>
+    public static async Task<bool> TestDmlAvailability()
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                // Create a minimal ONNX model in memory (identity operation)
+                byte[] minimalModel = new byte[]
+                {
+                    0x08, 0x07, 0x12, 0x07, 0x62, 0x61, 0x63, 0x6B, 0x65, 0x6E, 0x64, 0x1A, 0x0D, 0x62, 0x61, 0x63, 0x6B,
+                    0x65, 0x6E, 0x64, 0x2D, 0x74, 0x65, 0x73, 0x74, 0x22, 0x46, 0x0A, 0x08, 0x0A, 0x01, 0x78, 0x12, 0x01,
+                    0x79, 0x22, 0x08, 0x49, 0x64, 0x65, 0x6E, 0x74, 0x69, 0x74, 0x79, 0x2A, 0x14, 0x0A, 0x04, 0x74, 0x79,
+                    0x70, 0x65, 0x12, 0x0C, 0x0A, 0x01, 0x69, 0x12, 0x07, 0x0A, 0x05, 0x76, 0x61, 0x6C, 0x75, 0x65, 0x3A,
+                    0x18, 0x0A, 0x07, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x3A, 0x0D, 0x49, 0x64, 0x65, 0x6E, 0x74,
+                    0x69, 0x74, 0x79, 0x20, 0x74, 0x65, 0x73, 0x74, 0x0A, 0x16, 0x0A, 0x01, 0x78, 0x12, 0x11, 0x0A, 0x0F,
+                    0x08, 0x01, 0x12, 0x0B, 0x0A, 0x01, 0x4E, 0x0A, 0x01, 0x43, 0x0A, 0x01, 0x48, 0x0A, 0x01, 0x57, 0x0A,
+                    0x16, 0x0A, 0x01, 0x79, 0x12, 0x11, 0x0A, 0x0F, 0x08, 0x01, 0x12, 0x0B, 0x0A, 0x01, 0x4E, 0x0A, 0x01,
+                    0x43, 0x0A, 0x01, 0x48, 0x0A, 0x01, 0x57, 0x10, 0x01
+                };
+
+                using var sessionOptions = new SessionOptions();
+                sessionOptions.AppendExecutionProvider("DML");
+                using var session = new InferenceSession(minimalModel, sessionOptions);
+
+                Debug.WriteLine("[WinMLHelpers] DML is available and working.");
+            });
+
+            return true;
+        }
+        catch (OnnxRuntimeException ex) when (ex.Message.Contains("No devices detected"))
+        {
+            Debug.WriteLine("[WinMLHelpers] DirectML execution provider is not available on this system.");
+            Debug.WriteLine("[WinMLHelpers] This could be due to:");
+            Debug.WriteLine("[WinMLHelpers]   (1) No compatible GPU is present");
+            Debug.WriteLine("[WinMLHelpers]   (2) GPU drivers are outdated or not installed");
+            Debug.WriteLine("[WinMLHelpers]   (3) DirectX 12 is not supported");
+            Debug.WriteLine($"[WinMLHelpers] Original error: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[WinMLHelpers] DML test failed: {ex.Message}");
+            return false;
+        }
     }
 }

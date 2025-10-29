@@ -169,7 +169,16 @@ internal sealed partial class ScenarioPage : Page
                     break;
 
                 case "DmlExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                    // Test if DML is actually available before adding it to the list
+                    // This prevents showing DML option on systems without compatible GPU
+                    if (await WinMLHelpers.TestDmlAvailability())
+                    {
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[ScenarioPage] DML is reported by ONNX Runtime but not available. Skipping DML option.");
+                    }
                     break;
 
                 case "NvTensorRTRTXExecutionProvider":
