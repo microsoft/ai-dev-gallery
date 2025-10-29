@@ -13,6 +13,28 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="InputBox.(Grid.ColumnSpan)" Value="2" />
+                        <Setter Target="InputBox.Margin" Value="0,0,0,10" />
+                        <Setter Target="ButtonsPanel.(Grid.Row)" Value="1" />
+                        <Setter Target="ButtonsPanel.(Grid.ColumnSpan)" Value="2" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="800" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
         <Image 
             x:Name="DefaultImage" 
             HorizontalAlignment="Center" 
@@ -21,31 +43,46 @@
             x:Name="Loader" 
             IsActive="false" 
             Visibility="Collapsed" />
-        <StackPanel 
+        <Grid 
+            x:Name="ControlsContainer"
             Grid.Row="1" 
-            Orientation="Horizontal" 
-            HorizontalAlignment="Center" 
-            Margin="0,20,0,0" 
-            Spacing="10">
+            HorizontalAlignment="Stretch"
+            Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
             <TextBox 
                 x:Name="InputBox" 
                 KeyUp="TextBox_KeyUp"
                 PreviewKeyDown="TextBox_PreviewKeyDown"
                 AutomationProperties.Name="Prompt input" 
                 PlaceholderText="Enter prompt to generate image" 
-                HorizontalAlignment="Center" 
-                Width="400"/>
-            <Button 
-                x:Name="GenerateButton" 
-                Click="GenerateButton_Click"
-                Style="{StaticResource AccentButtonStyle}"
-                Content="Generate" />
-            <Button
-                x:Name="SaveButton"
-                Click="SaveButton_Click"
-                Content="Save Image"
-                IsEnabled="False"/>
-        </StackPanel>
+                MinWidth="280"
+                Margin="0,0,10,0"/>
+            <StackPanel
+                x:Name="ButtonsPanel"
+                Grid.Column="1"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Spacing="10">
+                <Button 
+                    x:Name="GenerateButton" 
+                    Click="GenerateButton_Click"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Content="Generate" />
+                <Button
+                    x:Name="SaveButton"
+                    Click="SaveButton_Click"
+                    Content="Save Image"
+                    IsEnabled="False"/>
+            </StackPanel>
+        </Grid>
         <ContentDialog 
             x:Name="ErrorDialog" 
             Title="Error"
