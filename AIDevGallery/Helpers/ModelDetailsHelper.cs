@@ -33,12 +33,16 @@ internal static class ModelDetailsHelper
 
     public static ModelDetails GetModelDetailsFromApiDefinition(ModelType modelType, ApiDefinition apiDefinition)
     {
-        var hardwareAccelerator = HardwareAccelerator.WCRAPI;
+        List<HardwareAccelerator> hardwareAccelerators;
 
         // ACI is a subset of WCRAPIs but without the same set of hardware restrictions. Adding exception here.
         if (apiDefinition.Category == "App Content Search")
         {
-            hardwareAccelerator = HardwareAccelerator.ACI;
+            hardwareAccelerators = [HardwareAccelerator.WCRAPI, HardwareAccelerator.ACI];
+        }
+        else
+        {
+            hardwareAccelerators = [HardwareAccelerator.WCRAPI];
         }
 
         return new ModelDetails
@@ -46,7 +50,7 @@ internal static class ModelDetailsHelper
             Id = apiDefinition.Id,
             Icon = apiDefinition.Icon,
             Name = apiDefinition.Name,
-            HardwareAccelerators = [hardwareAccelerator],
+            HardwareAccelerators = hardwareAccelerators,
             IsUserAdded = false,
             SupportedOnQualcomm = true,
             ReadmeUrl = apiDefinition.ReadmeUrl,

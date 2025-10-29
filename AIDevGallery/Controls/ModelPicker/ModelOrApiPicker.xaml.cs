@@ -165,11 +165,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
             {
                 pickers.Add(ModelPickerDefinition.Definitions["winai"]);
             }
-
-            if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.ACI)))
-            {
-                pickers.Add(ModelPickerDefinition.Definitions["winai"]);
-            }
         }
 
         foreach (var def in pickers)
