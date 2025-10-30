@@ -96,7 +96,7 @@
                     <FontIcon
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="11"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE946;"
                         ToolTipService.ToolTip="AI-generated content might be incorrect, offensive, or biased." />
                     <TextBlock
@@ -104,7 +104,7 @@
                         Margin="0,-1,0,0"
                         VerticalAlignment="Center"
                         FontSize="10"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="AI-generated content might be incorrect, offensive, or biased."
                         TextAlignment="Center"
                         Visibility="Visible" />
