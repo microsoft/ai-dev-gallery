@@ -175,7 +175,7 @@
                                 Margin="8,16"
                                 FontFamily="Consolas"
                                 FontSize="14"
-                                Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
                                 IsTextSelectionEnabled="False"
                                 LineHeight="16" />
                         </ScrollViewer>
