@@ -178,7 +178,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -245,6 +245,12 @@
         "Instructions": "Select an image or video.",
         "Id": "detect-face",
         "Icon": "\uE8D4"
+      },
+      "RestyleImage": {
+        "Name": "Restyle Image",
+        "Description": "Restyle images from text.",
+        "Instructions": "Enter a prompt to restyle an image to restyle it then click 'Restyle' to restyle that image. Note: this may take a while.",
+        "Id": "restyle-image"
       }
     }
   },

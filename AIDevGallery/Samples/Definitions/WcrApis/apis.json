@@ -97,6 +97,28 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
+      },
+      "SDXL": {
+        "Id": "3127a6b2-57af-4594-bbf5-27609dd880c8",
+        "Name": "Generate Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE34D",
+        "Description": "Generate image with prompt.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "01b9a242-05bf-415a-ac25-9f74544a9c91",
+        "Category": "SDXL"
+      },
+      "RestyleImage": {
+        "Id": "dff41807-54db-4c0a-a684-31a90ba43ecf",
+        "Name": "Restyle Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEB9F",
+        "Description": "Restyle image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "4c8c5a49-1ba3-4381-8e30-6329666e9396",
+        "Category": "SDXL"
       }
     }
   }
