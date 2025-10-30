@@ -117,7 +117,7 @@
                         <TextBlock
                             x:Name="SampleDebugInfoButton"
                             FontSize="12"
-                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <Button.Flyout>
                             <Flyout>
                                 <TextBlock
