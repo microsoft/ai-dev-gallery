@@ -142,45 +142,27 @@ internal static class WinMLHelpers
     }
 
     /// <summary>
-    /// Determines whether EPContext compilation is supported for the specified execution provider
-    /// in the current runtime environment.
+    /// Determines whether model compilation should be surfaced based on device type.
     /// </summary>
-    /// <param name="epName">The execution provider name returned by ONNX Runtime (e.g., "DmlExecutionProvider").</param>
-    /// <param name="environment">Optional ORT environment; if null, the singleton instance is used.</param>
-    /// <returns>True if EPContext compilation is supported; otherwise, false.</returns>
-    public static bool IsCompileModelSupported(string? epName, OrtEnv? environment = null)
+    /// <param name="deviceType">Device type string (e.g., "CPU", "GPU", "NPU").</param>
+    /// <param name="environment">Unused; kept for signature stability if needed later.</param>
+    /// <returns>False for CPU; true for other known accelerator types.</returns>
+    public static bool IsCompileModelSupported(string? deviceType, OrtEnv? environment = null)
     {
-        if (string.IsNullOrWhiteSpace(epName))
+        if (string.IsNullOrWhiteSpace(deviceType))
         {
             return false;
         }
 
-        // CPU EP does not implement EPContext serialization/deserialization
-        if (string.Equals(epName, "CPU", StringComparison.OrdinalIgnoreCase))
+        // Do not allow compilation for CPU
+        if (string.Equals(deviceType, "CPU", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        // Known EPs that (in appropriate builds/drivers) can support EPContext compilation
-        // This is a conservative allow-list to avoid surfacing the option when unsupported.
-        HashSet<string> knownSupportingEps = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "DmlExecutionProvider",
-            "OpenVINOExecutionProvider",
-            "QNNExecutionProvider",
-            "VitisAIExecutionProvider",
-            "NvTensorRTRTXExecutionProvider",
-        };
-
-        if (!knownSupportingEps.Contains(epName))
-        {
-            return false;
-        }
-
-        // Verify the EP is present with at least one device on this machine
-        environment ??= OrtEnv.Instance();
-        var epMap = GetEpDeviceMap(environment);
-        return epMap.TryGetValue(epName, out var devices) && devices.Count > 0;
+        // Allow for accelerators (GPU/NPU). Additional filtering can be added if needed.
+        return string.Equals(deviceType, "GPU", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(deviceType, "NPU", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

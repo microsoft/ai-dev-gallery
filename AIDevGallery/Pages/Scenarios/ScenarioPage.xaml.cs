@@ -306,8 +306,6 @@ internal sealed partial class ScenarioPage : Page
             CompileModelCheckBox.IsChecked = options.CompileModel;
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
-
-            // Update compile model checkbox visibility based on selected EP
             UpdateCompileModelVisibility();
         }
 
@@ -490,7 +488,7 @@ internal sealed partial class ScenarioPage : Page
     private void UpdateCompileModelVisibility()
     {
         var device = DeviceComboBox.SelectedItem as WinMlEp;
-        bool supported = device != null && WinMLHelpers.IsCompileModelSupported(device.Name);
+        bool supported = device != null && WinMLHelpers.IsCompileModelSupported(device.DeviceType);
         CompileModelCheckBox.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
         if (!supported)
         {
