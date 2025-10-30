@@ -77,15 +77,43 @@ internal static class WinMLHelpers
 
         if (!File.Exists(compiledModelPath))
         {
-            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(compiledModelPath);
-            compilationOptions.CompileModel();
+            try
+            {
+                using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Model compilation failed for {device}: {ex.Message}");
+
+                // Clean up any empty or corrupted files that may have been created
+                if (File.Exists(compiledModelPath))
+                {
+                    try
+                    {
+                        File.Delete(compiledModelPath);
+                        Debug.WriteLine($"Deleted corrupted compiled model file: {compiledModelPath}");
+                    }
+                    catch
+                    {
+                        // Ignore deletion errors
+                    }
+                }
+
+                return null;
+            }
         }
 
+        // Validate that the compiled model file exists and is not empty
         if (File.Exists(compiledModelPath))
         {
-            return compiledModelPath;
+            var fileInfo = new FileInfo(compiledModelPath);
+            if (fileInfo.Length > 0)
+            {
+                return compiledModelPath;
+            }
         }
 
         return null;
