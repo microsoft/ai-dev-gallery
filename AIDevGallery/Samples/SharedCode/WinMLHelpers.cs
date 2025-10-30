@@ -154,13 +154,11 @@ internal static class WinMLHelpers
             return false;
         }
 
-        // Do not allow compilation for CPU
         if (string.Equals(deviceType, "CPU", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        // Allow for accelerators (GPU/NPU). Additional filtering can be added if needed.
         return string.Equals(deviceType, "GPU", StringComparison.OrdinalIgnoreCase)
             || string.Equals(deviceType, "NPU", StringComparison.OrdinalIgnoreCase);
     }
