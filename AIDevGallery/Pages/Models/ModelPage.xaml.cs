@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -302,14 +303,71 @@ internal sealed partial class ModelPage : Page
 
     private void MarkdownTextBlock_OnLinkClicked(object sender, CommunityToolkit.Labs.WinUI.MarkdownTextBlock.LinkClickedEventArgs e)
     {
-        string link = e.Url;
+        string? raw = e?.Url?.Trim();
 
-        ModelDetailsLinkClickedEvent.Log(link);
-        Process.Start(new ProcessStartInfo()
+        ModelDetailsLinkClickedEvent.Log(raw ?? "<null>");
+        if (!TryNormalizeSupportedUri(raw, out var uri, out var errorMessage))
         {
-            FileName = link,
-            UseShellExecute = true
-        });
+            ShowDialog(message: errorMessage);
+            return;
+        }
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = uri.AbsoluteUri,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+        }
+        catch (Exception ex) when (ex is Win32Exception
+                                || ex is InvalidOperationException
+                                || ex is PlatformNotSupportedException)
+        {
+            ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
+            ShowDialog(message: errorMessage);
+        }
+    }
+
+    private async void ShowDialog(string? message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Tips",
+            Content = message,
+            CloseButtonText = "ok",
+            XamlRoot = this.XamlRoot
+        };
+
+        await dialog.ShowAsync();
+    }
+
+    private static bool TryNormalizeSupportedUri(string? input, out Uri uri, out string? error)
+    {
+        uri = null!;
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            error = "Link is null";
+            return false;
+        }
+
+        if (!Uri.TryCreate(input, UriKind.Absolute, out var u))
+        {
+            error = "Link error";
+            return false;
+        }
+
+        if (u.Scheme != Uri.UriSchemeHttp && u.Scheme != Uri.UriSchemeHttps)
+        {
+            error = $"Unsupport type: {u.Scheme}";
+            return false;
+        }
+
+        uri = u;
+        return true;
     }
 
     private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
