@@ -11,9 +11,15 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 
 /*
 using Windows.ApplicationModel;
@@ -106,18 +112,24 @@ internal sealed partial class SDXL : BaseSamplePage
         GeneratedImage.Source = null;
         GenerateButton.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Visible;
+        CopyButton.Visibility = Visibility.Collapsed;
+        SaveButton.Visibility = Visibility.Collapsed;
         IsProgressVisible = true;
         InputTextBox.IsEnabled = false;
-        var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
-        SendSampleInteractedEvent("GenerateText"); // <exclude-line>
+        ImageFromTextGenerationOptions imageFromTextGenerationOption = new()
+        {
+            Style = ColoringBookCheck.IsChecked == true ? ImageFromTextGenerationStyle.ColoringBook : ImageFromTextGenerationStyle.Default
+        };
+
+        SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
         IsProgressVisible = true;
         _cts = new CancellationTokenSource();
+
         _generationTask = Task.Run(() =>
         {
-            var result = _imageModel?.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions());
-            return result;
+            return _imageModel?.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions(), imageFromTextGenerationOption);
         });
 
         var result = await _generationTask;
@@ -137,11 +149,14 @@ internal sealed partial class SDXL : BaseSamplePage
 
         var softwareBitmap = result.Image.CopyToSoftwareBitmap();
         var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        if (softwareBitmap != null)
+        if (convertedImage != null)
         {
             var source = new SoftwareBitmapSource();
             await source.SetBitmapAsync(convertedImage);
             GeneratedImage.Source = source;
+            NarratorHelper.AnnounceImageChanged(GeneratedImage, "Generated image has been updated."); // <exclude-line>
+            CopyButton.Visibility = Visibility.Visible;
+            SaveButton.Visibility = Visibility.Visible;
         }
         else
         {
@@ -210,6 +225,69 @@ internal sealed partial class SDXL : BaseSamplePage
         {
             InputTextBox.Description = string.Empty;
             GenerateButton.IsEnabled = false;
+        }
+    }
+
+    private async void Copy_Click(object sender, RoutedEventArgs e)
+    {
+        if (GeneratedImage.Source == null)
+        {
+            return;
+        }
+
+        SendSampleInteractedEvent("CopyImage"); // <exclude-line>
+
+        try
+        {
+            RenderTargetBitmap renderTargetBitmap = new();
+            await renderTargetBitmap.RenderAsync(GeneratedImage);
+
+            var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
+            byte[] pixels = pixelBuffer.ToArray();
+
+            using InMemoryRandomAccessStream stream = new();
+            BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, stream);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, (uint)renderTargetBitmap.PixelWidth, (uint)renderTargetBitmap.PixelHeight, 96, 96, pixels);
+            await encoder.FlushAsync();
+            stream.Seek(0);
+
+            var dataPackage = new DataPackage();
+            dataPackage.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+            Clipboard.SetContent(dataPackage);
+            Clipboard.Flush();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to copy image to clipboard.");
+        }
+    }
+
+    private async void Save_Click(object sender, RoutedEventArgs e)
+    {
+        nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(new Window());
+        FileSavePicker picker = new()
+        {
+            SuggestedStartLocation = PickerLocationId.PicturesLibrary
+        };
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.SuggestedFileName = "image.png";
+        picker.FileTypeChoices.Add("PNG", new List<string> { ".png" });
+
+        StorageFile file = await picker.PickSaveFileAsync();
+
+        if (file != null && GeneratedImage.Source != null)
+        {
+            SendSampleInteractedEvent("SaveFile"); // <exclude-line>
+            RenderTargetBitmap renderTargetBitmap = new();
+            await renderTargetBitmap.RenderAsync(GeneratedImage);
+
+            var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
+            byte[] pixels = pixelBuffer.ToArray();
+
+            using IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite);
+            BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, fileStream);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, (uint)renderTargetBitmap.PixelWidth, (uint)renderTargetBitmap.PixelHeight, 96, 96, pixels);
+            await encoder.FlushAsync();
         }
     }
 }
