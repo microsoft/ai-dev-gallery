@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIDevGallery.Pages;
 
@@ -305,9 +306,9 @@ internal sealed partial class ModelPage : Page
     {
         string? raw = e?.Url?.Trim();
 
-        ModelDetailsLinkClickedEvent.Log(raw ?? "<null>");
         if (!TryNormalizeSupportedUri(raw, out var uri, out var errorMessage))
         {
+            ModelDetailsLinkClickedEvent.Log(errorMessage);
             ShowDialog(message: errorMessage);
             return;
         }
