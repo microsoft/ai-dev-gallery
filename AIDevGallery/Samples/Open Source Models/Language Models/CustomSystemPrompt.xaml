@@ -35,7 +35,7 @@
                         Header="Query"
                         PlaceholderText="Enter a query to the model for a response.."
                         TextChanged="InputBox_Changed" TextWrapping="Wrap" />
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
+                <StackPanel HorizontalAlignment="Right" Orientation="Vertical"
                         Spacing="8">
                     <Button x:Name="GenerateButton" Grid.Row="2" MinWidth="86"
                             HorizontalAlignment="Right" Click="GenerateButton_Click"
