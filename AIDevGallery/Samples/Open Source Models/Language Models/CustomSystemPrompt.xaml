@@ -22,7 +22,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="286" />
             </Grid.ColumnDefinitions>
-
             <StackPanel Orientation="Vertical" Spacing="12">
                 <TextBox x:Name="SystemPromptInputTextBox" Grid.Row="0" MinHeight="96"
                         MaxHeight="300" AcceptsReturn="True"
@@ -36,17 +35,13 @@
                         Header="Query"
                         PlaceholderText="Enter a query to the model for a response.."
                         TextChanged="InputBox_Changed" TextWrapping="Wrap" />
-                <StackPanel
-                    x:Name="ButtonsPanel"
-                    HorizontalAlignment="Right"
-                    Orientation="Vertical"
-                    Grid.Column="1"
-                    Spacing="8">
-                    <Button x:Name="GenerateButton" MinWidth="86"
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
+                        Spacing="8">
+                    <Button x:Name="GenerateButton" Grid.Row="2" MinWidth="86"
                             HorizontalAlignment="Right" Click="GenerateButton_Click"
                             Content="Generate" IsEnabled="False"
                             Style="{StaticResource AccentButtonStyle}" />
-                    <Button x:Name="StopBtn" MinWidth="86"
+                    <Button x:Name="StopBtn" Grid.Row="2" MinWidth="86"
                             HorizontalAlignment="Right" AutomationProperties.Name="Stop"
                             Click="StopBtn_Click"
                             Style="{ThemeResource AccentButtonStyle}"
@@ -60,7 +55,7 @@
                             <TextBlock Text="Stop" />
                         </StackPanel>
                     </Button>
-                    <Button x:Name="ResetButton" MinWidth="86"
+                    <Button x:Name="ResetButton" Grid.Row="1" MinWidth="86"
                             HorizontalAlignment="Right" Click="ResetButton_Click"
                             Content="Reset to defaults" />
                 </StackPanel>
