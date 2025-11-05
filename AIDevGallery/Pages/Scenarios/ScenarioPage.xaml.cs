@@ -169,11 +169,7 @@ internal sealed partial class ScenarioPage : Page
                     break;
 
                 case "DmlExecutionProvider":
-                    if (epDeviceTypes.Contains("GPU"))
-                    {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
-                    }
-
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
                     break;
 
                 case "NvTensorRTRTXExecutionProvider":
