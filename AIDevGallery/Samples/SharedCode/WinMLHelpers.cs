@@ -54,20 +54,7 @@ internal static class WinMLHelpers
 
     public static string? GetCompiledModel(this SessionOptions sessionOptions, string modelPath, string device)
     {
-        // NOTE: Skip compilation for the CPU execution provider.
-        // Rationale:
-        // - EPContext is an EP-specific offline-compiled/partitioned graph artifact that requires the
-        //   execution provider to implement serialization/deserialization of its optimized graph.
-        // - ONNX Runtime's CPU EP does NOT implement EPContext model generation or loading. Invoking
-        //   OrtModelCompilationOptions.CompileModel() for CPU attempts to emit a "*.CPU.onnx" EPContext
-        //   artifact, which fails (commonly with InvalidProtobuf) because no EPContext is produced/understood
-        //   by the CPU EP.
-        // Behavior:
-        // - For CPU, we return null here so callers fall back to the original ONNX model without attempting
-        //   EPContext compilation.
-        // - Other EPs (e.g., DirectML, OpenVINO, QNN) may support EPContext depending on the ORT build,
-        //   platform drivers, and hardware; for those we allow compilation to proceed.
-        if (string.Equals(device, "CPU", StringComparison.OrdinalIgnoreCase))
+        if (IsCompileModelSupported(device) == false)
         {
             return null;
         }
@@ -144,15 +131,26 @@ internal static class WinMLHelpers
     /// Determines whether model compilation should be surfaced based on device type.
     /// </summary>
     /// <param name="deviceType">Device type string (e.g., "CPU", "GPU", "NPU").</param>
-    /// <param name="environment">Unused; kept for signature stability if needed later.</param>
     /// <returns>False for CPU; true for other known accelerator types.</returns>
-    public static bool IsCompileModelSupported(string? deviceType, OrtEnv? environment = null)
+    public static bool IsCompileModelSupported(string? deviceType)
     {
         if (string.IsNullOrWhiteSpace(deviceType))
         {
             return false;
         }
 
+        // NOTE: Skip compilation for the CPU execution provider.
+        // - EPContext is an EP-specific offline-compiled/partitioned graph artifact that requires the
+        //   execution provider to implement serialization/deserialization of its optimized graph.
+        // - ONNX Runtime's CPU EP does NOT implement EPContext model generation or loading. Invoking
+        //   OrtModelCompilationOptions.CompileModel() for CPU attempts to emit a "*.CPU.onnx" EPContext
+        //   artifact, which fails (commonly with InvalidProtobuf) because no EPContext is produced/understood
+        //   by the CPU EP.
+        // Behavior:
+        // - For CPU, we return null here so callers fall back to the original ONNX model without attempting
+        //   EPContext compilation.
+        // - Other EPs (e.g., DirectML, OpenVINO, QNN) may support EPContext depending on the ORT build,
+        //   platform drivers, and hardware; for those we allow compilation to proceed.
         if (string.Equals(deviceType, "CPU", StringComparison.OrdinalIgnoreCase))
         {
             return false;
