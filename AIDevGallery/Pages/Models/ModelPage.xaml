@@ -78,7 +78,7 @@
             Margin="-16,8,-16,-16"
             Padding="16,0,16,16"
             VerticalAlignment="Stretch"
-            VerticalScrollBarVisibility="Disabled">
+            IsVerticalScrollChainingEnabled="True">
             <Grid
                 x:Name="ContentGrid"
                 ColumnSpacing="16"
@@ -119,6 +119,8 @@
                     </controls:Card.TitleContent>
                     <Grid>
                         <ScrollViewer
+                            VerticalAlignment="Stretch"
+                            VerticalScrollBarVisibility="Auto"
                             Grid.Row="2"
                             Margin="-16"
                             Padding="20,12,20,0">
@@ -134,8 +136,8 @@
                             </toolkit2:MarkdownTextBlock>
                         </ScrollViewer>
                         <ProgressRing
-                            x:Name="readmeProgressRing"
                             Grid.Row="2"
+                            x:Name="readmeProgressRing"
                             IsActive="True" />
                     </Grid>
                 </controls:Card>
