@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
@@ -21,6 +22,15 @@ using Windows.ApplicationModel;
 */
 
 namespace AIDevGallery.Samples.WCRAPIs;
+[GallerySample(
+    Name = "Generate with Phi Silica with Adapter",
+    Model1Types = [ModelType.PhiSilicaLora],
+    Id = "3e392b7f-02a8-45e0-bed1-f75186368f12",
+    Scenario = ScenarioType.TextLoRAAdapters,
+    NugetPackageReferences = [
+        "Microsoft.Extensions.AI"
+    ],
+    Icon = "\uEE6F")]
 
 internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 {
