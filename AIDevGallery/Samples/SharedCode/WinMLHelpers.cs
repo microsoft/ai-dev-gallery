@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -162,5 +161,4 @@ internal static class WinMLHelpers
         return string.Equals(deviceType, "GPU", StringComparison.OrdinalIgnoreCase)
             || string.Equals(deviceType, "NPU", StringComparison.OrdinalIgnoreCase);
     }
-
 }
