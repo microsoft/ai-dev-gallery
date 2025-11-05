@@ -56,6 +56,9 @@ internal static class WcrApiHelpers
         {
             ModelType.RestyleImage, ImageGenerator.GetReadyState
         },
+        {
+            ModelType.ColoringBook, ImageGenerator.GetReadyState
+        },
     };
 
     public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
@@ -92,6 +95,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.RestyleImage, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
         },
     };
 

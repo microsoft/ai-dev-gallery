@@ -117,7 +117,18 @@
         "Description": "Restyle image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "4c8c5a49-1ba3-4381-8e30-6329666e9396",
+        "SampleIdToShowInDocs": "a335a19a-2f78-4f68-b5e9-982e7da13b72",
+        "Category": "SDXL"
+      },
+      "ColoringBook": {
+        "Id": "f2bb8273-d617-43df-9d80-7189654653f8",
+        "Name": "Coloring book",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEB9F",
+        "Description": "Coloring Book.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "ab877fc9-b183-47be-aac5-fac2c4ab8940",
         "Category": "SDXL"
       }
     }
