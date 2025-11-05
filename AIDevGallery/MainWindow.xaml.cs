@@ -52,11 +52,14 @@ internal sealed partial class MainWindow : WindowEx
             }
         };
 
-        // Load AppContentIndexer
-        Task.Run(async () =>
+        if (App.AppData.IsAppContentSearchEnabled)
         {
-            LoadAppSearchIndex();
-        });
+            Task.Run(async () =>
+            {
+                // Load AppContentSearch
+                LoadAppSearchIndex();
+            });
+        }
 
         App.AppData.PropertyChanged += AppData_PropertyChanged;
     }
@@ -93,7 +96,11 @@ internal sealed partial class MainWindow : WindowEx
         {
             if (App.AppData.IsAppContentSearchEnabled)
             {
-                LoadAppSearchIndex();
+                Task.Run(async () =>
+                {
+                    // Load AppContentSearch
+                    LoadAppSearchIndex();
+                });
             }
             else
             {
