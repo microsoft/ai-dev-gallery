@@ -110,36 +110,36 @@
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       },
       "SemanticSearch": {
-        "Id": "F8465A45-8E23-4485-8C16-9909E96EACF6",
+        "Id": "f8465a45-8e23-4485-8c16-9909e96eacf6",
         "Name": "Lexical & Semantic Search",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uED37",
         "Description": "Search image and text by semantic meaning.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "F8465A45-8E23-4485-8C16-9909E96EACF6",
+        "SampleIdToShowInDocs": "f8465a45-8e23-4485-8c16-9909e96eacf6",
         "Category": "App Content Search"
       },
       "KnowledgeRetrieval": {
-        "Id": "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+        "Id": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
         "Name": "Retrieval Augmented Generation (RAG)",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEAB7",
         "Description": "Enhance language model responses with local knowledge retrieval.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+        "SampleIdToShowInDocs": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
         "Category": "App Content Search"
       },
       "AppIndexCapability": {
-        "Id": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
+        "Id": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
         "Name": "Index Capabilities",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uEDA2",
         "Description": "Get system and index capabilities for App Content Search.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/semantic-search.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
+        "SampleIdToShowInDocs": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
         "Category": "App Content Search"
       }
     }
