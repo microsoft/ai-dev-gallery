@@ -124,7 +124,7 @@
         "Id": "f2bb8273-d617-43df-9d80-7189654653f8",
         "Name": "Coloring book",
         "Icon": "WCRAPI.svg",
-        "IconGlyph": "\uEB9F",
+        "IconGlyph": "\uEF6B",
         "Description": "Coloring Book.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",

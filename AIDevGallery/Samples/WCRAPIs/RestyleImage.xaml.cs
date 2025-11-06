@@ -143,15 +143,18 @@ internal sealed partial class RestyleImage : BaseSamplePage
         using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(_inputBitmap);
         SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
-        IsProgressVisible = true;
         _cts = new CancellationTokenSource();
 
-        _generationTask = Task.Run(() =>
-        {
-            return _imageModel?.GenerateImageFromImageBuffer(inputBuffer, prompt, new ImageGenerationOptions(), imageFromImageGenerationOption);
-        });
+        _generationTask = Task.Run(
+            () => _imageModel?.GenerateImageFromImageBuffer(inputBuffer, prompt, new ImageGenerationOptions(), imageFromImageGenerationOption),
+            _cts.Token);
 
         var result = await _generationTask;
+        if (_cts.Token.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (result?.Status != ImageGeneratorResultStatus.Success)
         {
             if (result?.Status == ImageGeneratorResultStatus.TextBlockedByContentModeration)

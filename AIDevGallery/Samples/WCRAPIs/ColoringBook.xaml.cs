@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
@@ -13,10 +14,12 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
+using OpenAI.Images;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
@@ -39,11 +42,13 @@ namespace AIDevGallery.Samples.WCRAPIs;
 internal sealed partial class ColoringBook : BaseSamplePage
 {
     private const int MaxLength = 1000;
+    private const int FloodFillTolerance = 25;
+    private readonly Stack<SoftwareBitmap> _bitmaps = new();
     private SoftwareBitmap? _inputBitmap;
     private ImageGenerator? _generator;
-    private ImageObjectExtractor? _extractor;
-    private Stack<SoftwareBitmap> _bitmaps = new();
-    private List<PointInt32> _selectionPoints = new();
+    private PointInt32? _selectionPoint;
+    private CancellationTokenSource? _cts;
+    private bool _isProgressVisible;
 
     public ColoringBook()
     {
@@ -52,24 +57,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        var readyState = ImageObjectExtractor.GetReadyState();
-        if (readyState is AIFeatureReadyState.NotSupportedOnCurrentSystem or AIFeatureReadyState.DisabledByUser)
-        {
-            ShowException(null, "Extractor not available in this system");
-            return;
-        }
-
-        if (readyState == AIFeatureReadyState.NotReady)
-        {
-            var operation = await ImageObjectExtractor.EnsureReadyAsync();
-
-            if (operation.Status != AIFeatureReadyResultState.Success)
-            {
-                ShowException(null, "Image Extractor is not available.");
-            }
-        }
-
-        readyState = ImageGenerator.GetReadyState();
+        var readyState = ImageGenerator.GetReadyState();
         if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {
             if (readyState == AIFeatureReadyState.NotReady)
@@ -103,6 +91,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
         using var stream = await file.OpenReadAsync();
         await SetImage(stream);
         DrawPoint(880, 435);
+        await ChangeImage();
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -175,38 +164,85 @@ internal sealed partial class ColoringBook : BaseSamplePage
             return;
         }
 
-        await SetImageSource(CanvasImage, _inputBitmap);
-        ClearSelectionPoints();
+        SetImageSource(_inputBitmap);
+        ClearSelectionPoint();
         SwitchInputOutputView();
     }
 
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
+    private void SetImageSource(SoftwareBitmap softwareBitmap)
     {
-        var bitmapSource = new SoftwareBitmapSource();
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            var bitmapSource = new SoftwareBitmapSource();
 
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        CanvasImage.Source = bitmapSource;
+            // This conversion ensures that the image is Bgra8 and Premultiplied
+            SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+            await bitmapSource.SetBitmapAsync(convertedImage);
+            CanvasImage.Source = bitmapSource;
+        });
     }
 
     private async void ChangeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_inputBitmap == null)
+        await ChangeImage();
+    }
+
+    private async Task ChangeImage()
+    {
+        if (_inputBitmap == null || _selectionPoint == null)
         {
             return;
         }
 
-        var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
-        if (outputBitmap != null)
+        ChangeButton.Visibility = Visibility.Collapsed;
+        StopBtn.Visibility = Visibility.Visible;
+        IsProgressVisible = true;
+        InputTextBox.IsEnabled = false;
+        _cts = new CancellationTokenSource();
+        var prompt = InputTextBox.Text;
+
+        await Task.Run(
+            () =>
+            {
+                SoftwareBitmap? mask = CreateFloodFillMask(_inputBitmap!, _selectionPoint.Value, FloodFillTolerance);
+                if (mask == null)
+                {
+                    ShowException(null, "Failed to create flood fill mask");
+                    return;
+                }
+
+                var outputBitmap = ApplyMaskWithPrompt(prompt, _inputBitmap, mask);
+                if (_cts!.Token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (outputBitmap != null)
+                {
+                    SetImageSource(outputBitmap);
+                    _bitmaps.Push(_inputBitmap);
+                    _inputBitmap = outputBitmap;
+                    SwitchInputOutputView();
+                }
+            },
+            _cts.Token);
+
+        StopBtn.Visibility = Visibility.Collapsed;
+        ChangeButton.Visibility = Visibility.Visible;
+        InputTextBox.IsEnabled = true;
+
+        if (!_cts!.Token.IsCancellationRequested)
         {
-            await SetImageSource(CanvasImage, outputBitmap);
+            ClearSelectionPoint();
         }
+
+        _cts?.Dispose();
+        _cts = null;
     }
 
     private void CanvasImage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (_inputBitmap == null || _selectionPoints.Count >= 32)
+        if (_inputBitmap == null)
         {
             return;
         }
@@ -220,15 +256,13 @@ internal sealed partial class ColoringBook : BaseSamplePage
 
         var x = (int)(canvasX / ratioX);
         var y = (int)(canvasY / ratioY);
+        DrawCanvas.Children.Clear();
         DrawPoint(x, y);
     }
 
-    private void DrawPoint(int x, int y, bool doAdd = true)
+    private void DrawPoint(int x, int y)
     {
-        if (doAdd)
-        {
-            _selectionPoints.Add(new PointInt32(x, y));
-        }
+        _selectionPoint = new PointInt32(x, y);
 
         var canvasX = x * CanvasImage.ActualWidth / _inputBitmap!.PixelWidth;
         var canvasY = y * CanvasImage.ActualHeight / _inputBitmap!.PixelHeight;
@@ -240,34 +274,17 @@ internal sealed partial class ColoringBook : BaseSamplePage
         DrawCanvas.Children.Add(ellipse);
     }
 
-    private SoftwareBitmap CreateMaskFromRect(int width, int height, RectInt32 rect)
-    {
-        byte[] bitmapBuffer = new byte[width * height]; // Gray image hence 1-Byte per pixel.
-
-        for (var row = rect.Y; row < rect.Y + rect.Height; row++)
-        {
-            for (var col = rect.X; col < rect.X + rect.Width; col++)
-            {
-                bitmapBuffer[row * width + col] = 255;
-            }
-        }
-
-        SoftwareBitmap bitmap = new SoftwareBitmap(BitmapPixelFormat.Gray8, width, height, BitmapAlphaMode.Ignore);
-        bitmap.CopyFromBuffer(bitmapBuffer.AsBuffer());
-        return bitmap;
-    }
-
     private void SwitchInputOutputView()
     {
-        RevertButton.Visibility = _bitmaps.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        DispatcherQueue.TryEnqueue(() => RevertButton.Visibility = _bitmaps.Count == 0 ? Visibility.Collapsed : Visibility.Visible);
     }
 
-    private async void RevertButton_Click(object sender, RoutedEventArgs e)
+    private void RevertButton_Click(object sender, RoutedEventArgs e)
     {
         if (_bitmaps.Count > 0)
         {
             _inputBitmap = _bitmaps.Pop();
-            await SetImageSource(CanvasImage, _inputBitmap);
+            SetImageSource(_inputBitmap);
         }
 
         SwitchInputOutputView();
@@ -275,12 +292,12 @@ internal sealed partial class ColoringBook : BaseSamplePage
 
     private void ClearSelectionButton_Click(object sender, RoutedEventArgs e)
     {
-        ClearSelectionPoints();
+        ClearSelectionPoint();
     }
 
-    private void ClearSelectionPoints()
+    private void ClearSelectionPoint()
     {
-        _selectionPoints.Clear();
+        _selectionPoint = null;
         DrawCanvas.Children.Clear();
         ClearSelectionButton.IsEnabled = false;
         ChangeButton.IsEnabled = false;
@@ -288,21 +305,9 @@ internal sealed partial class ColoringBook : BaseSamplePage
 
     private void CanvasImage_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        DrawCanvas.Children.Clear();
-        foreach (var point in _selectionPoints)
+        if (_selectionPoint != null)
         {
-            DrawPoint(point.X, point.Y, false);
-        }
-    }
-
-    private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
-        {
-            if (InputTextBox.Text.Length > 0)
-            {
-                // _ = GenerateImage(InputTextBox.Text);
-            }
+            DrawPoint(_selectionPoint.Value.X, _selectionPoint.Value.Y);
         }
     }
 
@@ -315,7 +320,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
                 $"{inputLength} of {MaxLength}. Max characters reached." :
                 $"{inputLength} of {MaxLength}";
 
-            ChangeButton.IsEnabled = inputLength <= MaxLength && _selectionPoints.Count > 0;
+            ChangeButton.IsEnabled = inputLength <= MaxLength && _selectionPoint != null;
         }
         else
         {
@@ -324,18 +329,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
         }
     }
 
-    private async Task<SoftwareBitmap?> ExtractBackground(SoftwareBitmap bitmap, IList<PointInt32> includePoints)
-    {
-        if (_inputBitmap == null)
-        {
-            return null;
-        }
-        var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
-        var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
-        return ApplyMask(bitmap, mask);
-    }
-
-    private SoftwareBitmap? ApplyMask(SoftwareBitmap inputBitmap, SoftwareBitmap grayMask)
+    private SoftwareBitmap? ApplyMaskWithPrompt(string prompt, SoftwareBitmap inputBitmap, SoftwareBitmap grayMask)
     {
         if (_generator == null)
         {
@@ -350,7 +344,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
         using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(inputBitmap);
         using var mask = ImageBuffer.CreateForSoftwareBitmap(grayMask);
 
-        var result = _generator!.GenerateImageFromImageBufferAndMask(inputBuffer, mask, InputTextBox.Text, new Microsoft.Windows.AI.Imaging.ImageGenerationOptions());
+        var result = _generator!.GenerateImageFromImageBufferAndMask(inputBuffer, mask, prompt, new Microsoft.Windows.AI.Imaging.ImageGenerationOptions() { Creativity = 0 });
         if (result.Status != ImageGeneratorResultStatus.Success)
         {
             if (result.Status == ImageGeneratorResultStatus.TextBlockedByContentModeration)
@@ -367,5 +361,106 @@ internal sealed partial class ColoringBook : BaseSamplePage
 
         var softwareBitmap = result.Image.CopyToSoftwareBitmap();
         return softwareBitmap;
+    }
+
+    private SoftwareBitmap? CreateFloodFillMask(SoftwareBitmap source, PointInt32 seed, int tolerance)
+    {
+        if (source.BitmapPixelFormat != BitmapPixelFormat.Bgra8)
+        {
+            // Convert if necessary
+            source = SoftwareBitmap.Convert(source, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        }
+
+        int width = source.PixelWidth;
+        int height = source.PixelHeight;
+        if (seed.X < 0 || seed.X >= width || seed.Y < 0 || seed.Y >= height)
+        {
+            return null;
+        }
+
+        byte[] pixelBuffer = new byte[4 * width * height];
+        source.CopyToBuffer(pixelBuffer.AsBuffer());
+
+        int seedIndex = (seed.Y * width + seed.X) * 4;
+        byte seedB = pixelBuffer[seedIndex + 0];
+        byte seedG = pixelBuffer[seedIndex + 1];
+        byte seedR = pixelBuffer[seedIndex + 2];
+
+        byte[] mask = new byte[width * height];
+        bool[] visited = new bool[width * height];
+
+        Queue<PointInt32> q = new();
+        q.Enqueue(seed);
+        visited[seed.Y * width + seed.X] = true;
+        mask[seed.Y * width + seed.X] = 255;
+
+        int[] dx = [1, -1, 0, 0];
+        int[] dy = [0, 0, 1, -1];
+
+        while (q.Count > 0)
+        {
+            var p = q.Dequeue();
+            for (int i = 0; i < 4; i++)
+            {
+                int nx = p.X + dx[i];
+                int ny = p.Y + dy[i];
+                if (nx < 0 || nx >= width || ny < 0 || ny >= height)
+                {
+                    continue;
+                }
+
+                int linear = ny * width + nx;
+                if (visited[linear])
+                {
+                    continue;
+                }
+
+                int idx = linear * 4;
+                byte b = pixelBuffer[idx + 0];
+                byte g = pixelBuffer[idx + 1];
+                byte r = pixelBuffer[idx + 2];
+
+                // Per-channel tolerance
+                if (Math.Abs(r - seedR) <= tolerance &&
+                    Math.Abs(g - seedG) <= tolerance &&
+                    Math.Abs(b - seedB) <= tolerance)
+                {
+                    visited[linear] = true;
+                    mask[linear] = 255;
+                    q.Enqueue(new PointInt32(nx, ny));
+                }
+                else
+                {
+                    visited[linear] = true;
+                }
+            }
+        }
+
+        var grayMask = new SoftwareBitmap(BitmapPixelFormat.Gray8, width, height, BitmapAlphaMode.Ignore);
+        grayMask.CopyFromBuffer(mask.AsBuffer());
+        return grayMask;
+    }
+
+    public bool IsProgressVisible
+    {
+        get => _isProgressVisible;
+        set
+        {
+            _isProgressVisible = value;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                OutputProgressBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+                StopIcon.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
+            });
+        }
+    }
+
+    private void StopBtn_Click(object sender, RoutedEventArgs e)
+    {
+        StopBtn.Visibility = Visibility.Collapsed;
+        IsProgressVisible = false;
+        ChangeButton.Visibility = Visibility.Visible;
+        InputTextBox.IsEnabled = true;
+        _cts?.Cancel();
     }
 }

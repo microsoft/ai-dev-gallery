@@ -20,7 +20,6 @@
             <TextBox x:Name="InputTextBox" Margin="0,0,100,0"
                      AutomationProperties.Name="Prompt input"
                      Description=" "
-                     KeyUp="TextBox_KeyUp"
                      PlaceholderText="Enter a prompt to generate image.."
                      Text="Red cup"
                      TextChanged="InputBox_Changed" />
@@ -30,6 +29,28 @@
                     Content="Change"
                     IsEnabled="False"
                     Style="{ThemeResource AccentButtonStyle}" />
+            <Button HorizontalAlignment="Right" Margin="0,0,0,18"
+                    x:Name="StopBtn"
+                    MinWidth="86"
+                    AutomationProperties.Name="Stop"
+                    Click="StopBtn_Click"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon
+                            x:Name="StopIcon"
+                            FontSize="16"
+                            Glyph="&#xE73B;" />
+                    <ProgressRing
+                            x:Name="OutputProgressBar"
+                            Width="16"
+                            Height="16"
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            IsIndeterminate="True"
+                            Visibility="Collapsed" />
+                    <TextBlock Text="Stop" />
+                </StackPanel>
+            </Button>
         </Grid>
         <Grid Grid.Row="1"
             MinWidth="240"

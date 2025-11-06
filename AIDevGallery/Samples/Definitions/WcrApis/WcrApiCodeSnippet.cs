@@ -356,6 +356,50 @@ internal static class WcrApiCodeSnippet
                 }
             }
             """""
+        },
+        {
+            ModelType.ColoringBook, """""
+            using Microsoft.Graphics.Imaging;
+            using Microsoft.Windows.AI.Imaging;
+            using Microsoft.Windows.AI;
+
+            var readyState = ImageGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageGenerator.EnsureReadyAsync();
+                }
+
+                ImageGenerator imageGenerator = await ImageGenerator.CreateAsync();
+                
+                using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(softwareBitmap);
+
+                var result = imageGenerator.GenerateImageFromImageBufferAndMask(prompt, inputImage, inputMask, 
+                    new ImageGenerationOptions());
+                if (result.Status == ImageGeneratorResultStatus.Success)
+                {
+                    var imageBuffer = result.Image;
+                    var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
+                    var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
+                            BitmapAlphaMode.Premultiplied);
+                    if (softwareBitmap != null)
+                    {
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(convertedImage);
+                        var finalImage = source;
+                    }
+                    else
+                    {
+                        Console.WriteLine(null, "Failed to convert the image.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Image generation failed with status: {result.Status}");
+                }
+            }
+            """""
         }
     };
 }

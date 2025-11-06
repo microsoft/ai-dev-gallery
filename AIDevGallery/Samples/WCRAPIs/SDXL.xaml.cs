@@ -40,7 +40,7 @@ internal sealed partial class SDXL : BaseSamplePage
 {
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
-    private ImageGenerator? _imageModel;
+    private ImageGenerator? _generator;
     private CancellationTokenSource? _cts;
     private Task<ImageGeneratorResult?>? _generationTask;
 
@@ -66,7 +66,7 @@ internal sealed partial class SDXL : BaseSamplePage
                 }
             }
 
-            _imageModel ??= await ImageGenerator.CreateAsync();
+            _generator ??= await ImageGenerator.CreateAsync();
             _ = GenerateImage(InputTextBox.Text);
         }
         else
@@ -90,7 +90,7 @@ internal sealed partial class SDXL : BaseSamplePage
     private void CleanUp()
     {
         CancelGeneration();
-        _imageModel?.Dispose();
+        _generator?.Dispose();
     }
 
     public bool IsProgressVisible
@@ -127,12 +127,16 @@ internal sealed partial class SDXL : BaseSamplePage
         IsProgressVisible = true;
         _cts = new CancellationTokenSource();
 
-        _generationTask = Task.Run(() =>
-        {
-            return _imageModel?.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions(), imageFromTextGenerationOption);
-        });
+        _generationTask = Task.Run(
+            () => _generator?.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions(), imageFromTextGenerationOption),
+            _cts.Token);
 
         var result = await _generationTask;
+        if (_cts.Token.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (result?.Status != ImageGeneratorResultStatus.Success)
         {
             if (result?.Status == ImageGeneratorResultStatus.TextBlockedByContentModeration)
