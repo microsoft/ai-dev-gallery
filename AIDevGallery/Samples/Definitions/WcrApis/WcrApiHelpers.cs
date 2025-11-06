@@ -6,6 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
+using Microsoft.Windows.AI.Video;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -49,6 +50,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
     };
 
@@ -80,6 +84,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
         }
     };
 

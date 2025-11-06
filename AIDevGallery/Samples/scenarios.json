@@ -273,6 +273,13 @@
         "Instructions": "Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio translated to English and transcribed.",
         "Id": "translate-audio",
         "Icon": "\uF2B7"
+      },
+      "VideoSuperResolution": {
+        "Name": "Video Super Resolution",
+        "Description": "Enhance video quality in real-time with super resolution.",
+        "Instructions": "Start the camera to see real-time video enhancement with super resolution processing.",
+        "Id": "video-super-resolution",
+        "Icon": "\uE714"
       }
     }
   }

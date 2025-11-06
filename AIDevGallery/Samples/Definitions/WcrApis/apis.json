@@ -97,6 +97,16 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
+      },
+      "VideoSuperRes": {
+        "Id": "1698eb3d-6c4f-4de0-aab8-72edca349eec",
+        "Name": "Video Super Resolution",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE714",
+        "Description": "Improve video resolution.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650"
       }
     }
   }
