@@ -43,7 +43,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 {
-    ObservableCollection<TextDataItem> TextDataItems { get; } = new();
+    private ObservableCollection<TextDataItem> TextDataItems { get; } = new();
     public ObservableCollection<Message> Messages { get; } = [];
 
     private IChatClient? _model;
@@ -56,7 +56,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     private static readonly int MaxOpenThinkMarkerLength = ThinkTagOpens.Max(s => s.Length);
 
     // This is some text data that we want to add to the index:
-    Dictionary<string, string> simpleTextData = new Dictionary<string, string>
+    private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
         { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
@@ -65,8 +65,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         { "item5", "Urban beekeeping thrives with diverse forage across seasons. Rooftop hives benefit from trees, herbs, and staggered blooms. Provide shallow water sources and shade to counter heat stress. Prevent swarms through timely inspections and splits. Monitor mites with sugar rolls and rotate treatments. Honey reflects city terroir with surprising floral complexity." }
     };
 
-    private AppContentIndexer _indexer;
-    private CancellationTokenSource cts = new();
+    private AppContentIndexer? _indexer;
+    private CancellationTokenSource? cts = new();
 
     public KnowledgeRetrieval()
     {
@@ -95,8 +95,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                     promptTemplate: null,
                     sampleLoadedCompletionSource: new TaskCompletionSource(),
                     winMlSampleOptions: null,
-                    loadingCanceledToken: CancellationToken.None
-                );
+                    loadingCanceledToken: CancellationToken.None);
 
                 _model = await ragSampleParams.GetIChatClientAsync();
             }
@@ -149,7 +148,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     {
         CancelResponse();
         _model?.Dispose();
-        _indexer.RemoveAll();
+        _indexer?.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -208,7 +207,10 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async Task<List<string>> BuildContextFromUserPrompt(string queryText)
     {
-        if (_indexer == null) return new List<string>();
+        if (_indexer == null)
+        {
+            return new List<string>();
+        }
 
         var queryPrompts = await Task.Run(async () =>
         {
@@ -219,7 +221,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
             List<string> contextSnippets = new List<string>();
             StringBuilder promptStringBuilder = new StringBuilder();
-            string refIds = "";
+            string refIds = string.Empty;
             promptStringBuilder.AppendLine("You are a helpful assistant. Please only refer to the following pieces of information when responding to the user's prompt:");
 
             // For each of the matches found, we include the relevant snippets of the text files in the augmented query that we send to the language model
@@ -249,7 +251,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                         promptStringBuilder.AppendLine(matchingString);
                         promptStringBuilder.AppendLine();
 
-                        refIds += String.IsNullOrEmpty(refIds) ? match.ContentId : ", " + match.ContentId;
+                        refIds += string.IsNullOrEmpty(refIds) ? match.ContentId : ", " + match.ContentId;
                     }
                 }
             }
@@ -535,7 +537,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     {
         if (sender is TextBox textBox)
         {
-            string id = textBox.Tag as string;
+            string? id = textBox.Tag as string;
             string value = textBox.Text;
 
             // Update local dictionary and observable collection
@@ -545,16 +547,20 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                 item.Value = value;
             }
 
-            if (simpleTextData.ContainsKey(id))
+            if (id != null)
             {
-                simpleTextData[id] = value;
+                if (simpleTextData.ContainsKey(id))
+                {
+                    simpleTextData[id] = value;
+                }
+
+                IndexingMessage.IsOpen = true;
+                await Task.Run(async () =>
+                {
+                    await IndexTextData(id, value);
+                });
             }
 
-            IndexingMessage.IsOpen = true;
-            await Task.Run(async () =>
-            {
-                await IndexTextData(id, value);
-            });
             IndexingMessage.IsOpen = false;
         }
     }
@@ -564,7 +570,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         // Find the lowest unused id in the form itemN
         int nextIndex = 1;
         string newId;
-        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id)));
+        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id).Where(id => id != null)).Cast<string>());
         do
         {
             newId = $"item{nextIndex}";
@@ -589,7 +595,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         IndexingMessage.IsOpen = false;
     }
 
-    private async void closeButton_Click(object sender, RoutedEventArgs e)
+    private async void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button)
         {
@@ -597,17 +603,21 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             {
                 TextDataItems.Remove(textItem);
 
-                if (simpleTextData.ContainsKey(textItem.Id))
+                if (!string.IsNullOrEmpty(textItem.Id))
                 {
-                    simpleTextData.Remove(textItem.Id);
+                    if (simpleTextData.ContainsKey(textItem.Id))
+                    {
+                        simpleTextData.Remove(textItem.Id);
+                    }
+
+                    RemovedItemMessage.IsOpen = true;
+                    RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
+                    await Task.Run(async () =>
+                    {
+                        await RemoveItemFromIndex(textItem.Id);
+                    });
                 }
 
-                RemovedItemMessage.IsOpen = true;
-                RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
-                await Task.Run(async () =>
-                {
-                    await RemoveItemFromIndex(textItem.Id);
-                });
                 RemovedItemMessage.IsOpen = false;
             }
         }
@@ -615,7 +625,10 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async Task RemoveItemFromIndex(string id)
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         // Remove item from index
         _indexer.Remove(id);
@@ -623,7 +636,10 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private async Task IndexTextData(string id, string value)
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
@@ -652,7 +668,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         IndexAll();
     }
 
-    private async Task<SoftwareBitmap> LoadBitmap(string uriString)
+    private async Task<SoftwareBitmap?> LoadBitmap(string uriString)
     {
         try
         {
@@ -690,8 +706,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
     private CancellationToken CancelGenerationAndGetNewToken()
     {
-        cts.Cancel();
-        cts.Dispose();
+        cts?.Cancel();
+        cts?.Dispose();
         cts = new CancellationTokenSource();
         return cts.Token;
     }

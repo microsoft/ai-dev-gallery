@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class AppIndexCapability : BaseSamplePage
 {
-    private AppContentIndexer _indexer;
+    private AppContentIndexer? _indexer;
 
     public AppIndexCapability()
     {
@@ -78,7 +78,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer.RemoveAll();
+        _indexer?.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -102,7 +102,10 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
     private async void LoadAppIndexCapabilities()
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         IndexCapabilities capabilities = await Task.Run(() =>
         {

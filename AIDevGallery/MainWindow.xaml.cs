@@ -26,7 +26,7 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
-    private AppContentIndexer _indexer;
+    private AppContentIndexer? _indexer;
     private CancellationTokenSource? _searchCts; // Added for search cancellation
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
 
@@ -81,7 +81,6 @@ internal sealed partial class MainWindow : WindowEx
         {
             Debug.WriteLine("Created a new index");
             IndexContentsWithAppContentSearch();
-
         }
         else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
         {
@@ -307,7 +306,11 @@ internal sealed partial class MainWindow : WindowEx
                     {
                         foreach (var match in matches)
                         {
-                            if (token.IsCancellationRequested) break;
+                            if (token.IsCancellationRequested)
+                            {
+                                break;
+                            }
+
                             var sr = App.SearchIndex.FirstOrDefault(s => s.Label == match.ContentId);
                             if (sr != null)
                             {

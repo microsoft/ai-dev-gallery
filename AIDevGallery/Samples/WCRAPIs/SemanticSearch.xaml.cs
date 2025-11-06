@@ -41,14 +41,13 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-
 internal sealed partial class SemanticSearch : BaseSamplePage
 {
-    ObservableCollection<TextDataItem> TextDataItems { get; } = new();
-    ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
+    private ObservableCollection<TextDataItem> TextDataItems { get; } = new();
+    private ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
 
     // This is some text data that we want to add to the index:
-    Dictionary<string, string> simpleTextData = new Dictionary<string, string>
+    private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
         { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
@@ -57,14 +56,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         { "item5", "Urban beekeeping thrives with diverse forage across seasons. Rooftop hives benefit from trees, herbs, and staggered blooms. Provide shallow water sources and shade to counter heat stress. Prevent swarms through timely inspections and splits. Monitor mites with sugar rolls and rotate treatments. Honey reflects city terroir with surprising floral complexity." }
     };
 
-    Dictionary<string, string> simpleImageData = new Dictionary<string, string>
+    private Dictionary<string, string> simpleImageData = new Dictionary<string, string>
     {
-        {"image1", "InteriorDesign.png" },
-        {"image2", "TofuBowlRecipe.png" },
-        {"image3", "ShakshukaRecipe.png" },
+        { "image1", "InteriorDesign.png" },
+        { "image2", "TofuBowlRecipe.png" },
+        { "image3", "ShakshukaRecipe.png" },
     };
 
-    private AppContentIndexer _indexer;
+    private AppContentIndexer? _indexer;
     private CancellationTokenSource cts = new();
 
     public SemanticSearch()
@@ -96,7 +95,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             if (result.Status == GetOrCreateIndexStatus.CreatedNew)
             {
                 Debug.WriteLine("Created a new index");
-
             }
             else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
             {
@@ -130,7 +128,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer.RemoveAll();
+        _indexer?.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -140,28 +138,32 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         if (sender is TextBox textBox)
         {
-            string id = textBox.Tag as string;
+            string? id = textBox.Tag as string;
             string value = textBox.Text;
 
-            // Update local dictionary and observable collection
-            var item = TextDataItems.FirstOrDefault(x => x.Id == id);
-            if (item != null)
+            if (id != null)
             {
-                item.Value = value;
+                // Update local dictionary and observable collection
+                var item = TextDataItems.FirstOrDefault(x => x.Id == id);
+                if (item != null)
+                {
+                    item.Value = value;
+                }
+
+                if (simpleTextData.ContainsKey(id))
+                {
+                    simpleTextData[id] = value;
+                }
+
+                // Index text data
+                IndexingMessage.IsOpen = true;
+                await Task.Run(async () =>
+                {
+                    await IndexTextData(id, value);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                });
             }
 
-            if (simpleTextData.ContainsKey(id))
-            {
-                simpleTextData[id] = value;
-            }
-
-            // Index text data
-            IndexingMessage.IsOpen = true;
-            await Task.Run(async () =>
-            {
-                await IndexTextData(id, value);
-                var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
-            });
             IndexingMessage.IsOpen = false;
         }
     }
@@ -171,46 +173,49 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         if (sender is Microsoft.UI.Xaml.Controls.Image image)
         {
-            string id = image.Tag as string;
-            string uriString = null;
-            string fileName = null;
+            string? id = image.Tag as string;
+            string uriString = string.Empty;
+            string fileName = string.Empty;
 
             if (image.Source is BitmapImage bitmapImage && bitmapImage.UriSource != null)
             {
                 uriString = bitmapImage.UriSource.ToString();
             }
 
-            SoftwareBitmap bitmap = null;
+            SoftwareBitmap? bitmap = null;
             if (!string.IsNullOrEmpty(uriString))
             {
                 bitmap = await LoadBitmap(uriString);
             }
 
-            // Update local dictionary and observable collection
-            var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
-            if (item != null)
+            if (id != null && bitmap != null)
             {
-                fileName = Path.GetFileName(uriString);
-                item.ImageSource = fileName;
+                // Update local dictionary and observable collection
+                var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
+                if (item != null)
+                {
+                    fileName = Path.GetFileName(uriString);
+                    item.ImageSource = fileName;
+                }
+
+                string imageVal = uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase) ? fileName : uriString;
+
+                if (!simpleImageData.TryAdd(id, imageVal))
+                {
+                    simpleImageData[id] = imageVal;
+                }
+                else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
+                {
+                }
+
+                IndexingMessage.IsOpen = true;
+                await Task.Run(async () =>
+                {
+                    await IndexImageData(id, bitmap);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                });
             }
 
-            string imageVal = uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase) ? fileName : uriString;
-
-            if (simpleImageData.ContainsKey(id))
-            {
-                simpleImageData[id] = imageVal;
-            }
-            else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
-            {
-                simpleImageData.Add(id, imageVal);
-            }
-
-            IndexingMessage.IsOpen = true;
-            await Task.Run(async () =>
-            {
-                await IndexImageData(id, bitmap);
-                var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
-            });
             IndexingMessage.IsOpen = false;
         }
     }
@@ -350,7 +355,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         // Find the lowest unused id in the form itemN
         int nextIndex = 1;
         string newId;
-        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id)));
+        var existingIds = new HashSet<string>(simpleTextData.Keys.Concat(TextDataItems.Select(x => x.Id ?? string.Empty)).Where(id => !string.IsNullOrEmpty(id)));
         do
         {
             newId = $"item{nextIndex}";
@@ -375,7 +380,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         IndexingMessage.IsOpen = false;
     }
 
-    private async void closeButton_Click(object sender, RoutedEventArgs e)
+    private async void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button)
         {
@@ -383,34 +388,42 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             {
                 TextDataItems.Remove(textItem);
 
-                if (simpleTextData.ContainsKey(textItem.Id))
+                if (!string.IsNullOrEmpty(textItem.Id))
                 {
-                    simpleTextData.Remove(textItem.Id);
+                    if (simpleTextData.ContainsKey(textItem.Id))
+                    {
+                        simpleTextData.Remove(textItem.Id);
+                    }
+
+                    RemovedItemMessage.IsOpen = true;
+                    RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
+                    await Task.Run(async () =>
+                    {
+                        await RemoveItemFromIndex(textItem.Id);
+                    });
                 }
 
-                RemovedItemMessage.IsOpen = true;
-                RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
-                await Task.Run(async () =>
-                {
-                    await RemoveItemFromIndex(textItem.Id);
-                });
                 RemovedItemMessage.IsOpen = false;
             }
             else if (button.Tag is ImageDataItem imageItem)
             {
                 ImageDataItems.Remove(imageItem);
 
-                if (simpleImageData.ContainsKey(imageItem.Id))
+                if (!string.IsNullOrEmpty(imageItem.Id))
                 {
-                    simpleImageData.Remove(imageItem.Id);
+                    if (simpleImageData.ContainsKey(imageItem.Id))
+                    {
+                        simpleImageData.Remove(imageItem.Id);
+                    }
+
+                    RemovedItemMessage.IsOpen = true;
+                    RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
+                    await Task.Run(async () =>
+                    {
+                        await RemoveItemFromIndex(imageItem.Id);
+                    });
                 }
 
-                RemovedItemMessage.IsOpen = true;
-                RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
-                await Task.Run(async () =>
-                {
-                    await RemoveItemFromIndex(imageItem.Id);
-                });
                 RemovedItemMessage.IsOpen = false;
             }
         }
@@ -442,7 +455,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             {
                 newId = $"image{ImageDataItems.Count + nextIndex}";
                 nextIndex++;
-            } while (ImageDataItems.Any(i => i.Id == newId));
+            }
+            while (ImageDataItems.Any(i => i.Id == newId));
 
             // Create a ms-appx URI for the image (or use file path for local images)
             var imageUri = file.Path;
@@ -455,7 +469,10 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task RemoveItemFromIndex(string id)
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         // Remove item from index
         _indexer.Remove(id);
@@ -463,7 +480,10 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task IndexTextData(string id, string value)
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
@@ -472,7 +492,10 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async Task IndexImageData(string id, SoftwareBitmap bitmap)
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         // Index image content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
@@ -493,11 +516,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             foreach (var kvp in simpleImageData)
             {
                 var uri = $"ms-appx:///Assets/{kvp.Value}";
-                SoftwareBitmap bitmap = await LoadBitmap(uri);
-                await IndexImageData(kvp.Key, bitmap);
+                SoftwareBitmap? bitmap = await LoadBitmap(uri);
+                if (bitmap != null)
+                {
+                    await IndexImageData(kvp.Key, bitmap);
+                }
             }
 
-            var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
+            var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
         });
 
         IndexingMessage.IsOpen = false;
@@ -510,7 +536,10 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private async void LoadAppIndexCapabilities()
     {
-        if (_indexer == null) return;
+        if (_indexer == null)
+        {
+            return;
+        }
 
         IndexCapabilities capabilities = await Task.Run(() =>
         {
@@ -537,10 +566,25 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             uploadImageButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
 
             var unavailable = new List<string>();
-            if (!textLexicalAvailable) unavailable.Add("TextLexical");
-            if (!textSemanticAvailable) unavailable.Add("TextSemantic");
-            if (!imageSemanticAvailable) unavailable.Add("ImageSemantic");
-            if (!imageOcrAvailable) unavailable.Add("ImageOcr");
+            if (!textLexicalAvailable)
+            {
+                unavailable.Add("TextLexical");
+            }
+
+            if (!textSemanticAvailable)
+            {
+                unavailable.Add("TextSemantic");
+            }
+
+            if (!imageSemanticAvailable)
+            {
+                unavailable.Add("ImageSemantic");
+            }
+
+            if (!imageOcrAvailable)
+            {
+                unavailable.Add("ImageOcr");
+            }
 
             if (unavailable.Count > 0)
             {
@@ -562,7 +606,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         LoadAppIndexCapabilities();
     }
 
-    private async Task<SoftwareBitmap> LoadBitmap(string uriString)
+    private async Task<SoftwareBitmap?> LoadBitmap(string uriString)
     {
         try
         {
