@@ -14,7 +14,6 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Graphics;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -33,11 +32,8 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Icon = "\uEE6F")]
 internal sealed partial class ForegroundExtractor : BaseSamplePage
 {
-    private readonly List<PointInt32> _selectionPoints = new();
-    private SoftwareBitmap? _inputBitmap;
-    private SoftwareBitmap? _originalBitmap;
-    private bool _isSelectionEnabled = true;
     private ImageForegroundExtractor? _foregroundExtractor;
+    private SoftwareBitmap? _inputBitmap;
 
     public ForegroundExtractor()
     {
@@ -75,9 +71,32 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
 
     private async Task LoadDefaultImage()
     {
-        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "pose_default.png"));
+        var file = await StorageFile.GetFileFromPathAsync(System.IO.Path.Join(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets", "horse.png"));
         using var stream = await file.OpenReadAsync();
-        await SetImage(stream);
+        _inputBitmap = await GetBitmapFromStream(stream);
+        await SetInputAndGeneratedOutput();
+    }
+
+    private async Task SetInputAndGeneratedOutput()
+    {
+        if (_inputBitmap == null)
+        {
+            return;
+        }
+
+        await SetImage(InputImage, _inputBitmap);
+        GeneratedImage.Source = null;
+        var foreground = await Task.Run(() => GetForeground(_inputBitmap));
+        if (foreground != null)
+        {
+            await SetImage(GeneratedImage, foreground);
+        }
+    }
+
+    private static async Task<SoftwareBitmap> GetBitmapFromStream(IRandomAccessStream stream)
+    {
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        return await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
     }
 
     private async void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -100,7 +119,8 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         if (file != null)
         {
             using var stream = await file.OpenReadAsync();
-            await SetImage(stream);
+            _inputBitmap = await GetBitmapFromStream(stream);
+            await SetInputAndGeneratedOutput();
         }
     }
 
@@ -113,7 +133,8 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
             var streamRef = await package.GetBitmapAsync();
 
             using IRandomAccessStream stream = await streamRef.OpenReadAsync();
-            await SetImage(stream);
+            _inputBitmap = await GetBitmapFromStream(stream);
+            await SetImage(InputImage, _inputBitmap);
         }
         else if (package.Contains(StandardDataFormats.StorageItems))
         {
@@ -124,7 +145,8 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
                 {
                     var storageFile = await StorageFile.GetFileFromPathAsync(storageItems[0].Path);
                     using var stream = await storageFile.OpenReadAsync();
-                    await SetImage(stream);
+                    _inputBitmap = await GetBitmapFromStream(stream);
+                    await SetInputAndGeneratedOutput();
                 }
                 catch (Exception ex)
                 {
@@ -140,54 +162,35 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         return imageExtensions.Contains(System.IO.Path.GetExtension(fileName)?.ToLowerInvariant());
     }
 
-    private async Task SetImage(IRandomAccessStream stream)
+    private async Task SetImage(Image image, SoftwareBitmap? bitmap)
     {
-        var decoder = await BitmapDecoder.CreateAsync(stream);
-        _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-
-        if (_inputBitmap == null)
+        if (bitmap == null)
         {
             return;
         }
 
-        await SetImageSource(CanvasImage, _inputBitmap);
-        SwitchInputOutputView(true);
-    }
-
-    private async Task SetImageSource(Image image, SoftwareBitmap softwareBitmap)
-    {
+        var convertedBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         var bitmapSource = new SoftwareBitmapSource();
 
-        // This conversion ensures that the image is Bgra8 and Premultiplied
-        SoftwareBitmap convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        await bitmapSource.SetBitmapAsync(convertedImage);
-        CanvasImage.Source = bitmapSource;
+        await bitmapSource.SetBitmapAsync(convertedBitmap);
+        image.Source = bitmapSource;
     }
 
-    private async Task<SoftwareBitmap?> ExtractBackground(SoftwareBitmap bitmap, IList<PointInt32> includePoints)
+    private SoftwareBitmap? GetForeground(SoftwareBitmap bitmap)
     {
-        if (_inputBitmap == null)
+        if (bitmap == null || _foregroundExtractor == null)
         {
             return null;
         }
 
         try
         {
-            var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
-            try
-            {
-                var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
-                return ApplyMask(bitmap, mask);
-            }
-            catch (Exception ex)
-            {
-                ShowException(ex, "Failed to create get mask.");
-                return null;
-            }
+            var mask = _foregroundExtractor.GetMaskFromSoftwareBitmap(bitmap);
+            return ApplyMask(bitmap, mask);
         }
         catch (Exception ex)
         {
-            ShowException(ex, "Failed to create ImageObjectExtractor session.");
+            ShowException(ex, "Failed to create get mask.");
             return null;
         }
     }
@@ -223,25 +226,6 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         return segmentedBitmap;
     }
 
-    private async void RemoveBackground_Click(object sender, RoutedEventArgs e)
-    {
-        if (_inputBitmap == null || _selectionPoints.Count == 0)
-        {
-            return;
-        }
-
-        var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
-        if (outputBitmap != null)
-        {
-            _originalBitmap = _inputBitmap;
-            await SetImageSource(CanvasImage, outputBitmap);
-            SwitchInputOutputView(false);
-        }
-    }
-
-    private void SwitchInputOutputView(bool isInputEnabled)
-    {
-        _isSelectionEnabled = isInputEnabled;
-        RemoveBackgroundButton.Visibility = isInputEnabled ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private async void Save_Click(object sender, RoutedEventArgs e) { }
+    private async void Copy_Click(object sender, RoutedEventArgs e) { }
 }

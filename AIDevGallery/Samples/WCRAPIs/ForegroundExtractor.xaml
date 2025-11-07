@@ -7,51 +7,67 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
-    <Grid ColumnSpacing="12" HorizontalAlignment="Stretch">
+    <Grid ColumnSpacing="12" HorizontalAlignment="Stretch" VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"  />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
-            <Image x:Name="CanvasImage" />
-        </Grid>
-        <Grid Margin="8"
-              HorizontalAlignment="Right"
-              VerticalAlignment="Top"
-              Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-              CornerRadius="{StaticResource ControlCornerRadius}">
-            <DropDownButton
-                    Padding="8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    AutomationProperties.Name="Select image"
-                    ToolTipService.ToolTip="Select image">
+        <Image x:Name="InputImage" 
+               Grid.Column="0" 
+               Stretch="Uniform"
+               MaxHeight="400" 
+               HorizontalAlignment="Left" 
+               VerticalAlignment="Top"/>
+        <StackPanel Grid.Column="0" Margin="8" HorizontalAlignment="Right"
+                    VerticalAlignment="Top" 
+                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" 
+                    CornerRadius="{StaticResource ControlCornerRadius}">
+            <DropDownButton Padding="8" 
+                            HorizontalAlignment="Right" 
+                            VerticalAlignment="Top" 
+                            AutomationProperties.Name="Select image" 
+                            ToolTipService.ToolTip="Select image">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
                         <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
                         <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
-                <FontIcon Glyph="&#xEE71;" FontSize="16" />
+                <FontIcon FontSize="16" Glyph="&#xEE71;" />
             </DropDownButton>
-        </Grid>
-        <Grid CornerRadius="{ThemeResource OverlayCornerRadius}" Grid.Column="1">
-            <Image x:Name="OutputImage" />
-        </Grid>
+        </StackPanel>
+        <Image x:Name="GeneratedImage" 
+           Grid.Column="1"
+           AutomationProperties.LiveSetting="Assertive"
+           AutomationProperties.Name="Output"
+           HorizontalAlignment="Left" 
+           VerticalAlignment="Top" 
+           Stretch="Uniform"
+           MaxHeight="400"/>
         <StackPanel
+            Margin="12"
+            Padding="8"
             Grid.Column="1"
-            MaxWidth="168"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Orientation="Vertical"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+            CornerRadius="{StaticResource ControlCornerRadius}"
+            Orientation="Horizontal"
             Spacing="8">
+            <Button x:Name="CopyButton"
+                AutomationProperties.Name="Copy Image to the Clipboard"
+                Click="Copy_Click"
+                ToolTipService.ToolTip="Copy Image to the Clipboard"
+                Visibility="Visible">
+                <FontIcon FontSize="16" Glyph="&#xE8C8;" />
+            </Button>
             <Button
-                x:Name="RemoveBackgroundButton"
-                Click="RemoveBackground_Click"
-                Content="Remove background"
-                IsEnabled="False"
-                Style="{ThemeResource AccentButtonStyle}" />
+                x:Name="SaveButton"
+                Click="Save_Click"
+                ToolTipService.ToolTip="Save Image"
+                Visibility="Visible">
+                <FontIcon FontSize="16" Glyph="&#xEE71;" />
+            </Button>
         </StackPanel>
     </Grid>
 </samples:BaseSamplePage>
