@@ -58,17 +58,21 @@
         <Grid
             x:Name="ResultsGrid"
             Grid.Row="2"
-            Visibility="Collapsed">
+            Visibility="Visible">
             <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}">Search Results:</TextBlock>
             <ScrollViewer
                 Margin="0,25,0,0"
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Visible">
-                <TextBlock
-                    x:Name="ResultsTextBlock"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    IsTextSelectionEnabled="True"
-                    TextWrapping="WrapWholeWords" />
+                <TextBox
+                    x:Name="ResultsTextBox"
+                    IsReadOnly="True"
+                    IsTabStop="True"
+                    TabIndex="0"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
             </ScrollViewer>
         </Grid>
     </Grid>
