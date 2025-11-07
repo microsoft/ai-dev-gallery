@@ -34,6 +34,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
 {
     private ImageForegroundExtractor? _foregroundExtractor;
     private SoftwareBitmap? _inputBitmap;
+    private SoftwareBitmap? _outputBitmap;
 
     public ForegroundExtractor()
     {
@@ -84,12 +85,16 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
             return;
         }
 
+        CopyButton.Visibility = Visibility.Collapsed;
+        SaveButton.Visibility = Visibility.Collapsed;
         await SetImage(InputImage, _inputBitmap);
         GeneratedImage.Source = null;
-        var foreground = await Task.Run(() => GetForeground(_inputBitmap));
-        if (foreground != null)
+        _outputBitmap = await Task.Run(() => GetForeground(_inputBitmap));
+        if (_outputBitmap != null)
         {
-            await SetImage(GeneratedImage, foreground);
+            await SetImage(GeneratedImage, _outputBitmap);
+            CopyButton.Visibility = Visibility.Visible;
+            SaveButton.Visibility = Visibility.Visible;
         }
     }
 
@@ -226,6 +231,70 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         return segmentedBitmap;
     }
 
-    private async void Save_Click(object sender, RoutedEventArgs e) { }
-    private async void Copy_Click(object sender, RoutedEventArgs e) { }
+    private async void Copy_Click(object sender, RoutedEventArgs e)
+    {
+        if (_outputBitmap == null)
+        {
+            return;
+        }
+
+        SendSampleInteractedEvent("CopyImage"); // <exclude-line>
+
+        try
+        {
+            var toCopy = SoftwareBitmap.Convert(_outputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+
+            using var stream = new InMemoryRandomAccessStream();
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+            encoder.SetSoftwareBitmap(toCopy);
+            await encoder.FlushAsync();
+            stream.Seek(0);
+
+            var dataPackage = new DataPackage();
+            dataPackage.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+
+            Clipboard.SetContent(dataPackage);
+            Clipboard.Flush();
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to copy image to clipboard.");
+        }
+    }
+
+    private async void Save_Click(object sender, RoutedEventArgs e)
+    {
+        if (_outputBitmap == null)
+        {
+            return;
+        }
+
+        nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(new Window());
+        FileSavePicker picker = new()
+        {
+            SuggestedStartLocation = PickerLocationId.PicturesLibrary
+        };
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.SuggestedFileName = "image.png";
+        picker.FileTypeChoices.Add("PNG", [".png"]);
+
+        StorageFile file = await picker.PickSaveFileAsync();
+
+        if (file != null && GeneratedImage.Source != null)
+        {
+            SendSampleInteractedEvent("SaveFile"); // <exclude-line>
+            try
+            {
+                using IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite);
+                var toSave = SoftwareBitmap.Convert(_outputBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, fileStream);
+                encoder.SetSoftwareBitmap(toSave);
+                await encoder.FlushAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex, "Failed to save image.");
+            }
+        }
+    }
 }
