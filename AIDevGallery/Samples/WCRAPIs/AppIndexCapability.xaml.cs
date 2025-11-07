@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -114,6 +115,8 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
         DispatcherQueue.TryEnqueue(() =>
         {
+            var unavailable = new List<string>();
+
             // Each status will be one of: Unknown, Initialized, Initializing, Suppressed, Unsupported, DisabledByPolicy, InitializationError
             // If status is Initialized, that capability is ready for use
             if (capabilities.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
@@ -123,6 +126,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             else
             {
                 indexLexicalCapabilityResultText.Text = "Unavailable";
+                unavailable.Add("TextLexical");
             }
 
             if (capabilities.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
@@ -132,6 +136,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             else
             {
                 indexSemanticCapabilityResultText.Text = "Unavailable";
+                unavailable.Add("TextSemantic");
             }
 
             if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
@@ -141,6 +146,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             else
             {
                 indexOCRCapabilityResultText.Text = "Unavailable";
+                unavailable.Add("ImageOcr");
             }
 
             if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
@@ -150,6 +156,18 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             else
             {
                 indexSemanticImageCapabilityResultText.Text = "Unavailable";
+                unavailable.Add("ImageSemantic");
+            }
+
+            if (unavailable.Count > 0)
+            {
+                IndexCapabilitiesMessage.Message = $"Unavailable: {string.Join(", ", unavailable)}";
+                IndexCapabilitiesMessage.IsOpen = true;
+            }
+            else
+            {
+                // All capabilities are available
+                IndexCapabilitiesMessage.IsOpen = false;
             }
         });
     }

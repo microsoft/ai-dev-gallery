@@ -61,6 +61,18 @@
                     <TextBlock Grid.Column="1" x:Name="indexSemanticImageCapabilityResultText" Text="Unavailable"/>
                 </Grid>
             </StackPanel>
+            
+            <InfoBar x:Name="IndexCapabilitiesMessage"
+                     IsOpen="False"
+                     Severity="Warning"
+                     IsClosable="False"
+                     Title="Some index capabilities are unavailable."
+                     Padding="0">
+                <InfoBar.ActionButton>
+                    <HyperlinkButton Content="Windows AI Troubleshooting"
+                                     NavigateUri="https://learn.microsoft.com/en-us/windows/ai/apis/troubleshooting" />
+                </InfoBar.ActionButton>
+            </InfoBar>
         </StackPanel>
     </Grid>
 </samples:BaseSamplePage>
