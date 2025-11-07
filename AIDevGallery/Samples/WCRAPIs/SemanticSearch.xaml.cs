@@ -27,7 +27,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Semantic Search",
     Model1Types = [ModelType.SemanticSearch],
     Scenario = ScenarioType.TextSemanticSearch,
-    Id = "F8465A45-8E23-4485-8C16-9909E96EACF6",
+    Id = "f8465a45-8e23-4485-8c16-9909e96eacf6",
     SharedCode = [
         SharedCodeEnum.DataItems
     ],
@@ -159,7 +159,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 IndexingMessage.IsOpen = true;
                 await Task.Run(async () =>
                 {
-                    await IndexTextData(id, value);
+                    IndexTextData(id, value);
                     var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
                 });
             }
@@ -204,14 +204,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 {
                     simpleImageData[id] = imageVal;
                 }
-                else if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(uriString))
-                {
-                }
 
                 IndexingMessage.IsOpen = true;
                 await Task.Run(async () =>
                 {
-                    await IndexImageData(id, bitmap);
+                    IndexImageData(id, bitmap);
                     var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
                 });
             }
@@ -268,7 +265,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         var imageResults = new List<string>();
 
         Task.Run(
-            async () =>
+            () =>
             {
                 // Create query
                 AppIndexQuery query = _indexer.CreateQuery(searchText, queryOptions);
@@ -373,9 +370,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         TextDataItems.Add(newItem);
 
         IndexingMessage.IsOpen = true;
-        await Task.Run(async () =>
+        await Task.Run(() =>
         {
-            await IndexTextData(newId, defaultValue);
+            IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
     }
@@ -397,9 +394,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                     RemovedItemMessage.IsOpen = true;
                     RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
-                    await Task.Run(async () =>
+                    await Task.Run(() =>
                     {
-                        await RemoveItemFromIndex(textItem.Id);
+                        RemoveItemFromIndex(textItem.Id);
                     });
                 }
 
@@ -418,9 +415,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                     RemovedItemMessage.IsOpen = true;
                     RemovedItemMessage.Message = $"Removed {imageItem.Id} from index";
-                    await Task.Run(async () =>
+                    await Task.Run(() =>
                     {
-                        await RemoveItemFromIndex(imageItem.Id);
+                        RemoveItemFromIndex(imageItem.Id);
                     });
                 }
 
@@ -467,7 +464,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
-    private async Task RemoveItemFromIndex(string id)
+    private void RemoveItemFromIndex(string id)
     {
         if (_indexer == null)
         {
@@ -478,7 +475,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         _indexer.Remove(id);
     }
 
-    private async Task IndexTextData(string id, string value)
+    private void IndexTextData(string id, string value)
     {
         if (_indexer == null)
         {
@@ -490,7 +487,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         _indexer.AddOrUpdate(textContent);
     }
 
-    private async Task IndexImageData(string id, SoftwareBitmap bitmap)
+    private void IndexImageData(string id, SoftwareBitmap bitmap)
     {
         if (_indexer == null)
         {
@@ -510,7 +507,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         {
             foreach (var kvp in simpleTextData)
             {
-                await IndexTextData(kvp.Key, kvp.Value);
+                IndexTextData(kvp.Key, kvp.Value);
             }
 
             foreach (var kvp in simpleImageData)
@@ -519,7 +516,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 SoftwareBitmap? bitmap = await LoadBitmap(uri);
                 if (bitmap != null)
                 {
-                    await IndexImageData(kvp.Key, bitmap);
+                    IndexImageData(kvp.Key, bitmap);
                 }
             }
 

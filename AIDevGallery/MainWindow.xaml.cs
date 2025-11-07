@@ -57,14 +57,14 @@ internal sealed partial class MainWindow : WindowEx
             Task.Run(async () =>
             {
                 // Load AppContentSearch
-                LoadAppSearchIndex();
+                await LoadAppSearchIndex();
             });
         }
 
         App.AppData.PropertyChanged += AppData_PropertyChanged;
     }
 
-    private async void LoadAppSearchIndex()
+    private async Task LoadAppSearchIndex()
     {
         var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
 
@@ -98,7 +98,7 @@ internal sealed partial class MainWindow : WindowEx
                 Task.Run(async () =>
                 {
                     // Load AppContentSearch
-                    LoadAppSearchIndex();
+                    await LoadAppSearchIndex();
                 });
             }
             else
@@ -427,7 +427,7 @@ internal sealed partial class MainWindow : WindowEx
             return;
         }
 
-        await Task.Run(async () =>
+        await Task.Run(() =>
         {
             foreach (var item in App.SearchIndex)
             {

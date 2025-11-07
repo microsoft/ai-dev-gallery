@@ -28,7 +28,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Knowledge Retrieval (RAG)",
     Model1Types = [ModelType.KnowledgeRetrieval, ModelType.PhiSilica],
     Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
-    Id = "6A526FDD-359F-4EAC-9AA6-F01DB11AE542",
+    Id = "6a526fdd-359f-4eac-9aa6-f01db11ae542",
     SharedCode = [
         SharedCodeEnum.DataItems,
         SharedCodeEnum.Message,
@@ -555,9 +555,9 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                 }
 
                 IndexingMessage.IsOpen = true;
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
-                    await IndexTextData(id, value);
+                    IndexTextData(id, value);
                 });
             }
 
@@ -588,9 +588,9 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         TextDataItems.Add(newItem);
 
         IndexingMessage.IsOpen = true;
-        await Task.Run(async () =>
+        await Task.Run(() =>
         {
-            await IndexTextData(newId, defaultValue);
+            IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
     }
@@ -612,9 +612,9 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
 
                     RemovedItemMessage.IsOpen = true;
                     RemovedItemMessage.Message = $"Removed {textItem.Id} from index";
-                    await Task.Run(async () =>
+                    await Task.Run(() =>
                     {
-                        await RemoveItemFromIndex(textItem.Id);
+                        RemoveItemFromIndex(textItem.Id);
                     });
                 }
 
@@ -623,7 +623,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         }
     }
 
-    private async Task RemoveItemFromIndex(string id)
+    private void RemoveItemFromIndex(string id)
     {
         if (_indexer == null)
         {
@@ -634,7 +634,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         _indexer.Remove(id);
     }
 
-    private async Task IndexTextData(string id, string value)
+    private void IndexTextData(string id, string value)
     {
         if (_indexer == null)
         {
@@ -644,8 +644,6 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         // Index Textbox content
         IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
         _indexer.AddOrUpdate(textContent);
-
-        var isIdle = await _indexer.WaitForIndexingIdleAsync(50000);
     }
 
     private async void IndexAll()
@@ -656,7 +654,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         {
             foreach (var kvp in simpleTextData)
             {
-                await IndexTextData(kvp.Key, kvp.Value);
+                IndexTextData(kvp.Key, kvp.Value);
             }
         });
 

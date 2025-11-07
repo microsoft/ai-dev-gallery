@@ -15,7 +15,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Index Capabilities",
     Model1Types = [ModelType.AppIndexCapability],
     Scenario = ScenarioType.TextSemanticSearch,
-    Id = "3EDB639A-A7CA-4885-BC95-5F1DDD29B2C3",
+    Id = "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
     NugetPackageReferences = [
         "Microsoft.Extensions.AI",
         "Microsoft.WindowsAppSDK"

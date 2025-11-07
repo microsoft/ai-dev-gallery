@@ -136,7 +136,7 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
-    private async void Reindex_Click(object sender, RoutedEventArgs e)
+    private void Reindex_Click(object sender, RoutedEventArgs e)
     {
         MainWindow.IndexAppSearchIndexStatic();
     }

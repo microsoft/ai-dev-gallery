@@ -120,7 +120,7 @@
                                     Height="120"/>
                                 <Button
                                     x:Name="textCloseButton"
-                                    Click="closeButton_Click"
+                                    Click="CloseButton_Click"
                                     Tag="{x:Bind}"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
