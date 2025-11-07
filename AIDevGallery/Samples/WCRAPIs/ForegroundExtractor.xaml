@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.ForegroundExtractor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="12" HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"  />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid CornerRadius="{ThemeResource OverlayCornerRadius}">
+            <Image x:Name="CanvasImage" />
+        </Grid>
+        <Grid Margin="8"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+              CornerRadius="{StaticResource ControlCornerRadius}">
+            <DropDownButton
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="Select image"
+                    ToolTipService.ToolTip="Select image">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                        <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+                <FontIcon Glyph="&#xEE71;" FontSize="16" />
+            </DropDownButton>
+        </Grid>
+        <Grid CornerRadius="{ThemeResource OverlayCornerRadius}" Grid.Column="1">
+            <Image x:Name="OutputImage" />
+        </Grid>
+        <StackPanel
+            Grid.Column="1"
+            MaxWidth="168"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Orientation="Vertical"
+            Spacing="8">
+            <Button
+                x:Name="RemoveBackgroundButton"
+                Click="RemoveBackground_Click"
+                Content="Remove background"
+                IsEnabled="False"
+                Style="{ThemeResource AccentButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</samples:BaseSamplePage>

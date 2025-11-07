@@ -178,7 +178,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -204,6 +204,12 @@
         "Description": "Remove image backgrounds with an image segmentation model.",
         "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
+      },
+      "ForegroundExtractor": {
+        "Name": "Extract Foreground",
+        "Description": "Extract the foreground from an image.",
+        "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select extract foreground to get the extracted objects without the background.",
+        "Id": "foreground-extractor"
       },
       "BackgroundDetector": {
         "Name": "Detect Background",

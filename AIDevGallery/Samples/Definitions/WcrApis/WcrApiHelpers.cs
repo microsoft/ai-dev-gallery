@@ -45,6 +45,9 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.GetReadyState
+        },
+        {
             ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         },
         {
@@ -74,6 +77,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
+        },
+        {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.EnsureReadyAsync
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
