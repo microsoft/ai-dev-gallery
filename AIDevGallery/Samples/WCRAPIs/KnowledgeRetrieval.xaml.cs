@@ -212,7 +212,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             return new List<string>();
         }
 
-        var queryPrompts = await Task.Run(async () =>
+        var queryPrompts = await Task.Run(() =>
         {
             // We execute a query against the index using the user's prompt string as the query text.
             AppIndexQuery query = _indexer.CreateQuery(queryText);
@@ -650,7 +650,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     {
         IndexingMessage.IsOpen = true;
 
-        await Task.Run(async () =>
+        await Task.Run(() =>
         {
             foreach (var kvp in simpleTextData)
             {
