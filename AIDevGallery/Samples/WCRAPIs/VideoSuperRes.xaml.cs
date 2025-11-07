@@ -145,29 +145,30 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
             var width = softwareBitmap.PixelWidth;
             var height = softwareBitmap.PixelHeight;
 
-            if (_originalImageHeight == 0 || _originalImageWidth == 0)
-            {
-                _originalImageWidth = width;
-                _originalImageHeight = height;
-            }
+            _originalImageWidth = width;
+            _originalImageHeight = height;
 
             try
             {
-                // Create Direct3D11-backed VideoFrame for input
-                using var inputVideoFrame = VideoFrame.CreateAsDirect3D11SurfaceBacked(
-                    Windows.Graphics.DirectX.DirectXPixelFormat.NV12,
-                    width,
-                    height);
-
-                if (inputVideoFrame.Direct3DSurface == null)
+                var inputD3dSurface = videoFrame.Direct3DSurface;
+                if (inputD3dSurface == null)
                 {
-                    return null;
+                    // Create Direct3D11-backed VideoFrame for input
+                    using var inputVideoFrame = VideoFrame.CreateAsDirect3D11SurfaceBacked(
+                        Windows.Graphics.DirectX.DirectXPixelFormat.NV12,
+                        width,
+                        height);
+
+                    if (inputVideoFrame.Direct3DSurface == null)
+                    {
+                        return null;
+                    }
+
+                    // Copy the software bitmap to the Direct3D-backed frame
+                    await videoFrame.CopyToAsync(inputVideoFrame);
+
+                    inputD3dSurface = inputVideoFrame.Direct3DSurface;
                 }
-
-                // Copy the software bitmap to the Direct3D-backed frame
-                await videoFrame.CopyToAsync(inputVideoFrame);
-
-                var inputD3dSurface = inputVideoFrame.Direct3DSurface;
 
                 // Create or resize output surface (BGRA8 format for display)
                 if (_outputD3dSurface == null || _outputWidth != width || _outputHeight != height)
