@@ -160,7 +160,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 await Task.Run(async () =>
                 {
                     IndexTextData(id, value);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
                 });
             }
 
@@ -209,7 +209,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 await Task.Run(async () =>
                 {
                     IndexImageData(id, bitmap);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
                 });
             }
 
@@ -235,25 +235,22 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         ResultsGrid.Visibility = Visibility.Visible;
         ResultStatusTextBlock.Text = "Searching...";
 
-        // Create query options
-        AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
+        // Create text query options
+        TextQueryOptions textQueryOptions = new TextQueryOptions();
 
         // Set language if provided
         string queryLanguage = QueryLanguageTextBox.Text;
         if (!string.IsNullOrWhiteSpace(queryLanguage))
         {
-            queryOptions.Language = queryLanguage;
+            textQueryOptions.Language = queryLanguage;
         }
 
-        // Create text match options
-        TextMatchOptions textMatchOptions = new TextMatchOptions
-        {
-            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
-            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
-        };
+        // text query options
+        textQueryOptions.MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex;
+        textQueryOptions.TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex;
 
         // Create image match options
-        ImageMatchOptions imageMatchOptions = new ImageMatchOptions
+        ImageQueryOptions imageQueryOptions = new ImageQueryOptions
         {
             MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
             ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
@@ -267,11 +264,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             () =>
             {
-                // Create query
-                AppIndexQuery query = _indexer.CreateQuery(searchText, queryOptions);
+                // Create text query
+                AppIndexTextQuery textQuery = _indexer.CreateTextQuery(searchText, textQueryOptions);
 
                 // Get text matches
-                IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
+                IReadOnlyList<TextQueryMatch> textMatches = textQuery.GetNextMatches(5);
 
                 if (textMatches != null && textMatches.Count > 0)
                 {
@@ -290,8 +287,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                     }
                 }
 
+                // Create text query
+                AppIndexImageQuery imageQuery = _indexer.CreateImageQuery(searchText, imageQueryOptions);
+
                 // Get image matches
-                IReadOnlyList<ImageQueryMatch> imageMatches = query.GetNextImageMatches(5);
+                IReadOnlyList<ImageQueryMatch> imageMatches = imageQuery.GetNextMatches(5);
 
                 if (imageMatches != null && imageMatches.Count > 0)
                 {
@@ -520,7 +520,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 }
             }
 
-            var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+            var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
         });
 
         IndexingMessage.IsOpen = false;

@@ -215,9 +215,9 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         var queryPrompts = await Task.Run(() =>
         {
             // We execute a query against the index using the user's prompt string as the query text.
-            AppIndexQuery query = _indexer.CreateQuery(queryText);
+            AppIndexTextQuery query = _indexer.CreateTextQuery(queryText);
 
-            IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
+            IReadOnlyList<TextQueryMatch> textMatches = query.GetNextMatches(5);
 
             List<string> contextSnippets = new List<string>();
             StringBuilder promptStringBuilder = new StringBuilder();

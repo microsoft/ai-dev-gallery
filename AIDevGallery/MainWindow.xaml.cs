@@ -299,8 +299,8 @@ internal sealed partial class MainWindow : WindowEx
                 if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
                 {
                     // Use AppContentIndexer to search
-                    var query = _indexer.CreateQuery(searchText);
-                    IReadOnlyList<TextQueryMatch>? matches = await Task.Run(() => query.GetNextTextMatches(5), token);
+                    var query = _indexer.CreateTextQuery(searchText);
+                    IReadOnlyList<TextQueryMatch>? matches = await Task.Run(() => query.GetNextMatches(5), token);
 
                     if (!token.IsCancellationRequested && matches != null && matches.Count > 0)
                     {
@@ -438,7 +438,7 @@ internal sealed partial class MainWindow : WindowEx
             }
         });
 
-        await _indexer.WaitForIndexingIdleAsync(50000);
+        await _indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
         SetSearchBoxIndexingCompleted();
 
         // Adding a check here since if the user closes in the middle of the indexing loop, we will never fully finish indexing.
