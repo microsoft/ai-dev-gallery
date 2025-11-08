@@ -80,11 +80,11 @@
         "Category": "Image Segmentation"
       },
       "ForegroundExtractor": {
-        "Id": "9d445930-b353-429a-9674-777eef771ccf",
+        "Id": "e2a1c7b2-6f8e-4e2a-9b7a-2c8e4f1a2b3c",
         "Name": "Foreground Extractor",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7C5",
-        "Description": "Remove the foreground from an image.",
+        "Description": "Extract the foreground from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "877ff911-19c9-400b-8f60-83fb8e808c20",

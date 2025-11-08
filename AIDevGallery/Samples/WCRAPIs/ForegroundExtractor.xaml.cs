@@ -26,7 +26,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Scenario = ScenarioType.ImageForegroundExtractor,
     Id = "877ff911-19c9-400b-8f60-83fb8e808c20",
     AssetFilenames = [
-        "pose_default.png"
+        "horse.png"
     ],
     Icon = "\uEE6F")]
 internal sealed partial class ForegroundExtractor : BaseSamplePage
@@ -173,6 +173,11 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
             return;
         }
 
+        if (image.Source is SoftwareBitmapSource previousSource)
+        {
+            previousSource.Dispose();
+        }
+
         var convertedBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         var bitmapSource = new SoftwareBitmapSource();
 
@@ -194,7 +199,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         }
         catch (Exception ex)
         {
-            ShowException(ex, "Failed to create get mask.");
+            ShowException(ex, "Failed to get mask.");
             return null;
         }
     }
