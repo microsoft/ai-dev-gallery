@@ -216,6 +216,32 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
     }
 
+    private LanguageModelOptionsExperimental? LoadAdapter()
+    {
+        if (_loraModel == null)
+        {
+            ShowException(null, "Phi-Silica is not available.");
+            return null;
+        }
+
+        LowRankAdaptation? loraAdapter;
+        try
+        {
+            loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex);
+            return null;
+        }
+
+        var options = new LanguageModelOptionsExperimental
+        {
+            LoraAdapter = loraAdapter
+        };
+        return options;
+    }
+
     private async Task RunQuery()
     {
         if (!File.Exists(_adapterFilePath))
@@ -232,22 +258,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         if (this.InputTextBox.Text.Length > 0 && _loraModel != null)
         {
-            LowRankAdaptation? loraAdapter;
-            try
-            {
-                loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
-            }
-            catch (Exception ex)
-            {
-                ShowException(ex);
-                return;
-            }
-
-            var options = new LanguageModelOptionsExperimental
-            {
-                LoraAdapter = loraAdapter
-            };
-
             GenerateButton.Visibility = Visibility.Collapsed;
             StopBtn.Visibility = Visibility.Visible;
             InputTextBox.IsEnabled = false;
@@ -256,16 +266,19 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
+            var options = new LanguageModelOptionsExperimental();
             try
             {
                 switch (_generationType)
                 {
                     case GenerationType.All:
+                        options = LoadAdapter();
                         await Task.WhenAll(
                             GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options),
                             GenerateText(InputTextBox.Text, SystemPromptBox.Text, NoLoraTxt));
                         break;
                     case GenerationType.With:
+                        options = LoadAdapter();
                         await GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options);
                         break;
                     case GenerationType.Without:
