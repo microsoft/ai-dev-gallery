@@ -15,6 +15,17 @@
         "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
         "Category": "Phi Silica"
       },
+      "PhiSilicaLora": {
+        "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
+        "Name": "Phi Silica LoRA",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEA54",
+        "Description": "Generate text using adapter.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica-lora.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12",
+        "Category": "Phi Silica"
+      },
       "TextSummarizer": {
         "Id": "55eb4d48-3908-44ac-95b1-fa47318a5cbf",
         "Name": "Text Summarizer",
