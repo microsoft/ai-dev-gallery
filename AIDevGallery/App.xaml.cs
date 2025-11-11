@@ -8,7 +8,9 @@ using AIDevGallery.Telemetry;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,6 +34,10 @@ public partial class App : Application
     internal App()
     {
         this.InitializeComponent();
+        #if DEBUG
+        // 全局異常監聽：WinUI 未處理、AppDomain 未處理、Task 未觀察
+        this.UnhandledException += OnUnhandledException;
+        #endif
     }
 
     /// <summary>
@@ -156,4 +162,30 @@ public partial class App : Application
             }
         }
     }
+
+    #if DEBUG
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        Trace("[OnUnhandledException] ENTER ExceptionType=" + e.Exception?.GetType().FullName + " HResult=0x" + e.Exception?.HResult.ToString("X8") + " Message=" + e.Exception?.Message);
+
+        // 特定攔截：COM/WinRT E_NOINTERFACE 導致的 InvalidCastException (HResult 0x80004002)
+        // if (e.Exception is InvalidCastException && e.Exception.HResult == unchecked((int)0x80004002))
+        // {
+            // System.Diagnostics.Debug.WriteLine("[Intercept] E_NOINTERFACE 被攔截並標記為已處理。");
+            // e.Handled = true; // 暫時防止應用退出，便於後續分析焦點切換源頭。
+            // return;
+        // }
+
+        // 其他異常暫不吞，保持原行為（如需臨時全部攔截可打開下一行）
+        // e.Handled = true;
+        Trace("[OnUnhandledException] EXIT Handled=" + e.Handled);
+    }
+
+    // Centralized trace helper to ensure uniform timestamping & thread info.
+    [System.Diagnostics.Conditional("DEBUG")]
+    private static void Trace(string msg)
+    {
+        System.Diagnostics.Debug.WriteLine($"{DateTime.Now:O} [TRACE] [TID:{Environment.CurrentManagedThreadId}] {msg}");
+    }
+    #endif
 }
