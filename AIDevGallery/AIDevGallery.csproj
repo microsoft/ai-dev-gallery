@@ -74,7 +74,6 @@
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
-    <PackageReference Include="Microsoft.Windows.AI.Video" />
     <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />

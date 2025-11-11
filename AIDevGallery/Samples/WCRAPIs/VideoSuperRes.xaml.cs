@@ -134,23 +134,31 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
         // Process the frame with super resolution model
         var processedBitmap = await Task.Run(async () =>
         {
-            var softwareBitmap = videoFrame.SoftwareBitmap;
-            if (softwareBitmap == null)
+            int width = 0;
+            int height = 0;
+            var inputD3dSurface = videoFrame.Direct3DSurface;
+            if (inputD3dSurface != null)
             {
-                return null;
+                Debug.Assert(inputD3dSurface.Description.Format == Windows.Graphics.DirectX.DirectXPixelFormat.NV12, "input in NV12 format");
+                width = inputD3dSurface.Description.Width;
+                height = inputD3dSurface.Description.Height;
             }
+            else
+            {
+                var softwareBitmap = videoFrame.SoftwareBitmap;
+                if (softwareBitmap == null)
+                {
+                    return null;
+                }
 
-            Debug.Assert(softwareBitmap.BitmapPixelFormat == BitmapPixelFormat.Nv12, "bitmap from VideoFrame is in NV12 format");
+                Debug.Assert(softwareBitmap.BitmapPixelFormat == BitmapPixelFormat.Nv12, "input in NV12 format");
 
-            var width = softwareBitmap.PixelWidth;
-            var height = softwareBitmap.PixelHeight;
-
-            _originalImageWidth = width;
-            _originalImageHeight = height;
+                width = softwareBitmap.PixelWidth;
+                height = softwareBitmap.PixelHeight;
+            }
 
             try
             {
-                var inputD3dSurface = videoFrame.Direct3DSurface;
                 if (inputD3dSurface == null)
                 {
                     // Create Direct3D11-backed VideoFrame for input
@@ -195,7 +203,6 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
             }
             catch (Exception ex)
             {
-                // Log the exception if needed
                 System.Diagnostics.Debug.WriteLine($"ProcessFrame error: {ex.Message}");
             }
 
@@ -220,11 +227,6 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
 
     private void CameraPreviewControl_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
     {
-        if (_originalImageWidth == 0 || _originalImageHeight == 0)
-        {
-            return;
-        }
-
         UpdateCameraPreviewSize();
     }
 
