@@ -163,16 +163,8 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             return;
         }
-
-        // Clear previous selection
-        if (selectedModelSelectionIndex >= 0 && selectedModelSelectionIndex < modelSelectionItems.Count)
-        {
-            modelSelectionItems[selectedModelSelectionIndex].IsSelected = false;
-        }
-
         selectedModelSelectionIndex = index;
-        modelSelectionItems[selectedModelSelectionIndex].IsSelected = true;
-        _ = LoadModels(modelSelectionItems[selectedModelSelectionIndex].ModelTypes);
+        _ = LoadModels(modelSelectionItems[index].ModelTypes);
     }
 
     private async Task LoadModels(List<ModelType> types)
@@ -305,7 +297,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             return modelSelectionItems[selectedModelSelectionIndex];
         }
-
         return null;
     }
 
@@ -320,34 +311,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
             }
         }
     }
-
-    private void SelectedModelItem_GotFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
-        {
-            var index = modelSelectionItems.IndexOf(msi);
-            if (index >= 0 && index != selectedModelSelectionIndex)
-            {
-                SetSelectedIndex(index);
-            }
-        }
-    }
 }
 
 internal class ModelSelectionItem : ObservableObject
 {
     private ModelDetails? selectedModel;
-    private bool isSelected;
     public ModelDetails? SelectedModel
     {
         get => selectedModel;
         set => SetProperty(ref selectedModel, value);
-    }
-
-    public bool IsSelected
-    {
-        get => isSelected;
-        set => SetProperty(ref isSelected, value);
     }
 
     public List<ModelType> ModelTypes { get; set; }
