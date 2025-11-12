@@ -318,15 +318,17 @@ internal sealed partial class SampleContainer : UserControl
     {
         if (string.IsNullOrEmpty(contents))
         {
+            SampleDebugInfoButtonText.Visibility = Visibility.Collapsed;
             SampleDebugInfoButton.Visibility = Visibility.Collapsed;
-            SampleDebugInfoButton.Text = string.Empty;
+            SampleDebugInfoButtonText.Text = string.Empty;
             SampleDebugInfoContent.Text = string.Empty;
             return;
         }
 
-        SampleDebugInfoButton.Text = contents.Split('\n')[0];
+        SampleDebugInfoButtonText.Text = contents.Split('\n')[0];
         SampleDebugInfoContent.Text = contents;
 
+        SampleDebugInfoButtonText.Visibility = Visibility.Visible;
         SampleDebugInfoButton.Visibility = Visibility.Visible;
     }
 
