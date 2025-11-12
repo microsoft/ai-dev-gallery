@@ -163,6 +163,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             return;
         }
+
         selectedModelSelectionIndex = index;
         _ = LoadModels(modelSelectionItems[index].ModelTypes);
     }
@@ -297,6 +298,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             return modelSelectionItems[selectedModelSelectionIndex];
         }
+
         return null;
     }
 
@@ -311,6 +313,59 @@ internal sealed partial class ModelOrApiPicker : UserControl
             }
         }
     }
+
+    private void SelectedModelItem_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
+        {
+            var index = modelSelectionItems.IndexOf(msi);
+            if (index < 0)
+            {
+                return;
+            }
+
+            // Activate selection with Enter or Space.
+            if (e.Key == Windows.System.VirtualKey.Enter || e.Key == Windows.System.VirtualKey.Space)
+            {
+                SetSelectedIndex(index);
+                _ = FocusManager.TryFocusAsync(fe, FocusState.Programmatic);
+                e.Handled = true;
+                return;
+            }
+
+            // Horizontal navigation with Left/Right arrows.
+            if (e.Key == Windows.System.VirtualKey.Right)
+            {
+                var next = index + 1;
+                if (next < modelSelectionItems.Count)
+                {
+                    SetSelectedIndex(next);
+                    var nextElement = SelectedModelsRepeater.GetOrCreateElement(next) as FrameworkElement;
+                    if (nextElement != null)
+                    {
+                        _ = FocusManager.TryFocusAsync(nextElement, FocusState.Programmatic);
+                    }
+
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == Windows.System.VirtualKey.Left)
+            {
+                var prev = index - 1;
+                if (prev >= 0)
+                {
+                    SetSelectedIndex(prev);
+                    var prevElement = SelectedModelsRepeater.GetOrCreateElement(prev) as FrameworkElement;
+                    if (prevElement != null)
+                    {
+                        _ = FocusManager.TryFocusAsync(prevElement, FocusState.Programmatic);
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+    }
 }
 
 internal class ModelSelectionItem : ObservableObject
@@ -319,7 +374,13 @@ internal class ModelSelectionItem : ObservableObject
     public ModelDetails? SelectedModel
     {
         get => selectedModel;
-        set => SetProperty(ref selectedModel, value);
+        set
+        {
+            if (SetProperty(ref selectedModel, value))
+            {
+                OnPropertyChanged(nameof(AccessibleName));
+            }
+        }
     }
 
     public List<ModelType> ModelTypes { get; set; }
@@ -328,6 +389,8 @@ internal class ModelSelectionItem : ObservableObject
     {
         ModelTypes = modelTypes;
     }
+
+    public string AccessibleName => SelectedModel?.Name ?? "No model selected";
 
     public Dictionary<string, BaseModelPickerView> ModelPickerViews { get; private set; } = new();
 }

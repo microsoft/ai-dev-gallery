@@ -134,8 +134,11 @@
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource ControlCornerRadius}"
                                 IsTabStop="True"
+                                UseSystemFocusVisuals="True"
+                                KeyDown="SelectedModelItem_KeyDown"
                                 Tapped="SelectedModelItem_Tapped"
-                                AutomationProperties.Name="{x:Bind SelectedModel.Name, Mode=OneWay}">
+                                AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}"
+                                AutomationProperties.HelpText="Press Enter or Space to select model.">
                                 <Grid>
                                     <Grid
                                         Padding="8,0,0,0"
