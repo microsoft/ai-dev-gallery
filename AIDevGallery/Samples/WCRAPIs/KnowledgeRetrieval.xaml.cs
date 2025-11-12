@@ -590,6 +590,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
+
+        textDataItemsView.StartBringItemIntoView(TextDataItems.Count - 1, new BringIntoViewOptions());
     }
 
     private async void CloseButton_Click(object sender, RoutedEventArgs e)

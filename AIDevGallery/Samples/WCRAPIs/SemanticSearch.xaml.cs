@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,9 +57,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private Dictionary<string, string> simpleImageData = new Dictionary<string, string>
     {
-        { "image1", "InteriorDesign.png" },
-        { "image2", "TofuBowlRecipe.png" },
-        { "image3", "ShakshukaRecipe.png" },
+        { "image1", "ms-appx:///Assets/InteriorDesign.png" },
+        { "image2", "ms-appx:///Assets/TofuBowlRecipe.png" },
+        { "image3", "ms-appx:///Assets/ShakshukaRecipe.png" },
     };
 
     private AppContentIndexer? _indexer;
@@ -194,15 +193,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
                 if (item != null)
                 {
-                    fileName = Path.GetFileName(uriString);
-                    item.ImageSource = fileName;
+                    item.ImageSource = uriString;
                 }
 
                 string imageVal = uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase) ? fileName : uriString;
 
-                if (!simpleImageData.TryAdd(id, imageVal))
+                if (!simpleImageData.TryAdd(id, uriString))
                 {
-                    simpleImageData[id] = imageVal;
+                    simpleImageData[id] = uriString;
                 }
 
                 IndexingMessage.IsOpen = true;
@@ -369,6 +367,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
+
+        textDataItemsView.StartBringItemIntoView(TextDataItems.Count - 1, new BringIntoViewOptions());
     }
 
     private async void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -455,6 +455,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             // Add to collection and dictionary
             ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
             simpleImageData[newId] = imageUri;
+
+            ImageDataItemsView.StartBringItemIntoView(ImageDataItems.Count - 1, new BringIntoViewOptions());
         }
     }
 
@@ -506,8 +508,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             foreach (var kvp in simpleImageData)
             {
-                var uri = $"ms-appx:///Assets/{kvp.Value}";
-                SoftwareBitmap? bitmap = await LoadBitmap(uri);
+                SoftwareBitmap? bitmap = await LoadBitmap(kvp.Value);
                 if (bitmap != null)
                 {
                     IndexImageData(kvp.Key, bitmap);
@@ -637,8 +638,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         foreach (var kvp in simpleImageData)
         {
-            var uri = $"ms-appx:///Assets/{kvp.Value}";
-            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
+            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = kvp.Value });
         }
     }
 
