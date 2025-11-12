@@ -175,6 +175,7 @@ internal static class AppUtils
             case HardwareAccelerator.QNN:
             case HardwareAccelerator.NPU:
                 return "NPU";
+            case HardwareAccelerator.ACI:
             case HardwareAccelerator.WCRAPI:
                 return "Windows AI API";
             default:
