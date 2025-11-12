@@ -59,9 +59,6 @@ internal class VaeDecoder : IDisposable
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-            sessionOptions.AddFreeDimensionOverrideByName("height", config.Height / 8);
-            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
-
             if (policy != null)
             {
                 sessionOptions.SetEpSelectionPolicy(policy.Value);

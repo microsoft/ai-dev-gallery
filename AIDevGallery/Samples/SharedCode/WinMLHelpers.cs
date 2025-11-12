@@ -4,6 +4,7 @@
 using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -53,19 +54,52 @@ internal static class WinMLHelpers
 
     public static string? GetCompiledModel(this SessionOptions sessionOptions, string modelPath, string device)
     {
+        if (IsCompileModelSupported(device) == false)
+        {
+            return null;
+        }
+
         var compiledModelPath = Path.Combine(Path.GetDirectoryName(modelPath) ?? string.Empty, Path.GetFileNameWithoutExtension(modelPath)) + $".{device}.onnx";
 
         if (!File.Exists(compiledModelPath))
         {
-            using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
-            compilationOptions.SetInputModelPath(modelPath);
-            compilationOptions.SetOutputModelPath(compiledModelPath);
-            compilationOptions.CompileModel();
+            try
+            {
+                using OrtModelCompilationOptions compilationOptions = new(sessionOptions);
+                compilationOptions.SetInputModelPath(modelPath);
+                compilationOptions.SetOutputModelPath(compiledModelPath);
+                compilationOptions.CompileModel();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WARNING: Model compilation failed for {device}: {ex.Message}");
+
+                // Clean up any empty or corrupted files that may have been created
+                if (File.Exists(compiledModelPath))
+                {
+                    try
+                    {
+                        File.Delete(compiledModelPath);
+                        Debug.WriteLine($"Deleted corrupted compiled model file: {compiledModelPath}");
+                    }
+                    catch
+                    {
+                        // Ignore deletion errors
+                    }
+                }
+
+                return null;
+            }
         }
 
+        // Validate that the compiled model file exists and is not empty
         if (File.Exists(compiledModelPath))
         {
-            return compiledModelPath;
+            var fileInfo = new FileInfo(compiledModelPath);
+            if (fileInfo.Length > 0)
+            {
+                return compiledModelPath;
+            }
         }
 
         return null;
@@ -91,5 +125,38 @@ internal static class WinMLHelpers
         }
 
         return epDeviceMap;
+    }
+
+    /// <summary>
+    /// Determines whether model compilation should be surfaced based on device type.
+    /// </summary>
+    /// <param name="deviceType">Device type string (e.g., "CPU", "GPU", "NPU").</param>
+    /// <returns>False for CPU; true for other known accelerator types.</returns>
+    public static bool IsCompileModelSupported(string? deviceType)
+    {
+        if (string.IsNullOrWhiteSpace(deviceType))
+        {
+            return false;
+        }
+
+        // NOTE: Skip compilation for the CPU execution provider.
+        // - EPContext is an EP-specific offline-compiled/partitioned graph artifact that requires the
+        //   execution provider to implement serialization/deserialization of its optimized graph.
+        // - ONNX Runtime's CPU EP does NOT implement EPContext model generation or loading. Invoking
+        //   OrtModelCompilationOptions.CompileModel() for CPU attempts to emit a "*.CPU.onnx" EPContext
+        //   artifact, which fails (commonly with InvalidProtobuf) because no EPContext is produced/understood
+        //   by the CPU EP.
+        // Behavior:
+        // - For CPU, we return null here so callers fall back to the original ONNX model without attempting
+        //   EPContext compilation.
+        // - Other EPs (e.g., DirectML, OpenVINO, QNN) may support EPContext depending on the ORT build,
+        //   platform drivers, and hardware; for those we allow compilation to proceed.
+        if (string.Equals(deviceType, "CPU", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return string.Equals(deviceType, "GPU", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(deviceType, "NPU", StringComparison.OrdinalIgnoreCase);
     }
 }
