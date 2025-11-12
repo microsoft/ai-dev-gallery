@@ -296,6 +296,7 @@ internal sealed partial class ScenarioPage : Page
             CompileModelCheckBox.IsChecked = options.CompileModel;
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
+            UpdateCompileModelVisibility();
         }
 
         // in case already saved options do not apply to this sample
@@ -420,7 +421,7 @@ internal sealed partial class ScenarioPage : Page
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
-        ActionButtonsGrid.Focus(FocusState.Programmatic);
+        contentHost.Focus(FocusState.Programmatic);
     }
 
     private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -467,5 +468,22 @@ internal sealed partial class ScenarioPage : Page
     private void WinMLOptionsFlyout_Opening(object sender, object e)
     {
         UpdateWinMLFlyout();
+        UpdateCompileModelVisibility();
+    }
+
+    private void DeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateCompileModelVisibility();
+    }
+
+    private void UpdateCompileModelVisibility()
+    {
+        var device = DeviceComboBox.SelectedItem as WinMlEp;
+        bool supported = device != null && WinMLHelpers.IsCompileModelSupported(device.DeviceType);
+        CompileModelCheckBox.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
+        if (!supported)
+        {
+            CompileModelCheckBox.IsChecked = false;
+        }
     }
 }

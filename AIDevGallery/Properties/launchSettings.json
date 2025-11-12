@@ -1,7 +1,8 @@
 {
   "profiles": {
     "AIDevGallery (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
     },
     "AIDevGallery (Unpackaged)": {
       "commandName": "Project"

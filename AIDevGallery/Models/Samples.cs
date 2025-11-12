@@ -169,6 +169,7 @@ internal class Scenario
 [JsonConverter(typeof(JsonStringEnumConverter<HardwareAccelerator>))]
 internal enum HardwareAccelerator
 {
+    ACI,
     CPU,
     DML,
     QNN,
