@@ -17,14 +17,14 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-            <TextBox x:Name="InputTextBox" 
+        <TextBox x:Name="InputTextBox" 
                      AutomationProperties.Name="Prompt input"
                      Description=" "
                      KeyUp="TextBox_KeyUp"
                      PlaceholderText="Enter a prompt to generate image.."
                      Text="Show me a cat with glasses, cartoon style."
                      TextChanged="InputBox_Changed" />
-            <CheckBox x:Name="ColoringBookCheck" Content="Coloring Book" Grid.Column="1" Margin="0,0,0,15"/>
+        <CheckBox x:Name="ColoringBookCheck" Content="Coloring Book" Grid.Column="1" Margin="0,0,0,15"/>
         <StackPanel
             Grid.Column="2"
             HorizontalAlignment="Right"
@@ -60,40 +60,38 @@
                 </StackPanel>
             </Button>
         </StackPanel>
-        <Image x:Name="GeneratedImage" 
-               Grid.Row="1" 
-               Grid.ColumnSpan="3" 
+        <RelativePanel Grid.Row="1" Grid.ColumnSpan="3" >
+            <Image x:Name="GeneratedImage" 
                AutomationProperties.LiveSetting="Assertive"
                AutomationProperties.Name="Output"
                HorizontalAlignment="Stretch" 
                VerticalAlignment="Stretch" 
                Stretch="Uniform"
                MaxHeight="400"/>
-        <StackPanel
+            <StackPanel RelativePanel.AlignBottomWith="GeneratedImage" RelativePanel.AlignRightWith="GeneratedImage"
                 Margin="12"
                 Padding="8"
-                Grid.Row="1" 
-                Grid.Column="1"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
                 CornerRadius="{StaticResource ControlCornerRadius}"
                 Orientation="Horizontal"
                 Spacing="8">
-            <Button x:Name="CopyButton"
+                <Button x:Name="CopyButton"
                     AutomationProperties.Name="Copy Image to the Clipboard"
                     Click="Copy_Click"
                     ToolTipService.ToolTip="Copy Image to the Clipboard"
                     Visibility="Collapsed">
-                <FontIcon FontSize="16" Glyph="&#xE8C8;" />
-            </Button>
-            <Button
+                    <FontIcon FontSize="16" Glyph="&#xE8C8;" />
+                </Button>
+                <Button
                     x:Name="SaveButton"
                     Click="Save_Click"
                     ToolTipService.ToolTip="Save Image"
                     Visibility="Collapsed">
-                <FontIcon FontSize="16" Glyph="&#xEE71;" />
-            </Button>
-        </StackPanel>
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                </Button>
+            </StackPanel>
+        </RelativePanel>
     </Grid>
 </samples:BaseSamplePage>
