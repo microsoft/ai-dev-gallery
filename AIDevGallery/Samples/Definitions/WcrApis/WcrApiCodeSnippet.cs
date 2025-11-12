@@ -39,6 +39,32 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.PhiSilicaLora, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Text;
+            using Microsoft.Windows.AI.Text.Experimental;
+            var readyState = LanguageModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await LanguageModel.EnsureReadyAsync();
+                }
+                using LanguageModel languageModel = await LanguageModel.CreateAsync();
+                using LanguageModelExperimental loraModel = new LanguageModelExperimental(languageModel);
+                string adapterFilePath = "path_to_your_adapter_file";
+                LowRankAdaptation loraAdapter = loraModel.LoadAdapter(adapterFilePath);
+                var options = new LanguageModelOptionsExperimental
+                {
+                    LoraAdapter = loraAdapter
+                };
+                string prompt = "Provide the molecular formula for glucose.";
+                var result = await loraModel.GenerateResponseAsync(prompt, options);
+                Console.WriteLine(result.Text);
+            }
+            """"
+        },
+        {
             ModelType.TextSummarizer, """"
             using Microsoft.Windows.AI;
             using Microsoft.Windows.AI.Text;

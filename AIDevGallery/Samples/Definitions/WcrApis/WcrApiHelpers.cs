@@ -18,6 +18,7 @@ internal static class WcrApiHelpers
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
         ModelType.PhiSilica,
+        ModelType.PhiSilicaLora,
         ModelType.TextSummarizer,
         ModelType.TextRewriter,
         ModelType.TextToTableConverter
@@ -26,6 +27,9 @@ internal static class WcrApiHelpers
     {
         {
             ModelType.PhiSilica, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.GetReadyState
         },
         {
             ModelType.TextSummarizer, LanguageModel.GetReadyState
@@ -60,6 +64,9 @@ internal static class WcrApiHelpers
     {
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextSummarizer, LanguageModel.EnsureReadyAsync
