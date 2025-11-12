@@ -270,20 +270,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 // Get text matches
                 IReadOnlyList<TextQueryMatch> textMatches = textQuery.GetNextMatches(5);
 
-                if (textMatches != null && textMatches.Count > 0)
+                foreach (var match in textMatches)
                 {
-                    foreach (var match in textMatches)
+                    Debug.WriteLine(match.ContentId);
+                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
-                        Debug.WriteLine(match.ContentId);
-                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
-                        {
-                            AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                            string matchingData = simpleTextData[match.ContentId];
-                            int offset = textResult.TextOffset;
-                            int length = textResult.TextLength;
-                            string matchingString = matchingData.Substring(offset, length);
-                            textResults += matchingString + "\n\n";
-                        }
+                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                        string matchingData = simpleTextData[match.ContentId];
+                        int offset = textResult.TextOffset;
+                        int length = textResult.TextLength;
+                        string matchingString = matchingData.Substring(offset, length);
+                        textResults += matchingString + "\n\n";
                     }
                 }
 
@@ -293,27 +290,24 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 // Get image matches
                 IReadOnlyList<ImageQueryMatch> imageMatches = imageQuery.GetNextMatches(5);
 
-                if (imageMatches != null && imageMatches.Count > 0)
+                foreach (var match in imageMatches)
                 {
-                    foreach (var match in imageMatches)
+                    Debug.WriteLine(match.ContentId);
+                    if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
                     {
-                        Debug.WriteLine(match.ContentId);
-                        if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
-                        {
-                            AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
+                        AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
 
-                            if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
-                            {
-                                string imageVal = imagePath.StartsWith("file://", StringComparison.OrdinalIgnoreCase) ? imagePath : $"ms-appx:///Assets/{imagePath}";
-                                imageResults.Add(imageVal);
-                            }
+                        if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
+                        {
+                            string imageVal = imagePath.StartsWith("file://", StringComparison.OrdinalIgnoreCase) ? imagePath : $"ms-appx:///Assets/{imagePath}";
+                            imageResults.Add(imageVal);
                         }
                     }
                 }
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if ((textMatches == null || textMatches.Count == 0) && (imageResults == null || imageResults.Count == 0))
+                    if (textMatches.Count == 0 && imageResults.Count == 0)
                     {
                         ResultStatusTextBlock.Text = "No results found.";
                     }
@@ -322,7 +316,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         ResultStatusTextBlock.Text = "Search Results:";
                     }
 
-                    if (textMatches != null && textMatches.Count > 0)
+                    if (textMatches.Count > 0)
                     {
                         ResultsTextBlock.Visibility = Visibility.Visible;
                         ResultsTextBlock.Text = textResults;
@@ -332,7 +326,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         ResultsTextBlock.Visibility = Visibility.Collapsed;
                     }
 
-                    if (imageResults != null && imageResults.Count > 0)
+                    if (imageResults.Count > 0)
                     {
                         ImageResultsBox.ItemsSource = imageResults;
                         ImageResultsBox.Visibility = Visibility.Visible;

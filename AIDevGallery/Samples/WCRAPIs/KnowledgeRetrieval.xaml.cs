@@ -225,34 +225,31 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             promptStringBuilder.AppendLine("You are a helpful assistant. Please only refer to the following pieces of information when responding to the user's prompt:");
 
             // For each of the matches found, we include the relevant snippets of the text files in the augmented query that we send to the language model
-            if (textMatches != null && textMatches.Count > 0)
+            foreach (var match in textMatches)
             {
-                foreach (var match in textMatches)
+                Debug.WriteLine(match.ContentId);
+                if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                 {
-                    Debug.WriteLine(match.ContentId);
-                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                    AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                    string matchingData = simpleTextData[match.ContentId];
+                    int offset = textResult.TextOffset;
+                    int length = textResult.TextLength;
+                    string matchingString;
+
+                    if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
                     {
-                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                        string matchingData = simpleTextData[match.ContentId];
-                        int offset = textResult.TextOffset;
-                        int length = textResult.TextLength;
-                        string matchingString;
-
-                        if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
-                        {
-                            // Find the substring within the loaded text that contains the match:
-                            matchingString = matchingData.Substring(offset, length);
-                        }
-                        else
-                        {
-                            matchingString = matchingData;
-                        }
-
-                        promptStringBuilder.AppendLine(matchingString);
-                        promptStringBuilder.AppendLine();
-
-                        refIds += string.IsNullOrEmpty(refIds) ? match.ContentId : ", " + match.ContentId;
+                        // Find the substring within the loaded text that contains the match:
+                        matchingString = matchingData.Substring(offset, length);
                     }
+                    else
+                    {
+                        matchingString = matchingData;
+                    }
+
+                    promptStringBuilder.AppendLine(matchingString);
+                    promptStringBuilder.AppendLine();
+
+                    refIds += string.IsNullOrEmpty(refIds) ? match.ContentId : ", " + match.ContentId;
                 }
             }
 

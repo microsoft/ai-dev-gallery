@@ -302,7 +302,7 @@ internal sealed partial class MainWindow : WindowEx
                     var query = _indexer.CreateTextQuery(searchText);
                     IReadOnlyList<TextQueryMatch>? matches = await Task.Run(() => query.GetNextMatches(5), token);
 
-                    if (!token.IsCancellationRequested && matches != null && matches.Count > 0)
+                    if (!token.IsCancellationRequested)
                     {
                         foreach (var match in matches)
                         {
