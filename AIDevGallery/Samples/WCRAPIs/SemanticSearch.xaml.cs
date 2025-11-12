@@ -297,8 +297,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
                         if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
                         {
-                            string imageVal = imagePath.StartsWith("file://", StringComparison.OrdinalIgnoreCase) ? imagePath : $"ms-appx:///Assets/{imagePath}";
-                            imageResults.Add(imageVal);
+                            imageResults.Add(imagePath);
                         }
                     }
                 }
