@@ -145,6 +145,7 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        // To workaround a WinML auto initializer issue.
         OrtGetApiBase();
 
         // Narrator speak

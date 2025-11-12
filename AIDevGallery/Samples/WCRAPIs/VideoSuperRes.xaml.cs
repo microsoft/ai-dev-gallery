@@ -71,6 +71,11 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
             await catalog.EnsureAndRegisterCertifiedAsync();
 
             var readyState = VideoScaler.GetReadyState();
+            if (readyState == AIFeatureReadyState.NotSupportedOnCurrentSystem)
+            {
+                ShowException(null, "Video Scaler is not supported on current system (hardware requirements not met).");
+            }
+
             if (readyState == AIFeatureReadyState.NotReady)
             {
                 var operation = await VideoScaler.EnsureReadyAsync();

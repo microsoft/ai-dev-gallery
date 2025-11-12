@@ -104,7 +104,7 @@
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE714",
         "Description": "Improve video resolution.",
-        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/video-super-resolution.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650"
       }
