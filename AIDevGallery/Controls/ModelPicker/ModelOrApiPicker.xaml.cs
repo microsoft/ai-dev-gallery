@@ -20,6 +20,7 @@ namespace AIDevGallery.Controls;
 internal sealed partial class ModelOrApiPicker : UserControl
 {
     private ObservableCollection<ModelSelectionItem> modelSelectionItems = new ObservableCollection<ModelSelectionItem>();
+    private int selectedModelSelectionIndex = -1;
 
     public delegate void SelectedModelsChangedEventHandler(object sender, List<ModelDetails?> modelDetails);
     public event SelectedModelsChangedEventHandler? SelectedModelsChanged;
@@ -124,8 +125,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
             selectedModels.Add(modelToPreselect);
         }
 
-        SelectedModelsItemsView.ItemsSource = modelSelectionItems;
-        SelectedModelsItemsView.Select(0);
+        // Initialize selection (first item) for repeater
+        if (modelSelectionItems.Count > 0)
+        {
+            SetSelectedIndex(0);
+        }
 
         return selectedModels;
     }
@@ -153,15 +157,22 @@ internal sealed partial class ModelOrApiPicker : UserControl
         return models;
     }
 
-    private void ModelSelectionItemChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void SetSelectedIndex(int index)
     {
-        var selectedItem = sender.SelectedItem as ModelSelectionItem;
-        if (selectedItem == null)
+        if (index < 0 || index >= modelSelectionItems.Count)
         {
             return;
         }
 
-        _ = LoadModels(selectedItem.ModelTypes);
+        // Clear previous selection
+        if (selectedModelSelectionIndex >= 0 && selectedModelSelectionIndex < modelSelectionItems.Count)
+        {
+            modelSelectionItems[selectedModelSelectionIndex].IsSelected = false;
+        }
+
+        selectedModelSelectionIndex = index;
+        modelSelectionItems[selectedModelSelectionIndex].IsSelected = true;
+        _ = LoadModels(modelSelectionItems[selectedModelSelectionIndex].ModelTypes);
     }
 
     private async Task LoadModels(List<ModelType> types)
@@ -232,7 +243,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             BaseModelPickerView? modelPickerView = null;
 
-            var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+            var modelSelectionItem = GetCurrentSelection();
 
             if (modelSelectionItem == null)
             {
@@ -259,7 +270,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ModelPickerView_SelectedModelChanged(object sender, ModelDetails? modelDetails)
     {
-        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+        var modelSelectionItem = GetCurrentSelection();
 
         if (modelSelectionItem == null)
         {
@@ -287,15 +298,56 @@ internal sealed partial class ModelOrApiPicker : UserControl
     {
         Hide();
     }
+
+    private ModelSelectionItem? GetCurrentSelection()
+    {
+        if (selectedModelSelectionIndex >= 0 && selectedModelSelectionIndex < modelSelectionItems.Count)
+        {
+            return modelSelectionItems[selectedModelSelectionIndex];
+        }
+
+        return null;
+    }
+
+    private void SelectedModelItem_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
+        {
+            var index = modelSelectionItems.IndexOf(msi);
+            if (index >= 0)
+            {
+                SetSelectedIndex(index);
+            }
+        }
+    }
+
+    private void SelectedModelItem_GotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
+        {
+            var index = modelSelectionItems.IndexOf(msi);
+            if (index >= 0 && index != selectedModelSelectionIndex)
+            {
+                SetSelectedIndex(index);
+            }
+        }
+    }
 }
 
 internal class ModelSelectionItem : ObservableObject
 {
     private ModelDetails? selectedModel;
+    private bool isSelected;
     public ModelDetails? SelectedModel
     {
         get => selectedModel;
         set => SetProperty(ref selectedModel, value);
+    }
+
+    public bool IsSelected
+    {
+        get => isSelected;
+        set => SetProperty(ref isSelected, value);
     }
 
     public List<ModelType> ModelTypes { get; set; }
