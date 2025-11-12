@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -45,11 +46,33 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         ValidateSaveButton();
         this.Visibility = Visibility.Visible;
+        _ = FocusOverlayAsync();
     }
 
     public void Hide()
     {
         this.Visibility = Visibility.Collapsed;
+    }
+
+    private async Task FocusOverlayAsync()
+    {
+        await Task.Yield();
+
+        Control? firstTarget = null;
+
+        if (CancelButton != null && CancelButton.Visibility == Visibility.Visible)
+        {
+            firstTarget = CancelButton;
+        }
+        else if (SaveButton != null && SaveButton.IsEnabled && SaveButton.Visibility == Visibility.Visible)
+        {
+            firstTarget = SaveButton;
+        }
+
+        if (firstTarget != null)
+        {
+            _ = FocusManager.TryFocusAsync(firstTarget, FocusState.Programmatic);
+        }
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)

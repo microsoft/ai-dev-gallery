@@ -18,7 +18,7 @@
         <ThemeShadow x:Name="DialogShadow" />
         <SolidColorBrush x:Key="AppSmokeBrush" Color="#4D000000" />
     </UserControl.Resources>
-    <Grid>
+	<Grid x:Name="ModelOrApiPickerOverlayRoot" TabFocusNavigation="Cycle">
         <Grid
             x:Name="ShadowGrid"
             Background="{ThemeResource AppSmokeBrush}"
