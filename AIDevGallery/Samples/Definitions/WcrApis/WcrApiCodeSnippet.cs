@@ -287,7 +287,8 @@ internal static class WcrApiCodeSnippet
                 filterOptions.PromptMaxAllowedSeverityLevel.Violent = SeverityLevel.Medium;
                 filterOptions.ResponseMaxAllowedSeverityLevel.Violent = SeverityLevel.Medium;
 
-                ImageDescriptionResult languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, ImageDescriptionKind.DiagramDescription, filterOptions);
+                ImageDescriptionResult languageModelResponse = await imageDescriptionGenerator.DescribeAsync(inputImage, 
+                        ImageDescriptionKind.DiagramDescription, filterOptions);
 
                 Debug.WriteLine(languageModelResponse.Description);
             }
@@ -517,6 +518,139 @@ internal static class WcrApiCodeSnippet
                 }
             }
             """"
+        },
+        {
+            ModelType.SDXL, """"
+            using Microsoft.Graphics.Imaging;
+            using Microsoft.Windows.AI.Imaging;
+            using Microsoft.Windows.AI;
+
+            var readyState = ImageGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageGenerator.EnsureReadyAsync();
+                }
+
+                ImageGenerator imageGenerator = await ImageGenerator.CreateAsync();
+
+                var result = imageGenerator.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions());
+                if (result.Status == ImageGeneratorResultStatus.Success)
+                {
+                    var imageBuffer = result.Image;
+                    var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
+                    var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
+                            BitmapAlphaMode.Premultiplied);
+                    if (softwareBitmap != null)
+                    {
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(convertedImage);
+                        var finalImage = source;
+                    }
+                    else
+                    {
+                        Console.WriteLine(null, "Failed to convert the image.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Image generation failed with status: {result.Status}");
+                }
+            }
+            """"
+        },
+        {
+            ModelType.RestyleImage, """""
+            using Microsoft.Graphics.Imaging;
+            using Microsoft.Windows.AI.Imaging;
+            using Microsoft.Windows.AI;
+
+            var readyState = ImageGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageGenerator.EnsureReadyAsync();
+                }
+
+                ImageGenerator imageGenerator = await ImageGenerator.CreateAsync();
+                ImageFromImageGenerationOptions imageFromImageGenerationOption = new()
+                {
+                    Style = ImageFromImageGenerationStyle.Restyle
+                };
+
+                using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(softwareBitmap);
+
+                var result = imageGenerator.GenerateImageFromImageBuffer(inputBuffer, prompt,
+                        new ImageGenerationOptions(), imageFromImageGenerationOption);
+                if (result.Status == ImageGeneratorResultStatus.Success)
+                {
+                    var imageBuffer = result.Image;
+                    var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
+                    var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
+                            BitmapAlphaMode.Premultiplied);
+                    if (softwareBitmap != null)
+                    {
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(convertedImage);
+                        var finalImage = source;
+                    }
+                    else
+                    {
+                        Console.WriteLine(null, "Failed to convert the image.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Image generation failed with status: {result.Status}");
+                }
+            }
+            """""
+        },
+        {
+            ModelType.ColoringBook, """""
+            using Microsoft.Graphics.Imaging;
+            using Microsoft.Windows.AI.Imaging;
+            using Microsoft.Windows.AI;
+
+            var readyState = ImageGenerator.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageGenerator.EnsureReadyAsync();
+                }
+
+                ImageGenerator imageGenerator = await ImageGenerator.CreateAsync();
+                
+                using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(softwareBitmap);
+
+                var result = imageGenerator.GenerateImageFromImageBufferAndMask(prompt, inputImage, inputMask, 
+                    new ImageGenerationOptions());
+                if (result.Status == ImageGeneratorResultStatus.Success)
+                {
+                    var imageBuffer = result.Image;
+                    var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
+                    var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
+                            BitmapAlphaMode.Premultiplied);
+                    if (softwareBitmap != null)
+                    {
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(convertedImage);
+                        var finalImage = source;
+                    }
+                    else
+                    {
+                        Console.WriteLine(null, "Failed to convert the image.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Image generation failed with status: {result.Status}");
+                }
+            }
+            """""
         }
     };
 }

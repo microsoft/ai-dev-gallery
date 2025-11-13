@@ -109,6 +109,39 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       },
+      "SDXL": {
+        "Id": "3127a6b2-57af-4594-bbf5-27609dd880c8",
+        "Name": "Generate Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE34D",
+        "Description": "Generate image with prompt.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "01b9a242-05bf-415a-ac25-9f74544a9c91",
+        "Category": "SDXL"
+      },
+      "RestyleImage": {
+        "Id": "dff41807-54db-4c0a-a684-31a90ba43ecf",
+        "Name": "Restyle Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEB9F",
+        "Description": "Restyle image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a335a19a-2f78-4f68-b5e9-982e7da13b72",
+        "Category": "SDXL"
+      },
+      "ColoringBook": {
+        "Id": "f2bb8273-d617-43df-9d80-7189654653f8",
+        "Name": "Coloring book",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF6B",
+        "Description": "Coloring Book.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "ab877fc9-b183-47be-aac5-fac2c4ab8940",
+        "Category": "SDXL"
+      },
       "SemanticSearch": {
         "Id": "f8465a45-8e23-4485-8c16-9909e96eacf6",
         "Name": "Lexical & Semantic Search",

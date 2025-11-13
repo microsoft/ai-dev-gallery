@@ -53,7 +53,16 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
-        }
+        },
+        {
+            ModelType.SDXL, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.GetReadyState
+        },
     };
 
     public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
@@ -87,7 +96,16 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
-        }
+        },
+        {
+            ModelType.SDXL, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
+        },
     };
 
     // this is a workaround for GetReadyState not returning Ready after EnsureReadyAsync is called
