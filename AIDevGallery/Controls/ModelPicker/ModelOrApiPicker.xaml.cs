@@ -47,33 +47,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         ValidateSaveButton();
         this.Visibility = Visibility.Visible;
-        _ = FocusOverlayAsync();
     }
 
     public void Hide()
     {
         this.Visibility = Visibility.Collapsed;
-    }
-
-    private async Task FocusOverlayAsync()
-    {
-        await Task.Yield();
-
-        Control? firstTarget = null;
-
-        if (CancelButton != null && CancelButton.Visibility == Visibility.Visible)
-        {
-            firstTarget = CancelButton;
-        }
-        else if (SaveButton != null && SaveButton.IsEnabled && SaveButton.Visibility == Visibility.Visible)
-        {
-            firstTarget = SaveButton;
-        }
-
-        if (firstTarget != null)
-        {
-            _ = FocusManager.TryFocusAsync(firstTarget, FocusState.Programmatic);
-        }
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
@@ -328,7 +306,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
             if (e.Key == Windows.System.VirtualKey.Enter || e.Key == Windows.System.VirtualKey.Space)
             {
                 SetSelectedIndex(index);
-                _ = FocusManager.TryFocusAsync(fe, FocusState.Programmatic);
                 e.Handled = true;
                 return;
             }
@@ -340,12 +317,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 if (next < modelSelectionItems.Count)
                 {
                     SetSelectedIndex(next);
-                    var nextElement = SelectedModelsRepeater.GetOrCreateElement(next) as FrameworkElement;
-                    if (nextElement != null)
-                    {
-                        _ = FocusManager.TryFocusAsync(nextElement, FocusState.Programmatic);
-                    }
-
                     e.Handled = true;
                 }
             }
@@ -355,12 +326,6 @@ internal sealed partial class ModelOrApiPicker : UserControl
                 if (prev >= 0)
                 {
                     SetSelectedIndex(prev);
-                    var prevElement = SelectedModelsRepeater.GetOrCreateElement(prev) as FrameworkElement;
-                    if (prevElement != null)
-                    {
-                        _ = FocusManager.TryFocusAsync(prevElement, FocusState.Programmatic);
-                    }
-
                     e.Handled = true;
                 }
             }
