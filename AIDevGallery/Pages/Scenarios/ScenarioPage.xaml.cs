@@ -421,6 +421,7 @@ internal sealed partial class ScenarioPage : Page
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
+        contentHost.Focus(FocusState.Programmatic);
     }
 
     private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
