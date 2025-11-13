@@ -238,7 +238,8 @@ internal sealed partial class SampleContainer : UserControl
                     _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
+                    if (!ModelDetailsHelper.IsACIApi(wcrApi) &&
+                        !await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
                     {
                         return;
                     }

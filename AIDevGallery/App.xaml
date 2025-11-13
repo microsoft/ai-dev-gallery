@@ -31,12 +31,44 @@
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <ImageSource x:Key="GitHubIconImage">ms-appx:///Assets/ModelIcons/GitHub.light.svg</ImageSource>
+
+                    <Color x:Key="AIAccentGradientColor">#ee9bbf</Color>
+                    <LinearGradientBrush x:Key="AIAccentGradientBrush"
+                                         StartPoint="0,0"
+                                         EndPoint="1,1">
+                        <GradientStop Offset="0.0"
+                                      Color="#7cb6e9" />
+                        <GradientStop Offset="0.25"
+                                      Color="#335fe3" />
+                        <GradientStop Offset="0.275"
+                                      Color="#8e5df5" />
+                        <GradientStop Offset="1.0"
+                                      Color="{StaticResource AIAccentGradientColor}" />
+                    </LinearGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <ImageSource x:Key="GitHubIconImage">ms-appx:///Assets/ModelIcons/GitHub.dark.svg</ImageSource>
+
+                    <Color x:Key="AIAccentGradientColor">#ee9bbf</Color>
+                    <LinearGradientBrush x:Key="AIAccentGradientBrush"
+                                         StartPoint="0,0"
+                                         EndPoint="1,1">
+                        <GradientStop Offset="0.0"
+                                      Color="#7cb6e9" />
+                        <GradientStop Offset="0.25"
+                                      Color="#335fe3" />
+                        <GradientStop Offset="0.275"
+                                      Color="#8e5df5" />
+                        <GradientStop Offset="1.0"
+                                      Color="{StaticResource AIAccentGradientColor}" />
+                    </LinearGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
                     <ImageSource x:Key="GitHubIconImage">ms-appx:///Assets/ModelIcons/GitHub.dark.svg</ImageSource>
+
+                    <Color x:Key="AIAccentGradientColor">#48B1E9</Color>
+                    <SolidColorBrush x:Key="AIAccentGradientBrush"
+                                     Color="{StaticResource AIAccentGradientColor}" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

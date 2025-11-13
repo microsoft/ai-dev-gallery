@@ -153,10 +153,17 @@
                     VerticalAlignment="Center"
                     ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"
                     PlaceholderText="Search samples, models &amp; APIs.."
-                    QueryIcon="Find"
                     QuerySubmitted="SearchBox_QuerySubmitted"
                     TextChanged="SearchBox_TextChanged"
-                    UpdateTextOnSelect="False" />
+                    UpdateTextOnSelect="False">
+                    <AutoSuggestBox.QueryIcon>
+                        <FontIcon
+                            x:Name="SearchBoxQueryIcon"
+                            FontSize="16"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Glyph="&#xE721;" />
+                    </AutoSuggestBox.QueryIcon>
+                </AutoSuggestBox>
             </TitleBar.Content>
             <TitleBar.RightHeader>
                 <StackPanel

@@ -43,6 +43,7 @@ internal sealed partial class SettingsPage : Page
         GetStorageInfo();
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
+        SemanticSearchToggleSwitch.IsOn = App.AppData.IsAppContentSearchEnabled;
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
@@ -135,6 +136,11 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
+    private void Reindex_Click(object sender, RoutedEventArgs e)
+    {
+        MainWindow.IndexAppSearchIndexStatic();
+    }
+
     private void ModelFolder_Click(object sender, RoutedEventArgs e)
     {
         if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is CachedModel model)
@@ -158,6 +164,15 @@ internal sealed partial class SettingsPage : Page
         if (App.AppData.IsDiagnosticDataEnabled != DiagnosticDataToggleSwitch.IsOn)
         {
             App.AppData.IsDiagnosticDataEnabled = DiagnosticDataToggleSwitch.IsOn;
+            await App.AppData.SaveAsync();
+        }
+    }
+
+    private async void SemanticSearchToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (App.AppData.IsAppContentSearchEnabled != SemanticSearchToggleSwitch.IsOn)
+        {
+            App.AppData.IsAppContentSearchEnabled = SemanticSearchToggleSwitch.IsOn;
             await App.AppData.SaveAsync();
         }
     }

@@ -33,12 +33,24 @@ internal static class ModelDetailsHelper
 
     public static ModelDetails GetModelDetailsFromApiDefinition(ModelType modelType, ApiDefinition apiDefinition)
     {
+        List<HardwareAccelerator> hardwareAccelerators;
+
+        // ACI is a subset of WCRAPIs but without the same set of hardware restrictions. Adding exception here.
+        if (apiDefinition.Category == "App Content Search")
+        {
+            hardwareAccelerators = [HardwareAccelerator.WCRAPI, HardwareAccelerator.ACI];
+        }
+        else
+        {
+            hardwareAccelerators = [HardwareAccelerator.WCRAPI];
+        }
+
         return new ModelDetails
         {
             Id = apiDefinition.Id,
             Icon = apiDefinition.Icon,
             Name = apiDefinition.Name,
-            HardwareAccelerators = [HardwareAccelerator.WCRAPI],
+            HardwareAccelerators = hardwareAccelerators,
             IsUserAdded = false,
             SupportedOnQualcomm = true,
             ReadmeUrl = apiDefinition.ReadmeUrl,
@@ -181,6 +193,11 @@ internal static class ModelDetailsHelper
     public static bool IsHttpApi(this ExpandedModelDetails modelDetails)
     {
         return ExternalModelHelper.HardwareAccelerators.Contains(modelDetails.HardwareAccelerator);
+    }
+
+    public static bool IsACIApi(this ModelDetails modelDetails)
+    {
+        return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.ACI);
     }
 
     public static bool IsLanguageModel(this ModelDetails modelDetails)

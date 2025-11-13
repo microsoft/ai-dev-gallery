@@ -109,6 +109,39 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
       },
+      "SemanticSearch": {
+        "Id": "f8465a45-8e23-4485-8c16-9909e96eacf6",
+        "Name": "Lexical & Semantic Search",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uED37",
+        "Description": "Search image and text by semantic meaning.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "f8465a45-8e23-4485-8c16-9909e96eacf6",
+        "Category": "App Content Search"
+      },
+      "KnowledgeRetrieval": {
+        "Id": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
+        "Name": "Retrieval Augmented Generation (RAG)",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEAB7",
+        "Description": "Enhance language model responses with local knowledge retrieval.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
+        "Category": "App Content Search"
+      },
+      "AppIndexCapability": {
+        "Id": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
+        "Name": "Index Capabilities",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEDA2",
+        "Description": "Get system and index capabilities for App Content Search.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
+        "Category": "App Content Search"
+      },
       "VideoSuperRes": {
         "Id": "1698eb3d-6c4f-4de0-aab8-72edca349eec",
         "Name": "Video Super Resolution",

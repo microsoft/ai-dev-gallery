@@ -5,6 +5,7 @@ using MathNet.Numerics;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace AIDevGallery.Samples.SharedCode.StableDiffusionCode;
@@ -162,12 +163,12 @@ internal class LMSDiscreteScheduler
         }
         else if (_predictionType == "v_prediction")
         {
-            Console.WriteLine($"Warning: prediction_type '{_predictionType}' is not implemented yet. Skipping step.");
+            Debug.WriteLine($"Warning: prediction_type '{_predictionType}' is not implemented yet. Skipping step.");
             return new DenseTensor<float>(new float[modelOutput.Length], modelOutput.Dimensions.ToArray()); // or any other appropriate value
         }
         else
         {
-            Console.WriteLine($"Warning: Unsupported prediction_type '{_predictionType}'. Must be one of 'epsilon', or 'v_prediction'. Skipping step.");
+            Debug.WriteLine($"Warning: Unsupported prediction_type '{_predictionType}'. Must be one of 'epsilon', or 'v_prediction'. Skipping step.");
             return new DenseTensor<float>(new float[modelOutput.Length], modelOutput.Dimensions.ToArray()); // or any other appropriate value
         }
 
