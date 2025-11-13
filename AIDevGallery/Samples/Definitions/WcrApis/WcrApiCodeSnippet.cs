@@ -81,7 +81,7 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextSummarizer textSummarizer = new TextSummarizer(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
 
             As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
             performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
@@ -109,7 +109,7 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextRewriter textRewriter = new TextRewriter(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
 
             As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
             performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
