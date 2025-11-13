@@ -26,7 +26,11 @@ internal class ModelCompatibility
         string description = string.Empty;
         ModelCompatibilityState compatibility;
 
-        if (modelDetails.IsHttpApi())
+        if (modelDetails.IsACIApi())
+        {
+            compatibility = ModelCompatibilityState.Compatible;
+        }
+        else if (modelDetails.IsHttpApi())
         {
             compatibility = ModelCompatibilityState.Compatible;
         }
