@@ -542,7 +542,7 @@ internal static class WcrApiCodeSnippet
                     var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
                     var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
                             BitmapAlphaMode.Premultiplied);
-                    if (softwareBitmap != null)
+                    if (convertedImage != null)
                     {
                         var source = new SoftwareBitmapSource();
                         await source.SetBitmapAsync(convertedImage);
@@ -550,7 +550,7 @@ internal static class WcrApiCodeSnippet
                     }
                     else
                     {
-                        Console.WriteLine(null, "Failed to convert the image.");
+                        Console.WriteLine("Failed to convert the image.");
                     }
                 }
                 else
@@ -590,7 +590,7 @@ internal static class WcrApiCodeSnippet
                     var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
                     var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
                             BitmapAlphaMode.Premultiplied);
-                    if (softwareBitmap != null)
+                    if (convertedImage != null)
                     {
                         var source = new SoftwareBitmapSource();
                         await source.SetBitmapAsync(convertedImage);
@@ -598,7 +598,7 @@ internal static class WcrApiCodeSnippet
                     }
                     else
                     {
-                        Console.WriteLine(null, "Failed to convert the image.");
+                        Console.WriteLine("Failed to convert the image.");
                     }
                 }
                 else
@@ -633,7 +633,7 @@ internal static class WcrApiCodeSnippet
                     var softwareBitmap = imageBuffer.CopyToSoftwareBitmap();
                     var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, 
                             BitmapAlphaMode.Premultiplied);
-                    if (softwareBitmap != null)
+                    if (convertedImage != null)
                     {
                         var source = new SoftwareBitmapSource();
                         await source.SetBitmapAsync(convertedImage);
@@ -641,7 +641,7 @@ internal static class WcrApiCodeSnippet
                     }
                     else
                     {
-                        Console.WriteLine(null, "Failed to convert the image.");
+                        Console.WriteLine("Failed to convert the image.");
                     }
                 }
                 else

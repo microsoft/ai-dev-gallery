@@ -261,7 +261,7 @@
       "ColoringBook": {
         "Name": "Coloring Book",
         "Description": "Color images using SDXL.",
-        "Instructions": "Select the parts to color by clicking on them, then enter a prompt to color it, then click 'Change' to color that image. Note: this may take a while.",
+        "Instructions": "Select the parts to color by clicking on them, enter a prompt to color them, then click 'Change' to color that image. Note: this may take a while.",
         "Id": "color-image"
       }
     }

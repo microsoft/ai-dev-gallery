@@ -130,7 +130,7 @@
                 Margin="0,12,0,0"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Click where do you want to color, add a prompt and click 'Change'."
+                Text="Click where you want to color, add a prompt and click 'Change'."
                 TextWrapping="Wrap" />
         </StackPanel>
     </Grid>

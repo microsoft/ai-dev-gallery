@@ -123,7 +123,6 @@ internal sealed partial class SDXL : BaseSamplePage
 
         SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
-        IsProgressVisible = true;
         _cts = new CancellationTokenSource();
         ImageGeneratorResult? result = null;
 
