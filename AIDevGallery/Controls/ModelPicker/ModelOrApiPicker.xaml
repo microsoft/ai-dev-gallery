@@ -18,7 +18,7 @@
         <ThemeShadow x:Name="DialogShadow" />
         <SolidColorBrush x:Key="AppSmokeBrush" Color="#4D000000" />
     </UserControl.Resources>
-    <Grid>
+	<Grid x:Name="ModelOrApiPickerOverlayRoot" TabFocusNavigation="Cycle">
         <Grid
             x:Name="ShadowGrid"
             Background="{ThemeResource AppSmokeBrush}"
@@ -114,26 +114,32 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Models selected for this sample" />
-                <ItemsView
-                    x:Name="SelectedModelsItemsView"
+                <ItemsRepeater
+                    x:Name="SelectedModelsRepeater"
                     Grid.Row="1"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    SelectionChanged="ModelSelectionItemChanged"
-                    SelectionMode="Single">
-                    <ItemsView.Layout>
+                    ItemsSource="{x:Bind modelSelectionItems}">
+                    <ItemsRepeater.Layout>
                         <StackLayout Orientation="Horizontal" Spacing="4" />
-                    </ItemsView.Layout>
-                    <ItemsView.ItemTemplate>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="local:ModelSelectionItem">
-                            <ItemContainer>
-                                <Grid
-                                    MinWidth="248"
-                                    MinHeight="48"
-                                    Padding="8"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1">
+                            <Border
+                                MinWidth="248"
+                                MinHeight="48"
+                                Padding="8"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource ControlCornerRadius}"
+                                IsTabStop="True"
+                                UseSystemFocusVisuals="True"
+                                KeyDown="SelectedModelItem_KeyDown"
+                                Tapped="SelectedModelItem_Tapped"
+                                AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}"
+                                AutomationProperties.HelpText="Press Enter or Space to select model.">
+                                <Grid>
                                     <Grid
                                         Padding="8,0,0,0"
                                         VerticalAlignment="Center"
@@ -183,10 +189,10 @@
                                         </ItemsRepeater>
                                     </Grid>
                                 </Grid>
-                            </ItemContainer>
+                            </Border>
                         </DataTemplate>
-                    </ItemsView.ItemTemplate>
-                </ItemsView>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
                 <Button
                     x:Name="SaveButton"
                     Grid.Row="1"

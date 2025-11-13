@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace AIDevGallery.Controls;
 internal sealed partial class ModelOrApiPicker : UserControl
 {
     private ObservableCollection<ModelSelectionItem> modelSelectionItems = new ObservableCollection<ModelSelectionItem>();
+    private int selectedModelSelectionIndex = -1;
 
     public delegate void SelectedModelsChangedEventHandler(object sender, List<ModelDetails?> modelDetails);
     public event SelectedModelsChangedEventHandler? SelectedModelsChanged;
@@ -101,8 +103,11 @@ internal sealed partial class ModelOrApiPicker : UserControl
             selectedModels.Add(modelToPreselect);
         }
 
-        SelectedModelsItemsView.ItemsSource = modelSelectionItems;
-        SelectedModelsItemsView.Select(0);
+        // Initialize selection (first item) for repeater
+        if (modelSelectionItems.Count > 0)
+        {
+            SetSelectedIndex(0);
+        }
 
         return selectedModels;
     }
@@ -130,15 +135,15 @@ internal sealed partial class ModelOrApiPicker : UserControl
         return models;
     }
 
-    private void ModelSelectionItemChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
+    private void SetSelectedIndex(int index)
     {
-        var selectedItem = sender.SelectedItem as ModelSelectionItem;
-        if (selectedItem == null)
+        if (index < 0 || index >= modelSelectionItems.Count)
         {
             return;
         }
 
-        _ = LoadModels(selectedItem.ModelTypes);
+        selectedModelSelectionIndex = index;
+        _ = LoadModels(modelSelectionItems[index].ModelTypes);
     }
 
     private async Task LoadModels(List<ModelType> types)
@@ -209,7 +214,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
             BaseModelPickerView? modelPickerView = null;
 
-            var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+            var modelSelectionItem = GetCurrentSelection();
 
             if (modelSelectionItem == null)
             {
@@ -236,7 +241,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private void ModelPickerView_SelectedModelChanged(object sender, ModelDetails? modelDetails)
     {
-        var modelSelectionItem = SelectedModelsItemsView.SelectedItem as ModelSelectionItem;
+        var modelSelectionItem = GetCurrentSelection();
 
         if (modelSelectionItem == null)
         {
@@ -264,6 +269,68 @@ internal sealed partial class ModelOrApiPicker : UserControl
     {
         Hide();
     }
+
+    private ModelSelectionItem? GetCurrentSelection()
+    {
+        if (selectedModelSelectionIndex >= 0 && selectedModelSelectionIndex < modelSelectionItems.Count)
+        {
+            return modelSelectionItems[selectedModelSelectionIndex];
+        }
+
+        return null;
+    }
+
+    private void SelectedModelItem_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
+        {
+            var index = modelSelectionItems.IndexOf(msi);
+            if (index >= 0)
+            {
+                SetSelectedIndex(index);
+            }
+        }
+    }
+
+    private void SelectedModelItem_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ModelSelectionItem msi)
+        {
+            var index = modelSelectionItems.IndexOf(msi);
+            if (index < 0)
+            {
+                return;
+            }
+
+            // Activate selection with Enter or Space.
+            if (e.Key == Windows.System.VirtualKey.Enter || e.Key == Windows.System.VirtualKey.Space)
+            {
+                SetSelectedIndex(index);
+                e.Handled = true;
+                return;
+            }
+
+            // Horizontal navigation with Left/Right arrows.
+            if (e.Key == Windows.System.VirtualKey.Right)
+            {
+                var next = index + 1;
+                if (next < modelSelectionItems.Count)
+                {
+                    SetSelectedIndex(next);
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == Windows.System.VirtualKey.Left)
+            {
+                var prev = index - 1;
+                if (prev >= 0)
+                {
+                    SetSelectedIndex(prev);
+                    e.Handled = true;
+                }
+            }
+        }
+    }
 }
 
 internal class ModelSelectionItem : ObservableObject
@@ -272,7 +339,13 @@ internal class ModelSelectionItem : ObservableObject
     public ModelDetails? SelectedModel
     {
         get => selectedModel;
-        set => SetProperty(ref selectedModel, value);
+        set
+        {
+            if (SetProperty(ref selectedModel, value))
+            {
+                OnPropertyChanged(nameof(AccessibleName));
+            }
+        }
     }
 
     public List<ModelType> ModelTypes { get; set; }
@@ -281,6 +354,8 @@ internal class ModelSelectionItem : ObservableObject
     {
         ModelTypes = modelTypes;
     }
+
+    public string AccessibleName => SelectedModel?.Name ?? "No model selected";
 
     public Dictionary<string, BaseModelPickerView> ModelPickerViews { get; private set; } = new();
 }
