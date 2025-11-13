@@ -119,12 +119,14 @@
                     </controls:Card.TitleContent>
                     <Grid>
                         <ScrollViewer
+                            IsTabStop="False"
                             VerticalAlignment="Stretch"
                             VerticalScrollBarVisibility="Auto"
                             Grid.Row="2"
                             Margin="-16"
                             Padding="20,12,20,0">
                             <toolkit2:MarkdownTextBlock
+                                IsTabStop="False"
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
