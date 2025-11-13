@@ -129,7 +129,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         }
     }
 
-    public async Task RewriteText(string prompt)
+    public async Task RewriteText(string prompt, string customTone)
     {
         if (_textRewriter == null)
         {
@@ -141,6 +141,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         StopBtn.Visibility = Visibility.Visible;
         IsProgressVisible = true;
         InputTextBox.IsEnabled = false;
+        CustomToneTextBox.IsEnabled = false;
         var contentStartedBeingGenerated = false; // <exclude-line>
         NarratorHelper.Announce(InputTextBox, "Generating content, please wait.", "GenerateTextWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("GenerateText"); // <exclude-line>
@@ -157,7 +158,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         int outputTokens = 0;
 
         // </exclude>
-        var operation = _textRewriter.RewriteAsync(prompt);
+        var operation = _textRewriter.RewriteCustomAsync(prompt, customTone);
         operation.Progress = (asyncInfo, delta) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -205,15 +206,16 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         StopBtn.Visibility = Visibility.Collapsed;
         RewriteButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
+        CustomToneTextBox.IsEnabled = true;
         _cts?.Dispose();
         _cts = null;
     }
 
     private void RewriteButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this.InputTextBox.Text.Length > 0)
+        if (this.InputTextBox.Text.Length > 0 && this.CustomToneTextBox.Text.Length > 0)
         {
-            _ = RewriteText(InputTextBox.Text);
+            _ = RewriteText(InputTextBox.Text, CustomToneTextBox.Text);
         }
     }
 
@@ -221,9 +223,9 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
     {
         if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
         {
-            if (InputTextBox.Text.Length > 0)
+            if (InputTextBox.Text.Length > 0 && CustomToneTextBox.Text.Length > 0)
             {
-                _ = RewriteText(InputTextBox.Text);
+                _ = RewriteText(InputTextBox.Text, CustomToneTextBox.Text);
             }
         }
     }
@@ -234,6 +236,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         IsProgressVisible = false;
         RewriteButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
+        CustomToneTextBox.IsEnabled = true;
         _cts?.Cancel();
     }
 
@@ -244,7 +247,20 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
 
     private void InputBox_Changed(object sender, TextChangedEventArgs e)
     {
+        UpdateRewriteButtonState();
+    }
+
+    private void CustomToneBox_Changed(object sender, TextChangedEventArgs e)
+    {
+        UpdateRewriteButtonState();
+    }
+
+    private void UpdateRewriteButtonState()
+    {
         var inputLength = InputTextBox.Text.Length;
+        var toneLength = CustomToneTextBox.Text.Length;
+
+        // Update InputTextBox description
         if (inputLength > 0)
         {
             if (inputLength >= MaxLength)
@@ -255,13 +271,14 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
             {
                 InputTextBox.Description = $"{inputLength} of {MaxLength}";
             }
-
-            RewriteButton.IsEnabled = inputLength <= MaxLength;
         }
         else
         {
             InputTextBox.Description = string.Empty;
-            RewriteButton.IsEnabled = false;
         }
+
+        // Enable button only if both fields have valid text
+        RewriteButton.IsEnabled = inputLength > 0 && inputLength <= MaxLength &&
+                                  toneLength > 0 && toneLength <= MaxLength;
     }
 }
