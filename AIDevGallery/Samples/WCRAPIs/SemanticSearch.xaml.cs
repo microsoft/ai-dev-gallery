@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,9 +57,9 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private Dictionary<string, string> simpleImageData = new Dictionary<string, string>
     {
-        { "image1", "InteriorDesign.png" },
-        { "image2", "TofuBowlRecipe.png" },
-        { "image3", "ShakshukaRecipe.png" },
+        { "image1", "ms-appx:///Assets/InteriorDesign.png" },
+        { "image2", "ms-appx:///Assets/TofuBowlRecipe.png" },
+        { "image3", "ms-appx:///Assets/ShakshukaRecipe.png" },
     };
 
     private AppContentIndexer? _indexer;
@@ -160,7 +159,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 await Task.Run(async () =>
                 {
                     IndexTextData(id, value);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
                 });
             }
 
@@ -194,22 +193,21 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 var item = ImageDataItems.FirstOrDefault(x => x.Id == id);
                 if (item != null)
                 {
-                    fileName = Path.GetFileName(uriString);
-                    item.ImageSource = fileName;
+                    item.ImageSource = uriString;
                 }
 
                 string imageVal = uriString.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase) ? fileName : uriString;
 
-                if (!simpleImageData.TryAdd(id, imageVal))
+                if (!simpleImageData.TryAdd(id, uriString))
                 {
-                    simpleImageData[id] = imageVal;
+                    simpleImageData[id] = uriString;
                 }
 
                 IndexingMessage.IsOpen = true;
                 await Task.Run(async () =>
                 {
                     IndexImageData(id, bitmap);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
                 });
             }
 
@@ -235,25 +233,22 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         ResultsGrid.Visibility = Visibility.Visible;
         ResultStatusTextBlock.Text = "Searching...";
 
-        // Create query options
-        AppIndexQueryOptions queryOptions = new AppIndexQueryOptions();
+        // Create text query options
+        TextQueryOptions textQueryOptions = new TextQueryOptions();
 
         // Set language if provided
         string queryLanguage = QueryLanguageTextBox.Text;
         if (!string.IsNullOrWhiteSpace(queryLanguage))
         {
-            queryOptions.Language = queryLanguage;
+            textQueryOptions.Language = queryLanguage;
         }
 
-        // Create text match options
-        TextMatchOptions textMatchOptions = new TextMatchOptions
-        {
-            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
-            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex
-        };
+        // text query options
+        textQueryOptions.MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex;
+        textQueryOptions.TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex;
 
         // Create image match options
-        ImageMatchOptions imageMatchOptions = new ImageMatchOptions
+        ImageQueryOptions imageQueryOptions = new ImageQueryOptions
         {
             MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex,
             ImageOcrTextMatchType = (TextLexicalMatchType)ImageOcrTextMatchTypeComboBox.SelectedIndex
@@ -267,53 +262,49 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             () =>
             {
-                // Create query
-                AppIndexQuery query = _indexer.CreateQuery(searchText, queryOptions);
+                // Create text query
+                AppIndexTextQuery textQuery = _indexer.CreateTextQuery(searchText, textQueryOptions);
 
                 // Get text matches
-                IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
+                IReadOnlyList<TextQueryMatch> textMatches = textQuery.GetNextMatches(5);
 
-                if (textMatches != null && textMatches.Count > 0)
+                foreach (var match in textMatches)
                 {
-                    foreach (var match in textMatches)
+                    Debug.WriteLine(match.ContentId);
+                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
-                        Debug.WriteLine(match.ContentId);
-                        if (match.ContentKind == QueryMatchContentKind.AppManagedText)
-                        {
-                            AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                            string matchingData = simpleTextData[match.ContentId];
-                            int offset = textResult.TextOffset;
-                            int length = textResult.TextLength;
-                            string matchingString = matchingData.Substring(offset, length);
-                            textResults += matchingString + "\n\n";
-                        }
+                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
+                        string matchingData = simpleTextData[match.ContentId];
+                        int offset = textResult.TextOffset;
+                        int length = textResult.TextLength;
+                        string matchingString = matchingData.Substring(offset, length);
+                        textResults += matchingString + "\n\n";
                     }
                 }
 
+                // Create text query
+                AppIndexImageQuery imageQuery = _indexer.CreateImageQuery(searchText, imageQueryOptions);
+
                 // Get image matches
-                IReadOnlyList<ImageQueryMatch> imageMatches = query.GetNextImageMatches(5);
+                IReadOnlyList<ImageQueryMatch> imageMatches = imageQuery.GetNextMatches(5);
 
-                if (imageMatches != null && imageMatches.Count > 0)
+                foreach (var match in imageMatches)
                 {
-                    foreach (var match in imageMatches)
+                    Debug.WriteLine(match.ContentId);
+                    if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
                     {
-                        Debug.WriteLine(match.ContentId);
-                        if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
-                        {
-                            AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
+                        AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
 
-                            if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
-                            {
-                                string imageVal = imagePath.StartsWith("file://", StringComparison.OrdinalIgnoreCase) ? imagePath : $"ms-appx:///Assets/{imagePath}";
-                                imageResults.Add(imageVal);
-                            }
+                        if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
+                        {
+                            imageResults.Add(imagePath);
                         }
                     }
                 }
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if ((textMatches == null || textMatches.Count == 0) && (imageResults == null || imageResults.Count == 0))
+                    if (textMatches.Count == 0 && imageResults.Count == 0)
                     {
                         ResultStatusTextBlock.Text = "No results found.";
                     }
@@ -322,7 +313,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         ResultStatusTextBlock.Text = "Search Results:";
                     }
 
-                    if (textMatches != null && textMatches.Count > 0)
+                    if (textMatches.Count > 0)
                     {
                         ResultsTextBlock.Visibility = Visibility.Visible;
                         ResultsTextBlock.Text = textResults;
@@ -332,7 +323,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         ResultsTextBlock.Visibility = Visibility.Collapsed;
                     }
 
-                    if (imageResults != null && imageResults.Count > 0)
+                    if (imageResults.Count > 0)
                     {
                         ImageResultsBox.ItemsSource = imageResults;
                         ImageResultsBox.Visibility = Visibility.Visible;
@@ -375,6 +366,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             IndexTextData(newId, defaultValue);
         });
         IndexingMessage.IsOpen = false;
+
+        textDataItemsView.StartBringItemIntoView(TextDataItems.Count - 1, new BringIntoViewOptions());
     }
 
     private async void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -461,6 +454,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             // Add to collection and dictionary
             ImageDataItems.Add(new ImageDataItem { Id = newId, ImageSource = imageUri });
             simpleImageData[newId] = imageUri;
+
+            ImageDataItemsView.StartBringItemIntoView(ImageDataItems.Count - 1, new BringIntoViewOptions());
         }
     }
 
@@ -512,15 +507,14 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             foreach (var kvp in simpleImageData)
             {
-                var uri = $"ms-appx:///Assets/{kvp.Value}";
-                SoftwareBitmap? bitmap = await LoadBitmap(uri);
+                SoftwareBitmap? bitmap = await LoadBitmap(kvp.Value);
                 if (bitmap != null)
                 {
                     IndexImageData(kvp.Key, bitmap);
                 }
             }
 
-            var isIdle = await _indexer?.WaitForIndexingIdleAsync(50000);
+            var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
         });
 
         IndexingMessage.IsOpen = false;
@@ -643,8 +637,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         foreach (var kvp in simpleImageData)
         {
-            var uri = $"ms-appx:///Assets/{kvp.Value}";
-            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = uri });
+            ImageDataItems.Add(new ImageDataItem { Id = kvp.Key, ImageSource = kvp.Value });
         }
     }
 

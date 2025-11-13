@@ -60,7 +60,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             _indexer = result.Indexer;
 
             await _indexer.WaitForIndexCapabilitiesAsync();
-            await _indexer.WaitForIndexingIdleAsync(50000);
+            await _indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
 
             _indexer.Listener.IndexCapabilitiesChanged += Listener_IndexCapabilitiesChanged;
 

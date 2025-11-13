@@ -348,7 +348,7 @@ internal static class WcrApiCodeSnippet
 
                 // We search the index using a semantic query:
                 AppIndexQuery queryCursor = indexer.CreateQuery("Facts about kittens.");
-                IReadOnlyList<TextQueryMatch> textMatches = queryCursor.GetNextTextMatches(5);
+                IReadOnlyList<TextQueryMatch> textMatches = queryCursor.GetNextMatches(5);
 
                 // Nothing in the index exactly matches what we queried but item1 is similar to the query so we expect
                 // that to be the first match.
@@ -401,7 +401,7 @@ internal static class WcrApiCodeSnippet
 
                 // We query the index for some data to match our text query.
                 AppIndexQuery query = indexer.CreateQuery("cute pictures of kittens");
-                IReadOnlyList<ImageQueryMatch> imageMatches = query.GetNextImageMatches(5);
+                IReadOnlyList<ImageQueryMatch> imageMatches = query.GetImageMatches(5);
 
                 // One of the images that we indexed was a photo of a cat. We expect this to be the first match to match the query.
                 foreach (var match in imageMatches)
@@ -441,7 +441,7 @@ internal static class WcrApiCodeSnippet
 
                 // We execute a query against the index using the user's prompt string as the query text.
                 AppIndexQuery query = indexer.CreateQuery(userPrompt);
-                IReadOnlyList<TextQueryMatch> textMatches = query.GetNextTextMatches(5);
+                IReadOnlyList<TextQueryMatch> textMatches = query.GetTextMatches(5);
 
                 StringBuilder promptStringBuilder = new StringBuilder();
                 promptStringBuilder.AppendLine("Please refer to the following pieces of information when responding to the user's prompt:");
