@@ -13,8 +13,7 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
-    mc:Ignorable="d"
-    KeyDown="Window_KeyDown">
+    mc:Ignorable="d">
     <Page.Resources>
         <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
         <Style
