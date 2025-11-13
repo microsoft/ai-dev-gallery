@@ -202,7 +202,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
         await Task.Run(
             () =>
             {
-                SoftwareBitmap? mask = CreateFloodFillMask(_inputBitmap!, _selectionPoint.Value, FloodFillTolerance);
+                SoftwareBitmap? mask = CreateFloodFillMask(_inputBitmap!, _selectionPoint!.Value, FloodFillTolerance);
                 if (mask == null)
                 {
                     ShowException(null, "Failed to create flood fill mask");

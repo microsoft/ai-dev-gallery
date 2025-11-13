@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Controls.ModelPicker;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -192,12 +191,9 @@ internal sealed partial class SDXL : BaseSamplePage
 
     private void TextBox_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
+        if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox && InputTextBox.Text.Length > 0)
         {
-            if (InputTextBox.Text.Length > 0)
-            {
-                _ = GenerateImage(InputTextBox.Text);
-            }
+            _ = GenerateImage(InputTextBox.Text);
         }
     }
 
@@ -220,14 +216,9 @@ internal sealed partial class SDXL : BaseSamplePage
         var inputLength = InputTextBox.Text.Length;
         if (inputLength > 0)
         {
-            if (inputLength >= MaxLength)
-            {
-                InputTextBox.Description = $"{inputLength} of {MaxLength}. Max characters reached.";
-            }
-            else
-            {
-                InputTextBox.Description = $"{inputLength} of {MaxLength}";
-            }
+            InputTextBox.Description = inputLength >= MaxLength ?
+                $"{inputLength} of {MaxLength}. Max characters reached." :
+                $"{inputLength} of {MaxLength}";
 
             GenerateButton.IsEnabled = inputLength <= MaxLength;
         }
