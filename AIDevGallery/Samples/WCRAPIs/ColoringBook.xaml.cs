@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.Graphics.Imaging;
@@ -14,7 +13,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
-using OpenAI.Images;
 using System;
 using System.Collections.Generic;
 using System.Linq;
