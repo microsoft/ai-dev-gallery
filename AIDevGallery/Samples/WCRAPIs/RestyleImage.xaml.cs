@@ -44,7 +44,6 @@ internal sealed partial class RestyleImage : BaseSamplePage
     private bool _isProgressVisible;
     private ImageGenerator? _imageModel;
     private CancellationTokenSource? _cts;
-    private Task<ImageGeneratorResult?>? _generationTask;
     private SoftwareBitmap? _inputBitmap;
 
     public RestyleImage()
@@ -143,13 +142,15 @@ internal sealed partial class RestyleImage : BaseSamplePage
 
         _cts = new CancellationTokenSource();
 
-        _generationTask = Task.Run(
+        var result = await Task.Run(
             () => _imageModel?.GenerateImageFromImageBuffer(inputBuffer, prompt, new ImageGenerationOptions(), imageFromImageGenerationOption),
             _cts.Token);
 
-        var result = await _generationTask;
-        if (_cts.Token.IsCancellationRequested)
+        if (_cts?.IsCancellationRequested == true)
         {
+            CancelGeneration();
+            _cts?.Dispose();
+            _cts = null;
             return;
         }
 
@@ -164,6 +165,9 @@ internal sealed partial class RestyleImage : BaseSamplePage
                 ShowException(null, "Image generation failed");
             }
 
+            CancelGeneration();
+            _cts?.Dispose();
+            _cts = null;
             return;
         }
 

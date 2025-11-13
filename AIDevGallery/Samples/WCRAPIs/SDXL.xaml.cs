@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Controls.ModelPicker;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -42,7 +43,6 @@ internal sealed partial class SDXL : BaseSamplePage
     private bool _isProgressVisible;
     private ImageGenerator? _generator;
     private CancellationTokenSource? _cts;
-    private Task<ImageGeneratorResult?>? _generationTask;
 
     public SDXL()
     {
@@ -126,14 +126,17 @@ internal sealed partial class SDXL : BaseSamplePage
 
         IsProgressVisible = true;
         _cts = new CancellationTokenSource();
+        ImageGeneratorResult? result = null;
 
-        _generationTask = Task.Run(
+        result = await Task.Run(
             () => _generator?.GenerateImageFromTextPrompt(prompt, new ImageGenerationOptions(), imageFromTextGenerationOption),
             _cts.Token);
 
-        var result = await _generationTask;
-        if (_cts.Token.IsCancellationRequested)
+        if (_cts?.IsCancellationRequested == true)
         {
+            CancelGeneration();
+            _cts?.Dispose();
+            _cts = null;
             return;
         }
 
@@ -148,6 +151,9 @@ internal sealed partial class SDXL : BaseSamplePage
                 ShowException(null, "Image generation failed");
             }
 
+            CancelGeneration();
+            _cts?.Dispose();
+            _cts = null;
             return;
         }
 

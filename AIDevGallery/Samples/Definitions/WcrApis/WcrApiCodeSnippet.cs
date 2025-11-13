@@ -626,8 +626,7 @@ internal static class WcrApiCodeSnippet
                 
                 using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(softwareBitmap);
 
-                var result = imageGenerator.GenerateImageFromImageBufferAndMask(prompt, inputImage, inputMask, 
-                    new ImageGenerationOptions());
+                var result = imageGenerator.GenerateImageFromImageBufferAndMask(inputBuffer, inputMask, prompt, new ImageGenerationOptions());
                 if (result.Status == ImageGeneratorResultStatus.Success)
                 {
                     var imageBuffer = result.Image;

@@ -77,7 +77,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
             var msg = readyState == AIFeatureReadyState.DisabledByUser
                 ? "Disabled by user."
                 : "Not supported on this system.";
-            ShowException(null, $"Background Remover is not available: {msg}");
+            ShowException(null, $"Image Generator is not available: {msg}");
         }
 
         sampleParams.NotifyCompletion();
@@ -332,17 +332,19 @@ internal sealed partial class ColoringBook : BaseSamplePage
         if (_generator == null)
         {
             ShowException(new InvalidOperationException("ImageGenerator is not initialized"));
+            return null;
         }
 
         if (inputBitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8 || grayMask.BitmapPixelFormat != BitmapPixelFormat.Gray8)
         {
-            throw new ArgumentException("Input bitmap must be Bgra8 and gray mask must be Gray8");
+            ShowException(new ArgumentException("Input bitmap must be Bgra8 and gray mask must be Gray8"));
+            return null;
         }
 
         using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(inputBitmap);
         using var mask = ImageBuffer.CreateForSoftwareBitmap(grayMask);
 
-        var result = _generator!.GenerateImageFromImageBufferAndMask(inputBuffer, mask, prompt, new Microsoft.Windows.AI.Imaging.ImageGenerationOptions() { Creativity = 0 });
+        var result = _generator!.GenerateImageFromImageBufferAndMask(inputBuffer, mask, prompt, new ImageGenerationOptions() { Creativity = 0 });
         if (result.Status != ImageGeneratorResultStatus.Success)
         {
             if (result.Status == ImageGeneratorResultStatus.TextBlockedByContentModeration)
