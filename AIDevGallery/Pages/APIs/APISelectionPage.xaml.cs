@@ -113,6 +113,6 @@ internal sealed partial class APISelectionPage : Page
 
     public void ShowHideNavPane()
     {
-        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 224 : 0;
+        NavView.OpenPaneLength = NavView.OpenPaneLength == 0 ? 276 : 0;
     }
 }

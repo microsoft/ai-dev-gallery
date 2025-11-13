@@ -16,8 +16,8 @@
         IsPaneToggleButtonVisible="True"
         IsPaneVisible="True"
         IsSettingsVisible="False"
-        OpenPaneLength="224"
         PaneDisplayMode="Auto"
+        OpenPaneLength="276"
         SelectionChanged="NavView_SelectionChanged">
         <NavigationView.Resources>
             <Thickness x:Key="NavigationViewContentGridBorderThickness">1,0,0,0</Thickness>
