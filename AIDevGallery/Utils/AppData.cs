@@ -51,7 +51,7 @@ internal partial class AppData : ObservableObject
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
-        IsAppContentSearchEnabled = false;
+        IsAppContentSearchEnabled = true;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
         WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
