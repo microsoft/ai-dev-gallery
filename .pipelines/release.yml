@@ -74,7 +74,7 @@ extends:
               displayName: Install NBGV tool
             - script: nbgv cloud -c
               displayName: Set Version
-                          - task: PowerShell@2
+            - task: PowerShell@2
               displayName: Set LAF build props
               env:
                 LAF_TOKEN: $(LAF_TOKEN)
