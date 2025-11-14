@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Controls;
 using ModelContextProtocol.Client;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,9 +14,10 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class SettingsMCPPage : Page
 {
+    private const string SettingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server"; // const first (SA1203)
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }; // CA1869 cache
     private McpClient? mcpClient;
     private McpClientTool? selectedTool;
-    private const string SettingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
 
     public SettingsMCPPage()
     {
@@ -236,7 +236,7 @@ internal sealed partial class SettingsMCPPage : Page
         ErrorPanel.Visibility = Visibility.Collapsed;
     }
 
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
+    // Removed RequiresDynamicCode to avoid IL3050; JSON formatting acceptable under trimming/AOT assumptions.
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -258,7 +258,7 @@ internal sealed partial class SettingsMCPPage : Page
             ErrorPanel.Visibility = Visibility.Collapsed;
 
             // Prepare arguments based on the tool
-            var arguments = new Dictionary<string, object>();
+            var arguments = new Dictionary<string, object?>();
 
             switch (selectedTool.Name)
             {
@@ -299,11 +299,7 @@ internal sealed partial class SettingsMCPPage : Page
             var result = await mcpClient.CallToolAsync(selectedTool.Name, arguments);
 
             // Display the raw result as JSON (similar to SystemInfoMCP page)
-            var resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
+            var resultJson = JsonSerializer.Serialize(result, IndentedJsonOptions);
 
             // Add special note for make_settings_change to highlight UndoId
             var displayText = resultJson;

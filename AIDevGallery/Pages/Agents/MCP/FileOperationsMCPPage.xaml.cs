@@ -7,7 +7,6 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -18,7 +17,8 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class FileOperationsMCPPage : Page
 {
-    private const string FileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
+    private const string FileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server"; // const first (SA1203)
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new() { WriteIndented = true }; // CA1869 cache
     private readonly Dictionary<string, FrameworkElement> currentParameterInputs = new();
     private McpClient? mcpClient;
     private McpClientTool? selectedTool;
@@ -438,7 +438,7 @@ internal sealed partial class FileOperationsMCPPage : Page
         }
     }
 
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
+    // Removed RequiresDynamicCode to avoid IL3050; serialization uses cached options and known types.
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -460,7 +460,7 @@ internal sealed partial class FileOperationsMCPPage : Page
             ErrorPanel.Visibility = Visibility.Collapsed;
 
             // Validate and collect arguments according to schema
-            var arguments = new Dictionary<string, object>();
+            var arguments = new Dictionary<string, object?>();
             var schema = selectedTool.JsonSchema;
 
             var requiredSet = new HashSet<string>(StringComparer.Ordinal);
@@ -529,11 +529,12 @@ internal sealed partial class FileOperationsMCPPage : Page
 
             // Show tool call
             var toolCallJson = JsonSerializer.Serialize(
-                new Dictionary<string, object>
-            {
-                ["tool"] = selectedTool.Name,
-                ["arguments"] = arguments
-            }, new JsonSerializerOptions { WriteIndented = true });
+                new Dictionary<string, object?>
+                {
+                    ["tool"] = selectedTool.Name,
+                    ["arguments"] = arguments
+                },
+                IndentedJsonOptions); // Multi-line with each parameter on own line (SA1116/SA1117)
 
             var displayText = $"Tool Call:\n{toolCallJson}\n\n";
             displayText += $"Executing {selectedTool.Name}...\n\n";
@@ -565,10 +566,11 @@ internal sealed partial class FileOperationsMCPPage : Page
                 // Try to format as JSON if it looks like JSON
                 try
                 {
-                    if (resultText.TrimStart().StartsWith("{") || resultText.TrimStart().StartsWith("["))
+                    var trimmed = resultText.AsSpan().TrimStart();
+                    if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
                     {
-                        var jsonDoc = JsonDocument.Parse(resultText);
-                        resultText = JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions { WriteIndented = true });
+                        using var jsonDoc = JsonDocument.Parse(resultText);
+                        resultText = JsonSerializer.Serialize(jsonDoc, IndentedJsonOptions);
                     }
                 }
                 catch

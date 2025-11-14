@@ -174,7 +174,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         SearchTextBox.IsEnabled = true;
                     }
 
-                    this.ResultsTextBlock.Text = resultMessage;
+                    this.ResultsTextBox.Text = resultMessage;
                 });
             },
             ct);

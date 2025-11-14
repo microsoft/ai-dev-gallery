@@ -7,7 +7,6 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,8 +15,11 @@ namespace AIDevGallery.Pages;
 
 internal sealed partial class SystemInfoMCPPage : Page
 {
+    private const string SystemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server"; // const first (SA1203)
+
+    // Reuse JSON options to satisfy CA1869 (avoid per-call allocations)
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new() { WriteIndented = true };
     private McpClient? mcpClient;
-    private const string SystemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server";
 
     public SystemInfoMCPPage()
     {
@@ -97,6 +99,7 @@ internal sealed partial class SystemInfoMCPPage : Page
         }
     }
 
+    // Removed RequiresDynamicCode to avoid IL3050; event hookup itself does not perform dynamic serialization.
     private async Task LoadToolsAsync()
     {
         if (mcpClient == null)
@@ -159,7 +162,7 @@ internal sealed partial class SystemInfoMCPPage : Page
         }
     }
 
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
+    // Removed RequiresDynamicCode to avoid IL3050; JSON pretty-print acceptable for trimming/AOT scenario.
     private async void ToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button)
@@ -190,8 +193,8 @@ internal sealed partial class SystemInfoMCPPage : Page
             ResultTextBlock.Text = $"Executing {tool.Name}...";
             ResultPanel.Visibility = Visibility.Visible;
 
-            // Call the tool with empty arguments dictionary
-            var result = await mcpClient.CallToolAsync(tool.Name, new Dictionary<string, object>());
+            // Call the tool with empty arguments dictionary (object? to satisfy nullability)
+            var result = await mcpClient.CallToolAsync(tool.Name, new Dictionary<string, object?>());
 
             if (result.Content != null && result.Content.Count > 0)
             {
@@ -215,10 +218,12 @@ internal sealed partial class SystemInfoMCPPage : Page
                 // Try to format as JSON if it looks like JSON
                 try
                 {
-                    if (resultText.TrimStart().StartsWith("{") || resultText.TrimStart().StartsWith("["))
+                    // Use span/char overloads to satisfy CA1866 & CA1310, and reuse cached options (CA1869)
+                    var trimmed = resultText.AsSpan().TrimStart();
+                    if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
                     {
-                        var jsonDoc = JsonDocument.Parse(resultText);
-                        resultText = JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions { WriteIndented = true });
+                        using var jsonDoc = JsonDocument.Parse(resultText);
+                        resultText = JsonSerializer.Serialize(jsonDoc, IndentedJsonOptions);
                     }
                 }
                 catch

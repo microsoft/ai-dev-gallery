@@ -36,4 +36,22 @@
             <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
         </Style.Setters>
     </Style>
+    <Style x:Key="DesignRowCardStyle" TargetType="Grid">
+        <Style.Setters>
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="12,5" />
+        </Style.Setters>
+    </Style>
+
+    <Style
+        x:Key="DesignRowLightCardStyle"
+        BasedOn="{StaticResource DesignRowCardStyle}"
+        TargetType="Grid">
+        <Style.Setters>
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        </Style.Setters>
+    </Style>
 </ResourceDictionary>

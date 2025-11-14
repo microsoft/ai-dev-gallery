@@ -222,6 +222,7 @@
                                                     <ComboBox
                                                         x:Name="DeviceComboBox"
                                                         HorizontalAlignment="Stretch"
+                                                        SelectionChanged="DeviceComboBox_SelectionChanged"
                                                         Header="Manually select the Execution Provider:">
                                                         <ComboBox.ItemTemplate>
                                                             <DataTemplate x:DataType="local:WinMlEp">
