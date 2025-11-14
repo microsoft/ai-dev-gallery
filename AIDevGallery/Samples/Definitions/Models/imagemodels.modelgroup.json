@@ -323,7 +323,7 @@
           "FaceDetLite": {
             "Id": "b7cae123-478f-1177-9559-709df5dfe703",
             "Name": "FaceDetLite",
-            "Url": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/blob/main/Lightweight-Face-Detection.onnx",
+            "Url": "https://huggingface.co/qualcomm/Lightweight-Face-Detection/resolve/v0.32.0/Lightweight-Face-Detection.onnx",
             "Description": "face_det_lite is a machine learning model that detect face in the images",
             "HardwareAccelerator": [
               "CPU",
