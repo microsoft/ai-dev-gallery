@@ -74,6 +74,21 @@ extends:
               displayName: Install NBGV tool
             - script: nbgv cloud -c
               displayName: Set Version
+                          - task: PowerShell@2
+              displayName: Set LAF build props
+              env:
+                LAF_TOKEN: $(LAF_TOKEN)
+                LAF_PUBLISHER_ID: $(LAF_PUBLISHER_ID)
+              inputs:
+                targetType: 'inline'
+                script: |
+                  # Set pipeline variables for later build steps
+                  if (-not [string]::IsNullOrWhiteSpace($env:LAF_TOKEN)) {
+                    Write-Host "##vso[task.setvariable variable=LAF_TOKEN;isOutput=false;issecret=true;]$($env:LAF_TOKEN)"
+                  }
+                  if (-not [string]::IsNullOrWhiteSpace($env:LAF_PUBLISHER_ID)) {
+                    Write-Host "##vso[task.setvariable variable=LAF_PUBLISHER_ID;isOutput=false;issecret=true;]$($env:LAF_PUBLISHER_ID)"
+                  }
             - task: PowerShell@2
               displayName: 'Replace Official AppxManifest'
               inputs:
