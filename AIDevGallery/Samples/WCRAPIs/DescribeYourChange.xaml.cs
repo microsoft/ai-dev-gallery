@@ -46,7 +46,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         // const string featureId = "com.microsoft.windows.ai.languagemodel";
 
         // IMPORTANT!!
-        // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
+        // This is a demo LAF Token and PublisherId, and they cannot be used for production code and won't be accepted in the Store
         // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
         var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
         var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
