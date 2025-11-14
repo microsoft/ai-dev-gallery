@@ -117,7 +117,7 @@ extends:
           image: windows-latest
           os: windows
         steps:
-          - task: MS-RDX-MRO.windows-store-publish-dev.publish-task.store-publish@3
+          - task: MS-RDX-MRO.windows-store-publish.publish-task.store-publish@3
             displayName: 'Publish Release StoreBroker Package'
             inputs:
               serviceEndpoint: 'AIDevGallery - StoreBroker'
