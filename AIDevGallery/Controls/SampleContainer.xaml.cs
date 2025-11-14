@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,9 @@ internal sealed partial class SampleContainer : UserControl
     private ModelType? _wcrApi;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
+
+    [DllImport("onnxruntime.dll")]
+    private static extern IntPtr OrtGetApiBase();
 
     internal static bool AnySamplesLoading()
     {
@@ -140,6 +144,9 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
+
+        // To workaround a WinML auto initializer issue.
+        OrtGetApiBase();
 
         // Narrator speak
         SampleCardGrid.Visibility = Visibility.Collapsed;
