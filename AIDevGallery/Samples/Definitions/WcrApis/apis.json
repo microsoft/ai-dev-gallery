@@ -52,7 +52,7 @@
         "Id": "c5f8d3a7-9e2b-4f6a-8d1c-7b3e5a9c4f2d",
         "Name": "Describe Your Change",
         "Icon": "WCRAPI.svg",
-        "IconGlyph": "\uEE56",
+        "IconGlyph": "\uEF15",
         "Description": "Describes changes in text.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",

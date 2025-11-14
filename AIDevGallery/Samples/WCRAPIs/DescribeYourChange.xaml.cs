@@ -15,21 +15,17 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-/*
-using Windows.ApplicationModel;
-*/
-
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Windows AI DescribeYourChange",
+    Name = "Windows AI Describe Your Change",
     Model1Types = [ModelType.TextRewriter],
     Id = "a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b",
     Scenario = ScenarioType.TextWinAiDescribeYourChange,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
     ],
-    Icon = "\uEE56")]
+    Icon = "\uEF15")]
 internal sealed partial class DescribeYourChange : BaseSamplePage
 {
     private const int MaxLength = 5000;
@@ -79,6 +75,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
                     ShowException(null, $"Phi-Silica is not available");
+                    return;
                 }
             }
 
@@ -129,7 +126,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         }
     }
 
-    public async Task RewriteText(string prompt, string customTone)
+    public async Task RewriteTextCustom(string prompt, string customTone)
     {
         if (_textRewriter == null)
         {
@@ -215,7 +212,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
     {
         if (this.InputTextBox.Text.Length > 0 && this.CustomToneTextBox.Text.Length > 0)
         {
-            _ = RewriteText(InputTextBox.Text, CustomToneTextBox.Text);
+            _ = RewriteTextCustom(InputTextBox.Text, CustomToneTextBox.Text);
         }
     }
 
@@ -225,7 +222,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         {
             if (InputTextBox.Text.Length > 0 && CustomToneTextBox.Text.Length > 0)
             {
-                _ = RewriteText(InputTextBox.Text, CustomToneTextBox.Text);
+                _ = RewriteTextCustom(InputTextBox.Text, CustomToneTextBox.Text);
             }
         }
     }
