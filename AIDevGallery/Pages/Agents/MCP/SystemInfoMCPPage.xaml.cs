@@ -7,6 +7,7 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -163,6 +164,7 @@ internal sealed partial class SystemInfoMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; JSON pretty-print acceptable for trimming/AOT scenario.
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Serialize of JsonElement only for pretty display; no runtime code gen.")]
     private async void ToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button)
@@ -223,7 +225,9 @@ internal sealed partial class SystemInfoMCPPage : Page
                     if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
                     {
                         using var jsonDoc = JsonDocument.Parse(resultText);
-                        resultText = JsonSerializer.Serialize(jsonDoc, IndentedJsonOptions);
+
+                        // Prefer serializing JsonElement (specialized overload) to avoid generic Serialize<T>.
+                        resultText = JsonSerializer.Serialize(jsonDoc.RootElement, IndentedJsonOptions);
                     }
                 }
                 catch

@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using ModelContextProtocol.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -237,6 +238,7 @@ internal sealed partial class SettingsMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; JSON formatting acceptable under trimming/AOT assumptions.
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Tool result serialized only for display; acceptable risk as shape is controlled by MCP protocol.")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -299,7 +301,9 @@ internal sealed partial class SettingsMCPPage : Page
             var result = await mcpClient.CallToolAsync(selectedTool.Name, arguments);
 
             // Display the raw result as JSON (similar to SystemInfoMCP page)
-            var resultJson = JsonSerializer.Serialize(result, IndentedJsonOptions);
+            // Use non-generic Serialize overload where possible to reduce AOT warnings; result type is external.
+            var resultType = result?.GetType() ?? typeof(object);
+            var resultJson = JsonSerializer.Serialize((object?)result!, resultType, IndentedJsonOptions);
 
             // Add special note for make_settings_change to highlight UndoId
             var displayText = resultJson;
