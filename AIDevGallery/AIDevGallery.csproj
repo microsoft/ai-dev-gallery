@@ -83,6 +83,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.AI" VersionOverride="2.0.57-experimental" GeneratePathProperty="true" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" />
@@ -337,6 +338,10 @@
     <Content Update="Assets\ModelIcons\Foundry.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
+    <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   
   <!-- 
