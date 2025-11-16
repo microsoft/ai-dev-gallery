@@ -67,6 +67,7 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.GetReadyState
         },
+        {
             ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
     };
@@ -115,6 +116,7 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
         },
+        {
             ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
         }
     };
