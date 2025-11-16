@@ -157,7 +157,7 @@ public class McpManager : IDisposable
                 new(ChatRole.User, userPrompt)
             };
 
-            var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+            var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
             var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
 
             return new McpResponse
@@ -189,15 +189,21 @@ public class McpManager : IDisposable
     {
         return @"你是一个 MCP-aware 助手，专门负责从 MCP 工具调用的结果中提取关键信息并生成用户友好的回答。
 
-规则：
-1. 你必须基于 MCP 工具返回的实际数据回答，不能编造信息
-2. 如果数据不完整或缺失，明确说明
-3. 用自然、简洁的语言表达技术信息
-4. 如果返回的是错误或空数据，诚实地告知用户
-5. 突出最重要的信息，过滤掉技术细节
-6. 保持回答简洁但完整
+核心规则：
+1. **严格基于MCP数据**: 你必须且只能基于 MCP 工具返回的实际数据回答，绝不允许编造、推测或添加任何数据中不存在的信息
+2. **避免自由回答**: 不允许绕过 MCP 执行命令或提供未经工具验证的信息
+3. **明确空值处理**: 如果数据不完整、缺失或为空，必须明确说明'数据不可用'或'工具未返回此信息'
+4. **结构化响应**: 用自然、简洁的语言表达技术信息，但保持事实准确性
+5. **错误透明**: 如果返回的是错误或空数据，诚实告知用户并提供可操作建议
+6. **信息层次**: 突出最重要的信息，将技术细节转换为用户友好的表述
+7. **简洁完整**: 保持回答简洁但包含所有相关信息
 
-输出格式：直接回答用户的问题，不需要解释数据来源或调用过程。";
+禁止行为：
+- 不得补充MCP工具未提供的数据
+- 不得基于常识或训练数据推测答案
+- 不得忽略或隐瞒工具返回的错误信息
+
+输出格式：直接回答用户的问题，基于MCP数据提供准确信息。如需说明数据来源限制，请简洁说明。";
     }
 
     /// <summary>
@@ -262,18 +268,24 @@ public class McpManager : IDisposable
         if (chatClient != null)
         {
             // 使用 LLM 提供替代建议
-            var systemPrompt = @"你是一个 MCP 助手。用户的查询无法匹配到合适的 MCP 工具。请：
-1. 解释为什么无法处理这个查询
-2. 基于可用的工具建议用户可以询问的相关问题
-3. 保持回答简洁友好";
+            var systemPrompt = @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：
+1. **明确说明**：解释为什么无法通过现有MCP工具处理这个查询
+2. **工具导向**：基于可用的MCP工具建议用户可以询问的具体问题
+3. **能力边界**：强调你只能通过MCP工具提供信息，不会自行回答
+4. **友好建议**：提供3-5个具体的示例查询
+
+绝对禁止：
+- 绕过MCP工具直接回答用户问题
+- 基于训练数据提供未经工具验证的信息
+- 编造或推测任何数据";
 
             var toolsList = string.Join("\n", availableTools.Select(t => $"- {t.Name}: {t.Description}"));
             var userPrompt = $@"用户查询：{userQuery}
 
-当前可用的工具：
+当前可用的MCP工具：
 {toolsList}
 
-请向用户解释并提供建议。";
+请向用户解释为什么无法处理，并基于现有工具提供具体的查询建议。";
 
             try
             {
@@ -283,7 +295,7 @@ public class McpManager : IDisposable
                     new(ChatRole.User, userPrompt)
                 };
 
-                var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+                var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
                 return new McpResponse
                 {
                     Answer = response?.Text ?? "无法为您的查询找到合适的工具。",
@@ -305,13 +317,14 @@ public class McpManager : IDisposable
     }
 
     /// <summary>
-    /// 检查是否需要用户确认
+    /// 检查是否需要用户确认 - 实现最小权限原则
     /// </summary>
     private bool RequiresUserConfirmation(RoutingDecision decision)
     {
         // 基于工具类型或服务器类别决定是否需要确认
-        var sensitiveCategories = new[] { "system", "file", "network", "process" };
-        var sensitiveToolPatterns = new[] { "delete", "remove", "kill", "stop", "modify", "write" };
+        var sensitiveCategories = new[] { "system", "file", "network", "process", "settings", "configuration" };
+        var sensitiveToolPatterns = new[] { "delete", "remove", "kill", "stop", "modify", "write", "set", "update", "change", "install", "uninstall" };
+        var readOnlyToolPatterns = new[] { "get", "list", "show", "read", "info", "status", "view" };
 
         var isSensitiveCategory = decision.SelectedServer.Categories
             .Any(cat => sensitiveCategories.Contains(cat.ToLower()));
@@ -319,7 +332,23 @@ public class McpManager : IDisposable
         var isSensitiveTool = sensitiveToolPatterns
             .Any(pattern => decision.SelectedTool.Name.ToLower().Contains(pattern));
 
-        return isSensitiveCategory || isSensitiveTool;
+        var isReadOnlyTool = readOnlyToolPatterns
+            .Any(pattern => decision.SelectedTool.Name.ToLower().Contains(pattern));
+
+        // 只读工具通常不需要确认，除非涉及敏感系统信息
+        if (isReadOnlyTool && !decision.SelectedTool.Name.ToLower().Contains("password"))
+        {
+            return false;
+        }
+
+        // 高风险操作必须确认
+        if (isSensitiveTool)
+        {
+            return true;
+        }
+
+        // 敏感类别的非只读操作需要确认
+        return isSensitiveCategory && !isReadOnlyTool;
     }
 
     /// <summary>
@@ -349,6 +378,51 @@ public class McpManager : IDisposable
         }
 
         return status;
+    }
+
+    /// <summary>
+    /// 获取可用工具目录 - 用于向用户展示能力范围
+    /// </summary>
+    public string GetToolCatalog()
+    {
+        if (!_initialized)
+        {
+            return "MCP 系统尚未初始化，请稍后重试。";
+        }
+
+        var servers = _discoveryService.GetConnectedServers();
+        if (!servers.Any())
+        {
+            return "当前没有可用的 MCP 服务器连接。";
+        }
+
+        var catalog = new List<string>
+        {
+            "=== 可用的 MCP 工具目录 ===",
+            ""
+        };
+
+        foreach (var server in servers)
+        {
+            catalog.Add($"📋 {server.Name}");
+            catalog.Add($"   描述: {server.Description}");
+            catalog.Add($"   类别: {string.Join(", ", server.Categories)}");
+            
+            var tools = _discoveryService.GetServerTools(server.Id);
+            if (tools.Any())
+            {
+                catalog.Add("   工具:");
+                foreach (var tool in tools)
+                {
+                    catalog.Add($"     • {tool.Name}: {tool.Description}");
+                }
+            }
+            catalog.Add("");
+        }
+
+        catalog.Add("💡 提示: 您可以直接提问，系统会自动选择最合适的工具来回答。");
+        
+        return string.Join("\n", catalog);
     }
 
     public void Dispose()
