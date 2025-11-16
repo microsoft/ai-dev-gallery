@@ -288,5 +288,19 @@
         "Icon": "\uE714"
       }
     }
+  },
+  "MCP": {
+    "Name": "MCP",
+    "Icon": "\uE8D4",
+    "Description": "Model Context Protocol scenarios are designed to help you interact with MCP servers and utilize their capabilities.",
+    "Scenarios": {
+      "MCPClient": {
+        "Name": "MCP Client",
+        "Description": "Chat with a local language model using MCP client capabilities.",
+        "Instructions": "Enter a message into the textbox and click 'Send' to start a conversation with a chat completion service using MCP client functionality.",
+        "Id": "mcp-client",
+        "Icon": "\uE8F2"
+      }
+    }
   }
 }
