@@ -30,7 +30,8 @@ public class McpClientWrapper : IDisposable
 
     public async Task<IReadOnlyList<McpClientTool>?> ListToolsAsync(CancellationToken cancellationToken = default)
     {
-        return await _client.ListToolsAsync();
+        var tools = await _client.ListToolsAsync();
+        return tools?.ToList();
     }
 
     public async Task<CallToolResult> CallToolAsync(string toolName, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default)

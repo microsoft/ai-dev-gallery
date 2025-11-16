@@ -157,7 +157,7 @@ public class McpManager : IDisposable
                 new(ChatRole.User, userPrompt)
             };
 
-            var response = await chatClient.CompleteAsync(messages, cancellationToken: cancellationToken);
+            var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
 
             return new McpResponse
@@ -283,7 +283,7 @@ public class McpManager : IDisposable
                     new(ChatRole.User, userPrompt)
                 };
 
-                var response = await chatClient.CompleteAsync(messages, cancellationToken: cancellationToken);
+                var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
                 return new McpResponse
                 {
                     Answer = response?.Text ?? "无法为您的查询找到合适的工具。",
