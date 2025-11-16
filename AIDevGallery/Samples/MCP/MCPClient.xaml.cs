@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
+using AIDevGallery.Samples.MCP.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -41,6 +42,7 @@ internal sealed partial class MCPClient : BaseSamplePage
     private bool isImeActive = true;
 
     private IChatClient? model;
+    private McpManager? mcpManager;
 
     // Markers for the assistant's think area (displayed in a dedicated UI region).
     private static readonly string[] ThinkTagOpens = new[] { "<think>", "<thought>", "<reasoning>" };
@@ -61,6 +63,18 @@ internal sealed partial class MCPClient : BaseSamplePage
         try
         {
             model = await sampleParams.GetIChatClientAsync();
+            
+            // 初始化 MCP 管理器
+            mcpManager = new McpManager();
+            var mcpInitialized = await mcpManager.InitializeAsync();
+            
+            if (!mcpInitialized)
+            {
+                ShowException(new Exception("Failed to initialize MCP Manager. MCP functionality will be limited."));
+            }
+            
+            // 更新状态显示
+            DispatcherQueue.TryEnqueue(UpdateMcpStatus);
         }
         catch (Exception ex)
         {
@@ -76,6 +90,7 @@ internal sealed partial class MCPClient : BaseSamplePage
         InputBox.Focus(FocusState.Programmatic);
         UpdateRewriteButtonState();
         UpdateClearButtonState();
+        UpdateMcpStatus();
     }
 
     // </exclude>
@@ -83,6 +98,7 @@ internal sealed partial class MCPClient : BaseSamplePage
     {
         CancelResponse();
         model?.Dispose();
+        mcpManager?.Dispose();
     }
 
     private void CancelResponse()
@@ -139,7 +155,7 @@ internal sealed partial class MCPClient : BaseSamplePage
 
     private void AddMessage(string text)
     {
-        if (model == null)
+        if (model == null || mcpManager == null)
         {
             return;
         }
@@ -147,14 +163,11 @@ internal sealed partial class MCPClient : BaseSamplePage
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
         UpdateRewriteButtonState();
         UpdateClearButtonState();
-        var contentStartedBeingGenerated = false; // <exclude-line>
-        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>
+        NarratorHelper.Announce(InputBox, "Processing your request with MCP tools...", "ChatWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("AddMessage"); // <exclude-line>
 
         Task.Run(async () =>
         {
-            var history = Messages.Select(m => new ChatMessage(m.Role, m.Content)).ToList();
-
             var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant)
             {
                 IsPending = true
@@ -166,165 +179,74 @@ internal sealed partial class MCPClient : BaseSamplePage
                 UpdateClearButtonState();
                 StopBtn.Visibility = Visibility.Visible;
                 InputBox.IsEnabled = false;
-                InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
+                InputBox.PlaceholderText = "Processing MCP request, please wait...";
             });
 
             cts = new CancellationTokenSource();
 
-            history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));
-
-            // <exclude>
-            ShowDebugInfo(null);
-            var swEnd = Stopwatch.StartNew();
-            var swTtft = Stopwatch.StartNew();
-            int outputTokens = 0;
-
-            // </exclude>
-            int currentThinkTagIndex = -1; // -1 means not inside any think/auxiliary section
-            string rolling = string.Empty;
-
-            await foreach (var messagePart in model.GetStreamingResponseAsync(history, null, cts.Token))
+            try
             {
                 // <exclude>
-                if (outputTokens == 0)
-                {
-                    swTtft.Stop();
-                }
-
-                outputTokens++;
-                double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
-                ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
-
+                ShowDebugInfo("Processing with MCP tools...");
+                var swEnd = Stopwatch.StartNew();
                 // </exclude>
-                var part = messagePart;
+
+                // 使用 MCP 管理器处理查询
+                var mcpResponse = await mcpManager.ProcessQueryAsync(text.Trim(), model, cts.Token);
+
+                // <exclude>
+                swEnd.Stop();
+                ShowDebugInfo($"MCP processing completed in {swEnd.Elapsed.TotalSeconds:0.00}s\nSource: {mcpResponse.Source}");
+                // </exclude>
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (responseMessage.IsPending)
+                    responseMessage.IsPending = false;
+                    responseMessage.Content = mcpResponse.Answer;
+                    
+                    // 如果需要用户确认，添加特殊标记
+                    if (mcpResponse.RequiresConfirmation)
                     {
-                        responseMessage.IsPending = false;
+                        responseMessage.ThinkContent = "This action requires confirmation. Please respond with 'yes' to proceed.";
                     }
-
-                    // Parse character by character/fragment to identify think tags (e.g., <think>...</think>, <thought>...</thought>)
-                    rolling += part;
-
-                    while (!string.IsNullOrEmpty(rolling))
+                    
+                    // 添加调试信息到思考区域（仅在开发模式下）
+                    if (!string.IsNullOrEmpty(mcpResponse.Source) && mcpResponse.Source != "System")
                     {
-                        if (currentThinkTagIndex == -1)
+                        var debugInfo = $"Tool used: {mcpResponse.Source}";
+                        if (mcpResponse.RawResult?.ExecutionTime != null)
                         {
-                            // Find the earliest occurring open marker among supported think tags
-                            int earliestIdx = -1;
-                            int foundTagIndex = -1;
-                            for (int i = 0; i < ThinkTagOpens.Length; i++)
-                            {
-                                int idx = rolling.IndexOf(ThinkTagOpens[i], StringComparison.Ordinal);
-                                if (idx >= 0 && (earliestIdx == -1 || idx < earliestIdx))
-                                {
-                                    earliestIdx = idx;
-                                    foundTagIndex = i;
-                                }
-                            }
-
-                            if (earliestIdx >= 0)
-                            {
-                                // Output safe content before the start marker
-                                if (earliestIdx > 0)
-                                {
-                                    responseMessage.Content = string.Concat(responseMessage.Content, rolling.AsSpan(0, earliestIdx));
-                                }
-
-                                // Enter think mode, discard the marker text itself
-                                rolling = rolling.Substring(earliestIdx + ThinkTagOpens[foundTagIndex].Length);
-                                currentThinkTagIndex = foundTagIndex;
-                                continue;
-                            }
-                            else
-                            {
-                                // Start marker not found: only flush safe parts, keep the tail that might form a marker
-                                int keep = MaxOpenThinkMarkerLength - 1;
-                                if (rolling.Length > keep)
-                                {
-                                    int flushLen = rolling.Length - keep;
-                                    responseMessage.Content = string.Concat(responseMessage.Content.TrimStart(), rolling.AsSpan(0, flushLen));
-                                    rolling = rolling.Substring(flushLen);
-                                }
-
-                                break;
-                            }
+                            debugInfo += $" (executed in {mcpResponse.RawResult.ExecutionTime.TotalMilliseconds:0}ms)";
                         }
-                        else
-                        {
-                            string closeMarker = ThinkTagCloses[currentThinkTagIndex];
-                            int closeIdx = rolling.IndexOf(closeMarker, StringComparison.Ordinal);
-                            if (closeIdx >= 0)
-                            {
-                                // Append content before the closing marker to the think box
-                                if (closeIdx > 0)
-                                {
-                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, closeIdx));
-                                }
-
-                                // Exit think mode, discard the closing marker
-                                rolling = rolling.Substring(closeIdx + closeMarker.Length);
-                                currentThinkTagIndex = -1;
-                                continue;
-                            }
-                            else
-                            {
-                                // Closing marker not found: only flush safe parts, keep the tail that might form a marker
-                                int keep = closeMarker.Length - 1;
-                                if (rolling.Length > keep)
-                                {
-                                    int flushLen = rolling.Length - keep;
-                                    responseMessage.ThinkContent = string.Concat(responseMessage.ThinkContent, rolling.AsSpan(0, flushLen));
-                                    rolling = rolling.Substring(flushLen);
-                                }
-
-                                break;
-                            }
-                        }
+                        responseMessage.ThinkContent = string.IsNullOrEmpty(responseMessage.ThinkContent) 
+                            ? debugInfo 
+                            : $"{responseMessage.ThinkContent}\n\n{debugInfo}";
                     }
-
-                    // <exclude>
-                    if (!contentStartedBeingGenerated)
-                    {
-                        NarratorHelper.Announce(InputBox, "Response has started generating.", "ChatResponseAnnouncementActivityId");
-                        contentStartedBeingGenerated = true;
-                    }
-
-                    // </exclude>
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    responseMessage.IsPending = false;
+                    responseMessage.Content = "Request was cancelled.";
+                });
+            }
+            catch (Exception ex)
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    responseMessage.IsPending = false;
+                    responseMessage.Content = $"Error processing request: {ex.Message}";
                 });
             }
 
-            // Flush remaining tail content (if any)
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                responseMessage.IsPending = false;
-                if (!string.IsNullOrEmpty(rolling))
-                {
-                    if (currentThinkTagIndex != -1)
-                    {
-                        responseMessage.ThinkContent += rolling;
-                    }
-                    else
-                    {
-                        responseMessage.Content = responseMessage.Content.TrimStart() + rolling;
-                    }
-                }
-            });
-
-            // <exclude>
-            swEnd.Stop();
-            double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
-            ShowDebugInfo($"{Math.Round(tps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
-
-            // </exclude>
             cts?.Dispose();
             cts = null;
 
             DispatcherQueue.TryEnqueue(() =>
             {
-                NarratorHelper.Announce(InputBox, "Content has finished generating.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
+                NarratorHelper.Announce(InputBox, "MCP response completed.", "ChatDoneAnnouncementActivityId"); // <exclude-line>
                 StopBtn.Visibility = Visibility.Collapsed;
                 SendBtn.Visibility = Visibility.Visible;
                 EnableInputBoxWithPlaceholder();
@@ -450,5 +372,110 @@ internal sealed partial class MCPClient : BaseSamplePage
         }
 
         return null;
+    }
+
+    private async void UpdateMcpStatus()
+    {
+        if (mcpManager == null)
+        {
+            McpStatusIcon.Glyph = "\uE783"; // Warning icon
+            McpStatusText.Text = "MCP not initialized";
+            return;
+        }
+
+        try
+        {
+            var status = await mcpManager.GetSystemStatusAsync();
+            var initialized = (bool)(status["initialized"] ?? false);
+            var serverCount = (int)(status["connected_servers"] ?? 0);
+            var toolCount = (int)(status["total_tools"] ?? 0);
+
+            if (initialized && serverCount > 0)
+            {
+                McpStatusIcon.Glyph = "\uE73E"; // Checkmark icon
+                McpStatusText.Text = $"{serverCount} servers, {toolCount} tools";
+            }
+            else if (initialized)
+            {
+                McpStatusIcon.Glyph = "\uE783"; // Warning icon
+                McpStatusText.Text = "No MCP servers available";
+            }
+            else
+            {
+                McpStatusIcon.Glyph = "\uE894"; // Error icon
+                McpStatusText.Text = "MCP initialization failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            McpStatusIcon.Glyph = "\uE894"; // Error icon
+            McpStatusText.Text = "MCP status error";
+        }
+    }
+
+    private async void McpStatusBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (mcpManager == null)
+        {
+            await ShowMcpStatusDialog("MCP Manager not initialized");
+            return;
+        }
+
+        try
+        {
+            var status = await mcpManager.GetSystemStatusAsync();
+            var statusText = FormatMcpStatus(status);
+            await ShowMcpStatusDialog(statusText);
+        }
+        catch (Exception ex)
+        {
+            await ShowMcpStatusDialog($"Error retrieving MCP status: {ex.Message}");
+        }
+    }
+
+    private string FormatMcpStatus(Dictionary<string, object> status)
+    {
+        var text = new System.Text.StringBuilder();
+        text.AppendLine($"Initialized: {status.GetValueOrDefault("initialized", false)}");
+        text.AppendLine($"Connected Servers: {status.GetValueOrDefault("connected_servers", 0)}");
+        text.AppendLine($"Total Tools: {status.GetValueOrDefault("total_tools", 0)}");
+        text.AppendLine();
+
+        if (status.ContainsKey("servers") && status["servers"] is List<object> servers)
+        {
+            text.AppendLine("Server Details:");
+            foreach (var server in servers.Cast<Dictionary<string, object>>())
+            {
+                text.AppendLine($"  • {server.GetValueOrDefault("server_name", "Unknown")}");
+                text.AppendLine($"    Connected: {server.GetValueOrDefault("connected", false)}");
+                text.AppendLine($"    Tools: {server.GetValueOrDefault("tool_count", 0)}");
+                text.AppendLine($"    Success Rate: {server.GetValueOrDefault("success_rate", 0.0):P1}");
+                text.AppendLine();
+            }
+        }
+
+        return text.ToString();
+    }
+
+    private async Task ShowMcpStatusDialog(string content)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "MCP Status",
+            Content = new ScrollViewer
+            {
+                Content = new TextBlock
+                {
+                    Text = content,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontFamily = new FontFamily("Consolas")
+                },
+                MaxHeight = 400
+            },
+            CloseButtonText = "Close",
+            XamlRoot = this.XamlRoot
+        };
+
+        await dialog.ShowAsync();
     }
 }

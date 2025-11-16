@@ -100,7 +100,28 @@
 
         <!-- Chat Actions Bar -->
         <Grid Grid.Row="0" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="8,4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon x:Name="McpStatusIcon" FontSize="12" Glyph="&#xE9CE;" />
+                        <TextBlock x:Name="McpStatusText" Text="Initializing MCP..." FontSize="12" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button x:Name="McpStatusBtn"
+                        AutomationProperties.Name="MCP Status"
+                        Click="McpStatusBtn_Click"
+                        ToolTipService.ToolTip="View MCP server status">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="16" Glyph="&#xE946;" />
+                        <TextBlock Text="MCP Status" />
+                    </StackPanel>
+                </Button>
                 <Button x:Name="ClearBtn"
                         AutomationProperties.Name="Clear Chat History"
                         Click="ClearBtn_Click"
