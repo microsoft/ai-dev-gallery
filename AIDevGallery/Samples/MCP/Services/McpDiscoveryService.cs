@@ -2,15 +2,15 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.MCP.Models;
-using AIDevGallery.Samples.MCP.Models;
+using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace AIDevGallery.Samples.MCP.Services;
 
