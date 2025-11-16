@@ -285,6 +285,14 @@ public class McpDiscoveryService : IDisposable
         return _connections.TryGetValue(serverId, out var client) ? client : null;
     }
 
+    /// <summary>
+    /// 获取所有已连接的服务器信息
+    /// </summary>
+    public List<McpServerInfo> GetConnectedServers()
+    {
+        return _servers.Values.Where(s => s.IsEnabled && _connections.ContainsKey(s.Id)).ToList();
+    }
+
     public void Dispose()
     {
         if (_disposed) return;

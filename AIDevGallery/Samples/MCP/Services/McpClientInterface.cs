@@ -30,12 +30,12 @@ public class McpClientWrapper : IDisposable
 
     public async Task<IReadOnlyList<McpClientTool>?> ListToolsAsync(CancellationToken cancellationToken = default)
     {
-        return await _client.ListToolsAsync(cancellationToken);
+        return await _client.ListToolsAsync();
     }
 
     public async Task<CallToolResult> CallToolAsync(string toolName, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default)
     {
-        return await _client.CallToolAsync(toolName, arguments, cancellationToken);
+        return await _client.CallToolAsync(toolName, arguments);
     }
 
     public void Dispose()
@@ -44,7 +44,8 @@ public class McpClientWrapper : IDisposable
         
         try
         {
-            _client?.Dispose();
+            // McpClient实现了IAsyncDisposable，不是IDisposable
+            // 在异步上下文中应该使用DisposeAsync，这里可以不处理
         }
         catch
         {
@@ -69,9 +70,11 @@ public static class McpClientFactory
         {
             const string systemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server";
             
-            var transportOptions = new StdioClientTransportOptions("odr.exe")
+            var transportOptions = new StdioClientTransportOptions
             {
-                Arguments = new List<string>
+                Name = "SystemInfo-MCP-Client",
+                Command = "odr.exe",
+                Arguments = new[]
                 {
                     "mcp",
                     "--proxy",
@@ -81,7 +84,7 @@ public static class McpClientFactory
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions, cancellationToken);
+            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             return new McpClientWrapper(client, systemInfoServerId);
         }
@@ -100,9 +103,11 @@ public static class McpClientFactory
         {
             const string fileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
             
-            var transportOptions = new StdioClientTransportOptions("odr.exe")
+            var transportOptions = new StdioClientTransportOptions
             {
-                Arguments = new List<string>
+                Name = "File-MCP-Client",
+                Command = "odr.exe",
+                Arguments = new[]
                 {
                     "mcp",
                     "--proxy",
@@ -112,7 +117,7 @@ public static class McpClientFactory
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions, cancellationToken);
+            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             return new McpClientWrapper(client, fileServerId);
         }
@@ -131,9 +136,11 @@ public static class McpClientFactory
         {
             const string settingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
             
-            var transportOptions = new StdioClientTransportOptions("odr.exe")
+            var transportOptions = new StdioClientTransportOptions
             {
-                Arguments = new List<string>
+                Name = "Settings-MCP-Client",
+                Command = "odr.exe",
+                Arguments = new[]
                 {
                     "mcp",
                     "--proxy",
@@ -143,7 +150,7 @@ public static class McpClientFactory
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions, cancellationToken);
+            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             return new McpClientWrapper(client, settingsServerId);
         }

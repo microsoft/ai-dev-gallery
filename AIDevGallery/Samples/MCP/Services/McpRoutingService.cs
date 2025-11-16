@@ -250,7 +250,7 @@ public class McpRoutingService
             var serverTools = _discoveryService.GetServerTools(server.Id);
             foreach (var tool in serverTools)
             {
-                var (score, _) = CalculateMatchScore(userQuery, intent, server, tool);
+                var (score, reasoning) = CalculateMatchScore(userQuery, intent, server, tool);
                 candidates.Add((server, tool, score));
             }
         }

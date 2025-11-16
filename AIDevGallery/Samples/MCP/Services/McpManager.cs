@@ -28,9 +28,9 @@ public class McpManager : IDisposable
     public McpManager(ILogger<McpManager>? logger = null)
     {
         _logger = logger;
-        _discoveryService = new McpDiscoveryService(logger?.CreateLogger<McpDiscoveryService>());
-        _routingService = new McpRoutingService(_discoveryService, logger?.CreateLogger<McpRoutingService>());
-        _invocationService = new McpInvocationService(_discoveryService, logger?.CreateLogger<McpInvocationService>());
+        _discoveryService = new McpDiscoveryService(_logger as ILogger<McpDiscoveryService>);
+        _routingService = new McpRoutingService(_discoveryService, _logger as ILogger<McpRoutingService>);
+        _invocationService = new McpInvocationService(_discoveryService, _logger as ILogger<McpInvocationService>);
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class McpManager : IDisposable
             };
 
             var response = await chatClient.CompleteAsync(messages, cancellationToken: cancellationToken);
-            var extractedAnswer = response.Message.Text ?? "无法处理工具返回的数据。";
+            var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
 
             return new McpResponse
             {
@@ -286,7 +286,7 @@ public class McpManager : IDisposable
                 var response = await chatClient.CompleteAsync(messages, cancellationToken: cancellationToken);
                 return new McpResponse
                 {
-                    Answer = response.Message.Text ?? "无法为您的查询找到合适的工具。",
+                    Answer = response?.Text ?? "无法为您的查询找到合适的工具。",
                     Source = "System"
                 };
             }
