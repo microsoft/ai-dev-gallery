@@ -81,7 +81,7 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextSummarizer textSummarizer = new TextSummarizer(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
 
             As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
             performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
@@ -109,7 +109,7 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextRewriter textRewriter = new TextRewriter(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps using Windows AI Foundry.
+                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
 
             As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
             performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
@@ -214,6 +214,28 @@ internal static class WcrApiCodeSnippet
                 );
 
                 SoftwareBitmap finalImage = imageObjectExtractor.GetSoftwareBitmapObjectMask(hint);
+            }
+            """"
+        },
+        {
+            ModelType.ForegroundExtractor, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Imaging;
+            using Windows.Graphics;
+            using Windows.Graphics.Imaging;
+
+            var readyState = ImageForegroundExtractor.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageForegroundExtractor.EnsureReadyAsync();
+                }
+
+                ImageForegroundExtractor imageForegroundExtractor = await ImageForegroundExtractor.CreateAsync();
+
+                SoftwareBitmap mask = imageForegroundExtractor.GetMaskFromSoftwareBitmap(inputBitmap);
+                SoftwareBitmap finalBitmap = ApplyMask(inputBitmap, mask);
             }
             """"
         },

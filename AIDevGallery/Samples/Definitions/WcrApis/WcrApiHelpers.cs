@@ -6,6 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
+using Microsoft.Windows.AI.Video;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -49,6 +50,9 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.GetReadyState
+        },
+        {
             ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         },
         {
@@ -63,6 +67,8 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.GetReadyState
         },
+            ModelType.VideoSuperRes, VideoScaler.GetReadyState
+        }
     };
 
     public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
@@ -92,6 +98,9 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.EnsureReadyAsync
+        },
+        {
             ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
         },
         {
@@ -106,6 +115,8 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
         },
+            ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
+        }
     };
 
     // this is a workaround for GetReadyState not returning Ready after EnsureReadyAsync is called

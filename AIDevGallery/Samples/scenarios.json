@@ -211,6 +211,12 @@
         "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
       },
+      "ForegroundExtractor": {
+        "Name": "Extract Foreground",
+        "Description": "Extract the foreground from an image.",
+        "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select extract foreground to get the extracted objects without the background.",
+        "Id": "foreground-extractor"
+      },
       "BackgroundDetector": {
         "Name": "Detect Background",
         "Description": "Detect image foreground vs background.",
@@ -291,6 +297,13 @@
         "Instructions": "Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio translated to English and transcribed.",
         "Id": "translate-audio",
         "Icon": "\uF2B7"
+      },
+      "VideoSuperResolution": {
+        "Name": "Video Super Resolution",
+        "Description": "Enhance video quality in real-time with super resolution.",
+        "Instructions": "Start the camera to see real-time video enhancement with super resolution processing.",
+        "Id": "video-super-resolution",
+        "Icon": "\uE714"
       }
     }
   }
