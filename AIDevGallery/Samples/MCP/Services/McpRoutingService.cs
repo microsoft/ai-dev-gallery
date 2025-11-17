@@ -249,7 +249,7 @@ public class McpRoutingService
             // 步骤4: 参数提取
             _logger?.LogInformation("📝 Step 4: Argument Extraction");
             ArgumentExtractionResponse? argumentExtraction = null;
-            if (selectedTool.InputSchema?.ContainsKey("properties") == true)
+            if (selectedTool.InputSchema?.ContainsKey("properties") == true && !(selectedTool.InputSchema["properties"] is JsonElement schema && schema.ValueKind == JsonValueKind.Object))
             {
                 argumentExtraction = await ExtractArgumentsAsync(userQuery, selectedTool, intent);
                 if (argumentExtraction == null)
