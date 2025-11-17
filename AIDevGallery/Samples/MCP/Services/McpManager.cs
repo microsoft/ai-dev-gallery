@@ -197,9 +197,13 @@ public class McpManager : IDisposable
             var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
             var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
 
+            // 获取原始 JSON 数据并组合回答
+            var rawJson = SerializeResultData(result);
+            var combinedAnswer = $"{extractedAnswer}\n\n--- 原始数据 ---\n{rawJson}";
+
             return new McpResponse
             {
-                Answer = extractedAnswer,
+                Answer = combinedAnswer,
                 Source = $"{result.RoutingInfo?.SelectedServer.Name}.{result.RoutingInfo?.SelectedTool.Name}",
                 RawResult = result
             };
@@ -310,7 +314,12 @@ public class McpManager : IDisposable
                 if (!string.IsNullOrEmpty(aiAnswer))
                 {
                     _logger?.LogDebug("Successfully extracted answer using AI analysis");
-                    return aiAnswer;
+                    
+                    // 获取原始 JSON 数据
+                    var rawJson = SerializeResultData(result);
+                    
+                    // 组合 AI 回答和原始数据
+                    return $"{aiAnswer}\n\n--- API ---\n{rawJson}";
                 }
             }
             catch (Exception ex)
