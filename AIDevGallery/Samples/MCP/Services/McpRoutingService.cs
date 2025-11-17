@@ -6,11 +6,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.MCP.Services;
@@ -21,133 +18,19 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpRoutingService
 {
     private readonly McpDiscoveryService _discoveryService;
+    private readonly McpAIService _aiService;
+    private readonly McpScoringService _scoringService;
     private readonly ILogger<McpRoutingService>? _logger;
-    private readonly IChatClient? _chatClient;
 
-    // 预定义的意图到工具的映射规则 - 更详细和具体
-    private readonly Dictionary<string, List<string>> _intentKeywords = new()
-    {
-        ["memory"] = ["ram", "memory", "内存", "meminfo", "内存使用", "内存状态", "available", "used"],
-        ["storage"] = ["disk", "storage", "硬盘", "磁盘", "存储", "space", "free", "usage", "drive", "volume"],
-        ["cpu"] = ["cpu", "processor", "处理器", "性能", "load", "usage", "cores", "frequency", "ghz"],
-        ["system"] = ["system", "computer", "pc", "电脑", "系统", "info", "information", "overview", "status"],
-        ["process"] = ["process", "task", "program", "进程", "程序", "running", "pid", "application"],
-        ["file"] = ["file", "folder", "directory", "文件", "文件夹", "path", "read", "write", "list", "exists"],
-        ["network"] = ["network", "internet", "connection", "网络", "连接", "adapter", "ip", "interface"],
-        ["settings"] = ["settings", "config", "configuration", "设置", "配置", "registry", "policy", "preference"],
-        ["hardware"] = ["hardware", "硬件", "device", "component", "gpu", "motherboard", "bios"]
-    };
-
-    /// <summary>
-    /// 意图识别响应模型
-    /// </summary>
-    private class IntentClassificationResponse
-    {
-        [JsonPropertyName("need_tool")]
-        public bool NeedTool { get; set; }
-
-        [JsonPropertyName("topic")]
-        public string Topic { get; set; } = string.Empty;
-
-        [JsonPropertyName("keywords")]
-        public string[] Keywords { get; set; } = [];
-
-        [JsonPropertyName("confidence")]
-        public double Confidence { get; set; }
-    }
-
-    /// <summary>
-    /// 服务器选择响应模型
-    /// </summary>
-    private class ServerSelectionResponse
-    {
-        [JsonPropertyName("chosen_server_id")]
-        public string ChosenServerId { get; set; } = string.Empty;
-
-        [JsonPropertyName("ranking")]
-        public ServerRanking[] Ranking { get; set; } = [];
-
-        [JsonPropertyName("confidence")]
-        public double Confidence { get; set; }
-    }
-
-    /// <summary>
-    /// 服务器排名模型
-    /// </summary>
-    private class ServerRanking
-    {
-        [JsonPropertyName("server_id")]
-        public string ServerId { get; set; } = string.Empty;
-
-        [JsonPropertyName("score")]
-        public double Score { get; set; }
-
-        [JsonPropertyName("reasons")]
-        public string[] Reasons { get; set; } = [];
-    }
-
-    /// <summary>
-    /// 工具选择响应模型
-    /// </summary>
-    private class ToolSelectionResponse
-    {
-        [JsonPropertyName("chosen_tool_name")]
-        public string ChosenToolName { get; set; } = string.Empty;
-
-        [JsonPropertyName("alternatives")]
-        public string[] Alternatives { get; set; } = [];
-
-        [JsonPropertyName("confidence")]
-        public double Confidence { get; set; }
-    }
-
-    /// <summary>
-    /// 参数提取响应模型
-    /// </summary>
-    private class ArgumentExtractionResponse
-    {
-        [JsonPropertyName("arguments")]
-        public Dictionary<string, object> Arguments { get; set; } = new();
-
-        [JsonPropertyName("missing")]
-        public string[] Missing { get; set; } = [];
-
-        [JsonPropertyName("clarify_question")]
-        public string ClarifyQuestion { get; set; } = string.Empty;
-
-        [JsonPropertyName("confidence")]
-        public double Confidence { get; set; }
-    }
-
-    /// <summary>
-    /// 工具调用计划响应模型
-    /// </summary>
-    private class ToolInvocationPlanResponse
-    {
-        [JsonPropertyName("action")]
-        public string Action { get; set; } = "call_tool";
-
-        [JsonPropertyName("server_id")]
-        public string ServerId { get; set; } = string.Empty;
-
-        [JsonPropertyName("tool_name")]
-        public string ToolName { get; set; } = string.Empty;
-
-        [JsonPropertyName("arguments")]
-        public Dictionary<string, object> Arguments { get; set; } = new();
-
-        [JsonPropertyName("timeout_ms")]
-        public int TimeoutMs { get; set; } = 120000;
-
-        [JsonPropertyName("retries")]
-        public int Retries { get; set; } = 1;
-    }
-
-    public McpRoutingService(McpDiscoveryService discoveryService, ILogger<McpRoutingService>? logger = null, IChatClient? chatClient = null)
+    public McpRoutingService(
+        McpDiscoveryService discoveryService, 
+        ILogger<McpRoutingService>? logger = null, 
+        IChatClient? chatClient = null)
     {
         _discoveryService = discoveryService;
         _logger = logger;
-        _chatClient = chatClient;
+        _aiService = new McpAIService(chatClient, logger);
+        _scoringService = new McpScoringService(logger);
     }
 
     /// <summary>
@@ -161,28 +44,27 @@ public class McpRoutingService
             return null;
         }
 
-        _logger?.LogInformation($"🔍 Starting AI-driven multi-step routing for: '{userQuery}'");
+        _logger?.LogInformation($"🔍 Starting routing for: '{userQuery}'");
 
-        // 获取所有可用的 servers
         var servers = _discoveryService.GetConnectedServers();
-
         if (!servers.Any())
         {
             _logger?.LogWarning("❌ No servers available for routing");
             return null;
         }
 
-        // 使用AI模型进行多步骤决策
-        if (_chatClient != null)
+        // 使用AI模型进行多步骤决策，如果失败则降级到关键词匹配
+        if (_aiService.HasAIClient)
         {
-            return await RouteWithMultiStepAIAsync(userQuery, servers);
+            var aiResult = await RouteWithMultiStepAIAsync(userQuery, servers);
+            if (aiResult != null)
+            {
+                return aiResult;
+            }
         }
-        else
-        {
-            // 降级到简单的关键词匹配
-            _logger?.LogWarning("⚠️ No AI chat client available, falling back to keyword matching");
-            return await RouteWithKeywordsAsync(userQuery, servers);
-        }
+
+        _logger?.LogWarning("⚠️ AI routing failed or unavailable, falling back to keyword matching");
+        return await RouteWithKeywordsAsync(userQuery, servers);
     }
 
     /// <summary>
@@ -194,13 +76,14 @@ public class McpRoutingService
         {
             // 步骤1: 意图识别
             _logger?.LogInformation("🎯 Step 1: Intent Classification");
-            var intent = await ClassifyIntentAsync(userQuery);
-            if (intent == null)
+            var intentResult = await _aiService.ClassifyIntentAsync(userQuery);
+            if (!intentResult.Success || intentResult.Result == null)
             {
                 _logger?.LogWarning("❌ Failed to classify user intent");
                 return null;
             }
 
+            var intent = intentResult.Result;
             _logger?.LogInformation($"📊 Intent: needTool={intent.NeedTool}, topic={intent.Topic}, confidence={intent.Confidence:F2}");
 
             if (!intent.NeedTool)
@@ -211,94 +94,64 @@ public class McpRoutingService
 
             // 步骤2: 服务器选择
             _logger?.LogInformation("🖥️ Step 2: Server Selection");
-            var serverSelection = await SelectServerAsync(userQuery, servers, intent);
-            if (serverSelection == null || string.IsNullOrEmpty(serverSelection.ChosenServerId))
+            var serverResult = await _aiService.SelectServerAsync(userQuery, servers, intent);
+            if (!serverResult.Success || serverResult.Result == null)
             {
                 _logger?.LogWarning("❌ Failed to select appropriate server");
                 return null;
             }
 
-            var selectedServer = servers.FirstOrDefault(s => s.Id == serverSelection.ChosenServerId);
+            var selectedServer = servers.FirstOrDefault(s => s.Id == serverResult.Result.ChosenServerId);
             if (selectedServer == null)
             {
-                _logger?.LogWarning($"❌ Selected server not found: {serverSelection.ChosenServerId}");
+                _logger?.LogWarning($"❌ Selected server not found: {serverResult.Result.ChosenServerId}");
                 return null;
             }
 
-            _logger?.LogInformation($"🏆 Selected server: {selectedServer.Name} (confidence: {serverSelection.Confidence:F2})");
+            _logger?.LogInformation($"🏆 Selected server: {selectedServer.Name} (confidence: {serverResult.Confidence:F2})");
 
             // 步骤3: 工具选择
             _logger?.LogInformation("🔧 Step 3: Tool Selection");
             var availableTools = _discoveryService.GetServerTools(selectedServer.Id);
-            var toolSelection = await SelectToolAsync(userQuery, selectedServer, availableTools, intent);
-            if (toolSelection == null || string.IsNullOrEmpty(toolSelection.ChosenToolName))
+            var toolResult = await _aiService.SelectToolAsync(userQuery, selectedServer, availableTools, intent);
+            if (!toolResult.Success || toolResult.Result == null)
             {
                 _logger?.LogWarning("❌ Failed to select appropriate tool");
                 return null;
             }
 
-            var selectedTool = availableTools.FirstOrDefault(t => t.Name == toolSelection.ChosenToolName);
+            var selectedTool = availableTools.FirstOrDefault(t => t.Name == toolResult.Result.ChosenToolName);
             if (selectedTool == null)
             {
-                _logger?.LogWarning($"❌ Selected tool not found: {toolSelection.ChosenToolName}");
+                _logger?.LogWarning($"❌ Selected tool not found: {toolResult.Result.ChosenToolName}");
                 return null;
             }
 
-            _logger?.LogInformation($"⚙️ Selected tool: {selectedTool.Name} (confidence: {toolSelection.Confidence:F2})");
+            _logger?.LogInformation($"⚙️ Selected tool: {selectedTool.Name} (confidence: {toolResult.Confidence:F2})");
 
             // 步骤4: 参数提取
-            _logger?.LogInformation("📝 Step 4: Argument Extraction");
-            ArgumentExtractionResponse? argumentExtraction = null;
-            if (selectedTool.InputSchema is not null
-                && selectedTool.InputSchema.TryGetValue("properties", out var props)
-                && props is JsonElement elem
-                && elem.ValueKind == JsonValueKind.Object
-                && elem.EnumerateObject().MoveNext())
+            var argumentsResult = await ExtractArgumentsForToolAsync(userQuery, selectedTool, intent);
+            if (argumentsResult == null)
             {
-                argumentExtraction = await ExtractArgumentsAsync(userQuery, selectedTool, intent);
-                if (argumentExtraction == null)
-                {
-                    _logger?.LogWarning("❌ Failed to extract arguments");
-                    return null;
-                }
-
-                // 检查是否有缺失参数需要用户澄清
-                if (argumentExtraction.Missing.Any())
-                {
-                    _logger?.LogInformation($"❓ Missing parameters: {string.Join(", ", argumentExtraction.Missing)}");
-                    return new RoutingDecision
-                    {
-                        SelectedServer = selectedServer,
-                        SelectedTool = selectedTool,
-                        Parameters = argumentExtraction.Arguments,
-                        Confidence = argumentExtraction.Confidence,
-                        Reasoning = $"需要澄清: {argumentExtraction.ClarifyQuestion}",
-                        RequiresClarification = true,
-                        ClarificationQuestion = argumentExtraction.ClarifyQuestion
-                    };
-                }
+                return null;
             }
-            else
+
+            // 设置选择的服务器
+            argumentsResult.SelectedServer = selectedServer;
+
+            // 检查是否需要澄清
+            if (argumentsResult.RequiresClarification)
             {
-                _logger?.LogInformation("ℹ️ Selected tool has no input parameters to extract");
-                // 为没有参数的工具创建默认的参数提取结果
-                argumentExtraction = new ArgumentExtractionResponse
-                {
-                    Arguments = new Dictionary<string, object>(),
-                    Missing = [],
-                    ClarifyQuestion = string.Empty,
-                    Confidence = 1.0 // 没有参数时设置为满分
-                };
+                return argumentsResult;
             }
 
             // 步骤5: 生成工具调用计划
             _logger?.LogInformation("📋 Step 5: Tool Invocation Planning");
-            var invocationPlan = await CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentExtraction.Arguments);
-            if (invocationPlan == null)
-            {
-                _logger?.LogWarning("❌ Failed to create invocation plan");
-                return null;
-            }
+            var planResult = await _aiService.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
+            
+            var overallConfidence = Math.Min(
+                Math.Min(intentResult.Confidence, serverResult.Confidence),
+                Math.Min(toolResult.Confidence, argumentsResult.Confidence));
 
             _logger?.LogInformation($"✅ Multi-step AI routing completed successfully");
 
@@ -306,215 +159,81 @@ public class McpRoutingService
             {
                 SelectedServer = selectedServer,
                 SelectedTool = selectedTool,
-                Parameters = argumentExtraction.Arguments,
-                Confidence = Math.Min(intent.Confidence, Math.Min(serverSelection.Confidence, Math.Min(toolSelection.Confidence, argumentExtraction.Confidence))),
+                Parameters = argumentsResult.Parameters,
+                Confidence = overallConfidence,
                 Reasoning = $"AI多步骤决策: 意图={intent.Topic}, 服务器={selectedServer.Name}, 工具={selectedTool.Name}",
                 RequiresClarification = false,
-                InvocationPlan = invocationPlan
+                InvocationPlan = planResult.Result
             };
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "❌ Error during multi-step AI routing, falling back to keyword matching");
-            return await RouteWithKeywordsAsync(userQuery, servers);
+            _logger?.LogError(ex, "❌ Error during multi-step AI routing");
+            return null;
         }
     }
 
     /// <summary>
-    /// 步骤1: 使用AI进行意图识别
+    /// 处理工具参数提取，包括检查是否需要澄清
     /// </summary>
-    private async Task<IntentClassificationResponse?> ClassifyIntentAsync(string userQuery)
+    private async Task<RoutingDecision?> ExtractArgumentsForToolAsync(string userQuery, McpToolInfo selectedTool, IntentClassificationResponse intent)
     {
-        var systemPrompt = McpPromptTemplateManager.GetIntentClassificationPrompt();
-        var userPrompt = McpPromptTemplateManager.FormatUserQuery(userQuery);
-
-        return await CallAIWithJsonResponse<IntentClassificationResponse>(systemPrompt, userPrompt, "意图识别");
-    }
-
-    /// <summary>
-    /// 步骤2: 使用AI选择最佳服务器
-    /// </summary>
-    private async Task<ServerSelectionResponse?> SelectServerAsync(string userQuery, List<McpServerInfo> servers, IntentClassificationResponse intent)
-    {
-        var systemPrompt = McpPromptTemplateManager.GetServerSelectionPrompt();
-        var userPrompt = McpPromptTemplateManager.FormatServerSelectionUserPrompt(userQuery, servers, intent);
-
-        return await CallAIWithJsonResponse<ServerSelectionResponse>(systemPrompt, userPrompt, "服务器选择");
-    }
-
-    /// <summary>
-    /// 步骤3: 使用AI选择最佳工具
-    /// </summary>
-    private async Task<ToolSelectionResponse?> SelectToolAsync(string userQuery, McpServerInfo server, List<McpToolInfo> tools, IntentClassificationResponse intent)
-    {
-        var systemPrompt = McpPromptTemplateManager.GetToolSelectionPrompt();
-        var userPrompt = McpPromptTemplateManager.FormatToolSelectionUserPrompt(userQuery, server.Id, tools, intent);
-
-        return await CallAIWithJsonResponse<ToolSelectionResponse>(systemPrompt, userPrompt, "工具选择");
-    }
-
-    /// <summary>
-    /// 步骤4: 使用AI提取工具参数
-    /// </summary>
-    private async Task<ArgumentExtractionResponse?> ExtractArgumentsAsync(string userQuery, McpToolInfo tool, IntentClassificationResponse intent)
-    {
-        var systemPrompt = McpPromptTemplateManager.GetArgumentExtractionPrompt();
-        var userPrompt = McpPromptTemplateManager.FormatArgumentExtractionUserPrompt(userQuery, tool.Name, tool.InputSchema, intent);
-
-        return await CallAIWithJsonResponse<ArgumentExtractionResponse>(systemPrompt, userPrompt, "参数提取");
-    }
-
-    /// <summary>
-    /// 步骤5: 使用AI生成工具调用计划
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private async Task<ToolInvocationPlanResponse?> CreateInvocationPlanAsync(string userQuery, McpServerInfo server, McpToolInfo tool, Dictionary<string, object> arguments)
-    {
-        var systemPrompt = McpPromptTemplateManager.GetInvocationPlanPrompt();
-
-        var userPrompt = $"""
-            用户问题：{userQuery}
-            已选 server/tool/args：
-            - server: {server.Id}
-            - tool: {tool.Name}
-            - args: {JsonSerializer.Serialize(arguments)}
-            """;
-
-        return await CallAIWithJsonResponse<ToolInvocationPlanResponse>(systemPrompt, userPrompt, "调用计划");
-    }
-
-    /// <summary>
-    /// 通用AI调用方法，使用结构化输出获取JSON响应
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
-    private async Task<T?> CallAIWithJsonResponse<T>(string systemPrompt, string userPrompt, string stepName)
-        where T : class
-    {
-        try
+        _logger?.LogInformation("📝 Step 4: Argument Extraction");
+        
+        // 检查工具是否需要参数
+        if (selectedTool.InputSchema is not null
+            && selectedTool.InputSchema.TryGetValue("properties", out var props)
+            && props is JsonElement elem
+            && elem.ValueKind == JsonValueKind.Object
+            && elem.EnumerateObject().MoveNext())
         {
-            // 合并全局系统提示和步骤特定提示
-            var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[当前步骤: {stepName}]\n{systemPrompt}";
-
-            var messages = new[]
+            var argumentResult = await _aiService.ExtractArgumentsAsync(userQuery, selectedTool, intent);
+            if (!argumentResult.Success || argumentResult.Result == null)
             {
-                new ChatMessage(ChatRole.System, combinedSystemPrompt),
-                new ChatMessage(ChatRole.User, userPrompt)
-            };
-
-            // 方法1: 使用 Microsoft.Extensions.AI 的结构化输出 (推荐)
-            try
-            {
-                var structuredResponse = await _chatClient!.GetResponseAsync<T>(
-                    messages,
-                    options: new ChatOptions
-                    {
-                        ResponseFormat = ChatResponseFormat.ForJsonSchema<T>()
-                    });
-
-                if (structuredResponse != null && structuredResponse.TryGetResult(out T? result) && result != null)
-                {
-                    _logger?.LogDebug($"✅ {stepName} structured output parsed successfully");
-                    return result;
-                }
+                _logger?.LogWarning("❌ Failed to extract arguments");
+                return null;
             }
-            catch (Exception structuredEx)
-            {
-                _logger?.LogWarning(structuredEx, $"⚠️ Structured output failed for {stepName}, falling back to text parsing");
 
-                // 方法2: 降级到增强的文本解析 (更严格的约束)
-                var chatOptions = new ChatOptions
+            // 检查是否有缺失参数需要用户澄清
+            if (argumentResult.Result.Missing.Any())
+            {
+                _logger?.LogInformation($"❓ Missing parameters: {string.Join(", ", argumentResult.Result.Missing)}");
+                return new RoutingDecision
                 {
-                    ResponseFormat = ChatResponseFormat.Json, // 强制JSON模式
-                    Temperature = 0.1f // 低温度确保更一致的输出
+                    SelectedServer = null!,
+                    SelectedTool = selectedTool,
+                    Parameters = argumentResult.Result.Arguments,
+                    Confidence = argumentResult.Confidence,
+                    Reasoning = $"需要澄清: {argumentResult.Result.ClarifyQuestion}",
+                    RequiresClarification = true,
+                    ClarificationQuestion = argumentResult.Result.ClarifyQuestion
                 };
-
-                var response = await _chatClient!.GetResponseAsync(messages, chatOptions);
-                var aiResponse = response.Text ?? string.Empty;
-
-                _logger?.LogDebug($"🤖 {stepName} AI Response: {aiResponse}");
-
-                // 更严格的JSON验证和清理
-                var cleanedJson = CleanJsonResponse(aiResponse);
-                if (!string.IsNullOrEmpty(cleanedJson))
-                {
-                    var result = JsonSerializer.Deserialize<T>(cleanedJson, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        AllowTrailingCommas = true,
-                        ReadCommentHandling = JsonCommentHandling.Skip
-                    });
-
-                    if (result != null)
-                    {
-                        _logger?.LogDebug($"✅ {stepName} fallback parsing successful");
-                        return result;
-                    }
-                }
             }
 
-            _logger?.LogWarning($"⚠️ Could not parse {stepName} response with any method");
-            return null;
+            return new RoutingDecision
+            {
+                SelectedServer = null!,
+                SelectedTool = selectedTool,
+                Parameters = argumentResult.Result.Arguments,
+                Confidence = argumentResult.Confidence,
+                RequiresClarification = false
+            };
         }
-        catch (Exception ex)
+        else
         {
-            _logger?.LogError(ex, $"❌ Error during {stepName}");
-            return null;
+            _logger?.LogInformation("ℹ️ Selected tool has no input parameters to extract");
+            return new RoutingDecision
+            {
+                SelectedServer = null!, // 将在调用方设置
+                SelectedTool = selectedTool,
+                Parameters = new Dictionary<string, object>(),
+                Confidence = 1.0,
+                RequiresClarification = false
+            };
         }
     }
 
-    /// <summary>
-    /// 清理和验证JSON响应
-    /// </summary>
-    private string CleanJsonResponse(string response)
-    {
-        if (string.IsNullOrWhiteSpace(response))
-        {
-            return string.Empty;
-        }
 
-        // 移除常见的非JSON前缀和后缀
-        var cleaned = response.Trim();
-
-        // 移除markdown代码块标记
-        if (cleaned.StartsWith("```json"))
-        {
-            cleaned = cleaned.Substring(7);
-        }
-        else if (cleaned.StartsWith("```"))
-        {
-            cleaned = cleaned.Substring(3);
-        }
-
-        if (cleaned.EndsWith("```"))
-        {
-            cleaned = cleaned.Substring(0, cleaned.Length - 3);
-        }
-
-        cleaned = cleaned.Trim();
-
-        // 找到第一个 { 和最后一个 }
-        var jsonStart = cleaned.IndexOf('{');
-        var jsonEnd = cleaned.LastIndexOf('}');
-
-        if (jsonStart >= 0 && jsonEnd >= jsonStart)
-        {
-            var jsonPart = cleaned.Substring(jsonStart, jsonEnd - jsonStart + 1);
-
-            // 验证JSON格式
-            try
-            {
-                using var doc = JsonDocument.Parse(jsonPart);
-                return jsonPart; // 如果能解析，返回清理后的JSON
-            }
-            catch (JsonException)
-            {
-                _logger?.LogWarning($"Invalid JSON detected: {jsonPart.Substring(0, Math.Min(100, jsonPart.Length))}...");
-                return string.Empty;
-            }
-        }
-
-        return string.Empty;
-    }
 
     /// <summary>
     /// 降级方案：使用关键词匹配进行路由
@@ -522,8 +241,6 @@ public class McpRoutingService
     private Task<RoutingDecision?> RouteWithKeywordsAsync(string userQuery, List<McpServerInfo> servers)
     {
         var query = userQuery.ToLowerInvariant();
-
-        // 简单的关键词匹配逻辑
         var candidates = new List<(McpServerInfo server, McpToolInfo tool, double score)>();
 
         foreach (var server in servers)
@@ -531,7 +248,7 @@ public class McpRoutingService
             var tools = _discoveryService.GetServerTools(server.Id);
             foreach (var tool in tools)
             {
-                var score = CalculateSimpleMatchScore(query, server, tool);
+                var score = _scoringService.CalculateSimpleMatchScore(query, server, tool);
                 if (score > 0)
                 {
                     candidates.Add((server, tool, score));
@@ -545,346 +262,19 @@ public class McpRoutingService
         }
 
         var best = candidates.OrderByDescending(c => c.score).First();
-
         _logger?.LogInformation($"✅ Keyword matching selected: {best.server.Name}.{best.tool.Name}");
 
         return Task.FromResult<RoutingDecision?>(new RoutingDecision
         {
             SelectedServer = best.server,
             SelectedTool = best.tool,
-            Parameters = new Dictionary<string, object>(),
-            Confidence = best.score,
+            Parameters = _scoringService.ExtractParameters(userQuery, _scoringService.AnalyzeUserIntent(userQuery), best.tool),
+            Confidence = best.score / 100.0, // 标准化到0-1
             Reasoning = "Keyword-based fallback selection"
         });
     }
 
-    /// <summary>
-    /// 简单的匹配分数计算
-    /// </summary>
-    private double CalculateSimpleMatchScore(string query, McpServerInfo server, McpToolInfo tool)
-    {
-        var score = 0.0;
 
-        // 服务器名称匹配
-        if (query.Contains("system") || query.Contains("系统") || query.Contains("电脑"))
-        {
-            if (server.Name.Contains("system-info"))
-            {
-                score += 10;
-            }
-        }
-
-        if (query.Contains("file") || query.Contains("文件") || query.Contains("folder"))
-        {
-            if (server.Name.Contains("file-system"))
-            {
-                score += 10;
-            }
-        }
-
-        if (query.Contains("setting") || query.Contains("设置") || query.Contains("配置"))
-        {
-            if (server.Name.Contains("settings"))
-            {
-                score += 10;
-            }
-        }
-
-        // 工具名称匹配
-        if (tool.Name.ToLowerInvariant().Contains("get") && (query.Contains("show") || query.Contains("display") || query.Contains("显示")))
-        {
-            score += 5;
-        }
-
-        return score;
-    }
-
-    /// <summary>
-    /// 分析用户意图 - 改进的多维度分析
-    /// </summary>
-    private string AnalyzeUserIntent(string query)
-    {
-        var queryLower = query.ToLower();
-        var scores = new Dictionary<string, double>();
-
-        foreach (var (intent, keywords) in _intentKeywords)
-        {
-            double score = 0;
-
-            foreach (var keyword in keywords)
-            {
-                var keywordLower = keyword.ToLower();
-
-                // 完全匹配得分最高
-                if (queryLower.Contains(keywordLower))
-                {
-                    if (queryLower == keywordLower)
-                    {
-                        score += 10; // 完整匹配
-                    }
-                    else if (queryLower.Split(' ').Contains(keywordLower))
-                    {
-                        score += 8; // 单词匹配
-                    }
-                    else
-                    {
-                        score += 5; // 部分匹配
-                    }
-                }
-
-                // 模糊匹配（词干）
-                if (keywordLower.Length > 3 && queryLower.Contains(keywordLower.Substring(0, Math.Min(keywordLower.Length - 1, 4))))
-                {
-                    score += 2;
-                }
-            }
-
-            if (score > 0)
-            {
-                scores[intent] = score;
-            }
-        }
-
-        if (!scores.Any())
-        {
-            return "general";
-        }
-
-        var bestIntent = scores.OrderByDescending(kvp => kvp.Value).First();
-        _logger?.LogInformation($"Intent analysis for '{query}': {bestIntent.Key} (score: {bestIntent.Value:F1})");
-
-        return bestIntent.Key;
-    }
-
-    /// <summary>
-    /// 计算 server-tool 组合与查询的匹配分数 - 改进的评分算法
-    /// </summary>
-    private (double score, string reasoning) CalculateMatchScore(string query, string intent, McpServerInfo server, McpToolInfo tool)
-    {
-        double score = 0;
-        var reasons = new List<string>();
-        var queryLower = query.ToLower();
-
-        // 1. 服务器类型与意图的强匹配 - 这是最重要的因子
-        var intentKeywords = _intentKeywords.ContainsKey(intent) ? _intentKeywords[intent] : new List<string>();
-        var serverTypeScore = CalculateServerTypeScore(server.Id, intent, intentKeywords);
-        score += serverTypeScore;
-        if (serverTypeScore > 0)
-        {
-            reasons.Add($"Server type match: {serverTypeScore:F1}");
-        }
-
-        // 2. 工具名称的精确匹配 - 第二重要的因子
-        var toolNameScore = CalculateToolNameScore(tool.Name, queryLower, intentKeywords);
-        score += toolNameScore;
-        if (toolNameScore > 0)
-        {
-            reasons.Add($"Tool name relevance: {toolNameScore:F1}");
-        }
-
-        // 3. 工具描述匹配
-        var descriptionScore = CalculateDescriptionScore(tool.Description, queryLower, intentKeywords);
-        score += descriptionScore;
-        if (descriptionScore > 0)
-        {
-            reasons.Add($"Description match: {descriptionScore:F1}");
-        }
-
-        // 4. 关键词匹配
-        var keywordScore = CalculateKeywordScore(tool.Keywords, queryLower, intentKeywords);
-        score += keywordScore;
-        if (keywordScore > 0)
-        {
-            reasons.Add($"Keyword match: {keywordScore:F1}");
-        }
-
-        // 5. 工具优先级加成
-        score += tool.Priority * 0.5; // 缩小优先级的影响
-
-        // 6. 服务器健康度调整
-        score *= server.SuccessRate; // 乘法而非加法，确保不健康的服务器得分显著降低
-
-        // 7. 响应时间惩罚
-        if (server.ResponseTime.HasValue)
-        {
-            var responseMs = server.ResponseTime.Value.TotalMilliseconds;
-            var penalty = Math.Min(responseMs / 500, 0.3); // 最多30%的惩罚
-            score *= 1 - penalty;
-        }
-
-        var reasoning = reasons.Any() ? string.Join("; ", reasons) : "No specific match found";
-        _logger?.LogDebug($"Score for {server.Name}.{tool.Name}: {score:F2} ({reasoning})");
-
-        return (score, reasoning);
-    }
-
-    /// <summary>
-    /// 计算服务器类型匹配分数
-    /// </summary>
-    private double CalculateServerTypeScore(string serverId, string intent, List<string> intentKeywords)
-    {
-        var score = 0.0;
-
-        // 直接服务器类型匹配
-        var serverTypeMatches = new Dictionary<string, string[]>
-        {
-            ["system-info"] = ["system", "memory", "cpu", "storage", "hardware"],
-            ["file-system"] = ["file"],
-            ["settings"] = ["settings"]
-        };
-
-        if (serverTypeMatches.ContainsKey(serverId))
-        {
-            var serverTypes = serverTypeMatches[serverId];
-            if (serverTypes.Contains(intent))
-            {
-                score += 50; // 直接匹配得最高分
-            }
-            else
-            {
-                // 检查关键词匹配
-                var matchCount = intentKeywords.Count(kw =>
-                    serverTypes.Any(st => kw.Contains(st, StringComparison.OrdinalIgnoreCase)));
-                score += matchCount * 15;
-            }
-        }
-
-        return score;
-    }
-
-    /// <summary>
-    /// 计算工具名称匹配分数
-    /// </summary>
-    private double CalculateToolNameScore(string toolName, string queryLower, List<string> intentKeywords)
-    {
-        var score = 0.0;
-        var toolNameLower = toolName.ToLower();
-
-        // 直接查询匹配
-        if (toolNameLower.Contains(queryLower) || queryLower.Contains(toolNameLower))
-        {
-            score += 30;
-        }
-
-        // 关键词匹配
-        foreach (var keyword in intentKeywords)
-        {
-            if (toolNameLower.Contains(keyword.ToLower()))
-            {
-                score += 20;
-            }
-        }
-
-        // 操作类型匹配
-        var actionWords = new[] { "get", "set", "list", "info", "status", "read", "write", "create", "delete" };
-        var queryWords = Regex.Split(queryLower, @"\W+").Where(w => w.Length > 2);
-
-        foreach (var action in actionWords)
-        {
-            if (toolNameLower.Contains(action) && queryWords.Contains(action))
-            {
-                score += 15;
-            }
-        }
-
-        return score;
-    }
-
-    /// <summary>
-    /// 计算描述匹配分数
-    /// </summary>
-    private double CalculateDescriptionScore(string description, string queryLower, List<string> intentKeywords)
-    {
-        if (string.IsNullOrEmpty(description))
-        {
-            return 0;
-        }
-
-        var score = 0.0;
-        var descriptionLower = description.ToLower();
-
-        // 关键词匹配
-        foreach (var keyword in intentKeywords)
-        {
-            if (descriptionLower.Contains(keyword.ToLower()))
-            {
-                score += 8;
-            }
-        }
-
-        // 查询词匹配
-        var queryWords = Regex.Split(queryLower, @"\W+").Where(w => w.Length > 2);
-        var matchCount = queryWords.Count(word => descriptionLower.Contains(word));
-        score += matchCount * 5;
-
-        return score;
-    }
-
-    /// <summary>
-    /// 计算关键词匹配分数
-    /// </summary>
-    private double CalculateKeywordScore(string[] toolKeywords, string queryLower, List<string> intentKeywords)
-    {
-        var score = 0.0;
-
-        foreach (var toolKeyword in toolKeywords)
-        {
-            var toolKeywordLower = toolKeyword.ToLower();
-
-            // 与意图关键词匹配
-            foreach (var intentKeyword in intentKeywords)
-            {
-                if (toolKeywordLower.Contains(intentKeyword.ToLower()) ||
-                    intentKeyword.ToLower().Contains(toolKeywordLower))
-                {
-                    score += 10;
-                }
-            }
-
-            // 与查询直接匹配
-            if (queryLower.Contains(toolKeywordLower))
-            {
-                score += 12;
-            }
-        }
-
-        return score;
-    }
-
-    /// <summary>
-    /// 从用户查询中提取工具参数
-    /// </summary>
-    private Dictionary<string, object> ExtractParameters(string query, string intent, McpToolInfo tool)
-    {
-        var parameters = new Dictionary<string, object>();
-
-        // 基于工具的输入 schema 尝试提取参数
-        if (tool.InputSchema?.ContainsKey("properties") == true)
-        {
-            // 这里可以实现更复杂的参数提取逻辑
-            // 现在只是简单的示例
-
-            // 如果工具需要特定类型的参数，可以从查询中提取
-            var queryLower = query.ToLower();
-
-            // 示例：提取数字参数
-            var numbers = Regex.Matches(query, @"\d+").Cast<Match>().Select(m => m.Value).ToList();
-            if (numbers.Any())
-            {
-                parameters["value"] = numbers.First();
-            }
-
-            // 示例：提取路径参数
-            var pathPattern = @"[A-Za-z]:\\[^<>:""|?*\n\r]*";
-            var pathMatch = Regex.Match(query, pathPattern);
-            if (pathMatch.Success)
-            {
-                parameters["path"] = pathMatch.Value;
-            }
-        }
-
-        return parameters;
-    }
 
     /// <summary>
     /// 获取候选的 server-tool 组合用于调试
@@ -897,7 +287,7 @@ public class McpRoutingService
             return Task.FromResult<List<(McpServerInfo server, McpToolInfo tool, double score)>>(new List<(McpServerInfo, McpToolInfo, double)>());
         }
 
-        var intent = AnalyzeUserIntent(userQuery);
+        var intent = _scoringService.AnalyzeUserIntent(userQuery);
         var servers = _discoveryService.GetConnectedServers();
         var candidates = new List<(McpServerInfo server, McpToolInfo tool, double score)>();
 
@@ -906,7 +296,7 @@ public class McpRoutingService
             var serverTools = _discoveryService.GetServerTools(server.Id);
             foreach (var tool in serverTools)
             {
-                var (score, reasoning) = CalculateMatchScore(userQuery, intent, server, tool);
+                var (score, reasoning) = _scoringService.CalculateMatchScore(userQuery, intent, server, tool);
                 candidates.Add((server, tool, score));
             }
         }
