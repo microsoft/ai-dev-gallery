@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.MCP.Services;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -68,11 +69,7 @@ internal sealed partial class MCPClient : BaseSamplePage
             model = await sampleParams.GetIChatClientAsync();
 
             // 创建一个简单的调试logger用于在VS输出窗口查看日志
-            var loggerFactory = LoggerFactory.Create(builder => 
-                builder.AddDebug()
-                       .AddConsole()
-                       .SetMinimumLevel(LogLevel.Debug));
-            var logger = loggerFactory.CreateLogger<McpManager>();
+            var logger = new DebugLogger<McpManager>();
 
             // 初始化 MCP 管理器，传递AI聊天客户端用于智能路由
             mcpManager = new McpManager(logger, model);
@@ -562,5 +559,28 @@ internal sealed partial class MCPClient : BaseSamplePage
                 _currentDialog = null;
             }
         }
+    }
+}
+
+/// <summary>
+/// 简单的调试 Logger 实现，输出到 VS Debug 窗口
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class DebugLogger<T> : ILogger<T>
+{
+    public IDisposable BeginScope<TState>(TState state) => null!;
+
+    public bool IsEnabled(LogLevel logLevel) => true;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        var message = formatter(state, exception);
+        var logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] [{logLevel}] {typeof(T).Name}: {message}";
+        
+        // 输出到 VS Debug 窗口
+        Debug.WriteLine(logMessage);
+        
+        // 同时输出到控制台（如果有的话）
+        Console.WriteLine(logMessage);
     }
 }
