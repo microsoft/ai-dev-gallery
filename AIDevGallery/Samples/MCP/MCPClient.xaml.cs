@@ -71,7 +71,12 @@ internal sealed partial class MCPClient : BaseSamplePage
             
             if (!mcpInitialized)
             {
-                ShowException(new Exception("Failed to initialize MCP Manager. MCP functionality will be limited."));
+                // 延迟显示错误，避免与其他对话框冲突
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    await Task.Delay(500); // 等待其他对话框关闭
+                    ShowException(new Exception("Failed to initialize MCP Manager. MCP functionality will be limited."));
+                });
             }
             
             // 更新状态显示
@@ -79,7 +84,12 @@ internal sealed partial class MCPClient : BaseSamplePage
         }
         catch (Exception ex)
         {
-            ShowException(ex);
+            // 延迟显示错误，避免与其他对话框冲突
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                await Task.Delay(500);
+                ShowException(ex);
+            });
         }
 
         sampleParams.NotifyCompletion();
@@ -98,6 +108,21 @@ internal sealed partial class MCPClient : BaseSamplePage
     private void CleanUp()
     {
         CancelResponse();
+        
+        // 确保关闭任何打开的对话框
+        if (_currentDialog != null)
+        {
+            try
+            {
+                _currentDialog.Hide();
+            }
+            catch
+            {
+                // 忽略关闭错误
+            }
+            _currentDialog = null;
+        }
+        
         model?.Dispose();
         mcpManager?.Dispose();
     }
@@ -426,7 +451,12 @@ internal sealed partial class MCPClient : BaseSamplePage
         {
             var status = await mcpManager.GetSystemStatusAsync();
             var statusText = FormatMcpStatus(status);
-            await ShowMcpStatusDialog(statusText);
+            
+            // 添加工具目录信息
+            var toolCatalog = mcpManager.GetToolCatalog();
+            var fullContent = $"{statusText}\n\n{new string('=', 50)}\n\n{toolCatalog}";
+            
+            await ShowMcpStatusDialog(fullContent);
         }
         catch (Exception ex)
         {
@@ -458,8 +488,24 @@ internal sealed partial class MCPClient : BaseSamplePage
         return text.ToString();
     }
 
+    private static ContentDialog? _currentDialog;
+
     private async Task ShowMcpStatusDialog(string content)
     {
+        // 确保一次只有一个对话框打开
+        if (_currentDialog != null)
+        {
+            try
+            {
+                _currentDialog.Hide();
+            }
+            catch
+            {
+                // 忽略可能的关闭错误
+            }
+            _currentDialog = null;
+        }
+
         var dialog = new ContentDialog
         {
             Title = "MCP Status",
@@ -477,6 +523,22 @@ internal sealed partial class MCPClient : BaseSamplePage
             XamlRoot = this.XamlRoot
         };
 
-        await dialog.ShowAsync();
+        _currentDialog = dialog;
+
+        try
+        {
+            await dialog.ShowAsync();
+        }
+        catch (System.Runtime.InteropServices.COMException ex) when (ex.HResult == unchecked((int)0x80004005))
+        {
+            // ContentDialog已经打开的情况，静默处理
+        }
+        finally
+        {
+            if (_currentDialog == dialog)
+            {
+                _currentDialog = null;
+            }
+        }
     }
 }
