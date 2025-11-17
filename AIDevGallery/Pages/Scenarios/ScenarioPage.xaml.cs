@@ -12,7 +12,6 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -52,28 +51,6 @@ internal sealed partial class ScenarioPage : Page
         App.MainWindow.ModelPicker.SelectedModelsChanged += ModelOrApiPicker_SelectedModelsChanged;
         this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
     }
-
-    /************ Debugging Focus - uncomment to use ************
-    private async void Window_KeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == Windows.System.VirtualKey.Tab)
-        {
-            await Task.Delay(10);
-            var focused = FocusManager.GetFocusedElement(this.Content.XamlRoot);
-            System.Diagnostics.Debug.WriteLine($"Scenario Focused: {focused}");
-
-            if (focused is FrameworkElement fe)
-            {
-                string name = fe.Name;
-                System.Diagnostics.Debug.WriteLine($"Generated Focused element name: '{name}', type: {fe.GetType().Name}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"Generated Focused is not a FrameworkElement: {focused?.GetType().Name}");
-            }
-        }
-    }
-    */
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
