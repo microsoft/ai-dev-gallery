@@ -29,9 +29,14 @@ public class McpManager : IDisposable
     public McpManager(ILogger<McpManager>? logger = null, IChatClient? chatClient = null)
     {
         _logger = logger;
-        _discoveryService = new McpDiscoveryService(_logger as ILogger<McpDiscoveryService>);
-        _routingService = new McpRoutingService(_discoveryService, _logger as ILogger<McpRoutingService>, chatClient);
-        _invocationService = new McpInvocationService(_discoveryService, _logger as ILogger<McpInvocationService>);
+        
+        // 为每个服务创建专用的 logger，如果需要的话
+        // 这里我们传递一个通用的 logger 实现
+        var loggerFactory = logger != null ? new WrappedLoggerFactory(logger) : null;
+        
+        _discoveryService = new McpDiscoveryService(loggerFactory?.CreateLogger<McpDiscoveryService>());
+        _routingService = new McpRoutingService(_discoveryService, loggerFactory?.CreateLogger<McpRoutingService>(), chatClient);
+        _invocationService = new McpInvocationService(_discoveryService, loggerFactory?.CreateLogger<McpInvocationService>());
     }
 
     /// <summary>
@@ -493,5 +498,46 @@ public class McpManager : IDisposable
 
         _discoveryService?.Dispose();
         _disposed = true;
+    }
+}
+
+/// <summary>
+/// 包装现有的 logger 来创建不同泛型类型的 logger
+/// </summary>
+internal class WrappedLoggerFactory
+{
+    private readonly ILogger _baseLogger;
+
+    public WrappedLoggerFactory(ILogger baseLogger)
+    {
+        _baseLogger = baseLogger;
+    }
+
+    public ILogger<T> CreateLogger<T>()
+    {
+        return new WrappedLogger<T>(_baseLogger);
+    }
+}
+
+/// <summary>
+/// Logger 包装器，将一个 logger 包装成不同泛型类型
+/// </summary>
+/// <typeparam name="T"></typeparam>
+internal class WrappedLogger<T> : ILogger<T>
+{
+    private readonly ILogger _baseLogger;
+
+    public WrappedLogger(ILogger baseLogger)
+    {
+        _baseLogger = baseLogger;
+    }
+
+    public IDisposable BeginScope<TState>(TState state) => _baseLogger.BeginScope(state);
+
+    public bool IsEnabled(LogLevel logLevel) => _baseLogger.IsEnabled(logLevel);
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        _baseLogger.Log(logLevel, eventId, state, exception, formatter);
     }
 }
