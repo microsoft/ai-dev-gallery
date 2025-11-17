@@ -209,7 +209,7 @@ public class McpManager : IDisposable
             _logger?.LogError($"Error processing result with LLM: {ex.Message}");
 
             // 降级到简单的文本提取
-            var fallbackAnswer = ExtractSimpleAnswer(result);
+            var fallbackAnswer = await ExtractSimpleAnswerAsync(originalQuery, result, chatClient, cancellationToken);
             return new McpResponse
             {
                 Answer = fallbackAnswer,
@@ -244,6 +244,17 @@ public class McpManager : IDisposable
     }
 
     /// <summary>
+    /// 从 MCP 调用结果中提取并序列化数据
+    /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
+    private string SerializeResultData(McpInvocationResult result)
+    {
+        var structuredContent = result.Data?.GetType().GetProperty("StructuredContent")?.GetValue(result.Data, null);
+        var dataToSerialize = structuredContent ?? result.Data;
+        return JsonSerializer.Serialize(dataToSerialize, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    /// <summary>
     /// 创建用于信息提取的用户提示
     /// </summary>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
@@ -253,7 +264,7 @@ public class McpManager : IDisposable
             ? $"工具：{result.RoutingInfo.SelectedServer.Name}.{result.RoutingInfo.SelectedTool.Name}"
             : "未知工具";
 
-        var dataJson = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true });
+        var dataJson = SerializeResultData(result);
 
         return $@"用户问题：{originalQuery}
 
@@ -266,29 +277,57 @@ public class McpManager : IDisposable
     }
 
     /// <summary>
-    /// 简单的答案提取（作为 LLM 处理失败时的后备方案）
+    /// 智能答案提取（使用 AI 分析工具返回的数据）
     /// </summary>
-    private string ExtractSimpleAnswer(McpInvocationResult result)
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
+    private async Task<string> ExtractSimpleAnswerAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, CancellationToken cancellationToken)
     {
         if (result.Data == null)
         {
             return "工具没有返回数据。";
         }
 
+        // 如果有 AI 客户端，尝试使用 AI 分析数据
+        if (chatClient != null)
+        {
+            try
+            {
+                // 复用现有的系统提示创建方法
+                var systemPrompt = CreateExtractionSystemPrompt(result);
+                
+                // 复用现有的用户提示创建方法
+                var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
+
+                var messages = new List<ChatMessage>
+                {
+                    new(ChatRole.System, systemPrompt),
+                    new(ChatRole.User, userPrompt)
+                };
+
+                var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
+                var aiAnswer = response?.Text?.Trim();
+
+                if (!string.IsNullOrEmpty(aiAnswer))
+                {
+                    _logger?.LogDebug("Successfully extracted answer using AI analysis");
+                    return aiAnswer;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning($"AI analysis failed, falling back to basic extraction: {ex.Message}");
+            }
+        }
+
+        // 降级到基本的数据提取（无 AI 或 AI 失败时）
         try
         {
-            var structuredContent = result.Data.GetType().GetProperty("StructuredContent")?.GetValue(result.Data, null);
-            var json = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true });
-            if (structuredContent != null)
-            {
-                json = JsonSerializer.Serialize(structuredContent, new JsonSerializerOptions { WriteIndented = true });
-            }
-
+            var json = SerializeResultData(result);
             return $"获取到以下信息：\n{json}";
         }
         catch
         {
-            return result.Data.ToString() ?? "无法解析返回的数据。";
+            return result.Data?.ToString() ?? "无法解析返回的数据。";
         }
     }
 
