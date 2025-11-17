@@ -88,6 +88,12 @@
         "Instructions": "Enter some text into the textbox and click 'Rewrite' to get the rewritten text.",
         "Id": "win-ai-rewrite"
       },
+      "WinAiDescribeYourChange": {
+        "Name": "Windows AI Describe Your Change",
+        "Description": "Describe how you want your text to be rewritten using Windows AI Text Rewriter.",
+        "Instructions": "Enter some text into the textboxes and click 'Rewrite' to get the rewritten text.",
+        "Id": "win-ai-describe-your-change"
+      },
       "WinAiTextToTable": {
         "Name": "Windows AI Text To Table Converter",
         "Description": "Convert Text To Table.",
@@ -184,7 +190,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -210,6 +216,12 @@
         "Description": "Remove image backgrounds with an image segmentation model.",
         "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
+      },
+      "ForegroundExtractor": {
+        "Name": "Extract Foreground",
+        "Description": "Extract the foreground from an image.",
+        "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select extract foreground to get the extracted objects without the background.",
+        "Id": "foreground-extractor"
       },
       "BackgroundDetector": {
         "Name": "Detect Background",
