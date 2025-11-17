@@ -247,7 +247,7 @@ public class McpManager : IDisposable
 
         try
         {
-            var structuredContent = result.Data.GetType().GetProperty("structuredContent")?.GetValue(result.Data, null);
+            var structuredContent = result.Data.GetType().GetProperty("StructuredContent")?.GetValue(result.Data, null);
             var json = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true });
             if (structuredContent != null)
             {
