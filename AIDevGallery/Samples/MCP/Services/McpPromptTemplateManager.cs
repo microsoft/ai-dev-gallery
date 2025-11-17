@@ -94,7 +94,7 @@ public static class McpPromptTemplateManager
             你是MCP工具选择专家。从指定服务器的工具列表中选择最能满足用户需求的工具。
             
             选择标准：
-            1. 工具的description和功能与用户意图的匹配度
+            1. 工具功能与用户意图的匹配度
             2. 工具权限级别（优先低权限的）
             3. 工具成功率和可靠性
             
@@ -386,7 +386,6 @@ public static class McpPromptTemplateManager
         {
             name = t.Name,
             description = t.Description,
-            args_schema = t.InputSchema,
             keywords = t.Keywords,
             priority = t.Priority
         }), new JsonSerializerOptions { WriteIndented = true });
@@ -397,7 +396,7 @@ public static class McpPromptTemplateManager
             用户问题：{userQuery}
             选定服务器：{serverId}
             意图分析：{intentJson}
-            可用工具列表（JSON 数组，含 name/description/argsSchema/keywords）：{toolsJson}
+            可用工具列表：{toolsJson}
             """;
     }
 
