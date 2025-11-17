@@ -307,27 +307,8 @@ public class McpRoutingService
     /// </summary>
     private async Task<IntentClassificationResponse?> ClassifyIntentAsync(string userQuery)
     {
-        var systemPrompt = """
-            你是一个专门的JSON响应生成器。你的唯一任务是分析用户的MCP工具请求并返回结构化的JSON分析结果。
-
-            CRITICAL CONSTRAINTS:
-            - 你只能输出有效的JSON对象，绝对不能包含任何其他文本
-            - 不能使用markdown、代码块标记或任何格式化
-            - 不能添加解释、注释或说明文字
-            - JSON必须严格符合指定的schema
-
-            任务：分析用户问题是否需要MCP工具，识别主题和关键词。
-
-            必须返回且仅返回这个JSON结构：
-            {
-              "need_tool": boolean,
-              "topic": "systeminfo" | "filesystem" | "settings" | "hardware" | "network" | "other",
-              "keywords": ["string1", "string2", ...],
-              "confidence": number_between_0_and_1
-            }
-            """;
-
-        var userPrompt = $"用户问题：{userQuery}";
+        var systemPrompt = McpPromptTemplateManager.GetIntentClassificationPrompt();
+        var userPrompt = McpPromptTemplateManager.FormatUserQuery(userQuery);
 
         return await CallAIWithJsonResponse<IntentClassificationResponse>(systemPrompt, userPrompt, "意图识别");
     }
@@ -337,44 +318,8 @@ public class McpRoutingService
     /// </summary>
     private async Task<ServerSelectionResponse?> SelectServerAsync(string userQuery, List<McpServerInfo> servers, IntentClassificationResponse intent)
     {
-        var serversJson = JsonSerializer.Serialize(servers.Select(s => new
-        {
-            id = s.Id,
-            name = s.Name,
-            description = s.Description,
-            tags = s.Categories,
-            health_score = s.HealthScore,
-            success_rate = s.SuccessRate,
-            avg_response_time = s.AverageResponseTime
-        }), new JsonSerializerOptions { WriteIndented = true });
-
-        var systemPrompt = """
-            你是一个服务器选择分析器，只输出JSON格式的选择结果。
-
-            分析可用的MCP服务器，根据用户意图、服务器能力、健康度和匹配度选择最佳服务器。
-
-            OUTPUT REQUIREMENT: 返回且仅返回符合以下结构的JSON对象：
-            {
-              "chosen_server_id": "最佳服务器的ID字符串",
-              "ranking": [
-                {"server_id": "服务器ID", "score": 0.85, "reasons": ["匹配原因1", "匹配原因2"]},
-                {"server_id": "服务器ID", "score": 0.72, "reasons": ["匹配原因"]}
-              ],
-              "confidence": 0.9
-            }
-
-            绝对禁止：
-            - 任何解释性文字
-            - Markdown格式
-            - 代码块标记
-            - JSON之外的任何内容
-            """;
-
-        var userPrompt = $"""
-            用户问题：{userQuery}
-            检测到的意图：{JsonSerializer.Serialize(intent)}
-            可用 servers（JSON 数组）：{serversJson}
-            """;
+        var systemPrompt = McpPromptTemplateManager.GetServerSelectionPrompt();
+        var userPrompt = McpPromptTemplateManager.FormatServerSelectionUserPrompt(userQuery, servers, intent);
 
         return await CallAIWithJsonResponse<ServerSelectionResponse>(systemPrompt, userPrompt, "服务器选择");
     }
@@ -384,38 +329,8 @@ public class McpRoutingService
     /// </summary>
     private async Task<ToolSelectionResponse?> SelectToolAsync(string userQuery, McpServerInfo server, List<McpToolInfo> tools, IntentClassificationResponse intent)
     {
-        var toolsJson = JsonSerializer.Serialize(tools.Select(t => new
-        {
-            name = t.Name,
-            description = t.Description,
-            input_schema = t.InputSchema
-        }), new JsonSerializerOptions { WriteIndented = true });
-
-        var systemPrompt = """
-            你是一个工具选择器，专门从MCP服务器的工具列表中选择最合适的工具。
-
-            选择标准：参数简单、权限最小、成功率高、功能匹配度最佳。
-
-            必须输出且仅输出此JSON结构：
-            {
-              "chosen_tool_name": "选中的工具名称",
-              "alternatives": ["备选工具1", "备选工具2"],
-              "confidence": 0.95
-            }
-
-            严格要求：
-            - 只能输出有效JSON
-            - 不能有任何额外文本
-            - confidence必须是0到1之间的数字
-            - alternatives数组可以为空但必须存在
-            """;
-
-        var userPrompt = $"""
-            用户问题：{userQuery}
-            检测到的意图：{JsonSerializer.Serialize(intent)}
-            选定 server：{server.Id}
-            可用工具列表：{toolsJson}
-            """;
+        var systemPrompt = McpPromptTemplateManager.GetToolSelectionPrompt();
+        var userPrompt = McpPromptTemplateManager.FormatToolSelectionUserPrompt(userQuery, server.Id, tools, intent);
 
         return await CallAIWithJsonResponse<ToolSelectionResponse>(systemPrompt, userPrompt, "工具选择");
     }
@@ -425,40 +340,8 @@ public class McpRoutingService
     /// </summary>
     private async Task<ArgumentExtractionResponse?> ExtractArgumentsAsync(string userQuery, McpToolInfo tool, IntentClassificationResponse intent)
     {
-        var systemPrompt = """
-            你是参数提取器，从用户查询中提取工具调用所需的参数。
-
-            提取规则：
-            - 只提取能从用户输入中明确获得的参数
-            - 不要臆造或猜测未知值
-            - 如有必需参数缺失，在missing数组中列出并提供澄清问题
-            - 特殊情况：如果工具的InputSchema是{"type":"object","properties":"{}"}，表示该工具不需要任何参数，此时arguments应返回空对象{}，missing应为空数组[]
-            - missing数组中的参数名必须严格来自于InputSchema的properties中定义的参数名，不能添加Schema中不存在的参数
-
-            输出要求：必须且仅返回以下JSON结构：
-            {
-              "arguments": {
-                "参数名": "参数值",
-                "param2": 123
-              },
-              "missing": ["缺失的参数名1", "缺失的参数名2"],
-              "clarify_question": "请提供缺失的参数信息：...",
-              "confidence": 0.8
-            }
-
-            注意：
-            - arguments对象包含成功提取的参数
-            - missing数组为空表示无缺失参数，missing中的参数名必须存在于InputSchema的properties中
-            - clarify_question仅在missing非空时提供
-            - 禁止输出JSON之外的任何内容
-            """;
-
-        var userPrompt = $"""
-            用户问题：{userQuery}
-            检测到的意图：{JsonSerializer.Serialize(intent)}
-            工具：{tool.Name}
-            参数Schema：{JsonSerializer.Serialize(tool.InputSchema)}
-            """;
+        var systemPrompt = McpPromptTemplateManager.GetArgumentExtractionPrompt();
+        var userPrompt = McpPromptTemplateManager.FormatArgumentExtractionUserPrompt(userQuery, tool.Name, tool.InputSchema, intent);
 
         return await CallAIWithJsonResponse<ArgumentExtractionResponse>(systemPrompt, userPrompt, "参数提取");
     }
@@ -468,29 +351,8 @@ public class McpRoutingService
     /// </summary>
     private async Task<ToolInvocationPlanResponse?> CreateInvocationPlanAsync(string userQuery, McpServerInfo server, McpToolInfo tool, Dictionary<string, object> arguments)
     {
-        var systemPrompt = """
-            你是工具调用计划生成器，创建可执行的MCP工具调用配置。
-
-            必须生成且仅生成以下JSON结构：
-            {
-              "action": "call_tool",
-              "server_id": "服务器ID字符串",
-              "tool_name": "工具名称字符串", 
-              "arguments": {
-                "参数名": "参数值"
-              },
-              "timeout_ms": 120000,
-              "retries": 1
-            }
-
-            要求：
-            - action固定为"call_tool"
-            - server_id和tool_name使用提供的值
-            - arguments包含所有必需参数
-            - timeout_ms默认120000，retries默认1
-            - 只输出JSON，无其他内容
-            """;
-
+        var systemPrompt = McpPromptTemplateManager.GetInvocationPlanPrompt();
+        
         var userPrompt = $"""
             用户问题：{userQuery}
             已选 server/tool/args：
@@ -509,9 +371,12 @@ public class McpRoutingService
     {
         try
         {
+            // 合并全局系统提示和步骤特定提示
+            var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[当前步骤: {stepName}]\n{systemPrompt}";
+            
             var messages = new[]
             {
-                new ChatMessage(ChatRole.System, systemPrompt),
+                new ChatMessage(ChatRole.System, combinedSystemPrompt),
                 new ChatMessage(ChatRole.User, userPrompt)
             };
 

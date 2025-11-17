@@ -94,23 +94,23 @@ public class McpManager : IDisposable
                 return await HandleNoRouteFoundAsync(userQuery, chatClient, cancellationToken);
             }
 
-            // 检查是否需要用户澄清
-            if (routingDecision.RequiresClarification)
-            {
-                _logger?.LogInformation($"Routing requires clarification: {routingDecision.ClarificationQuestion}");
-                return new McpResponse
-                {
-                    Answer = $"💬 需要更多信息：{routingDecision.ClarificationQuestion}",
-                    Source = "AI路由系统",
-                    RawResult = new McpInvocationResult
-                    {
-                        IsSuccess = false,
-                        Data = "需要用户澄清",
-                        RoutingInfo = routingDecision,
-                        ExecutionTime = TimeSpan.Zero
-                    }
-                };
-            }
+            // // 检查是否需要用户澄清
+            // if (routingDecision.RequiresClarification)
+            // {
+            //     _logger?.LogInformation($"Routing requires clarification: {routingDecision.ClarificationQuestion}");
+            //     return new McpResponse
+            //     {
+            //         Answer = $"💬 需要更多信息：{routingDecision.ClarificationQuestion}",
+            //         Source = "AI路由系统",
+            //         RawResult = new McpInvocationResult
+            //         {
+            //             IsSuccess = false,
+            //             Data = "需要用户澄清",
+            //             RoutingInfo = routingDecision,
+            //             ExecutionTime = TimeSpan.Zero
+            //         }
+            //     };
+            // }
 
             _logger?.LogInformation($"🎯 Multi-step AI routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
             
@@ -125,18 +125,18 @@ public class McpManager : IDisposable
                 }
             }
 
-            // 2. 权限检查和用户确认
-            var needsConfirmation = RequiresUserConfirmation(routingDecision);
-            if (needsConfirmation)
-            {
-                return new McpResponse
-                {
-                    Answer = $"我需要调用 {routingDecision.SelectedServer.Name} 的 {routingDecision.SelectedTool.Name} 工具来获取信息。这个操作是安全的，是否继续？",
-                    Source = $"{routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}",
-                    RequiresConfirmation = true,
-                    RawResult = new McpInvocationResult { RoutingInfo = routingDecision }
-                };
-            }
+            // // 2. 权限检查和用户确认
+            // var needsConfirmation = RequiresUserConfirmation(routingDecision);
+            // if (needsConfirmation)
+            // {
+            //     return new McpResponse
+            //     {
+            //         Answer = $"我需要调用 {routingDecision.SelectedServer.Name} 的 {routingDecision.SelectedTool.Name} 工具来获取信息。这个操作是安全的，是否继续？",
+            //         Source = $"{routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}",
+            //         RequiresConfirmation = true,
+            //         RawResult = new McpInvocationResult { RoutingInfo = routingDecision }
+            //     };
+            // }
 
             // 3. 执行工具调用
             var invocationResult = await _invocationService.InvokeToolAsync(routingDecision, cancellationToken);
@@ -188,9 +188,12 @@ public class McpManager : IDisposable
             var systemPrompt = CreateExtractionSystemPrompt(result);
             var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
 
+            // 合并全局系统提示和结果提取提示
+            var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[结果提取]\n{systemPrompt}";
+            
             var messages = new List<ChatMessage>
             {
-                new(ChatRole.System, systemPrompt),
+                new(ChatRole.System, combinedSystemPrompt),
                 new(ChatRole.User, userPrompt)
             };
 
@@ -228,23 +231,7 @@ public class McpManager : IDisposable
     /// </summary>
     private string CreateExtractionSystemPrompt(McpInvocationResult result)
     {
-        return @"你是一个 MCP-aware 助手，专门负责从 MCP 工具调用的结果中提取关键信息并生成用户友好的回答。
-
-核心规则：
-1. **严格基于MCP数据**: 你必须且只能基于 MCP 工具返回的实际数据回答，绝不允许编造、推测或添加任何数据中不存在的信息
-2. **避免自由回答**: 不允许绕过 MCP 执行命令或提供未经工具验证的信息
-3. **明确空值处理**: 如果数据不完整、缺失或为空，必须明确说明'数据不可用'或'工具未返回此信息'
-4. **结构化响应**: 用自然、简洁的语言表达技术信息，但保持事实准确性
-5. **错误透明**: 如果返回的是错误或空数据，诚实告知用户并提供可操作建议
-6. **信息层次**: 突出最重要的信息，将技术细节转换为用户友好的表述
-7. **简洁完整**: 保持回答简洁但包含所有相关信息
-
-禁止行为：
-- 不得补充MCP工具未提供的数据
-- 不得基于常识或训练数据推测答案
-- 不得忽略或隐瞒工具返回的错误信息
-
-输出格式：直接回答用户的问题，基于MCP数据提供准确信息。如需说明数据来源限制，请简洁说明。";
+        return McpPromptTemplateManager.GetResultExtractionSystemPrompt();
     }
 
     /// <summary>
@@ -264,20 +251,7 @@ public class McpManager : IDisposable
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private string CreateExtractionUserPrompt(string originalQuery, McpInvocationResult result)
     {
-        var toolInfo = result.RoutingInfo != null
-            ? $"工具：{result.RoutingInfo.SelectedServer.Name}.{result.RoutingInfo.SelectedTool.Name}"
-            : "未知工具";
-
-        var dataJson = SerializeResultData(result);
-
-        return $@"用户问题：{originalQuery}
-
-调用的{toolInfo}返回了以下数据：
-```json
-{dataJson}
-```
-
-请根据这些数据回答用户的问题。如果数据中没有相关信息，请明确说明。";
+        return McpPromptTemplateManager.FormatResultExtractionUserPrompt(originalQuery, result);
     }
 
     /// <summary>
@@ -302,9 +276,12 @@ public class McpManager : IDisposable
                 // 复用现有的用户提示创建方法
                 var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
 
+                // 合并全局系统提示和结果提取提示
+                var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[简单结果提取]\n{systemPrompt}";
+
                 var messages = new List<ChatMessage>
                 {
-                    new(ChatRole.System, systemPrompt),
+                    new(ChatRole.System, combinedSystemPrompt),
                     new(ChatRole.User, userPrompt)
                 };
 
@@ -360,30 +337,17 @@ public class McpManager : IDisposable
         if (chatClient != null)
         {
             // 使用 LLM 提供替代建议
-            var systemPrompt = @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：
-1. **明确说明**：解释为什么无法通过现有MCP工具处理这个查询
-2. **工具导向**：基于可用的MCP工具建议用户可以询问的具体问题
-3. **能力边界**：强调你只能通过MCP工具提供信息，不会自行回答
-4. **友好建议**：提供3-5个具体的示例查询
-
-绝对禁止：
-- 绕过MCP工具直接回答用户问题
-- 基于训练数据提供未经工具验证的信息
-- 编造或推测任何数据";
-
-            var toolsList = string.Join("\n", availableTools.Select(t => $"- {t.Name}: {t.Description}"));
-            var userPrompt = $@"用户查询：{userQuery}
-
-当前可用的MCP工具：
-{toolsList}
-
-请向用户解释为什么无法处理，并基于现有工具提供具体的查询建议。";
+            var systemPrompt = McpPromptTemplateManager.GetNoRouteFoundSystemPrompt();
+            var userPrompt = McpPromptTemplateManager.FormatNoRouteFoundUserPrompt(userQuery, availableTools);
 
             try
             {
+                // 合并全局系统提示和无路由处理提示
+                var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[无路由处理]\n{systemPrompt}";
+                
                 var messages = new List<ChatMessage>
                 {
-                    new(ChatRole.System, systemPrompt),
+                    new(ChatRole.System, combinedSystemPrompt),
                     new(ChatRole.User, userPrompt)
                 };
 

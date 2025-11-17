@@ -29,7 +29,8 @@ namespace AIDevGallery.Samples.MCP;
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
         "CommunityToolkit.WinUI.Converters",
-        "Microsoft.Extensions.AI"
+        "Microsoft.Extensions.AI",
+        "ModelContextProtocol"
     ],
     SharedCode = [
         SharedCodeEnum.Message,
