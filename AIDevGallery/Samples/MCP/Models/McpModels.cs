@@ -22,6 +22,8 @@ public class McpServerInfo
     public DateTime LastUsed { get; set; }
     public TimeSpan? ResponseTime { get; set; }
     public double SuccessRate { get; set; } = 1.0;
+    public double HealthScore { get; set; } = 1.0;
+    public TimeSpan AverageResponseTime { get; set; } = TimeSpan.FromMilliseconds(100);
 }
 
 /// <summary>

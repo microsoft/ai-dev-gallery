@@ -102,18 +102,7 @@ public class McpRoutingService
         public int Retries { get; set; } = 1;
     }
 
-    /// <summary>
-    /// 服务器工具选项
-    /// </summary>
-    private class ServerToolOption
-    {
-        public string ServerId { get; set; } = string.Empty;
-        public string ServerName { get; set; } = string.Empty;
-        public string ServerDescription { get; set; } = string.Empty;
-        public string ToolName { get; set; } = string.Empty;
-        public string ToolDescription { get; set; } = string.Empty;
-        public object? InputSchema { get; set; }
-    }
+
 
     public McpRoutingService(McpDiscoveryService discoveryService, ILogger<McpRoutingService>? logger = null, IChatClient? chatClient = null)
     {
@@ -438,7 +427,7 @@ public class McpRoutingService
                 new ChatMessage(ChatRole.User, userPrompt)
             };
 
-            var response = await _chatClient!.CompleteAsync(messages);
+            var response = await _chatClient!.GetResponseAsync(messages);
             var aiResponse = response.Message.Text;
 
             _logger?.LogDebug($"🤖 {stepName} AI Response: {aiResponse}");
@@ -472,172 +461,7 @@ public class McpRoutingService
         }
     }
 
-    /// <summary>
-    /// 使用AI模型进行智能路由 (旧版本，保留作为备用)
-    /// </summary>
-    private async Task<RoutingDecision?> RouteWithAIAsync(string userQuery, List<McpServerInfo> servers)
-    {
-        try
-        {
-            // 构建所有可用的服务器和工具信息
-            var availableOptions = new List<ServerToolOption>();
-            
-            foreach (var server in servers)
-            {
-                var serverTools = _discoveryService.GetServerTools(server.Id);
-                foreach (var tool in serverTools)
-                {
-                    availableOptions.Add(new ServerToolOption
-                    {
-                        ServerId = server.Id,
-                        ServerName = server.Name,
-                        ServerDescription = server.Description,
-                        ToolName = tool.Name,
-                        ToolDescription = tool.Description,
-                        InputSchema = tool.InputSchema
-                    });
-                }
-            }
 
-            if (!availableOptions.Any())
-            {
-                _logger?.LogWarning("❌ No tools available for AI routing");
-                return null;
-            }
-
-            _logger?.LogInformation($"🤖 Asking AI to choose from {availableOptions.Count} available server-tool combinations");
-
-            // 构建AI提示
-            var systemPrompt = BuildSystemPrompt(availableOptions);
-            var userPrompt = $"User query: \"{userQuery}\"\n\nPlease analyze this query and select the most appropriate server-tool combination. Return your response as a JSON object.";
-
-            var messages = new[]
-            {
-                new ChatMessage(ChatRole.System, systemPrompt),
-                new ChatMessage(ChatRole.User, userPrompt)
-            };
-
-            // 调用AI模型
-            var response = await _chatClient!.CompleteAsync(messages);
-            var aiResponse = response.Message.Text;
-
-            _logger?.LogInformation($"🤖 AI Response: {aiResponse}");
-
-            // 解析AI响应
-            var decision = ParseAIResponse(aiResponse, servers);
-            return decision;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "❌ Error during AI routing, falling back to keyword matching");
-            return await RouteWithKeywordsAsync(userQuery, servers);
-        }
-    }
-
-    /// <summary>
-    /// 构建AI模型的系统提示
-    /// </summary>
-    private string BuildSystemPrompt(List<ServerToolOption> availableOptions)
-    {
-        var prompt = """
-            You are an intelligent MCP (Model Context Protocol) router. Your task is to analyze user queries and select the most appropriate Windows MCP server and tool combination.
-
-            Available MCP servers and tools:
-            
-            """;
-
-        foreach (var option in availableOptions)
-        {
-            prompt += $"""
-                Server: {option.ServerName}
-                Description: {option.ServerDescription}
-                Tool: {option.ToolName}
-                Tool Description: {option.ToolDescription}
-                ---
-                
-                """;
-        }
-
-        prompt += """
-            
-            Instructions:
-            1. Analyze the user's query to understand their intent
-            2. Match the intent with the most appropriate server and tool
-            3. Consider the tool descriptions carefully - choose tools that can actually fulfill the user's request
-            4. Return your response as a JSON object with this exact structure:
-            {
-              "selectedServer": "server_name",
-              "selectedTool": "tool_name", 
-              "confidence": 0.95,
-              "reasoning": "Explanation of why this combination was chosen"
-            }
-
-            Guidelines:
-            - system-info server: Use for system information, hardware details, memory, CPU, storage queries
-            - file-system server: Use for file operations, directory listings, file management
-            - settings server: Use for Windows settings, configuration changes
-            - Always provide a confidence score between 0.0 and 1.0
-            - Be specific in your reasoning
-            """;
-
-        return prompt;
-    }
-
-    /// <summary>
-    /// 解析AI模型的响应
-    /// </summary>
-    private RoutingDecision? ParseAIResponse(string aiResponse, List<McpServerInfo> servers)
-    {
-        try
-        {
-            // 尝试提取JSON部分
-            var jsonStart = aiResponse.IndexOf('{');
-            var jsonEnd = aiResponse.LastIndexOf('}');
-            
-            if (jsonStart >= 0 && jsonEnd >= jsonStart)
-            {
-                var jsonPart = aiResponse.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                var decision = JsonSerializer.Deserialize<AIRoutingResponse>(jsonPart, new JsonSerializerOptions 
-                { 
-                    PropertyNameCaseInsensitive = true 
-                });
-
-                if (decision?.SelectedServer != null && decision.SelectedTool != null)
-                {
-                    // 查找对应的服务器和工具
-                    var server = servers.FirstOrDefault(s => s.Name.Equals(decision.SelectedServer, StringComparison.OrdinalIgnoreCase));
-                    if (server != null)
-                    {
-                        var tools = _discoveryService.GetServerTools(server.Id);
-                        var tool = tools.FirstOrDefault(t => t.Name.Equals(decision.SelectedTool, StringComparison.OrdinalIgnoreCase));
-                        
-                        if (tool != null)
-                        {
-                            _logger?.LogInformation($"✅ AI selected: {server.Name}.{tool.Name} (confidence: {decision.Confidence:F2})");
-                            _logger?.LogInformation($"💭 AI reasoning: {decision.Reasoning}");
-
-                            return new RoutingDecision
-                            {
-                                SelectedServer = server,
-                                SelectedTool = tool,
-                                Parameters = new Dictionary<string, object>(), // 可以后续扩展参数提取
-                                Confidence = decision.Confidence,
-                                Reasoning = decision.Reasoning ?? "AI-based selection"
-                            };
-                        }
-                    }
-                }
-            }
-
-            _logger?.LogWarning($"⚠️ Could not parse AI response: {aiResponse}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, $"❌ Error parsing AI response: {aiResponse}");
-            return null;
-        }
-    }
 
     /// <summary>
     /// 降级方案：使用关键词匹配进行路由
