@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.ForegroundExtractor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid ColumnSpacing="12" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <RelativePanel Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Image x:Name="InputImage" 
+               Stretch="Uniform"
+               MaxHeight="400" 
+               HorizontalAlignment="Left" 
+               VerticalAlignment="Top"/>
+            <StackPanel Grid.Column="0" Margin="8" HorizontalAlignment="Right"
+                    VerticalAlignment="Top" 
+                    RelativePanel.AlignTopWith="InputImage" RelativePanel.AlignRightWith="InputImage"
+                    Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" 
+                    CornerRadius="{StaticResource ControlCornerRadius}">
+                <DropDownButton Padding="8" 
+                            HorizontalAlignment="Right" 
+                            VerticalAlignment="Top" 
+                            AutomationProperties.Name="Select image" 
+                            ToolTipService.ToolTip="Select image">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="LoadImage_Click" Text="From file" />
+                            <MenuFlyoutItem Click="PasteImage_Click" Text="From clipboard" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                </DropDownButton>
+            </StackPanel>
+        </RelativePanel>
+        <RelativePanel Grid.Column="1">
+            <Image x:Name="GeneratedImage" 
+               AutomationProperties.LiveSetting="Assertive"
+               AutomationProperties.Name="Output"
+               HorizontalAlignment="Left" 
+               VerticalAlignment="Top" 
+               Stretch="Uniform"
+               MaxHeight="400"/>
+            <StackPanel
+                Margin="12"
+                Padding="8"
+                RelativePanel.AlignBottomWith="GeneratedImage" RelativePanel.AlignRightWith="GeneratedImage"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button x:Name="CopyButton"
+                    AutomationProperties.Name="Copy Image to the Clipboard"
+                    Click="Copy_Click"
+                    ToolTipService.ToolTip="Copy Image to the Clipboard"
+                    Visibility="Visible">
+                    <FontIcon FontSize="16" Glyph="&#xE8C8;" />
+                </Button>
+                <Button
+                    x:Name="SaveButton"
+                    Click="Save_Click"
+                    ToolTipService.ToolTip="Save Image"
+                    Visibility="Visible">
+                    <FontIcon FontSize="16" Glyph="&#xEE71;" />
+                </Button>
+            </StackPanel>
+        </RelativePanel>
+    </Grid>
+</samples:BaseSamplePage>

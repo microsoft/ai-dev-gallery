@@ -218,6 +218,28 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.ForegroundExtractor, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.Imaging;
+            using Windows.Graphics;
+            using Windows.Graphics.Imaging;
+
+            var readyState = ImageForegroundExtractor.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await ImageForegroundExtractor.EnsureReadyAsync();
+                }
+
+                ImageForegroundExtractor imageForegroundExtractor = await ImageForegroundExtractor.CreateAsync();
+
+                SoftwareBitmap mask = imageForegroundExtractor.GetMaskFromSoftwareBitmap(inputBitmap);
+                SoftwareBitmap finalBitmap = ApplyMask(inputBitmap, mask);
+            }
+            """"
+        },
+        {
             ModelType.ObjectRemover, """"
             using Microsoft.Windows.AI.Imaging;
             using Microsoft.Windows.AI;
