@@ -37,7 +37,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 初始化 MCP 管理器
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<bool> InitializeAsync(CancellationToken cancellationToken = default)
     {
         if (_initialized)
@@ -65,7 +65,8 @@ public class McpManager : IDisposable
     /// <summary>
     /// 处理用户查询的主要方法
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [RequiresDynamicCode()]
     public async Task<McpResponse> ProcessQueryAsync(string userQuery, IChatClient? chatClient, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
@@ -111,9 +112,8 @@ public class McpManager : IDisposable
             //         }
             //     };
             // }
-
             _logger?.LogInformation($"🎯 Multi-step AI routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
-            
+
             // 添加可用候选的调试信息
             var candidates = await _routingService.GetRoutingCandidatesAsync(userQuery);
             if (candidates.Count > 1)
@@ -190,7 +190,7 @@ public class McpManager : IDisposable
 
             // 合并全局系统提示和结果提取提示
             var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[结果提取]\n{systemPrompt}";
-            
+
             var messages = new List<ChatMessage>
             {
                 new(ChatRole.System, combinedSystemPrompt),
@@ -272,7 +272,7 @@ public class McpManager : IDisposable
             {
                 // 复用现有的系统提示创建方法
                 var systemPrompt = CreateExtractionSystemPrompt(result);
-                
+
                 // 复用现有的用户提示创建方法
                 var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
 
@@ -291,10 +291,10 @@ public class McpManager : IDisposable
                 if (!string.IsNullOrEmpty(aiAnswer))
                 {
                     _logger?.LogDebug("Successfully extracted answer using AI analysis");
-                    
+
                     // 获取原始 JSON 数据
                     var rawJson = SerializeResultData(result);
-                    
+
                     // 组合 AI 回答和原始数据
                     return $"{aiAnswer}\n\n--- API ---\n{rawJson}";
                 }
@@ -344,7 +344,7 @@ public class McpManager : IDisposable
             {
                 // 合并全局系统提示和无路由处理提示
                 var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[无路由处理]\n{systemPrompt}";
-                
+
                 var messages = new List<ChatMessage>
                 {
                     new(ChatRole.System, combinedSystemPrompt),
@@ -410,7 +410,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 获取系统状态
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<Dictionary<string, object>> GetSystemStatusAsync(CancellationToken cancellationToken = default)
     {
         var status = new Dictionary<string, object>

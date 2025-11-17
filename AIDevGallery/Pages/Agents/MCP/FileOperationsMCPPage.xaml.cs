@@ -7,6 +7,7 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -439,6 +440,7 @@ internal sealed partial class FileOperationsMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; serialization uses cached options and known types.
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)

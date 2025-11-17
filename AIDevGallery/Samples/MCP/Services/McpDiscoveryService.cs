@@ -32,7 +32,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 初始化并发现所有可用的 MCP servers
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<McpServerInfo>> DiscoverServersAsync(CancellationToken cancellationToken = default)
     {
         var servers = new List<McpServerInfo>();
@@ -120,7 +120,7 @@ public class McpDiscoveryService : IDisposable
             if (toolsResponse != null)
             {
                 _logger?.LogDebug($"Server {serverId} returned {toolsResponse.Count} tools");
-                
+
                 foreach (var tool in toolsResponse)
                 {
                     var toolInfo = new McpToolInfo
@@ -133,7 +133,7 @@ public class McpDiscoveryService : IDisposable
                         Priority = CalculateToolPriority(tool, serverId)
                     };
                     tools.Add(toolInfo);
-                    
+
                     _logger?.LogDebug($"  Tool: {toolInfo.Name} - {toolInfo.Description} (Priority: {toolInfo.Priority})");
                 }
             }
@@ -193,11 +193,11 @@ public class McpDiscoveryService : IDisposable
         if (!string.IsNullOrEmpty(tool.Description))
         {
             var description = tool.Description.ToLower();
-            
+
             // 基于服务器类型定义更具体的关键词
             var serverSpecificKeywords = GetServerSpecificKeywords(serverId);
             keywords.AddRange(serverSpecificKeywords.Where(k => description.Contains(k)));
-            
+
             // 通用关键词
             var commonKeywords = new[] { "get", "set", "list", "info", "status", "read", "write", "create", "delete", "update" };
             keywords.AddRange(commonKeywords.Where(k => description.Contains(k)));
@@ -247,13 +247,13 @@ public class McpDiscoveryService : IDisposable
         if (!string.IsNullOrEmpty(tool.Name))
         {
             var name = tool.Name.ToLower();
-            
+
             // 基础功能优先级
             if (name.Contains("get") || name.Contains("info") || name.Contains("list"))
             {
                 priority += 15; // 只读操作优先级高
             }
-            
+
             if (name.Contains("set") || name.Contains("update") || name.Contains("create"))
             {
                 priority += 5; // 写操作优先级低
@@ -264,21 +264,39 @@ public class McpDiscoveryService : IDisposable
             {
                 case "system-info":
                     if (name.Contains("memory") || name.Contains("cpu") || name.Contains("disk"))
+                    {
                         priority += 20;
+                    }
+
                     if (name.Contains("system") || name.Contains("hardware"))
+                    {
                         priority += 15;
+                    }
+
                     break;
                 case "file-system":
                     if (name.Contains("file") || name.Contains("directory") || name.Contains("path"))
+                    {
                         priority += 20;
+                    }
+
                     if (name.Contains("read") || name.Contains("list"))
+                    {
                         priority += 10;
+                    }
+
                     break;
                 case "settings":
                     if (name.Contains("setting") || name.Contains("config"))
+                    {
                         priority += 20;
+                    }
+
                     if (name.Contains("get") || name.Contains("read"))
+                    {
                         priority += 10;
+                    }
+
                     break;
             }
         }

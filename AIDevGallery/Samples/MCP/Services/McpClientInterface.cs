@@ -68,7 +68,7 @@ public static class McpClientFactory
     /// <summary>
     /// 创建系统信息 MCP 客户端
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateSystemInfoClientAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -102,7 +102,7 @@ public static class McpClientFactory
     /// <summary>
     /// 创建文件操作 MCP 客户端
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateFileOperationsClientAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -136,7 +136,7 @@ public static class McpClientFactory
     /// <summary>
     /// 创建设置 MCP 客户端
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateSettingsClientAsync(CancellationToken cancellationToken = default)
     {
         try

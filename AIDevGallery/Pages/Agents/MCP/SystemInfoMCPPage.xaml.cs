@@ -7,6 +7,7 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -163,6 +164,7 @@ internal sealed partial class SystemInfoMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; JSON pretty-print acceptable for trimming/AOT scenario.
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button)

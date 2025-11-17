@@ -226,14 +226,14 @@ internal sealed partial class MCPClient : BaseSamplePage
                 // <exclude>
                 swEnd.Stop();
                 var debugInfo = $"MCP processing completed in {swEnd.Elapsed.TotalSeconds:0.00}s\nSource: {mcpResponse.Source}";
-                
+
                 // 添加路由决策详细信息
                 if (mcpResponse.RawResult?.RoutingInfo != null)
                 {
                     var routing = mcpResponse.RawResult.RoutingInfo;
                     debugInfo += $"\nRouting Decision:\n  Server: {routing.SelectedServer.Name}\n  Tool: {routing.SelectedTool.Name}\n  Confidence: {routing.Confidence:F2}\n  Reasoning: {routing.Reasoning}";
                 }
-                
+
                 ShowDebugInfo(debugInfo);
 
                 // </exclude>

@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.MCP.Models;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 
@@ -39,6 +39,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤1：意图识别提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetIntentClassificationPrompt()
     {
         return """
@@ -53,7 +54,7 @@ public static class McpPromptTemplateManager
             }
             
             分析规则：
-            - need_tool: 判断用户query是否需要MCP工具调用来完成任务
+            - need_tool: 判断分析用户问题是否需要MCP工具來幫助完成
             - topic: 根据用户意图选择最匹配的主题类别
             - keywords: 提取关键词用于后续工具匹配
             - confidence: 分析结果的置信度(0.0-1.0)
@@ -63,6 +64,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤2：服务器选择提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetServerSelectionPrompt()
     {
         return """
@@ -89,6 +91,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤3：工具选择提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetToolSelectionPrompt()
     {
         return """
@@ -111,6 +114,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤4：参数提取提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetArgumentExtractionPrompt()
     {
         return """
@@ -136,6 +140,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤5：预调用安全检查提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetSafetyCheckPrompt()
     {
         return """
@@ -160,6 +165,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤6：工具调用计划提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetInvocationPlanPrompt()
     {
         return """
@@ -186,6 +192,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤7：结果归一化提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetResultNormalizationPrompt()
     {
         return """
@@ -210,6 +217,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤8：错误诊断提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetErrorDiagnosisPrompt()
     {
         return """
@@ -234,6 +242,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤9：最终答复生成提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetFinalAnswerPrompt()
     {
         return """
@@ -258,6 +267,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 步骤10：后续建议提示模板
     /// </summary>
+    /// <returns></returns>
     public static string GetFollowUpSuggestionPrompt()
     {
         return """
@@ -280,6 +290,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 结果提取专用系统提示
     /// </summary>
+    /// <returns></returns>
     public static string GetResultExtractionSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手，专门负责从 MCP 工具调用的结果中提取关键信息并生成用户友好的回答。
@@ -305,6 +316,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// 无路由建议系统提示
     /// </summary>
+    /// <returns></returns>
     public static string GetNoRouteFoundSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：
@@ -338,9 +350,11 @@ public static class McpPromptTemplateManager
     /// <param name="availableServers">可用服务器列表</param>
     /// <param name="intent">意图分析结果</param>
     /// <returns>格式化的用户提示</returns>
+    [RequiresDynamicCode()]
     public static string FormatServerSelectionUserPrompt(string userQuery, List<McpServerInfo> availableServers, object intent)
     {
-        var serversJson = JsonSerializer.Serialize(availableServers.Select(s => new 
+        var serversJson = JsonSerializer.Serialize(
+            availableServers.Select(s => new
         {
             id = s.Id,
             name = s.Name,
@@ -371,7 +385,8 @@ public static class McpPromptTemplateManager
     /// <returns>格式化的用户提示</returns>
     public static string FormatToolSelectionUserPrompt(string userQuery, string serverId, List<McpToolInfo> availableTools, object intent)
     {
-        var toolsJson = JsonSerializer.Serialize(availableTools.Select(t => new 
+        var toolsJson = JsonSerializer.Serialize(
+            availableTools.Select(t => new
         {
             name = t.Name,
             description = t.Description,

@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.MCP.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -45,13 +45,13 @@ public class McpRoutingService
     {
         [JsonPropertyName("need_tool")]
         public bool NeedTool { get; set; }
-        
+
         [JsonPropertyName("topic")]
         public string Topic { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("keywords")]
         public string[] Keywords { get; set; } = [];
-        
+
         [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
@@ -63,10 +63,10 @@ public class McpRoutingService
     {
         [JsonPropertyName("chosen_server_id")]
         public string ChosenServerId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("ranking")]
         public ServerRanking[] Ranking { get; set; } = [];
-        
+
         [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
@@ -78,10 +78,10 @@ public class McpRoutingService
     {
         [JsonPropertyName("server_id")]
         public string ServerId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("score")]
         public double Score { get; set; }
-        
+
         [JsonPropertyName("reasons")]
         public string[] Reasons { get; set; } = [];
     }
@@ -93,10 +93,10 @@ public class McpRoutingService
     {
         [JsonPropertyName("chosen_tool_name")]
         public string ChosenToolName { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("alternatives")]
         public string[] Alternatives { get; set; } = [];
-        
+
         [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
@@ -108,13 +108,13 @@ public class McpRoutingService
     {
         [JsonPropertyName("arguments")]
         public Dictionary<string, object> Arguments { get; set; } = new();
-        
+
         [JsonPropertyName("missing")]
         public string[] Missing { get; set; } = [];
-        
+
         [JsonPropertyName("clarify_question")]
         public string ClarifyQuestion { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
@@ -126,24 +126,22 @@ public class McpRoutingService
     {
         [JsonPropertyName("action")]
         public string Action { get; set; } = "call_tool";
-        
+
         [JsonPropertyName("server_id")]
         public string ServerId { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("tool_name")]
         public string ToolName { get; set; } = string.Empty;
-        
+
         [JsonPropertyName("arguments")]
         public Dictionary<string, object> Arguments { get; set; } = new();
-        
+
         [JsonPropertyName("timeout_ms")]
         public int TimeoutMs { get; set; } = 120000;
-        
+
         [JsonPropertyName("retries")]
         public int Retries { get; set; } = 1;
     }
-
-
 
     public McpRoutingService(McpDiscoveryService discoveryService, ILogger<McpRoutingService>? logger = null, IChatClient? chatClient = null)
     {
@@ -155,7 +153,7 @@ public class McpRoutingService
     /// <summary>
     /// 使用多步骤AI决策流程根据用户查询找到最佳的 server 和 tool
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<RoutingDecision?> RouteQueryAsync(string userQuery)
     {
         if (string.IsNullOrWhiteSpace(userQuery))
@@ -167,7 +165,7 @@ public class McpRoutingService
 
         // 获取所有可用的 servers
         var servers = _discoveryService.GetConnectedServers();
-        
+
         if (!servers.Any())
         {
             _logger?.LogWarning("❌ No servers available for routing");
@@ -349,10 +347,11 @@ public class McpRoutingService
     /// <summary>
     /// 步骤5: 使用AI生成工具调用计划
     /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async Task<ToolInvocationPlanResponse?> CreateInvocationPlanAsync(string userQuery, McpServerInfo server, McpToolInfo tool, Dictionary<string, object> arguments)
     {
         var systemPrompt = McpPromptTemplateManager.GetInvocationPlanPrompt();
-        
+
         var userPrompt = $"""
             用户问题：{userQuery}
             已选 server/tool/args：
@@ -367,13 +366,15 @@ public class McpRoutingService
     /// <summary>
     /// 通用AI调用方法，使用结构化输出获取JSON响应
     /// </summary>
-    private async Task<T?> CallAIWithJsonResponse<T>(string systemPrompt, string userPrompt, string stepName) where T : class
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
+    private async Task<T?> CallAIWithJsonResponse<T>(string systemPrompt, string userPrompt, string stepName)
+        where T : class
     {
         try
         {
             // 合并全局系统提示和步骤特定提示
             var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[当前步骤: {stepName}]\n{systemPrompt}";
-            
+
             var messages = new[]
             {
                 new ChatMessage(ChatRole.System, combinedSystemPrompt),
@@ -381,15 +382,15 @@ public class McpRoutingService
             };
 
             // 方法1: 使用 Microsoft.Extensions.AI 的结构化输出 (推荐)
-            try 
+            try
             {
                 var structuredResponse = await _chatClient!.GetResponseAsync<T>(
-                    messages, 
+                    messages,
                     options: new ChatOptions
                     {
                         ResponseFormat = ChatResponseFormat.ForJsonSchema<T>()
                     });
-                
+
                 if (structuredResponse != null && structuredResponse.TryGetResult(out T? result) && result != null)
                 {
                     _logger?.LogDebug($"✅ {stepName} structured output parsed successfully");
@@ -399,7 +400,7 @@ public class McpRoutingService
             catch (Exception structuredEx)
             {
                 _logger?.LogWarning(structuredEx, $"⚠️ Structured output failed for {stepName}, falling back to text parsing");
-                
+
                 // 方法2: 降级到增强的文本解析 (更严格的约束)
                 var chatOptions = new ChatOptions
                 {
@@ -416,8 +417,8 @@ public class McpRoutingService
                 var cleanedJson = CleanJsonResponse(aiResponse);
                 if (!string.IsNullOrEmpty(cleanedJson))
                 {
-                    var result = JsonSerializer.Deserialize<T>(cleanedJson, new JsonSerializerOptions 
-                    { 
+                    var result = JsonSerializer.Deserialize<T>(cleanedJson, new JsonSerializerOptions
+                    {
                         PropertyNameCaseInsensitive = true,
                         AllowTrailingCommas = true,
                         ReadCommentHandling = JsonCommentHandling.Skip
@@ -447,11 +448,13 @@ public class McpRoutingService
     private string CleanJsonResponse(string response)
     {
         if (string.IsNullOrWhiteSpace(response))
+        {
             return string.Empty;
+        }
 
         // 移除常见的非JSON前缀和后缀
         var cleaned = response.Trim();
-        
+
         // 移除markdown代码块标记
         if (cleaned.StartsWith("```json"))
         {
@@ -461,7 +464,7 @@ public class McpRoutingService
         {
             cleaned = cleaned.Substring(3);
         }
-        
+
         if (cleaned.EndsWith("```"))
         {
             cleaned = cleaned.Substring(0, cleaned.Length - 3);
@@ -472,11 +475,11 @@ public class McpRoutingService
         // 找到第一个 { 和最后一个 }
         var jsonStart = cleaned.IndexOf('{');
         var jsonEnd = cleaned.LastIndexOf('}');
-        
+
         if (jsonStart >= 0 && jsonEnd >= jsonStart)
         {
             var jsonPart = cleaned.Substring(jsonStart, jsonEnd - jsonStart + 1);
-            
+
             // 验证JSON格式
             try
             {
@@ -493,18 +496,16 @@ public class McpRoutingService
         return string.Empty;
     }
 
-
-
     /// <summary>
     /// 降级方案：使用关键词匹配进行路由
     /// </summary>
-    private async Task<RoutingDecision?> RouteWithKeywordsAsync(string userQuery, List<McpServerInfo> servers)
+    private Task<RoutingDecision?> RouteWithKeywordsAsync(string userQuery, List<McpServerInfo> servers)
     {
         var query = userQuery.ToLowerInvariant();
-        
+
         // 简单的关键词匹配逻辑
         var candidates = new List<(McpServerInfo server, McpToolInfo tool, double score)>();
-        
+
         foreach (var server in servers)
         {
             var tools = _discoveryService.GetServerTools(server.Id);
@@ -520,21 +521,21 @@ public class McpRoutingService
 
         if (!candidates.Any())
         {
-            return null;
+            return Task.FromResult<RoutingDecision?>(null);
         }
 
         var best = candidates.OrderByDescending(c => c.score).First();
-        
+
         _logger?.LogInformation($"✅ Keyword matching selected: {best.server.Name}.{best.tool.Name}");
 
-        return new RoutingDecision
+        return Task.FromResult<RoutingDecision?>(new RoutingDecision
         {
             SelectedServer = best.server,
             SelectedTool = best.tool,
             Parameters = new Dictionary<string, object>(),
             Confidence = best.score,
             Reasoning = "Keyword-based fallback selection"
-        };
+        });
     }
 
     /// <summary>
@@ -543,19 +544,30 @@ public class McpRoutingService
     private double CalculateSimpleMatchScore(string query, McpServerInfo server, McpToolInfo tool)
     {
         var score = 0.0;
-        
+
         // 服务器名称匹配
         if (query.Contains("system") || query.Contains("系统") || query.Contains("电脑"))
         {
-            if (server.Name.Contains("system-info")) score += 10;
+            if (server.Name.Contains("system-info"))
+            {
+                score += 10;
+            }
         }
+
         if (query.Contains("file") || query.Contains("文件") || query.Contains("folder"))
         {
-            if (server.Name.Contains("file-system")) score += 10;
+            if (server.Name.Contains("file-system"))
+            {
+                score += 10;
+            }
         }
+
         if (query.Contains("setting") || query.Contains("设置") || query.Contains("配置"))
         {
-            if (server.Name.Contains("settings")) score += 10;
+            if (server.Name.Contains("settings"))
+            {
+                score += 10;
+            }
         }
 
         // 工具名称匹配
@@ -578,11 +590,11 @@ public class McpRoutingService
         foreach (var (intent, keywords) in _intentKeywords)
         {
             double score = 0;
-            
+
             foreach (var keyword in keywords)
             {
                 var keywordLower = keyword.ToLower();
-                
+
                 // 完全匹配得分最高
                 if (queryLower.Contains(keywordLower))
                 {
@@ -599,14 +611,14 @@ public class McpRoutingService
                         score += 5; // 部分匹配
                     }
                 }
-                
+
                 // 模糊匹配（词干）
                 if (keywordLower.Length > 3 && queryLower.Contains(keywordLower.Substring(0, Math.Min(keywordLower.Length - 1, 4))))
                 {
                     score += 2;
                 }
             }
-            
+
             if (score > 0)
             {
                 scores[intent] = score;
@@ -620,7 +632,7 @@ public class McpRoutingService
 
         var bestIntent = scores.OrderByDescending(kvp => kvp.Value).First();
         _logger?.LogInformation($"Intent analysis for '{query}': {bestIntent.Key} (score: {bestIntent.Value:F1})");
-        
+
         return bestIntent.Key;
     }
 
@@ -677,12 +689,12 @@ public class McpRoutingService
         {
             var responseMs = server.ResponseTime.Value.TotalMilliseconds;
             var penalty = Math.Min(responseMs / 500, 0.3); // 最多30%的惩罚
-            score *= (1 - penalty);
+            score *= 1 - penalty;
         }
 
         var reasoning = reasons.Any() ? string.Join("; ", reasons) : "No specific match found";
         _logger?.LogDebug($"Score for {server.Name}.{tool.Name}: {score:F2} ({reasoning})");
-        
+
         return (score, reasoning);
     }
 
@@ -711,7 +723,7 @@ public class McpRoutingService
             else
             {
                 // 检查关键词匹配
-                var matchCount = intentKeywords.Count(kw => 
+                var matchCount = intentKeywords.Count(kw =>
                     serverTypes.Any(st => kw.Contains(st, StringComparison.OrdinalIgnoreCase)));
                 score += matchCount * 15;
             }
@@ -746,7 +758,7 @@ public class McpRoutingService
         // 操作类型匹配
         var actionWords = new[] { "get", "set", "list", "info", "status", "read", "write", "create", "delete" };
         var queryWords = Regex.Split(queryLower, @"\W+").Where(w => w.Length > 2);
-        
+
         foreach (var action in actionWords)
         {
             if (toolNameLower.Contains(action) && queryWords.Contains(action))
@@ -798,11 +810,11 @@ public class McpRoutingService
         foreach (var toolKeyword in toolKeywords)
         {
             var toolKeywordLower = toolKeyword.ToLower();
-            
+
             // 与意图关键词匹配
             foreach (var intentKeyword in intentKeywords)
             {
-                if (toolKeywordLower.Contains(intentKeyword.ToLower()) || 
+                if (toolKeywordLower.Contains(intentKeyword.ToLower()) ||
                     intentKeyword.ToLower().Contains(toolKeywordLower))
                 {
                     score += 10;
@@ -857,7 +869,7 @@ public class McpRoutingService
     /// <summary>
     /// 获取候选的 server-tool 组合用于调试
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task<List<(McpServerInfo server, McpToolInfo tool, double score)>> GetRoutingCandidatesAsync(string userQuery)
     {
         if (string.IsNullOrWhiteSpace(userQuery))

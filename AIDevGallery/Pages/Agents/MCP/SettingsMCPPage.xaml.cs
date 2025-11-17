@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using ModelContextProtocol.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -237,6 +238,7 @@ internal sealed partial class SettingsMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; JSON formatting acceptable under trimming/AOT assumptions.
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)

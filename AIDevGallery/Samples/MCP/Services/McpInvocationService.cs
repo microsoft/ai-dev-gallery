@@ -31,7 +31,7 @@ public class McpInvocationService
     /// <summary>
     /// 执行路由决策，调用相应的 MCP 工具
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Invokes MCP tools using runtime types and JSON serialization requiring dynamic code; not trimming safe.")]
     public async Task<McpInvocationResult> InvokeToolAsync(RoutingDecision decision, CancellationToken cancellationToken = default)
     {
@@ -129,6 +129,7 @@ public class McpInvocationService
     /// <summary>
     /// 带超时的工具调用
     /// </summary>
+    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpInvocationService.GetToolName(Object)")]
     private async Task<object?> CallToolWithTimeoutAsync(McpClientWrapper client, object toolCallRequest, TimeSpan timeout, CancellationToken cancellationToken)
     {
         using var timeoutCts = new CancellationTokenSource(timeout);
@@ -182,7 +183,7 @@ public class McpInvocationService
     /// <summary>
     /// 批量调用多个工具（用于复杂查询）
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<McpInvocationResult>> InvokeToolsAsync(List<RoutingDecision> decisions, CancellationToken cancellationToken = default)
     {
         var tasks = decisions.Select(decision => InvokeToolAsync(decision, cancellationToken));
@@ -193,7 +194,7 @@ public class McpInvocationService
     /// <summary>
     /// 健康检查 - 测试与服务器的连接
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<bool> HealthCheckAsync(string serverId, CancellationToken cancellationToken = default)
     {
         try
@@ -218,7 +219,7 @@ public class McpInvocationService
     /// <summary>
     /// 获取服务器状态摘要
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<Dictionary<string, object>> GetServerStatusAsync(string serverId, CancellationToken cancellationToken = default)
     {
         var status = new Dictionary<string, object>();
@@ -282,6 +283,7 @@ public class McpInvocationService
     /// <summary>
     /// 从工具调用请求中提取参数
     /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private Dictionary<string, object> GetToolParameters(object toolCallRequest)
     {
         try
