@@ -271,6 +271,12 @@ public class McpRoutingService
 
             请根据用户问题识别是否需要通过 MCP 工具来完成任务，并给出主题与关键词。
 
+            规则：
+            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
+            2. 不得使用```json```代码块包装
+            3. 必须是有效的JSON格式，所有字符串用双引号包围
+            4. 不得在JSON前后添加任何文字说明
+            
             返回严格的JSON格式，不得输出任何解释性文字：
             {
               "need_tool": true | false,
@@ -303,6 +309,12 @@ public class McpRoutingService
 
         var systemPrompt = """
             从以下可用 MCP servers 中选择最适合完成任务的一个。请依据名称、标签、能力、健康度等进行排序，并返回最佳者。
+
+            规则：
+            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
+            2. 不得使用```json```代码块包装
+            3. 必须是有效的JSON格式，所有字符串用双引号包围
+            4. 不得在JSON前后添加任何文字说明
 
             返回严格的JSON格式，不得输出任何解释性文字：
             {
@@ -338,6 +350,12 @@ public class McpRoutingService
 
         var systemPrompt = """
             基于选定的 MCP server 的可用工具列表，选择一个最能满足用户需求的工具。优先参数少、权限小、成功率高的工具。
+
+            规则：
+            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
+            2. 不得使用```json```代码块包装
+            3. 必须是有效的JSON格式，所有字符串用双引号包围
+            4. 不得在JSON前后添加任何文字说明
 
             返回严格的JSON格式，不得输出任何解释性文字：
             {
@@ -392,7 +410,12 @@ public class McpRoutingService
         var systemPrompt = """
             请生成一次可执行的 MCP 工具调用计划。计划必须可由客户端直接执行，不包含自由文本。
 
-            返回严格的JSON格式，不得输出任何解释性文字：
+            规则：
+            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
+            2. 不得使用```json```代码块包装
+            3. 必须是有效的JSON格式，所有字符串用双引号包围
+            4. 不得在JSON前后添加任何文字说明
+
             {
               "action": "call_tool",
               "server_id": "string",
