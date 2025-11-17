@@ -248,26 +248,42 @@ public class McpRoutingService
 
             // 步骤4: 参数提取
             _logger?.LogInformation("📝 Step 4: Argument Extraction");
-            var argumentExtraction = await ExtractArgumentsAsync(userQuery, selectedTool, intent);
-            if (argumentExtraction == null)
+            ArgumentExtractionResponse? argumentExtraction = null;
+            if (selectedTool.InputSchema?.ContainsKey("properties") == true)
             {
-                _logger?.LogWarning("❌ Failed to extract arguments");
-                return null;
-            }
-
-            // 检查是否有缺失参数需要用户澄清
-            if (argumentExtraction.Missing.Any())
-            {
-                _logger?.LogInformation($"❓ Missing parameters: {string.Join(", ", argumentExtraction.Missing)}");
-                return new RoutingDecision
+                argumentExtraction = await ExtractArgumentsAsync(userQuery, selectedTool, intent);
+                if (argumentExtraction == null)
                 {
-                    SelectedServer = selectedServer,
-                    SelectedTool = selectedTool,
-                    Parameters = argumentExtraction.Arguments,
-                    Confidence = argumentExtraction.Confidence,
-                    Reasoning = $"需要澄清: {argumentExtraction.ClarifyQuestion}",
-                    RequiresClarification = true,
-                    ClarificationQuestion = argumentExtraction.ClarifyQuestion
+                    _logger?.LogWarning("❌ Failed to extract arguments");
+                    return null;
+                }
+
+                // 检查是否有缺失参数需要用户澄清
+                if (argumentExtraction.Missing.Any())
+                {
+                    _logger?.LogInformation($"❓ Missing parameters: {string.Join(", ", argumentExtraction.Missing)}");
+                    return new RoutingDecision
+                    {
+                        SelectedServer = selectedServer,
+                        SelectedTool = selectedTool,
+                        Parameters = argumentExtraction.Arguments,
+                        Confidence = argumentExtraction.Confidence,
+                        Reasoning = $"需要澄清: {argumentExtraction.ClarifyQuestion}",
+                        RequiresClarification = true,
+                        ClarificationQuestion = argumentExtraction.ClarifyQuestion
+                    };
+                }
+            }
+            else
+            {
+                _logger?.LogInformation("ℹ️ Selected tool has no input parameters to extract");
+                // 为没有参数的工具创建默认的参数提取结果
+                argumentExtraction = new ArgumentExtractionResponse
+                {
+                    Arguments = new Dictionary<string, object>(),
+                    Missing = [],
+                    ClarifyQuestion = string.Empty,
+                    Confidence = 1.0 // 没有参数时设置为满分
                 };
             }
 
