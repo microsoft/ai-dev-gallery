@@ -432,6 +432,8 @@ public class McpRoutingService
             - 只提取能从用户输入中明确获得的参数
             - 不要臆造或猜测未知值
             - 如有必需参数缺失，在missing数组中列出并提供澄清问题
+            - 特殊情况：如果工具的InputSchema是{"type":"object","properties":"{}"}，表示该工具不需要任何参数，此时arguments应返回空对象{}，missing应为空数组[]
+            - missing数组中的参数名必须严格来自于InputSchema的properties中定义的参数名，不能添加Schema中不存在的参数
 
             输出要求：必须且仅返回以下JSON结构：
             {
@@ -446,7 +448,7 @@ public class McpRoutingService
 
             注意：
             - arguments对象包含成功提取的参数
-            - missing数组为空表示无缺失参数
+            - missing数组为空表示无缺失参数，missing中的参数名必须存在于InputSchema的properties中
             - clarify_question仅在missing非空时提供
             - 禁止输出JSON之外的任何内容
             """;
