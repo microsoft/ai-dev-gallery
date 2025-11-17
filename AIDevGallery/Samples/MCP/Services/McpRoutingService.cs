@@ -428,7 +428,7 @@ public class McpRoutingService
             };
 
             var response = await _chatClient!.GetResponseAsync(messages);
-            var aiResponse = response.Message.Text;
+            var aiResponse = response.Text ?? string.Empty;
 
             _logger?.LogDebug($"🤖 {stepName} AI Response: {aiResponse}");
 
