@@ -97,6 +97,7 @@ public static class McpPromptTemplateManager
             1. 工具功能与用户意图的匹配度
             2. 工具权限级别（优先低权限的）
             3. 工具成功率和可靠性
+            4. chosen_tool_name只能从可用工具列表中选择。禁止返回不存在的工具名称。
             
             必须返回且仅返回这个JSON结构：
             {
