@@ -66,7 +66,7 @@ public class McpManager : IDisposable
     /// 处理用户查询的主要方法
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for MCP protocol which may require dynamic code generation")]
     public async Task<McpResponse> ProcessQueryAsync(string userQuery, IChatClient? chatClient, CancellationToken cancellationToken = default)
     {
         if (!_initialized)

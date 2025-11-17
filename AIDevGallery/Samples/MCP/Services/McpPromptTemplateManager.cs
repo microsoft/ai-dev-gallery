@@ -350,7 +350,7 @@ public static class McpPromptTemplateManager
     /// <param name="availableServers">可用服务器列表</param>
     /// <param name="intent">意图分析结果</param>
     /// <returns>格式化的用户提示</returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for server info and intent objects which may require dynamic code generation")]
     public static string FormatServerSelectionUserPrompt(string userQuery, List<McpServerInfo> availableServers, object intent)
     {
         var serversJson = JsonSerializer.Serialize(
