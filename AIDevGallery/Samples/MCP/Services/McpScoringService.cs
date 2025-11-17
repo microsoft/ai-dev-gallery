@@ -15,7 +15,7 @@ namespace AIDevGallery.Samples.MCP.Services;
 /// </summary>
 public class McpScoringService
 {
-    private readonly ILogger<McpScoringService>? _logger;
+    private readonly ILogger? _logger;
 
     // 预定义的意图到工具的映射规则
     private readonly Dictionary<string, List<string>> _intentKeywords = new()
@@ -31,7 +31,7 @@ public class McpScoringService
         ["hardware"] = ["hardware", "硬件", "device", "component", "gpu", "motherboard", "bios"]
     };
 
-    public McpScoringService(ILogger<McpScoringService>? logger = null)
+    public McpScoringService(ILogger? logger = null)
     {
         _logger = logger;
     }

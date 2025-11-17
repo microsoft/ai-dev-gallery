@@ -19,9 +19,9 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpAIService
 {
     private readonly IChatClient? _chatClient;
-    private readonly ILogger<McpAIService>? _logger;
+    private readonly ILogger? _logger;
 
-    public McpAIService(IChatClient? chatClient, ILogger<McpAIService>? logger = null)
+    public McpAIService(IChatClient? chatClient, ILogger? logger = null)
     {
         _chatClient = chatClient;
         _logger = logger;
