@@ -523,10 +523,10 @@ public class McpRoutingService
                         ResponseFormat = ChatResponseFormat.ForJsonSchema<T>()
                     });
                 
-                if (structuredResponse?.Value != null)
+                if (structuredResponse != null && structuredResponse.TryGetResult(out T? result) && result != null)
                 {
                     _logger?.LogDebug($"✅ {stepName} structured output parsed successfully");
-                    return structuredResponse.Value;
+                    return result;
                 }
             }
             catch (Exception structuredEx)
