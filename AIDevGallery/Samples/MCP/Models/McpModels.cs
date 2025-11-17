@@ -47,6 +47,9 @@ public class RoutingDecision
     public Dictionary<string, object> Parameters { get; set; } = new();
     public double Confidence { get; set; }
     public string Reasoning { get; set; } = string.Empty;
+    public bool RequiresClarification { get; set; }
+    public string ClarificationQuestion { get; set; } = string.Empty;
+    public object? InvocationPlan { get; set; }
 }
 
 /// <summary>

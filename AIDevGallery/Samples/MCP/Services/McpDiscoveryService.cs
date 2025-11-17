@@ -119,6 +119,8 @@ public class McpDiscoveryService : IDisposable
 
             if (toolsResponse != null)
             {
+                _logger?.LogDebug($"Server {serverId} returned {toolsResponse.Count} tools");
+                
                 foreach (var tool in toolsResponse)
                 {
                     var toolInfo = new McpToolInfo
@@ -127,11 +129,17 @@ public class McpDiscoveryService : IDisposable
                         Description = tool.Description ?? string.Empty,
                         ServerId = serverId,
                         InputSchema = ConvertJsonSchemaToDict(tool.JsonSchema),
-                        Keywords = ExtractKeywordsFromTool(tool),
-                        Priority = CalculateToolPriority(tool)
+                        Keywords = ExtractKeywordsFromTool(tool, serverId),
+                        Priority = CalculateToolPriority(tool, serverId)
                     };
                     tools.Add(toolInfo);
+                    
+                    _logger?.LogDebug($"  Tool: {toolInfo.Name} - {toolInfo.Description} (Priority: {toolInfo.Priority})");
                 }
+            }
+            else
+            {
+                _logger?.LogWarning($"Server {serverId} returned null tools response");
             }
 
             return tools;
@@ -171,46 +179,107 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 从工具描述中提取关键词
     /// </summary>
-    private string[] ExtractKeywordsFromTool(McpClientTool tool)
+    private string[] ExtractKeywordsFromTool(McpClientTool tool, string serverId)
     {
         var keywords = new List<string>();
 
         // 从工具名称中提取
         if (!string.IsNullOrEmpty(tool.Name))
         {
-            keywords.AddRange(tool.Name.Split('_', '-', ' '));
+            keywords.AddRange(tool.Name.Split('_', '-', ' ', '.'));
         }
 
         // 从描述中提取
         if (!string.IsNullOrEmpty(tool.Description))
         {
             var description = tool.Description.ToLower();
-            var commonKeywords = new[] { "system", "memory", "ram", "cpu", "disk", "file", "process", "network", "hardware", "info" };
+            
+            // 基于服务器类型定义更具体的关键词
+            var serverSpecificKeywords = GetServerSpecificKeywords(serverId);
+            keywords.AddRange(serverSpecificKeywords.Where(k => description.Contains(k)));
+            
+            // 通用关键词
+            var commonKeywords = new[] { "get", "set", "list", "info", "status", "read", "write", "create", "delete", "update" };
             keywords.AddRange(commonKeywords.Where(k => description.Contains(k)));
         }
 
-        return keywords.Distinct().ToArray();
+        // 根据服务器ID添加特定标签
+        keywords.AddRange(GetServerTypeKeywords(serverId));
+
+        return keywords.Distinct().Where(k => !string.IsNullOrWhiteSpace(k)).ToArray();
+    }
+
+    /// <summary>
+    /// 获取服务器特定关键词
+    /// </summary>
+    private string[] GetServerSpecificKeywords(string serverId)
+    {
+        return serverId switch
+        {
+            "system-info" => new[] { "system", "hardware", "memory", "ram", "cpu", "disk", "processor", "info", "status", "performance" },
+            "file-system" => new[] { "file", "folder", "directory", "path", "read", "write", "copy", "move", "delete", "list", "create", "exists" },
+            "settings" => new[] { "settings", "config", "configuration", "preferences", "registry", "policy", "option", "value", "key" },
+            _ => new[] { "general", "utility", "tool" }
+        };
+    }
+
+    /// <summary>
+    /// 获取服务器类型关键词
+    /// </summary>
+    private string[] GetServerTypeKeywords(string serverId)
+    {
+        return serverId switch
+        {
+            "system-info" => new[] { "system", "hardware" },
+            "file-system" => new[] { "file", "filesystem" },
+            "settings" => new[] { "settings", "config" },
+            _ => new[] { "general" }
+        };
     }
 
     /// <summary>
     /// 计算工具优先级
     /// </summary>
-    private int CalculateToolPriority(McpClientTool tool)
+    private int CalculateToolPriority(McpClientTool tool, string serverId)
     {
-        // 基于工具名称和描述的简单优先级计算
         var priority = 0;
 
         if (!string.IsNullOrEmpty(tool.Name))
         {
             var name = tool.Name.ToLower();
-            if (name.Contains("get") || name.Contains("info"))
+            
+            // 基础功能优先级
+            if (name.Contains("get") || name.Contains("info") || name.Contains("list"))
             {
-                priority += 10;
+                priority += 15; // 只读操作优先级高
+            }
+            
+            if (name.Contains("set") || name.Contains("update") || name.Contains("create"))
+            {
+                priority += 5; // 写操作优先级低
             }
 
-            if (name.Contains("system") || name.Contains("hardware"))
+            // 服务器特定优先级调整
+            switch (serverId)
             {
-                priority += 20;
+                case "system-info":
+                    if (name.Contains("memory") || name.Contains("cpu") || name.Contains("disk"))
+                        priority += 20;
+                    if (name.Contains("system") || name.Contains("hardware"))
+                        priority += 15;
+                    break;
+                case "file-system":
+                    if (name.Contains("file") || name.Contains("directory") || name.Contains("path"))
+                        priority += 20;
+                    if (name.Contains("read") || name.Contains("list"))
+                        priority += 10;
+                    break;
+                case "settings":
+                    if (name.Contains("setting") || name.Contains("config"))
+                        priority += 20;
+                    if (name.Contains("get") || name.Contains("read"))
+                        priority += 10;
+                    break;
             }
         }
 

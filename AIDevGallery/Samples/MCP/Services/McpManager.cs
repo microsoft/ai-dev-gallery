@@ -26,11 +26,11 @@ public class McpManager : IDisposable
     private bool _initialized;
     private bool _disposed;
 
-    public McpManager(ILogger<McpManager>? logger = null)
+    public McpManager(ILogger<McpManager>? logger = null, IChatClient? chatClient = null)
     {
         _logger = logger;
         _discoveryService = new McpDiscoveryService(_logger as ILogger<McpDiscoveryService>);
-        _routingService = new McpRoutingService(_discoveryService, _logger as ILogger<McpRoutingService>);
+        _routingService = new McpRoutingService(_discoveryService, _logger as ILogger<McpRoutingService>, chatClient);
         _invocationService = new McpInvocationService(_discoveryService, _logger as ILogger<McpInvocationService>);
     }
 
@@ -90,10 +90,40 @@ public class McpManager : IDisposable
             var routingDecision = await _routingService.RouteQueryAsync(userQuery);
             if (routingDecision == null)
             {
+                _logger?.LogWarning($"No routing decision found for query: {userQuery}");
                 return await HandleNoRouteFoundAsync(userQuery, chatClient, cancellationToken);
             }
 
-            _logger?.LogInformation($"Routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
+            // 检查是否需要用户澄清
+            if (routingDecision.RequiresClarification)
+            {
+                _logger?.LogInformation($"Routing requires clarification: {routingDecision.ClarificationQuestion}");
+                return new McpResponse
+                {
+                    Answer = $"💬 需要更多信息：{routingDecision.ClarificationQuestion}",
+                    Source = "AI路由系统",
+                    RawResult = new McpInvocationResult
+                    {
+                        IsSuccess = false,
+                        Data = "需要用户澄清",
+                        RoutingInfo = routingDecision,
+                        ExecutionTime = TimeSpan.Zero
+                    }
+                };
+            }
+
+            _logger?.LogInformation($"🎯 Multi-step AI routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
+            
+            // 添加可用候选的调试信息
+            var candidates = await _routingService.GetRoutingCandidatesAsync(userQuery);
+            if (candidates.Count > 1)
+            {
+                _logger?.LogDebug($"Alternative candidates for '{userQuery}':");
+                foreach (var candidate in candidates.Take(3))
+                {
+                    _logger?.LogDebug($"  {candidate.server.Name}.{candidate.tool.Name}: {candidate.score:F2}");
+                }
+            }
 
             // 2. 权限检查和用户确认
             var needsConfirmation = RequiresUserConfirmation(routingDecision);

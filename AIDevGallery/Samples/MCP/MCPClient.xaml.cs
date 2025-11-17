@@ -65,8 +65,8 @@ internal sealed partial class MCPClient : BaseSamplePage
         {
             model = await sampleParams.GetIChatClientAsync();
 
-            // 初始化 MCP 管理器
-            mcpManager = new McpManager();
+            // 初始化 MCP 管理器，传递AI聊天客户端用于智能路由
+            mcpManager = new McpManager(chatClient: model);
             var mcpInitialized = await mcpManager.InitializeAsync();
 
             if (!mcpInitialized)
@@ -224,7 +224,16 @@ internal sealed partial class MCPClient : BaseSamplePage
 
                 // <exclude>
                 swEnd.Stop();
-                ShowDebugInfo($"MCP processing completed in {swEnd.Elapsed.TotalSeconds:0.00}s\nSource: {mcpResponse.Source}");
+                var debugInfo = $"MCP processing completed in {swEnd.Elapsed.TotalSeconds:0.00}s\nSource: {mcpResponse.Source}";
+                
+                // 添加路由决策详细信息
+                if (mcpResponse.RawResult?.RoutingInfo != null)
+                {
+                    var routing = mcpResponse.RawResult.RoutingInfo;
+                    debugInfo += $"\nRouting Decision:\n  Server: {routing.SelectedServer.Name}\n  Tool: {routing.SelectedTool.Name}\n  Confidence: {routing.Confidence:F2}\n  Reasoning: {routing.Reasoning}";
+                }
+                
+                ShowDebugInfo(debugInfo);
 
                 // </exclude>
                 DispatcherQueue.TryEnqueue(() =>
