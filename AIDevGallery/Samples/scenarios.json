@@ -88,6 +88,12 @@
         "Instructions": "Enter some text into the textbox and click 'Rewrite' to get the rewritten text.",
         "Id": "win-ai-rewrite"
       },
+      "WinAiDescribeYourChange": {
+        "Name": "Windows AI Describe Your Change",
+        "Description": "Describe how you want your text to be rewritten using Windows AI Text Rewriter.",
+        "Instructions": "Enter some text into the textboxes and click 'Rewrite' to get the rewritten text.",
+        "Id": "win-ai-describe-your-change"
+      },
       "WinAiTextToTable": {
         "Name": "Windows AI Text To Table Converter",
         "Description": "Convert Text To Table.",

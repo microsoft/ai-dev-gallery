@@ -48,6 +48,17 @@
         "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b",
         "Category": "Phi Silica"
       },
+      "DescribeYourChange": {
+        "Id": "c5f8d3a7-9e2b-4f6a-8d1c-7b3e5a9c4f2d",
+        "Name": "Describe Your Change",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF15",
+        "Description": "Describes changes in text.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b",
+        "Category": "Phi Silica"
+      },
       "TextToTableConverter": {
         "Id": "b8a3dc48-a9e7-4697-b178-70c139887e9b",
         "Name": "Text To Table Converter",
