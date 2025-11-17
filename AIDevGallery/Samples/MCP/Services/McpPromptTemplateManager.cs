@@ -50,7 +50,7 @@ public static class McpPromptTemplateManager
             }
             
             分析规则：
-            - need_tool: 判断分析用户问题是否需要MCP工具來幫助完成
+            - need_tool: 判断分析用户问题是否可以借助MCP工具的得到帮助，例如信息查询、设备管理、任务自动化、数据处理、应用集成、性能监控等。
             - topic: 根据用户意图选择最匹配的主题类别
             - keywords: 提取关键词用于后续工具匹配
             - confidence: 分析结果的置信度(0.0-1.0)
