@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -36,14 +37,18 @@ public class McpManager : IDisposable
     /// <summary>
     /// 初始化 MCP 管理器
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<bool> InitializeAsync(CancellationToken cancellationToken = default)
     {
-        if (_initialized) return true;
+        if (_initialized)
+        {
+            return true;
+        }
 
         try
         {
             _logger?.LogInformation("Initializing MCP Manager...");
-            
+
             var servers = await _discoveryService.DiscoverServersAsync(cancellationToken);
             _logger?.LogInformation($"Discovered {servers.Count} MCP servers");
 
@@ -60,6 +65,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 处理用户查询的主要方法
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<McpResponse> ProcessQueryAsync(string userQuery, IChatClient? chatClient, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
@@ -104,7 +110,7 @@ public class McpManager : IDisposable
 
             // 3. 执行工具调用
             var invocationResult = await _invocationService.InvokeToolAsync(routingDecision, cancellationToken);
-            
+
             // 4. 使用 LLM 处理结果
             return await ProcessInvocationResultAsync(userQuery, invocationResult, chatClient, cancellationToken);
         }
@@ -122,6 +128,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 处理工具调用结果，使用 LLM 生成用户友好的回复
     /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private async Task<McpResponse> ProcessInvocationResultAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, CancellationToken cancellationToken)
     {
         if (!result.IsSuccess)
@@ -170,7 +177,7 @@ public class McpManager : IDisposable
         catch (Exception ex)
         {
             _logger?.LogError($"Error processing result with LLM: {ex.Message}");
-            
+
             // 降级到简单的文本提取
             var fallbackAnswer = ExtractSimpleAnswer(result);
             return new McpResponse
@@ -209,9 +216,10 @@ public class McpManager : IDisposable
     /// <summary>
     /// 创建用于信息提取的用户提示
     /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private string CreateExtractionUserPrompt(string originalQuery, McpInvocationResult result)
     {
-        var toolInfo = result.RoutingInfo != null 
+        var toolInfo = result.RoutingInfo != null
             ? $"工具：{result.RoutingInfo.SelectedServer.Name}.{result.RoutingInfo.SelectedTool.Name}"
             : "未知工具";
 
@@ -245,7 +253,7 @@ public class McpManager : IDisposable
             {
                 json = JsonSerializer.Serialize(structuredContent, new JsonSerializerOptions { WriteIndented = true });
             }
-            
+
             return $"获取到以下信息：\n{json}";
         }
         catch
@@ -360,6 +368,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 获取系统状态
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<Dictionary<string, object>> GetSystemStatusAsync(CancellationToken cancellationToken = default)
     {
         var status = new Dictionary<string, object>
@@ -389,6 +398,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 获取可用工具目录 - 用于向用户展示能力范围
     /// </summary>
+    /// <returns></returns>
     public string GetToolCatalog()
     {
         if (!_initialized)
@@ -405,7 +415,7 @@ public class McpManager : IDisposable
         var catalog = new List<string>
         {
             "=== 可用的 MCP 工具目录 ===",
-            ""
+            string.Empty
         };
 
         foreach (var server in servers)
@@ -413,7 +423,7 @@ public class McpManager : IDisposable
             catalog.Add($"📋 {server.Name}");
             catalog.Add($"   描述: {server.Description}");
             catalog.Add($"   类别: {string.Join(", ", server.Categories)}");
-            
+
             var tools = _discoveryService.GetServerTools(server.Id);
             if (tools.Any())
             {
@@ -423,17 +433,21 @@ public class McpManager : IDisposable
                     catalog.Add($"     • {tool.Name}: {tool.Description}");
                 }
             }
-            catalog.Add("");
+
+            catalog.Add(string.Empty);
         }
 
         catalog.Add("💡 提示: 您可以直接提问，系统会自动选择最合适的工具来回答。");
-        
+
         return string.Join("\n", catalog);
     }
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _discoveryService?.Dispose();
         _disposed = true;

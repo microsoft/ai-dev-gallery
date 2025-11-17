@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -30,10 +31,12 @@ public class McpInvocationService
     /// <summary>
     /// 执行路由决策，调用相应的 MCP 工具
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode()]
     public async Task<McpInvocationResult> InvokeToolAsync(RoutingDecision decision, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             _logger?.LogInformation($"Invoking tool {decision.SelectedTool.Name} on server {decision.SelectedServer.Name}");
@@ -63,7 +66,7 @@ public class McpInvocationService
 
             // 执行工具调用
             var result = await CallToolWithTimeoutAsync(client, toolCallRequest, TimeSpan.FromSeconds(30), cancellationToken);
-            
+
             stopwatch.Stop();
 
             // 更新服务器统计信息
@@ -81,7 +84,7 @@ public class McpInvocationService
         {
             stopwatch.Stop();
             UpdateServerStats(decision.SelectedServer, false, stopwatch.Elapsed);
-            
+
             return new McpInvocationResult
             {
                 IsSuccess = false,
@@ -95,7 +98,7 @@ public class McpInvocationService
         {
             stopwatch.Stop();
             UpdateServerStats(decision.SelectedServer, false, stopwatch.Elapsed);
-            
+
             return new McpInvocationResult
             {
                 IsSuccess = false,
@@ -109,9 +112,9 @@ public class McpInvocationService
         {
             stopwatch.Stop();
             UpdateServerStats(decision.SelectedServer, false, stopwatch.Elapsed);
-            
+
             _logger?.LogError($"Error invoking tool {decision.SelectedTool.Name}: {ex.Message}");
-            
+
             return new McpInvocationResult
             {
                 IsSuccess = false,
@@ -136,7 +139,7 @@ public class McpInvocationService
             // 使用正确的 MCP SDK API
             var toolName = GetToolName(toolCallRequest);
             var parameters = GetToolParameters(toolCallRequest);
-            
+
             var response = await client.CallToolAsync(toolName, parameters, combinedCts.Token);
             return response;
         }
@@ -179,6 +182,7 @@ public class McpInvocationService
     /// <summary>
     /// 批量调用多个工具（用于复杂查询）
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<List<McpInvocationResult>> InvokeToolsAsync(List<RoutingDecision> decisions, CancellationToken cancellationToken = default)
     {
         var tasks = decisions.Select(decision => InvokeToolAsync(decision, cancellationToken));
@@ -189,12 +193,16 @@ public class McpInvocationService
     /// <summary>
     /// 健康检查 - 测试与服务器的连接
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<bool> HealthCheckAsync(string serverId, CancellationToken cancellationToken = default)
     {
         try
         {
             var client = _discoveryService.GetServerClient(serverId);
-            if (client == null) return false;
+            if (client == null)
+            {
+                return false;
+            }
 
             // 尝试列出工具作为健康检查
             var tools = await client.ListToolsAsync(cancellationToken);
@@ -210,15 +218,16 @@ public class McpInvocationService
     /// <summary>
     /// 获取服务器状态摘要
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<Dictionary<string, object>> GetServerStatusAsync(string serverId, CancellationToken cancellationToken = default)
     {
         var status = new Dictionary<string, object>();
-        
+
         try
         {
             var servers = _discoveryService.GetConnectedServers();
             var server = servers.FirstOrDefault(s => s.Id == serverId);
-            
+
             if (server == null)
             {
                 status["connected"] = false;
@@ -249,13 +258,14 @@ public class McpInvocationService
     /// <summary>
     /// 从工具调用请求中提取工具名称
     /// </summary>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     private string GetToolName(object toolCallRequest)
     {
         try
         {
             var json = JsonSerializer.Serialize(toolCallRequest);
             var doc = JsonDocument.Parse(json);
-            
+
             if (doc.RootElement.TryGetProperty("name", out var nameElement))
             {
                 return nameElement.GetString() ?? string.Empty;
@@ -265,7 +275,7 @@ public class McpInvocationService
         {
             // 提取失败时返回空字符串
         }
-        
+
         return string.Empty;
     }
 
@@ -278,16 +288,16 @@ public class McpInvocationService
         {
             var json = JsonSerializer.Serialize(toolCallRequest);
             var doc = JsonDocument.Parse(json);
-            
+
             if (doc.RootElement.TryGetProperty("arguments", out var argsElement))
             {
                 var parameters = new Dictionary<string, object>();
-                
+
                 foreach (var property in argsElement.EnumerateObject())
                 {
                     parameters[property.Name] = property.Value.ToString() ?? string.Empty;
                 }
-                
+
                 return parameters;
             }
         }
@@ -295,7 +305,7 @@ public class McpInvocationService
         {
             // 提取失败时返回空字典
         }
-        
+
         return new Dictionary<string, object>();
     }
 }

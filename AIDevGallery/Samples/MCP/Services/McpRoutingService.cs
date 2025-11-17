@@ -40,10 +40,13 @@ public class McpRoutingService
     /// <summary>
     /// 根据用户查询找到最佳的 server 和 tool
     /// </summary>
-    public async Task<RoutingDecision?> RouteQueryAsync(string userQuery)
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    public Task<RoutingDecision?> RouteQueryAsync(string userQuery)
     {
         if (string.IsNullOrWhiteSpace(userQuery))
-            return null;
+        {
+            return Task.FromResult<RoutingDecision?>(null);
+        }
 
         _logger?.LogInformation($"Routing query: {userQuery}");
 
@@ -58,7 +61,7 @@ public class McpRoutingService
         if (!servers.Any() || !allTools.Any())
         {
             _logger?.LogWarning("No servers or tools available for routing");
-            return null;
+            return Task.FromResult<RoutingDecision?>(null);
         }
 
         // 3. 为每个 server-tool 组合计算匹配分数
@@ -81,7 +84,7 @@ public class McpRoutingService
         if (!candidates.Any())
         {
             _logger?.LogWarning("No suitable server-tool candidates found");
-            return null;
+            return Task.FromResult<RoutingDecision?>(null);
         }
 
         var best = candidates.OrderByDescending(c => c.score).First();
@@ -90,14 +93,14 @@ public class McpRoutingService
         // 5. 提取参数
         var parameters = ExtractParameters(userQuery, intent, best.tool);
 
-        return new RoutingDecision
+        return Task.FromResult<RoutingDecision?>(new RoutingDecision
         {
             SelectedServer = best.server,
             SelectedTool = best.tool,
             Parameters = parameters,
             Confidence = best.score,
             Reasoning = best.reasoning
-        };
+        });
     }
 
     /// <summary>
@@ -174,7 +177,7 @@ public class McpRoutingService
 
         // 6. 直接查询文本匹配
         var queryWords = Regex.Split(query.ToLower(), @"\W+").Where(w => w.Length > 2);
-        var directMatches = queryWords.Count(word => 
+        var directMatches = queryWords.Count(word =>
             tool.Name.Contains(word, StringComparison.OrdinalIgnoreCase) ||
             tool.Description.Contains(word, StringComparison.OrdinalIgnoreCase));
         score += directMatches * 3;
@@ -210,10 +213,10 @@ public class McpRoutingService
         {
             // 这里可以实现更复杂的参数提取逻辑
             // 现在只是简单的示例
-            
+
             // 如果工具需要特定类型的参数，可以从查询中提取
             var queryLower = query.ToLower();
-            
+
             // 示例：提取数字参数
             var numbers = Regex.Matches(query, @"\d+").Cast<Match>().Select(m => m.Value).ToList();
             if (numbers.Any())
@@ -236,10 +239,13 @@ public class McpRoutingService
     /// <summary>
     /// 获取候选的 server-tool 组合用于调试
     /// </summary>
-    public async Task<List<(McpServerInfo server, McpToolInfo tool, double score)>> GetRoutingCandidatesAsync(string userQuery)
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    public Task<List<(McpServerInfo server, McpToolInfo tool, double score)>> GetRoutingCandidatesAsync(string userQuery)
     {
         if (string.IsNullOrWhiteSpace(userQuery))
-            return new List<(McpServerInfo, McpToolInfo, double)>();
+        {
+            return Task.FromResult<List<(McpServerInfo server, McpToolInfo tool, double score)>>(new List<(McpServerInfo, McpToolInfo, double)>());
+        }
 
         var intent = AnalyzeUserIntent(userQuery);
         var servers = _discoveryService.GetConnectedServers();
@@ -255,6 +261,6 @@ public class McpRoutingService
             }
         }
 
-        return candidates.OrderByDescending(c => c.score).ToList();
+        return Task.FromResult(candidates.OrderByDescending(c => c.score).ToList());
     }
 }

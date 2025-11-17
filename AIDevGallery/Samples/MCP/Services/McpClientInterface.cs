@@ -41,8 +41,11 @@ public class McpClientWrapper : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-        
+        if (_disposed)
+        {
+            return;
+        }
+
         try
         {
             // McpClient实现了IAsyncDisposable，不是IDisposable
@@ -52,7 +55,7 @@ public class McpClientWrapper : IDisposable
         {
             // 忽略清理错误
         }
-        
+
         _disposed = true;
     }
 }
@@ -65,12 +68,13 @@ public static class McpClientFactory
     /// <summary>
     /// 创建系统信息 MCP 客户端
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public static async Task<McpClientWrapper?> CreateSystemInfoClientAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             const string systemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server";
-            
+
             var transportOptions = new StdioClientTransportOptions
             {
                 Name = "SystemInfo-MCP-Client",
@@ -98,12 +102,13 @@ public static class McpClientFactory
     /// <summary>
     /// 创建文件操作 MCP 客户端
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public static async Task<McpClientWrapper?> CreateFileOperationsClientAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             const string fileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
-            
+
             var transportOptions = new StdioClientTransportOptions
             {
                 Name = "File-MCP-Client",
@@ -131,12 +136,13 @@ public static class McpClientFactory
     /// <summary>
     /// 创建设置 MCP 客户端
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public static async Task<McpClientWrapper?> CreateSettingsClientAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             const string settingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
-            
+
             var transportOptions = new StdioClientTransportOptions
             {
                 Name = "Settings-MCP-Client",
@@ -164,6 +170,7 @@ public static class McpClientFactory
     /// <summary>
     /// 创建模拟客户端用于演示（当真实 MCP 服务器不可用时）
     /// </summary>
+    /// <returns></returns>
     public static McpClientWrapper CreateDemoClient()
     {
         // 这里返回一个模拟的客户端，用于演示目的

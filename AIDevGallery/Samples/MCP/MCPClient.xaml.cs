@@ -3,8 +3,8 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
-using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Samples.MCP.Services;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -64,11 +64,11 @@ internal sealed partial class MCPClient : BaseSamplePage
         try
         {
             model = await sampleParams.GetIChatClientAsync();
-            
+
             // 初始化 MCP 管理器
             mcpManager = new McpManager();
             var mcpInitialized = await mcpManager.InitializeAsync();
-            
+
             if (!mcpInitialized)
             {
                 // 延迟显示错误，避免与其他对话框冲突
@@ -78,7 +78,7 @@ internal sealed partial class MCPClient : BaseSamplePage
                     ShowException(new Exception("Failed to initialize MCP Manager. MCP functionality will be limited."));
                 });
             }
-            
+
             // 更新状态显示
             DispatcherQueue.TryEnqueue(UpdateMcpStatus);
         }
@@ -108,7 +108,7 @@ internal sealed partial class MCPClient : BaseSamplePage
     private void CleanUp()
     {
         CancelResponse();
-        
+
         // 确保关闭任何打开的对话框
         if (_currentDialog != null)
         {
@@ -120,9 +120,10 @@ internal sealed partial class MCPClient : BaseSamplePage
             {
                 // 忽略关闭错误
             }
+
             _currentDialog = null;
         }
-        
+
         model?.Dispose();
         mcpManager?.Dispose();
     }
@@ -215,6 +216,7 @@ internal sealed partial class MCPClient : BaseSamplePage
                 // <exclude>
                 ShowDebugInfo("Processing with MCP tools...");
                 var swEnd = Stopwatch.StartNew();
+
                 // </exclude>
 
                 // 使用 MCP 管理器处理查询
@@ -223,19 +225,19 @@ internal sealed partial class MCPClient : BaseSamplePage
                 // <exclude>
                 swEnd.Stop();
                 ShowDebugInfo($"MCP processing completed in {swEnd.Elapsed.TotalSeconds:0.00}s\nSource: {mcpResponse.Source}");
-                // </exclude>
 
+                // </exclude>
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     responseMessage.IsPending = false;
                     responseMessage.Content = mcpResponse.Answer;
-                    
+
                     // 如果需要用户确认，添加特殊标记
                     if (mcpResponse.RequiresConfirmation)
                     {
                         responseMessage.ThinkContent = "This action requires confirmation. Please respond with 'yes' to proceed.";
                     }
-                    
+
                     // 添加调试信息到思考区域（仅在开发模式下）
                     if (!string.IsNullOrEmpty(mcpResponse.Source) && mcpResponse.Source != "System")
                     {
@@ -244,8 +246,9 @@ internal sealed partial class MCPClient : BaseSamplePage
                         {
                             debugInfo += $" (executed in {mcpResponse.RawResult.ExecutionTime.TotalMilliseconds:0}ms)";
                         }
-                        responseMessage.ThinkContent = string.IsNullOrEmpty(responseMessage.ThinkContent) 
-                            ? debugInfo 
+
+                        responseMessage.ThinkContent = string.IsNullOrEmpty(responseMessage.ThinkContent)
+                            ? debugInfo
                             : $"{responseMessage.ThinkContent}\n\n{debugInfo}";
                     }
                 });
@@ -451,11 +454,11 @@ internal sealed partial class MCPClient : BaseSamplePage
         {
             var status = await mcpManager.GetSystemStatusAsync();
             var statusText = FormatMcpStatus(status);
-            
+
             // 添加工具目录信息
             var toolCatalog = mcpManager.GetToolCatalog();
             var fullContent = $"{statusText}\n\n{new string('=', 50)}\n\n{toolCatalog}";
-            
+
             await ShowMcpStatusDialog(fullContent);
         }
         catch (Exception ex)
@@ -503,6 +506,7 @@ internal sealed partial class MCPClient : BaseSamplePage
             {
                 // 忽略可能的关闭错误
             }
+
             _currentDialog = null;
         }
 

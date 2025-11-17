@@ -4,7 +4,6 @@
 using AIDevGallery.Samples.MCP.Models;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -33,10 +32,11 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 初始化并发现所有可用的 MCP servers
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<List<McpServerInfo>> DiscoverServersAsync(CancellationToken cancellationToken = default)
     {
         var servers = new List<McpServerInfo>();
-        
+
         // 添加一些预定义的 MCP servers（演示用）
         var predefinedServers = GetPredefinedServers();
         foreach (var server in predefinedServers)
@@ -66,7 +66,7 @@ public class McpDiscoveryService : IDisposable
         });
 
         await Task.WhenAll(connectionTasks);
-        
+
         return servers.Where(s => s.IsEnabled).ToList();
     }
 
@@ -78,7 +78,7 @@ public class McpDiscoveryService : IDisposable
         try
         {
             McpClientWrapper? client = null;
-            
+
             // 根据服务器类型选择合适的连接方式
             if (serverInfo.Id == "system-info")
             {
@@ -92,12 +92,12 @@ public class McpDiscoveryService : IDisposable
             {
                 client = await McpClientFactory.CreateSettingsClientAsync(cancellationToken);
             }
-            
+
             if (client != null)
             {
                 _connections.TryAdd(serverInfo.Id, client);
             }
-            
+
             return client;
         }
         catch (Exception ex)
@@ -149,7 +149,7 @@ public class McpDiscoveryService : IDisposable
     private Dictionary<string, object> ConvertJsonSchemaToDict(System.Text.Json.JsonElement jsonSchema)
     {
         var dict = new Dictionary<string, object>();
-        
+
         try
         {
             if (jsonSchema.ValueKind == System.Text.Json.JsonValueKind.Object)
@@ -164,7 +164,7 @@ public class McpDiscoveryService : IDisposable
         {
             // 转换失败，返回空字典
         }
-        
+
         return dict;
     }
 
@@ -174,7 +174,7 @@ public class McpDiscoveryService : IDisposable
     private string[] ExtractKeywordsFromTool(McpClientTool tool)
     {
         var keywords = new List<string>();
-        
+
         // 从工具名称中提取
         if (!string.IsNullOrEmpty(tool.Name))
         {
@@ -199,12 +199,19 @@ public class McpDiscoveryService : IDisposable
     {
         // 基于工具名称和描述的简单优先级计算
         var priority = 0;
-        
+
         if (!string.IsNullOrEmpty(tool.Name))
         {
             var name = tool.Name.ToLower();
-            if (name.Contains("get") || name.Contains("info")) priority += 10;
-            if (name.Contains("system") || name.Contains("hardware")) priority += 20;
+            if (name.Contains("get") || name.Contains("info"))
+            {
+                priority += 10;
+            }
+
+            if (name.Contains("system") || name.Contains("hardware"))
+            {
+                priority += 20;
+            }
         }
 
         return priority;
@@ -256,6 +263,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取所有已连接的 server 客户端
     /// </summary>
+    /// <returns></returns>
     public IEnumerable<McpClientWrapper> GetAllServerClients()
     {
         return _connections.Values.ToList();
@@ -264,6 +272,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取指定 server 的工具列表
     /// </summary>
+    /// <returns></returns>
     public List<McpToolInfo> GetServerTools(string serverId)
     {
         return _serverTools.TryGetValue(serverId, out var tools) ? tools : new List<McpToolInfo>();
@@ -272,6 +281,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取所有工具
     /// </summary>
+    /// <returns></returns>
     public List<McpToolInfo> GetAllTools()
     {
         return _serverTools.Values.SelectMany(tools => tools).ToList();
@@ -280,6 +290,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取指定 server 的客户端连接
     /// </summary>
+    /// <returns></returns>
     public McpClientWrapper? GetServerClient(string serverId)
     {
         return _connections.TryGetValue(serverId, out var client) ? client : null;
@@ -288,6 +299,7 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取所有已连接的服务器信息
     /// </summary>
+    /// <returns></returns>
     public List<McpServerInfo> GetConnectedServers()
     {
         return _servers.Values.Where(s => s.IsEnabled && _connections.ContainsKey(s.Id)).ToList();
@@ -295,7 +307,10 @@ public class McpDiscoveryService : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         foreach (var connection in _connections.Values)
         {
