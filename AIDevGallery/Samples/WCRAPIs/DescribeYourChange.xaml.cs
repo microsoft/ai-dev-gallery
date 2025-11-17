@@ -345,7 +345,6 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
             InputTextBox.Description = string.Empty;
         }
 
-
         // Enable button only if the input box has valid text
         RewriteButton.IsEnabled = inputLength > 0 && inputLength <= MaxLength;
     }
