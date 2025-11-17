@@ -202,7 +202,7 @@ public class McpManager : IDisposable
 
             // 获取原始 JSON 数据并组合回答
             var rawJson = SerializeResultData(result);
-            var combinedAnswer = $"{extractedAnswer}\n\n--- 原始数据 ---\n{rawJson}";
+            var combinedAnswer = $"{extractedAnswer}\n\n---------\n{rawJson}";
 
             return new McpResponse
             {

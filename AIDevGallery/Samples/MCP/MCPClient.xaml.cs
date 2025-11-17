@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.MCP.Services;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -66,8 +67,15 @@ internal sealed partial class MCPClient : BaseSamplePage
         {
             model = await sampleParams.GetIChatClientAsync();
 
+            // 创建一个简单的调试logger用于在VS输出窗口查看日志
+            var loggerFactory = LoggerFactory.Create(builder => 
+                builder.AddDebug()
+                       .AddConsole()
+                       .SetMinimumLevel(LogLevel.Debug));
+            var logger = loggerFactory.CreateLogger<McpManager>();
+
             // 初始化 MCP 管理器，传递AI聊天客户端用于智能路由
-            mcpManager = new McpManager(chatClient: model);
+            mcpManager = new McpManager(logger, model);
             var mcpInitialized = await mcpManager.InitializeAsync();
 
             if (!mcpInitialized)
