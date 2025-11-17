@@ -48,6 +48,17 @@
         "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b",
         "Category": "Phi Silica"
       },
+      "DescribeYourChange": {
+        "Id": "c5f8d3a7-9e2b-4f6a-8d1c-7b3e5a9c4f2d",
+        "Name": "Describe Your Change",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF15",
+        "Description": "Describes changes in text.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b",
+        "Category": "Phi Silica"
+      },
       "TextToTableConverter": {
         "Id": "b8a3dc48-a9e7-4697-b178-70c139887e9b",
         "Name": "Text To Table Converter",
@@ -87,7 +98,19 @@
         "Description": "Remove the background from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559"
+        "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559",
+        "Category": "Image Segmentation"
+      },
+      "ForegroundExtractor": {
+        "Id": "e2a1c7b2-6f8e-4e2a-9b7a-2c8e4f1a2b3c",
+        "Name": "Foreground Extractor",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE7C5",
+        "Description": "Extract the foreground from an image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "877ff911-19c9-400b-8f60-83fb8e808c20",
+        "Category": "Image Segmentation"
       },
       "ImageDescription": {
         "Id": "bdab049c-9b01-48f4-b12d-acb911b0a61c",
@@ -141,6 +164,16 @@
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
         "Category": "App Content Search"
+      },
+      "VideoSuperRes": {
+        "Id": "1698eb3d-6c4f-4de0-aab8-72edca349eec",
+        "Name": "Video Super Resolution",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE714",
+        "Description": "Improve video resolution.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/video-super-resolution.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650"
       }
     }
   }

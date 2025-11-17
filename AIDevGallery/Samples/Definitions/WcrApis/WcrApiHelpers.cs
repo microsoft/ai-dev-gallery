@@ -6,6 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
+using Microsoft.Windows.AI.Video;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -49,10 +50,16 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.GetReadyState
+        },
+        {
             ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
     };
 
@@ -83,10 +90,16 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.EnsureReadyAsync
+        },
+        {
             ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
         }
     };
 

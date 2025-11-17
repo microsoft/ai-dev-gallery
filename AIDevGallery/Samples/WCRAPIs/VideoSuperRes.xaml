@@ -1,0 +1,58 @@
+<local:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.VideoSuperRes"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Samples"
+    xmlns:ctControls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Content -->
+        <Grid Grid.Row="1" Padding="16" ColumnDefinitions="*,*" ColumnSpacing="16">
+            <!-- Original Video Panel -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*" RowSpacing="8">
+                <TextBlock
+                    Text="Original Video"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Margin="0,0,0,8" />
+                
+                <Grid
+                    Grid.Row="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="{ThemeResource OverlayCornerRadius}"
+                    Padding="16">
+                    <ctControls:CameraPreview
+                        x:Name="CameraPreviewControl"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" />
+                </Grid>
+            </Grid>
+
+            <!-- Grid Splitter -->
+            <Border Grid.Column="1" Width="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!-- Processed Video Panel -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*" RowSpacing="8">
+                <TextBlock
+                    Text="Enhanced Video"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Margin="0,0,0,8" />
+                
+                <Grid
+                    Grid.Row="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="{ThemeResource OverlayCornerRadius}"
+                    Padding="16">
+                    <Image
+                        x:Name="ProcessedVideoImage"
+                        Stretch="Uniform"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</local:BaseSamplePage>
