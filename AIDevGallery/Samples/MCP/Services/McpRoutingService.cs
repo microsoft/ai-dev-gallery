@@ -181,11 +181,12 @@ public class McpRoutingService
         _logger?.LogInformation("📝 Step 4: Argument Extraction");
         
         // 检查工具是否需要参数
+        _logger?.LogInformation($"🔍 Checking if tool needs parameters...");
+        _logger?.LogInformation($"📋 InputSchema is null: {selectedTool.InputSchema is null}");
+
         if (selectedTool.InputSchema is not null
             && selectedTool.InputSchema.TryGetValue("properties", out var props)
-            && props is JsonElement elem
-            && elem.ValueKind == JsonValueKind.Object
-            && elem.EnumerateObject().MoveNext())
+            && HasValidProperties(props))
         {
             var argumentResult = await _aiService.ExtractArgumentsAsync(userQuery, selectedTool, intent);
             if (!argumentResult.Success || argumentResult.Result == null)
@@ -230,6 +231,44 @@ public class McpRoutingService
                 Confidence = 1.0,
                 RequiresClarification = false
             };
+        }
+    }
+
+    /// <summary>
+    /// 检查 properties 对象是否有效（不为空且包含至少一个属性）
+    /// </summary>
+    private bool HasValidProperties(object props)
+    {
+        try
+        {
+            // 尝试不同的类型转换
+            if (props is JsonElement elem)
+            {
+                _logger?.LogInformation("📋 Properties is JsonElement");
+                return elem.ValueKind == JsonValueKind.Object && elem.EnumerateObject().MoveNext();
+            }
+            else if (props is Dictionary<string, object> dict)
+            {
+                _logger?.LogInformation($"📋 Properties is Dictionary with {dict.Count} items");
+                return dict.Count > 0;
+            }
+            else if (props is string jsonString && !string.IsNullOrWhiteSpace(jsonString))
+            {
+                _logger?.LogInformation("📋 Properties is JSON string, attempting to parse");
+                var parsed = JsonDocument.Parse(jsonString);
+                return parsed.RootElement.ValueKind == JsonValueKind.Object 
+                    && parsed.RootElement.EnumerateObject().MoveNext();
+            }
+            else
+            {
+                _logger?.LogInformation($"📋 Properties type not supported: {props?.GetType()?.Name ?? "null"}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning($"❌ Error checking properties: {ex.Message}");
+            return false;
         }
     }
 
