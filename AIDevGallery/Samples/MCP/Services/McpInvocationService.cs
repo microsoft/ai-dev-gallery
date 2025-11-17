@@ -32,7 +32,7 @@ public class McpInvocationService
     /// 执行路由决策，调用相应的 MCP 工具
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Invokes MCP tools using runtime types and JSON serialization requiring dynamic code; not trimming safe.")]
     public async Task<McpInvocationResult> InvokeToolAsync(RoutingDecision decision, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();

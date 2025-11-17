@@ -7,7 +7,6 @@ using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -440,7 +439,6 @@ internal sealed partial class FileOperationsMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; serialization uses cached options and known types.
-    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Serialization limited to dictionaries/JSON text for UI display; types known or simple.")]
     private async void ExecuteToolButton_Click(object sender, RoutedEventArgs e)
     {
         if (selectedTool == null)
@@ -530,14 +528,13 @@ internal sealed partial class FileOperationsMCPPage : Page
             }
 
             // Show tool call
-            var toolCallPayload = new Dictionary<string, object?>
-            {
-                ["tool"] = selectedTool.Name,
-                ["arguments"] = arguments
-            };
-
-            // Use non-generic overload to avoid AOT dynamic code warning.
-            var toolCallJson = JsonSerializer.Serialize((object)toolCallPayload, typeof(Dictionary<string, object?>), IndentedJsonOptions); // Multi-line with each parameter on own line (SA1116/SA1117)
+            var toolCallJson = JsonSerializer.Serialize(
+                new Dictionary<string, object?>
+                {
+                    ["tool"] = selectedTool.Name,
+                    ["arguments"] = arguments
+                },
+                IndentedJsonOptions); // Multi-line with each parameter on own line (SA1116/SA1117)
 
             var displayText = $"Tool Call:\n{toolCallJson}\n\n";
             displayText += $"Executing {selectedTool.Name}...\n\n";
@@ -573,9 +570,7 @@ internal sealed partial class FileOperationsMCPPage : Page
                     if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
                     {
                         using var jsonDoc = JsonDocument.Parse(resultText);
-
-                        // Prefer serializing JsonElement (specialized overload) to reduce generic usage.
-                        resultText = JsonSerializer.Serialize(jsonDoc.RootElement, IndentedJsonOptions);
+                        resultText = JsonSerializer.Serialize(jsonDoc, IndentedJsonOptions);
                     }
                 }
                 catch
