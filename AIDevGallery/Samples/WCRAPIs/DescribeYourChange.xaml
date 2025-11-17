@@ -16,77 +16,113 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBox
-        x:Name="InputTextBox"
-        Grid.Row="0"
-        Height="148"
-        AcceptsReturn="True"
-        AutomationProperties.Name="Prompt input"
-        Description=" "
-        PlaceholderText="Insert text to rewrite here.."
-        TextChanged="InputBox_Changed"
-        TextWrapping="Wrap" />
-        <TextBox
-        x:Name="CustomToneTextBox"
-        Grid.Row="1"
-        AcceptsReturn="False"
-        AutomationProperties.Name="Tone input"
-        Description=" "
-        PlaceholderText="What tone do you want to change the input text to have? Try creative styles like 'Goofy' or 'Pirate'"
-        TextChanged="CustomToneBox_Changed"
-        TextWrapping="NoWrap" />
+            x:Name="InputTextBox"
+            Grid.Row="0"
+            Height="148"
+            AcceptsReturn="True"
+            AutomationProperties.Name="Prompt input"
+            Description=" "
+            PlaceholderText="Insert text to rewrite here.."
+            TextChanged="InputBox_Changed"
+            TextWrapping="Wrap" />
+        
+        <StackPanel Grid.Row="1" Spacing="8">
+            <TextBlock Text="Select Tone:" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+            <StackPanel Spacing="8">
+                <RadioButton 
+                    x:Name="GeneralRadioButton" 
+                    Content="General" 
+                    IsChecked="True"
+                    GroupName="ToneSelection" />
+                <RadioButton 
+                    x:Name="CasualRadioButton" 
+                    Content="Casual"
+                    GroupName="ToneSelection" />
+                <RadioButton 
+                    x:Name="ConciseRadioButton" 
+                    Content="Concise"
+                    GroupName="ToneSelection" />
+                <RadioButton 
+                    x:Name="FormalRadioButton" 
+                    Content="Formal"
+                    GroupName="ToneSelection" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <RadioButton 
+                        x:Name="CustomRadioButton" 
+                        Grid.Column="0"
+                        Content="Custom"
+                        Checked="CustomRadioButton_Checked"
+                        Unchecked="CustomRadioButton_Unchecked"
+                        GroupName="ToneSelection" />
+                    <TextBox
+                        x:Name="CustomToneTextBox"
+                        Grid.Column="1"
+                        AcceptsReturn="False"
+                        AutomationProperties.Name="Custom tone input"
+                        IsEnabled="False"
+                        PlaceholderText="Enter custom tone (e.g., 'Goofy', 'Pirate')"
+                        TextWrapping="NoWrap" />
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+        
         <StackPanel
-        Grid.Row="2"
-        HorizontalAlignment="Right"
-        Orientation="Horizontal"
-        Spacing="8">
+            Grid.Row="2"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="8">
             <Button
-            x:Name="RewriteButton"
-            Width="Auto"
-            Click="RewriteButton_Click"
-            Content="Rewrite"
-            IsEnabled="False"
-            Style="{ThemeResource AccentButtonStyle}" />
+                x:Name="RewriteButton"
+                Width="Auto"
+                Click="RewriteButton_Click"
+                Content="Rewrite"
+                IsEnabled="False"
+                Style="{ThemeResource AccentButtonStyle}" />
             <Button
-            x:Name="StopBtn"
-            Width="Auto"
-            AutomationProperties.Name="Stop"
-            Click="StopBtn_Click"
-            Style="{ThemeResource AccentButtonStyle}"
-            Visibility="Collapsed">
+                x:Name="StopBtn"
+                Width="Auto"
+                AutomationProperties.Name="Stop"
+                Click="StopBtn_Click"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon
-                    x:Name="StopIcon"
-                    FontSize="16"
-                    Glyph="&#xE73B;" />
+                        x:Name="StopIcon"
+                        FontSize="16"
+                        Glyph="&#xE73B;" />
                     <ProgressRing
-                    x:Name="OutputProgressBar"
-                    Width="16"
-                    Height="16"
-                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                    IsIndeterminate="True"
-                    Visibility="Collapsed" />
+                        x:Name="OutputProgressBar"
+                        Width="16"
+                        Height="16"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        IsIndeterminate="True"
+                        Visibility="Collapsed" />
                     <TextBlock Text="Stop" />
                 </StackPanel>
             </Button>
         </StackPanel>
         <TextBlock
-        Grid.Row="3"
-        Margin="0,8,0,0"
-        Style="{ThemeResource BodyStrongTextBlockStyle}"
-        Text="Rewritten Text:" />
+            Grid.Row="3"
+            Margin="0,8,0,0"
+            Style="{ThemeResource BodyStrongTextBlockStyle}"
+            Text="Rewritten Text:" />
         <ScrollViewer
-        Grid.Row="4"
-        AutomationProperties.Name="Rewritten Text Scroll Area"
-        HorizontalScrollBarVisibility="Disabled"
-        IsTabStop="True"
-        TabNavigation="Once"
-        VerticalScrollBarVisibility="Auto">
+            Grid.Row="4"
+            AutomationProperties.Name="Rewritten Text Scroll Area"
+            HorizontalScrollBarVisibility="Disabled"
+            IsTabStop="True"
+            TabNavigation="Once"
+            VerticalScrollBarVisibility="Auto">
             <TextBlock
-            x:Name="RewriteTextBlock"
-            AutomationProperties.Name="Output"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            IsTextSelectionEnabled="True"
-            TextWrapping="WrapWholeWords" />
+                x:Name="RewriteTextBlock"
+                AutomationProperties.Name="Output"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                TextWrapping="WrapWholeWords" />
         </ScrollViewer>
     </Grid>
 </samples:BaseSamplePage>

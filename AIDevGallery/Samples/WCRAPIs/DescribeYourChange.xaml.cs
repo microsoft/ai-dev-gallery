@@ -14,6 +14,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Foundation;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 
@@ -126,6 +127,33 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         }
     }
 
+    private string GetSelectedTone()
+    {
+        if (GeneralRadioButton.IsChecked == true)
+        {
+            return "General";
+        }
+        else if (CasualRadioButton.IsChecked == true)
+        {
+            return "Casual";
+        }
+        else if (ConciseRadioButton.IsChecked == true)
+        {
+            return "Concise";
+        }
+        else if (FormalRadioButton.IsChecked == true)
+        {
+            return "Formal";
+        }
+        else if (CustomRadioButton.IsChecked == true)
+        {
+            // Empty custom text box will not generate a result
+            return string.IsNullOrWhiteSpace(CustomToneTextBox.Text) ? "" : CustomToneTextBox.Text;
+        }
+
+        return "General"; // Default radio fallback
+    }
+
     public async Task RewriteTextCustom(string prompt, string customTone)
     {
         if (_textRewriter == null)
@@ -155,7 +183,33 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         int outputTokens = 0;
 
         // </exclude>
-        var operation = _textRewriter.RewriteCustomAsync(prompt, customTone);
+
+        // Determine which API to use based on selected tone
+        IAsyncOperationWithProgress<LanguageModelResponseResult, string> operation;
+        string selectedTone = GetSelectedTone();
+
+        // Check if it's a predefined tone
+        if (selectedTone == "General" || selectedTone == "Casual" || selectedTone == "Concise" || selectedTone == "Formal")
+        {
+            // Map string to TextRewriteTone enum
+            TextRewriteTone toneEnum = selectedTone switch
+            {
+                "General" => TextRewriteTone.General,
+                "Casual" => TextRewriteTone.Casual,
+                "Concise" => TextRewriteTone.Concise,
+                "Formal" => TextRewriteTone.Formal,
+                _ => TextRewriteTone.General // Default fallback
+            };
+
+            // Use the predefined tone API
+            operation = _textRewriter.RewriteAsync(prompt, toneEnum);
+        }
+        else
+        {
+            // Use custom tone API for custom selections
+            operation = _textRewriter.RewriteCustomAsync(prompt, selectedTone);
+        }
+
         operation.Progress = (asyncInfo, delta) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -203,16 +257,38 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         StopBtn.Visibility = Visibility.Collapsed;
         RewriteButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
-        CustomToneTextBox.IsEnabled = true;
+        CustomToneTextBox.IsEnabled = CustomRadioButton.IsChecked == true;
         _cts?.Dispose();
         _cts = null;
     }
 
+    private void CustomRadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+        // Enable the custom tone text box when Custom is selected
+        if (CustomToneTextBox != null)
+        {
+            CustomToneTextBox.IsEnabled = true;
+            CustomToneTextBox.Focus(FocusState.Programmatic);
+        }
+
+        UpdateRewriteButtonState();
+    }
+
+    private void CustomRadioButton_Unchecked(object sender, RoutedEventArgs e)
+    {
+        // Disable the custom tone text box when Custom is deselected
+        if (CustomToneTextBox != null)
+        {
+            CustomToneTextBox.IsEnabled = false;
+        }
+    }
+
     private void RewriteButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this.InputTextBox.Text.Length > 0 && this.CustomToneTextBox.Text.Length > 0)
+        if (InputTextBox.Text.Length > 0)
         {
-            _ = RewriteTextCustom(InputTextBox.Text, CustomToneTextBox.Text);
+            string selectedTone = GetSelectedTone();
+            _ = RewriteTextCustom(InputTextBox.Text, selectedTone);
         }
     }
 
@@ -247,11 +323,6 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         UpdateRewriteButtonState();
     }
 
-    private void CustomToneBox_Changed(object sender, TextChangedEventArgs e)
-    {
-        UpdateRewriteButtonState();
-    }
-
     private void UpdateRewriteButtonState()
     {
         var inputLength = InputTextBox.Text.Length;
@@ -274,8 +345,8 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
             InputTextBox.Description = string.Empty;
         }
 
-        // Enable button only if both fields have valid text
-        RewriteButton.IsEnabled = inputLength > 0 && inputLength <= MaxLength &&
-                                  toneLength > 0 && toneLength <= MaxLength;
+
+        // Enable button only if the input box has valid text
+        RewriteButton.IsEnabled = inputLength > 0 && inputLength <= MaxLength;
     }
 }
