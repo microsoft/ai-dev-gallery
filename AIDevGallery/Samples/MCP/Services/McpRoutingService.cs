@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -42,9 +43,16 @@ public class McpRoutingService
     /// </summary>
     private class IntentClassificationResponse
     {
+        [JsonPropertyName("need_tool")]
         public bool NeedTool { get; set; }
+        
+        [JsonPropertyName("topic")]
         public string Topic { get; set; } = string.Empty;
+        
+        [JsonPropertyName("keywords")]
         public string[] Keywords { get; set; } = [];
+        
+        [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
 
@@ -53,8 +61,13 @@ public class McpRoutingService
     /// </summary>
     private class ServerSelectionResponse
     {
+        [JsonPropertyName("chosen_server_id")]
         public string ChosenServerId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("ranking")]
         public ServerRanking[] Ranking { get; set; } = [];
+        
+        [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
 
@@ -63,8 +76,13 @@ public class McpRoutingService
     /// </summary>
     private class ServerRanking
     {
+        [JsonPropertyName("server_id")]
         public string ServerId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("score")]
         public double Score { get; set; }
+        
+        [JsonPropertyName("reasons")]
         public string[] Reasons { get; set; } = [];
     }
 
@@ -73,8 +91,13 @@ public class McpRoutingService
     /// </summary>
     private class ToolSelectionResponse
     {
+        [JsonPropertyName("chosen_tool_name")]
         public string ChosenToolName { get; set; } = string.Empty;
+        
+        [JsonPropertyName("alternatives")]
         public string[] Alternatives { get; set; } = [];
+        
+        [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
 
@@ -83,9 +106,16 @@ public class McpRoutingService
     /// </summary>
     private class ArgumentExtractionResponse
     {
+        [JsonPropertyName("arguments")]
         public Dictionary<string, object> Arguments { get; set; } = new();
+        
+        [JsonPropertyName("missing")]
         public string[] Missing { get; set; } = [];
+        
+        [JsonPropertyName("clarify_question")]
         public string ClarifyQuestion { get; set; } = string.Empty;
+        
+        [JsonPropertyName("confidence")]
         public double Confidence { get; set; }
     }
 
@@ -94,11 +124,22 @@ public class McpRoutingService
     /// </summary>
     private class ToolInvocationPlanResponse
     {
+        [JsonPropertyName("action")]
         public string Action { get; set; } = "call_tool";
+        
+        [JsonPropertyName("server_id")]
         public string ServerId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("tool_name")]
         public string ToolName { get; set; } = string.Empty;
+        
+        [JsonPropertyName("arguments")]
         public Dictionary<string, object> Arguments { get; set; } = new();
+        
+        [JsonPropertyName("timeout_ms")]
         public int TimeoutMs { get; set; } = 120000;
+        
+        [JsonPropertyName("retries")]
         public int Retries { get; set; } = 1;
     }
 
@@ -276,7 +317,7 @@ public class McpRoutingService
             2. 不得使用```json```代码块包装
             3. 必须是有效的JSON格式，所有字符串用双引号包围
             4. 不得在JSON前后添加任何文字说明
-            
+
             返回严格的JSON格式，不得输出任何解释性文字：
             {
               "need_tool": true | false,
