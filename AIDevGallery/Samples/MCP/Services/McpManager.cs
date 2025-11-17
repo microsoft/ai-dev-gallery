@@ -239,7 +239,13 @@ public class McpManager : IDisposable
 
         try
         {
+            var structuredContent = result.Data.GetType().GetProperty("structuredContent")?.GetValue(result.Data, null);
             var json = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true });
+            if (structuredContent != null)
+            {
+                json = JsonSerializer.Serialize(structuredContent, new JsonSerializerOptions { WriteIndented = true });
+            }
+            
             return $"获取到以下信息：\n{json}";
         }
         catch
