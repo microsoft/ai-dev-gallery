@@ -55,7 +55,8 @@
                             <RichEditBox
                                 x:Name="InputTextBox"
                                 Height="200"
-                                MinWidth="300">
+                                MinWidth="300"
+                                AutomationProperties.Name="InputTextBox">
                                 <RichEditBox.SelectionFlyout>
                                     <Flyout
                                         x:Name="AIFlyout"
