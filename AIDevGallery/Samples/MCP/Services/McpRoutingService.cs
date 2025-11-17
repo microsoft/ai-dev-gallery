@@ -308,22 +308,22 @@ public class McpRoutingService
     private async Task<IntentClassificationResponse?> ClassifyIntentAsync(string userQuery)
     {
         var systemPrompt = """
-            你是一个 MCP-aware 助手，只能通过 MCP 协议调用已注册的工具来完成用户请求。不得绕过 MCP 执行命令，也不得在未调用工具时编造答案。
+            你是一个专门的JSON响应生成器。你的唯一任务是分析用户的MCP工具请求并返回结构化的JSON分析结果。
 
-            请根据用户问题识别是否需要通过 MCP 工具来完成任务，并给出主题与关键词。
+            CRITICAL CONSTRAINTS:
+            - 你只能输出有效的JSON对象，绝对不能包含任何其他文本
+            - 不能使用markdown、代码块标记或任何格式化
+            - 不能添加解释、注释或说明文字
+            - JSON必须严格符合指定的schema
 
-            规则：
-            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
-            2. 不得使用```json```代码块包装
-            3. 必须是有效的JSON格式，所有字符串用双引号包围
-            4. 不得在JSON前后添加任何文字说明
+            任务：分析用户问题是否需要MCP工具，识别主题和关键词。
 
-            返回严格的JSON格式，不得输出任何解释性文字：
+            必须返回且仅返回这个JSON结构：
             {
-              "need_tool": true | false,
-              "topic": "systeminfo | filesystem | settings | hardware | network | other",
-              "keywords": ["string", ...],
-              "confidence": 0.0-1.0
+              "need_tool": boolean,
+              "topic": "systeminfo" | "filesystem" | "settings" | "hardware" | "network" | "other",
+              "keywords": ["string1", "string2", ...],
+              "confidence": number_between_0_and_1
             }
             """;
 
@@ -349,23 +349,25 @@ public class McpRoutingService
         }), new JsonSerializerOptions { WriteIndented = true });
 
         var systemPrompt = """
-            从以下可用 MCP servers 中选择最适合完成任务的一个。请依据名称、标签、能力、健康度等进行排序，并返回最佳者。
+            你是一个服务器选择分析器，只输出JSON格式的选择结果。
 
-            规则：
-            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
-            2. 不得使用```json```代码块包装
-            3. 必须是有效的JSON格式，所有字符串用双引号包围
-            4. 不得在JSON前后添加任何文字说明
+            分析可用的MCP服务器，根据用户意图、服务器能力、健康度和匹配度选择最佳服务器。
 
-            返回严格的JSON格式，不得输出任何解释性文字：
+            OUTPUT REQUIREMENT: 返回且仅返回符合以下结构的JSON对象：
             {
-              "chosen_server_id": "string",
+              "chosen_server_id": "最佳服务器的ID字符串",
               "ranking": [
-                {"server_id": "string", "score": 0.0-1.0, "reasons": ["string", "..."]},
-                {"server_id": "string", "score": 0.0-1.0, "reasons": ["string", "..."]}
+                {"server_id": "服务器ID", "score": 0.85, "reasons": ["匹配原因1", "匹配原因2"]},
+                {"server_id": "服务器ID", "score": 0.72, "reasons": ["匹配原因"]}
               ],
-              "confidence": 0.0-1.0
+              "confidence": 0.9
             }
+
+            绝对禁止：
+            - 任何解释性文字
+            - Markdown格式
+            - 代码块标记
+            - JSON之外的任何内容
             """;
 
         var userPrompt = $"""
@@ -390,20 +392,22 @@ public class McpRoutingService
         }), new JsonSerializerOptions { WriteIndented = true });
 
         var systemPrompt = """
-            基于选定的 MCP server 的可用工具列表，选择一个最能满足用户需求的工具。优先参数少、权限小、成功率高的工具。
+            你是一个工具选择器，专门从MCP服务器的工具列表中选择最合适的工具。
 
-            规则：
-            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
-            2. 不得使用```json```代码块包装
-            3. 必须是有效的JSON格式，所有字符串用双引号包围
-            4. 不得在JSON前后添加任何文字说明
+            选择标准：参数简单、权限最小、成功率高、功能匹配度最佳。
 
-            返回严格的JSON格式，不得输出任何解释性文字：
+            必须输出且仅输出此JSON结构：
             {
-              "chosen_tool_name": "string",
-              "alternatives": ["string", "..."],
-              "confidence": 0.0-1.0
+              "chosen_tool_name": "选中的工具名称",
+              "alternatives": ["备选工具1", "备选工具2"],
+              "confidence": 0.95
             }
+
+            严格要求：
+            - 只能输出有效JSON
+            - 不能有任何额外文本
+            - confidence必须是0到1之间的数字
+            - alternatives数组可以为空但必须存在
             """;
 
         var userPrompt = $"""
@@ -422,15 +426,29 @@ public class McpRoutingService
     private async Task<ArgumentExtractionResponse?> ExtractArgumentsAsync(string userQuery, McpToolInfo tool, IntentClassificationResponse intent)
     {
         var systemPrompt = """
-            请根据工具的参数定义，从用户问题与上下文中提取或推断调用所需的**最小充分参数**。不得臆造未知值；若缺失请返回缺失字段并附一条中文澄清问题。
+            你是参数提取器，从用户查询中提取工具调用所需的参数。
 
-            返回严格的JSON格式，不得输出任何解释性文字：
+            提取规则：
+            - 只提取能从用户输入中明确获得的参数
+            - 不要臆造或猜测未知值
+            - 如有必需参数缺失，在missing数组中列出并提供澄清问题
+
+            输出要求：必须且仅返回以下JSON结构：
             {
-              "arguments": { /* 满足 schema 的键值 */ },
-              "missing": ["fieldA", "fieldB"],       // 若无缺失则为空数组
-              "clarify_question": "仅当missing非空时给出的一条中文澄清问题",
-              "confidence": 0.0-1.0
+              "arguments": {
+                "参数名": "参数值",
+                "param2": 123
+              },
+              "missing": ["缺失的参数名1", "缺失的参数名2"],
+              "clarify_question": "请提供缺失的参数信息：...",
+              "confidence": 0.8
             }
+
+            注意：
+            - arguments对象包含成功提取的参数
+            - missing数组为空表示无缺失参数
+            - clarify_question仅在missing非空时提供
+            - 禁止输出JSON之外的任何内容
             """;
 
         var userPrompt = $"""
@@ -449,22 +467,26 @@ public class McpRoutingService
     private async Task<ToolInvocationPlanResponse?> CreateInvocationPlanAsync(string userQuery, McpServerInfo server, McpToolInfo tool, Dictionary<string, object> arguments)
     {
         var systemPrompt = """
-            请生成一次可执行的 MCP 工具调用计划。计划必须可由客户端直接执行，不包含自由文本。
+            你是工具调用计划生成器，创建可执行的MCP工具调用配置。
 
-            规则：
-            1. 只能返回纯JSON，不得包含任何解释、注释或markdown标记
-            2. 不得使用```json```代码块包装
-            3. 必须是有效的JSON格式，所有字符串用双引号包围
-            4. 不得在JSON前后添加任何文字说明
-
+            必须生成且仅生成以下JSON结构：
             {
               "action": "call_tool",
-              "server_id": "string",
-              "tool_name": "string",
-              "arguments": {},
+              "server_id": "服务器ID字符串",
+              "tool_name": "工具名称字符串", 
+              "arguments": {
+                "参数名": "参数值"
+              },
               "timeout_ms": 120000,
               "retries": 1
             }
+
+            要求：
+            - action固定为"call_tool"
+            - server_id和tool_name使用提供的值
+            - arguments包含所有必需参数
+            - timeout_ms默认120000，retries默认1
+            - 只输出JSON，无其他内容
             """;
 
         var userPrompt = $"""
@@ -479,7 +501,7 @@ public class McpRoutingService
     }
 
     /// <summary>
-    /// 通用AI调用方法，解析JSON响应
+    /// 通用AI调用方法，使用结构化输出获取JSON响应
     /// </summary>
     private async Task<T?> CallAIWithJsonResponse<T>(string systemPrompt, string userPrompt, string stepName) where T : class
     {
@@ -491,31 +513,58 @@ public class McpRoutingService
                 new ChatMessage(ChatRole.User, userPrompt)
             };
 
-            var response = await _chatClient!.GetResponseAsync(messages);
-            var aiResponse = response.Text ?? string.Empty;
-
-            _logger?.LogDebug($"🤖 {stepName} AI Response: {aiResponse}");
-
-            // 尝试提取并解析JSON
-            var jsonStart = aiResponse.IndexOf('{');
-            var jsonEnd = aiResponse.LastIndexOf('}');
-            
-            if (jsonStart >= 0 && jsonEnd >= jsonStart)
+            // 方法1: 使用 Microsoft.Extensions.AI 的结构化输出 (推荐)
+            try 
             {
-                var jsonPart = aiResponse.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                var result = JsonSerializer.Deserialize<T>(jsonPart, new JsonSerializerOptions 
-                { 
-                    PropertyNameCaseInsensitive = true 
-                });
-
-                if (result != null)
+                var structuredResponse = await _chatClient!.GetResponseAsync<T>(
+                    messages, 
+                    options: new ChatOptions
+                    {
+                        ResponseFormat = ChatResponseFormat.ForJsonSchema<T>()
+                    });
+                
+                if (structuredResponse?.Value != null)
                 {
-                    _logger?.LogDebug($"✅ {stepName} parsed successfully");
-                    return result;
+                    _logger?.LogDebug($"✅ {stepName} structured output parsed successfully");
+                    return structuredResponse.Value;
+                }
+            }
+            catch (Exception structuredEx)
+            {
+                _logger?.LogWarning(structuredEx, $"⚠️ Structured output failed for {stepName}, falling back to text parsing");
+                
+                // 方法2: 降级到增强的文本解析 (更严格的约束)
+                var chatOptions = new ChatOptions
+                {
+                    ResponseFormat = ChatResponseFormat.Json, // 强制JSON模式
+                    Temperature = 0.1f // 低温度确保更一致的输出
+                };
+
+                var response = await _chatClient!.GetResponseAsync(messages, chatOptions);
+                var aiResponse = response.Text ?? string.Empty;
+
+                _logger?.LogDebug($"🤖 {stepName} AI Response: {aiResponse}");
+
+                // 更严格的JSON验证和清理
+                var cleanedJson = CleanJsonResponse(aiResponse);
+                if (!string.IsNullOrEmpty(cleanedJson))
+                {
+                    var result = JsonSerializer.Deserialize<T>(cleanedJson, new JsonSerializerOptions 
+                    { 
+                        PropertyNameCaseInsensitive = true,
+                        AllowTrailingCommas = true,
+                        ReadCommentHandling = JsonCommentHandling.Skip
+                    });
+
+                    if (result != null)
+                    {
+                        _logger?.LogDebug($"✅ {stepName} fallback parsing successful");
+                        return result;
+                    }
                 }
             }
 
-            _logger?.LogWarning($"⚠️ Could not parse {stepName} response: {aiResponse}");
+            _logger?.LogWarning($"⚠️ Could not parse {stepName} response with any method");
             return null;
         }
         catch (Exception ex)
@@ -523,6 +572,58 @@ public class McpRoutingService
             _logger?.LogError(ex, $"❌ Error during {stepName}");
             return null;
         }
+    }
+
+    /// <summary>
+    /// 清理和验证JSON响应
+    /// </summary>
+    private string CleanJsonResponse(string response)
+    {
+        if (string.IsNullOrWhiteSpace(response))
+            return string.Empty;
+
+        // 移除常见的非JSON前缀和后缀
+        var cleaned = response.Trim();
+        
+        // 移除markdown代码块标记
+        if (cleaned.StartsWith("```json"))
+        {
+            cleaned = cleaned.Substring(7);
+        }
+        else if (cleaned.StartsWith("```"))
+        {
+            cleaned = cleaned.Substring(3);
+        }
+        
+        if (cleaned.EndsWith("```"))
+        {
+            cleaned = cleaned.Substring(0, cleaned.Length - 3);
+        }
+
+        cleaned = cleaned.Trim();
+
+        // 找到第一个 { 和最后一个 }
+        var jsonStart = cleaned.IndexOf('{');
+        var jsonEnd = cleaned.LastIndexOf('}');
+        
+        if (jsonStart >= 0 && jsonEnd >= jsonStart)
+        {
+            var jsonPart = cleaned.Substring(jsonStart, jsonEnd - jsonStart + 1);
+            
+            // 验证JSON格式
+            try
+            {
+                using var doc = JsonDocument.Parse(jsonPart);
+                return jsonPart; // 如果能解析，返回清理后的JSON
+            }
+            catch (JsonException)
+            {
+                _logger?.LogWarning($"Invalid JSON detected: {jsonPart.Substring(0, Math.Min(100, jsonPart.Length))}...");
+                return string.Empty;
+            }
+        }
+
+        return string.Empty;
     }
 
 
