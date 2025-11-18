@@ -153,6 +153,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// 步骤6: 使用AI分析和提取工具调用结果
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<string?> AnalyzeResultAsync(
         string originalQuery, 
         McpInvocationResult result, 

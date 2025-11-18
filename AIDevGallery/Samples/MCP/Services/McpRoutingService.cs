@@ -36,6 +36,7 @@ public class McpRoutingService
     /// <param name="userQuery">用户查询内容</param>
     /// <param name="thinkAreaCallback">用于更新思考区域内容的回调函数</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [RequiresDynamicCode("Uses JSON serialization for MCP protocol and AI routing which may require dynamic code generation")]
     public async Task<McpRoutingResult?> RouteQueryAsync(string userQuery, Action<string>? thinkAreaCallback = null)
     {
         if (string.IsNullOrWhiteSpace(userQuery))

@@ -36,7 +36,7 @@ public class McpManager : IDisposable
         var loggerFactory = logger != null ? new WrappedLoggerFactory(logger) : null;
 
         _discoveryService = new McpDiscoveryService(loggerFactory?.CreateLogger<McpDiscoveryService>());
-        _routingService = new McpRoutingService(_discoveryService, loggerFactory?.CreateLogger<McpRoutingService>(), chatClient);
+        _routingService = new McpRoutingService(_discoveryService, chatClient);
         _invocationService = new McpInvocationService(_discoveryService, loggerFactory?.CreateLogger<McpInvocationService>());
         _resultProcessor = new McpResultProcessor(chatClient, loggerFactory?.CreateLogger<McpResultProcessor>());
     }
@@ -242,7 +242,7 @@ public class McpManager : IDisposable
     /// <summary>
     /// 检查是否需要用户确认 - 实现最小权限原则
     /// </summary>
-    private bool RequiresUserConfirmation(RoutingDecision decision)
+    private bool RequiresUserConfirmation(McpRoutingResult decision)
     {
         // 基于工具类型或服务器类别决定是否需要确认
         var sensitiveCategories = new[] { "system", "file", "network", "process", "settings", "configuration" };
