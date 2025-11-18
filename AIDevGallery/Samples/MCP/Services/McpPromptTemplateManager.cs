@@ -61,7 +61,7 @@ public static class McpPromptTemplateManager
             }
             
             分析规则：
-            - need_tool: 判断用户请求是否需要通过MCP工具来自动化完成。只有纯粹的对话、解释、建议类请求才应该返回false
+            - need_tool: 判断用户请求是否可以通过MCP工具来自动化完成。只有纯粹的对话、解释、建议类请求才应该返回false
             - need_tool_reason: 详细解释判断原因。如果是true，说明需要哪类工具；如果是false，说明为什么这是纯对话请求
             - topic: 根据用户意图选择最匹配的主题类别
             - keywords: 提取关键词用于后续工具匹配
@@ -472,7 +472,7 @@ public static class McpPromptTemplateManager
             {dataJson}
             ```
 
-            请根据这些数据回答用户的问题。如果数据中没有相关信息，请明确说明。
+            请根据这些数据回答用户的问题。如果数据中没有相关信息，请明确说明。Please respond in English
             """;
     }
 
@@ -492,7 +492,7 @@ public static class McpPromptTemplateManager
             当前可用的MCP工具：
             {toolsList}
 
-            请向用户解释为什么无法处理，并基于现有工具提供具体的查询建议。
+            请向用户解释为什么无法处理，并基于现有工具提供具体的查询建议。Please respond in English
             """;
     }
 }

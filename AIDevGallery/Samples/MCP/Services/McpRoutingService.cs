@@ -163,7 +163,7 @@ public class McpRoutingService
                 SelectedTool = selectedTool,
                 Parameters = argumentsResult.Parameters,
                 Confidence = overallConfidence,
-                Reasoning = $"AI多步骤决策: 意图={intent.Topic}, 服务器={selectedServer.Name}, 工具={selectedTool.Name}",
+                Reasoning = $"AI multi-step decision: intent={intent.Topic}, server={selectedServer.Name}, tool={selectedTool.Name}",
                 RequiresClarification = false,
                 InvocationPlan = planResult.Result
             };
@@ -207,7 +207,7 @@ public class McpRoutingService
                     SelectedTool = selectedTool,
                     Parameters = argumentResult.Result.Arguments,
                     Confidence = argumentResult.Confidence,
-                    Reasoning = $"需要澄清: {argumentResult.Result.ClarifyQuestion}",
+                    Reasoning = $"Need clarification: {argumentResult.Result.ClarifyQuestion}",
                     RequiresClarification = true,
                     ClarificationQuestion = argumentResult.Result.ClarifyQuestion
                 };
