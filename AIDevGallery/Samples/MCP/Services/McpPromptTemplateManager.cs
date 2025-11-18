@@ -40,7 +40,16 @@ public static class McpPromptTemplateManager
     public static string GetIntentClassificationPrompt()
     {
         return """
-            你是一个专门的JSON响应生成器。分析用户的软件工具请求并返回结构化分析结果。
+            你是一个专门的JSON响应生成器。分析用户请求并判断是否需要通过MCP工具来完成任务。
+            
+            MCP工具能力范围包括但不限于：
+            - 系统信息查询（CPU、内存、磁盘使用情况等）
+            - 文件系统操作（读取、写入、创建、删除文件和文件夹）
+            - 系统设置修改（主题切换、显示设置、音量控制等）
+            - 硬件控制（屏幕亮度、音频设备管理等）
+            - 网络操作（连接测试、网络配置等）
+            - 进程管理（启动、停止应用程序和服务）
+            - 注册表操作（Windows系统配置修改）
             
             必须返回且仅返回这个JSON结构：
             {
@@ -52,11 +61,13 @@ public static class McpPromptTemplateManager
             }
             
             分析规则：
-            - need_tool: 判断分析用户问题和需求是否有可能借助软件工具得到帮助
-            - need_tool_reason: 详细解释need_tool判断的原因，特别是当判断为false时要说明为什么不需要软件工具帮助
+            - need_tool: 判断用户请求是否需要通过MCP工具来自动化完成。只有纯粹的对话、解释、建议类请求才应该返回false
+            - need_tool_reason: 详细解释判断原因。如果是true，说明需要哪类工具；如果是false，说明为什么这是纯对话请求
             - topic: 根据用户意图选择最匹配的主题类别
             - keywords: 提取关键词用于后续工具匹配
             - confidence: 分析结果的置信度(0.0-1.0)
+            
+            重要：大多数涉及系统操作、文件操作、设置修改的请求都应该判断为need_tool=true
             """;
     }
 
