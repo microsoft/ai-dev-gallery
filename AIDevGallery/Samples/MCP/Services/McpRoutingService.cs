@@ -237,6 +237,7 @@ public class McpRoutingService
             && HasValidProperties(props, thinkAreaCallback))
         {
             var argumentResult = await _aiService.ExtractArgumentsAsync(userQuery, selectedTool, intent);
+            
             if (!argumentResult.Success || argumentResult.Result == null)
             {
                 var extractFailMessage = "❌ Failed to extract arguments";
@@ -261,7 +262,7 @@ public class McpRoutingService
                     ClarificationQuestion = argumentResult.Result.ClarifyQuestion
                 };
             }
-
+            thinkAreaCallback?.Invoke(JsonSerializer.Serialize(argumentResult.Result.Arguments));
             return new RoutingDecision
             {
                 SelectedServer = null!,
