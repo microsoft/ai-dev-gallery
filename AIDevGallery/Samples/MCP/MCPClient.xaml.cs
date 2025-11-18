@@ -6,7 +6,6 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.MCP.Services;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -585,10 +584,10 @@ public class DebugLogger<T> : ILogger<T>
     {
         var message = formatter(state, exception);
         var logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] [{logLevel}] {typeof(T).Name}: {message}";
-        
+
         // 输出到 VS Debug 窗口
         Debug.WriteLine(logMessage);
-        
+
         // 同时输出到控制台（如果有的话）
         Console.WriteLine(logMessage);
     }

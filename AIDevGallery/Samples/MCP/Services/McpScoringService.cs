@@ -19,29 +19,29 @@ public class McpScoringService
 {
     private readonly ILogger? _logger;
     private readonly McpScoringConfiguration _config;
-    
+
     // 缓存计算结果以提升性能
     private readonly ConcurrentDictionary<string, string> _intentCache = new();
     private readonly ConcurrentDictionary<string, double> _scoreCache = new();
-    
+
     // 预编译的正则表达式
     private static readonly Regex NumberRegex = new(@"\d+", RegexOptions.Compiled);
     private static readonly Regex PathRegex = new(@"[A-Za-z]:\\[^<>:""|?*\n\r]*", RegexOptions.Compiled);
     private static readonly Regex WordBoundaryRegex = new(@"\W+", RegexOptions.Compiled);
-    
+
     // 评分权重常量 - 标准化到相似范围
     private const double ExactMatchScore = 10.0;
     private const double WordMatchScore = 8.0;
     private const double PartialMatchScore = 5.0;
     private const double FuzzyMatchScore = 2.0;
-    
+
     // 主要评分因素的基础分数 - 标准化到0-100范围
     private const double MaxServerTypeScore = 40.0;    // 降低服务器类型的过度影响
     private const double MaxToolNameScore = 35.0;      // 工具名称匹配很重要
     private const double MaxKeywordScore = 25.0;       // 关键词匹配重要性
     private const double MaxDescriptionScore = 20.0;   // 提升描述匹配的权重
     private const double MaxActionScore = 15.0;
-    
+
     // 调整因子
     private const double PriorityMultiplier = 2.0;     // 提升优先级影响
     private const double MaxResponseTimePenalty = 0.2; // 降低响应时间惩罚
@@ -71,6 +71,7 @@ public class McpScoringService
     /// <summary>
     /// 分析用户意图
     /// </summary>
+    /// <returns></returns>
     public string AnalyzeUserIntent(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
@@ -98,8 +99,8 @@ public class McpScoringService
             }
         }
 
-        var bestIntent = scores.Any() 
-            ? scores.OrderByDescending(kvp => kvp.Value).First().Key 
+        var bestIntent = scores.Any()
+            ? scores.OrderByDescending(kvp => kvp.Value).First().Key
             : "general";
 
         // 缓存结果
@@ -159,6 +160,7 @@ public class McpScoringService
     /// <summary>
     /// 计算 server-tool 组合与查询的匹配分数
     /// </summary>
+    /// <returns></returns>
     public (double score, string reasoning) CalculateMatchScore(string query, string intent, McpServerInfo server, McpToolInfo tool)
     {
         if (string.IsNullOrWhiteSpace(query) || server == null || tool == null)
@@ -260,7 +262,7 @@ public class McpScoringService
             score = Math.Max(0, Math.Min(score, _config.MaxScore));
 
             var reasoning = reasons.Any() ? string.Join("; ", reasons) : "No specific match found";
-            
+
             // 调试模式下输出详细信息
             if (_config.DebugMode)
             {
@@ -289,6 +291,7 @@ public class McpScoringService
     /// <summary>
     /// 简单的匹配分数计算（降级方案）
     /// </summary>
+    /// <returns></returns>
     public double CalculateSimpleMatchScore(string query, McpServerInfo server, McpToolInfo tool)
     {
         var score = 0.0;
@@ -347,18 +350,18 @@ public class McpScoringService
         if (serverTypeMatches.ContainsKey(serverId))
         {
             var serverTypes = serverTypeMatches[serverId];
-            
+
             // 完全匹配意图类型
             if (serverTypes.Contains(intent))
             {
                 score += MaxServerTypeScore * 0.8; // 32分
             }
-            
+
             // 部分匹配关键词
             var matchCount = intentKeywords.Count(kw =>
                 serverTypes.Any(st => kw.Contains(st, StringComparison.OrdinalIgnoreCase)));
             score += Math.Min(matchCount * 8, MaxServerTypeScore * 0.6); // 最多24分
-            
+
             // 服务器专业度加分
             var specialtyBonus = serverTypes.Length > 3 ? 4 : serverTypes.Length * 2;
             score += specialtyBonus;
@@ -467,6 +470,7 @@ public class McpScoringService
     /// <summary>
     /// 从用户查询中提取工具参数
     /// </summary>
+    /// <returns></returns>
     public Dictionary<string, object> ExtractParameters(string query, string intent, McpToolInfo tool)
     {
         var parameters = new Dictionary<string, object>();
@@ -514,11 +518,11 @@ public class McpScoringService
     private void ExtractNumericParameters(string query, Dictionary<string, object> parameters)
     {
         var numbers = NumberRegex.Matches(query).Cast<Match>().Select(m => m.Value).ToList();
-        
+
         if (numbers.Any())
         {
             parameters["value"] = numbers.First();
-            
+
             if (numbers.Count > 1)
             {
                 parameters["values"] = numbers.ToArray();
@@ -563,14 +567,14 @@ public class McpScoringService
     {
         var extensionPattern = @"\.([a-zA-Z]{1,4})\b";
         var extensionMatches = Regex.Matches(query, extensionPattern);
-        
+
         if (extensionMatches.Any())
         {
             var extensions = extensionMatches.Cast<Match>()
                 .Select(m => m.Groups[1].Value.ToLowerInvariant())
                 .Distinct()
                 .ToArray();
-            
+
             parameters["fileExtensions"] = extensions;
             parameters["fileExtension"] = extensions.First();
         }
@@ -605,7 +609,7 @@ public class McpScoringService
         // 匹配时间格式如 "12:30", "2:45 PM"
         var timePattern = @"\b(\d{1,2}):(\d{2})(?:\s*(AM|PM))?\b";
         var timeMatch = Regex.Match(query, timePattern, RegexOptions.IgnoreCase);
-        
+
         if (timeMatch.Success)
         {
             parameters["time"] = timeMatch.Value;
@@ -614,7 +618,7 @@ public class McpScoringService
         // 匹配持续时间如 "5 minutes", "2 hours"
         var durationPattern = @"\b(\d+)\s+(second|minute|hour|day|week|month|year)s?\b";
         var durationMatch = Regex.Match(query, durationPattern, RegexOptions.IgnoreCase);
-        
+
         if (durationMatch.Success)
         {
             parameters["duration"] = durationMatch.Value;
@@ -633,6 +637,7 @@ public class McpScoringService
                 {
                     parameters["recursive"] = true;
                 }
+
                 break;
 
             case "memory":
@@ -640,6 +645,7 @@ public class McpScoringService
                 {
                     parameters["showPercentage"] = true;
                 }
+
                 break;
 
             case "network":
@@ -647,6 +653,7 @@ public class McpScoringService
                 {
                     parameters["verbose"] = true;
                 }
+
                 break;
         }
     }
@@ -654,9 +661,10 @@ public class McpScoringService
     /// <summary>
     /// 批量计算多个工具的匹配分数
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     public async Task<List<(McpServerInfo server, McpToolInfo tool, double score, string reasoning)>> CalculateMatchScoresAsync(
-        string query, 
-        string intent, 
+        string query,
+        string intent,
         IEnumerable<(McpServerInfo server, McpToolInfo tool)> candidates)
     {
         if (string.IsNullOrWhiteSpace(query) || candidates == null)
@@ -687,6 +695,7 @@ public class McpScoringService
     /// <summary>
     /// 获取缓存统计信息
     /// </summary>
+    /// <returns></returns>
     public (int intentCacheSize, int scoreCacheSize) GetCacheStats()
     {
         return (_intentCache.Count, _scoreCache.Count);
@@ -699,62 +708,62 @@ public class McpScoringService
 public class McpScoringConfiguration
 {
     /// <summary>
-    /// 服务器类型匹配权重（默认1.2，因为服务器选择是基础）
+    /// Gets or sets 服务器类型匹配权重（默认1.2，因为服务器选择是基础）
     /// </summary>
     public double ServerTypeWeight { get; set; } = 1.2;
-    
+
     /// <summary>
-    /// 工具名称匹配权重（默认1.5，工具名称通常很明确）
+    /// Gets or sets 工具名称匹配权重（默认1.5，工具名称通常很明确）
     /// </summary>
     public double ToolNameWeight { get; set; } = 1.5;
-    
+
     /// <summary>
-    /// 描述匹配权重（默认1.0，提升描述的重要性）
+    /// Gets or sets 描述匹配权重（默认1.0，提升描述的重要性）
     /// </summary>
     public double DescriptionWeight { get; set; } = 1.0;
-    
+
     /// <summary>
-    /// 关键词匹配权重（默认1.3，关键词很重要）
+    /// Gets or sets 关键词匹配权重（默认1.3，关键词很重要）
     /// </summary>
     public double KeywordWeight { get; set; } = 1.3;
-    
+
     /// <summary>
-    /// 优先级权重（默认0.8，避免过度依赖优先级）
+    /// Gets or sets 优先级权重（默认0.8，避免过度依赖优先级）
     /// </summary>
     public double PriorityWeight { get; set; } = 0.8;
-    
+
     /// <summary>
-    /// 健康度权重（默认1.0）
+    /// Gets or sets 健康度权重（默认1.0）
     /// </summary>
     public double HealthWeight { get; set; } = 1.0;
-    
+
     /// <summary>
-    /// 性能权重（默认0.6，性能不应该是决定因素）
+    /// Gets or sets 性能权重（默认0.6，性能不应该是决定因素）
     /// </summary>
     public double PerformanceWeight { get; set; } = 0.6;
-    
+
     /// <summary>
-    /// 最大分数限制（默认200，更合理的范围）
+    /// Gets or sets 最大分数限制（默认200，更合理的范围）
     /// </summary>
     public double MaxScore { get; set; } = 200.0;
-    
+
     /// <summary>
-    /// 缓存大小限制
+    /// Gets or sets 缓存大小限制
     /// </summary>
     public int MaxCacheSize { get; set; } = 1000;
-    
+
     /// <summary>
-    /// 缓存过期时间
+    /// Gets or sets 缓存过期时间
     /// </summary>
     public TimeSpan CacheExpiry { get; set; } = TimeSpan.FromMinutes(30);
-    
+
     /// <summary>
-    /// 是否启用调试模式（详细日志）
+    /// Gets or sets a value indicating whether 是否启用调试模式（详细日志）
     /// </summary>
     public bool DebugMode { get; set; } = false;
-    
+
     /// <summary>
-    /// 最低可接受分数（低于此分数的匹配将被过滤）
+    /// Gets or sets 最低可接受分数（低于此分数的匹配将被过滤）
     /// </summary>
     public double MinAcceptableScore { get; set; } = 10.0;
 }

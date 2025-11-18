@@ -29,11 +29,11 @@ public class McpManager : IDisposable
     public McpManager(ILogger<McpManager>? logger = null, IChatClient? chatClient = null)
     {
         _logger = logger;
-        
+
         // 为每个服务创建专用的 logger，如果需要的话
         // 这里我们传递一个通用的 logger 实现
         var loggerFactory = logger != null ? new WrappedLoggerFactory(logger) : null;
-        
+
         _discoveryService = new McpDiscoveryService(loggerFactory?.CreateLogger<McpDiscoveryService>());
         _routingService = new McpRoutingService(_discoveryService, loggerFactory?.CreateLogger<McpRoutingService>(), chatClient);
         _invocationService = new McpInvocationService(_discoveryService, loggerFactory?.CreateLogger<McpInvocationService>());
@@ -124,7 +124,7 @@ public class McpManager : IDisposable
             //     };
             // }
             _logger?.LogInformation($"🎯 Multi-step AI routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
-            
+
             thinkAreaCallback?.Invoke($"✅ Tool selected: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}\n📊 Confidence: {routingDecision.Confidence:F2}\n💭 Reasoning: {routingDecision.Reasoning}");
 
             // 添加可用候选的调试信息
@@ -134,7 +134,7 @@ public class McpManager : IDisposable
                 _logger?.LogDebug($"Alternative candidates for '{userQuery}':");
                 var alternativesInfo = string.Join("\n", candidates.Take(3).Select(c => $"  • {c.server.Name}.{c.tool.Name}: {c.score:F2}"));
                 thinkAreaCallback?.Invoke($"✅ Tool selected: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}\n📊 Confidence: {routingDecision.Confidence:F2}\n💭 Reasoning: {routingDecision.Reasoning}\n\n🔄 Alternative candidates:\n{alternativesInfo}");
-                
+
                 foreach (var candidate in candidates.Take(3))
                 {
                     _logger?.LogDebug($"  {candidate.server.Name}.{candidate.tool.Name}: {candidate.score:F2}");
@@ -227,7 +227,7 @@ public class McpManager : IDisposable
 
             var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
             var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
-            
+
             thinkAreaCallback?.Invoke("✅ AI processing complete, formatting final answer...");
 
             // 获取原始 JSON 数据并组合回答
@@ -302,7 +302,7 @@ public class McpManager : IDisposable
             try
             {
                 thinkAreaCallback?.Invoke("🔄 Attempting simple AI analysis...");
-                
+
                 // 复用现有的系统提示创建方法
                 var systemPrompt = CreateExtractionSystemPrompt(result);
 

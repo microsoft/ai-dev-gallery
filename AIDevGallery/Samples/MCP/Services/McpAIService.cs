@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -28,13 +27,15 @@ public class McpAIService
     }
 
     /// <summary>
-    /// 是否有可用的AI客户端
+    /// Gets a value indicating whether 是否有可用的AI客户端
     /// </summary>
     public bool HasAIClient => _chatClient != null;
 
     /// <summary>
     /// 步骤1: 使用AI进行意图识别
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode()]
     public async Task<RoutingStepResult<IntentClassificationResponse>> ClassifyIntentAsync(string userQuery)
     {
         var systemPrompt = McpPromptTemplateManager.GetIntentClassificationPrompt();
@@ -51,9 +52,11 @@ public class McpAIService
     /// <summary>
     /// 步骤2: 使用AI选择最佳服务器
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode()]
     public async Task<RoutingStepResult<ServerSelectionResponse>> SelectServerAsync(
-        string userQuery, 
-        List<McpServerInfo> servers, 
+        string userQuery,
+        List<McpServerInfo> servers,
         IntentClassificationResponse intent)
     {
         var systemPrompt = McpPromptTemplateManager.GetServerSelectionPrompt();
@@ -70,10 +73,12 @@ public class McpAIService
     /// <summary>
     /// 步骤3: 使用AI选择最佳工具
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode()]
     public async Task<RoutingStepResult<ToolSelectionResponse>> SelectToolAsync(
-        string userQuery, 
-        McpServerInfo server, 
-        List<McpToolInfo> tools, 
+        string userQuery,
+        McpServerInfo server,
+        List<McpToolInfo> tools,
         IntentClassificationResponse intent)
     {
         var systemPrompt = McpPromptTemplateManager.GetToolSelectionPrompt();
@@ -90,9 +95,11 @@ public class McpAIService
     /// <summary>
     /// 步骤4: 使用AI提取工具参数
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    [RequiresDynamicCode()]
     public async Task<RoutingStepResult<ArgumentExtractionResponse>> ExtractArgumentsAsync(
-        string userQuery, 
-        McpToolInfo tool, 
+        string userQuery,
+        McpToolInfo tool,
         IntentClassificationResponse intent)
     {
         var systemPrompt = McpPromptTemplateManager.GetArgumentExtractionPrompt();
@@ -109,11 +116,12 @@ public class McpAIService
     /// <summary>
     /// 步骤5: 使用AI生成工具调用计划
     /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     public async Task<RoutingStepResult<ToolInvocationPlanResponse>> CreateInvocationPlanAsync(
-        string userQuery, 
-        McpServerInfo server, 
-        McpToolInfo tool, 
+        string userQuery,
+        McpServerInfo server,
+        McpToolInfo tool,
         Dictionary<string, object> arguments)
     {
         var systemPrompt = McpPromptTemplateManager.GetInvocationPlanPrompt();

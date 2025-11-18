@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -23,8 +24,8 @@ public class McpRoutingService
     private readonly ILogger<McpRoutingService>? _logger;
 
     public McpRoutingService(
-        McpDiscoveryService discoveryService, 
-        ILogger<McpRoutingService>? logger = null, 
+        McpDiscoveryService discoveryService,
+        ILogger<McpRoutingService>? logger = null,
         IChatClient? chatClient = null)
     {
         _discoveryService = discoveryService;
@@ -70,6 +71,7 @@ public class McpRoutingService
     /// <summary>
     /// 使用多步骤AI决策进行智能路由
     /// </summary>
+    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpAIService.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
     private async Task<RoutingDecision?> RouteWithMultiStepAIAsync(string userQuery, List<McpServerInfo> servers)
     {
         try
@@ -148,7 +150,7 @@ public class McpRoutingService
             // 步骤5: 生成工具调用计划
             _logger?.LogInformation("📋 Step 5: Tool Invocation Planning");
             var planResult = await _aiService.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
-            
+
             var overallConfidence = Math.Min(
                 Math.Min(intentResult.Confidence, serverResult.Confidence),
                 Math.Min(toolResult.Confidence, argumentsResult.Confidence));
@@ -179,7 +181,7 @@ public class McpRoutingService
     private async Task<RoutingDecision?> ExtractArgumentsForToolAsync(string userQuery, McpToolInfo selectedTool, IntentClassificationResponse intent)
     {
         _logger?.LogInformation("📝 Step 4: Argument Extraction");
-        
+
         // 检查工具是否需要参数
         _logger?.LogInformation($"🔍 Checking if tool needs parameters...");
         _logger?.LogInformation($"📋 InputSchema is null: {selectedTool.InputSchema is null}");
@@ -256,7 +258,7 @@ public class McpRoutingService
             {
                 _logger?.LogInformation("📋 Properties is JSON string, attempting to parse");
                 var parsed = JsonDocument.Parse(jsonString);
-                return parsed.RootElement.ValueKind == JsonValueKind.Object 
+                return parsed.RootElement.ValueKind == JsonValueKind.Object
                     && parsed.RootElement.EnumerateObject().MoveNext();
             }
             else
@@ -271,8 +273,6 @@ public class McpRoutingService
             return false;
         }
     }
-
-
 
     /// <summary>
     /// 降级方案：使用关键词匹配进行路由
@@ -312,8 +312,6 @@ public class McpRoutingService
             Reasoning = "Keyword-based fallback selection"
         });
     }
-
-
 
     /// <summary>
     /// 获取候选的 server-tool 组合用于调试

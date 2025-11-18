@@ -101,6 +101,7 @@ internal sealed partial class SystemInfoMCPPage : Page
     }
 
     // Removed RequiresDynamicCode to avoid IL3050; event hookup itself does not perform dynamic serialization.
+    [RequiresDynamicCode("Calls AIDevGallery.Pages.SystemInfoMCPPage.ToolButton_Click(Object, RoutedEventArgs)")]
     private async Task LoadToolsAsync()
     {
         if (mcpClient == null)

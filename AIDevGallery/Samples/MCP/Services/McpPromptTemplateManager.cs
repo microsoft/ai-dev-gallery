@@ -352,16 +352,16 @@ public static class McpPromptTemplateManager
     {
         var serversJson = JsonSerializer.Serialize(
             availableServers.Select(s => new
-        {
-            id = s.Id,
-            name = s.Name,
-            description = s.Description,
-            categories = s.Categories,
-            tags = s.Tags,
-            health_score = s.HealthScore,
-            success_rate = s.SuccessRate,
-            response_time_ms = s.ResponseTime?.TotalMilliseconds ?? 0
-        }), new JsonSerializerOptions { WriteIndented = true });
+            {
+                id = s.Id,
+                name = s.Name,
+                description = s.Description,
+                categories = s.Categories,
+                tags = s.Tags,
+                health_score = s.HealthScore,
+                success_rate = s.SuccessRate,
+                response_time_ms = s.ResponseTime?.TotalMilliseconds ?? 0
+            }), new JsonSerializerOptions { WriteIndented = true });
 
         var intentJson = JsonSerializer.Serialize(intent, new JsonSerializerOptions { WriteIndented = true });
 
@@ -380,16 +380,17 @@ public static class McpPromptTemplateManager
     /// <param name="availableTools">可用工具列表</param>
     /// <param name="intent">意图分析结果</param>
     /// <returns>格式化的用户提示</returns>
+    [RequiresDynamicCode()]
     public static string FormatToolSelectionUserPrompt(string userQuery, string serverId, List<McpToolInfo> availableTools, object intent)
     {
         var toolsJson = JsonSerializer.Serialize(
             availableTools.Select(t => new
-        {
-            name = t.Name,
-            description = t.Description,
-            keywords = t.Keywords,
-            priority = t.Priority
-        }), new JsonSerializerOptions { WriteIndented = true });
+            {
+                name = t.Name,
+                description = t.Description,
+                keywords = t.Keywords,
+                priority = t.Priority
+            }), new JsonSerializerOptions { WriteIndented = true });
 
         var intentJson = JsonSerializer.Serialize(intent, new JsonSerializerOptions { WriteIndented = true });
 
@@ -409,6 +410,7 @@ public static class McpPromptTemplateManager
     /// <param name="argsSchema">参数模式</param>
     /// <param name="context">上下文信息</param>
     /// <returns>格式化的用户提示</returns>
+    [RequiresDynamicCode()]
     public static string FormatArgumentExtractionUserPrompt(string userQuery, string toolName, Dictionary<string, object> argsSchema, object? context = null)
     {
         var schemaJson = JsonSerializer.Serialize(argsSchema, new JsonSerializerOptions { WriteIndented = true });
@@ -428,6 +430,7 @@ public static class McpPromptTemplateManager
     /// <param name="originalQuery">原始查询</param>
     /// <param name="result">MCP调用结果</param>
     /// <returns>格式化的用户提示</returns>
+    [RequiresDynamicCode()]
     public static string FormatResultExtractionUserPrompt(string originalQuery, McpInvocationResult result)
     {
         var toolInfo = result.RoutingInfo != null

@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -115,7 +114,8 @@ public class ToolInvocationPlanResponse
 /// <summary>
 /// 路由步骤结果
 /// </summary>
-public class RoutingStepResult<T> where T : class
+public class RoutingStepResult<T>
+    where T : class
 {
     public T? Result { get; set; }
     public bool Success => Result != null;
