@@ -225,8 +225,17 @@ internal sealed partial class MCPClient : BaseSamplePage
 
                 // </exclude>
 
+                // 创建think area更新回调
+                Action<string> thinkAreaCallback = (thinkContent) =>
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        responseMessage.ThinkContent = thinkContent;
+                    });
+                };
+
                 // 使用 MCP 管理器处理查询
-                var mcpResponse = await mcpManager.ProcessQueryAsync(text.Trim(), model, cts.Token);
+                var mcpResponse = await mcpManager.ProcessQueryAsync(text.Trim(), model, thinkAreaCallback, cts.Token);
 
                 // <exclude>
                 swEnd.Stop();

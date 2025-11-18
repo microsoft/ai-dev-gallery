@@ -70,9 +70,13 @@ public class McpManager : IDisposable
     /// <summary>
     /// 处理用户查询的主要方法
     /// </summary>
+    /// <param name="userQuery">用户查询内容</param>
+    /// <param name="chatClient">聊天客户端</param>
+    /// <param name="thinkAreaCallback">用于更新思考区域内容的回调函数</param>
+    /// <param name="cancellationToken">取消令牌</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Uses JSON serialization for MCP protocol which may require dynamic code generation")]
-    public async Task<McpResponse> ProcessQueryAsync(string userQuery, IChatClient? chatClient, CancellationToken cancellationToken = default)
+    public async Task<McpResponse> ProcessQueryAsync(string userQuery, IChatClient? chatClient, Action<string>? thinkAreaCallback = null, CancellationToken cancellationToken = default)
     {
         if (!_initialized)
         {
@@ -91,12 +95,14 @@ public class McpManager : IDisposable
         try
         {
             _logger?.LogInformation($"Processing query: {userQuery}");
+            thinkAreaCallback?.Invoke("🔍 Analyzing query and routing to appropriate MCP tool...");
 
             // 1. 路由决策 - 选择最佳的 server 和 tool
             var routingDecision = await _routingService.RouteQueryAsync(userQuery);
             if (routingDecision == null)
             {
                 _logger?.LogWarning($"No routing decision found for query: {userQuery}");
+                thinkAreaCallback?.Invoke("⚠️ No suitable MCP tool found to handle this query");
                 return await HandleNoRouteFoundAsync(userQuery, chatClient, cancellationToken);
             }
 
@@ -118,12 +124,17 @@ public class McpManager : IDisposable
             //     };
             // }
             _logger?.LogInformation($"🎯 Multi-step AI routing decision: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name} (confidence: {routingDecision.Confidence:F2})");
+            
+            thinkAreaCallback?.Invoke($"✅ Tool selected: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}\n📊 Confidence: {routingDecision.Confidence:F2}\n💭 Reasoning: {routingDecision.Reasoning}");
 
             // 添加可用候选的调试信息
             var candidates = await _routingService.GetRoutingCandidatesAsync(userQuery);
             if (candidates.Count > 1)
             {
                 _logger?.LogDebug($"Alternative candidates for '{userQuery}':");
+                var alternativesInfo = string.Join("\n", candidates.Take(3).Select(c => $"  • {c.server.Name}.{c.tool.Name}: {c.score:F2}"));
+                thinkAreaCallback?.Invoke($"✅ Tool selected: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}\n📊 Confidence: {routingDecision.Confidence:F2}\n💭 Reasoning: {routingDecision.Reasoning}\n\n🔄 Alternative candidates:\n{alternativesInfo}");
+                
                 foreach (var candidate in candidates.Take(3))
                 {
                     _logger?.LogDebug($"  {candidate.server.Name}.{candidate.tool.Name}: {candidate.score:F2}");
@@ -144,10 +155,20 @@ public class McpManager : IDisposable
             // }
 
             // 3. 执行工具调用
+            thinkAreaCallback?.Invoke($"🔧 Invoking tool {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}...");
             var invocationResult = await _invocationService.InvokeToolAsync(routingDecision, cancellationToken);
 
+            if (invocationResult.IsSuccess)
+            {
+                thinkAreaCallback?.Invoke($"✅ Tool invocation successful (took: {invocationResult.ExecutionTime.TotalMilliseconds:0}ms)\n🤖 Processing results with AI...");
+            }
+            else
+            {
+                thinkAreaCallback?.Invoke($"❌ Tool invocation failed: {invocationResult.Error}");
+            }
+
             // 4. 使用 LLM 处理结果
-            return await ProcessInvocationResultAsync(userQuery, invocationResult, chatClient, cancellationToken);
+            return await ProcessInvocationResultAsync(userQuery, invocationResult, chatClient, thinkAreaCallback, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -164,7 +185,7 @@ public class McpManager : IDisposable
     /// 处理工具调用结果，使用 LLM 生成用户友好的回复
     /// </summary>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private async Task<McpResponse> ProcessInvocationResultAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, CancellationToken cancellationToken)
+    private async Task<McpResponse> ProcessInvocationResultAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, Action<string>? thinkAreaCallback, CancellationToken cancellationToken)
     {
         if (!result.IsSuccess)
         {
@@ -179,6 +200,7 @@ public class McpManager : IDisposable
         // 如果没有 LLM，返回原始数据
         if (chatClient == null)
         {
+            thinkAreaCallback?.Invoke("⚠️ No AI model available, returning raw JSON data");
             return new McpResponse
             {
                 Answer = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true }),
@@ -196,6 +218,7 @@ public class McpManager : IDisposable
             // 合并全局系统提示和结果提取提示
             var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[结果提取]\n{systemPrompt}";
 
+            thinkAreaCallback?.Invoke("🧠 Requesting AI model to analyze and process results...");
             var messages = new List<ChatMessage>
             {
                 new(ChatRole.System, combinedSystemPrompt),
@@ -204,6 +227,8 @@ public class McpManager : IDisposable
 
             var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
             var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
+            
+            thinkAreaCallback?.Invoke("✅ AI processing complete, formatting final answer...");
 
             // 获取原始 JSON 数据并组合回答
             var rawJson = SerializeResultData(result);
@@ -219,9 +244,10 @@ public class McpManager : IDisposable
         catch (Exception ex)
         {
             _logger?.LogError($"Error processing result with LLM: {ex.Message}");
+            thinkAreaCallback?.Invoke($"⚠️ AI processing error, trying simple text extraction: {ex.Message}");
 
             // 降级到简单的文本提取
-            var fallbackAnswer = await ExtractSimpleAnswerAsync(originalQuery, result, chatClient, cancellationToken);
+            var fallbackAnswer = await ExtractSimpleAnswerAsync(originalQuery, result, chatClient, thinkAreaCallback, cancellationToken);
             return new McpResponse
             {
                 Answer = fallbackAnswer,
@@ -263,7 +289,7 @@ public class McpManager : IDisposable
     /// 智能答案提取（使用 AI 分析工具返回的数据）
     /// </summary>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private async Task<string> ExtractSimpleAnswerAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, CancellationToken cancellationToken)
+    private async Task<string> ExtractSimpleAnswerAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, Action<string>? thinkAreaCallback, CancellationToken cancellationToken)
     {
         if (result.Data == null)
         {
@@ -275,6 +301,8 @@ public class McpManager : IDisposable
         {
             try
             {
+                thinkAreaCallback?.Invoke("🔄 Attempting simple AI analysis...");
+                
                 // 复用现有的系统提示创建方法
                 var systemPrompt = CreateExtractionSystemPrompt(result);
 
@@ -296,6 +324,7 @@ public class McpManager : IDisposable
                 if (!string.IsNullOrEmpty(aiAnswer))
                 {
                     _logger?.LogDebug("Successfully extracted answer using AI analysis");
+                    thinkAreaCallback?.Invoke("✅ Simple AI analysis completed successfully");
 
                     // 获取原始 JSON 数据
                     var rawJson = SerializeResultData(result);
@@ -307,17 +336,21 @@ public class McpManager : IDisposable
             catch (Exception ex)
             {
                 _logger?.LogWarning($"AI analysis failed, falling back to basic extraction: {ex.Message}");
+                thinkAreaCallback?.Invoke($"⚠️ Simple AI analysis failed, falling back to basic extraction: {ex.Message}");
             }
         }
 
         // 降级到基本的数据提取（无 AI 或 AI 失败时）
+        thinkAreaCallback?.Invoke("📄 Using basic data extraction...");
         try
         {
             var json = SerializeResultData(result);
+            thinkAreaCallback?.Invoke("✅ Basic data extraction completed");
             return $"获取到以下信息：\n{json}";
         }
         catch
         {
+            thinkAreaCallback?.Invoke("❌ Data extraction failed, returning raw data");
             return result.Data?.ToString() ?? "无法解析返回的数据。";
         }
     }
