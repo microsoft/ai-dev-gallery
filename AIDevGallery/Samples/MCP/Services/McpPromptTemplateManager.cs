@@ -10,12 +10,12 @@ using System.Text.Json;
 namespace AIDevGallery.Samples.MCP.Services;
 
 /// <summary>
-/// MCP 提示词模板管理器 - 统一管理所有AI交互的提示词
+/// MCP prompt template manager for AI interactions
 /// </summary>
 public static class McpPromptTemplateManager
 {
     /// <summary>
-    /// 全局系统提示 - 确保AI始终通过MCP工具执行任务
+    /// Global system prompt ensuring AI only uses registered MCP tools
     /// </summary>
     public const string GLOBAL_SYSTEM_PROMPT = @"你是一个 MCP-aware 助手，只能通过 MCP 协议调用已注册的工具来完成用户请求。
 
@@ -33,10 +33,6 @@ public static class McpPromptTemplateManager
 - 数据缺失时明确说明'数据不可用'
 - 错误透明，提供可操作建议";
 
-    /// <summary>
-    /// 步骤1：意图识别提示模板
-    /// </summary>
-    /// <returns></returns>
     public static string GetIntentClassificationPrompt()
     {
         return """
@@ -71,10 +67,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 步骤2：服务器选择提示模板
-    /// </summary>
-    /// <returns></returns>
     public static string GetServerSelectionPrompt()
     {
         return """
@@ -98,10 +90,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 步骤3：工具选择提示模板
-    /// </summary>
-    /// <returns></returns>
     public static string GetToolSelectionPrompt()
     {
         return """
@@ -122,10 +110,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 步骤4：参数提取提示模板
-    /// </summary>
-    /// <returns></returns>
     public static string GetArgumentExtractionPrompt()
     {
         return """
@@ -151,35 +135,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 步骤5：预调用安全检查提示模板
-    /// </summary>
-    /// <returns></returns>
-    public static string GetSafetyCheckPrompt()
-    {
-        return """
-            你是MCP安全检查专家。对工具调用计划进行安全与合规性检查。
-            
-            检查标准：
-            1. 是否涉及敏感信息或高风险操作
-            2. 是否超出权限范围或违反最小权限原则
-            3. 参数是否可能导致系统风险
-            4. 是否需要用户确认
-            
-            必须返回且仅返回这个JSON结构：
-            {
-              "go": true | false,
-              "risk_level": "low" | "medium" | "high",
-              "notes": ["string", "..."],            // 风险说明或合规提醒
-              "recommendations": ["string", "..."]   // 如需调整参数或换工具的建议
-            }
-            """;
-    }
-
-    /// <summary>
-    /// 步骤6：工具调用计划提示模板
-    /// </summary>
-    /// <returns></returns>
     public static string GetInvocationPlanPrompt()
     {
         return """
@@ -204,108 +159,8 @@ public static class McpPromptTemplateManager
     }
 
     /// <summary>
-    /// 步骤7：结果归一化提示模板
+    /// System prompt for result extraction
     /// </summary>
-    /// <returns></returns>
-    public static string GetResultNormalizationPrompt()
-    {
-        return """
-            你是结果归一化专家。解释MCP工具返回的原始结果，抽取关键信息并进行单位归一化。
-            
-            归一化规则：
-            1. 统一单位格式（如bytes→GB，ms→秒）
-            2. 标准化数值精度和格式
-            3. 提取最重要的结构化信息
-            4. 保持数据准确性，不得推测
-            
-            必须返回且仅返回这个JSON结构：
-            {
-              "normalized": { /* 归一化后的结构化数据 */ },
-              "source": "server_id.tool_name",
-              "confidence": 0.0-1.0,
-              "notes": ["string", "..."]         // 需要说明的边界或不确定性
-            }
-            """;
-    }
-
-    /// <summary>
-    /// 步骤8：错误诊断提示模板
-    /// </summary>
-    /// <returns></returns>
-    public static string GetErrorDiagnosisPrompt()
-    {
-        return """
-            你是MCP错误诊断专家。分析工具调用错误信息，提供分类和恢复建议。
-            
-            诊断标准：
-            1. 根据错误类型进行准确分类
-            2. 提供用户友好的错误说明
-            3. 给出具体可操作的恢复步骤
-            4. 评估是否适合重试以及重试参数
-            
-            必须返回且仅返回这个JSON结构：
-            {
-              "error_category": "connection" | "permission" | "invalid_args" | "timeout" | "server_error" | "unknown",
-              "user_message": "面向用户的简短英文说明",
-              "next_steps": ["string", "..."],          // 操作清单
-              "retry": { "should_retry": true|false, "delay_ms": 5000, "max_attempts": 1, "arg_patches": { } }
-            }
-            """;
-    }
-
-    /// <summary>
-    /// 步骤9：最终答复生成提示模板
-    /// </summary>
-    /// <returns></returns>
-    public static string GetFinalAnswerPrompt()
-    {
-        return """
-            你是用户答复生成专家。基于已归一化结果生成最终答复。
-            
-            答复要求：
-            1. 简洁准确，避免臆测
-            2. 包含简短来源标注（server.tool）
-            3. 如置信度低或信息不完整，给出一条澄清问题
-            4. 使用自然、用户友好的语言
-            5. 突出最重要的信息
-            6. Please respond in English
-            
-            必须返回且仅返回这个JSON结构：
-            {
-              "final_answer_zh": "简洁准确的英文回答，包含来源标注",
-              "clarify_question": "",         // 仅当需要澄清时给出一条英文问题
-              "confidence": 0.0-1.0
-            }
-            """;
-    }
-
-    /// <summary>
-    /// 步骤10：后续建议提示模板
-    /// </summary>
-    /// <returns></returns>
-    public static string GetFollowUpSuggestionPrompt()
-    {
-        return """
-            你是后续建议生成器。基于当前任务上下文，提供一条对用户有价值的后续建议。
-            
-            建议要求：
-            1. 不得重复已回答内容
-            2. 基于当前上下文提供相关建议
-            3. 建议应该是具体可执行的查询
-            4. Use natural and user-friendly English language
-            
-            必须返回且仅返回这个JSON结构：
-            {
-              "suggestion_zh": "一条有价值的后续建议（英文）",
-              "category": "hardware" | "performance" | "storage" | "network" | "other"
-            }
-            """;
-    }
-
-    /// <summary>
-    /// 结果提取专用系统提示
-    /// </summary>
-    /// <returns></returns>
     public static string GetResultExtractionSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手，专门负责从 MCP 工具调用的结果中提取关键信息并生成用户友好的回答。
@@ -329,9 +184,8 @@ public static class McpPromptTemplateManager
     }
 
     /// <summary>
-    /// 无路由建议系统提示
+    /// System prompt for no route found scenarios
     /// </summary>
-    /// <returns></returns>
     public static string GetNoRouteFoundSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：
@@ -348,23 +202,11 @@ public static class McpPromptTemplateManager
 - 编造或推测任何数据";
     }
 
-    /// <summary>
-    /// 生成用户查询的提示内容
-    /// </summary>
-    /// <param name="userQuery">用户查询</param>
-    /// <returns>格式化的用户提示</returns>
     public static string FormatUserQuery(string userQuery)
     {
         return $"用户问题：{userQuery}";
     }
 
-    /// <summary>
-    /// 生成服务器选择的用户提示
-    /// </summary>
-    /// <param name="userQuery">用户查询</param>
-    /// <param name="availableServers">可用服务器列表</param>
-    /// <param name="intent">意图分析结果</param>
-    /// <returns>格式化的用户提示</returns>
     [RequiresDynamicCode("Uses JSON serialization for server info and intent objects which may require dynamic code generation")]
     public static string FormatServerSelectionUserPrompt(string userQuery, List<McpServerInfo> availableServers, object intent)
     {
@@ -390,14 +232,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 生成工具选择的用户提示
-    /// </summary>
-    /// <param name="userQuery">用户查询</param>
-    /// <param name="serverId">选中的服务器ID</param>
-    /// <param name="availableTools">可用工具列表</param>
-    /// <param name="intent">意图分析结果</param>
-    /// <returns>格式化的用户提示</returns>
     [RequiresDynamicCode("Uses JSON serialization for tool information which may require dynamic code generation")]
     public static string FormatToolSelectionUserPrompt(string userQuery, string serverId, List<McpToolInfo> availableTools, object intent)
     {
@@ -420,14 +254,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 生成参数提取的用户提示
-    /// </summary>
-    /// <param name="userQuery">用户查询</param>
-    /// <param name="toolName">工具名称</param>
-    /// <param name="argsSchema">参数模式</param>
-    /// <param name="context">上下文信息</param>
-    /// <returns>格式化的用户提示</returns>
     [RequiresDynamicCode("Uses JSON serialization for schema and context which may require dynamic code generation")]
     public static string FormatArgumentExtractionUserPrompt(string userQuery, string toolName, Dictionary<string, object> argsSchema, object? context = null)
     {
@@ -447,12 +273,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 生成结果提取的用户提示
-    /// </summary>
-    /// <param name="originalQuery">原始查询</param>
-    /// <param name="result">MCP调用结果</param>
-    /// <returns>格式化的用户提示</returns>
     [RequiresDynamicCode("Uses JSON serialization for MCP result data which may require dynamic code generation")]
     public static string FormatResultExtractionUserPrompt(string originalQuery, McpInvocationResult result)
     {
@@ -476,12 +296,6 @@ public static class McpPromptTemplateManager
             """;
     }
 
-    /// <summary>
-    /// 生成无路由建议的用户提示
-    /// </summary>
-    /// <param name="userQuery">用户查询</param>
-    /// <param name="availableTools">可用工具列表</param>
-    /// <returns>格式化的用户提示</returns>
     public static string FormatNoRouteFoundUserPrompt(string userQuery, List<McpToolInfo> availableTools)
     {
         var toolsList = string.Join("\n", availableTools.Select(t => $"- {t.Name}: {t.Description}"));

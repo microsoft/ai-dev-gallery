@@ -156,31 +156,4 @@ public static class McpClientFactory
     {
         return await CreateClientAsync(ServerConfigs["settings"], cancellationToken);
     }
-
-    /// <summary>
-    /// 通用的客户端创建方法，根据服务器类型创建相应的客户端
-    /// </summary>
-    /// <param name="serverType">服务器类型 ("system-info", "file-system", "settings")</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>创建的客户端包装器，如果创建失败则返回 null</returns>
-    public static async Task<McpClientWrapper?> CreateClientAsync(string serverType, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(serverType);
-        
-        if (!ServerConfigs.TryGetValue(serverType, out var config))
-        {
-            throw new ArgumentException($"Unknown server type: {serverType}. Valid types are: {string.Join(", ", ServerConfigs.Keys)}", nameof(serverType));
-        }
-
-        return await CreateClientAsync(config, cancellationToken);
-    }
-
-    /// <summary>
-    /// 获取所有支持的服务器类型
-    /// </summary>
-    /// <returns>支持的服务器类型列表</returns>
-    public static IReadOnlyList<string> GetSupportedServerTypes()
-    {
-        return ServerConfigs.Keys.ToList().AsReadOnly();
-    }
 }
