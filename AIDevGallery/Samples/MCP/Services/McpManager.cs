@@ -37,7 +37,7 @@ public class McpManager : IDisposable
         _discoveryService = new McpDiscoveryService(loggerFactory?.CreateLogger<McpDiscoveryService>());
         _routingService = new McpRoutingService(_discoveryService, chatClient);
         _invocationService = new McpInvocationService(_discoveryService, loggerFactory?.CreateLogger<McpInvocationService>());
-        _resultProcessor = new McpResultProcessor(chatClient, loggerFactory?.CreateLogger<McpResultProcessor>());
+        _resultProcessor = new McpResultProcessor(chatClient);
     }
 
     /// <summary>
