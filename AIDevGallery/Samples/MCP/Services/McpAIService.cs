@@ -35,7 +35,7 @@ public class McpAIService
     /// 步骤1: 使用AI进行意图识别
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<IntentClassificationResponse>> ClassifyIntentAsync(string userQuery)
     {
         var systemPrompt = McpPromptTemplateManager.GetIntentClassificationPrompt();
@@ -53,7 +53,7 @@ public class McpAIService
     /// 步骤2: 使用AI选择最佳服务器
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ServerSelectionResponse>> SelectServerAsync(
         string userQuery,
         List<McpServerInfo> servers,
@@ -74,7 +74,7 @@ public class McpAIService
     /// 步骤3: 使用AI选择最佳工具
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ToolSelectionResponse>> SelectToolAsync(
         string userQuery,
         McpServerInfo server,
@@ -96,7 +96,7 @@ public class McpAIService
     /// 步骤4: 使用AI提取工具参数
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ArgumentExtractionResponse>> ExtractArgumentsAsync(
         string userQuery,
         McpToolInfo tool,

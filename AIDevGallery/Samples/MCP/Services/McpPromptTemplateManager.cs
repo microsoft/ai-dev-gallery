@@ -380,7 +380,7 @@ public static class McpPromptTemplateManager
     /// <param name="availableTools">可用工具列表</param>
     /// <param name="intent">意图分析结果</param>
     /// <returns>格式化的用户提示</returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for tool information which may require dynamic code generation")]
     public static string FormatToolSelectionUserPrompt(string userQuery, string serverId, List<McpToolInfo> availableTools, object intent)
     {
         var toolsJson = JsonSerializer.Serialize(
@@ -410,7 +410,7 @@ public static class McpPromptTemplateManager
     /// <param name="argsSchema">参数模式</param>
     /// <param name="context">上下文信息</param>
     /// <returns>格式化的用户提示</returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for schema and context which may require dynamic code generation")]
     public static string FormatArgumentExtractionUserPrompt(string userQuery, string toolName, Dictionary<string, object> argsSchema, object? context = null)
     {
         var schemaJson = JsonSerializer.Serialize(argsSchema, new JsonSerializerOptions { WriteIndented = true });
@@ -430,7 +430,7 @@ public static class McpPromptTemplateManager
     /// <param name="originalQuery">原始查询</param>
     /// <param name="result">MCP调用结果</param>
     /// <returns>格式化的用户提示</returns>
-    [RequiresDynamicCode()]
+    [RequiresDynamicCode("Uses JSON serialization for MCP result data which may require dynamic code generation")]
     public static string FormatResultExtractionUserPrompt(string originalQuery, McpInvocationResult result)
     {
         var toolInfo = result.RoutingInfo != null
