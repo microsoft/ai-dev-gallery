@@ -224,12 +224,20 @@ internal sealed partial class MCPClient : BaseSamplePage
 
                 // </exclude>
 
-                // 创建think area更新回调
+                // 创建think area更新回调 - 累积所有历史内容
                 Action<string> thinkAreaCallback = (thinkContent) =>
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        responseMessage.ThinkContent = thinkContent;
+                        // 如果已经有内容，则追加新内容，否则直接设置
+                        if (string.IsNullOrEmpty(responseMessage.ThinkContent))
+                        {
+                            responseMessage.ThinkContent = thinkContent;
+                        }
+                        else
+                        {
+                            responseMessage.ThinkContent = $"{responseMessage.ThinkContent}\n\n{thinkContent}";
+                        }
                     });
                 };
 

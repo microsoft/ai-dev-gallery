@@ -25,6 +25,7 @@ public static class McpPromptTemplateManager
 2) 只调用最小权限工具
 3) 若出现错误或不可达，返回结构化错误与可操作建议
 4) 最终的答复附简短来源标注（server.tool）
+5）回答请使用英文
 
 [核心约束]
 - 严格基于 MCP 数据回答，不得在未调用工具时编造答案
