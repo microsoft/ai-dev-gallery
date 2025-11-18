@@ -210,7 +210,7 @@ public class McpRoutingService
 
         if (selectedTool.InputSchema is not null
             && selectedTool.InputSchema.TryGetValue("properties", out var props)
-            && HasValidProperties(props, thinkAreaCallback))
+            && HasValidProperties(props))
         {
             var argumentResult = await _aiDecisionEngine.ExtractArgumentsAsync(userQuery, selectedTool, intent);
 
@@ -264,11 +264,10 @@ public class McpRoutingService
     /// <summary>
     /// 检查 properties 对象是否有效（不为空且包含至少一个属性）
     /// </summary>
-    private bool HasValidProperties(object props, Action<string>? thinkAreaCallback = null)
+    private bool HasValidProperties(object props)
     {
         try
         {
-            // 尝试不同的类型转换
             if (props is JsonElement elem)
             {
                 return elem.ValueKind == JsonValueKind.Object && elem.EnumerateObject().MoveNext();
@@ -290,8 +289,6 @@ public class McpRoutingService
         }
         catch (Exception ex)
         {
-            var errorMessage = $"❌ Error checking properties: {ex.Message}";
-            thinkAreaCallback?.Invoke(errorMessage);
             return false;
         }
     }

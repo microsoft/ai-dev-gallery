@@ -3,7 +3,6 @@
 
 using AIDevGallery.Samples.MCP.Models;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -18,12 +17,10 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpResultProcessor
 {
     private readonly McpAIDecisionEngine? _aiDecisionEngine;
-    private readonly ILogger<McpResultProcessor>? _logger;
 
-    public McpResultProcessor(IChatClient? chatClient = null, ILogger<McpResultProcessor>? logger = null)
+    public McpResultProcessor(IChatClient? chatClient = null)
     {
-        _aiDecisionEngine = chatClient != null ? new McpAIDecisionEngine(chatClient, logger) : null;
-        _logger = logger;
+        _aiDecisionEngine = chatClient != null ? new McpAIDecisionEngine(chatClient) : null;
     }
 
     /// <summary>
@@ -82,7 +79,6 @@ public class McpResultProcessor
         }
         catch (Exception ex)
         {
-            _logger?.LogError($"Error processing result with LLM: {ex.Message}");
             thinkAreaCallback?.Invoke($"⚠️ AI processing error, trying simple text extraction: {ex.Message}");
 
             // 降级到简单的文本提取
@@ -134,7 +130,6 @@ public class McpResultProcessor
 
                 if (!string.IsNullOrEmpty(aiAnswer))
                 {
-                    _logger?.LogDebug("Successfully extracted answer using AI analysis");
                     thinkAreaCallback?.Invoke("✅ Simple AI analysis completed successfully");
 
                     var rawJson = SerializeResultData(result);
@@ -143,7 +138,6 @@ public class McpResultProcessor
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning($"AI analysis failed, falling back to basic extraction: {ex.Message}");
                 thinkAreaCallback?.Invoke($"⚠️ Simple AI analysis failed, falling back to basic extraction: {ex.Message}");
             }
         }

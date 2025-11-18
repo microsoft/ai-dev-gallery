@@ -6,7 +6,6 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.MCP.Services;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -47,11 +46,6 @@ internal sealed partial class MCPClient : BaseSamplePage
     private IChatClient? model;
     private McpManager? mcpManager;
 
-    // Markers for the assistant's think area (displayed in a dedicated UI region).
-    private static readonly string[] ThinkTagOpens = new[] { "<think>", "<thought>", "<reasoning>" };
-    private static readonly string[] ThinkTagCloses = new[] { "</think>", "</thought>", "</reasoning>" };
-    private static readonly int MaxOpenThinkMarkerLength = ThinkTagOpens.Max(s => s.Length);
-
     public MCPClient()
     {
         this.Unloaded += (s, e) => CleanUp();
@@ -66,30 +60,22 @@ internal sealed partial class MCPClient : BaseSamplePage
         try
         {
             model = await sampleParams.GetIChatClientAsync();
-
-            // 创建一个简单的调试logger用于在VS输出窗口查看日志
-            var logger = new DebugLogger<McpManager>();
-
-            // 初始化 MCP 管理器，传递AI聊天客户端用于智能路由
-            mcpManager = new McpManager(logger, model);
+            mcpManager = new McpManager(null, model);
             var mcpInitialized = await mcpManager.InitializeAsync();
 
             if (!mcpInitialized)
             {
-                // 延迟显示错误，避免与其他对话框冲突
                 DispatcherQueue.TryEnqueue(async () =>
                 {
-                    await Task.Delay(500); // 等待其他对话框关闭
+                    await Task.Delay(500);
                     ShowException(new Exception("Failed to initialize MCP Manager. MCP functionality will be limited."));
                 });
             }
 
-            // 更新状态显示
             DispatcherQueue.TryEnqueue(UpdateMcpStatus);
         }
         catch (Exception ex)
         {
-            // 延迟显示错误，避免与其他对话框冲突
             DispatcherQueue.TryEnqueue(async () =>
             {
                 await Task.Delay(500);
@@ -114,17 +100,13 @@ internal sealed partial class MCPClient : BaseSamplePage
     {
         CancelResponse();
 
-        // 确保关闭任何打开的对话框
         if (_currentDialog != null)
         {
             try
             {
                 _currentDialog.Hide();
             }
-            catch
-            {
-                // 忽略关闭错误
-            }
+            catch { }
 
             _currentDialog = null;
         }
@@ -224,12 +206,10 @@ internal sealed partial class MCPClient : BaseSamplePage
 
                 // </exclude>
 
-                // 创建think area更新回调 - 累积所有历史内容
                 Action<string> thinkAreaCallback = (thinkContent) =>
                 {
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        // 如果已经有内容，则追加新内容，否则直接设置
                         if (string.IsNullOrEmpty(responseMessage.ThinkContent))
                         {
                             responseMessage.ThinkContent = thinkContent;
@@ -241,7 +221,6 @@ internal sealed partial class MCPClient : BaseSamplePage
                     });
                 };
 
-                // 使用 MCP 管理器处理查询
                 var mcpResponse = await mcpManager.ProcessQueryAsync(text.Trim(), model, thinkAreaCallback, cts.Token);
 
                 // <exclude>
@@ -263,13 +242,11 @@ internal sealed partial class MCPClient : BaseSamplePage
                     responseMessage.IsPending = false;
                     responseMessage.Content = mcpResponse.Answer;
 
-                    // 如果需要用户确认，添加特殊标记
                     if (mcpResponse.RequiresConfirmation)
                     {
                         responseMessage.ThinkContent = "This action requires confirmation. Please respond with 'yes' to proceed.";
                     }
 
-                    // 添加调试信息到思考区域（仅在开发模式下）
                     if (!string.IsNullOrEmpty(mcpResponse.Source) && mcpResponse.Source != "System")
                     {
                         var debugInfo = $"Tool used: {mcpResponse.Source}";
@@ -326,7 +303,6 @@ internal sealed partial class MCPClient : BaseSamplePage
 
     private void ClearBtn_Click(object sender, RoutedEventArgs e)
     {
-        // Cancel any ongoing response generation before clearing chat
         CancelResponse();
         ClearChat();
     }
@@ -438,7 +414,7 @@ internal sealed partial class MCPClient : BaseSamplePage
     {
         if (mcpManager == null)
         {
-            McpStatusIcon.Glyph = "\uE783"; // Warning icon
+            McpStatusIcon.Glyph = "\uE783";
             McpStatusText.Text = "MCP not initialized";
             return;
         }
@@ -452,23 +428,23 @@ internal sealed partial class MCPClient : BaseSamplePage
 
             if (initialized && serverCount > 0)
             {
-                McpStatusIcon.Glyph = "\uE73E"; // Checkmark icon
+                McpStatusIcon.Glyph = "\uE73E";
                 McpStatusText.Text = $"{serverCount} servers, {toolCount} tools";
             }
             else if (initialized)
             {
-                McpStatusIcon.Glyph = "\uE783"; // Warning icon
+                McpStatusIcon.Glyph = "\uE783";
                 McpStatusText.Text = "No MCP servers available";
             }
             else
             {
-                McpStatusIcon.Glyph = "\uE894"; // Error icon
+                McpStatusIcon.Glyph = "\uE894";
                 McpStatusText.Text = "MCP initialization failed";
             }
         }
         catch (Exception ex)
         {
-            McpStatusIcon.Glyph = "\uE894"; // Error icon
+            McpStatusIcon.Glyph = "\uE894";
             McpStatusText.Text = "MCP status error";
         }
     }
@@ -485,8 +461,6 @@ internal sealed partial class MCPClient : BaseSamplePage
         {
             var status = await mcpManager.GetSystemStatusAsync();
             var statusText = FormatMcpStatus(status);
-
-            // 添加工具目录信息
             var toolCatalog = mcpManager.GetToolCatalog();
             var fullContent = $"{statusText}\n\n{new string('=', 50)}\n\n{toolCatalog}";
 
@@ -526,17 +500,13 @@ internal sealed partial class MCPClient : BaseSamplePage
 
     private async Task ShowMcpStatusDialog(string content)
     {
-        // 确保一次只有一个对话框打开
         if (_currentDialog != null)
         {
             try
             {
                 _currentDialog.Hide();
             }
-            catch
-            {
-                // 忽略可能的关闭错误
-            }
+            catch { }
 
             _currentDialog = null;
         }
@@ -566,7 +536,6 @@ internal sealed partial class MCPClient : BaseSamplePage
         }
         catch (System.Runtime.InteropServices.COMException ex) when (ex.HResult == unchecked((int)0x80004005))
         {
-            // ContentDialog已经打开的情况，静默处理
         }
         finally
         {
@@ -575,28 +544,5 @@ internal sealed partial class MCPClient : BaseSamplePage
                 _currentDialog = null;
             }
         }
-    }
-}
-
-/// <summary>
-/// 简单的调试 Logger 实现，输出到 VS Debug 窗口
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public class DebugLogger<T> : ILogger<T>
-{
-    public IDisposable BeginScope<TState>(TState state) => null!;
-
-    public bool IsEnabled(LogLevel logLevel) => true;
-
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-    {
-        var message = formatter(state, exception);
-        var logMessage = $"[{DateTime.Now:HH:mm:ss.fff}] [{logLevel}] {typeof(T).Name}: {message}";
-
-        // 输出到 VS Debug 窗口
-        Debug.WriteLine(logMessage);
-
-        // 同时输出到控制台（如果有的话）
-        Console.WriteLine(logMessage);
     }
 }
