@@ -37,102 +37,136 @@ public class McpRoutingService
     /// <summary>
     /// 使用多步骤AI决策流程根据用户查询找到最佳的 server 和 tool
     /// </summary>
+    /// <param name="userQuery">用户查询内容</param>
+    /// <param name="thinkAreaCallback">用于更新思考区域内容的回调函数</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task<RoutingDecision?> RouteQueryAsync(string userQuery)
+    public async Task<RoutingDecision?> RouteQueryAsync(string userQuery, Action<string>? thinkAreaCallback = null)
     {
         if (string.IsNullOrWhiteSpace(userQuery))
         {
             return null;
         }
 
-        _logger?.LogInformation($"🔍 Starting routing for: '{userQuery}'");
+        var message = $"🔍 Starting routing for: '{userQuery}'";
+        _logger?.LogInformation(message);
+        thinkAreaCallback?.Invoke(message);
 
         var servers = _discoveryService.GetConnectedServers();
         if (!servers.Any())
         {
-            _logger?.LogWarning("❌ No servers available for routing");
+            var noServerMessage = "❌ No servers available for routing";
+            _logger?.LogWarning(noServerMessage);
+            thinkAreaCallback?.Invoke(noServerMessage);
             return null;
         }
 
         // 使用AI模型进行多步骤决策，如果失败则降级到关键词匹配
         if (_aiService.HasAIClient)
         {
-            var aiResult = await RouteWithMultiStepAIAsync(userQuery, servers);
+            var aiResult = await RouteWithMultiStepAIAsync(userQuery, servers, thinkAreaCallback);
             if (aiResult != null)
             {
                 return aiResult;
             }
         }
 
-        _logger?.LogWarning("⚠️ AI routing failed or unavailable, falling back to keyword matching");
-        return await RouteWithKeywordsAsync(userQuery, servers);
+        var fallbackMessage = "⚠️ AI routing failed or unavailable, falling back to keyword matching";
+        _logger?.LogWarning(fallbackMessage);
+        return await RouteWithKeywordsAsync(userQuery, servers, thinkAreaCallback);
     }
 
     /// <summary>
     /// 使用多步骤AI决策进行智能路由
     /// </summary>
     [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpAIService.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
-    private async Task<RoutingDecision?> RouteWithMultiStepAIAsync(string userQuery, List<McpServerInfo> servers)
+    private async Task<RoutingDecision?> RouteWithMultiStepAIAsync(string userQuery, List<McpServerInfo> servers, Action<string>? thinkAreaCallback = null)
     {
         try
         {
             // 步骤1: 意图识别
-            _logger?.LogInformation("🎯 Step 1: Intent Classification");
+            var step1Message = "🎯 Step 1: Intent Classification";
+            _logger?.LogInformation(step1Message);
+            thinkAreaCallback?.Invoke(step1Message);
+            
             var intentResult = await _aiService.ClassifyIntentAsync(userQuery);
             if (!intentResult.Success || intentResult.Result == null)
             {
-                _logger?.LogWarning("❌ Failed to classify user intent");
+                var failMessage = "❌ Failed to classify user intent";
+                _logger?.LogWarning(failMessage);
+                thinkAreaCallback?.Invoke(failMessage);
                 return null;
             }
 
             var intent = intentResult.Result;
-            _logger?.LogInformation($"📊 Intent: needTool={intent.NeedTool}, topic={intent.Topic}, confidence={intent.Confidence:F2}");
+            var intentMessage = $"📊 Intent: needTool={intent.NeedTool}, topic={intent.Topic}, confidence={intent.Confidence:F2}";
+            _logger?.LogInformation(intentMessage);
+            thinkAreaCallback?.Invoke(intentMessage);
 
             if (!intent.NeedTool)
             {
-                _logger?.LogInformation("ℹ️ AI determined no tool is needed for this query");
+                var noToolMessage = "ℹ️ AI determined no tool is needed for this query";
+                _logger?.LogInformation(noToolMessage);
+                thinkAreaCallback?.Invoke(noToolMessage);
                 return null;
             }
 
             // 步骤2: 服务器选择
-            _logger?.LogInformation("🖥️ Step 2: Server Selection");
+            var step2Message = "🖥️ Step 2: Server Selection";
+            _logger?.LogInformation(step2Message);
+            thinkAreaCallback?.Invoke(step2Message);
+            
             var serverResult = await _aiService.SelectServerAsync(userQuery, servers, intent);
             if (!serverResult.Success || serverResult.Result == null)
             {
-                _logger?.LogWarning("❌ Failed to select appropriate server");
+                var serverFailMessage = "❌ Failed to select appropriate server";
+                _logger?.LogWarning(serverFailMessage);
+                thinkAreaCallback?.Invoke(serverFailMessage);
                 return null;
             }
 
             var selectedServer = servers.FirstOrDefault(s => s.Id == serverResult.Result.ChosenServerId);
             if (selectedServer == null)
             {
-                _logger?.LogWarning($"❌ Selected server not found: {serverResult.Result.ChosenServerId}");
+                var notFoundMessage = $"❌ Selected server not found: {serverResult.Result.ChosenServerId}";
+                _logger?.LogWarning(notFoundMessage);
+                thinkAreaCallback?.Invoke(notFoundMessage);
                 return null;
             }
 
-            _logger?.LogInformation($"🏆 Selected server: {selectedServer.Name} (confidence: {serverResult.Confidence:F2})");
+            var serverSelectedMessage = $"🏆 Selected server: {selectedServer.Name} (confidence: {serverResult.Confidence:F2})";
+            _logger?.LogInformation(serverSelectedMessage);
+            thinkAreaCallback?.Invoke(serverSelectedMessage);
 
             // 步骤3: 工具选择
-            _logger?.LogInformation("🔧 Step 3: Tool Selection");
+            var step3Message = "🔧 Step 3: Tool Selection";
+            _logger?.LogInformation(step3Message);
+            thinkAreaCallback?.Invoke(step3Message);
+            
             var availableTools = _discoveryService.GetServerTools(selectedServer.Id);
             var toolResult = await _aiService.SelectToolAsync(userQuery, selectedServer, availableTools, intent);
             if (!toolResult.Success || toolResult.Result == null)
             {
-                _logger?.LogWarning("❌ Failed to select appropriate tool");
+                var toolFailMessage = "❌ Failed to select appropriate tool";
+                _logger?.LogWarning(toolFailMessage);
+                thinkAreaCallback?.Invoke(toolFailMessage);
                 return null;
             }
 
             var selectedTool = availableTools.FirstOrDefault(t => t.Name == toolResult.Result.ChosenToolName);
             if (selectedTool == null)
             {
-                _logger?.LogWarning($"❌ Selected tool not found: {toolResult.Result.ChosenToolName}");
+                var toolNotFoundMessage = $"❌ Selected tool not found: {toolResult.Result.ChosenToolName}";
+                _logger?.LogWarning(toolNotFoundMessage);
+                thinkAreaCallback?.Invoke(toolNotFoundMessage);
                 return null;
             }
 
-            _logger?.LogInformation($"⚙️ Selected tool: {selectedTool.Name} (confidence: {toolResult.Confidence:F2})");
+            var toolSelectedMessage = $"⚙️ Selected tool: {selectedTool.Name} (confidence: {toolResult.Confidence:F2})";
+            _logger?.LogInformation(toolSelectedMessage);
+            thinkAreaCallback?.Invoke(toolSelectedMessage);
 
             // 步骤4: 参数提取
-            var argumentsResult = await ExtractArgumentsForToolAsync(userQuery, selectedTool, intent);
+            var argumentsResult = await ExtractArgumentsForToolAsync(userQuery, selectedTool, intent, thinkAreaCallback);
             if (argumentsResult == null)
             {
                 return null;
@@ -148,14 +182,19 @@ public class McpRoutingService
             }
 
             // 步骤5: 生成工具调用计划
-            _logger?.LogInformation("📋 Step 5: Tool Invocation Planning");
+            var step5Message = "📋 Step 5: Tool Invocation Planning";
+            _logger?.LogInformation(step5Message);
+            thinkAreaCallback?.Invoke(step5Message);
+            
             var planResult = await _aiService.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
 
             var overallConfidence = Math.Min(
                 Math.Min(intentResult.Confidence, serverResult.Confidence),
                 Math.Min(toolResult.Confidence, argumentsResult.Confidence));
 
-            _logger?.LogInformation($"✅ Multi-step AI routing completed successfully");
+            var completedMessage = "✅ Multi-step AI routing completed successfully";
+            _logger?.LogInformation(completedMessage);
+            thinkAreaCallback?.Invoke(completedMessage);
 
             return new RoutingDecision
             {
@@ -170,7 +209,9 @@ public class McpRoutingService
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "❌ Error during multi-step AI routing");
+            var errorMessage = "❌ Error during multi-step AI routing";
+            _logger?.LogError(ex, errorMessage);
+            thinkAreaCallback?.Invoke($"{errorMessage}");
             return null;
         }
     }
@@ -178,29 +219,37 @@ public class McpRoutingService
     /// <summary>
     /// 处理工具参数提取，包括检查是否需要澄清
     /// </summary>
-    private async Task<RoutingDecision?> ExtractArgumentsForToolAsync(string userQuery, McpToolInfo selectedTool, IntentClassificationResponse intent)
+    private async Task<RoutingDecision?> ExtractArgumentsForToolAsync(string userQuery, McpToolInfo selectedTool, IntentClassificationResponse intent, Action<string>? thinkAreaCallback = null)
     {
-        _logger?.LogInformation("📝 Step 4: Argument Extraction");
+        var step4Message = "📝 Step 4: Argument Extraction";
+        _logger?.LogInformation(step4Message);
+        thinkAreaCallback?.Invoke(step4Message);
 
         // 检查工具是否需要参数
-        _logger?.LogInformation($"🔍 Checking if tool needs parameters...");
-        _logger?.LogInformation($"📋 InputSchema is null: {selectedTool.InputSchema is null}");
+        var checkMessage = "🔍 Checking if tool needs parameters...";
+        _logger?.LogInformation(checkMessage);
+        
+        var schemaMessage = $"📋 InputSchema is null: {selectedTool.InputSchema is null}";
+        _logger?.LogInformation(schemaMessage);
 
         if (selectedTool.InputSchema is not null
             && selectedTool.InputSchema.TryGetValue("properties", out var props)
-            && HasValidProperties(props))
+            && HasValidProperties(props, thinkAreaCallback))
         {
             var argumentResult = await _aiService.ExtractArgumentsAsync(userQuery, selectedTool, intent);
             if (!argumentResult.Success || argumentResult.Result == null)
             {
-                _logger?.LogWarning("❌ Failed to extract arguments");
+                var extractFailMessage = "❌ Failed to extract arguments";
+                _logger?.LogWarning(extractFailMessage);
+                thinkAreaCallback?.Invoke(extractFailMessage);
                 return null;
             }
 
             // 检查是否有缺失参数需要用户澄清
             if (argumentResult.Result.Missing.Any())
             {
-                _logger?.LogInformation($"❓ Missing parameters: {string.Join(", ", argumentResult.Result.Missing)}");
+                var missingMessage = $"❓ Missing parameters: {string.Join(", ", argumentResult.Result.Missing)}";
+                _logger?.LogInformation(missingMessage);
                 return new RoutingDecision
                 {
                     SelectedServer = null!,
@@ -224,7 +273,9 @@ public class McpRoutingService
         }
         else
         {
-            _logger?.LogInformation("ℹ️ Selected tool has no input parameters to extract");
+            var noParamsMessage = "ℹ️ Selected tool has no input parameters to extract";
+            _logger?.LogInformation(noParamsMessage);
+            thinkAreaCallback?.Invoke(noParamsMessage);
             return new RoutingDecision
             {
                 SelectedServer = null!, // 将在调用方设置
@@ -239,37 +290,43 @@ public class McpRoutingService
     /// <summary>
     /// 检查 properties 对象是否有效（不为空且包含至少一个属性）
     /// </summary>
-    private bool HasValidProperties(object props)
+    private bool HasValidProperties(object props, Action<string>? thinkAreaCallback = null)
     {
         try
         {
             // 尝试不同的类型转换
             if (props is JsonElement elem)
             {
-                _logger?.LogInformation("📋 Properties is JsonElement");
+                var elemMessage = "📋 Properties is JsonElement";
+                _logger?.LogInformation(elemMessage);
                 return elem.ValueKind == JsonValueKind.Object && elem.EnumerateObject().MoveNext();
             }
             else if (props is Dictionary<string, object> dict)
             {
-                _logger?.LogInformation($"📋 Properties is Dictionary with {dict.Count} items");
+                var dictMessage = $"📋 Properties is Dictionary with {dict.Count} items";
+                _logger?.LogInformation(dictMessage);
                 return dict.Count > 0;
             }
             else if (props is string jsonString && !string.IsNullOrWhiteSpace(jsonString))
             {
-                _logger?.LogInformation("📋 Properties is JSON string, attempting to parse");
+                var jsonMessage = "📋 Properties is JSON string, attempting to parse";
+                _logger?.LogInformation(jsonMessage);
                 var parsed = JsonDocument.Parse(jsonString);
                 return parsed.RootElement.ValueKind == JsonValueKind.Object
                     && parsed.RootElement.EnumerateObject().MoveNext();
             }
             else
             {
-                _logger?.LogInformation($"📋 Properties type not supported: {props?.GetType()?.Name ?? "null"}");
+                var unsupportedMessage = $"📋 Properties type not supported: {props?.GetType()?.Name ?? "null"}";
+                _logger?.LogInformation(unsupportedMessage);
                 return false;
             }
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning($"❌ Error checking properties: {ex.Message}");
+            var errorMessage = $"❌ Error checking properties: {ex.Message}";
+            _logger?.LogWarning(errorMessage);
+            thinkAreaCallback?.Invoke(errorMessage);
             return false;
         }
     }
@@ -277,7 +334,7 @@ public class McpRoutingService
     /// <summary>
     /// 降级方案：使用关键词匹配进行路由
     /// </summary>
-    private Task<RoutingDecision?> RouteWithKeywordsAsync(string userQuery, List<McpServerInfo> servers)
+    private Task<RoutingDecision?> RouteWithKeywordsAsync(string userQuery, List<McpServerInfo> servers, Action<string>? thinkAreaCallback = null)
     {
         var query = userQuery.ToLowerInvariant();
         var candidates = new List<(McpServerInfo server, McpToolInfo tool, double score)>();
@@ -301,7 +358,9 @@ public class McpRoutingService
         }
 
         var best = candidates.OrderByDescending(c => c.score).First();
-        _logger?.LogInformation($"✅ Keyword matching selected: {best.server.Name}.{best.tool.Name}");
+        var keywordMessage = $"✅ Keyword matching selected: {best.server.Name}.{best.tool.Name}";
+        _logger?.LogInformation(keywordMessage);
+        thinkAreaCallback?.Invoke(keywordMessage);
 
         return Task.FromResult<RoutingDecision?>(new RoutingDecision
         {

@@ -98,7 +98,7 @@ public class McpManager : IDisposable
             thinkAreaCallback?.Invoke("🔍 Analyzing query and routing to appropriate MCP tool...");
 
             // 1. 路由决策 - 选择最佳的 server 和 tool
-            var routingDecision = await _routingService.RouteQueryAsync(userQuery);
+            var routingDecision = await _routingService.RouteQueryAsync(userQuery, thinkAreaCallback);
             if (routingDecision == null)
             {
                 _logger?.LogWarning($"No routing decision found for query: {userQuery}");
