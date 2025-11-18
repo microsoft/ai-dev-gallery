@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 
 namespace AIDevGallery.Samples.MCP.Models;
 
-#region Core MCP Models
 
 /// <summary>
 /// MCP 服务器信息
@@ -42,9 +41,7 @@ public class McpToolInfo
     public int Priority { get; set; } = 0;
 }
 
-#endregion
 
-#region Execution Results
 
 /// <summary>
 /// MCP 工具调用结果
@@ -70,9 +67,7 @@ public class McpResponse
     public McpInvocationResult? RawResult { get; set; }
 }
 
-#endregion
 
-#region Routing Models
 
 /// <summary>
 /// 路由决策结果
@@ -102,9 +97,7 @@ public class McpInvocationPlan
     public int Retries { get; set; } = 1;
 }
 
-#endregion
 
-#region AI Routing Models
 
 /// <summary>
 /// 意图识别响应模型
@@ -190,9 +183,7 @@ public class ArgumentExtractionResponse
     public double Confidence { get; set; }
 }
 
-#endregion
 
-#region Utilities
 
 /// <summary>
 /// 路由步骤结果包装器
@@ -201,14 +192,12 @@ public class RoutingStepResult<T>
     where T : class
 {
     public T? Result { get; set; }
-    
+
     public bool Success => Result != null && string.IsNullOrEmpty(ErrorMessage);
-    
+
     public string? ErrorMessage { get; set; }
-    
+
     public double Confidence { get; set; }
-    
+
     public TimeSpan ExecutionTime { get; set; }
 }
-
-#endregion

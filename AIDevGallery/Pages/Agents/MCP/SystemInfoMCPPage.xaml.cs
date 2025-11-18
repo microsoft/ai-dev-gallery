@@ -43,6 +43,7 @@ internal sealed partial class SystemInfoMCPPage : Page
         DisconnectFromServer();
     }
 
+    [RequiresDynamicCode("Calls AIDevGallery.Pages.SystemInfoMCPPage.LoadToolsAsync()")]
     private async Task ConnectToServerAsync()
     {
         try

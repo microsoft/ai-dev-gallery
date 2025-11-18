@@ -161,6 +161,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// System prompt for result extraction
     /// </summary>
+    /// <returns></returns>
     public static string GetResultExtractionSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手，专门负责从 MCP 工具调用的结果中提取关键信息并生成用户友好的回答。
@@ -186,6 +187,7 @@ public static class McpPromptTemplateManager
     /// <summary>
     /// System prompt for no route found scenarios
     /// </summary>
+    /// <returns></returns>
     public static string GetNoRouteFoundSystemPrompt()
     {
         return @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：

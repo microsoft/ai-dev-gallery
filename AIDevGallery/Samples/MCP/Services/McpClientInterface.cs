@@ -31,7 +31,7 @@ public class McpClientWrapper : IDisposable
     public async Task<IReadOnlyList<McpClientTool>?> ListToolsAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        
+
         var tools = await _client.ListToolsAsync();
         return tools?.ToList().AsReadOnly();
     }
@@ -41,7 +41,7 @@ public class McpClientWrapper : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
         ArgumentNullException.ThrowIfNull(arguments);
-        
+
         return await _client.CallToolAsync(toolName, arguments);
     }
 
