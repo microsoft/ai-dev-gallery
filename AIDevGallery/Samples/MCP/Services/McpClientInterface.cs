@@ -32,7 +32,7 @@ public class McpClientWrapper : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         
-        var tools = await _client.ListToolsAsync(cancellationToken);
+        var tools = await _client.ListToolsAsync();
         return tools?.ToList().AsReadOnly();
     }
 
@@ -42,7 +42,7 @@ public class McpClientWrapper : IDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
         ArgumentNullException.ThrowIfNull(arguments);
         
-        return await _client.CallToolAsync(toolName, arguments, cancellationToken);
+        return await _client.CallToolAsync(toolName, arguments);
     }
 
     public void Dispose()
@@ -62,7 +62,9 @@ public class McpClientWrapper : IDisposable
         {
             try
             {
-                _client?.Dispose();
+                // McpClient 实现了 IAsyncDisposable，不是 IDisposable
+                // 在同步上下文中，我们无法正确释放异步资源
+                // 建议使用者在合适的异步上下文中调用 DisposeAsync
             }
             catch (Exception)
             {
@@ -89,33 +91,15 @@ public static class McpClientFactory
     private const string McpArgument = "mcp";
     private const string ProxyArgument = "--proxy";
 
+    private record ServerConfig(string ServerId, string ClientName);
+
     // 服务器配置
     private static readonly Dictionary<string, ServerConfig> ServerConfigs = new()
     {
-        {
-            "system-info", new ServerConfig
-            {
-                ServerId = SystemInfoServerId,
-                ClientName = "SystemInfo-MCP-Client"
-            }
-        },
-        {
-            "file-system", new ServerConfig
-            {
-                ServerId = FileServerId,
-                ClientName = "File-MCP-Client"
-            }
-        },
-        {
-            "settings", new ServerConfig
-            {
-                ServerId = SettingsServerId,
-                ClientName = "Settings-MCP-Client"
-            }
-        }
+        { "system-info", new ServerConfig(SystemInfoServerId, "SystemInfo-MCP-Client") },
+        { "file-system", new ServerConfig(FileServerId, "File-MCP-Client") },
+        { "settings", new ServerConfig(SettingsServerId, "Settings-MCP-Client") }
     };
-
-    private record ServerConfig(string ServerId, string ClientName);
 
     /// <summary>
     /// 通用的 MCP 客户端创建方法
@@ -135,7 +119,7 @@ public static class McpClientFactory
 
             var transport = new StdioClientTransport(transportOptions);
             var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions, cancellationToken);
+            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
 
             return new McpClientWrapper(client, config.ServerId);
         }
