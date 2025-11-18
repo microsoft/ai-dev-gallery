@@ -21,10 +21,10 @@ public static class McpPromptTemplateManager
 
 [系统角色指令]
 你将遵循以下约束：
-1) 在任何时候，如果必须调用工具却没有足够信息，请返回缺失字段。
-2) 只调用最小权限工具。
-3) 若出现错误或不可达，返回结构化错误与可操作建议。
-4) 最终的答复附简短来源标注（server.tool）。
+1) 在任何时候，如果必须调用工具却没有足够信息，请返回缺失字段
+2) 只调用最小权限工具
+3) 若出现错误或不可达，返回结构化错误与可操作建议
+4) 最终的答复附简短来源标注（server.tool）
 
 [核心约束]
 - 严格基于 MCP 数据回答，不得在未调用工具时编造答案
@@ -128,7 +128,7 @@ public static class McpPromptTemplateManager
             {
               "arguments": { /* 满足 schema 的键值对，包含成功提取的参数 */ },
               "missing": ["fieldA", "fieldB"],       // 若无缺失则为空数组
-              "clarify_question": "仅当missing非空时给出的一条中文澄清问题",
+              "clarify_question": "仅当missing非空时给出的一条英文澄清问题",
               "confidence": 0.0-1.0
             }
             """;
@@ -229,7 +229,7 @@ public static class McpPromptTemplateManager
             必须返回且仅返回这个JSON结构：
             {
               "error_category": "connection" | "permission" | "invalid_args" | "timeout" | "server_error" | "unknown",
-              "user_message_zh": "面向用户的简短中文说明",
+              "user_message_zh": "面向用户的简短英文说明",
               "next_steps": ["string", "..."],          // 操作清单
               "retry": { "should_retry": true|false, "delay_ms": 5000, "max_attempts": 1, "arg_patches": { } }
             }
@@ -243,7 +243,7 @@ public static class McpPromptTemplateManager
     public static string GetFinalAnswerPrompt()
     {
         return """
-            你是用户答复生成专家。基于已归一化结果生成中文最终答复。
+            你是用户答复生成专家。基于已归一化结果生成英文最终答复。
             
             答复要求：
             1. 简洁准确，避免臆测
@@ -254,8 +254,8 @@ public static class McpPromptTemplateManager
             
             必须返回且仅返回这个JSON结构：
             {
-              "final_answer_zh": "简洁准确的中文回答，包含来源标注",
-              "clarify_question": "",         // 仅当需要澄清时给出一条中文问题
+              "final_answer_zh": "简洁准确的英文回答，包含来源标注",
+              "clarify_question": "",         // 仅当需要澄清时给出一条英文问题
               "confidence": 0.0-1.0
             }
             """;
@@ -274,11 +274,11 @@ public static class McpPromptTemplateManager
             1. 不得重复已回答内容
             2. 基于当前上下文提供相关建议
             3. 建议应该是具体可执行的查询
-            4. 使用自然的中文表达
+            4. 使用自然的英文表达
             
             必须返回且仅返回这个JSON结构：
             {
-              "suggestion_zh": "一条有价值的后续建议（中文）",
+              "suggestion_zh": "一条有价值的后续建议（英文）",
               "category": "hardware" | "performance" | "storage" | "network" | "other"
             }
             """;
@@ -296,9 +296,9 @@ public static class McpPromptTemplateManager
 1. **严格基于MCP数据**: 你必须且只能基于 MCP 工具返回的实际数据回答，绝不允许编造、推测或添加任何数据中不存在的信息
 2. **避免自由回答**: 不允许绕过 MCP 执行命令或提供未经工具验证的信息
 3. **明确空值处理**: 如果数据不完整、缺失或为空，必须明确说明'数据不可用'或'工具未返回此信息'
-4. **结构化响应**: 用自然、简洁的语言表达技术信息，但保持事实准确性
+4. **结构化响应**: 用英文、自然、简洁的语言表达技术信息，但保持事实准确性
 5. **错误透明**: 如果返回的是错误或空数据，诚实告知用户并提供可操作建议
-6. **信息层次**: 突出最重要的信息，将技术细节转换为用户友好的表述
+6. **信息层次**: 突出最重要的信息，将技术细节转换为用户友好的英文表述
 7. **简洁完整**: 保持回答简洁但包含所有相关信息
 
 [禁止行为]
@@ -307,7 +307,7 @@ public static class McpPromptTemplateManager
 - 不得忽略或隐瞒工具返回的错误信息
 
 [输出格式]
-直接回答用户的问题，基于MCP数据提供准确信息。如需说明数据来源限制，请简洁说明。";
+用英文直接回答用户的问题，基于MCP数据提供准确信息。如需说明数据来源限制，请简洁说明。";
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ public static class McpPromptTemplateManager
         return @"你是一个 MCP-aware 助手。用户的查询无法匹配到合适的 MCP 工具。你必须：
 
 [处理规则]
-1. **明确说明**：解释为什么无法通过现有MCP工具处理这个查询
+1. **明确说明**：用英文解释为什么无法通过现有MCP工具处理这个查询
 2. **工具导向**：基于可用的MCP工具建议用户可以询问的具体问题
 3. **能力边界**：强调你只能通过MCP工具提供信息，不会自行回答
 4. **友好建议**：提供3-5个具体的示例查询
