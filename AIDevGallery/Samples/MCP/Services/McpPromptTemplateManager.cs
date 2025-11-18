@@ -129,21 +129,24 @@ public static class McpPromptTemplateManager
     public static string GetArgumentExtractionPrompt()
     {
         return """
-            你是参数提取专家。根据工具的参数定义，从用户问题中提取或推断调用所需的最小充分参数。
+            你是参数提取专家。根据工具的参数定义，从用户问题中智能提取和转换参数值。
             
-            提取规则：
-            1. 不得臆造未知值，只能基于用户明确提供的信息
-            2. 若缺失必需参数，标记为missing并生成澄清问题
-            3. 可选参数如果用户未提及则不填充
-            4. 优先提取明确的参数值，避免推测
-            5. missing数组中的参数名必须严格来自于InputSchema的properties中定义的参数名，不能添加Schema中不存在的参数
+            核心原则：
+            1. 参数schema的"description"字段是参数处理的权威指南，必须严格遵循
+            2. 用户的自然语言查询通常包含足够信息来满足参数要求，不要轻易判定为缺失
+            3. 对于要求"自然语言陈述"的参数，要将用户复杂描述转换为清晰简洁的命令格式
+            
+            Missing判定规则：
+            - 只有当用户查询完全无法推断出参数值时才标记为missing
+            - missing数组只能包含InputSchema properties中实际定义的参数名
+            - 对于自然语言类参数，如果用户表达了相关意图就不应标记为missing
             
             必须返回且仅返回这个JSON结构：
             {
-              "arguments": { /* 满足 schema 的键值对，包含成功提取的参数 */ },
-              "missing": ["fieldA", "fieldB"],       // 若无缺失则为空数组
-              "clarify_question": "仅当missing非空时给出的一条英文澄清问题",
-              "confidence": 0.0-1.0
+              "arguments": { /* 根据schema要求转换后的参数值 */ },
+              "missing": [],  // 谨慎使用，大多数情况应为空数组
+              "clarify_question": "",  // 仅当missing非空时提供
+              "confidence": 0.8-1.0  // 对转换结果的信心度
             }
             """;
     }
@@ -435,6 +438,11 @@ public static class McpPromptTemplateManager
             工具：{toolName}
             参数Schema（JSON Schema）：{schemaJson}
             上下文（可选）：{contextJson}
+            
+            特别注意：
+            1. 仔细阅读schema中每个参数的"description"字段，它详细说明了参数的期望格式和处理方式
+            2. 如果参数名为"SettingsChangeRequest"且description要求"简洁的自然语言陈述"，请将用户的复杂描述转换为简洁的设置变更命令
+            3. 用户查询中包含的意图信息通常足以填充相应的参数，不要轻易标记为missing
             """;
     }
 
