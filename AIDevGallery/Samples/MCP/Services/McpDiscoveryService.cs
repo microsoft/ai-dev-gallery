@@ -18,6 +18,16 @@ namespace AIDevGallery.Samples.MCP.Services;
 /// </summary>
 public class McpDiscoveryService : IDisposable
 {
+    // 服务器类型常量
+    private const string SystemInfoServerId = "system-info";
+    private const string FileSystemServerId = "file-system";
+    private const string SettingsServerId = "settings";
+
+    // 优先级权重常量
+    private const int ReadOperationPriority = 15;
+    private const int WriteOperationPriority = 5;
+    private const int ServerSpecificPriority = 20;
+
     private readonly ILogger<McpDiscoveryService>? _logger;
     private readonly ConcurrentDictionary<string, McpServerInfo> _servers = new();
     private readonly ConcurrentDictionary<string, McpClientWrapper> _connections = new();
@@ -70,6 +80,14 @@ public class McpDiscoveryService : IDisposable
         return servers.Where(s => s.IsEnabled).ToList();
     }
 
+    // 服务器连接工厂映射
+    private static readonly Dictionary<string, Func<CancellationToken, Task<McpClientWrapper?>>> ServerFactoryMap = new()
+    {
+        { SystemInfoServerId, McpClientFactory.CreateSystemInfoClientAsync },
+        { FileSystemServerId, McpClientFactory.CreateFileOperationsClientAsync },
+        { SettingsServerId, McpClientFactory.CreateSettingsClientAsync }
+    };
+
     /// <summary>
     /// 连接到指定的 MCP server
     /// </summary>
@@ -77,22 +95,13 @@ public class McpDiscoveryService : IDisposable
     {
         try
         {
-            McpClientWrapper? client = null;
-
-            // 根据服务器类型选择合适的连接方式
-            if (serverInfo.Id == "system-info")
+            if (!ServerFactoryMap.TryGetValue(serverInfo.Id, out var factory))
             {
-                client = await McpClientFactory.CreateSystemInfoClientAsync(cancellationToken);
-            }
-            else if (serverInfo.Id == "file-system")
-            {
-                client = await McpClientFactory.CreateFileOperationsClientAsync(cancellationToken);
-            }
-            else if (serverInfo.Id == "settings")
-            {
-                client = await McpClientFactory.CreateSettingsClientAsync(cancellationToken);
+                _logger?.LogWarning($"No factory found for server type: {serverInfo.Id}");
+                return null;
             }
 
+            var client = await factory(cancellationToken);
             if (client != null)
             {
                 _connections.TryAdd(serverInfo.Id, client);
@@ -154,26 +163,22 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 将 JsonSchema 转换为字典格式
     /// </summary>
-    private Dictionary<string, object> ConvertJsonSchemaToDict(System.Text.Json.JsonElement jsonSchema)
+    private static Dictionary<string, object> ConvertJsonSchemaToDict(System.Text.Json.JsonElement jsonSchema)
     {
-        var dict = new Dictionary<string, object>();
+        if (jsonSchema.ValueKind != System.Text.Json.JsonValueKind.Object)
+        {
+            return new Dictionary<string, object>();
+        }
 
         try
         {
-            if (jsonSchema.ValueKind == System.Text.Json.JsonValueKind.Object)
-            {
-                foreach (var property in jsonSchema.EnumerateObject())
-                {
-                    dict[property.Name] = property.Value.ToString();
-                }
-            }
+            return jsonSchema.EnumerateObject()
+                .ToDictionary(property => property.Name, property => (object)property.Value.ToString());
         }
-        catch
+        catch (Exception)
         {
-            // 转换失败，返回空字典
+            return new Dictionary<string, object>();
         }
-
-        return dict;
     }
 
     /// <summary>
@@ -181,46 +186,53 @@ public class McpDiscoveryService : IDisposable
     /// </summary>
     private string[] ExtractKeywordsFromTool(McpClientTool tool, string serverId)
     {
-        var keywords = new List<string>();
+        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 从工具名称中提取
         if (!string.IsNullOrEmpty(tool.Name))
         {
-            keywords.AddRange(tool.Name.Split('_', '-', ' ', '.'));
+            keywords.UnionWith(tool.Name.Split('_', '-', ' ', '.'));
         }
 
         // 从描述中提取
         if (!string.IsNullOrEmpty(tool.Description))
         {
             var description = tool.Description.ToLower();
-
-            // 基于服务器类型定义更具体的关键词
-            var serverSpecificKeywords = GetServerSpecificKeywords(serverId);
-            keywords.AddRange(serverSpecificKeywords.Where(k => description.Contains(k)));
-
-            // 通用关键词
-            var commonKeywords = new[] { "get", "set", "list", "info", "status", "read", "write", "create", "delete", "update" };
-            keywords.AddRange(commonKeywords.Where(k => description.Contains(k)));
+            var allKeywords = GetServerSpecificKeywords(serverId).Concat(CommonKeywords);
+            keywords.UnionWith(allKeywords.Where(description.Contains));
         }
 
         // 根据服务器ID添加特定标签
-        keywords.AddRange(GetServerTypeKeywords(serverId));
+        keywords.UnionWith(GetServerTypeKeywords(serverId));
 
-        return keywords.Distinct().Where(k => !string.IsNullOrWhiteSpace(k)).ToArray();
+        return keywords.Where(k => !string.IsNullOrWhiteSpace(k)).ToArray();
     }
+
+    // 服务器特定关键词配置
+    private static readonly Dictionary<string, string[]> ServerSpecificKeywords = new()
+    {
+        { SystemInfoServerId, new[] { "system", "hardware", "memory", "ram", "cpu", "disk", "processor", "info", "status", "performance" } },
+        { FileSystemServerId, new[] { "file", "folder", "directory", "path", "read", "write", "copy", "move", "delete", "list", "create", "exists" } },
+        { SettingsServerId, new[] { "settings", "config", "configuration", "preferences", "registry", "policy", "option", "value", "key" } }
+    };
+
+    private static readonly Dictionary<string, string[]> ServerTypeKeywords = new()
+    {
+        { SystemInfoServerId, new[] { "system", "hardware" } },
+        { FileSystemServerId, new[] { "file", "filesystem" } },
+        { SettingsServerId, new[] { "settings", "config" } }
+    };
+
+    private static readonly string[] CommonKeywords = { "get", "set", "list", "info", "status", "read", "write", "create", "delete", "update" };
+    private static readonly string[] DefaultKeywords = { "general", "utility", "tool" };
+    private static readonly string[] DefaultTypeKeywords = { "general" };
 
     /// <summary>
     /// 获取服务器特定关键词
     /// </summary>
     private string[] GetServerSpecificKeywords(string serverId)
     {
-        return serverId switch
-        {
-            "system-info" => new[] { "system", "hardware", "memory", "ram", "cpu", "disk", "processor", "info", "status", "performance" },
-            "file-system" => new[] { "file", "folder", "directory", "path", "read", "write", "copy", "move", "delete", "list", "create", "exists" },
-            "settings" => new[] { "settings", "config", "configuration", "preferences", "registry", "policy", "option", "value", "key" },
-            _ => new[] { "general", "utility", "tool" }
-        };
+        return ServerSpecificKeywords.TryGetValue(serverId, out var keywords) ? keywords : DefaultKeywords;
     }
 
     /// <summary>
@@ -228,77 +240,78 @@ public class McpDiscoveryService : IDisposable
     /// </summary>
     private string[] GetServerTypeKeywords(string serverId)
     {
-        return serverId switch
-        {
-            "system-info" => new[] { "system", "hardware" },
-            "file-system" => new[] { "file", "filesystem" },
-            "settings" => new[] { "settings", "config" },
-            _ => new[] { "general" }
-        };
+        return ServerTypeKeywords.TryGetValue(serverId, out var keywords) ? keywords : DefaultTypeKeywords;
     }
+
+    // 优先级规则配置
+    private static readonly Dictionary<string, int> ReadOperationKeywords = new()
+    {
+        { "get", ReadOperationPriority },
+        { "info", ReadOperationPriority },
+        { "list", ReadOperationPriority }
+    };
+
+    private static readonly Dictionary<string, int> WriteOperationKeywords = new()
+    {
+        { "set", WriteOperationPriority },
+        { "update", WriteOperationPriority },
+        { "create", WriteOperationPriority }
+    };
+
+    private static readonly Dictionary<string, Dictionary<string, int>> ServerPriorityRules = new()
+    {
+        {
+            SystemInfoServerId, new Dictionary<string, int>
+            {
+                { "memory", ServerSpecificPriority },
+                { "cpu", ServerSpecificPriority },
+                { "disk", ServerSpecificPriority },
+                { "system", ReadOperationPriority },
+                { "hardware", ReadOperationPriority }
+            }
+        },
+        {
+            FileSystemServerId, new Dictionary<string, int>
+            {
+                { "file", ServerSpecificPriority },
+                { "directory", ServerSpecificPriority },
+                { "path", ServerSpecificPriority },
+                { "read", 10 },
+                { "list", 10 }
+            }
+        },
+        {
+            SettingsServerId, new Dictionary<string, int>
+            {
+                { "setting", ServerSpecificPriority },
+                { "config", ServerSpecificPriority },
+                { "get", 10 },
+                { "read", 10 }
+            }
+        }
+    };
 
     /// <summary>
     /// 计算工具优先级
     /// </summary>
     private int CalculateToolPriority(McpClientTool tool, string serverId)
     {
+        if (string.IsNullOrEmpty(tool.Name))
+        {
+            return 0;
+        }
+
+        var name = tool.Name.ToLower();
         var priority = 0;
 
-        if (!string.IsNullOrEmpty(tool.Name))
+        // 基础功能优先级
+        priority += ReadOperationKeywords.Where(kv => name.Contains(kv.Key)).Sum(kv => kv.Value);
+        priority += WriteOperationKeywords.Where(kv => name.Contains(kv.Key)).Sum(kv => kv.Value);
+
+        // 服务器特定优先级调整
+        if (ServerPriorityRules.TryGetValue(serverId, out var rules))
         {
-            var name = tool.Name.ToLower();
-
-            // 基础功能优先级
-            if (name.Contains("get") || name.Contains("info") || name.Contains("list"))
-            {
-                priority += 15; // 只读操作优先级高
-            }
-
-            if (name.Contains("set") || name.Contains("update") || name.Contains("create"))
-            {
-                priority += 5; // 写操作优先级低
-            }
-
-            // 服务器特定优先级调整
-            switch (serverId)
-            {
-                case "system-info":
-                    if (name.Contains("memory") || name.Contains("cpu") || name.Contains("disk"))
-                    {
-                        priority += 20;
-                    }
-
-                    if (name.Contains("system") || name.Contains("hardware"))
-                    {
-                        priority += 15;
-                    }
-
-                    break;
-                case "file-system":
-                    if (name.Contains("file") || name.Contains("directory") || name.Contains("path"))
-                    {
-                        priority += 20;
-                    }
-
-                    if (name.Contains("read") || name.Contains("list"))
-                    {
-                        priority += 10;
-                    }
-
-                    break;
-                case "settings":
-                    if (name.Contains("setting") || name.Contains("config"))
-                    {
-                        priority += 20;
-                    }
-
-                    if (name.Contains("get") || name.Contains("read"))
-                    {
-                        priority += 10;
-                    }
-
-                    break;
-            }
+            priority += rules.Where(kv => name.Contains(kv.Key)).Sum(kv => kv.Value);
         }
 
         return priority;
@@ -307,16 +320,16 @@ public class McpDiscoveryService : IDisposable
     /// <summary>
     /// 获取预定义的 MCP servers（基于现有的Windows MCP服务器）
     /// </summary>
-    private List<McpServerInfo> GetPredefinedServers()
+    private static List<McpServerInfo> GetPredefinedServers()
     {
         return new List<McpServerInfo>
         {
             new McpServerInfo
             {
-                Id = "system-info",
+                Id = SystemInfoServerId,
                 Name = "System Information Server",
                 Description = "Provides system hardware and software information",
-                ExecutablePath = "odr.exe", // 使用Windows MCP代理
+                ExecutablePath = "odr.exe",
                 Arguments = ["mcp", "--proxy", "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server"],
                 Categories = ["system", "hardware"],
                 Tags = ["ram", "cpu", "disk", "memory", "hardware", "system", "info"],
@@ -324,10 +337,10 @@ public class McpDiscoveryService : IDisposable
             },
             new McpServerInfo
             {
-                Id = "file-system",
+                Id = FileSystemServerId,
                 Name = "File Operations Server",
                 Description = "File system operations and information",
-                ExecutablePath = "odr.exe", // 使用Windows MCP代理
+                ExecutablePath = "odr.exe",
                 Arguments = ["mcp", "--proxy", "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server"],
                 Categories = ["filesystem", "files"],
                 Tags = ["file", "directory", "path", "storage", "read", "write", "list"],
@@ -335,10 +348,10 @@ public class McpDiscoveryService : IDisposable
             },
             new McpServerInfo
             {
-                Id = "settings",
+                Id = SettingsServerId,
                 Name = "Settings Server",
                 Description = "Windows settings and configuration management",
-                ExecutablePath = "odr.exe", // 使用Windows MCP代理
+                ExecutablePath = "odr.exe",
                 Arguments = ["mcp", "--proxy", "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server"],
                 Categories = ["settings", "configuration"],
                 Tags = ["settings", "config", "windows", "preferences", "system"],

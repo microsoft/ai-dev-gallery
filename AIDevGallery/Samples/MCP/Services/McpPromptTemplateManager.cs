@@ -25,7 +25,7 @@ public static class McpPromptTemplateManager
 2) 只调用最小权限工具
 3) 若出现错误或不可达，返回结构化错误与可操作建议
 4) 最终的答复附简短来源标注（server.tool）
-5）回答请使用英文
+5）Please respond in English
 
 [核心约束]
 - 严格基于 MCP 数据回答，不得在未调用工具时编造答案
@@ -260,7 +260,7 @@ public static class McpPromptTemplateManager
     public static string GetFinalAnswerPrompt()
     {
         return """
-            你是用户答复生成专家。基于已归一化结果生成英文最终答复。
+            你是用户答复生成专家。基于已归一化结果生成最终答复。
             
             答复要求：
             1. 简洁准确，避免臆测
@@ -268,6 +268,7 @@ public static class McpPromptTemplateManager
             3. 如置信度低或信息不完整，给出一条澄清问题
             4. 使用自然、用户友好的语言
             5. 突出最重要的信息
+            6. Please respond in English
             
             必须返回且仅返回这个JSON结构：
             {
@@ -291,7 +292,7 @@ public static class McpPromptTemplateManager
             1. 不得重复已回答内容
             2. 基于当前上下文提供相关建议
             3. 建议应该是具体可执行的查询
-            4. 使用自然的英文表达
+            4. Use natural and user-friendly English language
             
             必须返回且仅返回这个JSON结构：
             {

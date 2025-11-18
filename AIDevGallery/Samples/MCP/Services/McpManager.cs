@@ -87,7 +87,7 @@ public class McpManager : IDisposable
         {
             return new McpResponse
             {
-                Answer = "请输入一个有效的查询。",
+                Answer = "Please enter a valid query.",
                 Source = "System"
             };
         }
@@ -112,8 +112,8 @@ public class McpManager : IDisposable
             //     _logger?.LogInformation($"Routing requires clarification: {routingDecision.ClarificationQuestion}");
             //     return new McpResponse
             //     {
-            //         Answer = $"💬 需要更多信息：{routingDecision.ClarificationQuestion}",
-            //         Source = "AI路由系统",
+            //         Answer = $"💬 More information needed: {routingDecision.ClarificationQuestion}",
+            //         Source = "AI Routing System",
             //         RawResult = new McpInvocationResult
             //         {
             //             IsSuccess = false,
@@ -133,7 +133,6 @@ public class McpManager : IDisposable
             {
                 _logger?.LogDebug($"Alternative candidates for '{userQuery}':");
                 var alternativesInfo = string.Join("\n", candidates.Take(3).Select(c => $"  • {c.server.Name}.{c.tool.Name}: {c.score:F2}"));
-                thinkAreaCallback?.Invoke($"✅ Tool selected: {routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}\n📊 Confidence: {routingDecision.Confidence:F2}\n💭 Reasoning: {routingDecision.Reasoning}\n\n🔄 Alternative candidates:\n{alternativesInfo}");
 
                 foreach (var candidate in candidates.Take(3))
                 {
@@ -147,7 +146,7 @@ public class McpManager : IDisposable
             // {
             //     return new McpResponse
             //     {
-            //         Answer = $"我需要调用 {routingDecision.SelectedServer.Name} 的 {routingDecision.SelectedTool.Name} 工具来获取信息。这个操作是安全的，是否继续？",
+            //         Answer = $"I need to call the {routingDecision.SelectedTool.Name} tool from {routingDecision.SelectedServer.Name} to get information. This operation is safe, would you like to continue?",
             //         Source = $"{routingDecision.SelectedServer.Name}.{routingDecision.SelectedTool.Name}",
             //         RequiresConfirmation = true,
             //         RawResult = new McpInvocationResult { RoutingInfo = routingDecision }
@@ -175,7 +174,7 @@ public class McpManager : IDisposable
             _logger?.LogError($"Error processing query: {ex.Message}");
             return new McpResponse
             {
-                Answer = "处理您的查询时出现错误，请稍后再试。",
+                Answer = "An error occurred while processing your query. Please try again later.",
                 Source = "Error"
             };
         }
@@ -191,7 +190,7 @@ public class McpManager : IDisposable
         {
             return new McpResponse
             {
-                Answer = $"工具调用失败：{result.Error}",
+                Answer = $"Tool invocation failed: {result.Error}",
                 Source = result.RoutingInfo?.SelectedServer.Name ?? "Unknown",
                 RawResult = result
             };
@@ -226,7 +225,7 @@ public class McpManager : IDisposable
             };
 
             var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
-            var extractedAnswer = response?.Text ?? "无法处理工具返回的数据。";
+            var extractedAnswer = response?.Text ?? "Unable to extract answer from tool result.";
 
             thinkAreaCallback?.Invoke("✅ AI processing complete, formatting final answer...");
 
@@ -293,7 +292,7 @@ public class McpManager : IDisposable
     {
         if (result.Data == null)
         {
-            return "工具没有返回数据。";
+            return "The tool did not return any data.";
         }
 
         // 如果有 AI 客户端，尝试使用 AI 分析数据
@@ -346,12 +345,12 @@ public class McpManager : IDisposable
         {
             var json = SerializeResultData(result);
             thinkAreaCallback?.Invoke("✅ Basic data extraction completed");
-            return $"获取到以下信息：\n{json}";
+            return $"Retrieved the following information:\n{json}";
         }
         catch
         {
             thinkAreaCallback?.Invoke("❌ Data extraction failed, returning raw data");
-            return result.Data?.ToString() ?? "无法解析返回的数据。";
+            return result.Data?.ToString() ?? "Unable to parse the returned data.";
         }
     }
 
@@ -367,7 +366,7 @@ public class McpManager : IDisposable
         {
             return new McpResponse
             {
-                Answer = "当前没有可用的 MCP 服务器。请检查 MCP 服务器配置。",
+                Answer = "No MCP servers are currently available. Please check the MCP server configuration.",
                 Source = "System"
             };
         }
@@ -392,7 +391,7 @@ public class McpManager : IDisposable
                 var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
                 return new McpResponse
                 {
-                    Answer = response?.Text ?? "无法为您的查询找到合适的工具。",
+                    Answer = response?.Text ?? "Unable to find a suitable tool for your query.",
                     Source = "System"
                 };
             }
@@ -405,7 +404,7 @@ public class McpManager : IDisposable
         // 降级到简单的文本回复
         return new McpResponse
         {
-            Answer = $"抱歉，我无法为您的查询找到合适的工具。当前可用 {availableTools.Count} 个工具，主要涉及：{string.Join("、", availableServers.SelectMany(s => s.Categories).Distinct())}。",
+            Answer = $"Sorry, I cannot find a suitable tool for your query. Currently {availableTools.Count} tools are available, mainly covering: {string.Join(", ", availableServers.SelectMany(s => s.Categories).Distinct())}.",
             Source = "System"
         };
     }
@@ -483,31 +482,31 @@ public class McpManager : IDisposable
     {
         if (!_initialized)
         {
-            return "MCP 系统尚未初始化，请稍后重试。";
+            return "MCP system has not been initialized yet. Please try again later.";
         }
 
         var servers = _discoveryService.GetConnectedServers();
         if (!servers.Any())
         {
-            return "当前没有可用的 MCP 服务器连接。";
+            return "No MCP server connections are currently available.";
         }
 
         var catalog = new List<string>
         {
-            "=== 可用的 MCP 工具目录 ===",
+            "=== Available MCP Tools Catalog ===",
             string.Empty
         };
 
         foreach (var server in servers)
         {
             catalog.Add($"📋 {server.Name}");
-            catalog.Add($"   描述: {server.Description}");
-            catalog.Add($"   类别: {string.Join(", ", server.Categories)}");
+            catalog.Add($"   Description: {server.Description}");
+            catalog.Add($"   Categories: {string.Join(", ", server.Categories)}");
 
             var tools = _discoveryService.GetServerTools(server.Id);
             if (tools.Any())
             {
-                catalog.Add("   工具:");
+                catalog.Add("   Tools:");
                 foreach (var tool in tools)
                 {
                     catalog.Add($"     • {tool.Name}: {tool.Description}");
@@ -517,7 +516,7 @@ public class McpManager : IDisposable
             catalog.Add(string.Empty);
         }
 
-        catalog.Add("💡 提示: 您可以直接提问，系统会自动选择最合适的工具来回答。");
+        catalog.Add("💡 Tip: You can ask questions directly, and the system will automatically select the most appropriate tool to answer.");
 
         return string.Join("\n", catalog);
     }

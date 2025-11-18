@@ -24,36 +24,50 @@ public class McpClientWrapper : IDisposable
 
     public McpClientWrapper(McpClient client, string serverId)
     {
-        _client = client;
-        _serverId = serverId;
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _serverId = !string.IsNullOrWhiteSpace(serverId) ? serverId : throw new ArgumentException("ServerId cannot be null or whitespace.", nameof(serverId));
     }
 
     public async Task<IReadOnlyList<McpClientTool>?> ListToolsAsync(CancellationToken cancellationToken = default)
     {
-        var tools = await _client.ListToolsAsync();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        
+        var tools = await _client.ListToolsAsync(cancellationToken);
         return tools?.ToList().AsReadOnly();
     }
 
     public async Task<CallToolResult> CallToolAsync(string toolName, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default)
     {
-        return await _client.CallToolAsync(toolName, arguments);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(toolName);
+        ArgumentNullException.ThrowIfNull(arguments);
+        
+        return await _client.CallToolAsync(toolName, arguments, cancellationToken);
     }
 
     public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
         {
             return;
         }
 
-        try
+        if (disposing)
         {
-            // McpClient实现了IAsyncDisposable，不是IDisposable
-            // 在异步上下文中应该使用DisposeAsync，这里可以不处理
-        }
-        catch
-        {
-            // 忽略清理错误
+            try
+            {
+                _client?.Dispose();
+            }
+            catch (Exception)
+            {
+                // 忽略清理过程中的异常，避免在终结器中抛出异常
+            }
         }
 
         _disposed = true;
@@ -65,38 +79,80 @@ public class McpClientWrapper : IDisposable
 /// </summary>
 public static class McpClientFactory
 {
+    // 服务器ID常量
+    private const string SystemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server";
+    private const string FileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
+    private const string SettingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
+
+    // 客户端配置
+    private const string OdrCommand = "odr.exe";
+    private const string McpArgument = "mcp";
+    private const string ProxyArgument = "--proxy";
+
+    // 服务器配置
+    private static readonly Dictionary<string, ServerConfig> ServerConfigs = new()
+    {
+        {
+            "system-info", new ServerConfig
+            {
+                ServerId = SystemInfoServerId,
+                ClientName = "SystemInfo-MCP-Client"
+            }
+        },
+        {
+            "file-system", new ServerConfig
+            {
+                ServerId = FileServerId,
+                ClientName = "File-MCP-Client"
+            }
+        },
+        {
+            "settings", new ServerConfig
+            {
+                ServerId = SettingsServerId,
+                ClientName = "Settings-MCP-Client"
+            }
+        }
+    };
+
+    private record ServerConfig(string ServerId, string ClientName);
+
+    /// <summary>
+    /// 通用的 MCP 客户端创建方法
+    /// </summary>
+    private static async Task<McpClientWrapper?> CreateClientAsync(ServerConfig config, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+
+        try
+        {
+            var transportOptions = new StdioClientTransportOptions
+            {
+                Name = config.ClientName,
+                Command = OdrCommand,
+                Arguments = new[] { McpArgument, ProxyArgument, config.ServerId }
+            };
+
+            var transport = new StdioClientTransport(transportOptions);
+            var mcpClientOptions = new McpClientOptions();
+            var client = await McpClient.CreateAsync(transport, mcpClientOptions, cancellationToken);
+
+            return new McpClientWrapper(client, config.ServerId);
+        }
+        catch (Exception)
+        {
+            // 连接失败时返回 null，让调用者处理
+            return null;
+        }
+    }
+
     /// <summary>
     /// 创建系统信息 MCP 客户端
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateSystemInfoClientAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            const string systemInfoServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_systeminfo-mcp-server";
-
-            var transportOptions = new StdioClientTransportOptions
-            {
-                Name = "SystemInfo-MCP-Client",
-                Command = "odr.exe",
-                Arguments = new[]
-                {
-                    "mcp",
-                    "--proxy",
-                    systemInfoServerId
-                }
-            };
-
-            var transport = new StdioClientTransport(transportOptions);
-            var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
-
-            return new McpClientWrapper(client, systemInfoServerId);
-        }
-        catch
-        {
-            return null; // 连接失败
-        }
+        return await CreateClientAsync(ServerConfigs["system-info"], cancellationToken);
     }
 
     /// <summary>
@@ -105,32 +161,7 @@ public static class McpClientFactory
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateFileOperationsClientAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            const string fileServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_file-mcp-server";
-
-            var transportOptions = new StdioClientTransportOptions
-            {
-                Name = "File-MCP-Client",
-                Command = "odr.exe",
-                Arguments = new[]
-                {
-                    "mcp",
-                    "--proxy",
-                    fileServerId
-                }
-            };
-
-            var transport = new StdioClientTransport(transportOptions);
-            var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
-
-            return new McpClientWrapper(client, fileServerId);
-        }
-        catch
-        {
-            return null; // 连接失败
-        }
+        return await CreateClientAsync(ServerConfigs["file-system"], cancellationToken);
     }
 
     /// <summary>
@@ -139,42 +170,33 @@ public static class McpClientFactory
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task<McpClientWrapper?> CreateSettingsClientAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            const string settingsServerId = "MicrosoftWindows.Client.Core_cw5n1h2txyewy_com.microsoft.windows.ai.mcpServer_settings-mcp-server";
-
-            var transportOptions = new StdioClientTransportOptions
-            {
-                Name = "Settings-MCP-Client",
-                Command = "odr.exe",
-                Arguments = new[]
-                {
-                    "mcp",
-                    "--proxy",
-                    settingsServerId
-                }
-            };
-
-            var transport = new StdioClientTransport(transportOptions);
-            var mcpClientOptions = new McpClientOptions();
-            var client = await McpClient.CreateAsync(transport, mcpClientOptions);
-
-            return new McpClientWrapper(client, settingsServerId);
-        }
-        catch
-        {
-            return null; // 连接失败
-        }
+        return await CreateClientAsync(ServerConfigs["settings"], cancellationToken);
     }
 
     /// <summary>
-    /// 创建模拟客户端用于演示（当真实 MCP 服务器不可用时）
+    /// 通用的客户端创建方法，根据服务器类型创建相应的客户端
     /// </summary>
-    /// <returns></returns>
-    public static McpClientWrapper CreateDemoClient()
+    /// <param name="serverType">服务器类型 ("system-info", "file-system", "settings")</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>创建的客户端包装器，如果创建失败则返回 null</returns>
+    public static async Task<McpClientWrapper?> CreateClientAsync(string serverType, CancellationToken cancellationToken = default)
     {
-        // 这里返回一个模拟的客户端，用于演示目的
-        // 实际实现中应该创建一个模拟的 McpClient
-        throw new NotImplementedException("Demo client should be implemented for fallback scenarios");
+        ArgumentException.ThrowIfNullOrWhiteSpace(serverType);
+        
+        if (!ServerConfigs.TryGetValue(serverType, out var config))
+        {
+            throw new ArgumentException($"Unknown server type: {serverType}. Valid types are: {string.Join(", ", ServerConfigs.Keys)}", nameof(serverType));
+        }
+
+        return await CreateClientAsync(config, cancellationToken);
+    }
+
+    /// <summary>
+    /// 获取所有支持的服务器类型
+    /// </summary>
+    /// <returns>支持的服务器类型列表</returns>
+    public static IReadOnlyList<string> GetSupportedServerTypes()
+    {
+        return ServerConfigs.Keys.ToList().AsReadOnly();
     }
 }
