@@ -16,11 +16,15 @@ namespace AIDevGallery.Samples.MCP.Services;
 /// <summary>
 /// MCP 结果处理器 - 负责处理工具调用结果并生成用户友好的回复
 /// </summary>
-public class McpResultProcessor : McpAIServiceBase
+public class McpResultProcessor
 {
+    private readonly McpAIDecisionEngine? _aiDecisionEngine;
+    private readonly ILogger<McpResultProcessor>? _logger;
+
     public McpResultProcessor(IChatClient? chatClient = null, ILogger<McpResultProcessor>? logger = null)
-        : base(chatClient, logger)
     {
+        _aiDecisionEngine = chatClient != null ? new McpAIDecisionEngine(chatClient, logger) : null;
+        _logger = logger;
     }
 
     /// <summary>
@@ -58,13 +62,9 @@ public class McpResultProcessor : McpAIServiceBase
 
         try
         {
-            // 使用 LLM 处理和提取信息
-            var systemPrompt = CreateExtractionSystemPrompt(result);
-            var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
-
             thinkAreaCallback?.Invoke("🧠 Requesting AI model to analyze and process results...");
             
-            var extractedAnswer = await CallAIWithTextResponseAsync(systemPrompt, userPrompt, "结果提取", cancellationToken)
+            var extractedAnswer = await _aiDecisionEngine!.AnalyzeResultAsync(originalQuery, result, "结果提取", cancellationToken)
                 ?? "Unable to extract answer from tool result.";
 
             thinkAreaCallback?.Invoke("✅ AI processing complete, formatting final answer...");
@@ -97,14 +97,6 @@ public class McpResultProcessor : McpAIServiceBase
     }
 
     /// <summary>
-    /// 创建用于信息提取的系统提示
-    /// </summary>
-    private string CreateExtractionSystemPrompt(McpInvocationResult result)
-    {
-        return McpPromptTemplateManager.GetResultExtractionSystemPrompt();
-    }
-
-    /// <summary>
     /// 从 MCP 调用结果中提取并序列化数据
     /// </summary>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
@@ -113,15 +105,6 @@ public class McpResultProcessor : McpAIServiceBase
         var structuredContent = result.Data?.GetType().GetProperty("StructuredContent")?.GetValue(result.Data, null);
         var dataToSerialize = structuredContent ?? result.Data;
         return JsonSerializer.Serialize(dataToSerialize, new JsonSerializerOptions { WriteIndented = true });
-    }
-
-    /// <summary>
-    /// 创建用于信息提取的用户提示
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private string CreateExtractionUserPrompt(string originalQuery, McpInvocationResult result)
-    {
-        return McpPromptTemplateManager.FormatResultExtractionUserPrompt(originalQuery, result);
     }
 
     /// <summary>
@@ -140,17 +123,14 @@ public class McpResultProcessor : McpAIServiceBase
             return "The tool did not return any data.";
         }
 
-        // 如果有 AI 客户端，尝试使用 AI 分析数据
-        if (chatClient != null)
+        // 如果有 AI 决策引擎，尝试使用 AI 分析数据
+        if (_aiDecisionEngine != null)
         {
             try
             {
                 thinkAreaCallback?.Invoke("🔄 Attempting simple AI analysis...");
 
-                var systemPrompt = CreateExtractionSystemPrompt(result);
-                var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
-
-                var aiAnswer = await CallAIWithTextResponseAsync(systemPrompt, userPrompt, "简单结果提取", cancellationToken);
+                var aiAnswer = await _aiDecisionEngine.AnalyzeResultAsync(originalQuery, result, "简单结果提取", cancellationToken);
 
                 if (!string.IsNullOrEmpty(aiAnswer))
                 {

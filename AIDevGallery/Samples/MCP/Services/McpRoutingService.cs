@@ -19,7 +19,7 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpRoutingService
 {
     private readonly McpDiscoveryService _discoveryService;
-    private readonly McpRoutingAIService _aiService;
+    private readonly McpAIDecisionEngine _aiDecisionEngine;
     private readonly McpScoringService _scoringService;
     private readonly ILogger<McpRoutingService>? _logger;
 
@@ -30,7 +30,7 @@ public class McpRoutingService
     {
         _discoveryService = discoveryService;
         _logger = logger;
-        _aiService = new McpRoutingAIService(chatClient, logger);
+        _aiDecisionEngine = new McpAIDecisionEngine(chatClient, logger);
         _scoringService = new McpScoringService(logger);
     }
 
@@ -60,7 +60,7 @@ public class McpRoutingService
         }
 
         // 使用AI模型进行多步骤决策，如果失败则降级到关键词匹配
-        if (_aiService.HasAIClient)
+        if (_aiDecisionEngine.HasAIClient)
         {
             var aiResult = await RouteWithMultiStepAIAsync(userQuery, servers, thinkAreaCallback);
             if (aiResult != null)
@@ -77,7 +77,7 @@ public class McpRoutingService
     /// <summary>
     /// 使用多步骤AI决策进行智能路由
     /// </summary>
-    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpRoutingAIService.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
+    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpAIDecisionEngine.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
     private async Task<RoutingDecision?> RouteWithMultiStepAIAsync(string userQuery, List<McpServerInfo> servers, Action<string>? thinkAreaCallback = null)
     {
         try
@@ -87,7 +87,7 @@ public class McpRoutingService
             _logger?.LogInformation(step1Message);
             thinkAreaCallback?.Invoke(step1Message);
             
-            var intentResult = await _aiService.ClassifyIntentAsync(userQuery);
+            var intentResult = await _aiDecisionEngine.ClassifyIntentAsync(userQuery);
             if (!intentResult.Success || intentResult.Result == null)
             {
                 var failMessage = "❌ Failed to classify user intent";
@@ -114,7 +114,7 @@ public class McpRoutingService
             _logger?.LogInformation(step2Message);
             thinkAreaCallback?.Invoke(step2Message);
             
-            var serverResult = await _aiService.SelectServerAsync(userQuery, servers, intent);
+            var serverResult = await _aiDecisionEngine.SelectServerAsync(userQuery, servers, intent);
             if (!serverResult.Success || serverResult.Result == null)
             {
                 var serverFailMessage = "❌ Failed to select appropriate server";
@@ -142,7 +142,7 @@ public class McpRoutingService
             thinkAreaCallback?.Invoke(step3Message);
             
             var availableTools = _discoveryService.GetServerTools(selectedServer.Id);
-            var toolResult = await _aiService.SelectToolAsync(userQuery, selectedServer, availableTools, intent);
+            var toolResult = await _aiDecisionEngine.SelectToolAsync(userQuery, selectedServer, availableTools, intent);
             if (!toolResult.Success || toolResult.Result == null)
             {
                 var toolFailMessage = "❌ Failed to select appropriate tool";
@@ -185,7 +185,7 @@ public class McpRoutingService
             _logger?.LogInformation(step5Message);
             thinkAreaCallback?.Invoke(step5Message);
             
-            var planResult = await _aiService.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
+            var planResult = await _aiDecisionEngine.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
 
             var overallConfidence = Math.Min(
                 Math.Min(intentResult.Confidence, serverResult.Confidence),
@@ -235,7 +235,7 @@ public class McpRoutingService
             && selectedTool.InputSchema.TryGetValue("properties", out var props)
             && HasValidProperties(props, thinkAreaCallback))
         {
-            var argumentResult = await _aiService.ExtractArgumentsAsync(userQuery, selectedTool, intent);
+            var argumentResult = await _aiDecisionEngine.ExtractArgumentsAsync(userQuery, selectedTool, intent);
             
             if (!argumentResult.Success || argumentResult.Result == null)
             {

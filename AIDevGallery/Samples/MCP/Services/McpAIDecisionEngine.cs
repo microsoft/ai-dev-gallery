@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.MCP.Services;
 
 /// <summary>
-/// MCP 路由AI服务 - 负责路由决策过程中的AI模型交互和响应解析
+/// MCP AI决策引擎 - 负责使用AI模型进行路由决策的各个步骤
 /// </summary>
-public class McpRoutingAIService : McpAIServiceBase
+public class McpAIDecisionEngine : McpAIServiceBase
 {
-    public McpRoutingAIService(IChatClient? chatClient, ILogger? logger = null)
+    public McpAIDecisionEngine(IChatClient? chatClient, ILogger? logger = null)
         : base(chatClient, logger)
     {
     }
@@ -133,5 +133,19 @@ public class McpRoutingAIService : McpAIServiceBase
         };
     }
 
+    /// <summary>
+    /// 步骤6: 使用AI分析和提取工具调用结果
+    /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    public async Task<string?> AnalyzeResultAsync(
+        string originalQuery, 
+        McpInvocationResult result, 
+        string stepName,
+        CancellationToken cancellationToken = default)
+    {
+        var systemPrompt = McpPromptTemplateManager.GetResultExtractionSystemPrompt();
+        var userPrompt = McpPromptTemplateManager.FormatResultExtractionUserPrompt(originalQuery, result);
 
+        return await CallAIWithTextResponseAsync(systemPrompt, userPrompt, stepName, cancellationToken);
+    }
 }
