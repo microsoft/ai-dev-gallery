@@ -39,18 +39,20 @@ public static class McpPromptTemplateManager
     public static string GetIntentClassificationPrompt()
     {
         return """
-            你是一个专门的JSON响应生成器。分析用户的MCP工具请求并返回结构化分析结果。
+            你是一个专门的JSON响应生成器。分析用户的软件工具请求并返回结构化分析结果。
             
             必须返回且仅返回这个JSON结构：
             {
               "need_tool": boolean,
+              "need_tool_reason": "string",
               "topic": "systeminfo" | "filesystem" | "settings" | "hardware" | "network" | "other",
               "keywords": ["string1", "string2", ...],
               "confidence": number_between_0_and_1
             }
             
             分析规则：
-            - need_tool: 判断分析用户问题和需求是否有可能借助MCP得到帮助
+            - need_tool: 判断分析用户问题和需求是否有可能借助软件工具得到帮助
+            - need_tool_reason: 详细解释need_tool判断的原因，特别是当判断为false时要说明为什么不需要软件工具帮助
             - topic: 根据用户意图选择最匹配的主题类别
             - keywords: 提取关键词用于后续工具匹配
             - confidence: 分析结果的置信度(0.0-1.0)
