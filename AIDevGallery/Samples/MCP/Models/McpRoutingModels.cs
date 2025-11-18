@@ -14,6 +14,9 @@ public class IntentClassificationResponse
     [JsonPropertyName("need_tool")]
     public bool NeedTool { get; set; }
 
+    [JsonPropertyName("need_tool_reason")]
+    public string NeedToolReason { get; set; } = string.Empty;
+
     [JsonPropertyName("topic")]
     public string Topic { get; set; } = string.Empty;
 
