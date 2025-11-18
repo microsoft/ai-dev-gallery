@@ -148,7 +148,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         else if (CustomRadioButton.IsChecked == true)
         {
             // Empty custom text box will not generate a result
-            return string.IsNullOrWhiteSpace(CustomToneTextBox.Text) ? "" : CustomToneTextBox.Text;
+            return string.IsNullOrWhiteSpace(CustomToneTextBox.Text) ? string.Empty : CustomToneTextBox.Text;
         }
 
         return "General"; // Default radio fallback
