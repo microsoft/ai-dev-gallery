@@ -19,7 +19,7 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpRoutingService
 {
     private readonly McpDiscoveryService _discoveryService;
-    private readonly McpAIService _aiService;
+    private readonly McpRoutingAIService _aiService;
     private readonly McpScoringService _scoringService;
     private readonly ILogger<McpRoutingService>? _logger;
 
@@ -30,7 +30,7 @@ public class McpRoutingService
     {
         _discoveryService = discoveryService;
         _logger = logger;
-        _aiService = new McpAIService(chatClient, logger);
+        _aiService = new McpRoutingAIService(chatClient, logger);
         _scoringService = new McpScoringService(logger);
     }
 
@@ -77,7 +77,7 @@ public class McpRoutingService
     /// <summary>
     /// 使用多步骤AI决策进行智能路由
     /// </summary>
-    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpAIService.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
+    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpRoutingAIService.CreateInvocationPlanAsync(String, McpServerInfo, McpToolInfo, Dictionary<String, Object>)")]
     private async Task<RoutingDecision?> RouteWithMultiStepAIAsync(string userQuery, List<McpServerInfo> servers, Action<string>? thinkAreaCallback = null)
     {
         try

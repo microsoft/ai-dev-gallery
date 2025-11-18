@@ -246,7 +246,7 @@ public static class McpPromptTemplateManager
             必须返回且仅返回这个JSON结构：
             {
               "error_category": "connection" | "permission" | "invalid_args" | "timeout" | "server_error" | "unknown",
-              "user_message_zh": "面向用户的简短英文说明",
+              "user_message": "面向用户的简短英文说明",
               "next_steps": ["string", "..."],          // 操作清单
               "retry": { "should_retry": true|false, "delay_ms": 5000, "max_attempts": 1, "arg_patches": { } }
             }
@@ -442,7 +442,7 @@ public static class McpPromptTemplateManager
             
             特别注意：
             1. 仔细阅读schema中每个参数的"description"字段，它详细说明了参数的期望格式和处理方式
-            2. 如果参数名为"SettingsChangeRequest"且description要求"简洁的自然语言陈述"，请将用户的复杂描述转换为简洁的设置变更命令
+            2. 如果description要求"简洁的自然语言陈述"，请将用户的复杂描述转换为简洁的设置变更命令
             3. 用户查询中包含的意图信息通常足以填充相应的参数，不要轻易标记为missing
             """;
     }

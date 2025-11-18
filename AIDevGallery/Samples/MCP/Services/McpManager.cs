@@ -22,6 +22,7 @@ public class McpManager : IDisposable
     private readonly McpDiscoveryService _discoveryService;
     private readonly McpRoutingService _routingService;
     private readonly McpInvocationService _invocationService;
+    private readonly McpResultProcessor _resultProcessor;
     private readonly ILogger<McpManager>? _logger;
     private bool _initialized;
     private bool _disposed;
@@ -37,6 +38,7 @@ public class McpManager : IDisposable
         _discoveryService = new McpDiscoveryService(loggerFactory?.CreateLogger<McpDiscoveryService>());
         _routingService = new McpRoutingService(_discoveryService, loggerFactory?.CreateLogger<McpRoutingService>(), chatClient);
         _invocationService = new McpInvocationService(_discoveryService, loggerFactory?.CreateLogger<McpInvocationService>());
+        _resultProcessor = new McpResultProcessor(chatClient, loggerFactory?.CreateLogger<McpResultProcessor>());
     }
 
     /// <summary>
@@ -167,7 +169,7 @@ public class McpManager : IDisposable
             }
 
             // 4. 使用 LLM 处理结果
-            return await ProcessInvocationResultAsync(userQuery, invocationResult, chatClient, thinkAreaCallback, cancellationToken);
+            return await _resultProcessor.ProcessInvocationResultAsync(userQuery, invocationResult, chatClient, thinkAreaCallback, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -180,179 +182,7 @@ public class McpManager : IDisposable
         }
     }
 
-    /// <summary>
-    /// 处理工具调用结果，使用 LLM 生成用户友好的回复
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private async Task<McpResponse> ProcessInvocationResultAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, Action<string>? thinkAreaCallback, CancellationToken cancellationToken)
-    {
-        if (!result.IsSuccess)
-        {
-            return new McpResponse
-            {
-                Answer = $"Tool invocation failed: {result.Error}",
-                Source = result.RoutingInfo?.SelectedServer.Name ?? "Unknown",
-                RawResult = result
-            };
-        }
 
-        // 如果没有 LLM，返回原始数据
-        if (chatClient == null)
-        {
-            thinkAreaCallback?.Invoke("⚠️ No AI model available, returning raw JSON data");
-            return new McpResponse
-            {
-                Answer = JsonSerializer.Serialize(result.Data, new JsonSerializerOptions { WriteIndented = true }),
-                Source = result.RoutingInfo?.SelectedServer.Name ?? "Unknown",
-                RawResult = result
-            };
-        }
-
-        try
-        {
-            // 使用 LLM 处理和提取信息
-            var systemPrompt = CreateExtractionSystemPrompt(result);
-            var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
-
-            // 合并全局系统提示和结果提取提示
-            var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[结果提取]\n{systemPrompt}";
-
-            thinkAreaCallback?.Invoke("🧠 Requesting AI model to analyze and process results...");
-            var messages = new List<ChatMessage>
-            {
-                new(ChatRole.System, combinedSystemPrompt),
-                new(ChatRole.User, userPrompt)
-            };
-
-            var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
-            var extractedAnswer = response?.Text ?? "Unable to extract answer from tool result.";
-
-            thinkAreaCallback?.Invoke("✅ AI processing complete, formatting final answer...");
-
-            // 获取原始 JSON 数据并组合回答
-            var rawJson = SerializeResultData(result);
-            var combinedAnswer = $"{extractedAnswer}\n\n---------\n{rawJson}";
-
-            return new McpResponse
-            {
-                Answer = combinedAnswer,
-                Source = $"{result.RoutingInfo?.SelectedServer.Name}.{result.RoutingInfo?.SelectedTool.Name}",
-                RawResult = result
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError($"Error processing result with LLM: {ex.Message}");
-            thinkAreaCallback?.Invoke($"⚠️ AI processing error, trying simple text extraction: {ex.Message}");
-
-            // 降级到简单的文本提取
-            var fallbackAnswer = await ExtractSimpleAnswerAsync(originalQuery, result, chatClient, thinkAreaCallback, cancellationToken);
-            return new McpResponse
-            {
-                Answer = fallbackAnswer,
-                Source = result.RoutingInfo?.SelectedServer.Name ?? "Unknown",
-                RawResult = result
-            };
-        }
-    }
-
-    /// <summary>
-    /// 创建用于信息提取的系统提示
-    /// </summary>
-    private string CreateExtractionSystemPrompt(McpInvocationResult result)
-    {
-        return McpPromptTemplateManager.GetResultExtractionSystemPrompt();
-    }
-
-    /// <summary>
-    /// 从 MCP 调用结果中提取并序列化数据
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private string SerializeResultData(McpInvocationResult result)
-    {
-        var structuredContent = result.Data?.GetType().GetProperty("StructuredContent")?.GetValue(result.Data, null);
-        var dataToSerialize = structuredContent ?? result.Data;
-        return JsonSerializer.Serialize(dataToSerialize, new JsonSerializerOptions { WriteIndented = true });
-    }
-
-    /// <summary>
-    /// 创建用于信息提取的用户提示
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private string CreateExtractionUserPrompt(string originalQuery, McpInvocationResult result)
-    {
-        return McpPromptTemplateManager.FormatResultExtractionUserPrompt(originalQuery, result);
-    }
-
-    /// <summary>
-    /// 智能答案提取（使用 AI 分析工具返回的数据）
-    /// </summary>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    private async Task<string> ExtractSimpleAnswerAsync(string originalQuery, McpInvocationResult result, IChatClient? chatClient, Action<string>? thinkAreaCallback, CancellationToken cancellationToken)
-    {
-        if (result.Data == null)
-        {
-            return "The tool did not return any data.";
-        }
-
-        // 如果有 AI 客户端，尝试使用 AI 分析数据
-        if (chatClient != null)
-        {
-            try
-            {
-                thinkAreaCallback?.Invoke("🔄 Attempting simple AI analysis...");
-
-                // 复用现有的系统提示创建方法
-                var systemPrompt = CreateExtractionSystemPrompt(result);
-
-                // 复用现有的用户提示创建方法
-                var userPrompt = CreateExtractionUserPrompt(originalQuery, result);
-
-                // 合并全局系统提示和结果提取提示
-                var combinedSystemPrompt = $"{McpPromptTemplateManager.GLOBAL_SYSTEM_PROMPT}\n\n[简单结果提取]\n{systemPrompt}";
-
-                var messages = new List<ChatMessage>
-                {
-                    new(ChatRole.System, combinedSystemPrompt),
-                    new(ChatRole.User, userPrompt)
-                };
-
-                var response = await chatClient.GetResponseAsync(messages, null, cancellationToken);
-                var aiAnswer = response?.Text?.Trim();
-
-                if (!string.IsNullOrEmpty(aiAnswer))
-                {
-                    _logger?.LogDebug("Successfully extracted answer using AI analysis");
-                    thinkAreaCallback?.Invoke("✅ Simple AI analysis completed successfully");
-
-                    // 获取原始 JSON 数据
-                    var rawJson = SerializeResultData(result);
-
-                    // 组合 AI 回答和原始数据
-                    return $"{aiAnswer}\n\n--- API ---\n{rawJson}";
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning($"AI analysis failed, falling back to basic extraction: {ex.Message}");
-                thinkAreaCallback?.Invoke($"⚠️ Simple AI analysis failed, falling back to basic extraction: {ex.Message}");
-            }
-        }
-
-        // 降级到基本的数据提取（无 AI 或 AI 失败时）
-        thinkAreaCallback?.Invoke("📄 Using basic data extraction...");
-        try
-        {
-            var json = SerializeResultData(result);
-            thinkAreaCallback?.Invoke("✅ Basic data extraction completed");
-            return $"Retrieved the following information:\n{json}";
-        }
-        catch
-        {
-            thinkAreaCallback?.Invoke("❌ Data extraction failed, returning raw data");
-            return result.Data?.ToString() ?? "Unable to parse the returned data.";
-        }
-    }
 
     /// <summary>
     /// 处理没有找到合适路由的情况
