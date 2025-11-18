@@ -49,7 +49,6 @@ public class McpRoutingService
 
         var message = $"🔍 Starting routing for: '{userQuery}'";
         _logger?.LogInformation(message);
-        thinkAreaCallback?.Invoke(message);
 
         var servers = _discoveryService.GetConnectedServers();
         if (!servers.Any())
