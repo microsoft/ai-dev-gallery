@@ -18,7 +18,7 @@ namespace AIDevGallery.Samples.MCP.Services;
 public class McpAIDecisionEngine : McpAIServiceBase
 {
     public McpAIDecisionEngine(IChatClient? chatClient, ILogger? logger = null)
-        : base(chatClient, logger)
+        : base(chatClient)
     {
     }
 
