@@ -33,7 +33,7 @@ public class McpInvocationService
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Invokes MCP tools using runtime types and JSON serialization requiring dynamic code; not trimming safe.")]
-    public async Task<McpInvocationResult> InvokeToolAsync(RoutingDecision decision, CancellationToken cancellationToken = default)
+    public async Task<McpInvocationResult> InvokeToolAsync(McpRoutingResult decision, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -184,7 +184,7 @@ public class McpInvocationService
     /// 批量调用多个工具（用于复杂查询）
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task<List<McpInvocationResult>> InvokeToolsAsync(List<RoutingDecision> decisions, CancellationToken cancellationToken = default)
+    public async Task<List<McpInvocationResult>> InvokeToolsAsync(List<McpRoutingResult> decisions, CancellationToken cancellationToken = default)
     {
         var tasks = decisions.Select(decision => InvokeToolAsync(decision, cancellationToken));
         var results = await Task.WhenAll(tasks);

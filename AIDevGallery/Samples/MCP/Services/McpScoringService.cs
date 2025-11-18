@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Samples.MCP.Models;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,7 +16,6 @@ namespace AIDevGallery.Samples.MCP.Services;
 /// </summary>
 public class McpScoringService
 {
-    private readonly ILogger? _logger;
     private readonly McpScoringConfiguration _config;
 
     // 缓存计算结果以提升性能
@@ -62,9 +60,8 @@ public class McpScoringService
         ["hardware"] = ["hardware", "硬件", "device", "component", "gpu", "motherboard", "bios"]
     };
 
-    public McpScoringService(ILogger? logger = null, McpScoringConfiguration? config = null)
+    public McpScoringService(McpScoringConfiguration? config = null)
     {
-        _logger = logger;
         _config = config ?? new McpScoringConfiguration();
     }
 
@@ -105,12 +102,6 @@ public class McpScoringService
 
         // 缓存结果
         _intentCache.TryAdd(cacheKey, bestIntent);
-
-        if (scores.Any())
-        {
-            var bestScore = scores[bestIntent];
-            _logger?.LogInformation($"Intent analysis for '{query}': {bestIntent} (score: {bestScore:F1})");
-        }
 
         return bestIntent;
     }
@@ -263,19 +254,6 @@ public class McpScoringService
 
             var reasoning = reasons.Any() ? string.Join("; ", reasons) : "No specific match found";
 
-            // 调试模式下输出详细信息
-            if (_config.DebugMode)
-            {
-                _logger?.LogInformation($"Detailed scoring for {server.Name}.{tool.Name}:");
-                _logger?.LogInformation($"  Query: '{query}' | Intent: '{intent}'");
-                _logger?.LogInformation($"  Final Score: {score:F2}");
-                _logger?.LogInformation($"  Reasoning: {reasoning}");
-            }
-            else
-            {
-                _logger?.LogDebug($"Score for {server.Name}.{tool.Name}: {score:F2} ({reasoning})");
-            }
-
             // 缓存结果
             _scoreCache.TryAdd(cacheKey, score);
 
@@ -283,7 +261,6 @@ public class McpScoringService
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, $"Error calculating match score for {server.Name}.{tool.Name}");
             return (0, $"Calculation error: {ex.Message}");
         }
     }
@@ -502,11 +479,10 @@ public class McpScoringService
             // 根据意图提取特定参数
             ExtractIntentSpecificParameters(queryLower, intent, parameters);
 
-            _logger?.LogDebug($"Extracted {parameters.Count} parameters from query: {query}");
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, $"Error extracting parameters from query: {query}");
+            // Silently handle parameter extraction errors
         }
 
         return parameters;
@@ -689,7 +665,6 @@ public class McpScoringService
     {
         _intentCache.Clear();
         _scoreCache.Clear();
-        _logger?.LogInformation("MCP scoring service cache cleared");
     }
 
     /// <summary>

@@ -110,7 +110,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// </summary>
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
-    public async Task<RoutingStepResult<ToolInvocationPlanResponse>> CreateInvocationPlanAsync(
+    public async Task<RoutingStepResult<McpInvocationPlan>> CreateInvocationPlanAsync(
         string userQuery,
         McpServerInfo server,
         McpToolInfo tool,
@@ -126,8 +126,23 @@ public class McpAIDecisionEngine : McpAIServiceBase
             - args: {JsonSerializer.Serialize(arguments)}
             """;
 
-        var result = await CallAIWithJsonResponseAsync<ToolInvocationPlanResponse>(systemPrompt, userPrompt, "调用计划");
-        return new RoutingStepResult<ToolInvocationPlanResponse>
+        var tempResult = await CallAIWithJsonResponseAsync<InternalToolInvocationPlan>(systemPrompt, userPrompt, "调用计划");
+        
+        McpInvocationPlan? result = null;
+        if (tempResult != null)
+        {
+            result = new McpInvocationPlan
+            {
+                Action = tempResult.Action,
+                ServerId = tempResult.ServerId,
+                ToolName = tempResult.ToolName,
+                Arguments = tempResult.Arguments,
+                TimeoutMs = tempResult.TimeoutMs,
+                Retries = tempResult.Retries
+            };
+        }
+        
+        return new RoutingStepResult<McpInvocationPlan>
         {
             Result = result,
             Confidence = result != null ? 1.0 : 0.0 // 调用计划成功就是100%置信度
@@ -149,4 +164,28 @@ public class McpAIDecisionEngine : McpAIServiceBase
 
         return await CallAIWithTextResponseAsync(systemPrompt, userPrompt, stepName, cancellationToken);
     }
+}
+
+/// <summary>
+/// 内部使用的工具调用计划响应模型，用于JSON反序列化
+/// </summary>
+internal class InternalToolInvocationPlan
+{
+    [System.Text.Json.Serialization.JsonPropertyName("action")]
+    public string Action { get; set; } = "call_tool";
+
+    [System.Text.Json.Serialization.JsonPropertyName("server_id")]
+    public string ServerId { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("tool_name")]
+    public string ToolName { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("arguments")]
+    public Dictionary<string, object> Arguments { get; set; } = new();
+
+    [System.Text.Json.Serialization.JsonPropertyName("timeout_ms")]
+    public int TimeoutMs { get; set; } = 120000;
+
+    [System.Text.Json.Serialization.JsonPropertyName("retries")]
+    public int Retries { get; set; } = 1;
 }
