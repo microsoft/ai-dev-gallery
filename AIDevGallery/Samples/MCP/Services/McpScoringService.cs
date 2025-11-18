@@ -478,7 +478,6 @@ public class McpScoringService
 
             // 根据意图提取特定参数
             ExtractIntentSpecificParameters(queryLower, intent, parameters);
-
         }
         catch (Exception ex)
         {
@@ -637,7 +636,7 @@ public class McpScoringService
     /// <summary>
     /// 批量计算多个工具的匹配分数
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<List<(McpServerInfo server, McpToolInfo tool, double score, string reasoning)>> CalculateMatchScoresAsync(
         string query,
         string intent,

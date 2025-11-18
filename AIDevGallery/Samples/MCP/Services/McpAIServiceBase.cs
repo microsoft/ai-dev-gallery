@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.AI;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;

@@ -5,7 +5,6 @@ using AIDevGallery.Samples.MCP.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
@@ -30,6 +29,7 @@ public class McpResultProcessor
     /// <summary>
     /// 处理工具调用结果，使用 LLM 生成用户友好的回复
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     public async Task<McpResponse> ProcessInvocationResultAsync(
         string originalQuery,
@@ -63,7 +63,7 @@ public class McpResultProcessor
         try
         {
             thinkAreaCallback?.Invoke("🧠 Requesting AI model to analyze and process results...");
-            
+
             var extractedAnswer = await _aiDecisionEngine!.AnalyzeResultAsync(originalQuery, result, "结果提取", cancellationToken)
                 ?? "Unable to extract answer from tool result.";
 

@@ -4,7 +4,6 @@
 using AIDevGallery.Samples.MCP.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -26,7 +25,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <summary>
     /// 步骤1: 使用AI进行意图识别
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<IntentClassificationResponse>> ClassifyIntentAsync(string userQuery)
     {
@@ -44,7 +43,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <summary>
     /// 步骤2: 使用AI选择最佳服务器
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ServerSelectionResponse>> SelectServerAsync(
         string userQuery,
@@ -65,7 +64,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <summary>
     /// 步骤3: 使用AI选择最佳工具
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ToolSelectionResponse>> SelectToolAsync(
         string userQuery,
@@ -87,7 +86,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <summary>
     /// 步骤4: 使用AI提取工具参数
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<RoutingStepResult<ArgumentExtractionResponse>> ExtractArgumentsAsync(
         string userQuery,
@@ -108,7 +107,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <summary>
     /// 步骤5: 使用AI生成工具调用计划
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Serialize<TValue>(TValue, JsonSerializerOptions)")]
     public async Task<RoutingStepResult<McpInvocationPlan>> CreateInvocationPlanAsync(
         string userQuery,
@@ -127,7 +126,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
             """;
 
         var tempResult = await CallAIWithJsonResponseAsync<InternalToolInvocationPlan>(systemPrompt, userPrompt, "调用计划");
-        
+
         McpInvocationPlan? result = null;
         if (tempResult != null)
         {
@@ -141,7 +140,7 @@ public class McpAIDecisionEngine : McpAIServiceBase
                 Retries = tempResult.Retries
             };
         }
-        
+
         return new RoutingStepResult<McpInvocationPlan>
         {
             Result = result,
@@ -155,8 +154,8 @@ public class McpAIDecisionEngine : McpAIServiceBase
     /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
     [RequiresDynamicCode("Uses JSON serialization for AI response parsing which may require dynamic code generation")]
     public async Task<string?> AnalyzeResultAsync(
-        string originalQuery, 
-        McpInvocationResult result, 
+        string originalQuery,
+        McpInvocationResult result,
         string stepName,
         CancellationToken cancellationToken = default)
     {

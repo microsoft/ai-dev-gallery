@@ -76,7 +76,7 @@ public class McpRoutingService
             // 步骤1: 意图识别
             var step1Message = "🎯 Step 1: Intent Classification";
             thinkAreaCallback?.Invoke(step1Message);
-            
+
             var intentResult = await _aiDecisionEngine.ClassifyIntentAsync(userQuery);
             if (!intentResult.Success || intentResult.Result == null)
             {
@@ -99,7 +99,7 @@ public class McpRoutingService
             // 步骤2: 服务器选择
             var step2Message = "🖥️ Step 2: Server Selection";
             thinkAreaCallback?.Invoke(step2Message);
-            
+
             var serverResult = await _aiDecisionEngine.SelectServerAsync(userQuery, servers, intent);
             if (!serverResult.Success || serverResult.Result == null)
             {
@@ -122,7 +122,7 @@ public class McpRoutingService
             // 步骤3: 工具选择
             var step3Message = "🔧 Step 3: Tool Selection";
             thinkAreaCallback?.Invoke(step3Message);
-            
+
             var availableTools = _discoveryService.GetServerTools(selectedServer.Id);
             var toolResult = await _aiDecisionEngine.SelectToolAsync(userQuery, selectedServer, availableTools, intent);
             if (!toolResult.Success || toolResult.Result == null)
@@ -162,7 +162,7 @@ public class McpRoutingService
             // 步骤5: 生成工具调用计划
             var step5Message = "📋 Step 5: Tool Invocation Planning";
             thinkAreaCallback?.Invoke(step5Message);
-            
+
             var planResult = await _aiDecisionEngine.CreateInvocationPlanAsync(userQuery, selectedServer, selectedTool, argumentsResult.Parameters);
 
             var overallConfidence = Math.Min(
@@ -202,6 +202,7 @@ public class McpRoutingService
     /// <summary>
     /// 处理工具参数提取，包括检查是否需要澄清
     /// </summary>
+    [RequiresDynamicCode("Calls AIDevGallery.Samples.MCP.Services.McpAIDecisionEngine.ExtractArgumentsAsync(String, McpToolInfo, IntentClassificationResponse)")]
     private async Task<McpRoutingResult?> ExtractArgumentsForToolAsync(string userQuery, McpToolInfo selectedTool, IntentClassificationResponse intent, Action<string>? thinkAreaCallback = null)
     {
         var step4Message = "📝 Step 4: Argument Extraction";
@@ -212,7 +213,7 @@ public class McpRoutingService
             && HasValidProperties(props, thinkAreaCallback))
         {
             var argumentResult = await _aiDecisionEngine.ExtractArgumentsAsync(userQuery, selectedTool, intent);
-            
+
             if (!argumentResult.Success || argumentResult.Result == null)
             {
                 var extractFailMessage = "❌ Failed to extract arguments";
@@ -234,6 +235,7 @@ public class McpRoutingService
                     ClarificationQuestion = argumentResult.Result.ClarifyQuestion
                 };
             }
+
             thinkAreaCallback?.Invoke(JsonSerializer.Serialize(argumentResult.Result.Arguments));
             return new McpRoutingResult
             {
