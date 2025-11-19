@@ -47,6 +47,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
         ValidateSaveButton();
         this.Visibility = Visibility.Visible;
+        CancelButton.Focus(FocusState.Programmatic);
     }
 
     public void Hide()
