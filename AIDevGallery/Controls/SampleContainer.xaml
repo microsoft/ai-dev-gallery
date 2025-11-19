@@ -13,7 +13,6 @@
     mc:Ignorable="d">
     <Grid
         VerticalAlignment="Stretch"
-        IsTabStop="True" 
         Background="Transparent" 
         x:Name="SampleCardGrid"
         AutomationProperties.AccessibilityView="Content">

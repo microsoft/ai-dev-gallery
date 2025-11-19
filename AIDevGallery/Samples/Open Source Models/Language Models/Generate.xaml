@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid RowSpacing="8">
+    <Grid RowSpacing="8" IsTabStop="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -15,6 +15,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBox
+            IsTabStop="True"
+            FocusVisualPrimaryBrush="Blue"
+            FocusVisualPrimaryThickness="2"
+            FocusVisualMargin="2"
             x:Name="InputTextBox"
             AutomationProperties.Name="Prompt input"
             Description=" "
@@ -23,6 +27,7 @@
             PlaceholderText="Enter a topic to generate text on..."
             TextChanged="InputBox_Changed" />
         <StackPanel
+            IsTabStop="False"
             Grid.Row="1"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
@@ -67,7 +72,7 @@
             Grid.Row="3"
             AutomationProperties.Name="Generated Text Scroll Area"
             HorizontalScrollBarVisibility="Disabled"
-            IsTabStop="True"
+            IsTabStop="False"
             TabNavigation="Once"
             VerticalScrollBarVisibility="Auto">
             <TextBlock

@@ -177,6 +177,7 @@
                     </controls:Card.TitleContent>
                     <Grid Padding="8,16,8,16">
                         <toolkit2:MarkdownTextBlock
+                            IsTabStop="False"
                             x:Name="markdownTextBlock"
                             Background="Transparent"
                             FontSize="14"
