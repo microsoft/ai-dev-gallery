@@ -263,6 +263,18 @@
         "Instructions": "Select an image or video.",
         "Id": "detect-face",
         "Icon": "\uE8D4"
+      },
+      "RestyleImage": {
+        "Name": "Restyle Image",
+        "Description": "Restyle images from text.",
+        "Instructions": "Enter a prompt to restyle an image to restyle it then click 'Restyle' to apply the transformation. Note: this may take a while.",
+        "Id": "restyle-image"
+      },
+      "ColoringBook": {
+        "Name": "Coloring Book",
+        "Description": "Color images using SDXL.",
+        "Instructions": "Select the parts to color by clicking on them, enter a prompt to color them, then click 'Change' to color that image. Note: this may take a while.",
+        "Id": "color-image"
       }
     }
   },

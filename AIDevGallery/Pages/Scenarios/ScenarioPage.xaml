@@ -163,7 +163,8 @@
                     <Button
                         x:Name="WinMlModelOptionsButton"
                         Padding="0"
-                        Visibility="Collapsed">
+                        Visibility="Collapsed"
+                        AutomationProperties.Name="WinMl Model Options Button">
                         <Button.Flyout>
                             <Flyout
                                 x:Name="WinMLOptionsFlyout"
