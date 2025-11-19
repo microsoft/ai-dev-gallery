@@ -249,6 +249,7 @@
                 Width="16"
                 HorizontalAlignment="Left"
                 AutomationProperties.Name="Resize"
+                AutomationProperties.LocalizedControlType="Splitter"
                 Foreground="Transparent"
                 ResizeBehavior="PreviousAndCurrent"
                 ResizeDirection="Columns"
