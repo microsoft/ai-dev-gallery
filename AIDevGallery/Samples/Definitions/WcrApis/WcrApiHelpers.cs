@@ -59,6 +59,15 @@ internal static class WcrApiHelpers
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
         },
         {
+            ModelType.SDXL, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.GetReadyState
+        },
+        {
             ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
     };
@@ -97,6 +106,15 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.SDXL, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
         },
         {
             ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
