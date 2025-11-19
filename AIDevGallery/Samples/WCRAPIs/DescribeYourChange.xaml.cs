@@ -154,7 +154,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         return "General"; // Default radio fallback
     }
 
-    public async Task RewriteTextCustom(string prompt, string customTone)
+    public async Task RewriteTextCustom(string prompt)
     {
         if (_textRewriter == null)
         {
@@ -279,6 +279,8 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         // Disable the custom tone text box when Custom is deselected
         if (CustomToneTextBox != null)
         {
+            // Clear the text box to avoid data retention
+            CustomToneTextBox.Text = string.Empty;
             CustomToneTextBox.IsEnabled = false;
         }
     }
@@ -287,8 +289,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
     {
         if (InputTextBox.Text.Length > 0)
         {
-            string selectedTone = GetSelectedTone();
-            _ = RewriteTextCustom(InputTextBox.Text, selectedTone);
+            _ = RewriteTextCustom(InputTextBox.Text);
         }
     }
 
@@ -296,9 +297,9 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
     {
         if (e.Key == Windows.System.VirtualKey.Enter && sender is TextBox)
         {
-            if (InputTextBox.Text.Length > 0 && CustomToneTextBox.Text.Length > 0)
+            if (InputTextBox.Text.Length > 0)
             {
-                _ = RewriteTextCustom(InputTextBox.Text, CustomToneTextBox.Text);
+                _ = RewriteTextCustom(InputTextBox.Text);
             }
         }
     }
