@@ -49,6 +49,14 @@
     <PRIResource Remove="ProjectGenerator\Template\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="AppPackages\**" />
+    <Compile Remove="AppPackages\**" />
+    <EmbeddedResource Remove="AppPackages\**" />
+    <Page Remove="AppPackages\**" />
+    <PRIResource Remove="AppPackages\**" />
+    <Content Remove="AppPackages\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="ProjectGenerator\Template\**" />
     <Content Include="Styles\Button.xaml" />
     <Content Include="Styles\Card.xaml" />
