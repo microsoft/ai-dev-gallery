@@ -49,13 +49,14 @@
         </animations:ImplicitAnimationSet>
 
     </Page.Resources>
-    <Grid>
+    <Grid
+        IsTabStop="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid x:Name="ShadowCastGrid" Grid.RowSpan="2" />
-        <Grid Padding="28,16,24,16">
+        <Grid IsTabStop="False" x:Name="ShadowCastGrid" Grid.RowSpan="2" />
+        <Grid IsTabStop="False" Padding="28,16,24,16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -77,6 +78,7 @@
                                       FontSize=16}"
                 ToolTipService.ToolTip="Copy link to page" />
             <Grid
+                IsTabStop="False"
                 x:Name="ActionButtonsGrid"
                 Grid.Row="2"
                 Margin="0,16,0,0"
@@ -111,7 +113,7 @@
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Glyph="&#xF158;" />
                             </Border>
-                            <Grid MinHeight="33" Padding="2,4,10,8">
+                            <Grid IsTabStop="False" MinHeight="33" Padding="2,4,10,8">
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -161,13 +163,15 @@
                     <Button
                         x:Name="WinMlModelOptionsButton"
                         Padding="0"
-                        Visibility="Collapsed">
+                        Visibility="Collapsed"
+                        AutomationProperties.Name="WinMl Model Options Button">
                         <Button.Flyout>
                             <Flyout
                                 x:Name="WinMLOptionsFlyout"
                                 Opening="WinMLOptionsFlyout_Opening"
                                 Placement="Bottom">
                                 <Grid
+                                    IsTabStop="False"
                                     Width="320"
                                     MinHeight="120"
                                     RowSpacing="8">
@@ -196,6 +200,7 @@
                                             Tag="device" />
                                     </toolkit:Segmented>
                                     <Grid
+                                        IsTabStop="False"
                                         Grid.Row="2"
                                         Margin="-16,0,-16,-16"
                                         Padding="16"
@@ -209,7 +214,7 @@
                                         </Grid.RowDefinitions>
                                         <toolkit:SwitchPresenter Value="{Binding SelectedItem.Tag, ElementName=segmentedControl}">
                                             <toolkit:Case Value="policy">
-                                                <Grid>
+                                                <Grid IsTabStop="False">
                                                     <ComboBox
                                                         x:Name="ExecutionPolicyComboBox"
                                                         HorizontalAlignment="Stretch"
@@ -329,6 +334,7 @@
                     </Button>
                 </StackPanel>
                 <StackPanel
+                    IsTabStop="False"
                     x:Name="ButtonsPanel"
                     Padding="0,1"
                     HorizontalAlignment="Right"
@@ -390,7 +396,7 @@
                         ToolTipService.ToolTip="Export sample">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Image Width="16" Source="ms-appx:///Assets/VSIcon.svg" />
-                            <TextBlock Margin="0,-1,0,0" Text="Export" />
+                            <TextBlock IsTabStop="False" Margin="0,-1,0,0" Text="Export" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -398,6 +404,7 @@
         </Grid>
 
         <Grid
+            IsTabStop="False"
             x:Name="contentHost"
             Grid.Row="1"
             Margin="12,4,4,4"
@@ -413,9 +420,10 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed">
+            <controls:SampleContainer x:Name="SampleContainer" Visibility="Collapsed" IsTabStop="False">
                 <controls:SampleContainer.FooterContent>
                     <StackPanel
+                        IsTabStop="False"
                         x:Name="SampleSelectionPanel"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal"
@@ -442,6 +450,7 @@
                 </controls:SampleContainer.FooterContent>
             </controls:SampleContainer>
             <Grid
+                IsTabStop="False"
                 x:Name="NoModelSelectedGrid"
                 MaxWidth="480"
                 HorizontalAlignment="Center"
@@ -461,6 +470,7 @@
             </Grid>
         </Grid>
         <Grid
+            IsTabStop="False"
             x:Name="LoadingGrid"
             Grid.RowSpan="2"
             Visibility="Collapsed">
