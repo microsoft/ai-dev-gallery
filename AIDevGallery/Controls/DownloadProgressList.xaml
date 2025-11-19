@@ -49,6 +49,7 @@
                     <toolkit:SettingsCard
                         MinHeight="48"
                         Padding="12,8,12,8"
+                        AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                         CornerRadius="{StaticResource OverlayCornerRadius}">
                         <toolkit:SettingsCard.Resources>
                             <Thickness x:Key="SettingsCardHeaderIconMargin">2,0,12,0</Thickness>

@@ -113,6 +113,7 @@
                                 <toolkit:SettingsCard
                                     MinHeight="48"
                                     Padding="14,10,14,10"
+                                    AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                     Background="{ThemeResource LayerFillColorAltBrush}"
                                     Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}">
                                     <toolkit:SettingsCard.Resources>
@@ -280,6 +281,7 @@
                             <toolkit:SettingsCard
                                 MinHeight="48"
                                 Padding="20,8,16,6"
+                                AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                 Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}"
                                 GotFocus="ItemContainer_GotFocus"

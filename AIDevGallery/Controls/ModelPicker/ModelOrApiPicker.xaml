@@ -81,7 +81,8 @@
                 SelectionChanged="ModelTypeSelector_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="modelpickerviews:ModelPickerDefinition">
-                        <Grid ColumnSpacing="16">
+                        <Grid ColumnSpacing="16"
+                            AutomationProperties.Name="{x:Bind Name}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
