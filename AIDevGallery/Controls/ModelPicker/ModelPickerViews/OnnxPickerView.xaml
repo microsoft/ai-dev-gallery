@@ -131,7 +131,8 @@
                                                 VerticalAlignment="Center"
                                                 Text="{x:Bind ModelDetails.Name}"
                                                 TextTrimming="CharacterEllipsis"
-                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" 
+                                                TextWrapping="Wrap" />
                                             <ItemsRepeater
                                                 Grid.Column="1"
                                                 Margin="4,0,0,0"
@@ -303,7 +304,8 @@
                                             VerticalAlignment="Center"
                                             Text="{x:Bind ModelDetails.Name}"
                                             TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}"
+                                            TextWrapping="Wrap" />
                                         <ItemsRepeater
                                             Grid.Column="1"
                                             Margin="4,0,0,0"

@@ -42,7 +42,8 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="Enter your API key to make your OpenAI models available" />
+                Text="Enter your API key to make your OpenAI models available"
+                TextWrapping="Wrap"/>
             <TextBox
                 x:Name="OpenAIKeyTextBox"
                 Width="360"
