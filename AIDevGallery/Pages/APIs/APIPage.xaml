@@ -47,7 +47,6 @@
             <Button
                 x:Name="ExportSampleToggle"
                 Grid.Column="2"
-                Height="34"
                 Margin="0,0,8,0"
                 Padding="8,6,8,6"
                 AutomationProperties.Name="Export sample to Visual Studio"
