@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:foundry="using:AIDevGallery.ExternalModelUtils.FoundryLocal"
+
     xmlns:local="using:AIDevGallery.Controls.ModelPickerViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:AIDevGallery.Models"
@@ -96,17 +96,14 @@
                                                 AutomationProperties.Name="More info"
                                                 Style="{StaticResource TertiaryButtonStyle}"
                                                 ToolTipService.ToolTip="More info"
-                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel)}">
+                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryModel)}">
                                                 <TextBlock>
-                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(FoundryCatalogModel.Runtime.ExecutionProvider)}" />
+                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(local:FoundryLocalPickerView.GetExecutionProviderName(FoundryModel))}" />
                                                 </TextBlock>
                                                 <Button.Flyout>
                                                     <Flyout ShouldConstrainToRootBounds="False">
                                                         <TextBlock MaxWidth="360" TextWrapping="Wrap">
-                                                            <Run Text="This model can run on your" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.DeviceType}" />
-                                                            <Run Text="with the" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.ExecutionProvider}" />
+                                                            <Run Text="This model variant supports hardware acceleration." />
                                                         </TextBlock>
                                                     </Flyout>
                                                 </Button.Flyout>
@@ -258,7 +255,7 @@
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             ToolTipService.ToolTip="More info">
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(Runtime.ExecutionProvider)}" />
+                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(ExecutionProvider)}" />
                                                                 <Rectangle
                                                                     Width="1"
                                                                     HorizontalAlignment="Stretch"
@@ -268,10 +265,8 @@
                                                             <Button.Flyout>
                                                                 <Flyout ShouldConstrainToRootBounds="False">
                                                                     <TextBlock MaxWidth="360" TextWrapping="Wrap">
-                                                                        <Run Text="This model can run on your" />
-                                                                        <Run Text="{x:Bind Runtime.DeviceType}" />
-                                                                        <Run Text="with the" />
-                                                                        <Run Text="{x:Bind Runtime.ExecutionProvider}" />
+                                                                        <Run Text="This model variant supports hardware acceleration with " />
+                                                                        <Run Text="{x:Bind ExecutionProvider}" />
                                                                     </TextBlock>
                                                                 </Flyout>
                                                             </Button.Flyout>

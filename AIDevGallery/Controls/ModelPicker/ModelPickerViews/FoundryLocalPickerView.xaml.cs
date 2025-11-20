@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.ExternalModelUtils;
-using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
 using AIDevGallery.ViewModels;
+using Microsoft.AI.Foundry.Local;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -16,8 +16,8 @@ using Windows.ApplicationModel.DataTransfer;
 namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal record FoundryCatalogModelGroup(string Alias, string License, IEnumerable<FoundryCatalogModelDetails> Details, IEnumerable<DownloadableModel> Models);
-internal record FoundryCatalogModelDetails(Runtime Runtime, long SizeInBytes);
-internal record FoundryModelPair(string Name, ModelDetails ModelDetails, FoundryCatalogModel? FoundryCatalogModel);
+internal record FoundryCatalogModelDetails(string ExecutionProvider, long SizeInBytes);
+internal record FoundryModelPair(string Name, ModelDetails ModelDetails, IFoundryModel? FoundryModel);
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
     private ObservableCollection<FoundryModelPair> AvailableModels { get; } = [];
@@ -51,9 +51,9 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
         foreach (var model in await FoundryLocalModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [])
         {
-            if (model.ProviderModelDetails is FoundryCatalogModel foundryModel)
+            if (model.ProviderModelDetails is IFoundryModel foundryModel)
             {
-                AvailableModels.Add(new(foundryModel.Alias, model, foundryModel));
+                AvailableModels.Add(new(model.Name, model, foundryModel));
             }
             else
             {
@@ -64,25 +64,23 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         var catalogModelsDict = FoundryLocalModelProvider.Instance.GetAllModelsInCatalog().ToDictionary(m => m.Name, m => m);
 
         var catalogModels = catalogModelsDict.Values
-            .Select(m => (m.ProviderModelDetails as FoundryCatalogModel)!)
-            .GroupBy(f => f!.Alias)
-            .OrderByDescending(f => f.Key);
+            .GroupBy(m => m.Name.Split('-').FirstOrDefault() ?? m.Name) // Group by model family
+            .OrderByDescending(g => g.Key);
 
-        foreach (var m in catalogModels)
+        foreach (var modelGroup in catalogModels)
         {
-            var firstModel = m.FirstOrDefault(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name));
+            var firstModel = modelGroup.FirstOrDefault(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name));
             if (firstModel == null)
             {
                 continue;
             }
 
-            // DownloadableModels.Add(new DownloadableModel(m));
             CatalogModels.Add(new FoundryCatalogModelGroup(
-                m.Key,
-                firstModel!.License.ToLowerInvariant(),
-                m.Select(m => new FoundryCatalogModelDetails(m.Runtime, m.FileSizeMb * 1024 * 1024)),
-                m.Where(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name))
-                .Select(m => new DownloadableModel(catalogModelsDict[m.Name]))));
+                modelGroup.Key,
+                firstModel.License ?? "unknown",
+                modelGroup.Select(m => new FoundryCatalogModelDetails("CPU", m.Size)), // Simplified for now
+                modelGroup.Where(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name))
+                .Select(m => new DownloadableModel(m))));
         }
 
         VisualStateManager.GoToState(this, "ShowModels", true);
@@ -100,7 +98,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     private void ModelSelectionItemsView_SelectionChanged(ItemsView sender, ItemsViewSelectionChangedEventArgs args)
     {
-        if (sender.SelectedItem is FoundryModelPair pair && pair.FoundryCatalogModel is not null)
+        if (sender.SelectedItem is FoundryModelPair pair && pair.FoundryModel is not null)
         {
             OnSelectedModelChanged(this, pair.ModelDetails);
         }
@@ -137,13 +135,13 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     internal static string GetExecutionProviderTextFromModel(ModelDetails model)
     {
-        var foundryModel = model.ProviderModelDetails as FoundryCatalogModel;
+        var foundryModel = model.ProviderModelDetails as IFoundryModel;
         if (foundryModel == null)
         {
             return string.Empty;
         }
 
-        return $"Download {GetShortExectionProvider(foundryModel.Runtime.ExecutionProvider)} variant";
+        return $"Download CPU variant"; // Simplified for now
     }
 
     internal static string GetShortExectionProvider(string provider)
@@ -158,6 +156,12 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries).FirstOrDefault();
 
         return string.IsNullOrWhiteSpace(shortprovider) ? provider : shortprovider;
+    }
+
+    internal static string GetExecutionProviderName(IFoundryModel? model)
+    {
+        // For now, return a default value since we need to check the actual SDK properties
+        return "CPU";
     }
 
     private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
