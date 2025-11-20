@@ -47,6 +47,7 @@
                 x:Name="OpenAIKeyTextBox"
                 Width="360"
                 HorizontalAlignment="Center"
+				AutomationProperties.HelpText="Enter your API key to make your OpenAI models available"
                 PlaceholderText="sk-..." />
             <Button
                 x:Name="SaveKeyButton"
