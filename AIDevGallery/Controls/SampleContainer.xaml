@@ -31,8 +31,8 @@
             BorderThickness="{x:Bind BorderThickness, Mode=OneWay}"
             CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="100" />
-                <ColumnDefinition x:Name="CodeColumn" Width="0" />
+                <ColumnDefinition Width="*" MinWidth="340" />
+                <ColumnDefinition x:Name="CodeColumn" Width="0" MinWidth="300"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -92,6 +92,7 @@
                     Orientation="Horizontal"
                     Visibility="Visible">
                     <FontIcon
+                        Margin="0,4,4,4"
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="11"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -137,6 +138,7 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,0,0,0"
+                MinWidth="300"
                 Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -227,9 +229,15 @@
                                 <DataTemplate x:DataType="x:String">
                                     <HyperlinkButton
                                         Click="NuGetPackage_Click"
-                                        Content="{x:Bind}"
-                                        FontSize="13"
-                                        Tag="{x:Bind}" />
+                                        HorizontalContentAlignment="Left"
+                                        MaxWidth="280"
+                                        Tag="{x:Bind}" >
+                                        <TextBlock
+                                            Text="{x:Bind}"
+                                            FontSize="13"
+                                            TextWrapping="WrapWholeWords"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </HyperlinkButton>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
