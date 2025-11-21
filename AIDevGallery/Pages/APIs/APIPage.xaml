@@ -231,7 +231,8 @@
                             Margin="8"
                             FontFamily="Consolas"
                             FontSize="14"
-                            IsTextSelectionEnabled="True" />
+                            IsTextSelectionEnabled="True"
+                            TextWrapping="Wrap" />
                     </ScrollViewer>
                 </controls:Card>
             </Grid>
