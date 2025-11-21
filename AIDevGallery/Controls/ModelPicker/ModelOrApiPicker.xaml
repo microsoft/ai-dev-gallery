@@ -81,13 +81,14 @@
                 SelectionChanged="ModelTypeSelector_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="modelpickerviews:ModelPickerDefinition">
-                        <Grid ColumnSpacing="16">
+                        <Grid ColumnSpacing="16"
+                            AutomationProperties.Name="{x:Bind Name}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Image Source="{x:Bind Icon}" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Name}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextWrapping="Wrap" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

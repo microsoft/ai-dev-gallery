@@ -65,16 +65,15 @@
             Text="Summary:" />
         <ScrollViewer
             Grid.Row="3"
-            AutomationProperties.Name="Generated Text Scroll Area"
             HorizontalScrollBarVisibility="Disabled"
-            IsTabStop="True"
             TabNavigation="Once"
             VerticalScrollBarVisibility="Auto">
             <TextBlock
                 x:Name="SummaryTextBlock"
-                AutomationProperties.Name="Output"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTabStop="True"
                 IsTextSelectionEnabled="True"
+                AutomationProperties.Name="{Binding ElementName=SummaryTextBlock, Path=Text}"
                 TextWrapping="WrapWholeWords" />
         </ScrollViewer>
     </Grid>
