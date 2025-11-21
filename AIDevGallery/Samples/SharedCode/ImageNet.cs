@@ -55,7 +55,8 @@ internal class ImageNet
             FontSize = 14,
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 8, 0),
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap
         };
         Grid.SetColumn(confidenceHeader, 2);
 
@@ -82,6 +83,7 @@ internal class ImageNet
                 FontSize = 14,
                 Margin = new Thickness(0, 0, 8, 0),
                 VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
                 MaxWidth = 300
             };
             Grid.SetColumn(labelTextBlock, 0);
