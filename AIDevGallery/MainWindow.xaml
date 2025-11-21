@@ -13,8 +13,8 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:winuiex="using:WinUIEx"
     Width="1280"
-    MinWidth="640"
-    MinHeight="480"
+    MinWidth="1280"
+    MinHeight="960"
     mc:Ignorable="d">
     <Window.SystemBackdrop>
         <MicaBackdrop />

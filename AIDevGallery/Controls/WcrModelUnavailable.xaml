@@ -16,7 +16,8 @@
         <TextBlock
             FontWeight="SemiBold"
             Text="{x:Bind Title, Mode=OneWay}"
-            TextAlignment="Center" />
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
         <TextBlock
             FontSize="12"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"

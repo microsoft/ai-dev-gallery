@@ -31,8 +31,8 @@
             BorderThickness="{x:Bind BorderThickness, Mode=OneWay}"
             CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="100" />
-                <ColumnDefinition x:Name="CodeColumn" Width="0" />
+                <ColumnDefinition Width="*" MinWidth="340" />
+                <ColumnDefinition x:Name="CodeColumn" Width="0" MinWidth="300"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -85,14 +85,14 @@
                 BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                 BorderThickness="0,1,0,0"
                 SizeChanged="FooterGrid_SizeChanged">
-                <StackPanel
+                <WrapPanel
                     x:Name="AIContentWarningPanel"
                     Margin="12,8,8,8"
                     HorizontalAlignment="{x:Bind DisclaimerHorizontalAlignment, Mode=OneWay}"
                     Orientation="Horizontal"
-                    Spacing="4"
                     Visibility="Visible">
                     <FontIcon
+                        Margin="0,4,4,4"
                         AutomationProperties.AccessibilityView="Raw"
                         FontSize="11"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -107,11 +107,6 @@
                         Text="AI-generated content might be incorrect, offensive, or biased."
                         TextAlignment="Center"
                         Visibility="Visible" />
-                </StackPanel>
-                <StackPanel
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    Spacing="8">
                     <Button
                         x:Name="SampleDebugInfoButton"
                         Visibility="Collapsed"
@@ -133,7 +128,7 @@
                         </Button.Flyout>
                     </Button>
                     <ContentPresenter x:Name="FooterContentPresenter" Content="{x:Bind FooterContent, Mode=OneWay}" />
-                </StackPanel>
+                </WrapPanel>
             </Grid>
 
             <Grid
@@ -143,6 +138,7 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,0,0,0"
+                MinWidth="300"
                 Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -233,9 +229,15 @@
                                 <DataTemplate x:DataType="x:String">
                                     <HyperlinkButton
                                         Click="NuGetPackage_Click"
-                                        Content="{x:Bind}"
-                                        FontSize="13"
-                                        Tag="{x:Bind}" />
+                                        HorizontalContentAlignment="Left"
+                                        MaxWidth="280"
+                                        Tag="{x:Bind}" >
+                                        <TextBlock
+                                            Text="{x:Bind}"
+                                            FontSize="13"
+                                            TextWrapping="WrapWholeWords"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </HyperlinkButton>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
