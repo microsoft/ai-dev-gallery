@@ -133,9 +133,17 @@ internal sealed partial class ImageClassification : BaseSamplePage
         picker.ViewMode = PickerViewMode.Thumbnail;
 
         var file = await picker.PickSingleFileAsync();
+
+
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            await Task.Delay(1);
+            UploadImageButton.IsTabStop = true;
+            UploadImageButton.Focus(FocusState.Programmatic);
+        });
+
         if (file != null)
         {
-            UploadImageButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             _ = App.AppData.SetSampleDataAsync("ImageClassification", "last-photo-path", file.Path); // <exclude-line>
             await ClassifyImage(file.Path);
