@@ -33,7 +33,8 @@
                     <Image
                         x:Name="UploadedImage"
                         MaxWidth="800"
-                        MaxHeight="500" />
+                        MaxHeight="500"
+                        AutomationProperties.Name="UploadedImage"/>
                 </Viewbox>
                 <ProgressRing
                     x:Name="Loader"

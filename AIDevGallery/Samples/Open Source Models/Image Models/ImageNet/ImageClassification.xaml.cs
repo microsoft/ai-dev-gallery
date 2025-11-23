@@ -165,7 +165,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
         BitmapImage bitmapImage = new(new Uri(filePath));
         UploadedImage.Source = bitmapImage;
-        NarratorHelper.AnnounceImageChanged(UploadedImage, "Image changed: new upload."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(UploadedImage, "Photo changed: new upload."); // <exclude-line>
 
         var predictions = await Task.Run(() =>
         {
