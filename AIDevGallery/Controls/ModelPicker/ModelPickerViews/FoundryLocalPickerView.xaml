@@ -97,9 +97,7 @@
                                                 Style="{StaticResource TertiaryButtonStyle}"
                                                 ToolTipService.ToolTip="More info"
                                                 Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryModel)}">
-                                                <TextBlock>
-                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(local:FoundryLocalPickerView.GetExecutionProviderName(FoundryModel))}" />
-                                                </TextBlock>
+                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExecutionProviderFromModel(FoundryModel)}" />
                                                 <Button.Flyout>
                                                     <Flyout ShouldConstrainToRootBounds="False">
                                                         <TextBlock MaxWidth="360" TextWrapping="Wrap">

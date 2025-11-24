@@ -14,8 +14,10 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal class FoundryClient
+internal sealed class FoundryClient : IDisposable
 {
+    private static readonly HttpClient SharedHttpClient = new HttpClient();
+
     public static async Task<FoundryClient?> CreateAsync()
     {
         var serviceManager = FoundryServiceManager.TryCreate();
@@ -39,20 +41,20 @@ internal class FoundryClient
             return null;
         }
 
-        return new FoundryClient(serviceUrl, serviceManager, new HttpClient());
+        return new FoundryClient(serviceUrl, serviceManager);
     }
 
     public FoundryServiceManager ServiceManager { get; init; }
 
-    private HttpClient _httpClient;
-    private string _baseUrl;
+    private readonly HttpClient _httpClient;
+    private readonly string _baseUrl;
     private List<FoundryCatalogModel> _catalogModels = [];
 
-    private FoundryClient(string baseUrl, FoundryServiceManager serviceManager, HttpClient httpClient)
+    private FoundryClient(string baseUrl, FoundryServiceManager serviceManager)
     {
-        this.ServiceManager = serviceManager;
-        this._baseUrl = baseUrl;
-        this._httpClient = httpClient;
+        ServiceManager = serviceManager;
+        _baseUrl = baseUrl;
+        _httpClient = SharedHttpClient;
     }
 
     public async Task<List<FoundryCatalogModel>> ListCatalogModels()
@@ -64,11 +66,12 @@ internal class FoundryClient
 
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/foundry/list");
+            using var response = await _httpClient.GetAsync($"{_baseUrl}/foundry/list");
             response.EnsureSuccessStatusCode();
 
+            using var stream = response.Content.ReadAsStream();
             var models = await JsonSerializer.DeserializeAsync(
-                response.Content.ReadAsStream(),
+                stream,
                 FoundryJsonContext.Default.ListFoundryCatalogModel);
 
             if (models != null && models.Count > 0)
@@ -85,7 +88,7 @@ internal class FoundryClient
 
     public async Task<List<FoundryCachedModel>> ListCachedModels()
     {
-        var response = await _httpClient.GetAsync($"{_baseUrl}/openai/models");
+        using var response = await _httpClient.GetAsync($"{_baseUrl}/openai/models");
         response.EnsureSuccessStatusCode();
 
         var catalogModels = await ListCatalogModels();
@@ -206,7 +209,7 @@ internal class FoundryClient
         resp.EnsureSuccessStatusCode();
 
         await using var jsonStream = await resp.Content.ReadAsStreamAsync();
-        var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
+        using var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
         var blobSasUri = jsonRoot.RootElement.GetProperty("blobSasUri").GetString()!;
 
         var uriBuilder = new UriBuilder(blobSasUri);
@@ -220,5 +223,10 @@ internal class FoundryClient
 
         var match = Regex.Match(listXml, @"<Name>(.*?)\/<\/Name>");
         return match.Success ? match.Groups[1].Value : string.Empty;
+    }
+
+    public void Dispose()
+    {
+        // HttpClient is static and shared, so we don't dispose it here
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#if ENABLE_IMAGE_FOREGROUND_API
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.UI.Xaml;
@@ -302,3 +303,4 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         }
     }
 }
+#endif

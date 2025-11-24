@@ -17,7 +17,7 @@ namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal record FoundryCatalogModelGroup(string Alias, string License, IEnumerable<FoundryCatalogModelDetails> Details, IEnumerable<DownloadableModel> Models);
 internal record FoundryCatalogModelDetails(string ExecutionProvider, long SizeInBytes);
-internal record FoundryModelPair(string Name, ModelDetails ModelDetails, IFoundryModel? FoundryModel);
+internal record FoundryModelPair(string Name, ModelDetails ModelDetails, Model? FoundryModel);
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
     private ObservableCollection<FoundryModelPair> AvailableModels { get; } = [];
@@ -51,7 +51,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
         foreach (var model in await FoundryLocalModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [])
         {
-            if (model.ProviderModelDetails is IFoundryModel foundryModel)
+            if (model.ProviderModelDetails is Model foundryModel)
             {
                 AvailableModels.Add(new(model.Name, model, foundryModel));
             }
@@ -135,7 +135,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     internal static string GetExecutionProviderTextFromModel(ModelDetails model)
     {
-        var foundryModel = model.ProviderModelDetails as IFoundryModel;
+        var foundryModel = model.ProviderModelDetails as Model;
         if (foundryModel == null)
         {
             return string.Empty;
@@ -158,10 +158,20 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         return string.IsNullOrWhiteSpace(shortprovider) ? provider : shortprovider;
     }
 
-    internal static string GetExecutionProviderName(IFoundryModel? model)
+    internal static string GetExecutionProviderName(Model? model)
     {
         // For now, return a default value since we need to check the actual SDK properties
         return "CPU";
+    }
+
+    internal static string GetShortExecutionProviderFromModel(Model? model)
+    {
+        if (model == null)
+        {
+            return string.Empty;
+        }
+
+        return GetShortExectionProvider(GetExecutionProviderName(model));
     }
 
     private void CopyUrlButton_Click(object sender, RoutedEventArgs e)

@@ -48,6 +48,31 @@
     <Page Remove="ProjectGenerator\Template\**" />
     <PRIResource Remove="ProjectGenerator\Template\**" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <!-- Temporarily disabled WCRA API samples -->
+    <None Remove="Samples\WCRAPIs\KnowledgeRetrieval.xaml" />
+    <Compile Remove="Samples\WCRAPIs\KnowledgeRetrieval.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\KnowledgeRetrieval.xaml" />
+    <None Remove="Samples\WCRAPIs\SemanticSearch.xaml" />
+    <Compile Remove="Samples\WCRAPIs\SemanticSearch.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\SemanticSearch.xaml" />
+    <None Remove="Samples\WCRAPIs\ColoringBook.xaml" />
+    <Compile Remove="Samples\WCRAPIs\ColoringBook.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\ColoringBook.xaml" />
+    <None Remove="Samples\WCRAPIs\ForegroundExtractor.xaml" />
+    <Compile Remove="Samples\WCRAPIs\ForegroundExtractor.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\ForegroundExtractor.xaml" />
+    <None Remove="Samples\WCRAPIs\PhiSilicaLoRa.xaml" />
+    <Compile Remove="Samples\WCRAPIs\PhiSilicaLoRa.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\PhiSilicaLoRa.xaml" />
+    <None Remove="Samples\WCRAPIs\RestyleImage.xaml" />
+    <Compile Remove="Samples\WCRAPIs\RestyleImage.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\RestyleImage.xaml" />
+    <None Remove="Samples\WCRAPIs\SDXL.xaml" />
+    <Compile Remove="Samples\WCRAPIs\SDXL.xaml.cs" />
+    <Page Remove="Samples\WCRAPIs\SDXL.xaml" />
+  </ItemGroup>
   <ItemGroup>
     <None Remove="AppPackages\**" />
     <Compile Remove="AppPackages\**" />
@@ -86,7 +111,6 @@
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" />

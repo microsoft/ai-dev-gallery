@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#if ENABLE_VIDEO_API
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using CommunityToolkit.WinUI.Controls;
@@ -252,3 +253,4 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
         }
     }
 }
+#endif

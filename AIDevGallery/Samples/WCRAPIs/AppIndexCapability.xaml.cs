@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#if ENABLE_SEARCH_API
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.UI.Xaml.Navigation;
@@ -177,3 +178,4 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
         LoadAppIndexCapabilities();
     }
 }
+#endif

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#if ENABLE_IMAGE_GENERATOR_API
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -291,3 +292,4 @@ internal sealed partial class SDXL : BaseSamplePage
         }
     }
 }
+#endif

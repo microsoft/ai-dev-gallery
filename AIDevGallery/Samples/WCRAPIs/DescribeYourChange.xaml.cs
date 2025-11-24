@@ -155,7 +155,9 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         int outputTokens = 0;
 
         // </exclude>
-        var operation = _textRewriter.RewriteCustomAsync(prompt, customTone);
+        // Combine prompt with custom tone as the RewriteCustomAsync method is no longer available
+        var combinedPrompt = string.IsNullOrEmpty(customTone) ? prompt : $"{prompt}\n\nTone: {customTone}";
+        var operation = _textRewriter.RewriteAsync(combinedPrompt);
         operation.Progress = (asyncInfo, delta) =>
         {
             DispatcherQueue.TryEnqueue(() =>

@@ -16,16 +16,16 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils;
 
-internal class FoundryLocalModelProvider : IExternalModelProvider
+internal partial class FoundryLocalModelProvider : IExternalModelProvider
 {
+    private static readonly object _initLock = new object();
+    private ILogger<FoundryLocalModelProvider>? _logger;
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
     private FoundryLocalManager? _foundryManager;
-    private IFoundryCatalog? _catalog;
+    private ICatalog? _catalog;
     private string? _serviceUrl;
-    private readonly ILogger<FoundryLocalModelProvider>? _logger;
-    private static readonly object _initLock = new object();
-    private bool _isInitialized = false;
+    private bool _isInitialized;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
 
@@ -101,11 +101,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         try
         {
             // Try to find the model by alias first
-            var model = await _catalog.GetModelAsync(modelDetails.Name);
+            var model = await _catalog.GetModelAsync(modelDetails.Name, cancellationToken);
             if (model == null)
             {
                 // If not found by name, try to find it from the stored provider details
-                if (modelDetails.ProviderModelDetails is IFoundryModel foundryModel)
+                if (modelDetails.ProviderModelDetails is Model foundryModel)
                 {
                     model = foundryModel;
                 }
@@ -115,12 +115,13 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 }
             }
 
-            await model.DownloadAsync(progress?.Report, cancellationToken);
+            Action<float>? progressCallback = progress != null ? progress.Report : null;
+            await model.DownloadAsync(progressCallback, cancellationToken);
             return true;
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to download model {ModelName}", modelDetails.Name);
+            LogDownloadError(_logger, ex, modelDetails.Name);
             return false;
         }
     }
@@ -133,6 +134,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             _catalogModels = null;
             _isInitialized = false;
         }
+
         _ = InitializeAsync();
     }
 
@@ -166,7 +168,22 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             using var loggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Warning));
             var logger = loggerFactory.CreateLogger<FoundryLocalModelProvider>();
 
-            await FoundryLocalManager.CreateAsync(config, logger);
+            // Try to create or get existing FoundryLocalManager
+            try
+            {
+                await FoundryLocalManager.CreateAsync(config, logger, cancelationToken);
+            }
+            catch (FoundryLocalException ex) when (ex.Message.Contains("has already been created"))
+            {
+                // Manager already exists, this is fine
+            }
+            catch (Exception ex)
+            {
+                // Service might not be available or other initialization errors
+                LogInitializationError(_logger, ex);
+                return;
+            }
+            
             _foundryManager = FoundryLocalManager.Instance;
 
             if (_foundryManager == null)
@@ -174,12 +191,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 return;
             }
 
-            _catalog = await _foundryManager.GetCatalogAsync();
-            _serviceUrl = _foundryManager.Configuration.Web?.Urls ?? "http://127.0.0.1:55588";
+            _catalog = await _foundryManager.GetCatalogAsync(cancelationToken);
+            _serviceUrl = _foundryManager.Urls?.FirstOrDefault() ?? "http://127.0.0.1:55588";
 
             if (_catalogModels == null || !_catalogModels.Any())
             {
-                var catalogModels = await _catalog.ListModelsAsync();
+                var catalogModels = await _catalog.ListModelsAsync(cancelationToken);
                 var catalogModelsList = new List<ModelDetails>();
                 
                 foreach (var model in catalogModels)
@@ -193,7 +210,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 _catalogModels = catalogModelsList;
             }
 
-            var cachedModels = await _catalog.GetCachedModelsAsync();
+            var cachedModels = await _catalog.GetCachedModelsAsync(cancelationToken);
 
             List<ModelDetails> downloadedModels = [];
 
@@ -242,11 +259,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to initialize FoundryLocalManager");
+            LogInitializationError(_logger, ex);
         }
     }
 
-    private ModelDetails ToModelDetails(IFoundryModel model, IFoundryModelVariant variant)
+    private ModelDetails ToModelDetails(Model model, ModelVariant variant)
     {
         return new ModelDetails()
         {
@@ -255,12 +272,18 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             Url = $"{UrlPrefix}{variant.Alias}",
             Description = $"{variant.Alias} running locally with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
-            Size = variant.Size ?? 0,
+            Size = (variant.Info.FileSizeMb ?? 0) * 1024L * 1024L,
             SupportedOnQualcomm = true,
-            License = model.License?.ToLowerInvariant(),
-            ProviderModelDetails = model // Store the IFoundryModel instead of variant
+            License = variant.Info.License?.ToLowerInvariant(),
+            ProviderModelDetails = model // Store the Model instead of variant
         };
     }
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Error, Message = "Failed to download model {modelName}")]
+    private static partial void LogDownloadError(ILogger? logger, Exception ex, string modelName);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Error, Message = "Failed to initialize FoundryLocalManager")]
+    private static partial void LogInitializationError(ILogger? logger, Exception ex);
 
     public async Task<bool> IsAvailable()
     {

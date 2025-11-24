@@ -217,6 +217,7 @@ internal static class WcrApiCodeSnippet
             }
             """"
         },
+#if ENABLE_IMAGE_FOREGROUND_API
         {
             ModelType.ForegroundExtractor, """"
             using Microsoft.Windows.AI;
@@ -239,6 +240,7 @@ internal static class WcrApiCodeSnippet
             }
             """"
         },
+#endif
         {
             ModelType.ObjectRemover, """"
             using Microsoft.Windows.AI.Imaging;
@@ -541,6 +543,7 @@ internal static class WcrApiCodeSnippet
             }
             """"
         },
+#if ENABLE_IMAGE_GENERATOR_API
         {
             ModelType.SDXL, """"
             using Microsoft.Graphics.Imaging;
@@ -673,5 +676,6 @@ internal static class WcrApiCodeSnippet
             }
             """""
         }
+#endif
     };
 }

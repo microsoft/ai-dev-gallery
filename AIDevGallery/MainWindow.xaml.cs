@@ -10,7 +10,9 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+#if ENABLE_SEARCH_API
 using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+#endif
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,7 +28,9 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
+#if ENABLE_SEARCH_API
     private AppContentIndexer? _indexer;
+#endif
     private CancellationTokenSource? _searchCts; // Added for search cancellation
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
 
@@ -57,13 +61,16 @@ internal sealed partial class MainWindow : WindowEx
             Task.Run(async () =>
             {
                 // Load AppContentSearch
+#if ENABLE_SEARCH_API
                 await LoadAppSearchIndex();
+#endif
             });
         }
 
         App.AppData.PropertyChanged += AppData_PropertyChanged;
     }
 
+#if ENABLE_SEARCH_API
     private async Task LoadAppSearchIndex()
     {
         var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
@@ -88,6 +95,7 @@ internal sealed partial class MainWindow : WindowEx
             SetSearchBoxIndexingCompleted();
         }
     }
+#endif
 
     private void AppData_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -98,7 +106,9 @@ internal sealed partial class MainWindow : WindowEx
                 Task.Run(async () =>
                 {
                     // Load AppContentSearch
+#if ENABLE_SEARCH_API
                     await LoadAppSearchIndex();
+#endif
                 });
             }
             else
@@ -296,6 +306,7 @@ internal sealed partial class MainWindow : WindowEx
 
             try
             {
+#if ENABLE_SEARCH_API
                 if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
                 {
                     // Use AppContentIndexer to search
@@ -320,6 +331,7 @@ internal sealed partial class MainWindow : WindowEx
                     }
                 }
                 else
+#endif
                 {
                     // Fallback to in-memory search
                     var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -419,6 +431,7 @@ internal sealed partial class MainWindow : WindowEx
         });
     }
 
+#if ENABLE_SEARCH_API
     private async void IndexContentsWithAppContentSearch()
     {
         if (_indexer == null || App.SearchIndex == null)
@@ -446,10 +459,13 @@ internal sealed partial class MainWindow : WindowEx
         App.AppData.IsAppContentIndexCompleted = true;
         await App.AppData.SaveAsync();
     }
+#endif
 
     public static void IndexAppSearchIndexStatic()
     {
+#if ENABLE_SEARCH_API
         var mainWindow = (MainWindow)App.MainWindow;
         mainWindow?.IndexContentsWithAppContentSearch();
+#endif
     }
 }

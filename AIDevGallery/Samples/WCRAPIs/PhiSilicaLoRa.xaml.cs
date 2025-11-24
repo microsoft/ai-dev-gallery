@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+#if ENABLE_EXPERIMENTAL_API
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
@@ -385,3 +386,4 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         await RunQuery();
     }
 }
+#endif

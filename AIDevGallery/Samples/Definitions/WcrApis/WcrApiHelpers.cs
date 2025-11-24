@@ -6,7 +6,9 @@ using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
+#if ENABLE_VIDEO_API
 using Microsoft.Windows.AI.Video;
+#endif
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -18,7 +20,9 @@ internal static class WcrApiHelpers
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
         ModelType.PhiSilica,
+#if ENABLE_EXPERIMENTAL_API
         ModelType.PhiSilicaLora,
+#endif
         ModelType.TextSummarizer,
         ModelType.TextRewriter,
         ModelType.TextToTableConverter
@@ -28,9 +32,11 @@ internal static class WcrApiHelpers
         {
             ModelType.PhiSilica, LanguageModel.GetReadyState
         },
+#if ENABLE_EXPERIMENTAL_API
         {
             ModelType.PhiSilicaLora, LanguageModel.GetReadyState
         },
+#endif
         {
             ModelType.TextSummarizer, LanguageModel.GetReadyState
         },
@@ -49,15 +55,18 @@ internal static class WcrApiHelpers
         {
             ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
+#if ENABLE_IMAGE_FOREGROUND_API
         {
             ModelType.ForegroundExtractor, ImageForegroundExtractor.GetReadyState
         },
+#endif
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
         },
+#if ENABLE_IMAGE_GENERATOR_API
         {
             ModelType.SDXL, ImageGenerator.GetReadyState
         },
@@ -67,9 +76,12 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.GetReadyState
         },
+#endif
+#if ENABLE_VIDEO_API
         {
             ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
+#endif
     };
 
     public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
@@ -77,9 +89,11 @@ internal static class WcrApiHelpers
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
         },
+#if ENABLE_EXPERIMENTAL_API
         {
             ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
         },
+#endif
         {
             ModelType.TextSummarizer, LanguageModel.EnsureReadyAsync
         },
@@ -98,15 +112,18 @@ internal static class WcrApiHelpers
         {
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
         },
+#if ENABLE_IMAGE_FOREGROUND_API
         {
             ModelType.ForegroundExtractor, ImageForegroundExtractor.EnsureReadyAsync
         },
+#endif
         {
             ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
         },
+#if ENABLE_IMAGE_GENERATOR_API
         {
             ModelType.SDXL, ImageGenerator.EnsureReadyAsync
         },
@@ -116,9 +133,12 @@ internal static class WcrApiHelpers
         {
             ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
         },
+#endif
+#if ENABLE_VIDEO_API
         {
             ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
         }
+#endif
     };
 
     // this is a workaround for GetReadyState not returning Ready after EnsureReadyAsync is called
