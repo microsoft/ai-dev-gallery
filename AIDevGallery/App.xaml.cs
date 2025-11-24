@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Controls.ModelPickerViews;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
@@ -9,11 +8,9 @@ using AIDevGallery.Telemetry;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI.ViewManagement;
 
 namespace AIDevGallery;
 
