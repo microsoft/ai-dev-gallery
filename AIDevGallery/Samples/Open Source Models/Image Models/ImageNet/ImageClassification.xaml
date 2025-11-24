@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
-    <ScrollViewer>
+    <ScrollViewer
+        IsTabStop="False"
+        TabFocusNavigation="Local">
         <Grid ColumnSpacing="12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -31,7 +33,8 @@
                     <Image
                         x:Name="UploadedImage"
                         MaxWidth="800"
-                        MaxHeight="500" />
+                        MaxHeight="500"
+                        AutomationProperties.Name="UploadedImage"/>
                 </Viewbox>
                 <ProgressRing
                     x:Name="Loader"
@@ -48,10 +51,12 @@
                     <Button
                         x:Name="UploadImageButton"
                         Padding="8"
+                        Margin="4"
                         AutomationProperties.Name="Select image"
                         Click="UploadImageButton_Click"
-                        ToolTipService.ToolTip="Select image">
-
+                        ToolTipService.ToolTip="Select image"
+                        IsTabStop="True"
+                        UseSystemFocusVisuals="True">
                         <FontIcon FontSize="16" Glyph="&#xEE71;" />
                     </Button>
                 </Grid>

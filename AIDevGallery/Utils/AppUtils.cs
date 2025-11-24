@@ -16,6 +16,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel;
+using Windows.UI.ViewManagement;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.DXCore;
@@ -282,6 +283,19 @@ internal static class AppUtils
 
     public static string GetThemeAssetSuffix()
     {
+        var accessibilitySettings = new AccessibilitySettings();
+        bool isHighContrast = accessibilitySettings.HighContrast;
+        if(isHighContrast)
+        {
+            string hcThemeName = accessibilitySettings.HighContrastScheme;
+            if(hcThemeName == "High Contrast White")
+            {
+                return ".light";
+            }
+
+            return ".dark";
+        }
+
         return App.Current.RequestedTheme == ApplicationTheme.Dark ? ".dark" : ".light";
     }
 
