@@ -134,7 +134,6 @@ internal sealed partial class ImageClassification : BaseSamplePage
 
         var file = await picker.PickSingleFileAsync();
 
-
         DispatcherQueue.TryEnqueue(async () =>
         {
             await Task.Delay(1);
