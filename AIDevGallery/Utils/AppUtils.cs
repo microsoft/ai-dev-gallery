@@ -292,8 +292,10 @@ internal static class AppUtils
             {
                 return ".light";
             }
+
             return ".dark";
         }
+
         return App.Current.RequestedTheme == ApplicationTheme.Dark ? ".dark" : ".light";
     }
 
