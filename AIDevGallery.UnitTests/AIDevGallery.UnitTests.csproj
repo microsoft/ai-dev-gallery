@@ -24,8 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Page Remove="UnitTestApp.xaml" />
-    <ApplicationDefinition Include="UnitTestApp.xaml" />
+    <Page Remove="WinUIBased\UnitTestApp.xaml" />
+    <ApplicationDefinition Include="WinUIBased\UnitTestApp.xaml" />
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 

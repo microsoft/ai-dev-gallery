@@ -21,8 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AIDevGallery.UnitTests;
 
-namespace AIDevGallery.UnitTests;
+namespace AIDevGallery.UnitTests.WinUIBased;
 
 #pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter

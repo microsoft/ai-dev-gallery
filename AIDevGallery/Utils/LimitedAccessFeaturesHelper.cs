@@ -172,7 +172,17 @@ internal static class LimitedAccessFeaturesHelper
     /// <returns>Publisher hash string or empty string.</returns>
     public static string GetPublisherHash()
     {
-        string packageFamilyName = Package.Current.Id.FamilyName;
+        string packageFamilyName;
+        try
+        {
+            packageFamilyName = Package.Current.Id.FamilyName;
+        }
+        catch
+        {
+            // In unit tests or non-packaged context, Package.Current might throw or be unavailable.
+            return string.Empty;
+        }
+
         if (string.IsNullOrWhiteSpace(packageFamilyName))
         {
             return string.Empty;

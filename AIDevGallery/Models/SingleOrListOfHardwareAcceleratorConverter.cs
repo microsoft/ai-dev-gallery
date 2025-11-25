@@ -12,6 +12,8 @@ namespace AIDevGallery.Models;
 
 internal class SingleOrListOfHardwareAcceleratorConverter : JsonConverter<List<HardwareAccelerator>>
 {
+    public override bool HandleNull => true;
+
     public override List<HardwareAccelerator> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var list = new List<HardwareAccelerator>();
