@@ -32,7 +32,7 @@
             CornerRadius="{x:Bind CornerRadius, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="340" />
-                <ColumnDefinition x:Name="CodeColumn" Width="0" MinWidth="300"/>
+                <ColumnDefinition x:Name="CodeColumn" Width="0"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -92,9 +92,9 @@
                     Orientation="Horizontal"
                     Visibility="Visible">
                     <FontIcon
-                        Margin="0,4,4,4"
+                        Margin="0,2,2,2"
                         AutomationProperties.AccessibilityView="Raw"
-                        FontSize="11"
+                        FontSize="8"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Glyph="&#xE946;"
                         ToolTipService.ToolTip="AI-generated content might be incorrect, offensive, or biased." />
