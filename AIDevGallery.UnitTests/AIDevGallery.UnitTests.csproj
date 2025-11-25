@@ -37,6 +37,9 @@
     <PackageReference Include="Microsoft.TestPlatform.TestHost">
       <ExcludeAssets>build</ExcludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

@@ -137,5 +137,36 @@ namespace AIDevGallery.UnitTests.Helpers
             // If the map is empty in test context, this test might be flaky.
             // But let's assume static constructors run.
         }
+
+        [TestMethod]
+        public void GetModelDetailsFromApiDefinition_ReturnsCorrectDetails()
+        {
+            var apiDef = new ApiDefinition
+            {
+                Id = "api-id",
+                Name = "API Name",
+                Icon = "icon.png",
+                ReadmeUrl = "http://readme",
+                License = "MIT",
+                Category = "App Content Search",
+                IconGlyph = "glyph",
+                Description = "desc",
+                SampleIdToShowInDocs = "sample-id"
+            };
+
+            var result = ModelDetailsHelper.GetModelDetailsFromApiDefinition(ModelType.Phi3MiniPhi3MiniCPU, apiDef);
+
+            Assert.AreEqual("api-id", result.Id);
+            Assert.AreEqual("API Name", result.Name);
+            Assert.IsTrue(result.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI));
+            Assert.IsTrue(result.HardwareAccelerators.Contains(HardwareAccelerator.ACI)); // Because Category is App Content Search
+        }
+
+        [TestMethod]
+        public void EqualOrParent_SameType_ReturnsTrue()
+        {
+            // Testing the trivial case where types are equal
+            Assert.IsTrue(ModelDetailsHelper.EqualOrParent(ModelType.Phi3MiniPhi3MiniCPU, ModelType.Phi3MiniPhi3MiniCPU));
+        }
     }
 }
