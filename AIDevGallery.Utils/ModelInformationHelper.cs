@@ -22,14 +22,15 @@ public static class ModelInformationHelper
     /// Retrieves a list of model file details from a specified GitHub repository.
     /// </summary>
     /// <param name="url">The GitHub URL containing the organization, repository, path, and reference.</param>
+    /// <param name="httpMessageHandler">The HTTP message handler used to configure the HTTP client.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A list of model file details.</returns>
-    public static async Task<List<ModelFileDetails>> GetDownloadFilesFromGitHub(GitHubUrl url, CancellationToken cancellationToken)
+    public static async Task<List<ModelFileDetails>> GetDownloadFilesFromGitHub(GitHubUrl url, HttpMessageHandler? httpMessageHandler = null, CancellationToken cancellationToken = default)
     {
         string getModelDetailsUrl = $"https://api.github.com/repos/{url.Organization}/{url.Repo}/contents/{url.Path}?ref={url.Ref}";
 
         // call api and get json
-        using var client = new HttpClient();
+        using var client = httpMessageHandler != null ? new HttpClient(httpMessageHandler) : new HttpClient();
         client.DefaultRequestHeaders.Add("User-Agent", "AIDevGallery");
         var response = await client.GetAsync(getModelDetailsUrl, cancellationToken);
 #if NET8_0_OR_GREATER
@@ -98,7 +99,7 @@ public static class ModelInformationHelper
         }
 
         // call api and get json
-        using var client = new HttpClient();
+        using var client = httpMessageHandler != null ? new HttpClient(httpMessageHandler) : new HttpClient();
         var response = await client.GetAsync(getModelDetailsUrl, cancellationToken);
 #if NET8_0_OR_GREATER
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);

@@ -139,7 +139,7 @@ internal class OnnxModelDownload : ModelDownload
         if (Details.Url.StartsWith("https://github.com", StringComparison.InvariantCulture))
         {
             var ghUrl = new GitHubUrl(Details.Url);
-            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken);
+            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken: cancellationToken);
             url = ghUrl;
         }
         else
