@@ -25,7 +25,7 @@ public static class ModelInformationHelper
     /// <param name="httpMessageHandler">The HTTP message handler used to configure the HTTP client.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A list of model file details.</returns>
-    public static async Task<List<ModelFileDetails>> GetDownloadFilesFromGitHub(GitHubUrl url, HttpMessageHandler? httpMessageHandler = null, CancellationToken cancellationToken = default)
+    public static async Task<List<ModelFileDetails>> GetDownloadFilesFromGitHub(GitHubUrl url, CancellationToken cancellationToken = default, HttpMessageHandler? httpMessageHandler = null)
     {
         string getModelDetailsUrl = $"https://api.github.com/repos/{url.Organization}/{url.Repo}/contents/{url.Path}?ref={url.Ref}";
 

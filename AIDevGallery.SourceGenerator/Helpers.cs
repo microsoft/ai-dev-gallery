@@ -71,7 +71,7 @@ internal static class Helpers
             if (model.Url.StartsWith("https://github.com", StringComparison.InvariantCulture))
             {
                 var ghUrl = new GitHubUrl(model.Url);
-                filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken: cancellationToken);
+                filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken);
             }
             else
             {

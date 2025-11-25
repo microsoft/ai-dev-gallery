@@ -78,7 +78,7 @@ public class ModelInformationHelperTests
         var json = JsonSerializer.Serialize(mockResponse);
 
         using var handler = new MockHttpMessageHandler(json);
-        var result = await ModelInformationHelper.GetDownloadFilesFromGitHub(url, handler);
+        var result = await ModelInformationHelper.GetDownloadFilesFromGitHub(url, httpMessageHandler: handler);
 
         Assert.AreEqual(2, result.Count);
         Assert.AreEqual("file1.txt", result[0].Name);
@@ -95,7 +95,7 @@ public class ModelInformationHelperTests
         var json = JsonSerializer.Serialize(mockResponse);
 
         using var handler = new MockHttpMessageHandler(json);
-        var result = await ModelInformationHelper.GetDownloadFilesFromGitHub(url, handler);
+        var result = await ModelInformationHelper.GetDownloadFilesFromGitHub(url, httpMessageHandler: handler);
 
         Assert.AreEqual(1, result.Count);
         Assert.AreEqual("file1.txt", result[0].Name);
