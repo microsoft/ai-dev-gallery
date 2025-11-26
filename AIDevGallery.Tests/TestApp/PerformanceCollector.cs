@@ -4,7 +4,7 @@ using System.IO;
 using System.Management;
 using System.Text.Json;
 
-namespace AIDevGallery.Tests.UnitTests.Helpers;
+namespace AIDevGallery.Tests.TestApp;
 
 public class PerformanceReport
 {
