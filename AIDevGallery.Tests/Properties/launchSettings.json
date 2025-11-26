@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AIDevGallery.Tests (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AIDevGallery.Tests (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
