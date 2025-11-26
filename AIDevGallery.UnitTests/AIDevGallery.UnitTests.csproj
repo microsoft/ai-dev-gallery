@@ -40,6 +40,7 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
+    <PackageReference Include="FlaUI.UIA3" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
