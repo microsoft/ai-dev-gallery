@@ -4,7 +4,7 @@
 using AIDevGallery.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AIDevGallery.Tests.UnitTests.Helpers;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class MarkdownHelperTests

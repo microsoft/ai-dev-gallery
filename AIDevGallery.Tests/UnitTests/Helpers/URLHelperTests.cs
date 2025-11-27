@@ -5,7 +5,7 @@ using AIDevGallery.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
-namespace AIDevGallery.Tests.UnitTests.Helpers;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class URLHelperTests

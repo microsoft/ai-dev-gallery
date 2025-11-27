@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class ModelCacheStoreTests

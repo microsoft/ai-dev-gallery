@@ -5,7 +5,7 @@ using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Windows.ApplicationModel;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class LimitedAccessFeaturesHelperTests

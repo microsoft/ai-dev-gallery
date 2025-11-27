@@ -5,7 +5,7 @@ using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class ModelUrlTests

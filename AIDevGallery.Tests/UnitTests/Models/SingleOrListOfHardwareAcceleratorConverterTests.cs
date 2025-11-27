@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AIDevGallery.Tests.UnitTests.Models;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class SingleOrListOfHardwareAcceleratorConverterTests

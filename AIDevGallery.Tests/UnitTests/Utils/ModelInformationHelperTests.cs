@@ -12,7 +12,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class ModelInformationHelperTests

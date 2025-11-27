@@ -4,7 +4,7 @@
 using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class LicenseInfoTests

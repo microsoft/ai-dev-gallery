@@ -8,7 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
-namespace AIDevGallery.Tests.UnitTests.Helpers;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class SamplesHelperTests

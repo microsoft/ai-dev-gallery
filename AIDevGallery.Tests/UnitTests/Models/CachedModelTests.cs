@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
-namespace AIDevGallery.Tests.UnitTests.Models;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class CachedModelTests

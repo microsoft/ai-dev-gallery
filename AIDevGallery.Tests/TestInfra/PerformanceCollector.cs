@@ -1,10 +1,12 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Management;
 using System.Text.Json;
 
-namespace AIDevGallery.Tests.TestApp;
+namespace AIDevGallery.Tests.TestInfra;
 
 public class PerformanceReport
 {
@@ -56,13 +58,13 @@ public static class PerformanceCollector
     {
         lock (_lock)
         {
-            _measurements.Add(new Measurement 
-            { 
+            _measurements.Add(new Measurement
+            {
                 Category = category,
-                Name = name, 
-                Value = value, 
-                Unit = unit, 
-                Tags = tags 
+                Name = name,
+                Value = value,
+                Unit = unit,
+                Tags = tags
             });
         }
     }
@@ -106,12 +108,12 @@ public static class PerformanceCollector
         // Allow overriding output directory via environment variable (useful for CI)
         string? envOutputDir = Environment.GetEnvironmentVariable("PERFORMANCE_OUTPUT_PATH");
         string dir = outputDirectory ?? envOutputDir ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PerfResults");
-        
+
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
         }
-        
+
         string filename = $"perf-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid()}.json";
         string filePath = Path.Combine(dir, filename);
 
@@ -120,7 +122,7 @@ public static class PerformanceCollector
 
         return filePath;
     }
-    
+
     public static void Clear()
     {
         lock (_lock)
@@ -132,24 +134,26 @@ public static class PerformanceCollector
     private static HardwareInfo GetHardwareInfo()
     {
         var info = new HardwareInfo();
-        
+
         try
         {
             // Basic CPU info from environment if WMI fails or on non-Windows
             info.Cpu = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "Unknown CPU";
-            
+
             // On Windows, we can try to get more details via WMI (System.Management)
             // Note: This requires the System.Management NuGet package and Windows OS
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             {
-                try 
+                try
                 {
                     // Simple memory check
                     var gcMemoryInfo = GC.GetGCMemoryInfo();
                     long totalMemoryBytes = gcMemoryInfo.TotalAvailableMemoryBytes;
                     info.Ram = $"{totalMemoryBytes / (1024 * 1024 * 1024)} GB";
                 }
-                catch { /* Ignore hardware detection errors */ }
+                catch
+                { /* Ignore hardware detection errors */
+                }
             }
         }
         catch

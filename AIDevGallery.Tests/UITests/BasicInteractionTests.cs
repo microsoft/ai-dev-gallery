@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Tests.TestInfra;
 using FlaUI.Core.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -25,10 +26,10 @@ public class BasicInteractionTests : FlaUITestBase
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
         // Act - Find all buttons and clickable elements
-        var buttons = MainWindow.FindAllDescendants(cf => 
+        var buttons = MainWindow.FindAllDescendants(cf =>
             cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-        
-        var hyperlinks = MainWindow.FindAllDescendants(cf => 
+
+        var hyperlinks = MainWindow.FindAllDescendants(cf =>
             cf.ByControlType(FlaUI.Core.Definitions.ControlType.Hyperlink));
 
         // Log findings
@@ -55,7 +56,8 @@ public class BasicInteractionTests : FlaUITestBase
         TakeScreenshot("Sample_ClickableElements");
 
         // Assert
-        Assert.IsTrue(buttons.Length > 0 || hyperlinks.Length > 0, 
+        Assert.IsTrue(
+            buttons.Length > 0 || hyperlinks.Length > 0,
             "Should find at least some clickable elements");
     }
 
@@ -70,7 +72,7 @@ public class BasicInteractionTests : FlaUITestBase
 
         // Act - Search for common UI element names
         string[] searchTerms = { "Settings", "Home", "Search", "Menu", "Back", "Close" };
-        
+
         Console.WriteLine("=== Searching for Common UI Elements ===");
         foreach (var term in searchTerms)
         {
@@ -137,10 +139,10 @@ public class BasicInteractionTests : FlaUITestBase
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
         // Act - Find all text input elements
-        var textBoxes = MainWindow.FindAllDescendants(cf => 
+        var textBoxes = MainWindow.FindAllDescendants(cf =>
             cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
-        
-        var comboBoxes = MainWindow.FindAllDescendants(cf => 
+
+        var comboBoxes = MainWindow.FindAllDescendants(cf =>
             cf.ByControlType(FlaUI.Core.Definitions.ControlType.ComboBox));
 
         // Log findings
@@ -175,7 +177,7 @@ public class BasicInteractionTests : FlaUITestBase
         // Act - Navigate the UI tree
         Console.WriteLine("=== UI Tree Structure (Top Level) ===");
         var children = MainWindow.FindAllChildren();
-        
+
         Console.WriteLine($"Main window has {children.Length} direct children");
         Console.WriteLine();
 
@@ -185,7 +187,7 @@ public class BasicInteractionTests : FlaUITestBase
             Console.WriteLine($"  Name: {child.Name}");
             Console.WriteLine($"  AutomationId: {child.AutomationId}");
             Console.WriteLine($"  ClassName: {child.ClassName}");
-            
+
             // Get grand-children count
             var grandChildren = child.FindAllChildren();
             Console.WriteLine($"  Has {grandChildren.Length} children");
@@ -211,7 +213,7 @@ public class BasicInteractionTests : FlaUITestBase
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
-        
+
         // Make sure the window has focus
         MainWindow.Focus();
         System.Threading.Thread.Sleep(500);
@@ -219,11 +221,11 @@ public class BasicInteractionTests : FlaUITestBase
         // Act - Send keyboard input
         Console.WriteLine("=== Keyboard Input Demo ===");
         Console.WriteLine("Sending Tab key to navigate...");
-        
+
         // Send Tab key a few times
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.TAB);
         System.Threading.Thread.Sleep(300);
-        
+
         Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.TAB);
         System.Threading.Thread.Sleep(300);
 
@@ -245,7 +247,7 @@ public class BasicInteractionTests : FlaUITestBase
 
         // Act - Count different element types
         var allElements = MainWindow.FindAllDescendants();
-        
+
         var elementTypeCounts = allElements
             .GroupBy(e => e.ControlType.ToString())
             .Select(g => new { Type = g.Key, Count = g.Count() })
@@ -257,7 +259,7 @@ public class BasicInteractionTests : FlaUITestBase
         Console.WriteLine($"Total elements: {allElements.Length}");
         Console.WriteLine();
         Console.WriteLine("Breakdown by type:");
-        
+
         foreach (var item in elementTypeCounts)
         {
             Console.WriteLine($"  {item.Type}: {item.Count}");

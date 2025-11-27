@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.UnitTests.Models;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class SampleNavigationParametersTests

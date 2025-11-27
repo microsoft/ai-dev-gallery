@@ -1,16 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Tests.TestApp;
+using AIDevGallery.Tests.TestInfra;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
-namespace AIDevGallery.Tests.UITests;
+namespace AIDevGallery.Tests.Perf;
 
 [TestClass]
 public class PerformanceTests : FlaUITestBase
@@ -27,7 +25,8 @@ public class PerformanceTests : FlaUITestBase
         // Act
         // Wait for the Home page content to appear
         // We look for a ScrollViewer with AutomationId which indicates content is loaded
-        var navViewResult = Retry.WhileNull(() => 
+        var navViewResult = Retry.WhileNull(
+            () =>
         {
             // Look for the MenuItemsScrollViewer which is part of NavigationView
             // This indicates the navigation menu has been rendered
@@ -73,9 +72,10 @@ public class PerformanceTests : FlaUITestBase
         var startTime = DateTime.UtcNow;
         samplesItem.Click();
 
-        // Wait for the Samples page to load. 
+        // Wait for the Samples page to load.
         // We look for the "Filters" ComboBox in the ScenarioSelectionPage
-        var filtersBoxResult = Retry.WhileNull(() => 
+        var filtersBoxResult = Retry.WhileNull(
+            () =>
         {
             return MainWindow.FindFirstDescendant(cf => cf.ByName("Filters").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.ComboBox)));
         }, timeout: TimeSpan.FromSeconds(10));
@@ -113,19 +113,20 @@ public class PerformanceTests : FlaUITestBase
         // Find SearchBox - it's inside a Group with AutomationId "SearchBox"
         var searchBoxGroup = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox"));
         Assert.IsNotNull(searchBoxGroup, "Search box group not found");
-        
+
         // The actual text input is inside the group
         var searchBox = searchBoxGroup.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
         Assert.IsNotNull(searchBox, "Search box text input not found");
 
         // Act
         var startTime = DateTime.UtcNow;
-        
+
         // Type "Phi" into the search box
         searchBox.AsTextBox().Text = "Phi";
-        
+
         // Wait for results - look for any list item in the search results
-        var retryResult = Retry.WhileNull(() => 
+        var retryResult = Retry.WhileNull(
+            () =>
         {
             var items = MainWindow.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
             return items.Length > 0 ? items[0] : null;

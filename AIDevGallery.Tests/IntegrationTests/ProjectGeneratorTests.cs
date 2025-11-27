@@ -6,8 +6,6 @@ using AIDevGallery.Models;
 using AIDevGallery.ProjectGenerator;
 using AIDevGallery.Samples;
 using AIDevGallery.Utils;
-using AIDevGallery.Tests;
-using AIDevGallery.Tests.UnitTests.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI;
@@ -24,7 +22,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.IntegrationTests.ProjectGenerator;
+namespace AIDevGallery.Tests.Integration;
 
 #pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter

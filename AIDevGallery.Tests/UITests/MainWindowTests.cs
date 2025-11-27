@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using FlaUI.Core.AutomationElements;
+using AIDevGallery.Tests.TestInfra;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -22,9 +22,9 @@ public class MainWindowTests : FlaUITestBase
         // Assert
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         Assert.IsFalse(string.IsNullOrEmpty(MainWindow.Title), "Main window should have a title");
-        
+
         Console.WriteLine($"Main window title: {MainWindow.Title}");
-        
+
         // Take a screenshot for verification
         TakeScreenshot("MainWindow_Launch");
     }
@@ -37,7 +37,7 @@ public class MainWindowTests : FlaUITestBase
         // Assert
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         Assert.IsTrue(MainWindow.IsAvailable, "Main window should be available");
-        
+
         var patterns = MainWindow.Patterns;
         Console.WriteLine($"Main window is available: {MainWindow.IsAvailable}");
         Console.WriteLine($"Main window is offscreen: {MainWindow.IsOffscreen}");
@@ -50,7 +50,7 @@ public class MainWindowTests : FlaUITestBase
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
-        
+
         var originalBounds = MainWindow.BoundingRectangle;
         Console.WriteLine($"Original bounds: W={originalBounds.Width}, H={originalBounds.Height}");
 
@@ -65,21 +65,21 @@ public class MainWindowTests : FlaUITestBase
                     // Try a larger size first to ensure change is detectable
                     double newWidth = originalBounds.Width + 200;
                     double newHeight = originalBounds.Height + 100;
-                    
+
                     Console.WriteLine($"Attempting to resize to: W={newWidth}, H={newHeight}");
                     transform.Resize(newWidth, newHeight);
                     System.Threading.Thread.Sleep(500); // Wait for resize
-                    
+
                     var newBounds = MainWindow.BoundingRectangle;
                     Console.WriteLine($"New bounds after resize: W={newBounds.Width}, H={newBounds.Height}");
-                    
+
                     // Take screenshot after resize
                     TakeScreenshot("MainWindow_AfterResize");
-                    
+
                     // Check if size changed at all (width OR height)
-                    bool sizeChanged = Math.Abs(originalBounds.Width - newBounds.Width) > 10 || 
+                    bool sizeChanged = Math.Abs(originalBounds.Width - newBounds.Width) > 10 ||
                                       Math.Abs(originalBounds.Height - newBounds.Height) > 10;
-                    
+
                     if (sizeChanged)
                     {
                         // Assert - window was resized successfully
@@ -119,22 +119,22 @@ public class MainWindowTests : FlaUITestBase
 
         // Act - Find all descendants
         var allElements = MainWindow.FindAllDescendants();
-        
+
         // Assert
         Assert.IsNotNull(allElements, "Should be able to query descendants");
         Assert.IsTrue(allElements.Length > 0, "Main window should contain UI elements");
-        
+
         Console.WriteLine($"Found {allElements.Length} UI elements in the main window");
-        
+
         // Log some element types for debugging
         var elementTypes = allElements
             .Select(e => e.ControlType.ToString())
             .Distinct()
             .OrderBy(t => t)
             .ToList();
-        
+
         Console.WriteLine($"Element types found: {string.Join(", ", elementTypes)}");
-        
+
         TakeScreenshot("MainWindow_UIElements");
     }
 
@@ -148,11 +148,11 @@ public class MainWindowTests : FlaUITestBase
 
         // Act - Find all buttons
         var buttons = MainWindow.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-        
+
         // Assert
         Assert.IsNotNull(buttons, "Should be able to query buttons");
         Console.WriteLine($"Found {buttons.Length} buttons in the main window");
-        
+
         if (buttons.Length > 0)
         {
             // Log button names for debugging
@@ -161,8 +161,8 @@ public class MainWindowTests : FlaUITestBase
                 var button = buttons[i];
                 try
                 {
-                    var automationId = button.Properties.AutomationId.IsSupported 
-                        ? button.AutomationId 
+                    var automationId = button.Properties.AutomationId.IsSupported
+                        ? button.AutomationId
                         : "(not supported)";
                     Console.WriteLine($"Button {i + 1}: Name='{button.Name}', AutomationId='{automationId}'");
                 }
@@ -186,7 +186,7 @@ public class MainWindowTests : FlaUITestBase
         // Act
         MainWindow.Close();
         System.Threading.Thread.Sleep(1000); // Wait for close
-        
+
         // Assert
         try
         {
@@ -209,13 +209,13 @@ public class MainWindowTests : FlaUITestBase
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
         // Act - Find all text elements
-        var textElements = MainWindow.FindAllDescendants(cf => 
+        var textElements = MainWindow.FindAllDescendants(cf =>
             cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
-        
+
         // Assert
         Assert.IsNotNull(textElements, "Should be able to query text elements");
         Console.WriteLine($"Found {textElements.Length} text elements in the main window");
-        
+
         if (textElements.Length > 0)
         {
             // Log some text content for debugging
@@ -229,7 +229,7 @@ public class MainWindowTests : FlaUITestBase
                 }
             }
         }
-        
+
         TakeScreenshot("MainWindow_TextElements");
     }
 }

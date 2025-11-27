@@ -6,7 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AIDevGallery.Tests.UnitTests.Models;
+namespace AIDevGallery.Tests.Unit;
 
 [TestClass]
 public class ExpandedModelDetailsTests

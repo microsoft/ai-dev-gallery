@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace AIDevGallery.Tests.UITests;
+namespace AIDevGallery.Tests.TestInfra;
 
 /// <summary>
 /// Base class for FlaUI-based UI tests.
@@ -27,6 +27,7 @@ public abstract class FlaUITestBase
     /// <summary>
     /// Gets the path to the AIDevGallery executable.
     /// </summary>
+    /// <returns></returns>
     protected virtual string GetApplicationPath()
     {
         // Try to find the built application
@@ -38,18 +39,18 @@ public abstract class FlaUITestBase
 
         // Determine architecture
         var arch = Environment.Is64BitOperatingSystem ? "x64" : "x86";
-        
+
         // Try multiple possible locations
         var possiblePaths = new[]
         {
             // Debug builds
             Path.Combine(solutionDir, "AIDevGallery", "bin", arch, "Debug", "net9.0-windows10.0.26100.0", $"win-{arch}", "AIDevGallery.exe"),
             Path.Combine(solutionDir, "AIDevGallery", "bin", arch, "Debug", "net9.0-windows10.0.26100.0", "AIDevGallery.exe"),
-            
+
             // Release builds
             Path.Combine(solutionDir, "AIDevGallery", "bin", arch, "Release", "net9.0-windows10.0.26100.0", $"win-{arch}", "AIDevGallery.exe"),
             Path.Combine(solutionDir, "AIDevGallery", "bin", arch, "Release", "net9.0-windows10.0.26100.0", "AIDevGallery.exe"),
-            
+
             // AppPackages (for packaged builds)
             Path.Combine(solutionDir, "AIDevGallery", "AppPackages", "AIDevGallery.exe"),
         };
@@ -173,20 +174,20 @@ public abstract class FlaUITestBase
 
         // Launch the application
         Console.WriteLine("Attempting to launch AIDevGallery...");
-        
+
         // First try to find installed MSIX package
         var packageFamilyName = TryGetInstalledPackageFamilyName();
-        
+
         if (!string.IsNullOrEmpty(packageFamilyName))
         {
             Console.WriteLine($"Found installed MSIX package: {packageFamilyName}");
             Console.WriteLine("Launching via PowerShell...");
-            
+
             try
             {
                 // Launch MSIX app using PowerShell Get-AppxPackage and Start-Process
                 var appUserModelId = $"{packageFamilyName}!App";
-                
+
                 var psScript = $"Start-Process 'shell:AppsFolder\\{appUserModelId}'";
                 var startInfo = new ProcessStartInfo
                 {
@@ -195,24 +196,24 @@ public abstract class FlaUITestBase
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
-                
+
                 // Launch via PowerShell
                 using (var psProcess = Process.Start(startInfo))
                 {
                     psProcess?.WaitForExit(5000);
                 }
-                
+
                 // Wait for the app process to start
                 Console.WriteLine("Waiting for application process to start...");
                 Thread.Sleep(2000);
-                
+
                 // Find the app process
                 var appProcess = FindApplicationProcess();
                 if (appProcess == null)
                 {
                     throw new InvalidOperationException("Application process not found after launch");
                 }
-                
+
                 Console.WriteLine($"Found application process with PID: {appProcess.Id}");
                 App = Application.Attach(appProcess.Id);
                 Console.WriteLine($"Attached to application with PID: {App.ProcessId}");
@@ -233,7 +234,7 @@ public abstract class FlaUITestBase
             Console.WriteLine($"WARNING: No MSIX package found. Trying unpackaged exe: {appPath}");
             Console.WriteLine("This will likely fail with COM registration errors!");
             Console.WriteLine($"Please deploy the MSIX package first. See: MSIX_DEPLOYMENT_REQUIRED.md");
-            
+
             try
             {
                 App = Application.Launch(appPath);
@@ -255,14 +256,14 @@ public abstract class FlaUITestBase
         var retryInterval = TimeSpan.FromMilliseconds(500);
 
         Console.WriteLine("Waiting for main window to appear...");
-        
+
         while (MainWindow == null && DateTime.Now - startTime < timeout)
         {
             try
             {
                 // Try to get main window with a short timeout for each attempt
                 MainWindow = App.GetMainWindow(Automation, TimeSpan.FromSeconds(2));
-                
+
                 if (MainWindow != null && MainWindow.IsAvailable)
                 {
                     Console.WriteLine($"Main window found after {(DateTime.Now - startTime).TotalSeconds:F1} seconds");
@@ -286,7 +287,7 @@ public abstract class FlaUITestBase
         {
             var elapsed = DateTime.Now - startTime;
             Console.WriteLine($"Failed to find main window after {elapsed.TotalSeconds:F1} seconds");
-            
+
             // Try to get diagnostic information
             try
             {
@@ -301,7 +302,7 @@ public abstract class FlaUITestBase
             {
                 Console.WriteLine($"Could not get diagnostic info: {ex.Message}");
             }
-            
+
             throw new InvalidOperationException($"Failed to get main window within {timeout.TotalSeconds} seconds");
         }
 
@@ -317,7 +318,7 @@ public abstract class FlaUITestBase
     public virtual void TestCleanup()
     {
         Console.WriteLine("Cleaning up test...");
-        
+
         try
         {
             if (MainWindow != null && MainWindow.IsAvailable)
@@ -354,7 +355,7 @@ public abstract class FlaUITestBase
             {
                 Console.WriteLine($"Error disposing automation: {ex.Message}");
             }
-            
+
             CloseExistingApplicationInstances();
             Console.WriteLine("Test cleanup completed");
         }
@@ -370,7 +371,7 @@ public abstract class FlaUITestBase
         {
             Console.WriteLine($"Found {processes.Length} existing AIDevGallery process(es), terminating...");
         }
-        
+
         foreach (var process in processes)
         {
             try
@@ -378,7 +379,7 @@ public abstract class FlaUITestBase
                 var processId = process.Id;
                 process.Kill(entireProcessTree: true);
                 var exited = process.WaitForExit(5000);
-                
+
                 if (exited)
                 {
                     Console.WriteLine($"Terminated process {processId}");
@@ -402,6 +403,7 @@ public abstract class FlaUITestBase
     /// <summary>
     /// Waits for an element to appear with the specified automation ID.
     /// </summary>
+    /// <returns></returns>
     protected AutomationElement? WaitForElement(string automationId, TimeSpan timeout)
     {
         if (MainWindow == null)
@@ -448,14 +450,14 @@ public abstract class FlaUITestBase
             Directory.CreateDirectory(screenshotDir);
 
             var screenshotPath = Path.Combine(screenshotDir, $"{filename}_{DateTime.Now:yyyyMMdd_HHmmss}.png");
-            
+
             // Get the window bounds
             var bounds = MainWindow.BoundingRectangle;
             Console.WriteLine($"Capturing window at: X={bounds.X}, Y={bounds.Y}, Width={bounds.Width}, Height={bounds.Height}");
-            
+
             // Capture the entire window area including title bar and borders
             var screenshot = FlaUI.Core.Capturing.Capture.Rectangle(bounds);
-            
+
             if (screenshot?.Bitmap != null)
             {
                 screenshot.Bitmap.Save(screenshotPath, System.Drawing.Imaging.ImageFormat.Png);
