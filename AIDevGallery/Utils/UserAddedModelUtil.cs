@@ -348,12 +348,15 @@ internal static class UserAddedModelUtil
 
             // Check OpenVINO provider
             var openvinoOptions = provider.GetProviderOptions("OpenVINO");
-            if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
+            if (openvinoOptions != null)
             {
-                var devType = deviceType.ToLowerInvariant();
-                if (devType == "npu") hasNpu = true;
-                else if (devType == "gpu") hasGpu = true;
-                else if (devType == "cpu") hasCpu = true;
+                if (openvinoOptions.TryGetValue("device_type", out var deviceType))
+                {
+                    var devType = deviceType.ToLowerInvariant();
+                    if (devType == "npu") hasNpu = true;
+                    else if (devType == "gpu") hasGpu = true;
+                    else if (devType == "cpu") hasCpu = true;
+                }
             }
 
             // Check GPU providers
