@@ -30,7 +30,7 @@ internal static class DeviceUtils
         return deviceId;
     }
 
-    public static ulong GetVram() => GetVramInfo().dedicated;
+    public static ulong GetDedicatedVram() => GetVramInfo().dedicated;
 
     public static ulong GetTotalVram() => GetVramInfo().total;
 
