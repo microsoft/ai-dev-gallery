@@ -91,7 +91,7 @@ internal class ModelCompatibility
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
             && !DeviceUtils.IsArm64())
         {
-            var dedicatedVram = DeviceUtils.GetVram();
+            var dedicatedVram = DeviceUtils.GetDedicatedVram();
             var totalVram = DeviceUtils.GetTotalVram();
             var minimumSizeNeeded = Math.Round((float)(modelDetails.Size / BytesInGB), 1);
             var totalVramInGb = Math.Round(totalVram / BytesInGB, 1);
