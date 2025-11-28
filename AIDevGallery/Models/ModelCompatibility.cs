@@ -63,15 +63,28 @@ internal class ModelCompatibility
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.NPU))
         {
-            // NPU (non-QNN) support - typically Intel OpenVINO NPU
-            if (DeviceUtils.HasOpenVINONPU())
+            // Check if any NPU is available using ONNX Runtime's EP detection
+            if (DeviceUtils.HasNPU())
             {
                 compatibility = ModelCompatibilityState.Compatible;
             }
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = "This model requires an Intel NPU with OpenVINO support. No compatible NPU was detected on your device.";
+                description = "This model requires an NPU (Neural Processing Unit). No compatible NPU was detected on your device.";
+            }
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OpenVINO))
+        {
+            // Specific OpenVINO EP check (can run on CPU/GPU/NPU)
+            if (DeviceUtils.HasOpenVINO())
+            {
+                compatibility = ModelCompatibilityState.Compatible;
+            }
+            else
+            {
+                compatibility = ModelCompatibilityState.NotCompatible;
+                description = "This model requires OpenVINO Execution Provider. No compatible OpenVINO runtime was detected on your device.";
             }
         }
         else if (

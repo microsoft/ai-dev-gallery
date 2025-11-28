@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.ML.OnnxRuntime;
 using System;
+using System.Linq;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dxgi;
 
@@ -112,48 +114,59 @@ internal static class DeviceUtils
         return System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
     }
 
-    public static bool HasOpenVINONPU()
+    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
+    private static readonly object _epDevicesLock = new();
+
+    /// <summary>
+    /// Gets the list of available ONNX Runtime Execution Provider devices.
+    /// This method ensures that certified EPs (like OpenVINO, QNN, DML) are registered before querying,
+    /// as OrtEnv.GetEpDevices() only returns already-registered providers.
+    /// Results are cached to avoid repeated registration overhead.
+    /// </summary>
+    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice> GetEpDevices()
+    {
+        if (_cachedEpDevices != null)
+        {
+            return _cachedEpDevices;
+        }
+
+        lock (_epDevicesLock)
+        {
+            if (_cachedEpDevices != null)
+            {
+                return _cachedEpDevices;
+            }
+
+            try
+            {
+                OrtEnv.Instance();
+                var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
+
+                try
+                {
+                    catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                }
+
+                _cachedEpDevices = OrtEnv.Instance().GetEpDevices();
+            }
+            catch
+            {
+                _cachedEpDevices = System.Array.Empty<OrtEpDevice>();
+            }
+
+            return _cachedEpDevices;
+        }
+    }
+
+    public static bool HasNPU()
     {
         try
         {
-            // Method 1: Check for Intel NPU Software & Drivers installation
-            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var intelNpuPath = System.IO.Path.Combine(programFiles, "Intel", "Intel(R) NPU Software & Drivers");
-            if (System.IO.Directory.Exists(intelNpuPath))
-            {
-                return true;
-            }
-
-            // Method 2: Check Windows Registry for NPU service
-            if (CheckIntelNPUInRegistry())
-            {
-                return true;
-            }
-
-            // Method 3: Check for OpenVINO environment variable
-            var openvinoPath = Environment.GetEnvironmentVariable("OPENVINO_INSTALL_DIR");
-            if (!string.IsNullOrEmpty(openvinoPath) && System.IO.Directory.Exists(openvinoPath))
-            {
-                return true;
-            }
-
-            // Method 4: Check for OpenVINO runtime in common installation paths
-            var openvinoPaths = new[]
-            {
-                System.IO.Path.Combine(programFiles, "Intel", "openvino_2024"),
-                System.IO.Path.Combine(programFiles, "Intel", "openvino_2025"),
-                System.IO.Path.Combine(programFiles, "Intel", "openvino"),
-            };
-
-            foreach (var path in openvinoPaths)
-            {
-                if (System.IO.Directory.Exists(path))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return GetEpDevices().Any(device =>
+                device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
         }
         catch
         {
@@ -161,23 +174,12 @@ internal static class DeviceUtils
         }
     }
 
-    private static bool CheckIntelNPUInRegistry()
+    public static bool HasOpenVINO()
     {
         try
         {
-            // Check for NPU service in registry (the service is named "npu")
-            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\npu");
-            if (key != null)
-            {
-                // Verify it's an NPU driver by checking ImagePath
-                var imagePath = key.GetValue("ImagePath") as string;
-                if (!string.IsNullOrEmpty(imagePath) && imagePath.Contains("npu", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return GetEpDevices().Any(device =>
+                device.EpName.Equals("OpenVINOExecutionProvider", StringComparison.OrdinalIgnoreCase));
         }
         catch
         {
