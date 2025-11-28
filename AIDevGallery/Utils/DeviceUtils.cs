@@ -13,56 +13,26 @@ internal static class DeviceUtils
 {
     private static (ulong dedicated, ulong total)? _cachedVramInfo;
     private static readonly object _vramLock = new();
+    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
+    private static readonly object _epDevicesLock = new();
 
     public static int GetBestDeviceId()
     {
-        int deviceId = 0;
-        nuint maxDedicatedVideoMemory = 0;
-        try
+        var (deviceId, _, _) = EnumerateAdapters((desc, idx, maxVram) =>
         {
-            DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
-            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
-            IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
-
-            IDXGIAdapter1? selectedAdapter = null;
-
-            var index = 0u;
-            do
+            if (desc.DedicatedVideoMemory > maxVram)
             {
-                var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
-
-                if (result.Failed)
-                {
-                    if (result != HRESULT.DXGI_ERROR_NOT_FOUND)
-                    {
-                        result.ThrowOnFailure();
-                    }
-
-                    index = 0;
-                }
-                else
-                {
-                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
-
-                    if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
-                    {
-                        maxDedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
-                        selectedAdapter = dxgiAdapter1;
-                        deviceId = (int)index;
-                    }
-
-                    index++;
-                    dxgiAdapter1 = null;
-                }
+                return ((int)idx, desc.DedicatedVideoMemory, true);
             }
-            while (index != 0);
-        }
-        catch (Exception)
-        {
-        }
+            return (0, maxVram, false);
+        });
 
         return deviceId;
     }
+
+    public static ulong GetVram() => GetVramInfo().dedicated;
+
+    public static ulong GetTotalVram() => GetVramInfo().total;
 
     private static (ulong dedicated, ulong total) GetVramInfo()
     {
@@ -78,68 +48,86 @@ internal static class DeviceUtils
                 return _cachedVramInfo.Value;
             }
 
-            nuint maxDedicatedVideoMemory = 0;
-            nuint maxTotalVideoMemory = 0;
-
-            try
+            var (_, maxDedicated, maxTotal) = EnumerateAdapters((desc, _, maxVram) =>
             {
-                DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
-                Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
-                IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
-
-                IDXGIAdapter1? selectedAdapter = null;
-
-                var index = 0u;
-                do
+                if (desc.DedicatedVideoMemory > maxVram)
                 {
-                    var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
-
-                    if (result.Failed)
-                    {
-                        if (result != HRESULT.DXGI_ERROR_NOT_FOUND)
-                        {
-                            result.ThrowOnFailure();
-                        }
-
-                        index = 0;
-                    }
-                    else
-                    {
-                        DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
-
-                        if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
-                        {
-                            maxDedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
-                            maxTotalVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory + dxgiAdapterDesc.SharedSystemMemory;
-                            selectedAdapter = dxgiAdapter1;
-                        }
-
-                        index++;
-                        dxgiAdapter1 = null;
-                    }
+                    var total = desc.DedicatedVideoMemory + desc.SharedSystemMemory;
+                    return (0, desc.DedicatedVideoMemory, total);
                 }
-                while (index != 0);
-            }
-            catch (Exception)
-            {
-            }
+                return (0, maxVram, 0UL);
+            });
 
-            _cachedVramInfo = (maxDedicatedVideoMemory, maxTotalVideoMemory);
+            _cachedVramInfo = (maxDedicated, maxTotal);
             return _cachedVramInfo.Value;
         }
     }
 
-    public static ulong GetVram() => GetVramInfo().dedicated;
-
-    public static ulong GetTotalVram() => GetVramInfo().total;
-
-    public static bool IsArm64()
+    private static (T result, nuint maxVram, ulong total) EnumerateAdapters<T>(Func<DXGI_ADAPTER_DESC1, uint, nuint, (T, nuint, ulong)> selector)
     {
-        return System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
+        T result = default!;
+        nuint maxDedicatedVideoMemory = 0;
+        ulong totalMemory = 0;
+
+        try
+        {
+            Windows.Win32.PInvoke.CreateDXGIFactory2(0, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
+            IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
+
+            var index = 0u;
+            while (true)
+            {
+                var enumResult = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
+
+                if (enumResult.Failed)
+                {
+                    if (enumResult != HRESULT.DXGI_ERROR_NOT_FOUND)
+                    {
+                        enumResult.ThrowOnFailure();
+                    }
+                    break;
+                }
+
+                var desc = dxgiAdapter1.GetDesc1();
+                var (newResult, newMaxVram, newTotal) = selector(desc, index, maxDedicatedVideoMemory);
+
+                if (newMaxVram > maxDedicatedVideoMemory)
+                {
+                    result = newResult;
+                    maxDedicatedVideoMemory = newMaxVram;
+                    totalMemory = newTotal;
+                }
+
+                index++;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return (result, maxDedicatedVideoMemory, totalMemory);
     }
 
-    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
-    private static readonly object _epDevicesLock = new();
+    public static bool IsArm64() =>
+        System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
+
+    public static bool HasNPU() => HasExecutionProvider(device =>
+        device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
+
+    public static bool HasOpenVINO() => HasExecutionProvider(device =>
+        device.EpName.Equals("OpenVINOExecutionProvider", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasExecutionProvider(Func<OrtEpDevice, bool> predicate)
+    {
+        try
+        {
+            return GetEpDevices().Any(predicate);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Gets the list of available ONNX Runtime Execution Provider devices.
@@ -172,6 +160,7 @@ internal static class DeviceUtils
                 }
                 catch
                 {
+                    // Ignore registration errors
                 }
 
                 _cachedEpDevices = OrtEnv.Instance().GetEpDevices();
@@ -182,32 +171,6 @@ internal static class DeviceUtils
             }
 
             return _cachedEpDevices;
-        }
-    }
-
-    public static bool HasNPU()
-    {
-        try
-        {
-            return GetEpDevices().Any(device =>
-                device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public static bool HasOpenVINO()
-    {
-        try
-        {
-            return GetEpDevices().Any(device =>
-                device.EpName.Equals("OpenVINOExecutionProvider", StringComparison.OrdinalIgnoreCase));
-        }
-        catch
-        {
-            return false;
         }
     }
 }
