@@ -11,6 +11,9 @@ namespace AIDevGallery.Utils;
 
 internal static class DeviceUtils
 {
+    private static (ulong dedicated, ulong total)? _cachedVramInfo;
+    private static readonly object _vramLock = new();
+
     public static int GetBestDeviceId()
     {
         int deviceId = 0;
@@ -61,53 +64,74 @@ internal static class DeviceUtils
         return deviceId;
     }
 
-    public static ulong GetVram()
+    private static (ulong dedicated, ulong total) GetVramInfo()
     {
-        nuint maxDedicatedVideoMemory = 0;
-        try
+        if (_cachedVramInfo.HasValue)
         {
-            DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
-            Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
-            IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
+            return _cachedVramInfo.Value;
+        }
 
-            IDXGIAdapter1? selectedAdapter = null;
-
-            var index = 0u;
-            do
+        lock (_vramLock)
+        {
+            if (_cachedVramInfo.HasValue)
             {
-                var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
-
-                if (result.Failed)
-                {
-                    if (result != HRESULT.DXGI_ERROR_NOT_FOUND)
-                    {
-                        result.ThrowOnFailure();
-                    }
-
-                    index = 0;
-                }
-                else
-                {
-                    DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
-
-                    if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
-                    {
-                        maxDedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
-                        selectedAdapter = dxgiAdapter1;
-                    }
-
-                    index++;
-                    dxgiAdapter1 = null;
-                }
+                return _cachedVramInfo.Value;
             }
-            while (index != 0);
-        }
-        catch (Exception)
-        {
-        }
 
-        return maxDedicatedVideoMemory;
+            nuint maxDedicatedVideoMemory = 0;
+            nuint maxTotalVideoMemory = 0;
+
+            try
+            {
+                DXGI_CREATE_FACTORY_FLAGS createFlags = 0;
+                Windows.Win32.PInvoke.CreateDXGIFactory2(createFlags, typeof(IDXGIFactory2).GUID, out object dxgiFactoryObj).ThrowOnFailure();
+                IDXGIFactory2? dxgiFactory = (IDXGIFactory2)dxgiFactoryObj;
+
+                IDXGIAdapter1? selectedAdapter = null;
+
+                var index = 0u;
+                do
+                {
+                    var result = dxgiFactory.EnumAdapters1(index, out IDXGIAdapter1? dxgiAdapter1);
+
+                    if (result.Failed)
+                    {
+                        if (result != HRESULT.DXGI_ERROR_NOT_FOUND)
+                        {
+                            result.ThrowOnFailure();
+                        }
+
+                        index = 0;
+                    }
+                    else
+                    {
+                        DXGI_ADAPTER_DESC1 dxgiAdapterDesc = dxgiAdapter1.GetDesc1();
+
+                        if (selectedAdapter == null || dxgiAdapterDesc.DedicatedVideoMemory > maxDedicatedVideoMemory)
+                        {
+                            maxDedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
+                            maxTotalVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory + dxgiAdapterDesc.SharedSystemMemory;
+                            selectedAdapter = dxgiAdapter1;
+                        }
+
+                        index++;
+                        dxgiAdapter1 = null;
+                    }
+                }
+                while (index != 0);
+            }
+            catch (Exception)
+            {
+            }
+
+            _cachedVramInfo = (maxDedicatedVideoMemory, maxTotalVideoMemory);
+            return _cachedVramInfo.Value;
+        }
     }
+
+    public static ulong GetVram() => GetVramInfo().dedicated;
+
+    public static ulong GetTotalVram() => GetVramInfo().total;
 
     public static bool IsArm64()
     {

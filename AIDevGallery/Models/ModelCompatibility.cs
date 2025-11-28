@@ -91,33 +91,44 @@ internal class ModelCompatibility
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
             && !DeviceUtils.IsArm64())
         {
-            var vram = DeviceUtils.GetVram();
+            var dedicatedVram = DeviceUtils.GetVram();
+            var totalVram = DeviceUtils.GetTotalVram();
             var minimumSizeNeeded = Math.Round((float)(modelDetails.Size / BytesInGB), 1);
-            var vramInGb = Math.Round(vram / BytesInGB, 1);
+            var totalVramInGb = Math.Round(totalVram / BytesInGB, 1);
+            var isIntegratedGpu = dedicatedVram < BytesInGB;
 
             // we want at least 2GB more than model size for good performance
-            if (modelDetails.Size + (2 * BytesInGB) < vram)
+            if (modelDetails.Size + (2 * BytesInGB) < totalVram)
             {
-                compatibility = ModelCompatibilityState.Compatible;
+                // Warn about potential performance issues on integrated GPUs for larger models
+                if (isIntegratedGpu && modelDetails.Size > 0.5 * BytesInGB)
+                {
+                    compatibility = ModelCompatibilityState.NotRecomended;
+                    description = $"This model can run on your integrated GPU, but performance may be significantly slower than on a dedicated GPU. Your system has {totalVramInGb}GB of shared GPU memory available.";
+                }
+                else
+                {
+                    compatibility = ModelCompatibilityState.Compatible;
+                }
             }
 
             // we want at least 1GB more than model size for some breathing room
-            else if (modelDetails.Size + BytesInGB < vram)
+            else if (modelDetails.Size + BytesInGB < totalVram)
             {
                 compatibility = ModelCompatibilityState.NotRecomended;
-                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
+                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of GPU memory. Your GPU has {totalVramInGb}GB available";
             }
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"This model will not work on your device because it requires minimum {minimumSizeNeeded + 1}GB of dedicate GPU memory.";
-                if (vram == 0)
+                description = $"This model will not work on your device because it requires minimum {minimumSizeNeeded + 1}GB of GPU memory.";
+                if (totalVram == 0)
                 {
-                    description += " We could not find a dedicated GPU.";
+                    description += " We could not find a compatible GPU.";
                 }
                 else
                 {
-                    description += $" Your GPU has {vramInGb}GB.";
+                    description += $" Your GPU has {totalVramInGb}GB available.";
                 }
             }
         }
