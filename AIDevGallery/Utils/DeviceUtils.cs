@@ -22,15 +22,15 @@ internal static class DeviceUtils
         {
             if (desc.DedicatedVideoMemory > maxVram)
             {
-                return ((int)idx, desc.DedicatedVideoMemory, true);
+                return ((int)idx, desc.DedicatedVideoMemory, 0UL);
             }
-            return (0, maxVram, false);
+            return (0, maxVram, 0UL);
         });
 
         return deviceId;
     }
 
-    public static ulong GetDedicatedVram() => GetVramInfo().dedicated;
+    public static ulong GetVram() => GetVramInfo().dedicated;
 
     public static ulong GetTotalVram() => GetVramInfo().total;
 
