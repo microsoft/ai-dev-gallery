@@ -314,10 +314,10 @@ internal static class UserAddedModelUtil
 
         return false;
     }
-
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
     {
-        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
+        // Priority: QNN > DML > NPU > GPU > CPU
+        if (configContents.Contains("\"backend_path\": \"QnnHtp.dll\"", StringComparison.OrdinalIgnoreCase))
         {
             return HardwareAccelerator.QNN;
         }
@@ -328,11 +328,57 @@ internal static class UserAddedModelUtil
             throw new InvalidDataException("genai_config.json is not valid");
         }
 
-        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+        bool hasGpu = false;
+        bool hasNpu = false;
+        bool hasCpu = false;
+
+        foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
         {
-            return HardwareAccelerator.DML;
+            // Check QNN provider (highest priority)
+            if (provider.HasProvider("qnn"))
+            {
+                return HardwareAccelerator.QNN;
+            }
+
+            // Check DML provider
+            if (provider.HasProvider("dml"))
+            {
+                return HardwareAccelerator.DML;
+            }
+
+            // Check OpenVINO provider
+            var openvinoOptions = provider.GetProviderOptions("OpenVINO");
+            if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
+            {
+                var devType = deviceType.ToLowerInvariant();
+                if (devType == "npu") hasNpu = true;
+                else if (devType == "gpu") hasGpu = true;
+                else if (devType == "cpu") hasCpu = true;
+            }
+
+            // Check GPU providers
+            if (provider.HasProvider("cuda") || provider.HasProvider("tensorrt") ||
+                provider.HasProvider("rocm") || provider.HasProvider("webgpu"))
+            {
+                hasGpu = true;
+            }
+
+            // Check VitisAI provider (typically FPGA/NPU)
+            if (provider.HasProvider("vitisai"))
+            {
+                hasNpu = true;
+            }
+
+            // Check CPU provider
+            if (provider.HasProvider("cpu"))
+            {
+                hasCpu = true;
+            }
         }
 
+        if (hasNpu) return HardwareAccelerator.NPU;
+        if (hasGpu) return HardwareAccelerator.GPU;
+        if (hasCpu) return HardwareAccelerator.CPU;
         return HardwareAccelerator.CPU;
     }
 

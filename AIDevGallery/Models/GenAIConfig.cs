@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AIDevGallery.Models;
@@ -35,16 +37,28 @@ internal class GenAISessionOptions
 
 internal class ProviderOptions
 {
-    [JsonPropertyName("dml")]
-    public Dml? Dml { get; set; }
-    [JsonPropertyName("cuda")]
-    public Cuda? Cuda { get; set; }
-}
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 
-internal class Dml
-{
-}
+    public bool HasProvider(string name)
+    {
+        if (ExtensionData == null) return false;
+        return ExtensionData.Keys.Any(k => k.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
 
-internal class Cuda
-{
+    public Dictionary<string, string>? GetProviderOptions(string name)
+    {
+        if (ExtensionData == null) return null;
+        var key = ExtensionData.Keys.FirstOrDefault(k => k.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (key == null) return null;
+        
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(ExtensionData[key].GetRawText());
+        }
+        catch
+        {
+            return new Dictionary<string, string>();
+        }
+    }
 }
