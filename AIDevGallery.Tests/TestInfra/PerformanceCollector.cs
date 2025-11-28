@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 
@@ -49,6 +50,33 @@ public class Measurement
     public Dictionary<string, string>? Tags { get; set; }
 }
 
+/// <summary>
+/// Performance metrics collector for tracking timing and memory usage during tests.
+/// 
+/// Usage examples:
+/// 
+/// 1. Manual timing with Stopwatch:
+/// <code>
+///   var sw = Stopwatch.StartNew();
+///   // ... perform operation ...
+///   sw.Stop();
+///   PerformanceCollector.Track("OperationTime", sw.ElapsedMilliseconds, "ms");
+/// </code>
+/// 
+/// 2. Automatic timing with using statement:
+/// <code>
+///   using (PerformanceCollector.BeginTiming("OperationTime"))
+///   {
+///       // ... perform operation ...
+///   } // Time automatically recorded here
+/// </code>
+/// 
+/// 3. Memory tracking:
+/// <code>
+///   PerformanceCollector.TrackMemoryUsage(processId, "MemoryUsage_Startup");
+///   PerformanceCollector.TrackCurrentProcessMemory("MemoryUsage_Current");
+/// </code>
+/// </summary>
 public static class PerformanceCollector
 {
     private static readonly List<Measurement> _measurements = new();
@@ -128,6 +156,93 @@ public static class PerformanceCollector
         lock (_lock)
         {
             _measurements.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Tracks memory usage for a specific process.
+    /// </summary>
+    /// <param name="processId">The process ID to measure.</param>
+    /// <param name="metricName">The name of the metric (e.g., "MemoryUsage_Startup").</param>
+    /// <param name="tags">Optional tags for categorization.</param>
+    /// <param name="category">The category for this metric (default: "Memory").</param>
+    /// <returns>True if successful, false if measurement failed.</returns>
+    public static bool TrackMemoryUsage(int processId, string metricName, Dictionary<string, string>? tags = null, string category = "Memory")
+    {
+        try
+        {
+            Console.WriteLine($"Attempting to measure memory for process ID: {processId}");
+            var process = Process.GetProcessById(processId);
+            
+            // Refresh process info to get latest memory values
+            process.Refresh();
+            
+            var memoryMB = process.PrivateMemorySize64 / 1024.0 / 1024.0;
+            var workingSetMB = process.WorkingSet64 / 1024.0 / 1024.0;
+
+            Track(metricName, memoryMB, "MB", tags, category);
+            Console.WriteLine($"{metricName}: {memoryMB:F2} MB (Private), {workingSetMB:F2} MB (Working Set)");
+            
+            // Also track working set as a separate metric
+            Track($"{metricName}_WorkingSet", workingSetMB, "MB", tags, category);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Could not measure memory for process {processId}");
+            Console.WriteLine($"Exception type: {ex.GetType().Name}");
+            Console.WriteLine($"Exception message: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Tracks memory usage for the current process.
+    /// </summary>
+    /// <param name="metricName">The name of the metric (e.g., "MemoryUsage_Current").</param>
+    /// <param name="tags">Optional tags for categorization.</param>
+    /// <param name="category">The category for this metric (default: "Memory").</param>
+    /// <returns>True if successful, false if measurement failed.</returns>
+    public static bool TrackCurrentProcessMemory(string metricName, Dictionary<string, string>? tags = null, string category = "Memory")
+    {
+        return TrackMemoryUsage(Process.GetCurrentProcess().Id, metricName, tags, category);
+    }
+
+    /// <summary>
+    /// Creates a timing scope that automatically tracks elapsed time when disposed.
+    /// Use with 'using' statement for automatic timing.
+    /// </summary>
+    /// <param name="metricName">The name of the metric to track.</param>
+    /// <param name="tags">Optional tags for categorization.</param>
+    /// <param name="category">The category for this metric (default: "Timing").</param>
+    /// <returns>A disposable timing scope.</returns>
+    public static IDisposable BeginTiming(string metricName, Dictionary<string, string>? tags = null, string category = "Timing")
+    {
+        return new TimingScope(metricName, tags, category);
+    }
+
+    private class TimingScope : IDisposable
+    {
+        private readonly Stopwatch _stopwatch;
+        private readonly string _metricName;
+        private readonly Dictionary<string, string>? _tags;
+        private readonly string _category;
+
+        public TimingScope(string metricName, Dictionary<string, string>? tags, string category)
+        {
+            _metricName = metricName;
+            _tags = tags;
+            _category = category;
+            _stopwatch = Stopwatch.StartNew();
+        }
+
+        public void Dispose()
+        {
+            _stopwatch.Stop();
+            Track(_metricName, _stopwatch.ElapsedMilliseconds, "ms", _tags, _category);
+            Console.WriteLine($"{_metricName}: {_stopwatch.ElapsedMilliseconds} ms");
         }
     }
 
