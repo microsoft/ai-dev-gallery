@@ -104,6 +104,7 @@
                                 CornerRadius="{StaticResource ControlCornerRadius}"
                                 GotFocus="ItemContainer_GotFocus"
                                 PointerEntered="ItemContainer_PointerEntered"
+                                AutomationProperties.Name="{x:Bind ModelDetails.Name, Mode=OneWay}"
                                 Tag="{x:Bind}">
                                 <ItemContainer.Resources>
                                     <SolidColorBrush x:Key="ItemContainerPointerOverBackground" Color="Transparent" />
