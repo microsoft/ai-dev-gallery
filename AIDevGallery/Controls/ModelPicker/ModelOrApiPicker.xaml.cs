@@ -10,6 +10,7 @@ using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -24,6 +25,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     public delegate void SelectedModelsChangedEventHandler(object sender, List<ModelDetails?> modelDetails);
     public event SelectedModelsChangedEventHandler? SelectedModelsChanged;
+    public event EventHandler? Closed;
 
     public ModelOrApiPicker()
     {
@@ -53,6 +55,12 @@ internal sealed partial class ModelOrApiPicker : UserControl
     public void Hide()
     {
         this.Visibility = Visibility.Collapsed;
+        OnClosed();
+    }
+
+    protected void OnClosed()
+    {
+        Closed?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task<List<ModelDetails?>> Load(List<List<ModelType>> modelOrApiTypes, ModelDetails? initialModelToLoad = null)
