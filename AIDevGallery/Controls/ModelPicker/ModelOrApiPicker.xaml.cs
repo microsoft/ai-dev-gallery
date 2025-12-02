@@ -58,7 +58,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         OnClosed();
     }
 
-    protected void OnClosed()
+    private void OnClosed()
     {
         Closed?.Invoke(this, EventArgs.Empty);
     }
