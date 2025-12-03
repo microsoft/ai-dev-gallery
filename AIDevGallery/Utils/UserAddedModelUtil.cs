@@ -345,13 +345,11 @@ internal static class UserAddedModelUtil
 
     private static IEnumerable<ProviderOptions> GetAllProviderOptions(GenAIConfig config)
     {
-        // Yield decoder-level provider options
         foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
         {
             yield return provider;
         }
 
-        // Yield pipeline-level provider options
         if (config.Model.Decoder.Pipeline == null)
         {
             yield break;
@@ -373,7 +371,6 @@ internal static class UserAddedModelUtil
                 }
                 catch (JsonException)
                 {
-                    // Skip stages that can't be deserialized
                     continue;
                 }
 
@@ -390,19 +387,16 @@ internal static class UserAddedModelUtil
 
     private static HardwareAccelerator? CheckProviderForAccelerator(ProviderOptions provider, ref bool hasGpu, ref bool hasNpu, ref bool hasCpu)
     {
-        // Check QNN provider (highest priority)
         if (provider.HasProvider("qnn"))
         {
             return HardwareAccelerator.QNN;
         }
 
-        // Check DML provider (high priority)
         if (provider.HasProvider("dml"))
         {
             return HardwareAccelerator.DML;
         }
 
-        // Check OpenVINO provider
         var openvinoOptions = provider.GetProviderOptions("OpenVINO");
         if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
         {
@@ -412,7 +406,11 @@ internal static class UserAddedModelUtil
             else if (devType == "cpu") hasCpu = true;
         }
 
-        // Check CPU provider
+        if (provider.HasProvider("vitisai"))
+        {
+            hasNpu = true;
+        }
+
         if (provider.HasProvider("cpu"))
         {
             hasCpu = true;
