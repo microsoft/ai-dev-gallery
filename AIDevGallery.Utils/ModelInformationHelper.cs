@@ -63,7 +63,8 @@ public static class ModelInformationHelper
                 DownloadUrl = f.DownloadUrl,
                 Size = f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
-                Path = f.Path
+                Path = f.Path,
+                GitBlobSha1 = f.Sha
             }).ToList();
     }
 
@@ -172,13 +173,26 @@ public static class ModelInformationHelper
         }
 
         return hfFiles.Where(f => f.Type != "directory").Select(f =>
-            new ModelFileDetails()
+        {
+            string? sha256 = null;
+            if (f.Lfs?.Oid != null)
+            {
+                sha256 = f.Lfs.Oid;
+                if (sha256.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+                {
+                    sha256 = sha256.Substring(7);
+                }
+            }
+
+            return new ModelFileDetails()
             {
                 DownloadUrl = $"https://huggingface.co/{hfUrl.Organization}/{hfUrl.Repo}/resolve/{hfUrl.Ref}/{f.Path}",
-                Size = f.Size,
+                Size = f.Lfs?.Size ?? f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
-                Path = f.Path
-            }).ToList();
+                Path = f.Path,
+                Sha256 = sha256
+            };
+        }).ToList();
     }
 
     /// <summary>

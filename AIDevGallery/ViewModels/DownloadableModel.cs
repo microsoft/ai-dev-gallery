@@ -22,6 +22,9 @@ internal partial class DownloadableModel : BaseModel
     [ObservableProperty]
     public partial DownloadStatus Status { get; set; } = DownloadStatus.Waiting;
 
+    [ObservableProperty]
+    public partial string? VerificationFailureMessage { get; set; }
+
     public bool IsDownloadEnabled => Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible;
 
     private ModelDownload? _modelDownload;
@@ -52,6 +55,7 @@ internal partial class DownloadableModel : BaseModel
             _modelDownload.StateChanged += ModelDownload_StateChanged;
             Status = _modelDownload.DownloadStatus;
             Progress = _modelDownload.DownloadProgress;
+            VerificationFailureMessage = _modelDownload.VerificationFailureMessage;
             CanDownload = false;
         }
     }
@@ -87,6 +91,36 @@ internal partial class DownloadableModel : BaseModel
         ModelDownload?.CancelDownload();
     }
 
+    /// <summary>
+    /// Deletes the model files when user rejects a verification-failed model.
+    /// </summary>
+    public void DeleteVerificationFailedModel()
+    {
+        if (ModelDownload is OnnxModelDownload onnxDownload)
+        {
+            onnxDownload.DeleteFailedModel();
+        }
+
+        Status = DownloadStatus.Canceled;
+        ModelDownload = null;
+        VerificationFailureMessage = null;
+    }
+
+    /// <summary>
+    /// Keeps the model despite verification failure (user's choice).
+    /// </summary>
+    public async void KeepVerificationFailedModel()
+    {
+        if (ModelDownload is OnnxModelDownload onnxDownload)
+        {
+            await onnxDownload.KeepModelDespiteVerificationFailure();
+        }
+
+        Status = DownloadStatus.Completed;
+        ModelDownload = null;
+        VerificationFailureMessage = null;
+    }
+
     private void ModelDownload_StateChanged(object? sender, ModelDownloadEventArgs e)
     {
         if (!_progressTimer.IsEnabled)
@@ -94,7 +128,13 @@ internal partial class DownloadableModel : BaseModel
             _progressTimer.Start();
         }
 
-        if (e.Progress == 1)
+        if (e.Progress == 1 && e.Status == DownloadStatus.InProgress)
+        {
+            // Download complete, but may still need verification
+            return;
+        }
+
+        if (e.Status == DownloadStatus.Completed)
         {
             Status = DownloadStatus.Completed;
             ModelDownload = null;
@@ -106,6 +146,17 @@ internal partial class DownloadableModel : BaseModel
             ModelDownload = null;
             Progress = 0;
         }
+
+        if (e.Status == DownloadStatus.VerificationFailed)
+        {
+            Status = DownloadStatus.VerificationFailed;
+            VerificationFailureMessage = e.VerificationFailureMessage;
+        }
+
+        if (e.Status == DownloadStatus.Verifying)
+        {
+            Status = DownloadStatus.Verifying;
+        }
     }
 
     private void ProgressTimer_Tick(object? sender, object e)
@@ -115,6 +166,7 @@ internal partial class DownloadableModel : BaseModel
         {
             Progress = ModelDownload.DownloadProgress * 100;
             Status = ModelDownload.DownloadStatus;
+            VerificationFailureMessage = ModelDownload.VerificationFailureMessage;
         }
     }
 
@@ -144,7 +196,7 @@ internal partial class DownloadableModel : BaseModel
 
     public static Visibility VisibleWhenDownloading(DownloadStatus status)
     {
-        return status is DownloadStatus.InProgress or DownloadStatus.Waiting ? Visibility.Visible : Visibility.Collapsed;
+        return status is DownloadStatus.InProgress or DownloadStatus.Waiting or DownloadStatus.Verifying ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public static Visibility VisibleWhenCanceled(DownloadStatus status)
@@ -155,6 +207,11 @@ internal partial class DownloadableModel : BaseModel
     public static Visibility VisibleWhenDownloaded(DownloadStatus status)
     {
         return status == DownloadStatus.Completed ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public static Visibility VisibleWhenVerificationFailed(DownloadStatus status)
+    {
+        return status == DownloadStatus.VerificationFailed ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public static Visibility BoolToVisibilityInverse(bool value)
@@ -180,10 +237,14 @@ internal partial class DownloadableModel : BaseModel
                 return "Waiting..";
             case DownloadStatus.InProgress:
                 return "Downloading..";
+            case DownloadStatus.Verifying:
+                return "Verifying integrity..";
             case DownloadStatus.Completed:
                 return "Downloaded";
             case DownloadStatus.Canceled:
                 return "Canceled";
+            case DownloadStatus.VerificationFailed:
+                return "Verification failed";
             default:
                 return string.Empty;
         }

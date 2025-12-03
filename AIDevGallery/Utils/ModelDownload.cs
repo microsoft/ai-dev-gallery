@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,22 @@ internal abstract class ModelDownload : IDisposable
         }
     }
 
+    private string? _verificationFailureMessage;
+    public string? VerificationFailureMessage
+    {
+        get => _verificationFailureMessage;
+        protected set
+        {
+            _verificationFailureMessage = value;
+            StateChanged?.Invoke(this, new ModelDownloadEventArgs
+            {
+                Progress = DownloadProgress,
+                Status = DownloadStatus,
+                VerificationFailureMessage = _verificationFailureMessage
+            });
+        }
+    }
+
     protected CancellationTokenSource CancellationTokenSource { get; }
 
     public void Dispose()
@@ -72,6 +89,11 @@ internal abstract class ModelDownload : IDisposable
 internal class OnnxModelDownload : ModelDownload
 {
     public ModelUrl ModelUrl { get; set; }
+
+    /// <summary>
+    /// Gets the list of files that failed integrity verification.
+    /// </summary>
+    public List<(string FileName, string ExpectedHash, string ActualHash)> FailedVerifications { get; } = [];
 
     public OnnxModelDownload(ModelDetails details)
         : base(details)
@@ -108,12 +130,15 @@ internal class OnnxModelDownload : ModelDownload
 
         if (cachedModel == null)
         {
-            DownloadStatus = DownloadStatus.Canceled;
-
-            var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
-            if (Directory.Exists(localPath))
+            if (DownloadStatus != DownloadStatus.VerificationFailed)
             {
-                Directory.Delete(localPath, true);
+                DownloadStatus = DownloadStatus.Canceled;
+
+                var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
+                if (Directory.Exists(localPath))
+                {
+                    Directory.Delete(localPath, true);
+                }
             }
 
             return false;
@@ -130,7 +155,57 @@ internal class OnnxModelDownload : ModelDownload
         DownloadStatus = DownloadStatus.Canceled;
     }
 
-    private async Task<CachedModel> DownloadModel(string cacheDir, IProgress<float>? progress = null)
+    /// <summary>
+    /// Deletes the downloaded model files after user chooses not to keep a verification-failed model.
+    /// </summary>
+    public void DeleteFailedModel()
+    {
+        var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
+        if (Directory.Exists(localPath))
+        {
+            Directory.Delete(localPath, true);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the downloaded model files despite verification failure (user's choice).
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task KeepModelDespiteVerificationFailure()
+    {
+        var localFolderPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
+        var filesToDownload = await GetFilesToDownloadAsync();
+        long modelSize = filesToDownload.Sum(f => f.Size);
+
+        var cachedModel = new CachedModel(Details, ModelUrl.IsFile ? $"{localFolderPath}\\{filesToDownload.First().Name}" : localFolderPath, ModelUrl.IsFile, modelSize);
+        await App.ModelCache.CacheStore.AddModel(cachedModel);
+        DownloadStatus = DownloadStatus.Completed;
+    }
+
+    private async Task<List<ModelFileDetails>> GetFilesToDownloadAsync()
+    {
+        var cancellationToken = CancellationTokenSource.Token;
+        List<ModelFileDetails> filesToDownload;
+
+        if (Details.Url.StartsWith("https://github.com", StringComparison.InvariantCulture))
+        {
+            var ghUrl = new GitHubUrl(Details.Url);
+            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken);
+        }
+        else
+        {
+            var hfUrl = new HuggingFaceUrl(Details.Url);
+            using var socketsHttpHandler = new SocketsHttpHandler
+            {
+                MaxConnectionsPerServer = 4
+            };
+            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(hfUrl, socketsHttpHandler, cancellationToken);
+        }
+
+        return ModelInformationHelper.FilterFiles(filesToDownload, Details.FileFilters);
+    }
+
+    private async Task<CachedModel?> DownloadModel(string cacheDir, IProgress<float>? progress = null)
     {
         ModelUrl url;
         List<ModelFileDetails> filesToDownload;
@@ -171,6 +246,9 @@ internal class OnnxModelDownload : ModelDownload
 
         using var client = new HttpClient();
 
+        // Track files that need verification
+        List<(string FilePath, ModelFileDetails FileDetails)> filesToVerify = [];
+
         foreach (var downloadableFile in filesToDownload)
         {
             if (downloadableFile.DownloadUrl == null)
@@ -187,6 +265,12 @@ internal class OnnxModelDownload : ModelDownload
                 var existingFileInfo = new FileInfo(existingFile);
                 if (existingFileInfo.Length == downloadableFile.Size)
                 {
+                    // Still need to verify existing files if they have a hash
+                    if (downloadableFile.ShouldVerifyIntegrity && downloadableFile.HasVerificationHash)
+                    {
+                        filesToVerify.Add((filePath, downloadableFile));
+                    }
+
                     continue;
                 }
             }
@@ -201,16 +285,109 @@ internal class OnnxModelDownload : ModelDownload
             var fileInfo = new FileInfo(filePath);
             if (fileInfo.Length != downloadableFile.Size)
             {
-                // file did not download properly, should retry
+                throw new IOException($"File size mismatch for {downloadableFile.Name}: expected {downloadableFile.Size}, got {fileInfo.Length}");
+            }
+
+            // Add to verification list if it's a main model file with hash
+            if (downloadableFile.ShouldVerifyIntegrity && downloadableFile.HasVerificationHash)
+            {
+                filesToVerify.Add((filePath, downloadableFile));
             }
 
             bytesDownloaded += downloadableFile.Size;
+        }
+
+        // Verify integrity of main model files
+        if (filesToVerify.Count > 0)
+        {
+            DownloadStatus = DownloadStatus.Verifying;
+
+            foreach (var (filePath, fileDetails) in filesToVerify)
+            {
+                bool verified;
+                string expectedHash;
+                string actualHash;
+
+                if (!string.IsNullOrEmpty(fileDetails.Sha256))
+                {
+                    // Hugging Face: use SHA256 of file content
+                    expectedHash = fileDetails.Sha256;
+                    actualHash = await ComputeSha256Async(filePath, cancellationToken);
+                    verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+                }
+                else if (!string.IsNullOrEmpty(fileDetails.GitBlobSha1))
+                {
+                    // GitHub: use Git blob SHA-1 (includes "blob {size}\0" prefix)
+                    expectedHash = fileDetails.GitBlobSha1;
+                    actualHash = await ComputeGitBlobSha1Async(filePath, cancellationToken);
+                    verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (!verified)
+                {
+                    FailedVerifications.Add((fileDetails.Name ?? filePath, expectedHash, actualHash));
+                    ModelIntegrityVerificationFailedEvent.Log(Details.Url, fileDetails.Name ?? filePath, expectedHash, actualHash);
+                }
+            }
+
+            if (FailedVerifications.Count > 0)
+            {
+                var failedFileNames = string.Join(", ", FailedVerifications.Select(f => f.FileName));
+                VerificationFailureMessage = $"Integrity verification failed for: {failedFileNames}";
+                DownloadStatus = DownloadStatus.VerificationFailed;
+                return null;
+            }
         }
 
         var modelDirectory = url.GetLocalPath(cacheDir);
 
         return new CachedModel(Details, url.IsFile ? $"{modelDirectory}\\{filesToDownload.First().Name}" : modelDirectory, url.IsFile, modelSize);
     }
+
+    private static async Task<string> ComputeSha256Async(string filePath, CancellationToken cancellationToken)
+    {
+        using var sha256 = SHA256.Create();
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+        var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Computes the Git blob SHA-1 hash of a file.
+    /// Git blob format: "blob {size}\0{content}".
+    /// </summary>
+    /// <remarks>
+    /// SHA-1 is used here because Git uses SHA-1 for blob hashing.
+    /// This is required for compatibility with GitHub's API which returns Git blob SHA-1 hashes.
+    /// </remarks>
+#pragma warning disable CA5350 // Do not use weak cryptographic algorithms - Git requires SHA-1 for blob hashing
+    private static async Task<string> ComputeGitBlobSha1Async(string filePath, CancellationToken cancellationToken)
+    {
+        var fileInfo = new FileInfo(filePath);
+        var header = System.Text.Encoding.ASCII.GetBytes($"blob {fileInfo.Length}\0");
+
+        using var sha1 = SHA1.Create();
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+
+        // Create a combined stream with header + file content
+        sha1.TransformBlock(header, 0, header.Length, null, 0);
+
+        var buffer = new byte[81920];
+        int bytesRead;
+        while ((bytesRead = await stream.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
+        {
+            sha1.TransformBlock(buffer, 0, bytesRead, null, 0);
+        }
+
+        sha1.TransformFinalBlock([], 0, 0);
+
+        return Convert.ToHexString(sha1.Hash!).ToLowerInvariant();
+    }
+#pragma warning restore CA5350
 }
 
 internal class FoundryLocalModelDownload : ModelDownload
@@ -263,12 +440,15 @@ internal enum DownloadStatus
 {
     Waiting,
     InProgress,
+    Verifying,
     Completed,
-    Canceled
+    Canceled,
+    VerificationFailed
 }
 
 internal class ModelDownloadEventArgs
 {
     public required float Progress { get; init; }
     public required DownloadStatus Status { get; init; }
+    public string? VerificationFailureMessage { get; init; }
 }
