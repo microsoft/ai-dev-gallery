@@ -197,7 +197,7 @@ internal sealed partial class ScenarioPage : Page
         {
             if (model != null)
             {
-                modelDetails.Add(model);
+                modelDetails.Add(model!);
             }
         }
 
