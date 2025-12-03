@@ -322,7 +322,7 @@ internal sealed partial class ScenarioPage : Page
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], App.AppData.WinMLSampleOptions);
+        _ = SampleContainer.LoadSampleAsync(sample, modelDetails.Where(m => m != null).Select(m => m!).ToList(), App.AppData.WinMLSampleOptions);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
