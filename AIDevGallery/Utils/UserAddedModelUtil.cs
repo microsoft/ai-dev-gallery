@@ -251,8 +251,8 @@ internal static class UserAddedModelUtil
     private static List<ModelType> GetValidatedModelTypesForUploadedOnnxModel(string modelFilepath, List<ModelType> modelTypes)
     {
         return ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes)
-            .Where(pair => ValidateUserAddedModelDimensionsForModelTypeModelDetails(pair.models, modelFilepath))
-            .Select(pair => pair.type)
+            .Where(pair => ValidateUserAddedModelDimensionsForModelTypeModelDetails(pair.Value, modelFilepath))
+            .Select(pair => pair.Key)
             .ToList();
     }
 
