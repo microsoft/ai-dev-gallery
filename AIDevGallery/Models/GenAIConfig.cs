@@ -29,12 +29,26 @@ internal class Decoder
 {
     [JsonPropertyName("session_options")]
     public required GenAISessionOptions SessionOptions { get; set; }
+    [JsonPropertyName("pipeline")]
+    public PipelineItem[]? Pipeline { get; set; }
 }
 
 internal class GenAISessionOptions
 {
     [JsonPropertyName("provider_options")]
     public required ProviderOptions[] ProviderOptions { get; set; }
+}
+
+internal class PipelineItem
+{
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Stages { get; set; }
+}
+
+internal class PipelineStage
+{
+    [JsonPropertyName("session_options")]
+    public GenAISessionOptions? SessionOptions { get; set; }
 }
 
 internal class ProviderOptions

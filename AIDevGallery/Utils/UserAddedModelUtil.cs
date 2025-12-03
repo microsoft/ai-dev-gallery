@@ -316,12 +316,6 @@ internal static class UserAddedModelUtil
     }
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
     {
-        // Priority: QNN > DML > NPU > GPU > CPU
-        if (configContents.Contains("\"backend_path\": \"QnnHtp.dll\"", StringComparison.OrdinalIgnoreCase))
-        {
-            return HardwareAccelerator.QNN;
-        }
-
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
         if (config == null)
         {
@@ -332,57 +326,99 @@ internal static class UserAddedModelUtil
         bool hasNpu = false;
         bool hasCpu = false;
 
-        foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
+        // Check all provider options from decoder-level and pipeline-level
+        var allProviderOptions = GetAllProviderOptions(config);
+        foreach (var provider in allProviderOptions)
         {
-            // Check QNN provider (highest priority)
-            if (provider.HasProvider("qnn"))
+            var accelerator = CheckProviderForAccelerator(provider, ref hasGpu, ref hasNpu, ref hasCpu);
+            if (accelerator.HasValue)
             {
-                return HardwareAccelerator.QNN;
-            }
-
-            // Check DML provider
-            if (provider.HasProvider("dml"))
-            {
-                return HardwareAccelerator.DML;
-            }
-
-            // Check OpenVINO provider
-            var openvinoOptions = provider.GetProviderOptions("OpenVINO");
-            if (openvinoOptions != null)
-            {
-                if (openvinoOptions.TryGetValue("device_type", out var deviceType))
-                {
-                    var devType = deviceType.ToLowerInvariant();
-                    if (devType == "npu") hasNpu = true;
-                    else if (devType == "gpu") hasGpu = true;
-                    else if (devType == "cpu") hasCpu = true;
-                }
-            }
-
-            // Check GPU providers
-            if (provider.HasProvider("cuda") || provider.HasProvider("tensorrt") ||
-                provider.HasProvider("rocm") || provider.HasProvider("webgpu"))
-            {
-                hasGpu = true;
-            }
-
-            // Check VitisAI provider (typically FPGA/NPU)
-            if (provider.HasProvider("vitisai"))
-            {
-                hasNpu = true;
-            }
-
-            // Check CPU provider
-            if (provider.HasProvider("cpu"))
-            {
-                hasCpu = true;
+                return accelerator.Value;
             }
         }
 
+        // Return based on priority: NPU > GPU > CPU
         if (hasNpu) return HardwareAccelerator.NPU;
         if (hasGpu) return HardwareAccelerator.GPU;
-        if (hasCpu) return HardwareAccelerator.CPU;
         return HardwareAccelerator.CPU;
+    }
+
+    private static IEnumerable<ProviderOptions> GetAllProviderOptions(GenAIConfig config)
+    {
+        // Yield decoder-level provider options
+        foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
+        {
+            yield return provider;
+        }
+
+        // Yield pipeline-level provider options
+        if (config.Model.Decoder.Pipeline == null)
+        {
+            yield break;
+        }
+
+        foreach (var pipelineItem in config.Model.Decoder.Pipeline)
+        {
+            if (pipelineItem.Stages == null)
+            {
+                continue;
+            }
+
+            foreach (var stageEntry in pipelineItem.Stages)
+            {
+                PipelineStage? stage = null;
+                try
+                {
+                    stage = JsonSerializer.Deserialize<PipelineStage>(stageEntry.Value.GetRawText());
+                }
+                catch (JsonException)
+                {
+                    // Skip stages that can't be deserialized
+                    continue;
+                }
+
+                if (stage?.SessionOptions?.ProviderOptions != null)
+                {
+                    foreach (var provider in stage.SessionOptions.ProviderOptions)
+                    {
+                        yield return provider;
+                    }
+                }
+            }
+        }
+    }
+
+    private static HardwareAccelerator? CheckProviderForAccelerator(ProviderOptions provider, ref bool hasGpu, ref bool hasNpu, ref bool hasCpu)
+    {
+        // Check QNN provider (highest priority)
+        if (provider.HasProvider("qnn"))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
+        // Check DML provider (high priority)
+        if (provider.HasProvider("dml"))
+        {
+            return HardwareAccelerator.DML;
+        }
+
+        // Check OpenVINO provider
+        var openvinoOptions = provider.GetProviderOptions("OpenVINO");
+        if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
+        {
+            var devType = deviceType.ToLowerInvariant();
+            if (devType == "npu") hasNpu = true;
+            else if (devType == "gpu") hasGpu = true;
+            else if (devType == "cpu") hasCpu = true;
+        }
+
+        // Check CPU provider
+        if (provider.HasProvider("cpu"))
+        {
+            hasCpu = true;
+        }
+
+        return null;
     }
 
     public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)
