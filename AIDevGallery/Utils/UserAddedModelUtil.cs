@@ -21,6 +21,7 @@ namespace AIDevGallery.Utils;
 
 internal static class UserAddedModelUtil
 {
+    [RequiresDynamicCode("Calls AIDevGallery.Utils.UserAddedModelUtil.ValidateExecutionProviders(String)")]
     public static async Task OpenAddLanguageModelFlow(XamlRoot root)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
@@ -265,7 +266,7 @@ internal static class UserAddedModelUtil
         var inputDimensions = inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
         var outputDimensions = inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
 
-        return modelDetailsList.Any(modelDetails => 
+        return modelDetailsList.Any(modelDetails =>
             ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails));
     }
 
@@ -320,6 +321,7 @@ internal static class UserAddedModelUtil
         return modelDetailsList.Any(m => m.InputDimensions != null && m.OutputDimensions != null);
     }
 
+    [RequiresDynamicCode("Calls AIDevGallery.Utils.UserAddedModelUtil.GetAllProviderOptions(GenAIConfig)")]
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
     {
         if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
@@ -405,6 +407,7 @@ internal static class UserAddedModelUtil
         }
     }
 
+    [RequiresDynamicCode("Calls AIDevGallery.Models.ProviderOptions.GetProviderOptions(String)")]
     private static HardwareAccelerator? CheckProviderForAccelerator(ProviderOptions provider, ref bool hasGpu, ref bool hasNpu, ref bool hasCpu)
     {
         if (provider.HasProvider("qnn"))

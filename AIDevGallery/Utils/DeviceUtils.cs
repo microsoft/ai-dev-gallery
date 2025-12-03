@@ -11,8 +11,8 @@ namespace AIDevGallery.Utils;
 
 internal static class DeviceUtils
 {
-    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
     private static readonly object _epDevicesLock = new();
+    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
 
     public static int GetBestDeviceId()
     {
