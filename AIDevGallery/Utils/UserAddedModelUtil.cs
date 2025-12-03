@@ -318,6 +318,11 @@ internal static class UserAddedModelUtil
 
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
     {
+        if (configContents.Contains(""""backend_path": "QnnHtp.dll"""", StringComparison.OrdinalIgnoreCase))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
         if (config == null)
         {
