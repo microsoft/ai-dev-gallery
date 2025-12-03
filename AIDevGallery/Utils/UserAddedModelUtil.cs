@@ -322,6 +322,7 @@ internal static class UserAddedModelUtil
             throw new InvalidDataException("genai_config.json is not valid");
         }
 
+        // Return based on priority: QNN > DML > NPU > GPU > CPU
         bool hasGpu = false;
         bool hasNpu = false;
         bool hasCpu = false;
@@ -337,7 +338,6 @@ internal static class UserAddedModelUtil
             }
         }
 
-        // Return based on priority: NPU > GPU > CPU
         if (hasNpu) return HardwareAccelerator.NPU;
         if (hasGpu) return HardwareAccelerator.GPU;
         return HardwareAccelerator.CPU;
