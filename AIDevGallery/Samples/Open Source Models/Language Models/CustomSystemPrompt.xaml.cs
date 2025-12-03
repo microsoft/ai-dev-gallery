@@ -136,6 +136,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         chatClient?.Dispose();
     }
 
+    public string GetAutomationName(string name, double value) => $"{name} {value:F0}";
+
     public ChatOptions GetDefaultChatOptions(IChatClient? chatClient)
     {
         var chatOptions = chatClient?.GetService<ChatOptions>();

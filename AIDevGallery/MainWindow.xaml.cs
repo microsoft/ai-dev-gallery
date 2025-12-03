@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
+using AIDevGallery.Controls.ModelPickerViews;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
@@ -20,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
+using Windows.UI.ViewManagement;
 using WinUIEx;
 
 namespace AIDevGallery;
@@ -29,6 +31,7 @@ internal sealed partial class MainWindow : WindowEx
     private AppContentIndexer? _indexer;
     private CancellationTokenSource? _searchCts; // Added for search cancellation
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
+    private UISettings uiSettings;
 
     public MainWindow(object? obj = null)
     {
@@ -62,6 +65,13 @@ internal sealed partial class MainWindow : WindowEx
         }
 
         App.AppData.PropertyChanged += AppData_PropertyChanged;
+        uiSettings = new UISettings();
+    }
+
+    private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+    {
+        uiSettings.ColorValuesChanged += Accessibility_HighContrastChanged;
+        UpdateResources();
     }
 
     private async Task LoadAppSearchIndex()
@@ -451,5 +461,34 @@ internal sealed partial class MainWindow : WindowEx
     {
         var mainWindow = (MainWindow)App.MainWindow;
         mainWindow?.IndexContentsWithAppContentSearch();
+    }
+
+    private void Accessibility_HighContrastChanged(object sender, object e)
+    {
+        UpdateResources();
+    }
+
+    private void UpdateResources()
+    {
+        var dispatcherQueue = this.DispatcherQueue;
+        dispatcherQueue.TryEnqueue(() =>
+        {
+            var appResources = Application.Current.Resources;
+
+            if (appResources["GitHubIconImage"] is Microsoft.UI.Xaml.Media.Imaging.SvgImageSource svg)
+            {
+                svg.UriSource = new Uri($"ms-appx:///Assets/ModelIcons/GitHub{AppUtils.GetThemeAssetSuffix()}.svg");
+            }
+            else
+            {
+                appResources["GitHubIconImage"] =
+                    new Microsoft.UI.Xaml.Media.Imaging.SvgImageSource(
+                        new Uri($"ms-appx:///Assets/ModelIcons/GitHub{AppUtils.GetThemeAssetSuffix()}.svg"));
+            }
+
+            ModelPickerDefinition.Definitions["onnx"].Icon = $"ms-appx:///Assets/ModelIcons/CustomModel{AppUtils.GetThemeAssetSuffix()}.png";
+            ModelPickerDefinition.Definitions["ollama"].Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png";
+            ModelPickerDefinition.Definitions["openai"].Icon = $"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.png";
+        });
     }
 }

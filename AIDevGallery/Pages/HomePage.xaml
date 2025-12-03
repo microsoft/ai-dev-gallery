@@ -47,7 +47,8 @@
                                 </ItemsView.Layout>
                                 <ItemsView.ItemTemplate>
                                     <DataTemplate x:DataType="utils:MostRecentlyUsedItem">
-                                        <ItemContainer AutomationProperties.Name="{x:Bind DisplayName}">
+                                        <ItemContainer AutomationProperties.Name="{x:Bind DisplayName}" 
+                                            AutomationProperties.LocalizedControlType="Panel">
                                             <Grid
                                                 Width="274"
                                                 Height="96"
