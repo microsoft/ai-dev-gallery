@@ -193,7 +193,13 @@ internal sealed partial class ScenarioPage : Page
         VisualStateManager.GoToState(this, "PageLoading", true);
 
         modelDetails.Clear();
-        selectedModels.ForEach(modelDetails.Add);
+        foreach (var model in selectedModels)
+        {
+            if (model != null)
+            {
+                modelDetails.Add(model);
+            }
+        }
 
         // temporary fix EP dropdown list for useradded local languagemodel
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize) && m.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) == false))
