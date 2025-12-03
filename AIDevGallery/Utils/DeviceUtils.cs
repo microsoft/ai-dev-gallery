@@ -128,7 +128,7 @@ internal static class DeviceUtils
         {
             var epDevices = GetEpDevices();
             return epDevices
-                .Select(device => device.ExecutionProviderType)
+                .Select(device => device.EpName)
                 .Distinct()
                 .ToList();
         }

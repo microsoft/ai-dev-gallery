@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using AIDevGallery.Utils;
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -28,16 +29,16 @@ internal static class WinMLHelpers
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
             switch (epName)
             {
-                case "DmlExecutionProvider":
+                case ExecutionProviderNames.DML:
                     // Configure performance mode for Dml EP
                     // Dml some times have multiple devices which cause exception, we pick the first one here
                     sessionOptions.AppendExecutionProvider(environment, [devices[0]], epOptions);
                     return true;
-                case "OpenVINOExecutionProvider":
+                case ExecutionProviderNames.OpenVINO:
                     var device = devices.Where(d => d.HardwareDevice.Type.ToString().Equals(deviceType, StringComparison.Ordinal)).FirstOrDefault();
                     sessionOptions.AppendExecutionProvider(environment, [device], epOptions);
                     return true;
-                case "QNNExecutionProvider":
+                case ExecutionProviderNames.QNN:
                     // Configure performance mode for QNN EP
                     epOptions["htp_performance_mode"] = "high_performance";
                     break;

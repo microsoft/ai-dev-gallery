@@ -142,38 +142,38 @@ internal sealed partial class ScenarioPage : Page
 
             switch (epName)
             {
-                case "VitisAIExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
+                case ExecutionProviderNames.VitisAI:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], ExecutionProviderNames.VitisAI, "VitisAI", "NPU"));
                     break;
 
-                case "OpenVINOExecutionProvider":
+                case ExecutionProviderNames.OpenVINO:
                     if (epDeviceTypes.Contains("CPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.CPU], "OpenVINOExecutionProvider", "OpenVINO", "CPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.CPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "CPU"));
                     }
 
                     if (epDeviceTypes.Contains("GPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.GPU], "OpenVINOExecutionProvider", "OpenVINO", "GPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.GPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "GPU"));
                     }
 
                     if (epDeviceTypes.Contains("NPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "NPU"));
                     }
 
                     break;
 
-                case "QNNExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], "QNNExecutionProvider", "QNN", "NPU"));
+                case ExecutionProviderNames.QNN:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], ExecutionProviderNames.QNN, "QNN", "NPU"));
                     break;
 
-                case "DmlExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                case ExecutionProviderNames.DML:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], ExecutionProviderNames.DML, "DML", "GPU"));
                     break;
 
-                case "NvTensorRTRTXExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], "NvTensorRTRTXExecutionProvider", "NvTensorRT", "GPU"));
+                case ExecutionProviderNames.NvTensorRTRTX:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], ExecutionProviderNames.NvTensorRTRTX, "NvTensorRT", "GPU"));
                     break;
             }
         }

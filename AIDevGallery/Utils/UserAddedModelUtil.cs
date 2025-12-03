@@ -74,7 +74,6 @@ internal static class UserAddedModelUtil
                 return;
             }
 
-            // Validate execution providers
             var (isValid, unavailableProviders) = ValidateExecutionProviders(configContents);
             if (!isValid)
             {
@@ -493,13 +492,13 @@ internal static class UserAddedModelUtil
         // Map provider names to their expected EP names
         var providerMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "qnn", "QNNExecutionProvider" },
-            { "dml", "DmlExecutionProvider" },
-            { "openvino", "OpenVINOExecutionProvider" },
-            { "vitisai", "VitisAIExecutionProvider" },
-            { "cuda", "CUDAExecutionProvider" },
-            { "tensorrt", "TensorrtExecutionProvider" },
-            { "cpu", "CPUExecutionProvider" }
+            { "qnn", ExecutionProviderNames.QNN },
+            { "dml", ExecutionProviderNames.DML },
+            { "openvino", ExecutionProviderNames.OpenVINO },
+            { "vitisai", ExecutionProviderNames.VitisAI },
+            { "cuda", ExecutionProviderNames.CUDA },
+            { "tensorrt", ExecutionProviderNames.TensorRT },
+            { "cpu", ExecutionProviderNames.CPU }
         };
 
         var allProviderOptions = GetAllProviderOptions(config);
