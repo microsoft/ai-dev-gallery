@@ -285,10 +285,10 @@ internal static class AppUtils
     {
         var accessibilitySettings = new AccessibilitySettings();
         bool isHighContrast = accessibilitySettings.HighContrast;
-        if(isHighContrast)
+        if (isHighContrast)
         {
             string hcThemeName = accessibilitySettings.HighContrastScheme;
-            if(hcThemeName == "High Contrast White")
+            if (hcThemeName == "High Contrast White")
             {
                 return ".light";
             }

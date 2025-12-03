@@ -111,6 +111,7 @@ internal static class DeviceUtils
 
         return maxDedicatedVideoMemory;
     }
+
     public static bool IsArm64() =>
         System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
 

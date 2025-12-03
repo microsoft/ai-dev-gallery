@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -314,6 +315,7 @@ internal static class UserAddedModelUtil
 
         return false;
     }
+
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
     {
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
@@ -338,11 +340,20 @@ internal static class UserAddedModelUtil
             }
         }
 
-        if (hasNpu) return HardwareAccelerator.NPU;
-        if (hasGpu) return HardwareAccelerator.GPU;
+        if (hasNpu)
+        {
+            return HardwareAccelerator.NPU;
+        }
+
+        if (hasGpu)
+        {
+            return HardwareAccelerator.GPU;
+        }
+
         return HardwareAccelerator.CPU;
     }
 
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     private static IEnumerable<ProviderOptions> GetAllProviderOptions(GenAIConfig config)
     {
         foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
@@ -401,9 +412,18 @@ internal static class UserAddedModelUtil
         if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
         {
             var devType = deviceType.ToLowerInvariant();
-            if (devType == "npu") hasNpu = true;
-            else if (devType == "gpu") hasGpu = true;
-            else if (devType == "cpu") hasCpu = true;
+            if (devType == "npu")
+            {
+                hasNpu = true;
+            }
+            else if (devType == "gpu")
+            {
+                hasGpu = true;
+            }
+            else if (devType == "cpu")
+            {
+                hasCpu = true;
+            }
         }
 
         if (provider.HasProvider("vitisai"))
