@@ -53,10 +53,10 @@ internal static class UserAddedModelUtil
             }
 
             HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+            string configContents = string.Empty;
 
             try
             {
-                string configContents = string.Empty;
                 configContents = await File.ReadAllTextAsync(config);
                 accelerator = GetHardwareAcceleratorFromConfig(configContents);
             }
@@ -72,6 +72,36 @@ internal static class UserAddedModelUtil
 
                 await confirmFolderDialog.ShowAsync();
                 return;
+            }
+
+            // Validate execution providers
+            var (isValid, unavailableProviders) = ValidateExecutionProviders(configContents);
+            if (!isValid)
+            {
+                var warningMessage = "This model requires execution providers that are not available on your device:\n\n" +
+                    string.Join(", ", unavailableProviders) +
+                    "\n\nThe model may fail to load or run. Do you want to add it anyway?";
+
+                ContentDialog warningDialog = new()
+                {
+                    Title = "Incompatible Execution Providers",
+                    Content = new TextBlock()
+                    {
+                        Text = warningMessage,
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    XamlRoot = root,
+                    CloseButtonText = "Cancel",
+                    PrimaryButtonText = "Add Anyway",
+                    DefaultButton = ContentDialogButton.Close,
+                    Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+                };
+
+                var warningResult = await warningDialog.ShowAsync();
+                if (warningResult != ContentDialogResult.Primary)
+                {
+                    return;
+                }
             }
 
             var nameTextBox = new TextBox()
@@ -442,6 +472,66 @@ internal static class UserAddedModelUtil
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Validates that the execution providers specified in the genai_config.json are available on this device.
+    /// </summary>
+    /// <returns>A tuple with (isValid, unavailableProviders)</returns>
+    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
+    private static (bool IsValid, List<string> UnavailableProviders) ValidateExecutionProviders(string configContents)
+    {
+        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+        if (config == null)
+        {
+            return (false, new List<string> { "Invalid genai_config.json" });
+        }
+
+        var availableEPs = DeviceUtils.GetAvailableExecutionProviders();
+        var unavailableProviders = new List<string>();
+
+        // Map provider names to their expected EP names
+        var providerMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "qnn", "QNNExecutionProvider" },
+            { "dml", "DmlExecutionProvider" },
+            { "openvino", "OpenVINOExecutionProvider" },
+            { "vitisai", "VitisAIExecutionProvider" },
+            { "cuda", "CUDAExecutionProvider" },
+            { "tensorrt", "TensorrtExecutionProvider" },
+            { "cpu", "CPUExecutionProvider" }
+        };
+
+        var allProviderOptions = GetAllProviderOptions(config);
+        foreach (var provider in allProviderOptions)
+        {
+            if (provider.ExtensionData == null)
+            {
+                continue;
+            }
+
+            foreach (var providerKey in provider.ExtensionData.Keys)
+            {
+                // Skip CPU as it's always available
+                if (providerKey.Equals("cpu", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (providerMapping.TryGetValue(providerKey, out var expectedEP))
+                {
+                    if (!availableEPs.Any(ep => ep.Equals(expectedEP, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!unavailableProviders.Contains(providerKey, StringComparer.OrdinalIgnoreCase))
+                        {
+                            unavailableProviders.Add(providerKey);
+                        }
+                    }
+                }
+            }
+        }
+
+        return (unavailableProviders.Count == 0, unavailableProviders);
     }
 
     public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)
