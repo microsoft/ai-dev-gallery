@@ -31,8 +31,8 @@ internal static class UserAddedModelUtil
 
         if (folder != null)
         {
-            var files = Directory.GetFiles(folder.Path);
-            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+            var config = Directory.GetFiles(folder.Path)
+                .FirstOrDefault(r => Path.GetFileName(r) == "genai_config.json");
 
             if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
             {
@@ -250,17 +250,10 @@ internal static class UserAddedModelUtil
 
     private static List<ModelType> GetValidatedModelTypesForUploadedOnnxModel(string modelFilepath, List<ModelType> modelTypes)
     {
-        List<ModelType> validatedModelTypes = new();
-
-        foreach (var (type, models) in ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes))
-        {
-            if (ValidateUserAddedModelDimensionsForModelTypeModelDetails(models, modelFilepath))
-            {
-                validatedModelTypes.Add(type);
-            }
-        }
-
-        return validatedModelTypes;
+        return ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes)
+            .Where(pair => ValidateUserAddedModelDimensionsForModelTypeModelDetails(pair.models, modelFilepath))
+            .Select(pair => pair.type)
+            .ToList();
     }
 
     private static bool ValidateUserAddedModelDimensionsForModelTypeModelDetails(List<ModelDetails> modelDetailsList, string modelFilepath)
@@ -269,21 +262,11 @@ internal static class UserAddedModelUtil
         sessionOptions.RegisterOrtExtensions();
 
         using InferenceSession inferenceSession = new(modelFilepath, sessionOptions);
-        List<int[]> inputDimensions = new();
-        List<int[]> outputDimensions = new();
+        var inputDimensions = inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
+        var outputDimensions = inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
 
-        inputDimensions.AddRange(inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions));
-        outputDimensions.AddRange(inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions));
-
-        foreach (ModelDetails modelDetails in modelDetailsList)
-        {
-            if (ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modelDetailsList.Any(modelDetails => 
+            ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails));
     }
 
     private static bool ValidateUserAddedModelAgainstModelDimensions(List<int[]> inputDimensions, List<int[]> outputDimensions, ModelDetails modelDetails)
@@ -334,15 +317,7 @@ internal static class UserAddedModelUtil
 
     public static bool IsModelsDetailsListUploadCompatible(this IEnumerable<ModelDetails> modelDetailsList)
     {
-        foreach (ModelDetails modelDetails in modelDetailsList)
-        {
-            if (modelDetails.InputDimensions != null && modelDetails.OutputDimensions != null)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modelDetailsList.Any(m => m.InputDimensions != null && m.OutputDimensions != null);
     }
 
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
@@ -489,7 +464,6 @@ internal static class UserAddedModelUtil
         var availableEPs = DeviceUtils.GetAvailableExecutionProviders();
         var unavailableProviders = new List<string>();
 
-        // Map provider names to their expected EP names
         var providerMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "qnn", ExecutionProviderNames.QNN },
