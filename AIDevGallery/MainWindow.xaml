@@ -151,6 +151,8 @@
                     MinWidth="364"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
+                    AutomationProperties.Name="Hello"
+                    AutomationProperties.AutomationId="World"
                     ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"
                     PlaceholderText="Search samples, models &amp; APIs.."
                     QuerySubmitted="SearchBox_QuerySubmitted"
