@@ -128,7 +128,7 @@ internal static class DeviceUtils
         {
             var epDevices = GetEpDevices();
             return epDevices
-                .Select(device => device.EpName)
+                .Select(device => device.EpName.ToLowerInvariant())
                 .Distinct()
                 .ToList();
         }
