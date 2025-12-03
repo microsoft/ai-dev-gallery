@@ -74,61 +74,37 @@ internal class ModelCompatibility
                 description = "This model requires an NPU (Neural Processing Unit). No compatible NPU was detected on your device.";
             }
         }
-        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OpenVINO))
-        {
-            // Specific OpenVINO EP check (can run on CPU/GPU/NPU)
-            if (DeviceUtils.HasOpenVINO())
-            {
-                compatibility = ModelCompatibilityState.Compatible;
-            }
-            else
-            {
-                compatibility = ModelCompatibilityState.NotCompatible;
-                description = "This model requires OpenVINO Execution Provider. No compatible OpenVINO runtime was detected on your device.";
-            }
-        }
         else if (
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
             && !DeviceUtils.IsArm64())
         {
-            var dedicatedVram = DeviceUtils.GetDedicatedVram();
-            var totalVram = DeviceUtils.GetTotalVram();
+            var vram = DeviceUtils.GetVram();
             var minimumSizeNeeded = Math.Round((float)(modelDetails.Size / BytesInGB), 1);
-            var totalVramInGb = Math.Round(totalVram / BytesInGB, 1);
-            var isIntegratedGpu = dedicatedVram < BytesInGB;
+            var vramInGb = Math.Round(vram / BytesInGB, 1);
 
             // we want at least 2GB more than model size for good performance
-            if (modelDetails.Size + (2 * BytesInGB) < totalVram)
+            if (modelDetails.Size + (2 * BytesInGB) < vram)
             {
-                // Warn about potential performance issues on integrated GPUs for larger models
-                if (isIntegratedGpu && modelDetails.Size > 0.5 * BytesInGB)
-                {
-                    compatibility = ModelCompatibilityState.NotRecomended;
-                    description = $"This model can run on your integrated GPU, but performance may be significantly slower than on a dedicated GPU. Your system has {totalVramInGb}GB of shared GPU memory available.";
-                }
-                else
-                {
-                    compatibility = ModelCompatibilityState.Compatible;
-                }
+                compatibility = ModelCompatibilityState.Compatible;
             }
 
             // we want at least 1GB more than model size for some breathing room
-            else if (modelDetails.Size + BytesInGB < totalVram)
+            else if (modelDetails.Size + BytesInGB < vram)
             {
                 compatibility = ModelCompatibilityState.NotRecomended;
-                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of GPU memory. Your GPU has {totalVramInGb}GB available";
+                description = $"This model is not recommended for your device. We recommend minimum {minimumSizeNeeded + 2}GB of dedicated GPU memory. Your GPU has {vramInGb}GB";
             }
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"This model will not work on your device because it requires minimum {minimumSizeNeeded + 1}GB of GPU memory.";
-                if (totalVram == 0)
+                description = $"This model will not work on your device because it requires minimum {minimumSizeNeeded + 1}GB of dedicate GPU memory.";
+                if (vram == 0)
                 {
-                    description += " We could not find a compatible GPU.";
+                    description += " We could not find a dedicated GPU.";
                 }
                 else
                 {
-                    description += $" Your GPU has {totalVramInGb}GB available.";
+                    description += $" Your GPU has {vramInGb}GB.";
                 }
             }
         }
