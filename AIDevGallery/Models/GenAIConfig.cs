@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -67,7 +66,6 @@ internal class ProviderOptions
         return ExtensionData.Keys.Any(k => k.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     public Dictionary<string, string>? GetProviderOptions(string name)
     {
         if (ExtensionData == null)
@@ -83,7 +81,7 @@ internal class ProviderOptions
 
         try
         {
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(ExtensionData[key].GetRawText());
+            return JsonSerializer.Deserialize(ExtensionData[key].GetRawText(), AIDevGallery.Utils.SourceGenerationContext.Default.DictionaryStringString);
         }
         catch
         {
