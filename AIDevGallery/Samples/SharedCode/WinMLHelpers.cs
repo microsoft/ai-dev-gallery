@@ -13,7 +13,7 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal static class WinMLHelpers
 {
-    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType, OrtEnv? environment = null)
+    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType)
     {
         if (epName == "CPU")
         {
@@ -21,8 +21,8 @@ internal static class WinMLHelpers
             return true;
         }
 
-        environment ??= OrtEnv.Instance();
-        var epDeviceMap = GetEpDeviceMap(environment);
+        var environment = OrtEnv.Instance();
+        var epDeviceMap = GetEpDeviceMap();
 
         if (epDeviceMap.TryGetValue(epName, out var devices))
         {
@@ -106,10 +106,9 @@ internal static class WinMLHelpers
         return null;
     }
 
-    public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap(OrtEnv? environment = null)
+    public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap()
     {
-        environment ??= OrtEnv.Instance();
-        IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
+        IReadOnlyList<OrtEpDevice> epDevices = DeviceUtils.GetEpDevices();
         Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (OrtEpDevice device in epDevices)
