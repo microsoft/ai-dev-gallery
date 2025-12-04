@@ -115,8 +115,44 @@ internal static class DeviceUtils
     public static bool IsArm64() =>
         System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
 
-    public static bool HasNPU() => HasExecutionProvider(device =>
+    public static bool HasNPU() => HasNPUViaWinML() || HasExecutionProvider(device =>
         device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Checks for NPU availability using WinML's ExecutionProviderCatalog.
+    /// This provides a more reliable detection method on Windows platforms.
+    /// </summary>
+    /// <returns>True if an NPU is available, false otherwise.</returns>
+    private static bool HasNPUViaWinML()
+    {
+        try
+        {
+            var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
+            
+            // Check if any certified execution providers include NPU support
+            var availableEps = catalog.GetAvailableExecutionProviders();
+            if (availableEps != null)
+            {
+                foreach (var ep in availableEps)
+                {
+                    // Check for QNN (Qualcomm AI Engine) which indicates NPU support
+                    if (ep.Name.Contains("QNN", StringComparison.OrdinalIgnoreCase) ||
+                        ep.Name.Contains("NPU", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail - fall back to ONNX Runtime detection
+            Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("HasNPUViaWinML_Failed", ex);
+            return false;
+        }
+    }
 
     private static bool HasExecutionProvider(Func<OrtEpDevice, bool> predicate)
     {

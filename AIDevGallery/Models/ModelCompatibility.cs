@@ -63,7 +63,7 @@ internal class ModelCompatibility
         }
         else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.NPU))
         {
-            // Check if any NPU is available using ONNX Runtime's EP detection
+            // Check if any NPU is available using WinML and ONNX Runtime detection
             if (DeviceUtils.HasNPU())
             {
                 compatibility = ModelCompatibilityState.Compatible;
