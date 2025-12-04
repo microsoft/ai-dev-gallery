@@ -160,15 +160,18 @@ internal static class DeviceUtils
                 {
                     catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore registration errors
+                    // Log but continue
+                    Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_RegistrationFailed", ex);
                 }
 
                 _cachedEpDevices = OrtEnv.Instance().GetEpDevices();
             }
-            catch
+            catch (Exception ex)
             {
+                // Log the failure to get EP devices - this could indicate ONNX Runtime initialization issues
+                Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_Failed", ex);
                 _cachedEpDevices = System.Array.Empty<OrtEpDevice>();
             }
 
