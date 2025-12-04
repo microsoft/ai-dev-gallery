@@ -120,7 +120,7 @@ internal static class DeviceUtils
 
     /// <summary>
     /// Checks for NPU availability using WinML's ExecutionProviderCatalog.
-    /// This provides a more reliable detection method on Windows platforms.
+    /// This ensures certified execution providers (including NPU/QNN) are registered before detection.
     /// </summary>
     /// <returns>True if an NPU is available, false otherwise.</returns>
     private static bool HasNPUViaWinML()
@@ -129,18 +129,28 @@ internal static class DeviceUtils
         {
             var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
             
-            // Check if any certified execution providers include NPU support
-            var availableEps = catalog.GetAvailableExecutionProviders();
-            if (availableEps != null)
+            // Ensure certified execution providers (including QNN for NPU) are registered
+            try
             {
-                foreach (var ep in availableEps)
+                catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
+            }
+            catch
+            {
+                // Continue even if registration fails - may already be registered
+            }
+
+            // Now check the registered execution providers through ONNX Runtime
+            var epDevices = GetEpDevices();
+            foreach (var device in epDevices)
+            {
+                var deviceTypeName = device.HardwareDevice.Type.ToString();
+                var epName = device.ExecutionProviderName;
+                
+                // Check for NPU through device type or QNN execution provider
+                if (deviceTypeName.Equals("NPU", StringComparison.OrdinalIgnoreCase) ||
+                    epName.Contains("QNN", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Check for QNN (Qualcomm AI Engine) which indicates NPU support
-                    if (ep.Name.Contains("QNN", StringComparison.OrdinalIgnoreCase) ||
-                        ep.Name.Contains("NPU", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
