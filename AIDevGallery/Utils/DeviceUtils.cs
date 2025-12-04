@@ -156,6 +156,7 @@ internal static class DeviceUtils
     /// as OrtEnv.GetEpDevices() only returns already-registered providers.
     /// Results are cached to avoid repeated registration overhead.
     /// </summary>
+    /// <returns>A read-only list of available ONNX Runtime Execution Provider devices.</returns>
     public static System.Collections.Generic.IReadOnlyList<OrtEpDevice> GetEpDevices()
     {
         if (_cachedEpDevices != null)
