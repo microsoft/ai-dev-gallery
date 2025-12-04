@@ -415,6 +415,14 @@ internal sealed partial class ScenarioPage : Page
 
     private void ModelBtn_Click(object sender, RoutedEventArgs e)
     {
+        var button = sender as Button;
+
+        var picker = App.MainWindow.ModelPicker;
+        picker.Closed += (s, args) =>
+        {
+            button?.Focus(FocusState.Programmatic);
+        };
+
         App.MainWindow.ModelPicker.Show(modelDetails.ToList());
     }
 

@@ -156,45 +156,6 @@
                 </controls:Card>
 
                 <controls:Card
-                    x:Name="DocumentationCard"
-                    Title="Documentation"
-                    Grid.Row="3"
-                    Grid.Column="1"
-                    Grid.ColumnSpan="2"
-                    Icon="{ui:FontIcon Glyph=&#xE7C3;,
-                                       FontSize=16}">
-                    <controls:Card.TitleContent>
-                        <HyperlinkButton
-                            Padding="0"
-                            AutomationProperties.Name="View documentation"
-                            NavigateUri="{x:Bind ModelFamily.DocsUrl}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="View documentation" />
-                                <FontIcon FontSize="12" Glyph="&#xE8A7;" />
-                            </StackPanel>
-                        </HyperlinkButton>
-                    </controls:Card.TitleContent>
-                    <Grid Padding="8,16,8,16">
-                        <toolkit2:MarkdownTextBlock
-                            IsTabStop="False"
-                            x:Name="markdownTextBlock"
-                            Background="Transparent"
-                            FontSize="14"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
-                            <toolkit2:MarkdownTextBlock.Resources>
-                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
-                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
-                            </toolkit2:MarkdownTextBlock.Resources>
-                        </toolkit2:MarkdownTextBlock>
-                        <ProgressRing
-                            x:Name="readmeProgressRing"
-                            Grid.Row="2"
-                            IsActive="True" />
-                    </Grid>
-                </controls:Card>
-
-                <controls:Card
                     x:Name="CodeCard"
                     Title="API"
                     Grid.Row="2"
@@ -234,6 +195,45 @@
                             IsTextSelectionEnabled="True"
                             TextWrapping="Wrap" />
                     </ScrollViewer>
+                </controls:Card>
+                
+                <controls:Card
+                    x:Name="DocumentationCard"
+                    Title="Documentation"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    Icon="{ui:FontIcon Glyph=&#xE7C3;,
+                                       FontSize=16}">
+                    <controls:Card.TitleContent>
+                        <HyperlinkButton
+                            Padding="0"
+                            AutomationProperties.Name="View documentation"
+                            NavigateUri="{x:Bind ModelFamily.DocsUrl}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="View documentation" />
+                                <FontIcon FontSize="12" Glyph="&#xE8A7;" />
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </controls:Card.TitleContent>
+                    <Grid Padding="8,16,8,16">
+                        <toolkit2:MarkdownTextBlock
+                            IsTabStop="False"
+                            x:Name="markdownTextBlock"
+                            Background="Transparent"
+                            FontSize="14"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
+                            <toolkit2:MarkdownTextBlock.Resources>
+                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
+                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
+                            </toolkit2:MarkdownTextBlock.Resources>
+                        </toolkit2:MarkdownTextBlock>
+                        <ProgressRing
+                            x:Name="readmeProgressRing"
+                            Grid.Row="2"
+                            IsActive="True" />
+                    </Grid>
                 </controls:Card>
             </Grid>
         </ScrollViewer>
