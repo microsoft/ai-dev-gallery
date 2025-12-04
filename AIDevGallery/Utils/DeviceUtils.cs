@@ -120,7 +120,7 @@ internal static class DeviceUtils
 
     /// <summary>
     /// Checks for NPU availability using WinML's ExecutionProviderCatalog.
-    /// This ensures certified execution providers (including NPU/QNN) are registered before detection.
+    /// This uses WinML's registered execution providers to detect NPU/QNN support.
     /// </summary>
     /// <returns>True if an NPU is available, false otherwise.</returns>
     private static bool HasNPUViaWinML()
@@ -129,28 +129,28 @@ internal static class DeviceUtils
         {
             var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
             
-            // Ensure certified execution providers (including QNN for NPU) are registered
+            // Register certified execution providers and get the list of registered providers
+            System.Collections.Generic.IReadOnlyList<string>? registeredProviders = null;
             try
             {
-                catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
+                registeredProviders = catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
             }
             catch
             {
                 // Continue even if registration fails - may already be registered
             }
 
-            // Now check the registered execution providers through ONNX Runtime
-            var epDevices = GetEpDevices();
-            foreach (var device in epDevices)
+            // Check if QNN (Qualcomm Neural Network) is in the registered providers list
+            // QNN is the execution provider that indicates NPU support
+            if (registeredProviders != null)
             {
-                var deviceTypeName = device.HardwareDevice.Type.ToString();
-                var epName = device.ExecutionProviderName;
-                
-                // Check for NPU through device type or QNN execution provider
-                if (deviceTypeName.Equals("NPU", StringComparison.OrdinalIgnoreCase) ||
-                    epName.Contains("QNN", StringComparison.OrdinalIgnoreCase))
+                foreach (var providerName in registeredProviders)
                 {
-                    return true;
+                    if (providerName.Contains("QNN", StringComparison.OrdinalIgnoreCase) ||
+                        providerName.Contains("NPU", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
                 }
             }
 
