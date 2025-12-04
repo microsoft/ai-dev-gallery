@@ -8,7 +8,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -265,7 +264,7 @@ internal static class UserAddedModelUtil
         var inputDimensions = inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
         var outputDimensions = inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
 
-        return modelDetailsList.Any(modelDetails => 
+        return modelDetailsList.Any(modelDetails =>
             ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails));
     }
 
@@ -362,7 +361,6 @@ internal static class UserAddedModelUtil
         return HardwareAccelerator.CPU;
     }
 
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     private static IEnumerable<ProviderOptions> GetAllProviderOptions(GenAIConfig config)
     {
         foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
@@ -387,7 +385,7 @@ internal static class UserAddedModelUtil
                 PipelineStage? stage = null;
                 try
                 {
-                    stage = JsonSerializer.Deserialize<PipelineStage>(stageEntry.Value.GetRawText());
+                    stage = JsonSerializer.Deserialize(stageEntry.Value.GetRawText(), SourceGenerationContext.Default.PipelineStage);
                 }
                 catch (JsonException)
                 {
@@ -452,7 +450,6 @@ internal static class UserAddedModelUtil
     /// Validates that the execution providers specified in the genai_config.json are available on this device.
     /// </summary>
     /// <returns>A tuple with (isValid, unavailableProviders)</returns>
-    [RequiresDynamicCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     private static (bool IsValid, List<string> UnavailableProviders) ValidateExecutionProviders(string configContents)
     {
         var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
