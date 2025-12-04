@@ -3,6 +3,7 @@
 
 using Microsoft.ML.OnnxRuntime;
 using System;
+using System.Linq;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dxgi;
 
@@ -114,13 +115,14 @@ internal static class DeviceUtils
     public static bool IsArm64() =>
         System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
 
-    public static bool HasNPU()
+    public static bool HasNPU() => HasExecutionProvider(device =>
+        device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasExecutionProvider(Func<OrtEpDevice, bool> predicate)
     {
         try
         {
-            using SessionOptions options = new();
-            options.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_NPU);
-            return true;
+            return GetEpDevices().Any(predicate);
         }
         catch
         {
