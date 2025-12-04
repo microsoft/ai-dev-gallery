@@ -118,7 +118,7 @@ internal static class DeviceUtils
     {
         try
         {
-            SessionOptions options = new();
+            using SessionOptions options = new();
             options.SetEpSelectionPolicy(ExecutionProviderDevicePolicy.PREFER_NPU);
             return true;
         }
