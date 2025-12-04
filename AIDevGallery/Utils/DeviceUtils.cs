@@ -118,26 +118,6 @@ internal static class DeviceUtils
     public static bool HasNPU() => HasExecutionProvider(device =>
         device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>
-    /// Gets the list of available execution provider names on this device.
-    /// </summary>
-    /// <returns>A list of EP names (e.g., "OpenVINOExecutionProvider", "DmlExecutionProvider", etc.)</returns>
-    public static System.Collections.Generic.List<string> GetAvailableExecutionProviders()
-    {
-        try
-        {
-            var epDevices = GetEpDevices();
-            return epDevices
-                .Select(device => device.EpName)
-                .Distinct()
-                .ToList();
-        }
-        catch
-        {
-            return new System.Collections.Generic.List<string>();
-        }
-    }
-
     private static bool HasExecutionProvider(Func<OrtEpDevice, bool> predicate)
     {
         try

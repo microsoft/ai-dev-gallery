@@ -458,7 +458,10 @@ internal static class UserAddedModelUtil
             return (false, new List<string> { "Invalid genai_config.json" });
         }
 
-        var availableEPs = DeviceUtils.GetAvailableExecutionProviders();
+        var availableEPs = DeviceUtils.GetEpDevices()
+            .Select(device => device.EpName)
+            .Distinct()
+            .ToList();
         var unavailableProviders = new List<string>();
 
         var providerMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
