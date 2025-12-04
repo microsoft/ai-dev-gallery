@@ -130,7 +130,7 @@ internal static class DeviceUtils
             var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
             
             // Register certified execution providers and get the list of registered providers
-            System.Collections.Generic.IReadOnlyList<string>? registeredProviders = null;
+            System.Collections.Generic.IList<Microsoft.Windows.AI.MachineLearning.ExecutionProvider>? registeredProviders = null;
             try
             {
                 registeredProviders = catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
@@ -144,8 +144,9 @@ internal static class DeviceUtils
             // QNN is the execution provider that indicates NPU support
             if (registeredProviders != null)
             {
-                foreach (var providerName in registeredProviders)
+                foreach (var provider in registeredProviders)
                 {
+                    var providerName = provider.Name;
                     if (providerName.Contains("QNN", StringComparison.OrdinalIgnoreCase) ||
                         providerName.Contains("NPU", StringComparison.OrdinalIgnoreCase))
                     {
