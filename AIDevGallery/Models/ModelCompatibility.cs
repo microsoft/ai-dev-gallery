@@ -53,10 +53,26 @@ internal class ModelCompatibility
             compatibility = ModelCompatibilityState.NotCompatible;
             description = "This model is not currently supported on Arm64 devices.";
         }
-        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU) ||
-            (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64()))
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.CPU))
         {
             compatibility = ModelCompatibilityState.Compatible;
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.QNN) && DeviceUtils.IsArm64())
+        {
+            compatibility = ModelCompatibilityState.Compatible;
+        }
+        else if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.NPU))
+        {
+            // Check if any NPU is available using ONNX Runtime's EP detection
+            if (DeviceUtils.HasNPU())
+            {
+                compatibility = ModelCompatibilityState.Compatible;
+            }
+            else
+            {
+                compatibility = ModelCompatibilityState.NotCompatible;
+                description = "This model requires an NPU (Neural Processing Unit). No compatible NPU was detected on your device.";
+            }
         }
         else if (
             (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.DML) || modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.GPU))
