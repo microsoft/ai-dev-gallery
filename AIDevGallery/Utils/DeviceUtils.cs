@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.ML.OnnxRuntime;
 using System;
+using System.Linq;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dxgi;
 
@@ -9,6 +11,9 @@ namespace AIDevGallery.Utils;
 
 internal static class DeviceUtils
 {
+    private static readonly object _epDevicesLock = new();
+    private static System.Collections.Generic.IReadOnlyList<OrtEpDevice>? _cachedEpDevices;
+
     public static int GetBestDeviceId()
     {
         int deviceId = 0;
@@ -107,8 +112,70 @@ internal static class DeviceUtils
         return maxDedicatedVideoMemory;
     }
 
-    public static bool IsArm64()
+    public static bool IsArm64() =>
+        System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
+
+    public static bool HasNPU() => HasExecutionProvider(device =>
+        device.HardwareDevice.Type.ToString().Equals("NPU", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasExecutionProvider(Func<OrtEpDevice, bool> predicate)
     {
-        return System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
+        try
+        {
+            return GetEpDevices().Any(predicate);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets the list of available ONNX Runtime Execution Provider devices.
+    /// This method ensures that certified EPs (like OpenVINO, QNN, DML) are registered before querying,
+    /// as OrtEnv.GetEpDevices() only returns already-registered providers.
+    /// Results are cached to avoid repeated registration overhead.
+    /// </summary>
+    /// <returns>A read-only list of available ONNX Runtime Execution Provider devices.</returns>
+    public static System.Collections.Generic.IReadOnlyList<OrtEpDevice> GetEpDevices()
+    {
+        if (_cachedEpDevices != null)
+        {
+            return _cachedEpDevices;
+        }
+
+        lock (_epDevicesLock)
+        {
+            if (_cachedEpDevices != null)
+            {
+                return _cachedEpDevices;
+            }
+
+            try
+            {
+                OrtEnv.Instance();
+                var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
+
+                try
+                {
+                    catalog.EnsureAndRegisterCertifiedAsync().GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    // Log but continue
+                    Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_RegistrationFailed", ex);
+                }
+
+                _cachedEpDevices = OrtEnv.Instance().GetEpDevices();
+            }
+            catch (Exception ex)
+            {
+                // Log the failure to get EP devices - this could indicate ONNX Runtime initialization issues
+                Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_Failed", ex);
+                _cachedEpDevices = System.Array.Empty<OrtEpDevice>();
+            }
+
+            return _cachedEpDevices;
+        }
     }
 }
