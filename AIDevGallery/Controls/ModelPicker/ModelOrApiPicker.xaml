@@ -204,7 +204,7 @@
                     Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Vertical" Spacing="4">
                         <FontIcon FontSize="14" Glyph="&#xE72A;" />
-                        <TextBlock Text="Run sample" />
+                        <TextBlock Text="Run sample" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Button>
             </Grid>
