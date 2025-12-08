@@ -133,15 +133,15 @@ internal sealed partial class SettingsPage : Page
         {
             // Clear usage history
             App.AppData.UsageHistoryV2?.Clear();
-            
+
             // Clear user-added model mappings
             App.AppData.ModelTypeToUserAddedModelsMapping?.Clear();
-            
+
             // Clear most recently used items
             App.AppData.MostRecentlyUsedItems.Clear();
-            
+
             await App.AppData.SaveAsync();
-            
+
             // Show confirmation
             ContentDialog confirmDialog = new()
             {
