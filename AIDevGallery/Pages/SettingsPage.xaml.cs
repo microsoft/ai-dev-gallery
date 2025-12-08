@@ -120,7 +120,7 @@ internal sealed partial class SettingsPage : Page
         ContentDialog resetDialog = new()
         {
             Title = "Reset model configuration",
-            Content = "Are you sure you want to reset model configuration? This will clear:\n• Model usage history\n• User-added model mappings\n\nDownloaded model files will not be affected.",
+            Content = "Are you sure you want to reset model configuration?\n\nDownloaded model files will not be affected.",
             PrimaryButtonText = "Reset",
             XamlRoot = this.Content.XamlRoot,
             PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
@@ -136,6 +136,9 @@ internal sealed partial class SettingsPage : Page
             
             // Clear user-added model mappings
             App.AppData.ModelTypeToUserAddedModelsMapping?.Clear();
+            
+            // Clear most recently used items
+            App.AppData.MostRecentlyUsedItems.Clear();
             
             await App.AppData.SaveAsync();
             
