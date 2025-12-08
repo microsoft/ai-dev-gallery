@@ -4,6 +4,7 @@
 using HtmlAgilityPack;
 using Markdig.Syntax.Inlines;
 using Microsoft.UI.Xaml.Documents;
+using System;
 using Windows.Foundation;
 
 namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
@@ -56,10 +57,19 @@ internal class MyHyperlink : IAddChild
         {
             try
             {
+                // WinUI doesn't support nested hyperlinks
+                if (inlineChild is Hyperlink)
+                {
+                    return;
+                }
+
                 _hyperlink.Inlines.Add(inlineChild);
             }
-            catch
+            catch (ArgumentException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Failed to add inline to hyperlink: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Child type: {inlineChild.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"Child parent: {(inlineChild.ElementStart?.Parent != null ? "Has parent" : "No parent")}");
             }
         }
     }
