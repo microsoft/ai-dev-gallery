@@ -38,7 +38,7 @@
                     <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Model management" />
                     <toolkit:SettingsCard
-                        Description="Clear model usage history and user-added model mappings"
+                        Description="Reset model preferences and usage history"
                         Header="Model configuration"
                         HeaderIcon="{ui:FontIcon Glyph=&#xE7C3;}">
                         <Button
