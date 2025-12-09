@@ -201,9 +201,10 @@ jobs:
         $cliPath = $env:CLI_PATH
         Write-Host "Running AxeWindowsCLI from $cliPath against process $($process.Id)"
         
-        New-Item -ItemType Directory -Force -Path "AxeOutput"
+        $outputDir = Join-Path $PWD "AxeOutput"
+        New-Item -ItemType Directory -Force -Path $outputDir
         
-        & $cliPath --processId $process.Id --outputDirectory "AxeOutput" --verbosity default
+        & $cliPath --processId $process.Id --outputDirectory $outputDir --verbosity default
         
         $process.Kill()
         
