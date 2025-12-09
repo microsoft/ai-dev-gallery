@@ -438,19 +438,34 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine("=== Step 3: Open Model Selection ===");
         firstSampleItem.Click();
         Thread.Sleep(5000);
-        var modelButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
-        if (modelButton == null)
+        
+        // Check if modelTypeSelector already exists
+        var modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
+        
+        if (modelTypeSelector == null)
         {
-            var buttons = MainWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Button));
-            modelButton = buttons.FirstOrDefault(btn => btn.Name != null && btn.Name.Contains("Selected models", StringComparison.OrdinalIgnoreCase));
+            // modelTypeSelector not found, need to click ModelBtn to open it
+            var modelButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
+            if (modelButton == null)
+            {
+                var buttons = MainWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Button));
+                modelButton = buttons.FirstOrDefault(btn => btn.Name != null && btn.Name.Contains("Selected models", StringComparison.OrdinalIgnoreCase));
+            }
+            Assert.IsNotNull(modelButton, "Selected models button should be found");
+            modelButton.Click();
+            Thread.Sleep(1000);
+            TakeScreenshot("DownloadModel_ModelSelectionOpened");
+            
+            // Try to find modelTypeSelector again after clicking
+            modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
         }
-        Assert.IsNotNull(modelButton, "Selected models button should be found");
-        modelButton.Click();
-        Thread.Sleep(1000);
-        TakeScreenshot("DownloadModel_ModelSelectionOpened");
+        else
+        {
+            Console.WriteLine("modelTypeSelector already exists, skipping ModelBtn click");
+            TakeScreenshot("DownloadModel_ModelSelectionAlreadyOpen");
+        }
 
         Console.WriteLine("=== Step 4: Select Foundry Local ===");
-        var modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
         Assert.IsNotNull(modelTypeSelector, "Model type selector should be found");
         var foundryLocalOption = modelTypeSelector.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName("Foundry Local")));
         Assert.IsNotNull(foundryLocalOption, "Foundry Local item should be found");
