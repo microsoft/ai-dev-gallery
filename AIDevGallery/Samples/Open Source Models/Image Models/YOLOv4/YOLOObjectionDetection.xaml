@@ -24,7 +24,7 @@
             <Image
                 x:Name="DefaultImage"
                 MaxWidth="800"
-                MaxHeight="500" />
+                MaxHeight="500"/>
         </Viewbox>
         <ProgressRing
             x:Name="Loader"
