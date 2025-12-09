@@ -190,13 +190,28 @@ jobs:
         Write-Host "Starting app from $appPath"
         $process = Start-Process -FilePath $appPath -PassThru
         
-        # Wait for app to initialize
-        Start-Sleep -Seconds 15
-        
-        if ($process.HasExited) {
-            Write-Error "App exited prematurely. Exit code: $($process.ExitCode)"
-            exit 1
+        # Wait for app to initialize and create a window
+        $timeout = 60
+        $elapsed = 0
+        while ($process.MainWindowHandle -eq 0 -and $elapsed -lt $timeout) {
+            if ($process.HasExited) {
+                Write-Error "App exited prematurely. Exit code: $($process.ExitCode)"
+                exit 1
+            }
+            Start-Sleep -Seconds 2
+            $elapsed += 2
+            $process.Refresh()
         }
+
+        if ($process.MainWindowHandle -eq 0) {
+             Write-Error "App failed to create a window within $timeout seconds."
+             $process.Kill()
+             exit 1
+        }
+        
+        Write-Host "App started. MainWindowHandle: $($process.MainWindowHandle)"
+        # Give it a bit more time to render content
+        Start-Sleep -Seconds 10
         
         $cliPath = $env:CLI_PATH
         Write-Host "Running AxeWindowsCLI from $cliPath against process $($process.Id)"
