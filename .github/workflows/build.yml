@@ -142,6 +142,8 @@ jobs:
   accessibility-check:
     if: github.event_name == 'pull_request' && github.head_ref == 'zhaopengwang/feature/add_accessibility_fastpass'
     runs-on: windows-2025
+    permissions:
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
