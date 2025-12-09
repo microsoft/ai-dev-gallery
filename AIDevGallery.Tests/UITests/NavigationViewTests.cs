@@ -514,7 +514,7 @@ public class NavigationViewTests : FlaUITestBase
                 break;
             }
             Console.WriteLine($"Waiting ({i + 1}/10)...");
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
         }
         Assert.IsNotNull(downloadableHeader, "DownloadableModelsTxt should be found");
 
