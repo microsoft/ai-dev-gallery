@@ -37,6 +37,16 @@
                     </StackPanel.ChildrenTransitions>-->
                     <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Model management" />
+                    <toolkit:SettingsCard
+                        Description="Reset model preferences and usage history"
+                        Header="Model configuration"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE7C3;}">
+                        <Button
+                            AutomationProperties.Name="Reset model config"
+                            Click="ResetModelConfig_Click"
+                            Content="Reset"
+                            ToolTipService.ToolTip="Reset model configuration" />
+                    </toolkit:SettingsCard>
                     <toolkit:SettingsExpander
                         x:Name="ModelsExpander"
                         AutomationProperties.AccessibilityView="Raw"
