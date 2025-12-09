@@ -24,8 +24,6 @@ internal sealed partial class MainWindow : WindowEx
 
     public MainWindow(object? obj = null)
     {
-        var test = 1;
-        test++;
         this.InitializeComponent();
         SetTitleBar();
         App.ModelDownloadQueue.ModelsChanged += DownloadQueue_ModelsChanged;
