@@ -171,6 +171,8 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
             await DescribeTheImage();
         }
+
+        LoadImageButton.Focus(FocusState.Programmatic);
     }
 
     private async void Button_Click(object sender, RoutedEventArgs e)

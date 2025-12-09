@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.Generic;
@@ -41,6 +42,28 @@ internal sealed partial class APISelectionPage : Page
         };
     }
 
+    private static string GetContentText(object? content)
+    {
+        return content switch
+        {
+            string s => s,
+            TextBlock tb => tb.Text,
+            _ => string.Empty
+        };
+    }
+
+    private static TextBlock CreateWrappedText(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            TextWrapping = TextWrapping.Wrap,
+            MaxLines = 3,
+            TextTrimming = TextTrimming.None,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+    }
+
     private void SetupAPIs()
     {
         if (ModelTypeHelpers.ParentMapping.TryGetValue(ModelType.WCRAPIs, out List<ModelType>? innerItems))
@@ -51,19 +74,19 @@ internal sealed partial class APISelectionPage : Page
                 {
                     if (!string.IsNullOrWhiteSpace(apiDefinition.Category))
                     {
-                        NavigationViewItem? existingItem = NavView.MenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => i.Content is string name && name == apiDefinition.Category);
+                        NavigationViewItem? existingItem = NavView.MenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => GetContentText(i.Content) == apiDefinition.Category);
 
                         if (existingItem == null)
                         {
-                            existingItem = new NavigationViewItem() { Content = apiDefinition.Category, Icon = new FontIcon() { Glyph = "\uF0E2" }, SelectsOnInvoked = false, IsExpanded = true };
+                            existingItem = new NavigationViewItem() { Content = CreateWrappedText(apiDefinition.Category), Icon = new FontIcon() { Glyph = "\uF0E2" }, SelectsOnInvoked = false, IsExpanded = true };
                             NavView.MenuItems.Add(existingItem);
                         }
 
-                        existingItem.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
+                        existingItem.MenuItems.Add(new NavigationViewItem() { Content = CreateWrappedText(apiDefinition.Name), Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
                     }
                     else
                     {
-                        NavView.MenuItems.Add(new NavigationViewItem() { Content = apiDefinition.Name, Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
+                        NavView.MenuItems.Add(new NavigationViewItem() { Content = CreateWrappedText(apiDefinition.Name), Icon = new FontIcon() { Glyph = apiDefinition.IconGlyph }, Tag = item });
                     }
                 }
             }
