@@ -8,12 +8,51 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Tests.UITests;
 
 [TestClass]
 public class PerformanceTests : FlaUITestBase
 {
+    /// <summary>
+    /// Cleans the test environment by resetting model configuration and clearing cache.
+    /// Uses direct API calls instead of UI automation for more reliable and faster cleanup.
+    /// </summary>
+    private async Task CleanTestEnvironmentAsync()
+    {
+        try
+        {
+            Console.WriteLine("Resetting model configuration...");
+            
+            // Clear usage history
+            AIDevGallery.App.AppData.UsageHistoryV2?.Clear();
+
+            // Clear user-added model mappings
+            AIDevGallery.App.AppData.ModelTypeToUserAddedModelsMapping?.Clear();
+
+            // Clear most recently used items
+            AIDevGallery.App.AppData.MostRecentlyUsedItems.Clear();
+
+            // Save AppData changes
+            await AIDevGallery.App.AppData.SaveAsync();
+            Console.WriteLine("Model configuration reset successfully");
+
+            // Clear cache
+            Console.WriteLine("Clearing cache...");
+            await AIDevGallery.App.ModelCache.ClearCache();
+            Console.WriteLine("Cache cleared successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Error during test environment cleanup: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            // Don't fail the test if cleanup has issues, just log it
+        }
+    }
+
     [TestMethod]
     [TestCategory("Performance")]
     [Description("Measures the time taken from application launch until the home page is fully loaded")]
@@ -135,5 +174,174 @@ public class PerformanceTests : FlaUITestBase
         Assert.IsNotNull(resultItem, "Search results did not appear");
 
         PerformanceCollector.Save();
+    }
+
+    [TestMethod]
+    [TestCategory("Performance")]
+    [Description("Measures the time taken from first sample item navigation to model selection button availability")]
+    public async Task Measure_ModelSelectionButton_LoadTime()
+    {
+        Assert.IsNotNull(MainWindow, "Main window should be initialized");
+        Assert.IsNotNull(App, "Application should be initialized");
+        
+        // Clean test environment before measuring performance
+        Console.WriteLine("=== Cleaning test environment ===");
+        await CleanTestEnvironmentAsync();
+        Console.WriteLine("Test environment cleaned successfully\n");
+        
+        PerformanceCollector.Clear();
+
+        var menuItemsHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
+        Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
+        var topLevelItems = menuItemsHost.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+        var samplesItem = topLevelItems.FirstOrDefault(item => item.Name == "Samples") ?? topLevelItems.ElementAtOrDefault(1);
+        Assert.IsNotNull(samplesItem, "Samples item should be found");
+        samplesItem.Click();
+        Thread.Sleep(1000);
+
+        var textItem = MainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem).And(cf.ByName("Text")));
+        Assert.IsNotNull(textItem, "Text list item should be found");
+        textItem.Click();
+        Thread.Sleep(1000);
+
+        // Get the first sample item under the Text category
+        var textItemChildren = textItem.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+        AutomationElement? firstSampleItem = null;
+        
+        if (textItemChildren.Length == 0)
+        {
+            var innerNavView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"))
+                ?.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
+            if (innerNavView != null)
+            {
+                var innerMenuHost = innerNavView.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
+                if (innerMenuHost != null)
+                {
+                    var allListItems = innerMenuHost.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+                    var categoryItems = innerMenuHost.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+                    firstSampleItem = allListItems.FirstOrDefault(item => 
+                        item != null && 
+                        categoryItems.All(cat => cat.AutomationId != item.AutomationId));
+                }
+            }
+        }
+        else
+        {
+            firstSampleItem = textItemChildren.FirstOrDefault();
+        }
+        
+        Assert.IsNotNull(firstSampleItem, "First sample item under Text category should be found");
+        Console.WriteLine($"Found first sample item: {firstSampleItem.Name}");
+
+        var stopwatch = Stopwatch.StartNew();
+        AutomationElement? modelButton = null;
+        var buttonDetected = new ManualResetEventSlim(false);
+        var eventHandlerLock = 0;
+
+        Action<AutomationElement, FlaUI.Core.Definitions.StructureChangeType, int[]> onStructureChanged = (sender, changeType, runtimeId) =>
+        {
+            if (modelButton != null || changeType != FlaUI.Core.Definitions.StructureChangeType.ChildAdded) return;
+            if (Interlocked.CompareExchange(ref eventHandlerLock, 1, 0) != 0) return;
+
+            try
+            {
+                var button = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
+                if (button != null && button.IsEnabled && !button.IsOffscreen)
+                {
+                    stopwatch.Stop();
+                    modelButton = button;
+                    buttonDetected.Set();
+                    Console.WriteLine($"[Event] Button detected at {stopwatch.ElapsedMilliseconds}ms");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Event] Exception: {ex.Message}");
+            }
+            finally
+            {
+                Interlocked.Exchange(ref eventHandlerLock, 0);
+            }
+        };
+
+        IDisposable? eventHandle = null;
+        try
+        {
+            eventHandle = MainWindow.RegisterStructureChangedEvent(FlaUI.Core.Definitions.TreeScope.Descendants, onStructureChanged);
+            if (eventHandle == null) Console.WriteLine("[Warning] Event registration failed, using polling fallback");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Warning] Event registration error: {ex.Message}");
+        }
+
+        try
+        {
+            firstSampleItem.Click();
+
+            var eventTriggered = buttonDetected.Wait(TimeSpan.FromSeconds(15));
+
+            if (!eventTriggered)
+            {
+                Console.WriteLine("[Fallback] Event timeout, polling for button");
+                for (int i = 0; i < 150; i++)
+                {
+                    var button = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
+                    if (button == null)
+                    {
+                        button = MainWindow.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))
+                            .FirstOrDefault(btn => btn.Name != null && btn.Name.Contains("Selected models", StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    if (button != null && button.IsEnabled && !button.IsOffscreen)
+                    {
+                        stopwatch.Stop();
+                        Console.WriteLine($"[Fallback] Button found at {stopwatch.ElapsedMilliseconds}ms");
+                        break;
+                    }
+                    Thread.Sleep(100);
+                }
+
+                if (stopwatch.IsRunning) stopwatch.Stop();
+                var fallbackButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
+                Assert.IsNotNull(fallbackButton, "Selected models button should appear within timeout");
+            }
+            else
+            {
+                Assert.IsNotNull(modelButton, "Event-detected button should not be null");
+            }
+
+            var elapsedMs = stopwatch.ElapsedMilliseconds;
+            Console.WriteLine($"Model selection button load time: {elapsedMs} ms");
+            
+            PerformanceCollector.Track("ModelSelectionButtonLoadTime", elapsedMs, "ms", new Dictionary<string, string>
+            {
+                { "From", "FirstSampleItem" },
+                { "To", "ModelSelectionButtonReady" },
+                { "Category", "Text" }
+            }, category: "PageLoad");
+            
+            if (elapsedMs > 10000)
+            {
+                Console.WriteLine($"[Warning] Loading time ({elapsedMs}ms) exceeds 10s threshold");
+            }
+
+            var memoryTracked = PerformanceCollector.TrackMemoryUsage(App.ProcessId, "MemoryUsage_ModelSelection", new Dictionary<string, string>
+            {
+                { "State", "AfterModelButtonLoad" }
+            }, category: "PageLoad");
+
+            if (!memoryTracked)
+            {
+                Console.WriteLine("WARNING: Memory tracking failed for model selection test");
+            }
+
+            PerformanceCollector.Save();
+        }
+        finally
+        {
+            eventHandle?.Dispose();
+            buttonDetected.Dispose();
+        }
     }
 }
