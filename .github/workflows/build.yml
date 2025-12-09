@@ -138,3 +138,80 @@ jobs:
       with:
         name: test-results-${{ matrix.dotnet-arch }}
         path: TestResults
+
+  accessibility-check:
+    if: github.event_name == 'pull_request' && github.head_ref == 'zhaopengwang/feature/add_accessibility_fastpass'
+    runs-on: windows-2025
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-x64 /p:Configuration=Release /p:Platform=x64 /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
+    - name: Build Utils
+      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
+    - name: Build App (Unpackaged)
+      run: |
+        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64 /p:SelfContainedIfPreviewWASDK=true /p:WindowsPackageType=None
+    - name: Download and Install Axe.Windows CLI
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        $url = "https://api.github.com/repos/microsoft/axe-windows/releases/tags/v2.4.2"
+        $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
+        $response = Invoke-RestMethod -Uri $url -Headers $headers
+        $asset = $response.assets | Where-Object { $_.name -like "*CLI*.zip" }
+        if ($asset) {
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "AxeWindowsCLI.zip"
+            Expand-Archive "AxeWindowsCLI.zip" -DestinationPath "AxeWindowsCLI"
+            echo "CLI_PATH=$PWD\AxeWindowsCLI\AxeWindowsCLI.exe" >> $env:GITHUB_ENV
+        } else {
+            Write-Error "Could not find AxeWindowsCLI zip asset"
+            exit 1
+        }
+    - name: Run Accessibility Check
+      shell: pwsh
+      run: |
+        $appPath = "AIDevGallery\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.exe"
+        if (-not (Test-Path $appPath)) {
+            Write-Error "App executable not found at $appPath"
+            exit 1
+        }
+        
+        Write-Host "Starting app from $appPath"
+        $process = Start-Process -FilePath $appPath -PassThru
+        
+        # Wait for app to initialize
+        Start-Sleep -Seconds 15
+        
+        if ($process.HasExited) {
+            Write-Error "App exited prematurely. Exit code: $($process.ExitCode)"
+            exit 1
+        }
+        
+        $cliPath = $env:CLI_PATH
+        Write-Host "Running AxeWindowsCLI from $cliPath against process $($process.Id)"
+        
+        New-Item -ItemType Directory -Force -Path "AxeOutput"
+        
+        & $cliPath --processId $process.Id --outputDirectory "AxeOutput" --verbosity default
+        
+        $process.Kill()
+        
+        if (Test-Path "AxeOutput\*.a11ytest") {
+            Write-Error "Accessibility issues found! Check the artifacts."
+            exit 1
+        } else {
+            Write-Host "No accessibility issues found."
+        }
+    - name: Upload Accessibility Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-results
+        path: AxeOutput
