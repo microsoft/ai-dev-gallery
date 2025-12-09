@@ -24,7 +24,7 @@
             <Image
                 x:Name="DefaultImage"
                 MaxWidth="800"
-                MaxHeight="500" />
+                MaxHeight="500"/>
         </Viewbox>
         <ProgressRing
             x:Name="Loader"
@@ -41,8 +41,11 @@
             <Button
                 x:Name="UploadButton"
                 Padding="8"
+                Margin="4"
                 AutomationProperties.Name="Select image"
                 Click="UploadButton_Click"
+                IsTabStop="True"
+                UseSystemFocusVisuals="True"
                 ToolTipService.ToolTip="Select image">
 
                 <FontIcon FontSize="16" Glyph="&#xEE71;" />
