@@ -246,32 +246,32 @@ internal sealed partial class ScenarioPage : Page
             selectedModels = [selectedModels[0], null];
         }
 
-        List<Sample> visableSamples = samples!.Where(s =>
+        List<Sample> viableSamples = samples!.Where(s =>
                 IsModelFromTypes(s.Model1Types, selectedModels[0]) &&
                 IsModelFromTypes(s.Model2Types, selectedModels[1])).ToList();
 
-        if (visableSamples.Count == 0)
+        if (viableSamples.Count == 0)
         {
             // this should never happen
             App.MainWindow.ModelPicker.Show(selectedModels);
             return;
         }
 
-        if (visableSamples.Count > 1)
+        if (viableSamples.Count > 1)
         {
             SampleSelection.Items.Clear();
-            foreach (var sample in visableSamples)
+            foreach (var sample in viableSamples)
             {
                 SampleSelection.Items.Add(sample);
             }
 
-            SampleSelection.SelectedItem = visableSamples[0];
+            SampleSelection.SelectedItem = viableSamples[0];
             SampleContainer.ShowFooter = true;
         }
         else
         {
             SampleContainer.ShowFooter = false;
-            LoadSample(visableSamples[0]);
+            LoadSample(viableSamples[0]);
         }
     }
 
