@@ -176,14 +176,15 @@ jobs:
             Write-Host "  - $($_.FullName)"
         }
         
-        $msixFiles = Get-ChildItem -Path $downloadPath -Filter "*.msix" -ErrorAction SilentlyContinue
+        # Search recursively for MSIX files
+        $msixFiles = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue
         if (-not $msixFiles) {
             Write-Error "No .msix files found in $downloadPath"
             exit 1
         }
         
         Write-Host "Found MSIX files: $($msixFiles.Count)"
-        $msixFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
+        $msixFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
       run: |
@@ -222,13 +223,13 @@ jobs:
       run: |
         $ErrorActionPreference = "Stop"
         
-        # Find MSIX from downloaded artifact
+        # Find MSIX from downloaded artifact (search recursively)
         $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
         Write-Host "Looking for MSIX in: $downloadPath"
         
-        $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+        $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
         if (-not $msixFile) { 
-            Write-Error "MSIX file not found in $downloadPath"
+            Write-Error "MSIX file not found in $downloadPath (recursive search)"
             Get-ChildItem -Path $downloadPath -Recurse | ForEach-Object { Write-Host "Found: $($_.FullName)" }
             exit 1 
         }
