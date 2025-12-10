@@ -57,15 +57,96 @@ public static class ModelInformationHelper
             return [];
         }
 
-        return files.Select(f =>
-            new ModelFileDetails()
+        var result = new List<ModelFileDetails>();
+
+        foreach (var f in files)
+        {
+            string? sha256 = null;
+
+            // Check if this is a Git LFS file by checking if download_url points to media.githubusercontent.com
+            // LFS files have their actual content stored separately and we need to get SHA256 from the LFS pointer
+#if NET8_0_OR_GREATER
+            if (f.DownloadUrl != null && f.DownloadUrl.Contains("media.githubusercontent.com", StringComparison.OrdinalIgnoreCase))
+#else
+            if (f.DownloadUrl != null && f.DownloadUrl.IndexOf("media.githubusercontent.com", StringComparison.OrdinalIgnoreCase) >= 0)
+#endif
+            {
+                // This is an LFS file - fetch the LFS pointer to get SHA256
+                sha256 = await GetLfsFileSha256Async(client, url, f.Path, cancellationToken);
+            }
+
+            result.Add(new ModelFileDetails()
             {
                 DownloadUrl = f.DownloadUrl,
                 Size = f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
                 Path = f.Path,
-                GitBlobSha1 = f.Sha
-            }).ToList();
+                Sha256 = sha256
+            });
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Retrieves the SHA256 hash from a Git LFS pointer file.
+    /// </summary>
+    /// <param name="client">The HTTP client to use.</param>
+    /// <param name="url">The GitHub URL.</param>
+    /// <param name="filePath">The path to the file in the repository.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The SHA256 hash if found, otherwise null.</returns>
+    private static async Task<string?> GetLfsFileSha256Async(HttpClient client, GitHubUrl url, string? filePath, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            // Fetch the raw LFS pointer file from raw.githubusercontent.com
+            var lfsPointerUrl = $"https://raw.githubusercontent.com/{url.Organization}/{url.Repo}/{url.Ref}/{filePath}";
+#if NET8_0_OR_GREATER
+            var lfsPointerContent = await client.GetStringAsync(lfsPointerUrl, cancellationToken);
+#else
+            var response = await client.GetAsync(lfsPointerUrl, cancellationToken);
+            var lfsPointerContent = await response.Content.ReadAsStringAsync();
+#endif
+
+            // Parse the LFS pointer format:
+            // version https://git-lfs.github.com/spec/v1
+            return ParseLfsPointerSha256(lfsPointerContent);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to get LFS pointer for {filePath}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Parses a Git LFS pointer file content to extract the SHA256 hash.
+    /// </summary>
+    /// <param name="lfsPointerContent">The content of the LFS pointer file.</param>
+    /// <returns>The SHA256 hash if found, otherwise null.</returns>
+    private static string? ParseLfsPointerSha256(string lfsPointerContent)
+    {
+        if (string.IsNullOrEmpty(lfsPointerContent))
+        {
+            return null;
+        }
+
+        var lines = lfsPointerContent.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("oid sha256:", StringComparison.OrdinalIgnoreCase))
+            {
+                return line.Substring("oid sha256:".Length).Trim();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

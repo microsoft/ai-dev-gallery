@@ -304,28 +304,14 @@ internal class OnnxModelDownload : ModelDownload
 
             foreach (var (filePath, fileDetails) in filesToVerify)
             {
-                bool verified;
-                string expectedHash;
-                string actualHash;
-
-                if (!string.IsNullOrEmpty(fileDetails.Sha256))
-                {
-                    // Hugging Face: use SHA256 of file content
-                    expectedHash = fileDetails.Sha256;
-                    actualHash = await ComputeSha256Async(filePath, cancellationToken);
-                    verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
-                }
-                else if (!string.IsNullOrEmpty(fileDetails.GitBlobSha1))
-                {
-                    // GitHub: use Git blob SHA-1 (includes "blob {size}\0" prefix)
-                    expectedHash = fileDetails.GitBlobSha1;
-                    actualHash = await ComputeGitBlobSha1Async(filePath, cancellationToken);
-                    verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
-                }
-                else
+                if (string.IsNullOrEmpty(fileDetails.Sha256))
                 {
                     continue;
                 }
+
+                var expectedHash = fileDetails.Sha256;
+                var actualHash = await ComputeSha256Async(filePath, cancellationToken);
+                var verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
 
                 if (!verified)
                 {
@@ -355,39 +341,6 @@ internal class OnnxModelDownload : ModelDownload
         var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
-
-    /// <summary>
-    /// Computes the Git blob SHA-1 hash of a file.
-    /// Git blob format: "blob {size}\0{content}".
-    /// </summary>
-    /// <remarks>
-    /// SHA-1 is used here because Git uses SHA-1 for blob hashing.
-    /// This is required for compatibility with GitHub's API which returns Git blob SHA-1 hashes.
-    /// </remarks>
-#pragma warning disable CA5350 // Do not use weak cryptographic algorithms - Git requires SHA-1 for blob hashing
-    private static async Task<string> ComputeGitBlobSha1Async(string filePath, CancellationToken cancellationToken)
-    {
-        var fileInfo = new FileInfo(filePath);
-        var header = System.Text.Encoding.ASCII.GetBytes($"blob {fileInfo.Length}\0");
-
-        using var sha1 = SHA1.Create();
-        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
-
-        // Create a combined stream with header + file content
-        sha1.TransformBlock(header, 0, header.Length, null, 0);
-
-        var buffer = new byte[81920];
-        int bytesRead;
-        while ((bytesRead = await stream.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
-        {
-            sha1.TransformBlock(buffer, 0, bytesRead, null, 0);
-        }
-
-        sha1.TransformFinalBlock([], 0, 0);
-
-        return Convert.ToHexString(sha1.Hash!).ToLowerInvariant();
-    }
-#pragma warning restore CA5350
 }
 
 internal class FoundryLocalModelDownload : ModelDownload
