@@ -152,9 +152,19 @@ internal partial class DownloadableModel : BaseModel
         return status == DownloadStatus.Canceled ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public static Visibility VisibleWhenDownloaded(DownloadStatus status)
+    public static Visibility VisibleWhenDownloaded(DownloadStatus status, ModelDetails modelDetails)
     {
-        return status == DownloadStatus.Completed ? Visibility.Visible : Visibility.Collapsed;
+        if (status != DownloadStatus.Completed)
+        {
+            return Visibility.Collapsed;
+        }
+
+        if (modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.FOUNDRYLOCAL))
+        {
+            return Visibility.Collapsed;
+        }
+
+        return Visibility.Visible;
     }
 
     public static Visibility BoolToVisibilityInverse(bool value)
