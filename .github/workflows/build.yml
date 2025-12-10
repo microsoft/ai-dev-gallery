@@ -240,6 +240,25 @@ jobs:
         Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
         Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
         
+        # Ensure makeappx.exe is available
+        $sdkPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64"
+        if (-not (Test-Path $sdkPath)) {
+            # Try alternative path
+            $sdkPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64"
+        }
+        if (Test-Path $sdkPath) {
+            $env:Path = "$sdkPath;$env:Path"
+            Write-Host "Added SDK path to PATH: $sdkPath"
+        }
+        
+        # Verify makeappx.exe is available
+        $makeappx = Get-Command makeappx.exe -ErrorAction SilentlyContinue
+        if (-not $makeappx) {
+            Write-Error "makeappx.exe not found. Windows SDK tools may not be installed."
+            exit 1
+        }
+        Write-Host "Found makeappx.exe at: $($makeappx.Source)"
+        
         # Unpack MSIX
         $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
         if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
