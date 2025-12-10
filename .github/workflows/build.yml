@@ -158,9 +158,16 @@ jobs:
       run: dotnet restore AIDevGallery.sln -r win-x64 /p:Configuration=Release /p:Platform=x64 /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build Utils
       run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-    - name: Build App (Unpackaged)
+    - name: Generate Certificate
+      shell: pwsh
       run: |
-        dotnet publish AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:SelfContainedIfPreviewWASDK=true /p:WindowsPackageType=None
+        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=nikolame" -KeyUsage DigitalSignature -FriendlyName "AIDevGallery_TempCert" -CertStoreLocation "Cert:\LocalMachine\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        $password = ConvertTo-SecureString -String "password" -Force -AsPlainText
+        Export-PfxCertificate -Cert $cert -FilePath "TempCert.pfx" -Password $password
+        echo "PFX_PATH=$PWD\TempCert.pfx" >> $env:GITHUB_ENV
+    - name: Build App (MSIX)
+      run: |
+        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:PackageCertificateKeyFile="${{ env.PFX_PATH }}" /p:PackageCertificatePassword="password" /p:AppxPackageSigningEnabled=true
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
       env:
@@ -178,50 +185,78 @@ jobs:
             Write-Error "Could not find AxeWindowsCLI zip asset"
             exit 1
         }
-    - name: Run Accessibility Check
+    - name: Install and Run Accessibility Check
       shell: pwsh
       run: |
-        $appPath = "AIDevGallery\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish\AIDevGallery.exe"
-        if (-not (Test-Path $appPath)) {
-            Write-Error "App executable not found at $appPath"
-            exit 1
+        # Find MSIX
+        $testDir = Get-ChildItem -Path "AIDevGallery\AppPackages" -Filter "*_Test" -Directory | Select-Object -First 1
+        if (-not $testDir) { Write-Error "Test directory not found"; exit 1 }
+        
+        $msixFile = Get-ChildItem -Path $testDir.FullName -Filter "*.msix" | Select-Object -First 1
+        if (-not $msixFile) { Write-Error "MSIX file not found"; exit 1 }
+        
+        # Cleanup previous install
+        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        
+        # Unpack MSIX
+        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
+        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
+        Write-Host "Unpacking MSIX to $unpackedDir..."
+        Expand-Archive -Path $msixFile.FullName -DestinationPath $unpackedDir -Force
+        
+        # Register Manifest
+        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
+        Write-Host "Registering AppxManifest.xml from $manifestPath..."
+        Add-AppxPackage -Register $manifestPath
+        
+        # Launch App
+        # Identity Name: e7af07c0-77d2-43e5-ab82-9cdb9daa11b3
+        $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
+        if (-not $package) { 
+             $package = Get-AppxPackage | Where-Object { $_.PackageFamilyName -like "*e7af07c0*" } | Select-Object -First 1
         }
+        if (-not $package) { Write-Error "Package not found after installation"; exit 1 }
         
-        Write-Host "Starting app from $appPath"
-        $process = Start-Process -FilePath $appPath -PassThru
+        $pfn = $package.PackageFamilyName
+        $aumid = "$pfn!App"
         
-        # Wait for app to initialize and create a window
+        Write-Host "Launching $aumid"
+        Start-Process -FilePath "shell:AppsFolder\$aumid"
+        
+        # Wait for app to initialize
         $timeout = 60
         $elapsed = 0
-        while ($process.MainWindowHandle -eq 0 -and $elapsed -lt $timeout) {
-            if ($process.HasExited) {
-                Write-Error "App exited prematurely. Exit code: $($process.ExitCode)"
-                exit 1
+        $appProcess = $null
+        
+        while ($elapsed -lt $timeout) {
+            $appProcess = Get-Process -Name "AIDevGallery" -ErrorAction SilentlyContinue
+            if ($appProcess -and $appProcess.MainWindowHandle -ne 0) {
+                break
             }
             Start-Sleep -Seconds 2
             $elapsed += 2
-            $process.Refresh()
         }
 
-        if ($process.MainWindowHandle -eq 0) {
-             Write-Error "App failed to create a window within $timeout seconds."
-             $process.Kill()
+        if (-not $appProcess -or $appProcess.MainWindowHandle -eq 0) {
+             Write-Error "App failed to start or create a window within $timeout seconds."
+             if ($appProcess) { $appProcess.Kill() }
              exit 1
         }
         
-        Write-Host "App started. MainWindowHandle: $($process.MainWindowHandle)"
+        Write-Host "App started. ProcessId: $($appProcess.Id) MainWindowHandle: $($appProcess.MainWindowHandle)"
         # Give it a bit more time to render content
         Start-Sleep -Seconds 10
         
         $cliPath = $env:CLI_PATH
-        Write-Host "Running AxeWindowsCLI from $cliPath against process $($process.Id)"
+        Write-Host "Running AxeWindowsCLI from $cliPath against process $($appProcess.Id)"
         
         $outputDir = Join-Path $PWD "AxeOutput"
         New-Item -ItemType Directory -Force -Path $outputDir
         
-        & $cliPath --processId $process.Id --outputDirectory $outputDir --verbosity default
+        & $cliPath --processId $appProcess.Id --outputDirectory $outputDir --verbosity default
         
-        $process.Kill()
+        $appProcess.Kill()
         
         if (Test-Path "AxeOutput\*.a11ytest") {
             Write-Error "Accessibility issues found! Check the artifacts."
