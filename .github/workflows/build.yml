@@ -273,11 +273,19 @@ jobs:
         $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
         Write-Host "Registering AppxManifest.xml from $manifestPath..."
         try {
-            Add-AppxPackage -Register $manifestPath -AllowUnsigned
+            # Use Register mode with the manifest path
+            Add-AppxPackage -Register $manifestPath
             Write-Host "Package registered successfully."
         } catch {
-            Write-Error "Failed to register AppX package: $_"
-            exit 1
+            Write-Host "First registration attempt failed, trying alternative method..."
+            try {
+                # Alternative: Register using the parent directory
+                Add-AppxPackage -Register (Join-Path $unpackedDir "AppxManifest.xml") -ForceUpdateFromAnyVersion -ErrorAction Stop
+                Write-Host "Package registered successfully with ForceUpdateFromAnyVersion."
+            } catch {
+                Write-Error "Failed to register AppX package: $_"
+                exit 1
+            }
         }
         
         # Launch App
