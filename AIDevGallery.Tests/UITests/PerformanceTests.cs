@@ -26,7 +26,7 @@ public class PerformanceTests : FlaUITestBase
         try
         {
             Console.WriteLine("Resetting model configuration...");
-            
+
             // Clear usage history
             AIDevGallery.App.AppData.UsageHistoryV2?.Clear();
 
@@ -49,6 +49,7 @@ public class PerformanceTests : FlaUITestBase
         {
             Console.WriteLine($"Warning: Error during test environment cleanup: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
             // Don't fail the test if cleanup has issues, just log it
         }
     }
@@ -183,12 +184,12 @@ public class PerformanceTests : FlaUITestBase
     {
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         Assert.IsNotNull(App, "Application should be initialized");
-        
+
         // Clean test environment before measuring performance
         Console.WriteLine("=== Cleaning test environment ===");
         await CleanTestEnvironmentAsync();
         Console.WriteLine("Test environment cleaned successfully\n");
-        
+
         PerformanceCollector.Clear();
 
         var menuItemsHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
@@ -207,7 +208,7 @@ public class PerformanceTests : FlaUITestBase
         // Get the first sample item under the Text category
         var textItemChildren = textItem.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
         AutomationElement? firstSampleItem = null;
-        
+
         if (textItemChildren.Length == 0)
         {
             var innerNavView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"))
@@ -219,8 +220,8 @@ public class PerformanceTests : FlaUITestBase
                 {
                     var allListItems = innerMenuHost.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
                     var categoryItems = innerMenuHost.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
-                    firstSampleItem = allListItems.FirstOrDefault(item => 
-                        item != null && 
+                    firstSampleItem = allListItems.FirstOrDefault(item =>
+                        item != null &&
                         categoryItems.All(cat => cat.AutomationId != item.AutomationId));
                 }
             }
@@ -229,7 +230,7 @@ public class PerformanceTests : FlaUITestBase
         {
             firstSampleItem = textItemChildren.FirstOrDefault();
         }
-        
+
         Assert.IsNotNull(firstSampleItem, "First sample item under Text category should be found");
         Console.WriteLine($"Found first sample item: {firstSampleItem.Name}");
 
@@ -240,8 +241,15 @@ public class PerformanceTests : FlaUITestBase
 
         Action<AutomationElement, FlaUI.Core.Definitions.StructureChangeType, int[]> onStructureChanged = (sender, changeType, runtimeId) =>
         {
-            if (modelButton != null || changeType != FlaUI.Core.Definitions.StructureChangeType.ChildAdded) return;
-            if (Interlocked.CompareExchange(ref eventHandlerLock, 1, 0) != 0) return;
+            if (modelButton != null || changeType != FlaUI.Core.Definitions.StructureChangeType.ChildAdded)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref eventHandlerLock, 1, 0) != 0)
+            {
+                return;
+            }
 
             try
             {
@@ -268,7 +276,10 @@ public class PerformanceTests : FlaUITestBase
         try
         {
             eventHandle = MainWindow.RegisterStructureChangedEvent(FlaUI.Core.Definitions.TreeScope.Descendants, onStructureChanged);
-            if (eventHandle == null) Console.WriteLine("[Warning] Event registration failed, using polling fallback");
+            if (eventHandle == null)
+            {
+                Console.WriteLine("[Warning] Event registration failed, using polling fallback");
+            }
         }
         catch (Exception ex)
         {
@@ -299,10 +310,15 @@ public class PerformanceTests : FlaUITestBase
                         Console.WriteLine($"[Fallback] Button found at {stopwatch.ElapsedMilliseconds}ms");
                         break;
                     }
+
                     Thread.Sleep(100);
                 }
 
-                if (stopwatch.IsRunning) stopwatch.Stop();
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
                 var fallbackButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
                 Assert.IsNotNull(fallbackButton, "Selected models button should appear within timeout");
             }
@@ -313,14 +329,14 @@ public class PerformanceTests : FlaUITestBase
 
             var elapsedMs = stopwatch.ElapsedMilliseconds;
             Console.WriteLine($"Model selection button load time: {elapsedMs} ms");
-            
+
             PerformanceCollector.Track("ModelSelectionButtonLoadTime", elapsedMs, "ms", new Dictionary<string, string>
             {
                 { "From", "FirstSampleItem" },
                 { "To", "ModelSelectionButtonReady" },
                 { "Category", "Text" }
             }, category: "PageLoad");
-            
+
             if (elapsedMs > 10000)
             {
                 Console.WriteLine($"[Warning] Loading time ({elapsedMs}ms) exceeds 10s threshold");

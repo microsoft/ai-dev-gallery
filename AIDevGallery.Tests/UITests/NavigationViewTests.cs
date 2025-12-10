@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics;
 
 namespace AIDevGallery.Tests.UITests;
 
@@ -45,12 +44,13 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine($"  2. Find and attach to: AIDevGallery.exe (PID: {App?.ProcessId})");
         Console.WriteLine();
         Console.WriteLine("Waiting 20 seconds for debugger attachment...");
-        
+
         for (int i = 20; i > 0; i--)
         {
             Console.Write($"\r{i} seconds remaining... ");
             Thread.Sleep(1000);
         }
+
         Console.WriteLine("\nContinuing test execution...");
     }
 
@@ -62,10 +62,9 @@ public class NavigationViewTests : FlaUITestBase
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
-        
+
         // Wait for debugger attachment if needed
         // WaitForDebuggerAttachment();
-        
         Console.WriteLine("Starting test: Click Samples navigation item");
 
         // Wait a moment for the UI to fully render
@@ -98,7 +97,7 @@ public class NavigationViewTests : FlaUITestBase
 
         // Find the "Samples" list item by name from top-level items only
         Console.WriteLine("\nSearching for 'Samples' ListItem by name...");
-        var samplesItem = topLevelListItems.FirstOrDefault(item => 
+        var samplesItem = topLevelListItems.FirstOrDefault(item =>
             item.Name == "Samples");
 
         // If not found by name, try to get the second list item (index 1)
@@ -125,7 +124,7 @@ public class NavigationViewTests : FlaUITestBase
 
         // Assert - Verify the navigation occurred
         Console.WriteLine("Verifying navigation...");
-        
+
         // Check if the item is selected
         var isSelected = false;
         try
@@ -149,7 +148,7 @@ public class NavigationViewTests : FlaUITestBase
         // Verify the navigation frame exists
         var frameContent = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavFrame"));
         Assert.IsNotNull(frameContent, "Navigation frame should exist after navigation");
-        
+
         Console.WriteLine("✓ Navigation test completed successfully");
     }
 
@@ -178,22 +177,22 @@ public class NavigationViewTests : FlaUITestBase
             .ToArray();
 
         Console.WriteLine($"Found {navigationItems.Length} enabled navigation items");
-        
+
         Assert.IsTrue(navigationItems.Length > 0, "Should have at least one navigation item");
 
         // Click each item
         foreach (var item in navigationItems)
         {
             Console.WriteLine($"\nClicking navigation item: {item.Name}");
-            
+
             try
             {
                 item.Click();
                 Thread.Sleep(1000);
-                
+
                 var screenshotName = $"NavigationView_Item_{item.Name?.Replace(" ", "_") ?? "Unknown"}";
                 TakeScreenshot(screenshotName);
-                
+
                 Console.WriteLine($"Successfully clicked: {item.Name}");
             }
             catch (Exception ex)
@@ -220,7 +219,7 @@ public class NavigationViewTests : FlaUITestBase
 
         // Act - Find the NavigationView
         var navigationView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
-        
+
         if (navigationView == null)
         {
             navigationView = MainWindow.FindFirstDescendant(cf =>
@@ -257,12 +256,12 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine("\n=== ContentPresenter Elements ===");
         var contentPresenters = navigationView.FindAllDescendants(cf => cf.ByClassName("ContentPresenter"));
         Console.WriteLine($"Found {contentPresenters.Length} ContentPresenter elements");
-        
+
         foreach (var presenter in contentPresenters.Take(10))
         {
             var bounds = presenter.BoundingRectangle;
             Console.WriteLine($"  - AutomationId: {presenter.AutomationId}, Position: ({bounds.X}, {bounds.Y}), Size: {bounds.Width}x{bounds.Height}");
-            
+
             // Try to find text content
             var textElements = presenter.FindAllDescendants(cf => cf.ByControlType(ControlType.Text));
             if (textElements.Length > 0)
@@ -303,13 +302,13 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine($"Found {footerItems.Length} footer items");
 
         var settingsNavItem = footerItems.FirstOrDefault(item => item.Name == "Settings");
-        
+
         if (settingsNavItem == null)
         {
             Console.WriteLine("Settings item not found by name, trying index 1...");
             settingsNavItem = footerItems.ElementAtOrDefault(1);
         }
-        
+
         Assert.IsNotNull(settingsNavItem, "Settings item should be found");
         Assert.AreEqual("Settings", settingsNavItem.Name, "Item should be named 'Settings'");
 
@@ -327,7 +326,7 @@ public class NavigationViewTests : FlaUITestBase
 
         var clearCacheBtn = MainWindow.FindFirstDescendant(cf =>
             cf.ByControlType(ControlType.Button).And(cf.ByName("Clear cache")));
-        
+
         if (clearCacheBtn == null)
         {
             Console.WriteLine("Clear cache button not found - skipping");
@@ -343,9 +342,9 @@ public class NavigationViewTests : FlaUITestBase
         TakeScreenshot("Settings_ClearCacheDialog");
 
         var confirmBtn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("PrimaryButton"))
-                        ?? MainWindow.FindFirstDescendant(cf => 
+                        ?? MainWindow.FindFirstDescendant(cf =>
                             cf.ByControlType(ControlType.Button).And(cf.ByName("Yes")));
-        
+
         if (confirmBtn == null)
         {
             Console.WriteLine("Confirmation button not found");
@@ -376,7 +375,7 @@ public class NavigationViewTests : FlaUITestBase
     Uses screenshots at key checkpoints for debugging test failures.
     
     Goal: Verify critical user workflow remains functional across releases. Catches regressions in navigation flow, model catalog loading,
-    and download UI. Essential for validating model management features.")] 
+    and download UI. Essential for validating model management features.")]
     public void NavigationView_DownloadFoundryLocalModel()
     {
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -397,14 +396,14 @@ public class NavigationViewTests : FlaUITestBase
         var innerNavView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"))
             ?.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
         Assert.IsNotNull(innerNavView, "Inner NavView should be found");
-        
+
         var innerMenuHost = innerNavView.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
         Assert.IsNotNull(innerMenuHost, "Inner MenuItemsHost should be found");
-        
+
         var categoryItems = innerMenuHost.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
         var textCategory = categoryItems.FirstOrDefault(item => item.Name == "Text");
         Assert.IsNotNull(textCategory, "Text list item should be found");
-        
+
         try
         {
             textCategory.Click();
@@ -418,19 +417,19 @@ public class NavigationViewTests : FlaUITestBase
         // Get the first sample item under the Text category
         var textCategoryChildren = textCategory.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
         AutomationElement? firstSampleItem = null;
-        
+
         if (textCategoryChildren.Length == 0)
         {
             var sampleItemsList = innerMenuHost.FindAllDescendants(cf => cf.ByControlType(ControlType.ListItem));
-            firstSampleItem = sampleItemsList.FirstOrDefault(item => 
-                item != null && 
+            firstSampleItem = sampleItemsList.FirstOrDefault(item =>
+                item != null &&
                 categoryItems.All(cat => cat.AutomationId != item.AutomationId));
         }
         else
         {
             firstSampleItem = textCategoryChildren.FirstOrDefault();
         }
-        
+
         Assert.IsNotNull(firstSampleItem, "First sample item under Text category should be found");
         Console.WriteLine($"Found first sample item: {firstSampleItem.Name}");
         TakeScreenshot("DownloadModel_FirstSampleOpened");
@@ -438,10 +437,10 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine("=== Step 3: Open Model Selection ===");
         firstSampleItem.Click();
         Thread.Sleep(5000);
-        
+
         // Check if modelTypeSelector already exists
         var modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
-        
+
         if (modelTypeSelector == null)
         {
             // modelTypeSelector not found, need to click ModelBtn to open it
@@ -451,11 +450,12 @@ public class NavigationViewTests : FlaUITestBase
                 var buttons = MainWindow.FindAllDescendants(cf => cf.ByControlType(ControlType.Button));
                 modelButton = buttons.FirstOrDefault(btn => btn.Name != null && btn.Name.Contains("Selected models", StringComparison.OrdinalIgnoreCase));
             }
+
             Assert.IsNotNull(modelButton, "Selected models button should be found");
             modelButton.Click();
             Thread.Sleep(1000);
             TakeScreenshot("DownloadModel_ModelSelectionOpened");
-            
+
             // Try to find modelTypeSelector again after clicking
             modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
         }
@@ -473,15 +473,20 @@ public class NavigationViewTests : FlaUITestBase
         try
         {
             if (foundryLocalOption.Patterns.SelectionItem.IsSupported)
+            {
                 foundryLocalOption.Patterns.SelectionItem.Pattern.Select();
+            }
             else
+            {
                 foundryLocalOption.Click();
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Selection fallback: {ex.Message}");
             foundryLocalOption.Click();
         }
+
         Thread.Sleep(1000);
 
         try
@@ -501,6 +506,7 @@ public class NavigationViewTests : FlaUITestBase
         {
             Console.WriteLine($"Verification skipped: {ex.Message}");
         }
+
         TakeScreenshot("DownloadModel_FoundryLocalSelected");
 
         Console.WriteLine("=== Step 5: Find Available Model ===");
@@ -513,9 +519,11 @@ public class NavigationViewTests : FlaUITestBase
                 Console.WriteLine("✓ Models section loaded");
                 break;
             }
+
             Console.WriteLine($"Waiting ({i + 1}/10)...");
             Thread.Sleep(500);
         }
+
         Assert.IsNotNull(downloadableHeader, "DownloadableModelsTxt should be found");
 
         var modelsContainer = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelsView"));
@@ -532,9 +540,13 @@ public class NavigationViewTests : FlaUITestBase
             try
             {
                 if (child.Properties.AutomationId.IsSupported)
+                {
                     automationId = child.AutomationId;
+                }
             }
-            catch { }
+            catch
+            {
+            }
 
             if (automationId == "DownloadableModelsTxt")
             {
@@ -562,7 +574,9 @@ public class NavigationViewTests : FlaUITestBase
                             }
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
 
                 if (targetModelName != null)
@@ -573,9 +587,13 @@ public class NavigationViewTests : FlaUITestBase
                         try
                         {
                             if (button.Properties.Name.IsSupported)
+                            {
                                 buttonName = button.Name;
+                            }
                         }
-                        catch { }
+                        catch
+                        {
+                        }
 
                         if (buttonName == targetModelName && buttonName != "More info")
                         {
@@ -587,9 +605,13 @@ public class NavigationViewTests : FlaUITestBase
                     }
                 }
 
-                if (downloadButton != null) break;
+                if (downloadButton != null)
+                {
+                    break;
+                }
             }
         }
+
         Assert.IsNotNull(downloadButton, "First available model button should be found");
         TakeScreenshot("DownloadModel_BeforeClick");
 
@@ -610,9 +632,14 @@ public class NavigationViewTests : FlaUITestBase
         try
         {
             if (variantDownloadButton.Properties.Name.IsSupported)
+            {
                 variantName = variantDownloadButton.Name;
+            }
         }
-        catch { }
+        catch
+        {
+        }
+
         Console.WriteLine($"✓ Selecting variant: {variantName}");
 
         variantDownloadButton.Click();

@@ -52,9 +52,9 @@ public class Measurement
 
 /// <summary>
 /// Performance metrics collector for tracking timing and memory usage during tests.
-/// 
+///
 /// Usage examples:
-/// 
+///
 /// 1. Manual timing with Stopwatch:
 /// <code>
 ///   var sw = Stopwatch.StartNew();
@@ -62,7 +62,7 @@ public class Measurement
 ///   sw.Stop();
 ///   PerformanceCollector.Track("OperationTime", sw.ElapsedMilliseconds, "ms");
 /// </code>
-/// 
+///
 /// 2. Automatic timing with using statement:
 /// <code>
 ///   using (PerformanceCollector.BeginTiming("OperationTime"))
@@ -70,7 +70,7 @@ public class Measurement
 ///       // ... perform operation ...
 ///   } // Time automatically recorded here
 /// </code>
-/// 
+///
 /// 3. Memory tracking:
 /// <code>
 ///   PerformanceCollector.TrackMemoryUsage(processId, "MemoryUsage_Startup");
@@ -173,19 +173,19 @@ public static class PerformanceCollector
         {
             Console.WriteLine($"Attempting to measure memory for process ID: {processId}");
             var process = Process.GetProcessById(processId);
-            
+
             // Refresh process info to get latest memory values
             process.Refresh();
-            
+
             var memoryMB = process.PrivateMemorySize64 / 1024.0 / 1024.0;
             var workingSetMB = process.WorkingSet64 / 1024.0 / 1024.0;
 
             Track(metricName, memoryMB, "MB", tags, category);
             Console.WriteLine($"{metricName}: {memoryMB:F2} MB (Private), {workingSetMB:F2} MB (Working Set)");
-            
+
             // Also track working set as a separate metric
             Track($"{metricName}_WorkingSet", workingSetMB, "MB", tags, category);
-            
+
             return true;
         }
         catch (Exception ex)

@@ -404,4 +404,3 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
         Assert.IsTrue(true, "Element search test completed");
     }
 }
-

@@ -26,6 +26,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Gets the path to the AIDevGallery executable.
     /// </summary>
+    /// <returns></returns>
     protected virtual string GetApplicationPath()
     {
         var solutionDir = FindSolutionDirectory();
@@ -417,6 +418,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Waits for an element to appear with the specified automation ID.
     /// </summary>
+    /// <returns></returns>
     protected IUIAutomationElement? WaitForElement(string automationId, TimeSpan timeout)
     {
         if (MainWindow == null || Automation == null)
@@ -450,6 +452,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Gets all descendant elements.
     /// </summary>
+    /// <returns></returns>
     protected IUIAutomationElement[] GetAllDescendants()
     {
         if (MainWindow == null || Automation == null)
@@ -522,4 +525,3 @@ public abstract class NativeUIA3TestBase
         }
     }
 }
-
