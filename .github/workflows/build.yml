@@ -140,6 +140,7 @@ jobs:
         path: TestResults
 
   accessibility-check:
+    needs: build
     if: github.event_name == 'pull_request'
     runs-on: windows-2025
     permissions:
@@ -154,28 +155,42 @@ jobs:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
-    - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-x64 /p:Configuration=Release /p:Platform=x64 /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
-    - name: Build Utils
-      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-    - name: Build App (MSIX)
-      run: |
-        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:AppxPackageSigningEnabled=false
+    - name: Download MSIX Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MSIX-x64
+        path: ./DownloadedMSIX
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         $url = "https://api.github.com/repos/microsoft/axe-windows/releases/tags/v2.4.2"
-        $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
-        $response = Invoke-RestMethod -Uri $url -Headers $headers
-        $asset = $response.assets | Where-Object { $_.name -like "*CLI*.zip" }
-        if ($asset) {
-            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "AxeWindowsCLI.zip"
-            Expand-Archive "AxeWindowsCLI.zip" -DestinationPath "AxeWindowsCLI"
-            echo "CLI_PATH=$PWD\AxeWindowsCLI\AxeWindowsCLI.exe" >> $env:GITHUB_ENV
-        } else {
-            Write-Error "Could not find AxeWindowsCLI zip asset"
+        try {
+            Write-Host "Fetching Axe.Windows CLI release info from $url..."
+            $response = Invoke-RestMethod -Uri $url -ErrorAction Stop
+            $asset = $response.assets | Where-Object { $_.name -like "*CLI*.zip" } | Select-Object -First 1
+            
+            if (-not $asset) {
+                Write-Error "Could not find AxeWindowsCLI zip asset in release"
+                exit 1
+            }
+            
+            Write-Host "Downloading $($asset.name)..."
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "AxeWindowsCLI.zip" -ErrorAction Stop
+            
+            Write-Host "Extracting AxeWindowsCLI.zip..."
+            Expand-Archive "AxeWindowsCLI.zip" -DestinationPath "AxeWindowsCLI" -Force
+            
+            # Verify the executable exists
+            $cliExe = Join-Path (Get-Location) "AxeWindowsCLI\AxeWindowsCLI.exe"
+            if (-not (Test-Path $cliExe)) {
+                Write-Error "AxeWindowsCLI.exe not found at expected path: $cliExe"
+                exit 1
+            }
+            
+            echo "CLI_PATH=$cliExe" >> $env:GITHUB_ENV
+            Write-Host "CLI_PATH set to: $cliExe"
+        } catch {
+            Write-Error "Failed to download or setup Axe.Windows CLI: $_"
             exit 1
         }
     - name: Install and Run Accessibility Check
@@ -183,12 +198,9 @@ jobs:
       run: |
         $ErrorActionPreference = "Stop"
         
-        # Find MSIX
-        $testDir = Get-ChildItem -Path "AIDevGallery\AppPackages" -Filter "*_Test" -Directory | Select-Object -First 1
-        if (-not $testDir) { Write-Error "Test directory not found"; exit 1 }
-        
-        $msixFile = Get-ChildItem -Path $testDir.FullName -Filter "*.msix" | Select-Object -First 1
-        if (-not $msixFile) { Write-Error "MSIX file not found"; exit 1 }
+        # Find MSIX from downloaded artifact
+        $msixFile = Get-ChildItem -Path ".\DownloadedMSIX" -Filter "*.msix" | Select-Object -First 1
+        if (-not $msixFile) { Write-Error "MSIX file not found in downloaded artifact"; exit 1 }
         
         # Cleanup previous install
         Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
@@ -198,12 +210,22 @@ jobs:
         $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
         if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
         Write-Host "Unpacking MSIX to $unpackedDir..."
-        Expand-Archive -Path $msixFile.FullName -DestinationPath $unpackedDir -Force
+        & makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to unpack MSIX file (Exit Code: $LASTEXITCODE)."
+            exit 1
+        }
         
         # Register Manifest
         $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
         Write-Host "Registering AppxManifest.xml from $manifestPath..."
-        Add-AppxPackage -Register $manifestPath
+        try {
+            Add-AppxPackage -Register $manifestPath -AllowUnsigned
+            Write-Host "Package registered successfully."
+        } catch {
+            Write-Error "Failed to register AppX package: $_"
+            exit 1
+        }
         
         # Launch App
         # Identity Name: e7af07c0-77d2-43e5-ab82-9cdb9daa11b3
@@ -247,22 +269,27 @@ jobs:
         Write-Host "Running AxeWindowsCLI from $cliPath against process $($appProcess.Id)"
         
         $outputDir = Join-Path $PWD "AxeOutput"
-        New-Item -ItemType Directory -Force -Path $outputDir
+        New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
         
+        Write-Host "Running accessibility scan with output directory: $outputDir"
         & $cliPath --processId $appProcess.Id --outputDirectory $outputDir --verbosity default
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "AxeWindowsCLI tool failed to run correctly (Exit Code: $LASTEXITCODE)."
-            $appProcess.Kill()
-            exit 1
-        }
+        $cliExitCode = $LASTEXITCODE
         
         $appProcess.Kill()
         
-        if (Test-Path "AxeOutput\*.a11ytest") {
-            Write-Error "Accessibility issues found! Check the artifacts."
+        # Check for accessibility issues
+        $issueFiles = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -ErrorAction SilentlyContinue
+        if ($issueFiles) {
+            Write-Error "Accessibility issues found! Check the artifacts for details."
             exit 1
         } else {
             Write-Host "No accessibility issues found."
+        }
+        
+        # Check if CLI execution failed
+        if ($cliExitCode -ne 0) {
+            Write-Error "AxeWindowsCLI tool failed to run correctly (Exit Code: $cliExitCode)."
+            exit 1
         }
     - name: Upload Accessibility Results
       if: always()
@@ -270,3 +297,5 @@ jobs:
       with:
         name: accessibility-results
         path: AxeOutput
+        if-no-files-found: warn
+        retention-days: 7
