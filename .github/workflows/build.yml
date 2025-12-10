@@ -309,20 +309,58 @@ jobs:
         & $cliPath --processId $appProcess.Id --outputDirectory $outputDir --verbosity default
         $cliExitCode = $LASTEXITCODE
         
+        # Save process ID before killing the process
+        $appProcessId = $appProcess.Id
         $appProcess.Kill()
+        
+        # Generate accessibility report summary
+        $reportFile = Join-Path $outputDir "AccessibilityReport.txt"
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+        $reportContent = "================================`n"
+        $reportContent += "AI Dev Gallery Accessibility Check Report`n"
+        $reportContent += "================================`n"
+        $reportContent += "Generated: $timestamp`n"
+        $reportContent += "Application: AIDevGallery`n"
+        $reportContent += "Process ID: $appProcessId`n"
+        $reportContent += "CLI Version: Axe.Windows 2.4.2`n"
         
         # Check for accessibility issues
         $issueFiles = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -ErrorAction SilentlyContinue
         if ($issueFiles) {
-            Write-Error "Accessibility issues found! Check the artifacts for details."
-            exit 1
+            Write-Host "Found $($issueFiles.Count) accessibility issue file(s)"
+            $reportContent += "Status: FAILED - Accessibility issues detected`n"
+            $reportContent += "Issue Files:`n"
+            $issueFiles | ForEach-Object {
+                $reportContent += "  - $($_.Name)`n"
+            }
+            $reportContent += "`nPlease review the detailed issue files for more information.`n"
         } else {
             Write-Host "No accessibility issues found."
+            $reportContent += "Status: PASSED - No accessibility issues detected`n"
+            $reportContent += "`nAll accessibility checks completed successfully.`n"
         }
         
         # Check if CLI execution failed
         if ($cliExitCode -ne 0) {
+            $reportContent += "`nCLI Execution Status: FAILED (Exit Code: $cliExitCode)`n"
             Write-Error "AxeWindowsCLI tool failed to run correctly (Exit Code: $cliExitCode)."
+        } else {
+            $reportContent += "`nCLI Execution Status: SUCCESS`n"
+        }
+        
+        $reportContent += "`n================================`n"
+        $reportContent += "End of Report`n"
+        $reportContent += "================================`n"
+        
+        # Write report to file
+        Set-Content -Path $reportFile -Value $reportContent -Encoding UTF8
+        Write-Host "Accessibility report saved to: $reportFile"
+        Write-Host ""
+        Write-Host $reportContent
+        
+        # Exit with appropriate code
+        if ($issueFiles -or $cliExitCode -ne 0) {
+            Write-Error "Accessibility check failed. See report for details."
             exit 1
         }
     - name: Upload Accessibility Results
