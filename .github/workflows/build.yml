@@ -160,7 +160,7 @@ jobs:
       run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
     - name: Build App (Unpackaged)
       run: |
-        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:SelfContainedIfPreviewWASDK=true /p:WindowsPackageType=None
+        dotnet publish AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:SelfContainedIfPreviewWASDK=true /p:WindowsPackageType=None
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
       env:
@@ -181,7 +181,7 @@ jobs:
     - name: Run Accessibility Check
       shell: pwsh
       run: |
-        $appPath = "AIDevGallery\bin\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.exe"
+        $appPath = "AIDevGallery\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish\AIDevGallery.exe"
         if (-not (Test-Path $appPath)) {
             Write-Error "App executable not found at $appPath"
             exit 1
