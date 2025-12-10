@@ -158,16 +158,9 @@ jobs:
       run: dotnet restore AIDevGallery.sln -r win-x64 /p:Configuration=Release /p:Platform=x64 /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build Utils
       run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-    - name: Generate Certificate
-      shell: pwsh
-      run: |
-        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=nikolame" -KeyUsage DigitalSignature -FriendlyName "AIDevGallery_TempCert" -CertStoreLocation "Cert:\LocalMachine\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-        $password = ConvertTo-SecureString -String "password" -Force -AsPlainText
-        Export-PfxCertificate -Cert $cert -FilePath "TempCert.pfx" -Password $password
-        echo "PFX_PATH=$PWD\TempCert.pfx" >> $env:GITHUB_ENV
     - name: Build App (MSIX)
       run: |
-        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:PackageCertificateKeyFile="${{ env.PFX_PATH }}" /p:PackageCertificatePassword="password" /p:AppxPackageSigningEnabled=true
+        dotnet build AIDevGallery --no-restore -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:AppxPackageSigningEnabled=false
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
       env:
