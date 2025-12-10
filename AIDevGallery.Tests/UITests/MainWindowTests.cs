@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Tests.TestInfra;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -231,5 +233,69 @@ public class MainWindowTests : FlaUITestBase
         }
 
         TakeScreenshot("MainWindow_TextElements");
+    }
+
+    [TestMethod]
+    [TestCategory("UI")]
+    [Description("Verifies that the search box accepts input and displays search results")]
+    public void SearchBox_DisplaysResults_WhenQueryEntered()
+    {
+        Assert.IsNotNull(MainWindow, "Main window should be initialized");
+
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - title bar 'AI Dev Gallery' (AutomationId="titleBar")
+//          - group '' (AutomationId="SearchBox")
+//            - edit 'Name	Search samples, models & APIs..'(AutomationId="TextBox")
+        var searchBoxGroupResult = Retry.WhileNull(
+            () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox")),
+            timeout: TimeSpan.FromSeconds(10));
+        var searchBoxGroup = searchBoxGroupResult.Result;
+        Assert.IsNotNull(searchBoxGroup, "Search box group not found");
+
+        var searchBox = searchBoxGroup.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
+        Assert.IsNotNull(searchBox, "Search box text input not found");
+
+        Console.WriteLine("Search box found, entering search query...");
+
+        searchBox.AsTextBox().Text = "Phi";
+        Console.WriteLine("Search query 'Phi' entered");
+
+// pane 'Desktop 1'
+//   - windows 'AI Dev Gallery Dev'
+//     - pane 'PopupHost'
+//       - pane ''
+//         - title bar 'AI Dev Gallery' (AutomationId="titleBar")
+//           - group 'SearchBox' (AutomationId="SearchBox")
+//             - window 'Popup' (AutomationId="SuggestionsPopup")
+//               - list '' (AutomationId="SuggestionsList") // length needs to be > 0
+//                 - list item 'Phi 3 Medium'
+//                 - list item ...
+//                 - ...
+        var suggestionsPopupResult = Retry.WhileNull(
+            () => searchBoxGroup.FindFirstDescendant(cf => cf.ByAutomationId("SuggestionsPopup")),
+            timeout: TimeSpan.FromSeconds(5));
+        var suggestionsPopup = suggestionsPopupResult.Result;
+        Assert.IsNotNull(suggestionsPopup, "Suggestions popup should appear after entering query");
+
+        var suggestionsListResult = Retry.WhileNull(
+            () => suggestionsPopup.FindFirstDescendant(cf => cf.ByAutomationId("SuggestionsList")),
+            timeout: TimeSpan.FromSeconds(5));
+        var suggestionsList = suggestionsListResult.Result;
+        Assert.IsNotNull(suggestionsList, "Suggestions list should be found in popup");
+
+        var listItems = suggestionsList.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+
+        Assert.IsTrue(listItems.Length > 0, $"Suggestions list should contain search results, but found {listItems.Length} items");
+        Console.WriteLine($"Search results displayed. Found {listItems.Length} suggestions");
+
+        for (int i = 0; i < Math.Min(listItems.Length, 3); i++)
+        {
+            Console.WriteLine($"  Result {i + 1}: {listItems[i].Name}");
+        }
+
+        TakeScreenshot("SearchBox_WithResults");
     }
 }

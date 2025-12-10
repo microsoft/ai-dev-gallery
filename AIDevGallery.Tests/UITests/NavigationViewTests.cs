@@ -110,74 +110,6 @@ public class NavigationViewTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [TestCategory("Navigation")]
-    [Description("Find and list all NavigationView structure")]
-    public void NavigationView_InspectStructure()
-    {
-        // Arrange
-        Assert.IsNotNull(MainWindow, "Main window should be initialized");
-        Console.WriteLine("Inspecting NavigationView structure");
-
-        Thread.Sleep(1000);
-
-        // Act - Find the NavigationView
-        var navigationView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
-
-        if (navigationView == null)
-        {
-            navigationView = MainWindow.FindFirstDescendant(cf =>
-                cf.ByControlType(ControlType.Pane).And(cf.ByClassName("NavigationView")));
-        }
-
-        Assert.IsNotNull(navigationView, "NavigationView should be found");
-        Console.WriteLine($"NavigationView found: {navigationView.ClassName}");
-
-        // Find all descendants
-        var allElements = navigationView.FindAllDescendants();
-        Console.WriteLine($"\nTotal elements in NavigationView: {allElements.Length}");
-
-        // Group by control type
-        var grouped = allElements
-            .GroupBy(e => e.ControlType.ToString())
-            .OrderByDescending(g => g.Count())
-            .ToList();
-
-        Console.WriteLine("\nElements by type:");
-        foreach (var group in grouped)
-        {
-            Console.WriteLine($"  {group.Key}: {group.Count()}");
-        }
-
-        // Find specific element types
-        Console.WriteLine("\n=== ListItems (Navigation Items) ===");
-        var listItems = navigationView.FindAllDescendants(cf => cf.ByControlType(ControlType.ListItem));
-        foreach (var item in listItems)
-        {
-            Console.WriteLine($"  - {item.Name} [AutomationId: {item.AutomationId}, Enabled: {item.IsEnabled}]");
-        }
-
-        Console.WriteLine("\n=== ContentPresenter Elements ===");
-        var contentPresenters = navigationView.FindAllDescendants(cf => cf.ByClassName("ContentPresenter"));
-        Console.WriteLine($"Found {contentPresenters.Length} ContentPresenter elements");
-
-        foreach (var presenter in contentPresenters.Take(10))
-        {
-            var bounds = presenter.BoundingRectangle;
-            Console.WriteLine($"  - AutomationId: {presenter.AutomationId}, Position: ({bounds.X}, {bounds.Y}), Size: {bounds.Width}x{bounds.Height}");
-
-            // Try to find text content
-            var textElements = presenter.FindAllDescendants(cf => cf.ByControlType(ControlType.Text));
-            if (textElements.Length > 0)
-            {
-                Console.WriteLine($"    Contains text: {string.Join(", ", textElements.Select(t => t.Name))}");
-            }
-        }
-
-        TakeScreenshot("NavigationView_Structure");
-    }
-
-    [TestMethod]
-    [TestCategory("UI")]
-    [TestCategory("Navigation")]
     [Description(@"Test validating the Settings page navigation and optional cache clearing functionality.
     
     Background: Users access Settings through the footer navigation menu to manage app preferences and clear cached data.
@@ -591,7 +523,7 @@ public class NavigationViewTests : FlaUITestBase
 //      - pane ''
 //        - window 'Popup'
 //          - pane ''
-//            - button 'openai-whisper-tiny-generic-cpu' // clikk this one
+//            - button 'openai-whisper-tiny-generic-cpu' // click this one
         downloadButton.Click();
         Thread.Sleep(2000);
         TakeScreenshot("DownloadModel_VariantPopupOpened");
