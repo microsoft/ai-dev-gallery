@@ -65,7 +65,12 @@ public class PerformanceTests : FlaUITestBase
 
         // Wait for NavigationView menu to render (indicates home page is ready)
         var navViewResult = Retry.WhileNull(
-            () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsScrollViewer")),
+            () =>
+            {
+                var element = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsScrollViewer"));
+                // Ensure element exists, is visible, and not offscreen
+                return (element != null && !element.IsOffscreen) ? element : null;
+            },
             timeout: TimeSpan.FromSeconds(20));
 
         Assert.IsNotNull(navViewResult.Result, "Navigation view not found - Home page might not be loaded");
@@ -107,8 +112,8 @@ public class PerformanceTests : FlaUITestBase
         var samplesItem = MainWindow.FindFirstDescendant(cf => cf.ByName("Samples"));
         Assert.IsNotNull(samplesItem, "Samples menu item not found");
 
-        var stopwatch = Stopwatch.StartNew();
         samplesItem.Click();
+        var stopwatch = Stopwatch.StartNew();
 
         // Wait for Filters ComboBox to appear (indicates Samples page is loaded)
         var filtersBoxResult = Retry.WhileNull(
@@ -148,7 +153,11 @@ public class PerformanceTests : FlaUITestBase
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         PerformanceCollector.Clear();
 
-        var searchBoxGroup = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox"));
+        // Wait for SearchBox to appear (it's in the title bar)
+        var searchBoxGroupResult = Retry.WhileNull(
+            () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox")),
+            timeout: TimeSpan.FromSeconds(10));
+        var searchBoxGroup = searchBoxGroupResult.Result;
         Assert.IsNotNull(searchBoxGroup, "Search box group not found");
 
         var searchBox = searchBoxGroup.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
@@ -198,12 +207,19 @@ public class PerformanceTests : FlaUITestBase
         var samplesItem = topLevelItems.FirstOrDefault(item => item.Name == "Samples") ?? topLevelItems.ElementAtOrDefault(1);
         Assert.IsNotNull(samplesItem, "Samples item should be found");
         samplesItem.Click();
-        Thread.Sleep(1000);
 
-        var textItem = MainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem).And(cf.ByName("Text")));
+        // Wait for Text category item to appear after navigation
+        var textItemResult = Retry.WhileNull(
+            () => MainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem).And(cf.ByName("Text"))),
+            timeout: TimeSpan.FromSeconds(5));
+        var textItem = textItemResult.Result;
         Assert.IsNotNull(textItem, "Text list item should be found");
         textItem.Click();
-        Thread.Sleep(1000);
+
+        // Wait for child items to load under Text category
+        Retry.WhileTrue(
+            () => textItem.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem)).Length == 0,
+            timeout: TimeSpan.FromSeconds(5));
 
         // Get the first sample item under the Text category
         var textItemChildren = textItem.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
