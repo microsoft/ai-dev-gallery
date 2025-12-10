@@ -57,104 +57,6 @@ public class NavigationViewTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [TestCategory("Navigation")]
-    [Description("Test clicking the second NavigationView item (Samples)")]
-    public void NavigationView_ClickSecondItem_Samples()
-    {
-        // Arrange
-        Assert.IsNotNull(MainWindow, "Main window should be initialized");
-
-        // Wait for debugger attachment if needed
-        // WaitForDebuggerAttachment();
-        Console.WriteLine("Starting test: Click Samples navigation item");
-
-        // Wait a moment for the UI to fully render
-        Thread.Sleep(1000);
-        TakeScreenshot("NavigationView_BeforeClick");
-
-        // Act - Find the MenuItemsHost group which contains the main navigation items
-        // This avoids getting nested navigation items from inner NavigationViews
-        Console.WriteLine("Searching for MenuItemsHost...");
-        var menuItemsHost = MainWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("MenuItemsHost"));
-
-        Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
-        Console.WriteLine($"Found MenuItemsHost: {menuItemsHost.ControlType}");
-
-        // Get only the DIRECT children ListItems of MenuItemsHost, not all descendants
-        // This prevents getting nested navigation items from inner NavigationViews
-        Console.WriteLine("Searching for direct ListItem children of MenuItemsHost...");
-        var topLevelListItems = menuItemsHost.FindAllChildren(cf =>
-            cf.ByControlType(ControlType.ListItem));
-
-        Console.WriteLine($"Found {topLevelListItems.Length} top-level ListItem controls");
-
-        // Log all found items for debugging
-        for (int i = 0; i < topLevelListItems.Length; i++)
-        {
-            var item = topLevelListItems[i];
-            Console.WriteLine($"  ListItem {i}: Name='{item.Name}', AutomationId='{item.AutomationId}', IsEnabled={item.IsEnabled}");
-        }
-
-        // Find the "Samples" list item by name from top-level items only
-        Console.WriteLine("\nSearching for 'Samples' ListItem by name...");
-        var samplesItem = topLevelListItems.FirstOrDefault(item =>
-            item.Name == "Samples");
-
-        // If not found by name, try to get the second list item (index 1)
-        // Based on the structure: Home (0), Samples (1), Models (2), AI APIs (3)
-        if (samplesItem == null && topLevelListItems.Length > 1)
-        {
-            Console.WriteLine("'Samples' not found by name, using second ListItem (index 1)...");
-            samplesItem = topLevelListItems[1];
-        }
-
-        Assert.IsNotNull(samplesItem, "Samples ListItem should be found");
-        Console.WriteLine($"Found Samples item: Name='{samplesItem.Name}', IsEnabled={samplesItem.IsEnabled}, ControlType={samplesItem.ControlType}");
-
-        // Verify it's the correct item
-        Assert.AreEqual("Samples", samplesItem.Name, "Found item should be named 'Samples'");
-
-        // Click the Samples item
-        Console.WriteLine("Clicking Samples ListItem...");
-        samplesItem.Click();
-
-        // Wait for navigation to complete
-        Thread.Sleep(2000);
-        TakeScreenshot("NavigationView_AfterClick");
-
-        // Assert - Verify the navigation occurred
-        Console.WriteLine("Verifying navigation...");
-
-        // Check if the item is selected
-        var isSelected = false;
-        try
-        {
-            if (samplesItem.Patterns.SelectionItem.IsSupported)
-            {
-                isSelected = samplesItem.Patterns.SelectionItem.Pattern.IsSelected.Value;
-                Console.WriteLine($"Item selection state: {isSelected}");
-                Assert.IsTrue(isSelected, "Samples item should be selected after clicking");
-            }
-            else
-            {
-                Console.WriteLine("SelectionItem pattern not supported on this element");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Could not check selection state: {ex.Message}");
-        }
-
-        // Verify the navigation frame exists
-        var frameContent = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavFrame"));
-        Assert.IsNotNull(frameContent, "Navigation frame should exist after navigation");
-
-        Console.WriteLine("✓ Navigation test completed successfully");
-    }
-
-    [TestMethod]
-    [TestCategory("UI")]
-    [TestCategory("Navigation")]
     [Description("Test clicking all NavigationView items")]
     public void NavigationView_ClickAllLeftMenuHostItems()
     {
@@ -313,12 +215,14 @@ public class NavigationViewTests : FlaUITestBase
         Assert.AreEqual("Settings", settingsNavItem.Name, "Item should be named 'Settings'");
 
         settingsNavItem.Click();
+        Console.WriteLine("Clicked Settings navigation item, waiting for page load...");
         Thread.Sleep(1000);
 
         var settingsPageTitle = MainWindow.FindFirstDescendant(cf =>
             cf.ByControlType(ControlType.Text).And(cf.ByName("Settings")));
+        
         Assert.IsNotNull(settingsPageTitle, "Settings page should display 'Settings' text");
-        Console.WriteLine("Settings page loaded successfully");
+        Console.WriteLine("✓ Settings page loaded successfully");
         TakeScreenshot("Settings_Opened");
 
         Console.WriteLine("\n=== Step 2: Clear Cache (Optional) ===");
@@ -383,6 +287,18 @@ public class NavigationViewTests : FlaUITestBase
         TakeScreenshot("DownloadModel_Start");
 
         Console.WriteLine("=== Step 1: Navigate to Samples ===");
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - custom ''(AutomationId="NavView")
+//          - window ''(AutomationId="PaneRoot")
+//           - pane ''
+//             - group ''(AutomationId="MenuItemsHost")
+//              - list item 'Home'
+//              - list item 'Samples' // click this one
+//              - list item 'Models'
+//              - list item 'AI APIs'
         var menuHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
         Assert.IsNotNull(menuHost, "MenuItemsHost should be found");
         var menuItems = menuHost.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
@@ -393,6 +309,17 @@ public class NavigationViewTests : FlaUITestBase
         TakeScreenshot("DownloadModel_SamplesOpened");
 
         Console.WriteLine("=== Step 2: Navigate to Text > The First Sample Item ===");
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - custom ''(AutomationId="NavView")
+//          - custom '' (AutomationId="NavView")
+//           - window ''(AutomationId="PaneRoot")
+//             - pane ''(AutomationId="MenuItemsScrollViewer")
+//               - group ''(AutomationId="MenuItemsHost")
+//                 - list item 'Overview'
+//                 - list item 'Text' // click this one to expand
         var innerNavView = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"))
             ?.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
         Assert.IsNotNull(innerNavView, "Inner NavView should be found");
@@ -415,6 +342,22 @@ public class NavigationViewTests : FlaUITestBase
         }
 
         // Get the first sample item under the Text category
+//pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - custom ''(AutomationId="NavView")
+//          - custom '' (AutomationId="NavView")
+//           - window ''(AutomationId="PaneRoot")
+//             - pane ''(AutomationId="MenuItemsScrollViewer")
+//               - group ''(AutomationId="MenuItemsHost")
+//                 - list item 'Overview'
+//                 - list item 'Text'
+//                   - list item 'Generate Text' // click this one
+//                   - ...
+//                   - ...
+//                 - ...
+//                 - ...
         var textCategoryChildren = textCategory.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
         AutomationElement? firstSampleItem = null;
 
@@ -438,12 +381,19 @@ public class NavigationViewTests : FlaUITestBase
         firstSampleItem.Click();
         Thread.Sleep(5000);
 
-        // Check if modelTypeSelector already exists
         var modelTypeSelector = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("modelTypeSelector"));
 
         if (modelTypeSelector == null)
         {
-            // modelTypeSelector not found, need to click ModelBtn to open it
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - custom ''(AutomationId="NavView")
+//          - custom '' (AutomationId="NavView")
+//            - button 'Close Navigation'(AutomationId="TogglePaneButton")
+//            - window ''(AutomationId="PaneRoot")
+//            - button 'Selected models'(AutomationId="ModelBtn") // click
             var modelButton = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ModelBtn"));
             if (modelButton == null)
             {
@@ -466,6 +416,12 @@ public class NavigationViewTests : FlaUITestBase
         }
 
         Console.WriteLine("=== Step 4: Select Foundry Local ===");
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - list ''(AutomationId="modelTypeSelector")
+//         - list item 'Foundry Local' // click this one
         Assert.IsNotNull(modelTypeSelector, "Model type selector should be found");
         var foundryLocalOption = modelTypeSelector.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName("Foundry Local")));
         Assert.IsNotNull(foundryLocalOption, "Foundry Local item should be found");
@@ -510,6 +466,19 @@ public class NavigationViewTests : FlaUITestBase
         TakeScreenshot("DownloadModel_FoundryLocalSelected");
 
         Console.WriteLine("=== Step 5: Find Available Model ===");
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - pane ''(AutomationId="ModelsView")
+//          - list '' (AutomationId="ModelSelectionItemsView")
+//          - text 'Available models on Foundry Local'(AutomationId="DownloadableModelsTxt")
+//          - group ''
+//            - button 'More info'
+//            - text 'whisper-tiny'
+//            - button 'whisper-tiny' // click the 1st available to download
+//          - group ''
+//          - ...
         AutomationElement? downloadableHeader = null;
         for (int i = 0; i < 10; i++)
         {
@@ -616,6 +585,13 @@ public class NavigationViewTests : FlaUITestBase
         TakeScreenshot("DownloadModel_BeforeClick");
 
         Console.WriteLine($"=== Step 6: Click Model Button ({modelName}) ===");
+// pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - window 'Popup'
+//          - pane ''
+//            - button 'openai-whisper-tiny-generic-cpu' // clikk this one
         downloadButton.Click();
         Thread.Sleep(2000);
         TakeScreenshot("DownloadModel_VariantPopupOpened");
