@@ -251,6 +251,20 @@ internal partial class AppData : ObservableObject
             UsageHistoryV2 = new()
         };
     }
+
+    /// <summary>
+    /// Creates an AppData instance for testing purposes.
+    /// </summary>
+    internal static Task<AppData> CreateForTests(string appDataPath, string modelCachePath)
+    {
+        var appData = new AppData
+        {
+            ModelCachePath = modelCachePath,
+            MostRecentlyUsedItems = new(),
+            UsageHistoryV2 = new()
+        };
+        return Task.FromResult(appData);
+    }
 }
 
 internal class CustomParametersState
