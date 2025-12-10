@@ -1,0 +1,27 @@
+{
+  "name": "perf-dashboard",
+  "version": "1.0.0",
+  "description": "AI Dev Gallery Performance Monitoring Dashboard",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node server/index.js",
+    "client": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0",
+    "echarts": "^5.5.0",
+    "express": "^4.18.0",
+    "ws": "^8.16.0",
+    "chokidar": "^3.6.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "concurrently": "^8.2.0"
+  }
+}
