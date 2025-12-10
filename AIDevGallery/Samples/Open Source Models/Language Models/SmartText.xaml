@@ -13,6 +13,7 @@
         <shared:SmartTextBox 
             x:Name="SmartTextBox" 
             Text="This is the Smart Text Box control. It exposes generative AI actions through a selection flyout menu. Try it out by highlighting some text to display the menu."
-            Margin="0,32,0,0"/>
+            Margin="0,32,0,0"
+            IsTabStop="False"/>
     </Grid>
 </samples:BaseSamplePage>

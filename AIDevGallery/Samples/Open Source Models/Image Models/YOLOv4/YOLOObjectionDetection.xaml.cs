@@ -157,7 +157,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
         UploadButton.Visibility = Visibility.Collapsed;
 
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Photo changed: new upload."); // <exclude-line>
 
         Bitmap image = new(filePath);
 
@@ -228,7 +228,7 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
             UploadButton.Visibility = Visibility.Visible;
         });
 
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Photo changed: objects detected."); // <exclude-line>
         image.Dispose();
     }
 }

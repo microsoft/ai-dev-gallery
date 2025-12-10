@@ -175,7 +175,8 @@
                                                         AutomationProperties.Name="More info"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
-                                                        ToolTipService.ToolTip="More info">
+                                                        ToolTipService.ToolTip="More info"
+                                                        Background="{ThemeResource ButtonBackground}">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
                                                                 <TextBlock
@@ -204,7 +205,7 @@
                     Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Vertical" Spacing="4">
                         <FontIcon FontSize="14" Glyph="&#xE72A;" />
-                        <TextBlock Text="Run sample" />
+                        <TextBlock Text="Run sample" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Button>
             </Grid>
