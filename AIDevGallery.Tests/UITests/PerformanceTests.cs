@@ -563,7 +563,14 @@ public class PerformanceTests : FlaUITestBase
         Thread.Sleep(1000);
 
         Console.WriteLine("\n=== Step 8: Monitor Download Performance ===");
-        
+//pane 'Desktop 1'
+//  - windows 'AI Dev Gallery Dev'
+//    - pane ''
+//      - pane ''
+//        - window 'Popup'
+//          - pane '' (AutomationId="DownloadFlyout")
+//            - group 'openai-whisper-tiny-generic-cpu'
+//              - text '4.6GB - Downloaded' (AutomationId="DownloadStatus") // 这里在下中进行中是“Downloading”，下载成功后会变成”Downloaded“，下载失败时会是其他文字。
         // Wait for DownloadFlyout to appear
         var downloadFlyoutResult = Retry.WhileNull(
             () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("DownloadFlyout")),
@@ -573,67 +580,56 @@ public class PerformanceTests : FlaUITestBase
         Assert.IsNotNull(downloadFlyout, "DownloadFlyout should appear after clicking variant button");
         Console.WriteLine("✓ DownloadFlyout detected");
 
-        // Monitor download status - poll for "Downloaded" text
+        // Monitor download status with optimized polling
         bool downloadCompleted = false;
         string? lastStatus = null;
-        const int maxWaitMinutes = 30; // Maximum wait time for download
-        var downloadTimeout = TimeSpan.FromMinutes(maxWaitMinutes);
-        var endTime = DateTime.UtcNow + downloadTimeout;
+        const int maxWaitMinutes = 5; // Maximum wait time for download
+        const int pollIntervalMs = 500; // Check every half second
+        const int maxIterations = maxWaitMinutes * 60 * 1000 / pollIntervalMs; // Total iterations
 
-        while (DateTime.UtcNow < endTime)
+        for (int iteration = 0; iteration < maxIterations && !downloadCompleted; iteration++)
         {
             try
             {
-                // Find all text elements in the DownloadFlyout
-                var textElements = downloadFlyout.FindAllDescendants(cf => 
-                    cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
+                var downloadStatusElement = downloadFlyout.FindFirstDescendant(cf => 
+                    cf.ByAutomationId("DownloadStatus"));
 
-                foreach (var textElement in textElements)
+                if (downloadStatusElement != null && downloadStatusElement.Properties.Name.IsSupported)
                 {
-                    try
+                    var textContent = downloadStatusElement.Name;
+                    if (!string.IsNullOrEmpty(textContent))
                     {
-                        if (textElement.Properties.Name.IsSupported)
+                        // Check if download completed
+                        if (textContent.Contains("Downloaded", StringComparison.OrdinalIgnoreCase))
                         {
-                            var textContent = textElement.Name;
-                            if (!string.IsNullOrEmpty(textContent))
-                            {
-                                // Check if download completed
-                                if (textContent.Contains("Downloaded", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    downloadStopwatch.Stop();
-                                    downloadCompleted = true;
-                                    lastStatus = textContent;
-                                    Console.WriteLine($"✓ Download completed: {textContent}");
-                                    Console.WriteLine($"Download duration: {downloadStopwatch.ElapsedMilliseconds} ms ({downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
-                                    break;
-                                }
-                                // Track downloading status
-                                else if (textContent.Contains("Downloading", StringComparison.OrdinalIgnoreCase) && 
-                                         lastStatus != textContent)
-                                {
-                                    lastStatus = textContent;
-                                    Console.WriteLine($"Download in progress: {textContent} (elapsed: {downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
-                                }
+                            downloadStopwatch.Stop();
+                            downloadCompleted = true;
+                            lastStatus = textContent;
+                            Console.WriteLine($"✓ Download completed: {textContent}");
+                            Console.WriteLine($"Download duration: {downloadStopwatch.ElapsedMilliseconds} ms ({downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
+                            break;
+                        }
+                        // Track downloading status
+                        else if (textContent.Contains("Downloading", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (lastStatus != textContent) {
+                                lastStatus = textContent;
+                                Console.WriteLine($"Download in progress: {textContent} (elapsed: {downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
                             }
+                        } else {
+                            break;
                         }
                     }
-                    catch
-                    {
-                        // Skip elements that can't be read
-                    }
                 }
-
-                if (downloadCompleted)
-                {
-                    break;
-                }
-
-                Thread.Sleep(1000); // Check every second
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Warning] Error checking download status: {ex.Message}");
-                Thread.Sleep(1000);
+            }
+
+            if (!downloadCompleted)
+            {
+                Thread.Sleep(pollIntervalMs);
             }
         }
 

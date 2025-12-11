@@ -114,6 +114,7 @@
                                     Text="{x:Bind utils:AppUtils.ToPerc(Progress), Mode=OneWay}"
                                     Visibility="{x:Bind vm:DownloadableModel.DownloadStatusProgressVisibility(Status), Mode=OneWay}" />
                                 <TextBlock
+                                    AutomationProperties.AutomationId="DownloadStatus"
                                     Grid.Row="1"
                                     Grid.ColumnSpan="2"
                                     FontSize="10">

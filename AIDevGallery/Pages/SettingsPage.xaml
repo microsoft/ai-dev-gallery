@@ -43,6 +43,7 @@
                         HeaderIcon="{ui:FontIcon Glyph=&#xE7C3;}">
                         <Button
                             AutomationProperties.Name="Reset model config"
+                            AutomationProperties.AutomationId="ResetModelConfigBtn"
                             Click="ResetModelConfig_Click"
                             Content="Reset"
                             ToolTipService.ToolTip="Reset model configuration" />
@@ -82,6 +83,7 @@
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     <Button
                                         AutomationProperties.Name="Clear cache"
+                                        AutomationProperties.AutomationId="ClearCacheBtn"
                                         Click="ClearCache_Click"
                                         Content="Clear"
                                         ToolTipService.ToolTip="Clear cache" />

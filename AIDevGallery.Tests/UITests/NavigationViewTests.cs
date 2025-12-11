@@ -157,11 +157,26 @@ public class NavigationViewTests : FlaUITestBase
         Console.WriteLine("✓ Settings page loaded successfully");
         TakeScreenshot("Settings_Opened");
 
-        Console.WriteLine("\n=== Step 2: Clear Cache (Optional) ===");
-        Thread.Sleep(1000);
+        Console.WriteLine("\n=== Step 2: Confirm Reset Model Config ===");
+        var resetConfigBtn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ResetModelConfigBtn"));
+        if (resetConfigBtn != null)
+        {
+            resetConfigBtn.Click();
+            Thread.Sleep(1000);
+        }
+        var confirmResetBtn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("PrimaryButton"))
+                ?? MainWindow.FindFirstDescendant(cf =>
+                    cf.ByControlType(ControlType.Button).And(cf.ByName("Reset")));
+        TakeScreenshot("Settings_ResetModelConfigDialog");
+        if (confirmResetBtn != null)
+        {
+            confirmResetBtn.Click();
+            Thread.Sleep(1000);
+        }
 
-        var clearCacheBtn = MainWindow.FindFirstDescendant(cf =>
-            cf.ByControlType(ControlType.Button).And(cf.ByName("Clear cache")));
+        Console.WriteLine("\n=== Step 3: Clear Cache (Optional) ===");
+
+        var clearCacheBtn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ClearCacheBtn"));
 
         if (clearCacheBtn == null)
         {
@@ -174,27 +189,21 @@ public class NavigationViewTests : FlaUITestBase
         clearCacheBtn.Click();
         Thread.Sleep(1000);
 
-        Console.WriteLine("\n=== Step 3: Confirm Clear Cache ===");
+        Console.WriteLine("\n=== Step 4: Confirm Clear Cache ===");
         TakeScreenshot("Settings_ClearCacheDialog");
 
         var confirmBtn = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("PrimaryButton"))
                         ?? MainWindow.FindFirstDescendant(cf =>
                             cf.ByControlType(ControlType.Button).And(cf.ByName("Yes")));
-
-        if (confirmBtn == null)
-        {
-            Console.WriteLine("Confirmation button not found");
-            return;
-        }
-
+        Assert.IsNotNull(confirmBtn, "Confirmation button should be found in clear cache dialog");
         Console.WriteLine("Found confirmation button");
         confirmBtn.Click();
-        Thread.Sleep(2000);
-        TakeScreenshot("Settings_AfterClearCache");
+        Thread.Sleep(500);
 
-        var dialogClosed = MainWindow.FindFirstDescendant(cf =>
-            cf.ByControlType(ControlType.Window).And(cf.ByName("Clear cache"))) == null;
-        Console.WriteLine("Test completed successfully");
+        TakeScreenshot("Settings_AfterClearCacheAndReset");
+
+        var dialogClosed = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ClearCacheBtn")) == null;
+        Assert.IsTrue(dialogClosed, "Clear cache dialog should be closed after confirmation");
     }
 
     [TestMethod]
