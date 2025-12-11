@@ -115,6 +115,45 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
+    private async void ResetModelConfig_Click(object sender, RoutedEventArgs e)
+    {
+        ContentDialog resetDialog = new()
+        {
+            Title = "Reset model configuration",
+            Content = "Are you sure you want to reset model configuration?\n\nDownloaded model files will not be affected.",
+            PrimaryButtonText = "Reset",
+            XamlRoot = this.Content.XamlRoot,
+            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+            CloseButtonText = "Cancel"
+        };
+
+        var result = await resetDialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary)
+        {
+            // Clear usage history
+            App.AppData.UsageHistoryV2?.Clear();
+
+            // Clear user-added model mappings
+            App.AppData.ModelTypeToUserAddedModelsMapping?.Clear();
+
+            // Clear most recently used items
+            App.AppData.MostRecentlyUsedItems.Clear();
+
+            await App.AppData.SaveAsync();
+
+            // Show confirmation
+            ContentDialog confirmDialog = new()
+            {
+                Title = "Reset complete",
+                Content = "Model configuration has been reset successfully.",
+                CloseButtonText = "OK",
+                XamlRoot = this.Content.XamlRoot
+            };
+            await confirmDialog.ShowAsync();
+        }
+    }
+
     private async void ClearCache_Click(object sender, RoutedEventArgs e)
     {
         ContentDialog deleteDialog = new()

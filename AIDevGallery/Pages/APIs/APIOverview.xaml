@@ -118,7 +118,7 @@
                         ItemsSource="{x:Bind wcrAPIs, Mode=OneWay}"
                         SelectionMode="None">
                         <ItemsView.Layout>
-                            <UniformGridLayout MinColumnSpacing="12" MinRowSpacing="12" />
+                            <FlowLayout MinColumnSpacing="12" MinRowSpacing="12" />
                         </ItemsView.Layout>
                         <ItemsView.ItemTemplate>
                             <DataTemplate x:DataType="models:ApiDefinition">
@@ -128,8 +128,8 @@
                                     AutomationProperties.Name="{x:Bind Name}"
                                     CornerRadius="8">
                                     <Grid
-                                        Width="260"
-                                        Height="186"
+                                        MinHeight="186"
+                                        MinWidth="260"
                                         Padding="20,6,12,6"
                                         VerticalAlignment="Stretch"
                                         ColumnSpacing="20"
@@ -139,8 +139,8 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
                                             <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <FontIcon
                                             Margin="0,24,0,8"
@@ -156,10 +156,12 @@
                                         <TextBlock
                                             Grid.Row="2"
                                             Margin="0,8,0,0"
-                                            VerticalAlignment="Top"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Text="{x:Bind Description}"
                                             TextTrimming="CharacterEllipsis"
+                                            LineStackingStrategy="MaxHeight"
                                             TextWrapping="Wrap" />
                                     </Grid>
                                 </ItemContainer>

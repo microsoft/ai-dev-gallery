@@ -138,7 +138,7 @@
                                 Style="{StaticResource SubtleButtonStyle}"
                                 Tag="{x:Bind}"
                                 ToolTipService.ToolTip="View model page"
-                                Visibility="{x:Bind vm:DownloadableModel.VisibleWhenDownloaded(Status), Mode=OneWay}" />
+                                Visibility="{x:Bind vm:DownloadableModel.VisibleWhenDownloaded(Status, ModelDetails), Mode=OneWay}" />
                             <Button
                                 Grid.RowSpan="3"
                                 Grid.Column="2"

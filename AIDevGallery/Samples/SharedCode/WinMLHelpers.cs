@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace AIDevGallery.Samples.SharedCode;
 
 internal static class WinMLHelpers
 {
-    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType, OrtEnv? environment = null)
+    public static bool AppendExecutionProviderFromEpName(this SessionOptions sessionOptions, string epName, string? deviceType)
     {
         if (epName == "CPU")
         {
@@ -20,24 +21,24 @@ internal static class WinMLHelpers
             return true;
         }
 
-        environment ??= OrtEnv.Instance();
-        var epDeviceMap = GetEpDeviceMap(environment);
+        var environment = OrtEnv.Instance();
+        var epDeviceMap = GetEpDeviceMap();
 
         if (epDeviceMap.TryGetValue(epName, out var devices))
         {
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
             switch (epName)
             {
-                case "DmlExecutionProvider":
+                case ExecutionProviderNames.DML:
                     // Configure performance mode for Dml EP
                     // Dml some times have multiple devices which cause exception, we pick the first one here
                     sessionOptions.AppendExecutionProvider(environment, [devices[0]], epOptions);
                     return true;
-                case "OpenVINOExecutionProvider":
+                case ExecutionProviderNames.OpenVINO:
                     var device = devices.Where(d => d.HardwareDevice.Type.ToString().Equals(deviceType, StringComparison.Ordinal)).FirstOrDefault();
                     sessionOptions.AppendExecutionProvider(environment, [device], epOptions);
                     return true;
-                case "QNNExecutionProvider":
+                case ExecutionProviderNames.QNN:
                     // Configure performance mode for QNN EP
                     epOptions["htp_performance_mode"] = "high_performance";
                     break;
@@ -105,10 +106,9 @@ internal static class WinMLHelpers
         return null;
     }
 
-    public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap(OrtEnv? environment = null)
+    public static Dictionary<string, List<OrtEpDevice>> GetEpDeviceMap()
     {
-        environment ??= OrtEnv.Instance();
-        IReadOnlyList<OrtEpDevice> epDevices = environment.GetEpDevices();
+        IReadOnlyList<OrtEpDevice> epDevices = DeviceUtils.GetEpDevices();
         Dictionary<string, List<OrtEpDevice>> epDeviceMap = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (OrtEpDevice device in epDevices)
