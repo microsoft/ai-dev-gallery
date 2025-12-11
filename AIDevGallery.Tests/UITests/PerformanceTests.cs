@@ -557,243 +557,112 @@ public class PerformanceTests : FlaUITestBase
         }
 
         Console.WriteLine($"✓ Selecting variant: {variantName}");
+        
+        var downloadStopwatch = Stopwatch.StartNew();
         variantDownloadButton.Click();
-        Thread.Sleep(3000);
+        Thread.Sleep(1000);
 
         Console.WriteLine("\n=== Step 8: Monitor Download Performance ===");
         
-        // Verify ModelDownloadQueue is available
-        Assert.IsNotNull(AIDevGallery.App.ModelDownloadQueue, "ModelDownloadQueue should not be null. App may not be properly initialized.");
+        // Wait for DownloadFlyout to appear
+        var downloadFlyoutResult = Retry.WhileNull(
+            () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("DownloadFlyout")),
+            timeout: TimeSpan.FromSeconds(10));
         
-        // Setup performance monitoring variables
-        DateTime? downloadStartTime = null;
-        DateTime? downloadEndTime = null;
+        var downloadFlyout = downloadFlyoutResult.Result;
+        Assert.IsNotNull(downloadFlyout, "DownloadFlyout should appear after clicking variant button");
+        Console.WriteLine("✓ DownloadFlyout detected");
+
+        // Monitor download status - poll for "Downloaded" text
         bool downloadCompleted = false;
-        bool downloadStarted = false;
-        float lastProgress = 0f;
-        
-        // Create event handler to monitor download progress
-        EventHandler<AIDevGallery.Utils.ModelDownloadEventArgs>? stateChangedHandler = null;
-        stateChangedHandler = (sender, args) =>
+        string? lastStatus = null;
+        const int maxWaitMinutes = 30; // Maximum wait time for download
+        var downloadTimeout = TimeSpan.FromMinutes(maxWaitMinutes);
+        var endTime = DateTime.UtcNow + downloadTimeout;
+
+        while (DateTime.UtcNow < endTime)
         {
             try
             {
-                if (args.Status == AIDevGallery.Utils.DownloadStatus.InProgress && !downloadStarted)
+                // Find all text elements in the DownloadFlyout
+                var textElements = downloadFlyout.FindAllDescendants(cf => 
+                    cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
+
+                foreach (var textElement in textElements)
                 {
-                    downloadStartTime = DateTime.UtcNow;
-                    downloadStarted = true;
-                    lastProgress = args.Progress;
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Download started - Progress: {args.Progress:P2}");
-                }
-                else if (args.Status == AIDevGallery.Utils.DownloadStatus.InProgress)
-                {
-                    // Log progress every 10% or significant change
-                    if (args.Progress - lastProgress >= 0.1f || args.Progress >= 0.99f)
+                    try
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Download progress: {args.Progress:P2}");
-                        lastProgress = args.Progress;
+                        if (textElement.Properties.Name.IsSupported)
+                        {
+                            var textContent = textElement.Name;
+                            if (!string.IsNullOrEmpty(textContent))
+                            {
+                                // Check if download completed
+                                if (textContent.Contains("Downloaded", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    downloadStopwatch.Stop();
+                                    downloadCompleted = true;
+                                    lastStatus = textContent;
+                                    Console.WriteLine($"✓ Download completed: {textContent}");
+                                    Console.WriteLine($"Download duration: {downloadStopwatch.ElapsedMilliseconds} ms ({downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
+                                    break;
+                                }
+                                // Track downloading status
+                                else if (textContent.Contains("Downloading", StringComparison.OrdinalIgnoreCase) && 
+                                         lastStatus != textContent)
+                                {
+                                    lastStatus = textContent;
+                                    Console.WriteLine($"Download in progress: {textContent} (elapsed: {downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Skip elements that can't be read
                     }
                 }
-                else if (args.Status == AIDevGallery.Utils.DownloadStatus.Completed)
+
+                if (downloadCompleted)
                 {
-                    downloadEndTime = DateTime.UtcNow;
-                    downloadCompleted = true;
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Download completed!");
+                    break;
                 }
-                else if (args.Status == AIDevGallery.Utils.DownloadStatus.Canceled)
-                {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Download was canceled");
-                }
+
+                Thread.Sleep(1000); // Check every second
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR in StateChanged handler: {ex.Message}");
-            }
-        };
-
-        // Subscribe to the download queue's events through the App
-        AIDevGallery.Utils.ModelDownload? currentDownload = null;
-        EventHandler<AIDevGallery.Utils.ModelDownloadCompletedEventArgs>? completedHandler = null;
-        completedHandler = (sender, args) =>
-        {
-            try
-            {
-                Console.WriteLine("ModelDownloadCompleted event fired");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR in ModelDownloadCompleted handler: {ex.Message}");
-            }
-        };
-
-        try
-        {
-            AIDevGallery.App.ModelDownloadQueue.ModelDownloadCompleted += completedHandler;
-            Console.WriteLine("✓ Subscribed to ModelDownloadCompleted event");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ERROR: Failed to subscribe to ModelDownloadCompleted event: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            throw;
-        }
-
-        // Click the variant download button to start download
-        Console.WriteLine("About to click variant download button...");
-        try
-        {
-            variantDownloadButton.Click();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ERROR: Failed to click variant download button: {ex.Message}");
-            throw;
-        }
-        Console.WriteLine("✓ Variant download button clicked");
-        Thread.Sleep(2000); // Give more time for download to be queued
-        
-        // Find the ModelDownload object that was just created
-        var downloads = AIDevGallery.App.ModelDownloadQueue.GetDownloads();
-        Console.WriteLine($"Found {downloads.Count} download(s) in queue");
-        
-        currentDownload = downloads.LastOrDefault();
-        
-        if (currentDownload != null)
-        {
-            Console.WriteLine($"Found active download for: {currentDownload.Details.Name}");
-            if (stateChangedHandler != null)
-            {
-                currentDownload.StateChanged += stateChangedHandler;
-                Console.WriteLine("✓ StateChanged event handler attached");
-            }
-            else
-            {
-                Console.WriteLine("ERROR: stateChangedHandler is null");
-            }
-        }
-        else
-        {
-            Console.WriteLine("WARNING: Could not find active download object");
-            Console.WriteLine("This may indicate the download was already completed or failed to start");
-            
-            // Try to wait a bit more and check again
-            Thread.Sleep(2000);
-            downloads = AIDevGallery.App.ModelDownloadQueue.GetDownloads();
-            currentDownload = downloads.LastOrDefault();
-            
-            if (currentDownload != null)
-            {
-                Console.WriteLine($"✓ Found download on retry: {currentDownload.Details.Name}");
-                if (stateChangedHandler != null)
-                {
-                    currentDownload.StateChanged += stateChangedHandler;
-                }
-            }
-            else
-            {
-                Console.WriteLine("ERROR: Still no download found. Test may fail.");
+                Console.WriteLine($"[Warning] Error checking download status: {ex.Message}");
+                Thread.Sleep(1000);
             }
         }
 
-        // Wait for download to complete with timeout (10 minutes for large models)
-        var timeout = TimeSpan.FromMinutes(10);
-        var waitStartTime = DateTime.UtcNow;
-        var lastLogTime = DateTime.UtcNow;
-        
-        Console.WriteLine($"Waiting for download to complete (timeout: {timeout.TotalMinutes} minutes)...");
-        
-        try
+        if (!downloadStopwatch.IsRunning)
         {
-            while (!downloadCompleted && DateTime.UtcNow - waitStartTime < timeout)
-            {
-                Thread.Sleep(500);
-                
-                // Log status every 10 seconds
-                if ((DateTime.UtcNow - lastLogTime).TotalSeconds >= 10)
-                {
-                    var elapsed = DateTime.UtcNow - waitStartTime;
-                    Console.WriteLine($"Still downloading... Elapsed: {elapsed.TotalSeconds:F1}s");
-                    lastLogTime = DateTime.UtcNow;
-                }
-            }
-        }
-        finally
-        {
-            // Cleanup event handlers - must happen even if test fails
-            Console.WriteLine("Cleaning up event handlers...");
-            
-            try
-            {
-                if (currentDownload != null && stateChangedHandler != null)
-                {
-                    currentDownload.StateChanged -= stateChangedHandler;
-                    Console.WriteLine("✓ Unsubscribed from StateChanged event");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Warning: Error unsubscribing from StateChanged: {ex.Message}");
-            }
-
-            try
-            {
-                if (completedHandler != null && AIDevGallery.App.ModelDownloadQueue != null)
-                {
-                    AIDevGallery.App.ModelDownloadQueue.ModelDownloadCompleted -= completedHandler;
-                    Console.WriteLine("✓ Unsubscribed from ModelDownloadCompleted event");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Warning: Error unsubscribing from ModelDownloadCompleted: {ex.Message}");
-            }
+            downloadStopwatch.Stop();
         }
 
-        // Assert and report results
-        Console.WriteLine("\n=== Validating Test Results ===");
-        
-        if (!downloadStarted)
-        {
-            Console.WriteLine("ERROR: Download never started");
-            if (currentDownload == null)
-            {
-                Console.WriteLine("  - currentDownload was null");
-            }
-            else
-            {
-                Console.WriteLine($"  - currentDownload status: {currentDownload.DownloadStatus}");
-                Console.WriteLine($"  - currentDownload progress: {currentDownload.DownloadProgress:P2}");
-            }
-        }
-        
-        Assert.IsTrue(downloadStarted, "Download should have started. Check if ModelDownload object was found and event handler was attached.");
-        Assert.IsTrue(downloadCompleted, $"Download should have completed within {timeout.TotalMinutes} minutes");
-        Assert.IsNotNull(downloadStartTime, "Download start time should be recorded");
-        Assert.IsNotNull(downloadEndTime, "Download end time should be recorded");
+        Assert.IsTrue(downloadCompleted, 
+            $"Download should complete within {maxWaitMinutes} minutes. Last status: {lastStatus ?? "Unknown"}");
 
-        TimeSpan downloadDuration = downloadEndTime.Value - downloadStartTime.Value;
-        double downloadDurationMs = downloadDuration.TotalMilliseconds;
-        
-        Console.WriteLine("\n=== Performance Results ===");
+        // Track performance metrics
+        var downloadTimeMs = downloadStopwatch.ElapsedMilliseconds;
+        Console.WriteLine($"\n=== Download Performance Summary ===");
         Console.WriteLine($"Model: {modelName}");
         Console.WriteLine($"Variant: {variantName}");
-        Console.WriteLine($"Download Start Time: {downloadStartTime.Value:yyyy-MM-dd HH:mm:ss.fff} UTC");
-        Console.WriteLine($"Download End Time: {downloadEndTime.Value:yyyy-MM-dd HH:mm:ss.fff} UTC");
-        Console.WriteLine($"Download Duration: {downloadDurationMs:F0} ms ({downloadDuration.TotalSeconds:F2} seconds / {downloadDuration.TotalMinutes:F2} minutes)");
-        
-        // Track performance metrics using PerformanceCollector
-        PerformanceCollector.Track("ModelDownloadTime", downloadDurationMs, "ms", new Dictionary<string, string>
+        Console.WriteLine($"Total download time: {downloadTimeMs:F0} ms ({downloadStopwatch.Elapsed.TotalSeconds:F1}s)");
+
+        PerformanceCollector.Track("ModelDownloadTime", downloadTimeMs, "ms", new Dictionary<string, string>
         {
-            { "ModelName", modelName ?? "Unknown" },
-            { "VariantName", variantName ?? "Unknown" },
+            { "Model", modelName ?? "Unknown" },
+            { "Variant", variantName ?? "Unknown" },
             { "Source", "FoundryLocal" }
         }, category: "ModelDownload");
 
-        // Track memory usage after download
         var memoryTracked = PerformanceCollector.TrackMemoryUsage(App.ProcessId, "MemoryUsage_AfterDownload", new Dictionary<string, string>
         {
-            { "ModelName", modelName ?? "Unknown" },
-            { "VariantName", variantName ?? "Unknown" }
+            { "Model", modelName ?? "Unknown" },
+            { "State", "DownloadCompleted" }
         }, category: "ModelDownload");
 
         if (!memoryTracked)
@@ -801,13 +670,7 @@ public class PerformanceTests : FlaUITestBase
             Console.WriteLine("WARNING: Memory tracking failed for download test");
         }
 
-        // Check for performance warnings
-        if (downloadDuration.TotalMinutes > 5)
-        {
-            Console.WriteLine($"[Warning] Download time ({downloadDuration.TotalMinutes:F2} minutes) exceeds 5-minute threshold");
-        }
-
         PerformanceCollector.Save();
-        Console.WriteLine($"✓ Performance metrics saved successfully");
+        Console.WriteLine("✓ Performance data saved");
     }
 }
