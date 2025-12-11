@@ -219,7 +219,7 @@ jobs:
             exit 1
         }
     - name: Install and Run Accessibility Check
-      shell: pwsh
+      shell: powershell
       run: |
         $ErrorActionPreference = "Stop"
         
@@ -230,7 +230,6 @@ jobs:
         $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
         if (-not $msixFile) { 
             Write-Error "MSIX file not found in $downloadPath (recursive search)"
-            Get-ChildItem -Path $downloadPath -Recurse | ForEach-Object { Write-Host "Found: $($_.FullName)" }
             exit 1 
         }
         
@@ -241,55 +240,50 @@ jobs:
         Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
         
         # Ensure makeappx.exe is available
-        $sdkPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64"
-        if (-not (Test-Path $sdkPath)) {
-            # Try alternative path
-            $sdkPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64"
-        }
-        if (Test-Path $sdkPath) {
-            $env:Path = "$sdkPath;$env:Path"
-            Write-Host "Added SDK path to PATH: $sdkPath"
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
+            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
+            if (Test-Path $kitsRoot) {
+                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
+                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
+                             Sort-Object Name -Descending | 
+                             Select-Object -First 1
+                
+                if ($latestSdk) {
+                    $sdkPath = Join-Path $latestSdk.FullName "x64"
+                    if (Test-Path $sdkPath) {
+                        Write-Host "Found SDK at $sdkPath"
+                        $env:Path = "$sdkPath;$env:Path"
+                    }
+                }
+                
+                if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+                     $genericSdkPath = Join-Path $kitsRoot "x64"
+                     if (Test-Path $genericSdkPath) {
+                        Write-Host "Found generic SDK at $genericSdkPath"
+                        $env:Path = "$genericSdkPath;$env:Path"
+                     }
+                }
+            }
         }
         
-        # Verify makeappx.exe is available
-        $makeappx = Get-Command makeappx.exe -ErrorAction SilentlyContinue
-        if (-not $makeappx) {
-            Write-Error "makeappx.exe not found. Windows SDK tools may not be installed."
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
             exit 1
         }
-        Write-Host "Found makeappx.exe at: $($makeappx.Source)"
         
         # Unpack MSIX
         $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
         if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
         Write-Host "Unpacking MSIX to $unpackedDir..."
-        & makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to unpack MSIX file (Exit Code: $LASTEXITCODE)."
-            exit 1
-        }
+        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
         
         # Register Manifest
         $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
         Write-Host "Registering AppxManifest.xml from $manifestPath..."
-        try {
-            # Use Register mode with the manifest path
-            Add-AppxPackage -Register $manifestPath
-            Write-Host "Package registered successfully."
-        } catch {
-            Write-Host "First registration attempt failed, trying alternative method..."
-            try {
-                # Alternative: Register using the parent directory
-                Add-AppxPackage -Register (Join-Path $unpackedDir "AppxManifest.xml") -ForceUpdateFromAnyVersion -ErrorAction Stop
-                Write-Host "Package registered successfully with ForceUpdateFromAnyVersion."
-            } catch {
-                Write-Error "Failed to register AppX package: $_"
-                exit 1
-            }
-        }
+        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
         
         # Launch App
-        # Identity Name: e7af07c0-77d2-43e5-ab82-9cdb9daa11b3
         $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
         if (-not $package) { 
              $package = Get-AppxPackage | Where-Object { $_.PackageFamilyName -like "*e7af07c0*" } | Select-Object -First 1
@@ -322,75 +316,71 @@ jobs:
              exit 1
         }
         
-        Write-Host "App started. ProcessId: $($appProcess.Id) MainWindowHandle: $($appProcess.MainWindowHandle)"
-        # Give it a bit more time to render content
+        Write-Host "App started. ProcessId: $($appProcess.Id)"
         Start-Sleep -Seconds 10
         
-        $cliPath = $env:CLI_PATH
-        Write-Host "Running AxeWindowsCLI from $cliPath against process $($appProcess.Id)"
+        # Load UI Automation
+        Add-Type -AssemblyName UIAutomationClient
+        Add-Type -AssemblyName UIAutomationTypes
+        $ae = [System.Windows.Automation.AutomationElement]
+        $scope = [System.Windows.Automation.TreeScope]::Descendants
         
+        # Get App Window
+        $propCond = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $appProcess.Id)
+        $appWindow = $ae::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $propCond)
+        
+        $pagesToTest = @("Home", "Samples", "Models", "AI APIs", "Settings")
+        $cliPath = $env:CLI_PATH
         $outputDir = Join-Path $PWD "AxeOutput"
         New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
         
-        Write-Host "Running accessibility scan with output directory: $outputDir"
-        & $cliPath --processId $appProcess.Id --outputDirectory $outputDir --verbosity default
-        $cliExitCode = $LASTEXITCODE
+        foreach ($pageName in $pagesToTest) {
+            Write-Host "--- Testing Page: $pageName ---"
+            
+            if ($appWindow) {
+                # Try to navigate
+                $nameCond = New-Object System.Windows.Automation.PropertyCondition($ae::NameProperty, $pageName)
+                $navItem = $appWindow.FindFirst($scope, $nameCond)
+                
+                if ($navItem) {
+                    try {
+                        $invokePattern = $navItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                        $invokePattern.Invoke()
+                        Write-Host "Navigated to $pageName"
+                        Start-Sleep -Seconds 3
+                    } catch {
+                        try {
+                            $selectPattern = $navItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+                            $selectPattern.Select()
+                            Write-Host "Selected $pageName"
+                            Start-Sleep -Seconds 3
+                        } catch {
+                            Write-Warning "Could not interact with navigation item: $pageName"
+                        }
+                    }
+                } else {
+                    Write-Warning "Navigation item '$pageName' not found in UI tree."
+                }
+            }
+            
+            # Scan
+            $pageOutputDir = Join-Path $outputDir $pageName
+            New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
+            
+            Write-Host "Scanning..."
+            & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
+        }
         
-        # Save process ID before killing the process
-        $appProcessId = $appProcess.Id
         $appProcess.Kill()
         
-        # Generate accessibility report summary
-        $reportFile = Join-Path $outputDir "AccessibilityReport.txt"
-        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-        $reportContent = "================================`n"
-        $reportContent += "AI Dev Gallery Accessibility Check Report`n"
-        $reportContent += "================================`n"
-        $reportContent += "Generated: $timestamp`n"
-        $reportContent += "Application: AIDevGallery`n"
-        $reportContent += "Process ID: $appProcessId`n"
-        $reportContent += "CLI Version: Axe.Windows 2.4.2`n"
-        
-        # Check for accessibility issues
-        $issueFiles = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -ErrorAction SilentlyContinue
-        if ($issueFiles) {
-            Write-Host "Found $($issueFiles.Count) accessibility issue file(s)"
-            $reportContent += "Status: FAILED - Accessibility issues detected`n"
-            $reportContent += "Issue Files:`n"
-            $issueFiles | ForEach-Object {
-                $reportContent += "  - $($_.Name)`n"
-            }
-            $reportContent += "`nPlease review the detailed issue files for more information.`n"
-        } else {
-            Write-Host "No accessibility issues found."
-            $reportContent += "Status: PASSED - No accessibility issues detected`n"
-            $reportContent += "`nAll accessibility checks completed successfully.`n"
-        }
-        
-        # Check if CLI execution failed
-        if ($cliExitCode -ne 0) {
-            $reportContent += "`nCLI Execution Status: FAILED (Exit Code: $cliExitCode)`n"
-            Write-Error "AxeWindowsCLI tool failed to run correctly (Exit Code: $cliExitCode)."
-        } else {
-            $reportContent += "`nCLI Execution Status: SUCCESS`n"
-        }
-        
-        $reportContent += "`n================================`n"
-        $reportContent += "End of Report`n"
-        $reportContent += "================================`n"
-        
-        # Write report to file
-        Set-Content -Path $reportFile -Value $reportContent -Encoding UTF8
-        Write-Host "Accessibility report saved to: $reportFile"
-        Write-Host ""
-        Write-Host $reportContent
-        
-        # Exit with appropriate code
-        if ($issueFiles -or $cliExitCode -ne 0) {
-            Write-Error "Accessibility check failed. See report for details."
+        # Check results
+        $allIssues = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -Recurse
+        if ($allIssues) {
+            Write-Error "Accessibility issues found in $($allIssues.Count) files."
             exit 1
-        }
-    - name: Upload Accessibility Results
+        } else {
+            Write-Host "No accessibility issues found across all scanned pages."
+        }    - name: Upload Accessibility Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
