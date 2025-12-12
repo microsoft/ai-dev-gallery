@@ -354,6 +354,11 @@
     <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   
+  <!-- Exclude duplicate onnxruntime dlls from Microsoft.ML.OnnxRuntime.Foundry to avoid APPX1101 errors -->
+  <ItemGroup>
+    <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.ML.OnnxRuntime.Foundry' And '%(ResolvedFileToPublish.AssetType)' == 'native'" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
       <SubType>Designer</SubType>
