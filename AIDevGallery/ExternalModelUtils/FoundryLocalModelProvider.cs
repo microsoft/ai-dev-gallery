@@ -182,17 +182,10 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private ModelDetails ToModelDetails(FoundryCatalogModel model)
     {
-        string acceleratorInfo = model.Runtime?.ExecutionProvider switch
-        {
-            "DirectML" => " (GPU)",
-            "QNN" => " (NPU)",
-            _ => string.Empty
-        };
-
         return new ModelDetails()
         {
             Id = $"fl-{model.Alias}",
-            Name = model.DisplayName + acceleratorInfo,
+            Name = model.DisplayName,
             Url = $"{UrlPrefix}{model.Alias}",
             Description = $"{model.DisplayName} running locally with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
