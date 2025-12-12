@@ -97,17 +97,17 @@
                                                 AutomationProperties.Name="More info"
                                                 Style="{StaticResource TertiaryButtonStyle}"
                                                 ToolTipService.ToolTip="More info"
-                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel)}">
+                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel.Runtime)}">
                                                 <TextBlock>
-                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(FoundryCatalogModel.Runtime.ExecutionProvider)}" />
+                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(FoundryCatalogModel.Runtime.ExecutionProvider), FallbackValue=''}" />
                                                 </TextBlock>
                                                 <Button.Flyout>
                                                     <Flyout ShouldConstrainToRootBounds="False">
                                                         <TextBlock MaxWidth="360" TextWrapping="Wrap">
                                                             <Run Text="This model can run on your" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.DeviceType}" />
+                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.DeviceType, FallbackValue=''}" />
                                                             <Run Text="with the" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.ExecutionProvider}" />
+                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.ExecutionProvider, FallbackValue=''}" />
                                                         </TextBlock>
                                                     </Flyout>
                                                 </Button.Flyout>

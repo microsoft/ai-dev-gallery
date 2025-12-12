@@ -17,7 +17,7 @@ using Windows.ApplicationModel.DataTransfer;
 namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal record FoundryCatalogModelGroup(string Alias, string License, IEnumerable<FoundryCatalogModelDetails> Details, IEnumerable<DownloadableModel> Models);
-internal record FoundryCatalogModelDetails(Runtime? Runtime, long SizeInBytes);
+internal record FoundryCatalogModelDetails(Runtime Runtime, long SizeInBytes);
 internal record FoundryModelPair(string Name, ModelDetails ModelDetails, FoundryCatalogModel? FoundryCatalogModel);
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
@@ -81,7 +81,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             CatalogModels.Add(new FoundryCatalogModelGroup(
                 m.Key,
                 firstModel!.License.ToLowerInvariant(),
-                m.Select(m => new FoundryCatalogModelDetails(m.Runtime, m.FileSizeMb * 1024 * 1024)),
+                m.Where(m => m.Runtime != null).Select(m => new FoundryCatalogModelDetails(m.Runtime!, m.FileSizeMb * 1024 * 1024)),
                 m.Where(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name))
                 .Select(m => new DownloadableModel(catalogModelsDict[m.Name]))));
         }
@@ -147,11 +147,11 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         return $"Download {GetShortExectionProvider(foundryModel.Runtime.ExecutionProvider)} variant";
     }
 
-    internal static string GetShortExectionProvider(string provider)
+    internal static string GetShortExectionProvider(string? provider)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
-            return provider;
+            return string.Empty;
         }
 
         var shortprovider = provider.Split(
