@@ -17,5 +17,5 @@ internal record FoundryCatalogModel
     public long FileSizeMb { get; init; }
     public string License { get; init; } = default!;
     public string ModelId { get; init; } = default!;
-    public Runtime? Runtime { get; init; }
+    public Runtime Runtime { get; init; }
 }
