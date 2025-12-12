@@ -225,7 +225,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     /// Ensures the model is ready to use before calling GetIChatClient.
     /// This method must be called before GetIChatClient to avoid deadlock.
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task EnsureModelReadyAsync(string url, CancellationToken cancellationToken = default)
     {
         var alias = url.Replace(UrlPrefix, string.Empty);

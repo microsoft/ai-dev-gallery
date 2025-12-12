@@ -154,7 +154,7 @@ internal class FoundryClient
     /// Should be called after download or when first accessing a cached model.
     /// Thread-safe: multiple concurrent calls for the same alias will only prepare once.
     /// </summary>
-    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task PrepareModelAsync(string alias, CancellationToken cancellationToken = default)
     {
         // Quick check without lock
