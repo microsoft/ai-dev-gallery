@@ -163,17 +163,19 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             {
                 downloadedModels.Add(firstModel);
 
-                _ = Task.Run(async () =>
-                {
-                    try
+                _ = Task.Run(
+                    async () =>
                     {
-                        await _foundryManager.PrepareModelAsync(catalogModel.Alias, cancelationToken);
-                    }
-                    catch
-                    {
-                        // Silently fail - user will see "not ready" error when attempting to use the model
-                    }
-                }, cancelationToken);
+                        try
+                        {
+                            await _foundryManager.PrepareModelAsync(catalogModel.Alias, cancelationToken);
+                        }
+                        catch
+                        {
+                            // Silently fail - user will see "not ready" error when attempting to use the model
+                        }
+                    },
+                    cancelationToken);
             }
         }
 
@@ -182,7 +184,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private ModelDetails ToModelDetails(FoundryCatalogModel model)
     {
-        return new ModelDetails()
+        return new ModelDetails
         {
             Id = $"fl-{model.Alias}",
             Name = model.DisplayName,
