@@ -355,9 +355,11 @@
   </ItemGroup>
   
   <!-- Exclude duplicate onnxruntime dlls from Microsoft.ML.OnnxRuntime.Foundry to avoid APPX1101 errors -->
-  <ItemGroup>
-    <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == 'Microsoft.ML.OnnxRuntime.Foundry' And '%(ResolvedFileToPublish.AssetType)' == 'native'" />
-  </ItemGroup>
+  <Target Name="RemoveDuplicateOnnxRuntimeDlls" AfterTargets="ResolvePackageAssets" BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntime.Foundry')) And ($([System.String]::Copy('%(ReferenceCopyLocalPaths.Filename)').Equals('onnxruntime')) Or $([System.String]::Copy('%(ReferenceCopyLocalPaths.Filename)').Equals('onnxruntime_providers_shared')))" />
+    </ItemGroup>
+  </Target>
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
