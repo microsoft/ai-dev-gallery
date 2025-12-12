@@ -75,9 +75,7 @@ public partial class SampleUIData : ObservableObject
             return;
         }
 
-        using (Process.Start(new ProcessStartInfo("explorer.exe", ProjectPath) { UseShellExecute = true }))
-        {
-        }
+        Process.Start(new ProcessStartInfo("explorer.exe", ProjectPath) { UseShellExecute = true });
     }
 
     public bool CompilationDone => StatusColor == greenSolidColorBrush || StatusColor == redSolidColorBrush;
@@ -87,12 +85,10 @@ public partial class SampleUIData : ObservableObject
     {
         string logFileName = GetLogFileName();
         var logFilePath = Path.Combine(ProjectGenerator.TmpPathLogs, logFileName);
-        using (Process.Start(new ProcessStartInfo("explorer.exe")
+        Process.Start(new ProcessStartInfo("explorer.exe")
         {
             Arguments = $"\"{logFilePath}\""
-        }))
-        {
-        }
+        });
     }
 
     public override string ToString()
