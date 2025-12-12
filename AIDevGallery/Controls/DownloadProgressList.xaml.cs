@@ -80,10 +80,20 @@ internal sealed partial class DownloadProgressList : UserControl
     {
         foreach (DownloadableModel model in downloadProgresses.ToList())
         {
-            if (model.Status is DownloadStatus.Completed or DownloadStatus.Canceled)
+            if (model.Status is DownloadStatus.Completed or DownloadStatus.Canceled or DownloadStatus.VerificationFailed)
             {
                 downloadProgresses.Remove(model);
             }
+        }
+    }
+
+    private void VerificationFailedClicked(object sender, RoutedEventArgs e)
+    {
+        // Retry download when verification failed
+        if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
+        {
+            downloadProgresses.Remove(downloadableModel);
+            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
         }
     }
 }

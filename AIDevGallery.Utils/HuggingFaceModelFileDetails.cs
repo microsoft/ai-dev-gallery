@@ -27,4 +27,28 @@ public class HuggingFaceModelFileDetails
     /// </summary>
     [JsonPropertyName("path")]
     public string? Path { get; init; }
+
+    /// <summary>
+    /// Gets the LFS (Large File Storage) information for the file.
+    /// </summary>
+    [JsonPropertyName("lfs")]
+    public HuggingFaceLfsInfo? Lfs { get; init; }
+}
+
+/// <summary>
+/// LFS (Large File Storage) information for a Hugging Face file.
+/// </summary>
+public class HuggingFaceLfsInfo
+{
+    /// <summary>
+    /// Gets the OID (SHA256 hash) of the file. Format: "sha256:abc123..."
+    /// </summary>
+    [JsonPropertyName("oid")]
+    public string? Oid { get; init; }
+
+    /// <summary>
+    /// Gets the size of the file in LFS.
+    /// </summary>
+    [JsonPropertyName("size")]
+    public long Size { get; init; }
 }
