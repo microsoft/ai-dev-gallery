@@ -354,12 +354,10 @@
     <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   
-  <!-- Exclude duplicate onnxruntime dlls from Microsoft.ML.OnnxRuntime.Foundry to avoid APPX1101 errors -->
-  <Target Name="RemoveDuplicateOnnxRuntimeDlls" AfterTargets="ResolvePackageAssets" BeforeTargets="ComputeFilesToPublish">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntime.Foundry')) And ($([System.String]::Copy('%(ReferenceCopyLocalPaths.Filename)').Equals('onnxruntime')) Or $([System.String]::Copy('%(ReferenceCopyLocalPaths.Filename)').Equals('onnxruntime_providers_shared')))" />
-    </ItemGroup>
-  </Target>
+  <!-- Exclude native assets from Microsoft.ML.OnnxRuntime.Foundry to avoid duplicate dll conflicts -->
+  <ItemGroup>
+    <PackageReference Update="Microsoft.ML.OnnxRuntime.Foundry" ExcludeAssets="native" />
+  </ItemGroup>
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
