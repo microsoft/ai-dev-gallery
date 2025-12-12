@@ -3,6 +3,7 @@
 
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
+using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using OpenAI;
@@ -118,7 +119,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return false;
         }
 
-        return (await _foundryManager.DownloadModel(model, progress, cancellationToken)).Success;
+        var result = await _foundryManager.DownloadModel(model, progress, cancellationToken);
+        
+        // Log telemetry for both success and failure
+        FoundryLocalDownloadEvent.Log(model.Alias, result.Success, result.ErrorMessage);
+        
+        return result.Success;
     }
 
     private void Reset()
