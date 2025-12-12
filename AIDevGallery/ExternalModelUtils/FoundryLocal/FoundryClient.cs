@@ -55,7 +55,7 @@ internal class FoundryClient
         }
     }
 
-    public async Task<List<FoundryModel>> ListCatalogModels()
+    public async Task<List<FoundryCatalogModel>> ListCatalogModels()
     {
         if (_catalog == null)
         {
@@ -67,7 +67,7 @@ internal class FoundryClient
         {
             var variant = model.SelectedVariant;
             var info = variant.Info;
-            return new FoundryModel
+            return new FoundryCatalogModel
             {
                 Name = info.Name,
                 DisplayName = info.DisplayName ?? info.Name,
@@ -91,7 +91,7 @@ internal class FoundryClient
         return cachedVariants.Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias)).ToList();
     }
 
-    public async Task<FoundryDownloadResult> DownloadModel(FoundryModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)
+    public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
         if (_catalog == null)
         {

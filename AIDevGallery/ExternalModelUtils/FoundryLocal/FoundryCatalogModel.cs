@@ -9,7 +9,7 @@ internal record FoundryCachedModelInfo(string Name, string? Id);
 
 internal record FoundryDownloadResult(bool Success, string? ErrorMessage);
 
-internal record FoundryModel
+internal record FoundryCatalogModel
 {
     public string Name { get; init; } = default!;
     public string DisplayName { get; init; } = default!;

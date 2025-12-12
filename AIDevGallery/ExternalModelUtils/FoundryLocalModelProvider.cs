@@ -113,7 +113,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return false;
         }
 
-        if (modelDetails.ProviderModelDetails is not FoundryModel model)
+        if (modelDetails.ProviderModelDetails is not FoundryCatalogModel model)
         {
             return false;
         }
@@ -151,12 +151,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         List<ModelDetails> downloadedModels = [];
 
-        var catalogByAlias = _catalogModels.GroupBy(m => ((FoundryModel)m.ProviderModelDetails!).Alias).ToList();
+        var catalogByAlias = _catalogModels.GroupBy(m => ((FoundryCatalogModel)m.ProviderModelDetails!).Alias).ToList();
 
         foreach (var aliasGroup in catalogByAlias)
         {
             var firstModel = aliasGroup.First();
-            var catalogModel = (FoundryModel)firstModel.ProviderModelDetails!;
+            var catalogModel = (FoundryCatalogModel)firstModel.ProviderModelDetails!;
             var hasCachedVariant = cachedModels.Any(cm => cm.Id == catalogModel.Alias);
 
             if (hasCachedVariant)
@@ -180,7 +180,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         _downloadedModels = downloadedModels;
     }
 
-    private ModelDetails ToModelDetails(FoundryModel model)
+    private ModelDetails ToModelDetails(FoundryCatalogModel model)
     {
         string acceleratorInfo = model.Runtime?.ExecutionProvider switch
         {
