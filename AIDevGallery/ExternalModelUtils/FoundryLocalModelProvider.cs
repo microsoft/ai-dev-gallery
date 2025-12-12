@@ -19,7 +19,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 {
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
-    private FoundryClient? _foundryManager;
+    private FoundryClient? _foundryClient;
     private string? url;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
@@ -49,13 +49,13 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null || string.IsNullOrEmpty(alias))
+        if (_foundryClient == null || string.IsNullOrEmpty(alias))
         {
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
+        var preparedInfo = _foundryClient.GetPreparedModel(alias);
         if (preparedInfo == null)
         {
             throw new InvalidOperationException(
@@ -63,11 +63,10 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         var (serviceUrl, modelId) = preparedInfo.Value;
-        this.url = serviceUrl;
 
         return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
         {
-            Endpoint = new Uri($"{this.url}/v1")
+            Endpoint = new Uri($"{serviceUrl}/v1")
         }).GetChatClient(modelId).AsIChatClient();
     }
 
@@ -75,12 +74,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null)
+        if (_foundryClient == null)
         {
             return null;
         }
 
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
+        var preparedInfo = _foundryClient.GetPreparedModel(alias);
         if (preparedInfo == null)
         {
             return null;
@@ -109,17 +108,17 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public async Task<bool> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
-        if (_foundryManager == null)
+        if (_foundryClient == null)
         {
             return false;
         }
 
-        if (modelDetails.ProviderModelDetails is not FoundryCatalogModel model)
+        if (modelDetails.ProviderModelDetails is not FoundryModel model)
         {
             return false;
         }
 
-        return (await _foundryManager.DownloadModel(model, progress, cancellationToken)).Success;
+        return (await _foundryClient.DownloadModel(model, progress, cancellationToken)).Success;
     }
 
     private void Reset()
@@ -129,35 +128,35 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private async Task InitializeAsync(CancellationToken cancelationToken = default)
     {
-        if (_foundryManager != null && _downloadedModels != null && _downloadedModels.Any())
+        if (_foundryClient != null && _downloadedModels != null && _downloadedModels.Any())
         {
             return;
         }
 
-        _foundryManager = _foundryManager ?? await FoundryClient.CreateAsync();
+        _foundryClient = _foundryClient ?? await FoundryClient.CreateAsync();
 
-        if (_foundryManager == null)
+        if (_foundryClient == null)
         {
             return;
         }
 
-        url = url ?? await _foundryManager.GetServiceUrl();
+        url = url ?? await _foundryClient.GetServiceUrl();
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
-            _catalogModels = (await _foundryManager.ListCatalogModels()).Select(m => ToModelDetails(m));
+            _catalogModels = (await _foundryClient.ListCatalogModels()).Select(m => ToModelDetails(m));
         }
 
-        var cachedModels = await _foundryManager.ListCachedModels();
+        var cachedModels = await _foundryClient.ListCachedModels();
 
         List<ModelDetails> downloadedModels = [];
 
-        var catalogByAlias = _catalogModels.GroupBy(m => ((FoundryCatalogModel)m.ProviderModelDetails!).Alias).ToList();
+        var catalogByAlias = _catalogModels.GroupBy(m => ((FoundryModel)m.ProviderModelDetails!).Alias).ToList();
 
         foreach (var aliasGroup in catalogByAlias)
         {
             var firstModel = aliasGroup.First();
-            var catalogModel = (FoundryCatalogModel)firstModel.ProviderModelDetails!;
+            var catalogModel = (FoundryModel)firstModel.ProviderModelDetails!;
             var hasCachedVariant = cachedModels.Any(cm => cm.Id == catalogModel.Alias);
 
             if (hasCachedVariant)
@@ -168,7 +167,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 {
                     try
                     {
-                        await _foundryManager.PrepareModelAsync(catalogModel.Alias, cancelationToken);
+                        await _foundryClient.PrepareModelAsync(catalogModel.Alias, cancelationToken);
                     }
                     catch
                     {
@@ -181,7 +180,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         _downloadedModels = downloadedModels;
     }
 
-    private ModelDetails ToModelDetails(FoundryCatalogModel model)
+    private ModelDetails ToModelDetails(FoundryModel model)
     {
         string acceleratorInfo = model.Runtime?.ExecutionProvider switch
         {
@@ -207,7 +206,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     public async Task<bool> IsAvailable()
     {
         await InitializeAsync();
-        return _foundryManager != null;
+        return _foundryClient != null;
     }
 
     /// <summary>
@@ -219,16 +218,16 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null || string.IsNullOrEmpty(alias))
+        if (_foundryClient == null || string.IsNullOrEmpty(alias))
         {
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
-        if (_foundryManager.GetPreparedModel(alias) != null)
+        if (_foundryClient.GetPreparedModel(alias) != null)
         {
             return;
         }
 
-        await _foundryManager.PrepareModelAsync(alias, cancellationToken);
+        await _foundryClient.PrepareModelAsync(alias, cancellationToken);
     }
 }

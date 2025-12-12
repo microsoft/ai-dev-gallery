@@ -5,11 +5,11 @@ using Microsoft.AI.Foundry.Local;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal record FoundryCachedModel(string Name, string? Id);
+internal record FoundryCachedModelInfo(string Name, string? Id);
 
 internal record FoundryDownloadResult(bool Success, string? ErrorMessage);
 
-internal record FoundryCatalogModel
+internal record FoundryModel
 {
     public string Name { get; init; } = default!;
     public string DisplayName { get; init; } = default!;
