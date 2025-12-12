@@ -354,10 +354,8 @@
     <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   
-  <!-- Exclude native assets from Microsoft.ML.OnnxRuntime.Foundry to avoid duplicate dll conflicts -->
-  <ItemGroup>
-    <PackageReference Update="Microsoft.ML.OnnxRuntime.Foundry" ExcludeAssets="native" />
-  </ItemGroup>
+  <!-- Exclude superfluous ORT and IHV libs when using Foundry Local WinML -->
+  <Import Project="ExcludeExtraLibs.props"/>
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
