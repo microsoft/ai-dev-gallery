@@ -5,6 +5,7 @@ using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
 using AIDevGallery.ViewModels;
+using Microsoft.AI.Foundry.Local;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ using Windows.ApplicationModel.DataTransfer;
 namespace AIDevGallery.Controls.ModelPickerViews;
 
 internal record FoundryCatalogModelGroup(string Alias, string License, IEnumerable<FoundryCatalogModelDetails> Details, IEnumerable<DownloadableModel> Models);
-internal record FoundryCatalogModelDetails(Runtime Runtime, long SizeInBytes);
+internal record FoundryCatalogModelDetails(Runtime? Runtime, long SizeInBytes);
 internal record FoundryModelPair(string Name, ModelDetails ModelDetails, FoundryCatalogModel? FoundryCatalogModel);
 internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
@@ -138,7 +139,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
     internal static string GetExecutionProviderTextFromModel(ModelDetails model)
     {
         var foundryModel = model.ProviderModelDetails as FoundryCatalogModel;
-        if (foundryModel == null)
+        if (foundryModel == null || foundryModel.Runtime == null)
         {
             return string.Empty;
         }
