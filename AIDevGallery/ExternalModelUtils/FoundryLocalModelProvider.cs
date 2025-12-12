@@ -173,7 +173,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                     {
                         // Silently fail - user will see "not ready" error when attempting to use the model
                     }
-                });
+                }, cancelationToken);
             }
         }
 

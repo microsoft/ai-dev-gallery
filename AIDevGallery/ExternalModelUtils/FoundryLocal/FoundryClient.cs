@@ -13,10 +13,10 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient
 {
-    private FoundryLocalManager? _manager;
-    private ICatalog? _catalog;
     private readonly Dictionary<string, (string ServiceUrl, string ModelId)> _preparedModels = new();
     private readonly SemaphoreSlim _prepareLock = new(1, 1);
+    private FoundryLocalManager? _manager;
+    private ICatalog? _catalog;
 
     public static async Task<FoundryClient?> CreateAsync()
     {
@@ -114,9 +114,10 @@ internal class FoundryClient
 
             await model.DownloadAsync(
                 progressPercent =>
-            {
-                progress?.Report(progressPercent / 100f);
-            }, cancellationToken);
+                {
+                    progress?.Report(progressPercent / 100f);
+                },
+                cancellationToken);
 
             await PrepareModelAsync(catalogModel.Alias, cancellationToken);
 
@@ -190,6 +191,7 @@ internal class FoundryClient
     /// Gets the service URL and model ID for a prepared model.
     /// Returns null if the model hasn't been prepared yet.
     /// </summary>
+    /// <returns>A tuple containing the service URL and model ID, or null if not prepared.</returns>
     public (string ServiceUrl, string ModelId)? GetPreparedModel(string alias)
     {
         return _preparedModels.TryGetValue(alias, out var info) ? info : null;
