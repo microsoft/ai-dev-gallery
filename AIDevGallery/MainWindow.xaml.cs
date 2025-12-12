@@ -46,8 +46,6 @@ internal sealed partial class MainWindow : WindowEx
 
         Closed += async (sender, args) =>
         {
-            CleanupVerificationFailedModels();
-
             if (SampleContainer.AnySamplesLoading())
             {
                 this.Hide();
@@ -492,17 +490,5 @@ internal sealed partial class MainWindow : WindowEx
             ModelPickerDefinition.Definitions["ollama"].Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png";
             ModelPickerDefinition.Definitions["openai"].Icon = $"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.png";
         });
-    }
-
-    private static void CleanupVerificationFailedModels()
-    {
-        foreach (var download in App.ModelDownloadQueue.GetDownloads())
-        {
-            if (download.DownloadStatus == DownloadStatus.VerificationFailed &&
-                download is OnnxModelDownload onnxDownload)
-            {
-                onnxDownload.DeleteFailedModel();
-            }
-        }
     }
 }

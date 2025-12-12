@@ -11,19 +11,21 @@ namespace AIDevGallery.Telemetry.Events;
 [EventData]
 internal class ModelIntegrityVerificationFailedEvent : EventBase
 {
-    internal ModelIntegrityVerificationFailedEvent(string modelUrl, string fileName, string expectedHash, string actualHash)
+    internal ModelIntegrityVerificationFailedEvent(string modelUrl, string fileName, string verificationType, string expectedValue, string actualValue)
     {
         ModelUrl = modelUrl;
         FileName = fileName;
-        ExpectedHash = expectedHash;
-        ActualHash = actualHash;
+        VerificationType = verificationType;
+        ExpectedValue = expectedValue;
+        ActualValue = actualValue;
         EventTime = DateTime.UtcNow;
     }
 
     public string ModelUrl { get; private set; }
     public string FileName { get; private set; }
-    public string ExpectedHash { get; private set; }
-    public string ActualHash { get; private set; }
+    public string VerificationType { get; private set; }
+    public string ExpectedValue { get; private set; }
+    public string ActualValue { get; private set; }
     public DateTime EventTime { get; private set; }
 
     public override PartA_PrivTags PartA_PrivTags => PrivTags.ProductAndServiceUsage;
@@ -32,11 +34,11 @@ internal class ModelIntegrityVerificationFailedEvent : EventBase
     {
     }
 
-    public static void Log(string modelUrl, string fileName, string expectedHash, string actualHash)
+    public static void Log(string modelUrl, string fileName, string verificationType, string expectedValue, string actualValue)
     {
         TelemetryFactory.Get<ITelemetry>().LogError(
             "ModelIntegrityVerificationFailed_Event",
             LogLevel.Info,
-            new ModelIntegrityVerificationFailedEvent(modelUrl, fileName, expectedHash, actualHash));
+            new ModelIntegrityVerificationFailedEvent(modelUrl, fileName, verificationType, expectedValue, actualValue));
     }
 }

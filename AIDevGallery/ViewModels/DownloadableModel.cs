@@ -91,36 +91,6 @@ internal partial class DownloadableModel : BaseModel
         ModelDownload?.CancelDownload();
     }
 
-    /// <summary>
-    /// Deletes the model files when user rejects a verification-failed model.
-    /// </summary>
-    public void DeleteVerificationFailedModel()
-    {
-        if (ModelDownload is OnnxModelDownload onnxDownload)
-        {
-            onnxDownload.DeleteFailedModel();
-        }
-
-        Status = DownloadStatus.Canceled;
-        ModelDownload = null;
-        VerificationFailureMessage = null;
-    }
-
-    /// <summary>
-    /// Keeps the model despite verification failure (user's choice).
-    /// </summary>
-    public async void KeepVerificationFailedModel()
-    {
-        if (ModelDownload is OnnxModelDownload onnxDownload)
-        {
-            await onnxDownload.KeepModelDespiteVerificationFailure();
-        }
-
-        Status = DownloadStatus.Completed;
-        ModelDownload = null;
-        VerificationFailureMessage = null;
-    }
-
     private void ModelDownload_StateChanged(object? sender, ModelDownloadEventArgs e)
     {
         if (!_progressTimer.IsEnabled)
@@ -151,6 +121,8 @@ internal partial class DownloadableModel : BaseModel
         {
             Status = DownloadStatus.VerificationFailed;
             VerificationFailureMessage = e.VerificationFailureMessage;
+            ModelDownload = null;
+            Progress = 0;
         }
 
         if (e.Status == DownloadStatus.Verifying)

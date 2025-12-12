@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -90,16 +91,6 @@ internal class OnnxModelDownload : ModelDownload
 {
     public ModelUrl ModelUrl { get; set; }
 
-    /// <summary>
-    /// Gets the list of files that failed integrity verification.
-    /// </summary>
-    public List<(string FileName, string ExpectedHash, string ActualHash)> FailedVerifications { get; } = [];
-
-    /// <summary>
-    /// Cached model info from the download process
-    /// </summary>
-    private CachedModel? _pendingCachedModel;
-
     public OnnxModelDownload(ModelDetails details)
         : base(details)
     {
@@ -158,34 +149,6 @@ internal class OnnxModelDownload : ModelDownload
     {
         CancellationTokenSource.Cancel();
         DownloadStatus = DownloadStatus.Canceled;
-    }
-
-    /// <summary>
-    /// Deletes the downloaded model files after user chooses not to keep a verification-failed model.
-    /// </summary>
-    public void DeleteFailedModel()
-    {
-        var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
-        if (Directory.Exists(localPath))
-        {
-            Directory.Delete(localPath, true);
-        }
-    }
-
-    /// <summary>
-    /// Keeps the downloaded model files despite verification failure (user's choice).
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task KeepModelDespiteVerificationFailure()
-    {
-        if (_pendingCachedModel == null)
-        {
-            throw new InvalidOperationException("Cannot keep model: no pending cached model from verification failure.");
-        }
-
-        await App.ModelCache.CacheStore.AddModel(_pendingCachedModel);
-        _pendingCachedModel = null;
-        DownloadStatus = DownloadStatus.Completed;
     }
 
     private async Task<CachedModel?> DownloadModel(string cacheDir, IProgress<float>? progress = null)
@@ -268,7 +231,23 @@ internal class OnnxModelDownload : ModelDownload
             var fileInfo = new FileInfo(filePath);
             if (fileInfo.Length != downloadableFile.Size)
             {
-                throw new IOException($"File size mismatch for {downloadableFile.Name}: expected {downloadableFile.Size}, got {fileInfo.Length}");
+                // Size mismatch - log telemetry
+                ModelIntegrityVerificationFailedEvent.Log(
+                    Details.Url,
+                    downloadableFile.Name ?? filePath,
+                    verificationType: "Size",
+                    expectedValue: downloadableFile.Size.ToString(CultureInfo.InvariantCulture),
+                    actualValue: fileInfo.Length.ToString(CultureInfo.InvariantCulture));
+                VerificationFailureMessage = $"Size verification failed for: {downloadableFile.Name}";
+                DownloadStatus = DownloadStatus.VerificationFailed;
+
+                var localPath = url.GetLocalPath(cacheDir);
+                if (Directory.Exists(localPath))
+                {
+                    Directory.Delete(localPath, true);
+                }
+
+                return null;
             }
 
             // Add to verification list if it's a main model file with hash
@@ -298,22 +277,24 @@ internal class OnnxModelDownload : ModelDownload
 
                 if (!verified)
                 {
-                    FailedVerifications.Add((fileDetails.Name ?? filePath, expectedHash, actualHash));
-                    ModelIntegrityVerificationFailedEvent.Log(Details.Url, fileDetails.Name ?? filePath, expectedHash, actualHash);
+                    ModelIntegrityVerificationFailedEvent.Log(
+                        Details.Url,
+                        fileDetails.Name ?? filePath,
+                        verificationType: "SHA256",
+                        expectedValue: expectedHash,
+                        actualValue: actualHash);
+                    VerificationFailureMessage = $"Integrity verification failed for: {fileDetails.Name ?? filePath}";
+                    DownloadStatus = DownloadStatus.VerificationFailed;
+
+                    // Delete the downloaded files
+                    var localPath = url.GetLocalPath(cacheDir);
+                    if (Directory.Exists(localPath))
+                    {
+                        Directory.Delete(localPath, true);
+                    }
+
+                    return null;
                 }
-            }
-
-            if (FailedVerifications.Count > 0)
-            {
-                var failedFileNames = string.Join(", ", FailedVerifications.Select(f => f.FileName));
-                VerificationFailureMessage = $"Integrity verification failed for: {failedFileNames}";
-
-                // Cache the model info for potential KeepModelDespiteVerificationFailure call
-                var failedModelDirectory = url.GetLocalPath(cacheDir);
-                _pendingCachedModel = new CachedModel(Details, url.IsFile ? $"{failedModelDirectory}\\{filesToDownload.First().Name}" : failedModelDirectory, url.IsFile, modelSize);
-
-                DownloadStatus = DownloadStatus.VerificationFailed;
-                return null;
             }
         }
 

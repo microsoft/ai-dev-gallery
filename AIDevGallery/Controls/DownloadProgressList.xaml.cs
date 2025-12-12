@@ -5,7 +5,6 @@ using AIDevGallery.Utils;
 using AIDevGallery.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -81,66 +80,20 @@ internal sealed partial class DownloadProgressList : UserControl
     {
         foreach (DownloadableModel model in downloadProgresses.ToList())
         {
-            if (model.Status is DownloadStatus.Completed or DownloadStatus.Canceled)
+            if (model.Status is DownloadStatus.Completed or DownloadStatus.Canceled or DownloadStatus.VerificationFailed)
             {
                 downloadProgresses.Remove(model);
             }
         }
     }
 
-    private async void VerificationFailedClicked(object sender, RoutedEventArgs e)
+    private void VerificationFailedClicked(object sender, RoutedEventArgs e)
     {
+        // Retry download when verification failed
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
-            var dialog = new ContentDialog
-            {
-                Title = "Integrity verification failed",
-                Content = new StackPanel
-                {
-                    Spacing = 12,
-                    Children =
-                    {
-                        new TextBlock
-                        {
-                            Text = "The downloaded model file(s) did not match the expected hash. This could indicate the file was corrupted during download or has been tampered with.",
-                            TextWrapping = TextWrapping.Wrap
-                        },
-                        new TextBlock
-                        {
-                            Text = downloadableModel.VerificationFailureMessage ?? "Unknown verification error",
-                            TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"],
-                            FontSize = 12
-                        },
-                        new TextBlock
-                        {
-                            Text = "Would you like to keep the model anyway or delete it?",
-                            TextWrapping = TextWrapping.Wrap
-                        }
-                    }
-                },
-                PrimaryButtonText = "Delete model",
-                SecondaryButtonText = "Keep anyway",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = this.XamlRoot
-            };
-
-            var result = await dialog.ShowAsync();
-
-            if (result == ContentDialogResult.Primary)
-            {
-                // Delete the model
-                downloadableModel.DeleteVerificationFailedModel();
-                downloadProgresses.Remove(downloadableModel);
-            }
-            else if (result == ContentDialogResult.Secondary)
-            {
-                // Keep the model despite verification failure
-                downloadableModel.KeepVerificationFailedModel();
-            }
-
-            // If Cancel, do nothing - leave the item in the list
+            downloadProgresses.Remove(downloadableModel);
+            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
         }
     }
 }

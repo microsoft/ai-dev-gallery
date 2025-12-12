@@ -176,16 +176,16 @@
                                 Height="32"
                                 Padding="0"
                                 VerticalAlignment="Center"
-                                AutomationProperties.Name="Verification failed - click to resolve"
+                                AutomationProperties.Name="Verification failed - click to retry"
                                 Click="VerificationFailedClicked"
                                 Style="{StaticResource SubtleButtonStyle}"
                                 Tag="{x:Bind}"
-                                ToolTipService.ToolTip="Verification failed - click to resolve"
+                                ToolTipService.ToolTip="Verification failed - click to retry"
                                 Visibility="{x:Bind vm:DownloadableModel.VisibleWhenVerificationFailed(Status), Mode=OneWay}">
                                 <FontIcon
                                     FontSize="14"
                                     Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                    Glyph="&#xE7BA;" />
+                                    Glyph="&#xE72C;" />
                             </Button>
                         </Grid>
                     </toolkit:SettingsCard>
