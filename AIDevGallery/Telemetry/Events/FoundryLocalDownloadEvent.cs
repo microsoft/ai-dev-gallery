@@ -35,9 +35,21 @@ internal class FoundryLocalDownloadEvent : EventBase
 
     public static void Log(string modelAlias, bool success, string? errorMessage = null)
     {
-        TelemetryFactory.Get<ITelemetry>().Log(
-            "FoundryLocalDownload_Event",
-            success ? LogLevel.Critical : LogLevel.Error,
-            new FoundryLocalDownloadEvent(modelAlias, success, errorMessage, DateTime.Now));
+        if (success)
+        {
+            TelemetryFactory.Get<ITelemetry>().Log(
+                "FoundryLocalDownload_Event",
+                LogLevel.Critical,
+                new FoundryLocalDownloadEvent(modelAlias, success, errorMessage, DateTime.Now));
+        }
+        else
+        {
+            var relatedActivityId = Guid.NewGuid();
+            TelemetryFactory.Get<ITelemetry>().LogError(
+                "FoundryLocalDownload_Event",
+                LogLevel.Critical,
+                new FoundryLocalDownloadEvent(modelAlias, success, errorMessage, DateTime.Now),
+                relatedActivityId);
+        }
     }
 }
