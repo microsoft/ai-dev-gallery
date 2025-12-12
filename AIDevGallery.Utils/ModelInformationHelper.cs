@@ -228,7 +228,7 @@ public static class ModelInformationHelper
             return new ModelFileDetails()
             {
                 DownloadUrl = $"https://huggingface.co/{hfUrl.Organization}/{hfUrl.Repo}/resolve/{hfUrl.Ref}/{f.Path}",
-                Size = f.Lfs?.Size ?? f.Size,
+                Size = f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
                 Path = f.Path,
                 Sha256 = sha256
