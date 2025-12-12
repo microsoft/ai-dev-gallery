@@ -73,15 +73,14 @@ public class Program
     // wait method to wait for the redirection to complete.
     private static void RedirectActivationTo(AppActivationArguments args, AppInstance keyInstance)
     {
-        using (var redirectSemaphore = new Semaphore(0, 1))
-        {
-            Task.Run(() =>
+        var redirectSemaphore = new Semaphore(0, 1);
+        Task.Run(() =>
         {
             keyInstance.RedirectActivationToAsync(args).AsTask().Wait();
             redirectSemaphore.Release();
         });
-            redirectSemaphore.WaitOne();
-        }
+        redirectSemaphore.WaitOne();
+        redirectSemaphore.Dispose();
 
         // Bring the window to the foreground
         Process process = Process.GetProcessById((int)keyInstance.ProcessId);
