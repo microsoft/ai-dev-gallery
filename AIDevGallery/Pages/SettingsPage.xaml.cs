@@ -87,7 +87,9 @@ internal sealed partial class SettingsPage : Page
     {
         if (cacheFolderPath != null)
         {
-            Process.Start("explorer.exe", cacheFolderPath);
+            using (Process.Start("explorer.exe", cacheFolderPath))
+            {
+            }
         }
     }
 
@@ -193,7 +195,9 @@ internal sealed partial class SettingsPage : Page
 
             if (path != null)
             {
-                Process.Start("explorer.exe", path);
+                using (Process.Start("explorer.exe", path))
+                {
+                }
             }
         }
     }

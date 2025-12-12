@@ -27,7 +27,9 @@ internal class DefaultSVGRenderer : ISVGRenderer
             memoryStream.Position = 0;
 
             // Load the SVG from the MemoryStream
-            await svgImageSource.SetSourceAsync(memoryStream.AsRandomAccessStream());
+            using (await svgImageSource.SetSourceAsync(memoryStream.AsRandomAccessStream()))
+            {
+            }
         }
 
         // Set the Source property of the Image control to the SvgImageSource object

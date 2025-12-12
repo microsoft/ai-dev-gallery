@@ -57,11 +57,13 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
+            using (Process.Start(new ProcessStartInfo
             {
                 FileName = modelDetailsUrl,
                 UseShellExecute = true
-            });
+            }))
+            {
+            }
         }
     }
 

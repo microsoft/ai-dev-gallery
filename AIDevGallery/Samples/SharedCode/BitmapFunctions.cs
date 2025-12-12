@@ -317,7 +317,9 @@ internal class BitmapFunctions
 
             memoryStream.Position = 0;
 
-            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+            using (bitmapImage.SetSource(memoryStream.AsRandomAccessStream()))
+            {
+            }
         }
 
         return bitmapImage;
@@ -351,7 +353,9 @@ internal class BitmapFunctions
         {
             image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
             memoryStream.Position = 0;
-            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+            using (bitmapImage.SetSource(memoryStream.AsRandomAccessStream()))
+            {
+            }
         }
 
         return bitmapImage;
@@ -469,14 +473,16 @@ internal class BitmapFunctions
         using var stream = new InMemoryRandomAccessStream();
 
         // Save the bitmap to a stream
-        bitmap.Save(stream.AsStream(), ImageFormat.Png);
-        stream.Seek(0);
+        using (bitmap.Save(stream.AsStream(), ImageFormat.Png))
+        {
+            stream.Seek(0);
 
-        // Create a BitmapImage from the stream
-        BitmapImage bitmapImage = new();
-        bitmapImage.SetSource(stream);
+            // Create a BitmapImage from the stream
+            BitmapImage bitmapImage = new();
+            bitmapImage.SetSource(stream);
 
-        return bitmapImage;
+            return bitmapImage;
+        }
     }
 
     private static float GetAdjustedFontsize(List<Prediction> predictions)

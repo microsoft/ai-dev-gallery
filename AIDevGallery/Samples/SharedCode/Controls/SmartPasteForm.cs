@@ -111,30 +111,30 @@ Rules:
                 clipboardText[.._defaultMaxLength] :
                 clipboardText
         };
-
-        CancellationTokenSource cts = new();
-        string output = string.Empty;
-
-        await foreach (var messagePart in model.GetStreamingResponseAsync(
-            [
-                new ChatMessage(ChatRole.System, _systemPrompt),
-                new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
-            ],
-            null,
-            cts.Token))
+        using (
+                CancellationTokenSource cts = new())
         {
-            outputMessage += messagePart;
+            string output = string.Empty;
 
-            Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
-            if (match.Success)
+            await foreach (var messagePart in model.GetStreamingResponseAsync(
+                [
+                    new ChatMessage(ChatRole.System, _systemPrompt),
+                new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
+                ],
+                null,
+                cts.Token))
             {
-                output = match.Value;
-                cts.Cancel();
-                break;
+                outputMessage += messagePart;
+
+                Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
+                if (match.Success)
+                {
+                    output = match.Value;
+                    cts.Cancel();
+                    break;
+                }
             }
         }
-
-        cts.Dispose();
 
         if (string.IsNullOrWhiteSpace(output))
         {

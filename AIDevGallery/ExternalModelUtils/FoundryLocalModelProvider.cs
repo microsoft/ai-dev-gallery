@@ -19,7 +19,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 {
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
-    private FoundryClient? _foundryManager;
+    private FoundryClient? _foundryClient;
     private string? url;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
@@ -45,17 +45,50 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public IChatClient? GetIChatClient(string url)
     {
-        var modelId = url.Split('/').LastOrDefault();
+        // URL format: fl://alias
+        var alias = url.Replace(UrlPrefix, string.Empty);
+
+        if (_foundryClient == null || string.IsNullOrEmpty(alias))
+        {
+            throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
+        }
+
+        // Get the prepared model info (must be prepared beforehand to avoid deadlock)
+        var preparedInfo = _foundryClient.GetPreparedModel(alias);
+        if (preparedInfo == null)
+        {
+            throw new InvalidOperationException(
+                $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
+        }
+
+        var (serviceUrl, modelId) = preparedInfo.Value;
+        this.url = serviceUrl;
+
+        // Use the actual model variant ID for the OpenAI client
         return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
         {
-            Endpoint = new Uri($"{Url}/v1")
+            Endpoint = new Uri($"{this.url}/v1")
         }).GetChatClient(modelId).AsIChatClient();
     }
 
     public string? GetIChatClientString(string url)
     {
-        var modelId = url.Split('/').LastOrDefault();
-        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{Url}/v1\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
+        // URL format: fl://alias
+        var alias = url.Replace(UrlPrefix, string.Empty);
+
+        if (_foundryClient == null)
+        {
+            return null;
+        }
+
+        var preparedInfo = _foundryClient.GetPreparedModel(alias);
+        if (preparedInfo == null)
+        {
+            return null;
+        }
+
+        var (serviceUrl, modelId) = preparedInfo.Value;
+        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{serviceUrl}/v1\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
@@ -77,7 +110,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public async Task<bool> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
-        if (_foundryManager == null)
+        if (_foundryClient == null)
         {
             return false;
         }
@@ -87,7 +120,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return false;
         }
 
-        return (await _foundryManager.DownloadModel(model, progress, cancellationToken)).Success;
+        return (await _foundryClient.DownloadModel(model, progress, cancellationToken)).Success;
     }
 
     private void Reset()
@@ -98,53 +131,58 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private async Task InitializeAsync(CancellationToken cancelationToken = default)
     {
-        if (_foundryManager != null && _downloadedModels != null && _downloadedModels.Any())
+        if (_foundryClient != null && _downloadedModels != null && _downloadedModels.Any())
         {
             return;
         }
 
-        _foundryManager = _foundryManager ?? await FoundryClient.CreateAsync();
+        _foundryClient = _foundryClient ?? await FoundryClient.CreateAsync();
 
-        if (_foundryManager == null)
+        if (_foundryClient == null)
         {
             return;
         }
 
-        url = url ?? await _foundryManager.ServiceManager.GetServiceUrl();
+        url = url ?? await _foundryClient.GetServiceUrl();
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
-            _catalogModels = (await _foundryManager.ListCatalogModels()).Select(m => ToModelDetails(m));
+            _catalogModels = (await _foundryClient.ListCatalogModels()).Select(m => ToModelDetails(m));
         }
 
-        var cachedModels = await _foundryManager.ListCachedModels();
+        var cachedModels = await _foundryClient.ListCachedModels();
 
         List<ModelDetails> downloadedModels = [];
 
-        foreach (var model in _catalogModels)
-        {
-            var cachedModel = cachedModels.FirstOrDefault(m => m.Name == model.Name);
+        // Group catalog models by alias (each alias may have multiple variants)
+        var catalogByAlias = _catalogModels.GroupBy(m => ((FoundryCatalogModel)m.ProviderModelDetails!).Alias).ToList();
 
-            if (cachedModel != default)
+        foreach (var aliasGroup in catalogByAlias)
+        {
+            var firstModel = aliasGroup.First();
+            var catalogModel = (FoundryCatalogModel)firstModel.ProviderModelDetails!;
+
+            // Check if any variant of this alias is cached
+            var hasCachedVariant = cachedModels.Any(cm => cm.Id == catalogModel.Alias);
+
+            if (hasCachedVariant)
             {
-                model.Id = $"{UrlPrefix}{cachedModel.Id}";
-                downloadedModels.Add(model);
-                cachedModels.Remove(cachedModel);
+                // At least one variant is cached, add this model to downloaded list
+                downloadedModels.Add(firstModel);
+
+                // Prepare cached models in the background
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _foundryClient.PrepareModelAsync(catalogModel.Alias, cancelationToken);
+                    }
+                    catch
+                    {
+                        // Model will show "not ready" error when user tries to use it
+                    }
+                });
             }
-        }
-
-        foreach (var model in cachedModels)
-        {
-            downloadedModels.Add(new ModelDetails()
-            {
-                Id = $"fl-{model.Name}",
-                Name = model.Name,
-                Url = $"{UrlPrefix}{model.Name}",
-                Description = $"{model.Name} running locally with Foundry Local",
-                HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
-                SupportedOnQualcomm = true,
-                ProviderModelDetails = model
-            });
         }
 
         _downloadedModels = downloadedModels;
@@ -154,12 +192,21 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private ModelDetails ToModelDetails(FoundryCatalogModel model)
     {
+        string acceleratorInfo = model.Runtime?.ExecutionProvider switch
+        {
+            "DirectML" => " (GPU)",
+            "QNN" => " (NPU)",
+            _ => string.Empty
+        };
+
         return new ModelDetails()
         {
-            Id = $"fl-{model.Name}",
-            Name = model.Name,
-            Url = $"{UrlPrefix}{model.Name}",
-            Description = $"{model.Alias} running locally with Foundry Local",
+            Id = $"fl-{model.Alias}",
+            Name = model.DisplayName + acceleratorInfo,
+
+            // URL contains only the alias, SDK will select the best variant automatically
+            Url = $"{UrlPrefix}{model.Alias}",
+            Description = $"{model.DisplayName} running locally with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
             Size = model.FileSizeMb * 1024 * 1024,
             SupportedOnQualcomm = true,
@@ -171,6 +218,30 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     public async Task<bool> IsAvailable()
     {
         await InitializeAsync();
-        return _foundryManager != null;
+        return _foundryClient != null;
+    }
+
+    /// <summary>
+    /// Ensures the model is ready to use before calling GetIChatClient.
+    /// This method must be called before GetIChatClient to avoid deadlock.
+    /// </summary>
+    /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+    public async Task EnsureModelReadyAsync(string url, CancellationToken cancellationToken = default)
+    {
+        var alias = url.Replace(UrlPrefix, string.Empty);
+
+        if (_foundryClient == null || string.IsNullOrEmpty(alias))
+        {
+            throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
+        }
+
+        // Check if already prepared
+        if (_foundryClient.GetPreparedModel(alias) != null)
+        {
+            return;
+        }
+
+        // Prepare the model asynchronously
+        await _foundryClient.PrepareModelAsync(alias, cancellationToken);
     }
 }

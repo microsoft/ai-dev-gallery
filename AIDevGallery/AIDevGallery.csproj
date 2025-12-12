@@ -80,6 +80,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="MathNet.Numerics" />
+    <PackageReference Include="Microsoft.AI.Foundry.Local.WinML" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="OllamaSharp" />

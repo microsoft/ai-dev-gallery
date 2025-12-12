@@ -184,11 +184,13 @@ internal sealed partial class APIPage : Page
         }
 
         ModelDetailsLinkClickedEvent.Log(link);
-        Process.Start(new ProcessStartInfo()
+        using (Process.Start(new ProcessStartInfo()
         {
             FileName = link,
             UseShellExecute = true
-        });
+        }))
+        {
+        }
     }
 
     private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
