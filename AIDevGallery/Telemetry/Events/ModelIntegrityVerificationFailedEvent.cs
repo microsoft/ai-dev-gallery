@@ -36,9 +36,7 @@ internal class ModelIntegrityVerificationFailedEvent : EventBase
     {
         TelemetryFactory.Get<ITelemetry>().LogError(
             "ModelIntegrityVerificationFailed_Event",
-            LogLevel.Critical,
+            LogLevel.Info,
             new ModelIntegrityVerificationFailedEvent(modelUrl, fileName, expectedHash, actualHash));
     }
 }
-
-

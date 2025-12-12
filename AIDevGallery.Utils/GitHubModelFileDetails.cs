@@ -47,7 +47,7 @@ public class GitHubModelFileDetails
     public string? Type { get; init; }
 
     /// <summary>
-    /// Gets the base64-encoded content of the file.
+    /// Gets the encoded content of the file.
     /// For LFS files, this contains the LFS pointer with SHA256.
     /// </summary>
     [JsonPropertyName("content")]

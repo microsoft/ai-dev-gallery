@@ -95,6 +95,11 @@ internal class OnnxModelDownload : ModelDownload
     /// </summary>
     public List<(string FileName, string ExpectedHash, string ActualHash)> FailedVerifications { get; } = [];
 
+    /// <summary>
+    /// Cached model info from the download process
+    /// </summary>
+    private CachedModel? _pendingCachedModel;
+
     public OnnxModelDownload(ModelDetails details)
         : base(details)
     {
@@ -173,36 +178,14 @@ internal class OnnxModelDownload : ModelDownload
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task KeepModelDespiteVerificationFailure()
     {
-        var localFolderPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
-        var filesToDownload = await GetFilesToDownloadAsync();
-        long modelSize = filesToDownload.Sum(f => f.Size);
+        if (_pendingCachedModel == null)
+        {
+            throw new InvalidOperationException("Cannot keep model: no pending cached model from verification failure.");
+        }
 
-        var cachedModel = new CachedModel(Details, ModelUrl.IsFile ? $"{localFolderPath}\\{filesToDownload.First().Name}" : localFolderPath, ModelUrl.IsFile, modelSize);
-        await App.ModelCache.CacheStore.AddModel(cachedModel);
+        await App.ModelCache.CacheStore.AddModel(_pendingCachedModel);
+        _pendingCachedModel = null;
         DownloadStatus = DownloadStatus.Completed;
-    }
-
-    private async Task<List<ModelFileDetails>> GetFilesToDownloadAsync()
-    {
-        var cancellationToken = CancellationTokenSource.Token;
-        List<ModelFileDetails> filesToDownload;
-
-        if (Details.Url.StartsWith("https://github.com", StringComparison.InvariantCulture))
-        {
-            var ghUrl = new GitHubUrl(Details.Url);
-            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromGitHub(ghUrl, cancellationToken);
-        }
-        else
-        {
-            var hfUrl = new HuggingFaceUrl(Details.Url);
-            using var socketsHttpHandler = new SocketsHttpHandler
-            {
-                MaxConnectionsPerServer = 4
-            };
-            filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(hfUrl, socketsHttpHandler, cancellationToken);
-        }
-
-        return ModelInformationHelper.FilterFiles(filesToDownload, Details.FileFilters);
     }
 
     private async Task<CachedModel?> DownloadModel(string cacheDir, IProgress<float>? progress = null)
@@ -324,6 +307,11 @@ internal class OnnxModelDownload : ModelDownload
             {
                 var failedFileNames = string.Join(", ", FailedVerifications.Select(f => f.FileName));
                 VerificationFailureMessage = $"Integrity verification failed for: {failedFileNames}";
+
+                // Cache the model info for potential KeepModelDespiteVerificationFailure call
+                var failedModelDirectory = url.GetLocalPath(cacheDir);
+                _pendingCachedModel = new CachedModel(Details, url.IsFile ? $"{failedModelDirectory}\\{filesToDownload.First().Name}" : failedModelDirectory, url.IsFile, modelSize);
+
                 DownloadStatus = DownloadStatus.VerificationFailed;
                 return null;
             }

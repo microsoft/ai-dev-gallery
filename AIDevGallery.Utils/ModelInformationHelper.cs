@@ -61,8 +61,6 @@ public static class ModelInformationHelper
         {
             string? sha256 = null;
 
-            // For LFS files, the API returns the LFS pointer content in base64.
-            // We can extract SHA256 directly without additional HTTP requests.
             if (f.Content != null && f.Encoding == "base64")
             {
                 try
@@ -70,9 +68,9 @@ public static class ModelInformationHelper
                     var decodedContent = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(f.Content));
                     sha256 = ParseLfsPointerSha256(decodedContent);
                 }
-                catch
+                catch (FormatException)
                 {
-                    // Not a valid base64 or not an LFS pointer, ignore
+                    Debug.WriteLine($"Failed to decode base64 content for {f.Path}");
                 }
             }
 

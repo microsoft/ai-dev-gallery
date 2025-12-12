@@ -33,7 +33,7 @@ public class ModelFileDetails
     /// <summary>
     /// Gets the expected SHA256 hash of the file.
     /// For Hugging Face: from LFS oid field.
-    /// For GitHub: from LFS pointer file (for LFS-tracked files).
+    /// For GitHub: from LFS pointer file.
     /// </summary>
     public string? Sha256 { get; init; }
 
