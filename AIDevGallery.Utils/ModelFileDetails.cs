@@ -38,10 +38,11 @@ public class ModelFileDetails
     public string? Sha256 { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether this file should be verified for integrity (main model files like .onnx).
+    /// Gets a value indicating whether this file should be verified for integrity.
     /// </summary>
     public bool ShouldVerifyIntegrity => Name != null &&
         (Name.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase) ||
+         Name.EndsWith(".onnx.data", StringComparison.OrdinalIgnoreCase) ||
          Name.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase) ||
          Name.EndsWith(".safetensors", StringComparison.OrdinalIgnoreCase));
 
