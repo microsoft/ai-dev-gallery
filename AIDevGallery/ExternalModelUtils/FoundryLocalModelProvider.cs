@@ -69,23 +69,21 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         Debug.WriteLine($"[FoundryLocal] Model ID: {model.Id}");
         
-        // Verify model is actually loaded before getting chat client
+        // Model should already be loaded by PrepareModelAsync
+        // Using .Result here is safe because the model is already prepared
         Debug.WriteLine($"[FoundryLocal] Checking if model is loaded...");
-        var isLoaded = await model.IsLoadedAsync();
+        var isLoaded = model.IsLoadedAsync().Result;
         Debug.WriteLine($"[FoundryLocal] Model.IsLoadedAsync() = {isLoaded}");
         
         if (!isLoaded)
         {
-            Debug.WriteLine($"[FoundryLocal] WARNING: Model is not loaded! Attempting to load now...");
-            await model.LoadAsync();
-            Debug.WriteLine($"[FoundryLocal] Model loaded. Verifying...");
-            isLoaded = await model.IsLoadedAsync();
-            Debug.WriteLine($"[FoundryLocal] Model.IsLoadedAsync() after load = {isLoaded}");
+            Debug.WriteLine($"[FoundryLocal] ERROR: Model is not loaded! This should not happen.");
+            throw new InvalidOperationException($"Model '{alias}' was prepared but not loaded. This is a bug.");
         }
         
         // Get the native FoundryLocal chat client - no web service, no SSE issues!
         Debug.WriteLine($"[FoundryLocal] Getting native chat client from model");
-        var chatClient = await model.GetChatClientAsync();
+        var chatClient = model.GetChatClientAsync().Result;
         
         // Wrap it in our adapter
         Debug.WriteLine($"[FoundryLocal] Creating FoundryLocalChatClientAdapter");
