@@ -218,13 +218,9 @@ internal sealed partial class MainWindow : WindowEx
                 {
                     apiPage.SetSelectedApiInMenu(modelType);
                 }
-                else if (param is ModelDetails)
-                {
-                    // ModelDetails needs full navigation as APISelectionPage.OnNavigatedTo handles the lookup
-                    NavFrame.Navigate(page, param);
-                }
                 else
                 {
+                    // ModelDetails needs full navigation as APISelectionPage.OnNavigatedTo handles the lookup
                     // Unknown parameter type - perform full navigation to be safe
                     NavFrame.Navigate(page, param);
                 }
