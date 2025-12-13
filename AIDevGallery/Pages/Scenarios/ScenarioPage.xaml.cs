@@ -97,10 +97,10 @@ internal sealed partial class ScenarioPage : Page
 
         List<List<ModelType>> modelDetailsList = [samples.SelectMany(s => s.Model1Types).ToList()];
 
-        // assume if first sample has two models, then all of them should need two models
+        // if any sample has a second model, collect all Model2Types from samples that define them
         if (samples[0].Model2Types != null)
         {
-            modelDetailsList.Add(samples.SelectMany(s => s.Model2Types!).ToList());
+            modelDetailsList.Add(samples.Where(s => s.Model2Types != null).SelectMany(s => s.Model2Types!).ToList());
         }
 
         var preSelectedModels = await App.MainWindow.ModelPicker.Load(modelDetailsList, initialModelToLoad);
