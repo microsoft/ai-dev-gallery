@@ -6,7 +6,7 @@ param(
     [string]$ModelId = "qwen2.5-0.5b-instruct-openvino-npu:3",
     [string]$Prompt = "Hello, how are you?",
     [switch]$Stream = $false,
-    [switch]$Verbose = $false
+    [switch]$ShowAllLines = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -144,8 +144,8 @@ if ($Stream) {
             Write-Host "Reading stream..." -ForegroundColor Gray
             Write-Host ""
             
-            $stream = $response.Content.ReadAsStreamAsync().Result
-            $reader = New-Object System.IO.StreamReader($stream)
+            $responseStream = $response.Content.ReadAsStreamAsync().Result
+            $reader = New-Object System.IO.StreamReader($responseStream)
             
             $chunkCount = 0
             $totalBytes = 0
@@ -163,7 +163,7 @@ if ($Stream) {
                         Write-Host "First chunk received after $($firstChunkTime.TotalSeconds) seconds" -ForegroundColor Green
                     }
                     
-                    if ($Verbose -or $line.StartsWith("data:")) {
+                    if ($ShowAllLines -or $line.StartsWith("data:")) {
                         Write-Host $line -ForegroundColor White
                         
                         # Parse SSE data
@@ -203,7 +203,7 @@ if ($Stream) {
                 Write-Host "Time elapsed: $($stopwatch.Elapsed.TotalSeconds) seconds" -ForegroundColor Yellow
             } finally {
                 $reader.Close()
-                $stream.Close()
+                $responseStream.Close()
             }
         } else {
             Write-Host "✗ Streaming request failed with status $($response.StatusCode)" -ForegroundColor Red
@@ -232,8 +232,8 @@ Write-Host ""
 Write-Host "  # Test both non-streaming and streaming:" -ForegroundColor Gray
 Write-Host "  .\debug-foundry-api.ps1 -BaseUrl 'http://127.0.0.1:55679' -ModelId 'qwen2.5-0.5b-instruct-openvino-npu:3' -Stream" -ForegroundColor Gray
 Write-Host ""
-Write-Host "  # Test streaming with verbose output:" -ForegroundColor Gray
-Write-Host "  .\debug-foundry-api.ps1 -BaseUrl 'http://127.0.0.1:55679' -ModelId 'qwen2.5-0.5b-instruct-openvino-npu:3' -Stream -Verbose" -ForegroundColor Gray
+Write-Host "  # Test streaming with all lines shown:" -ForegroundColor Gray
+Write-Host "  .\debug-foundry-api.ps1 -BaseUrl 'http://127.0.0.1:55679' -ModelId 'qwen2.5-0.5b-instruct-openvino-npu:3' -Stream -ShowAllLines" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  # Custom prompt:" -ForegroundColor Gray
 Write-Host "  .\debug-foundry-api.ps1 -Prompt 'Tell me a joke' -Stream" -ForegroundColor Gray
