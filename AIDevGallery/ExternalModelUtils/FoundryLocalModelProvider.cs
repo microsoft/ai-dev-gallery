@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
@@ -120,10 +120,10 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         var result = await _foundryManager.DownloadModel(model, progress, cancellationToken);
-        
+
         // Log telemetry for both success and failure
         FoundryLocalDownloadEvent.Log(model.Alias, result.Success, result.ErrorMessage);
-        
+
         return result.Success;
     }
 
