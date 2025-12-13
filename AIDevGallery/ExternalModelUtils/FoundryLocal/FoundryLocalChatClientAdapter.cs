@@ -27,6 +27,20 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         Debug.WriteLine($"[FoundryLocalAdapter] Creating adapter for model {modelId}");
         _modelId = modelId;
         _chatClient = chatClient;
+        
+        // Set default settings if not already set
+        if (_chatClient.Settings.MaxTokens == null)
+        {
+            Debug.WriteLine($"[FoundryLocalAdapter] Setting default MaxTokens = 512");
+            _chatClient.Settings.MaxTokens = 512;
+        }
+        if (_chatClient.Settings.Temperature == null)
+        {
+            Debug.WriteLine($"[FoundryLocalAdapter] Setting default Temperature = 0.7");
+            _chatClient.Settings.Temperature = 0.7f;
+        }
+        
+        Debug.WriteLine($"[FoundryLocalAdapter] Final Settings: MaxTokens={_chatClient.Settings.MaxTokens}, Temperature={_chatClient.Settings.Temperature}");
     }
 
     /// <summary>
