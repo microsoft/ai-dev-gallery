@@ -46,6 +46,13 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         Debug.WriteLine($"[FoundryLocalAdapter] GetStreamingResponseAsync called with {messageList.Count} messages");
         
         var openAIMessages = ConvertToFoundryMessages(messageList);
+        
+        Debug.WriteLine($"[FoundryLocalAdapter] Converted {openAIMessages.Count} messages:");
+        foreach (var msg in openAIMessages)
+        {
+            var contentPreview = msg.Content != null ? msg.Content.Substring(0, Math.Min(50, msg.Content.Length)) : "(null)";
+            Debug.WriteLine($"  Role: {msg.Role}, Content: {contentPreview}...");
+        }
 
         // Use FoundryLocal SDK's native streaming API - no HTTP/SSE issues!
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
@@ -59,18 +66,29 @@ internal class FoundryLocalChatClientAdapter : IChatClient
             cancellationToken.ThrowIfCancellationRequested();
             
             updateCount++;
-            if (updateCount == 1)
-            {
-                Debug.WriteLine($"[FoundryLocalAdapter] Received first streaming update");
-            }
             
-            var content = chunk.Choices?.FirstOrDefault()?.Message?.Content;
-            if (!string.IsNullOrEmpty(content))
+            Debug.WriteLine($"[FoundryLocalAdapter] Chunk #{updateCount}: Choices count = {chunk.Choices?.Count ?? 0}");
+            
+            // Access choices directly like official sample does
+            if (chunk.Choices != null && chunk.Choices.Count > 0)
             {
-                yield return new ChatResponseUpdate(ChatRole.Assistant, content)
+                var choice = chunk.Choices[0];
+                var content = choice.Message?.Content;
+                
+                Debug.WriteLine($"  Choice[0]: Message={choice.Message != null}, Content length={content?.Length ?? 0}");
+                
+                if (!string.IsNullOrEmpty(content))
                 {
-                    ResponseId = responseId
-                };
+                    Debug.WriteLine($"  Yielding content: {content}");
+                    yield return new ChatResponseUpdate(ChatRole.Assistant, content)
+                    {
+                        ResponseId = responseId
+                    };
+                }
+            }
+            else
+            {
+                Debug.WriteLine($"  No choices in chunk");
             }
         }
         
