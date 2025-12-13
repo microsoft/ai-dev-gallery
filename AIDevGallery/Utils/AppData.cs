@@ -8,6 +8,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -46,6 +47,7 @@ internal partial class AppData : ObservableObject
 
     private Dictionary<string, Dictionary<string, string>>? SampleData { get; set; }
 
+    [SetsRequiredMembers]
     public AppData()
     {
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
@@ -55,6 +57,8 @@ internal partial class AppData : ObservableObject
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
         WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
+        ModelCachePath = string.Empty;
+        MostRecentlyUsedItems = new LinkedList<MostRecentlyUsedItem>();
     }
 
     private static string GetConfigFilePath()

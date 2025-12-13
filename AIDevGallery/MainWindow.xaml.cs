@@ -10,16 +10,9 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.ViewManagement;
 using WinUIEx;
@@ -28,10 +21,12 @@ namespace AIDevGallery;
 
 internal sealed partial class MainWindow : WindowEx
 {
-    private AppContentIndexer? _indexer;
-    private CancellationTokenSource? _searchCts; // Added for search cancellation
     public ModelOrApiPicker ModelPicker => modelOrApiPicker;
     private UISettings uiSettings;
+
+    // Properties to expose App static members for binding
+    public AppData AppSettings => App.AppData;
+    public IReadOnlyList<SearchResult> SearchIndex => App.SearchIndex;
 
     public MainWindow(object? obj = null)
     {
@@ -55,16 +50,6 @@ internal sealed partial class MainWindow : WindowEx
             }
         };
 
-        if (App.AppData.IsAppContentSearchEnabled)
-        {
-            Task.Run(async () =>
-            {
-                // Load AppContentSearch
-                await LoadAppSearchIndex();
-            });
-        }
-
-        App.AppData.PropertyChanged += AppData_PropertyChanged;
         uiSettings = new UISettings();
     }
 
@@ -72,50 +57,6 @@ internal sealed partial class MainWindow : WindowEx
     {
         uiSettings.ColorValuesChanged += Accessibility_HighContrastChanged;
         UpdateResources();
-    }
-
-    private async Task LoadAppSearchIndex()
-    {
-        var result = AppContentIndexer.GetOrCreateIndex("AIDevGallerySearchIndex");
-
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException($"Failed to open index. Status = '{result.Status}', Error = '{result.ExtendedError}'");
-        }
-
-        _indexer = result.Indexer;
-        await _indexer.WaitForIndexCapabilitiesAsync();
-
-        // If result.Succeeded is true, result.Status will either be CreatedNew or OpenedExisting
-        if (result.Status == GetOrCreateIndexStatus.CreatedNew || !App.AppData.IsAppContentIndexCompleted)
-        {
-            Debug.WriteLine("Created a new index");
-            IndexContentsWithAppContentSearch();
-        }
-        else if (result.Status == GetOrCreateIndexStatus.OpenedExisting)
-        {
-            Debug.WriteLine("Opened an existing index");
-            SetSearchBoxIndexingCompleted();
-        }
-    }
-
-    private void AppData_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(AppData.IsAppContentSearchEnabled))
-        {
-            if (App.AppData.IsAppContentSearchEnabled)
-            {
-                Task.Run(async () =>
-                {
-                    // Load AppContentSearch
-                    await LoadAppSearchIndex();
-                });
-            }
-            else
-            {
-                SetSearchBoxACSDisabled();
-            }
-        }
     }
 
     public void NavigateToPage(object? obj)
@@ -293,75 +234,9 @@ internal sealed partial class MainWindow : WindowEx
         NavFrame.Navigate(typeof(SettingsPage), "ModelManagement");
     }
 
-    private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private void AppSearchBox_SearchResultSelected(object sender, SearchResult result)
     {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && !string.IsNullOrWhiteSpace(SearchBox.Text))
-        {
-            // Cancel previous search if running
-            _searchCts?.Cancel();
-            _searchCts = new CancellationTokenSource();
-            var token = _searchCts.Token;
-            var searchText = sender.Text;
-            List<SearchResult> orderedResults = new();
-
-            try
-            {
-                if (_indexer != null && App.AppData.IsAppContentSearchEnabled)
-                {
-                    // Use AppContentIndexer to search
-                    var query = _indexer.CreateTextQuery(searchText);
-                    IReadOnlyList<TextQueryMatch>? matches = await Task.Run(() => query.GetNextMatches(5), token);
-
-                    if (!token.IsCancellationRequested)
-                    {
-                        foreach (var match in matches)
-                        {
-                            if (token.IsCancellationRequested)
-                            {
-                                break;
-                            }
-
-                            var sr = App.SearchIndex.FirstOrDefault(s => s.Label == match.ContentId);
-                            if (sr != null)
-                            {
-                                orderedResults.Add(sr);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // Fallback to in-memory search
-                    var filteredSearchResults = App.SearchIndex.Where(sr => sr.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-                    orderedResults = filteredSearchResults
-                        .OrderByDescending(i => i.Label.StartsWith(searchText, StringComparison.CurrentCultureIgnoreCase))
-                        .ThenBy(i => i.Label)
-                        .ToList();
-                }
-
-                if (!token.IsCancellationRequested)
-                {
-                    SearchBox.ItemsSource = orderedResults;
-                    var resultCount = orderedResults.Count;
-                    string announcement = $"Searching for '{searchText}', {resultCount} search result{(resultCount == 1 ? string.Empty : "s")} found";
-                    NarratorHelper.Announce(SearchBox, announcement, "searchSuggestionsActivityId");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Search was cancelled, do nothing
-            }
-        }
-    }
-
-    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-        if (args.ChosenSuggestion is SearchResult result)
-        {
-            Navigate(result);
-        }
-
-        SearchBox.Text = string.Empty;
+        Navigate(result);
     }
 
     private void NavFrame_Navigating(object sender, Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
@@ -411,56 +286,15 @@ internal sealed partial class MainWindow : WindowEx
         }
     }
 
-    private void SetSearchBoxIndexingCompleted()
-    {
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            SearchBoxQueryIcon.Foreground = Application.Current.Resources["AIAccentGradientBrush"] as Brush;
-            SearchBoxQueryIcon.Glyph = "\uED37";
-        });
-    }
-
-    private void SetSearchBoxACSDisabled()
-    {
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            SearchBoxQueryIcon.Foreground = Application.Current.Resources["TextFillColorPrimaryBrush"] as Brush;
-            SearchBoxQueryIcon.Glyph = "\uE721";
-        });
-    }
-
-    private async void IndexContentsWithAppContentSearch()
-    {
-        if (_indexer == null || App.SearchIndex == null)
-        {
-            SetSearchBoxACSDisabled();
-            return;
-        }
-
-        await Task.Run(() =>
-        {
-            foreach (var item in App.SearchIndex)
-            {
-                string id = item.Label;
-                string value = $"{item.Label}\n{item.Description}";
-                IndexableAppContent textContent = AppManagedIndexableAppContent.CreateFromString(id, value);
-                _indexer.AddOrUpdate(textContent);
-            }
-        });
-
-        await _indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
-        SetSearchBoxIndexingCompleted();
-
-        // Adding a check here since if the user closes in the middle of the indexing loop, we will never fully finish indexing.
-        // The next app launch will open the existing index and consider everything done.
-        App.AppData.IsAppContentIndexCompleted = true;
-        await App.AppData.SaveAsync();
-    }
-
-    public static void IndexAppSearchIndexStatic()
+    public static async void IndexAppSearchIndexStatic()
     {
         var mainWindow = (MainWindow)App.MainWindow;
-        mainWindow?.IndexContentsWithAppContentSearch();
+        if (mainWindow?.AppSearchBox != null)
+        {
+            await mainWindow.AppSearchBox.IndexContentsWithAppContentSearchAsync();
+            App.AppData.IsAppContentIndexCompleted = true;
+            await App.AppData.SaveAsync();
+        }
     }
 
     private void Accessibility_HighContrastChanged(object sender, object e)
