@@ -141,10 +141,23 @@ internal static class WcrApiHelpers
                 return AIFeatureReadyState.NotSupportedOnCurrentSystem;
             }
 
-            return getReadyStateFunction();
+            var state = getReadyStateFunction();
+            return state;
         }
-        catch
+        catch (System.Runtime.InteropServices.COMException comEx)
         {
+            System.Diagnostics.Debug.WriteLine($"GetApiAvailability COM error for {type}: 0x{comEx.HResult:X8} - {comEx.Message}");
+            return AIFeatureReadyState.NotSupportedOnCurrentSystem;
+        }
+        catch (Exception ex)
+        {
+            var hresult = System.Runtime.InteropServices.Marshal.GetHRForException(ex);
+            System.Diagnostics.Debug.WriteLine($"GetApiAvailability failed for {type}: 0x{hresult:X8} - {ex.GetType().Name} - {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.GetType().Name} - {ex.InnerException.Message}");
+            }
+
             return AIFeatureReadyState.NotSupportedOnCurrentSystem;
         }
     }

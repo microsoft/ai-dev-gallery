@@ -73,9 +73,19 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavigateToApiOrModelPage(modelTypes[0]);
         }
-        else if (obj is ModelDetails)
+        else if (obj is ModelDetails modelDetails)
         {
-            Navigate("Models", obj);
+            // Try to find the ModelType from the ModelDetails.Id
+            var modelTypeList = App.FindSampleItemById(modelDetails.Id);
+            if (modelTypeList.Count > 0)
+            {
+                NavigateToApiOrModelPage(modelTypeList[0]);
+            }
+            else
+            {
+                // Fallback to Models page if we can't determine the type
+                Navigate("Models", obj);
+            }
         }
         else if (obj is SampleNavigationArgs)
         {
@@ -178,7 +188,17 @@ internal sealed partial class MainWindow : WindowEx
     {
         if (mru.Type == MostRecentlyUsedItemType.Model)
         {
-            Navigate("models", mru);
+            // Try to find the ModelType from the ItemId to determine if it's an API
+            var modelTypeList = App.FindSampleItemById(mru.ItemId);
+            if (modelTypeList.Count > 0)
+            {
+                NavigateToApiOrModelPage(modelTypeList[0]);
+            }
+            else
+            {
+                // Fallback to models page if we can't determine the type
+                Navigate("models", mru);
+            }
         }
         else
         {
@@ -199,7 +219,7 @@ internal sealed partial class MainWindow : WindowEx
         }
         else if (result.Tag is ModelType modelType)
         {
-            Navigate("models", modelType);
+            NavigateToApiOrModelPage(modelType);
         }
     }
 
