@@ -67,44 +67,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
         }
 
-        Debug.WriteLine($"[FoundryLocal] Model ID: {model.Id}");
-        
-        // Model should already be loaded by PrepareModelAsync
-        // Using .Result here is safe because the model is already prepared
-        Debug.WriteLine($"[FoundryLocal] Checking if model is loaded...");
-        var isLoaded = model.IsLoadedAsync().Result;
-        Debug.WriteLine($"[FoundryLocal] Model.IsLoadedAsync() = {isLoaded}");
-        
-        if (!isLoaded)
-        {
-            Debug.WriteLine($"[FoundryLocal] ERROR: Model is not loaded! This should not happen.");
-            throw new InvalidOperationException($"Model '{alias}' was prepared but not loaded. This is a bug.");
-        }
-        
-        // Get the native FoundryLocal chat client - no web service, no SSE issues!
-        Debug.WriteLine($"[FoundryLocal] Getting native chat client from model");
+        // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
         var chatClient = model.GetChatClientAsync().Result;
         
-        // Wrap it in our adapter
-        Debug.WriteLine($"[FoundryLocal] Creating FoundryLocalChatClientAdapter");
-        var adapter = new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
-        
-        // TEST: Verify streaming works before returning
-        Debug.WriteLine($"[FoundryLocal] Running direct streaming test...");
-        try
-        {
-            var testResult = adapter.TestDirectStreamingAsync().Result;
-            Debug.WriteLine($"[FoundryLocal] TEST RESULT: '{testResult}'");
-            Debug.WriteLine($"[FoundryLocal] TEST RESULT LENGTH: {testResult.Length}");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[FoundryLocal] TEST FAILED: {ex.Message}");
-            Debug.WriteLine($"[FoundryLocal] TEST EXCEPTION: {ex}");
-        }
-        
-        Debug.WriteLine($"[FoundryLocal] IChatClient adapter created successfully");
-        return adapter;
+        // Wrap it in our adapter to implement IChatClient interface
+        return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
     }
 
     public string? GetIChatClientString(string url)
