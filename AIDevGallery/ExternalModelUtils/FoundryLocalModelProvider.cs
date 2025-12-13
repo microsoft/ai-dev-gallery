@@ -6,9 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
-using OpenAI;
 using System;
-using System.ClientModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -56,19 +54,18 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
-        if (preparedInfo == null)
+        var model = _foundryManager.GetPreparedModel(alias);
+        if (model == null)
         {
             throw new InvalidOperationException(
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
         }
 
-        var (serviceUrl, modelId) = preparedInfo.Value;
+        // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
+        var chatClient = model.GetChatClientAsync().Result;
 
-        return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
-        {
-            Endpoint = new Uri($"{serviceUrl}/v1")
-        }).GetChatClient(modelId).AsIChatClient();
+        // Wrap it in our adapter to implement IChatClient interface
+        return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
     }
 
     public string? GetIChatClientString(string url)
@@ -80,14 +77,13 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return null;
         }
 
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
-        if (preparedInfo == null)
+        var model = _foundryManager.GetPreparedModel(alias);
+        if (model == null)
         {
             return null;
         }
 
-        var (serviceUrl, modelId) = preparedInfo.Value;
-        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{serviceUrl}/v1\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
+        return $"var model = await catalog.GetModelAsync(\"{alias}\"); await model.LoadAsync(); var chatClient = await model.GetChatClientAsync(); /* Use chatClient.CompleteChatStreamingAsync() */";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
@@ -168,20 +164,6 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             if (hasCachedVariant)
             {
                 downloadedModels.Add(firstModel);
-
-                _ = Task.Run(
-                    async () =>
-                    {
-                        try
-                        {
-                            await _foundryManager.PrepareModelAsync(catalogModel.Alias, cancelationToken);
-                        }
-                        catch
-                        {
-                            // Silently fail - user will see "not ready" error when attempting to use the model
-                        }
-                    },
-                    cancelationToken);
             }
         }
 

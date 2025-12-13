@@ -13,7 +13,7 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient
 {
-    private readonly Dictionary<string, (string ServiceUrl, string ModelId)> _preparedModels = new();
+    private readonly Dictionary<string, IModel> _preparedModels = new();
     private readonly SemaphoreSlim _prepareLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
@@ -130,7 +130,7 @@ internal class FoundryClient
     }
 
     /// <summary>
-    /// Prepares a model for use by loading it and starting the web service.
+    /// Prepares a model for use by loading it (no web service needed).
     /// Should be called after download or when first accessing a cached model.
     /// Thread-safe: multiple concurrent calls for the same alias will only prepare once.
     /// </summary>
@@ -168,18 +168,8 @@ internal class FoundryClient
                 await model.LoadAsync(cancellationToken);
             }
 
-            if (_manager.Urls == null || _manager.Urls.Length == 0)
-            {
-                await _manager.StartWebServiceAsync(cancellationToken);
-            }
-
-            var serviceUrl = _manager.Urls?.FirstOrDefault();
-            if (string.IsNullOrEmpty(serviceUrl))
-            {
-                throw new InvalidOperationException("Failed to start Foundry Local web service");
-            }
-
-            _preparedModels[alias] = (serviceUrl, model.Id);
+            // Store the model directly - no web service needed
+            _preparedModels[alias] = model;
         }
         finally
         {
@@ -188,13 +178,13 @@ internal class FoundryClient
     }
 
     /// <summary>
-    /// Gets the service URL and model ID for a prepared model.
+    /// Gets the prepared model.
     /// Returns null if the model hasn't been prepared yet.
     /// </summary>
-    /// <returns>A tuple containing the service URL and model ID, or null if not prepared.</returns>
-    public (string ServiceUrl, string ModelId)? GetPreparedModel(string alias)
+    /// <returns>The IModel instance, or null if not prepared.</returns>
+    public IModel? GetPreparedModel(string alias)
     {
-        return _preparedModels.TryGetValue(alias, out var info) ? info : null;
+        return _preparedModels.TryGetValue(alias, out var model) ? model : null;
     }
 
     public Task<string?> GetServiceUrl()
