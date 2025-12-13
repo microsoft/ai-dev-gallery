@@ -132,9 +132,19 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavigateToApiOrModelPage(modelTypes[0]);
         }
-        else if (obj is ModelDetails)
+        else if (obj is ModelDetails modelDetails)
         {
-            Navigate("Models", obj);
+            // Try to find the ModelType to use intelligent routing
+            var modelTypeList = App.FindSampleItemById(modelDetails.Id);
+            if (modelTypeList.Count > 0)
+            {
+                NavigateToApiOrModelPage(modelTypeList[0]);
+            }
+            else
+            {
+                // Fallback to original behavior: navigate to Models page
+                Navigate("Models", obj);
+            }
         }
         else if (obj is SampleNavigationArgs)
         {
@@ -199,7 +209,19 @@ internal sealed partial class MainWindow : WindowEx
             if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
             {
                 // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
-                apiPage.SetSelectedApiInMenu((ModelType)param);
+                if (param is ModelType modelType)
+                {
+                    apiPage.SetSelectedApiInMenu(modelType);
+                }
+                else
+                {
+                    NavFrame.Navigate(page, param);
+                }
+            }
+            else if (page == typeof(ModelSelectionPage) && NavFrame.Content is ModelSelectionPage && param != null)
+            {
+                // For ModelSelectionPage, always re-navigate when there's a parameter to ensure proper state
+                NavFrame.Navigate(page, param);
             }
             else if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
             {
@@ -258,7 +280,7 @@ internal sealed partial class MainWindow : WindowEx
         }
         else if (result.Tag is ModelType modelType)
         {
-            Navigate("models", modelType);
+            NavigateToApiOrModelPage(modelType);
         }
     }
 
