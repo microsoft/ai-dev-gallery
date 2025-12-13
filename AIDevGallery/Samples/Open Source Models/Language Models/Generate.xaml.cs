@@ -119,7 +119,7 @@ internal sealed partial class Generate : BaseSamplePage
                     Debug.WriteLine($"[Generate] Starting streaming request with system prompt: {systemPrompt}");
                     Debug.WriteLine($"[Generate] User prompt: {userPrompt}");
                     Debug.WriteLine($"[Generate] Calling GetStreamingResponseAsync...");
-                    
+
                     await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
@@ -180,7 +180,7 @@ internal sealed partial class Generate : BaseSamplePage
                         Debug.WriteLine($"[Generate] Inner exception: {ex.InnerException.GetType().Name}");
                         Debug.WriteLine($"[Generate] Inner message: {ex.InnerException.Message}");
                     }
-                    
+
                     if (cts != null && !cts.Token.IsCancellationRequested)
                     {
                         ShowException(ex);

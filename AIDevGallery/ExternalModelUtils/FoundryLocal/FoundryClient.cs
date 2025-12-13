@@ -5,9 +5,7 @@ using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,44 +22,35 @@ internal class FoundryClient
     {
         try
         {
-            Debug.WriteLine("[FoundryClient] Creating FoundryClient...");
             var config = new Configuration
             {
                 AppName = "AIDevGallery",
-                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Debug,  // Changed from Warning to Debug
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
                 Web = new Configuration.WebService
                 {
                     Urls = "http://127.0.0.1:0"
                 }
             };
 
-            Debug.WriteLine("[FoundryClient] Creating FoundryLocalManager...");
             await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
 
             if (!FoundryLocalManager.IsInitialized)
             {
-                Debug.WriteLine("[FoundryClient] ERROR: FoundryLocalManager not initialized");
                 return null;
             }
 
-            Debug.WriteLine("[FoundryClient] FoundryLocalManager initialized successfully");
             var client = new FoundryClient
             {
                 _manager = FoundryLocalManager.Instance
             };
 
-            Debug.WriteLine("[FoundryClient] Ensuring EPs downloaded...");
             await client._manager.EnsureEpsDownloadedAsync();
-            Debug.WriteLine("[FoundryClient] Getting catalog...");
             client._catalog = await client._manager.GetCatalogAsync();
-            Debug.WriteLine("[FoundryClient] FoundryClient created successfully");
 
             return client;
         }
-        catch (Exception ex)
+        catch
         {
-            Debug.WriteLine($"[FoundryClient] ERROR: Failed to create FoundryClient: {ex.Message}");
-            Debug.WriteLine($"[FoundryClient] Stack trace: {ex.StackTrace}");
             return null;
         }
     }
@@ -148,68 +137,43 @@ internal class FoundryClient
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task PrepareModelAsync(string alias, CancellationToken cancellationToken = default)
     {
-        Debug.WriteLine($"[FoundryClient] PrepareModelAsync called for alias: {alias}");
-        
         if (_preparedModels.ContainsKey(alias))
         {
-            Debug.WriteLine($"[FoundryClient] Model {alias} already prepared");
             return;
         }
 
-        Debug.WriteLine($"[FoundryClient] Acquiring prepare lock for {alias}...");
         await _prepareLock.WaitAsync(cancellationToken);
-        Debug.WriteLine($"[FoundryClient] Lock acquired for {alias}");
         try
         {
             // Double-check pattern for thread safety
             if (_preparedModels.ContainsKey(alias))
             {
-                Debug.WriteLine($"[FoundryClient] Model {alias} was prepared while waiting for lock");
                 return;
             }
 
             if (_catalog == null || _manager == null)
             {
-                Debug.WriteLine($"[FoundryClient] ERROR: Catalog or manager is null");
                 throw new InvalidOperationException("Foundry Local client not initialized");
             }
 
             // SDK automatically selects the best variant for the given alias
-            Debug.WriteLine($"[FoundryClient] Getting model from catalog: {alias}");
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
-                Debug.WriteLine($"[FoundryClient] ERROR: Model {alias} not found in catalog");
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
             }
 
-            Debug.WriteLine($"[FoundryClient] Model found. ID: {model.Id}");
-            Debug.WriteLine($"[FoundryClient] Checking if model is loaded...");
             if (!await model.IsLoadedAsync())
             {
-                Debug.WriteLine($"[FoundryClient] Model not loaded. Loading model {alias}...");
                 await model.LoadAsync(cancellationToken);
-                Debug.WriteLine($"[FoundryClient] Model {alias} loaded successfully");
-            }
-            else
-            {
-                Debug.WriteLine($"[FoundryClient] Model {alias} already loaded");
             }
 
             // Store the model directly - no web service needed
-            Debug.WriteLine($"[FoundryClient] Model {alias} prepared successfully");
             _preparedModels[alias] = model;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[FoundryClient] ERROR in PrepareModelAsync: {ex.Message}");
-            Debug.WriteLine($"[FoundryClient] Stack trace: {ex.StackTrace}");
-            throw;
         }
         finally
         {
             _prepareLock.Release();
-            Debug.WriteLine($"[FoundryClient] Lock released for {alias}");
         }
     }
 

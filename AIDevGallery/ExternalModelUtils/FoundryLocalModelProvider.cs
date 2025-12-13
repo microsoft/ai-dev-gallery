@@ -8,7 +8,6 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,29 +46,24 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public IChatClient? GetIChatClient(string url)
     {
-        Debug.WriteLine($"[FoundryLocal] GetIChatClient called with url: {url}");
         var alias = ExtractAlias(url);
-        Debug.WriteLine($"[FoundryLocal] Extracted alias: {alias}");
 
         if (_foundryManager == null || string.IsNullOrEmpty(alias))
         {
-            Debug.WriteLine($"[FoundryLocal] ERROR: Client not initialized or invalid alias");
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        Debug.WriteLine($"[FoundryLocal] Getting prepared model for alias: {alias}");
         var model = _foundryManager.GetPreparedModel(alias);
         if (model == null)
         {
-            Debug.WriteLine($"[FoundryLocal] ERROR: Model not prepared yet");
             throw new InvalidOperationException(
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
         }
 
         // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
         var chatClient = model.GetChatClientAsync().Result;
-        
+
         // Wrap it in our adapter to implement IChatClient interface
         return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
     }
@@ -205,25 +199,18 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task EnsureModelReadyAsync(string url, CancellationToken cancellationToken = default)
     {
-        Debug.WriteLine($"[FoundryLocal] EnsureModelReadyAsync called with url: {url}");
         var alias = ExtractAlias(url);
-        Debug.WriteLine($"[FoundryLocal] Extracted alias: {alias}");
 
         if (_foundryManager == null || string.IsNullOrEmpty(alias))
         {
-            Debug.WriteLine($"[FoundryLocal] ERROR: Client not initialized or invalid alias in EnsureModelReadyAsync");
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
-        Debug.WriteLine($"[FoundryLocal] Checking if model {alias} is already prepared...");
         if (_foundryManager.GetPreparedModel(alias) != null)
         {
-            Debug.WriteLine($"[FoundryLocal] Model {alias} already prepared, skipping PrepareModelAsync");
             return;
         }
 
-        Debug.WriteLine($"[FoundryLocal] Model {alias} not prepared yet, calling PrepareModelAsync...");
         await _foundryManager.PrepareModelAsync(alias, cancellationToken);
-        Debug.WriteLine($"[FoundryLocal] PrepareModelAsync completed for {alias}");
     }
 }

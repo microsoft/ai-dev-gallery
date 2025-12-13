@@ -4,12 +4,10 @@
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Betalgo.Ranul.OpenAI.ObjectModels.RequestModels;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
@@ -26,12 +24,13 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         _modelId = modelId;
         _chatClient = chatClient;
-        
+
         // CRITICAL: MaxTokens must be set, otherwise the model won't generate any output
         if (_chatClient.Settings.MaxTokens == null)
         {
             _chatClient.Settings.MaxTokens = 512;
         }
+
         if (_chatClient.Settings.Temperature == null)
         {
             _chatClient.Settings.Temperature = 0.7f;
@@ -56,12 +55,12 @@ internal class FoundryLocalChatClientAdapter : IChatClient
 
         // Use FoundryLocal SDK's native streaming API - direct in-memory communication, no HTTP/SSE
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
-        
+
         string responseId = Guid.NewGuid().ToString("N");
         await foreach (var chunk in streamingResponse)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             if (chunk.Choices != null && chunk.Choices.Count > 0)
             {
                 var content = chunk.Choices[0].Message?.Content;
