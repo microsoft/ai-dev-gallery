@@ -45,7 +45,7 @@ internal sealed partial class APIOverview : Page
                 {
                     if (apiDefinition == api)
                     {
-                        App.MainWindow.Navigate("apis", item);
+                        App.MainWindow.NavigateToPage(item);
                     }
                 }
             }
