@@ -29,6 +29,83 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         _chatClient = chatClient;
     }
 
+    /// <summary>
+    /// Direct test method to verify CompleteChatStreamingAsync works
+    /// Exactly mimics the official sample code
+    /// </summary>
+    public async Task<string> TestDirectStreamingAsync(CancellationToken cancellationToken = default)
+    {
+        Debug.WriteLine($"[TEST] ===== DIRECT STREAMING TEST =====");
+        Debug.WriteLine($"[TEST] ChatClient type: {_chatClient.GetType().FullName}");
+        Debug.WriteLine($"[TEST] ChatClient.Settings: {_chatClient.Settings != null}");
+        
+        // EXACTLY like official sample
+        List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> messages = new()
+        {
+            new Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage { Role = "user", Content = "Why is the sky blue?" }
+        };
+
+        Debug.WriteLine($"[TEST] Created message list with {messages.Count} messages");
+        Debug.WriteLine($"[TEST] Message[0]: Role='{messages[0].Role}', Content='{messages[0].Content}'");
+        Debug.WriteLine($"[TEST] Calling CompleteChatStreamingAsync...");
+        
+        var streamingResponse = _chatClient.CompleteChatStreamingAsync(messages, cancellationToken);
+        Debug.WriteLine($"[TEST] StreamingResponse type: {streamingResponse.GetType().FullName}");
+        
+        int chunkCount = 0;
+        var fullResponse = new System.Text.StringBuilder();
+        
+        try
+        {
+            Debug.WriteLine($"[TEST] Starting await foreach loop...");
+            await foreach (var chunk in streamingResponse)
+            {
+                chunkCount++;
+                Debug.WriteLine($"[TEST] >>> Chunk #{chunkCount} <<<");
+                
+                // Try to access exactly like official sample
+                try
+                {
+                    var content = chunk.Choices[0].Message.Content;
+                    Debug.WriteLine($"[TEST]   Official way works! Content: '{content}'");
+                    fullResponse.Append(content);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[TEST]   Official way failed: {ex.Message}");
+                    Debug.WriteLine($"[TEST]   Chunk.Choices null? {chunk.Choices == null}");
+                    Debug.WriteLine($"[TEST]   Chunk.Choices.Count: {chunk.Choices?.Count ?? -1}");
+                    if (chunk.Choices != null && chunk.Choices.Count > 0)
+                    {
+                        var choice = chunk.Choices[0];
+                        Debug.WriteLine($"[TEST]   Choice[0].Message null? {choice.Message == null}");
+                        Debug.WriteLine($"[TEST]   Choice[0].Delta null? {choice.Delta == null}");
+                        var altContent = choice.Message?.Content ?? choice.Delta?.Content;
+                        if (altContent != null)
+                        {
+                            Debug.WriteLine($"[TEST]   Alternative content: '{altContent}'");
+                            fullResponse.Append(altContent);
+                        }
+                    }
+                }
+            }
+            Debug.WriteLine($"[TEST] Exited await foreach loop");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[TEST] EXCEPTION in foreach: {ex.GetType().FullName}");
+            Debug.WriteLine($"[TEST]   Message: {ex.Message}");
+            Debug.WriteLine($"[TEST]   Stack: {ex.StackTrace}");
+            throw;
+        }
+        
+        Debug.WriteLine($"[TEST] ===== TEST COMPLETE =====");
+        Debug.WriteLine($"[TEST] Total chunks: {chunkCount}");
+        Debug.WriteLine($"[TEST] Response length: {fullResponse.Length}");
+        Debug.WriteLine($"[TEST] Response: '{fullResponse}'");
+        return fullResponse.ToString();
+    }
+
     public ChatClientMetadata Metadata => new("FoundryLocal", new Uri($"foundrylocal:///{_modelId}"), _modelId);
 
     public Task<ChatResponse> GetResponseAsync(

@@ -77,6 +77,20 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         Debug.WriteLine($"[FoundryLocal] Creating FoundryLocalChatClientAdapter");
         var adapter = new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
         
+        // TEST: Verify streaming works before returning
+        Debug.WriteLine($"[FoundryLocal] Running direct streaming test...");
+        try
+        {
+            var testResult = adapter.TestDirectStreamingAsync().Result;
+            Debug.WriteLine($"[FoundryLocal] TEST RESULT: '{testResult}'");
+            Debug.WriteLine($"[FoundryLocal] TEST RESULT LENGTH: {testResult.Length}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[FoundryLocal] TEST FAILED: {ex.Message}");
+            Debug.WriteLine($"[FoundryLocal] TEST EXCEPTION: {ex}");
+        }
+        
         Debug.WriteLine($"[FoundryLocal] IChatClient adapter created successfully");
         return adapter;
     }
