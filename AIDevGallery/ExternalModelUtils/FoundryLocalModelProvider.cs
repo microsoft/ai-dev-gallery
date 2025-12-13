@@ -6,14 +6,10 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
-using OpenAI;
 using System;
-using System.ClientModel;
-using System.ClientModel.Primitives;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -74,30 +70,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var (serviceUrl, modelId) = preparedInfo.Value;
         Debug.WriteLine($"[FoundryLocal] Service URL: {serviceUrl}, Model ID: {modelId}");
 
-        // Create HttpClient with long timeout for streaming and custom handler
-        Debug.WriteLine($"[FoundryLocal] Creating HttpClient with logging handler");
-        var loggingHandler = new FoundryLocal.LoggingHttpMessageHandler(new HttpClientHandler
-        {
-            UseProxy = false,
-            AllowAutoRedirect = false
-        });
+        // Use custom adapter that wraps OpenAI's synchronous streaming API
+        // This avoids SSE compatibility issues between Microsoft.Extensions.AI.OpenAI and FoundryLocal
+        Debug.WriteLine($"[FoundryLocal] Creating FoundryLocalChatClientAdapter");
+        var client = new FoundryLocal.FoundryLocalChatClientAdapter(serviceUrl, modelId);
         
-        var httpClient = new HttpClient(loggingHandler)
-        {
-            Timeout = Timeout.InfiniteTimeSpan
-        };
-        
-        // Add KeepAlive: false header to prevent connection pooling issues
-        httpClient.DefaultRequestHeaders.ConnectionClose = true;
-
-        Debug.WriteLine($"[FoundryLocal] Creating OpenAI client with endpoint: {serviceUrl}/v1");
-        var client = new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
-        {
-            Endpoint = new Uri($"{serviceUrl}/v1"),
-            Transport = new HttpClientPipelineTransport(httpClient)
-        }).GetChatClient(modelId).AsIChatClient();
-        
-        Debug.WriteLine($"[FoundryLocal] IChatClient created successfully");
+        Debug.WriteLine($"[FoundryLocal] IChatClient adapter created successfully");
         return client;
     }
 
