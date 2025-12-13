@@ -15,7 +15,7 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient
 {
-    private readonly Dictionary<string, (string ServiceUrl, string ModelId)> _preparedModels = new();
+    private readonly Dictionary<string, IModel> _preparedModels = new();
     private readonly SemaphoreSlim _prepareLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
@@ -141,7 +141,7 @@ internal class FoundryClient
     }
 
     /// <summary>
-    /// Prepares a model for use by loading it and starting the web service.
+    /// Prepares a model for use by loading it (no web service needed).
     /// Should be called after download or when first accessing a cached model.
     /// Thread-safe: multiple concurrent calls for the same alias will only prepare once.
     /// </summary>
@@ -196,32 +196,9 @@ internal class FoundryClient
                 Debug.WriteLine($"[FoundryClient] Model {alias} already loaded");
             }
 
-            Debug.WriteLine($"[FoundryClient] Checking web service status...");
-            if (_manager.Urls == null || _manager.Urls.Length == 0)
-            {
-                Debug.WriteLine($"[FoundryClient] Starting web service...");
-                await _manager.StartWebServiceAsync(cancellationToken);
-                Debug.WriteLine($"[FoundryClient] Web service started");
-            }
-            else
-            {
-                Debug.WriteLine($"[FoundryClient] Web service already running at: {string.Join(", ", _manager.Urls)}");
-            }
-
-            var serviceUrl = _manager.Urls?.FirstOrDefault();
-            if (string.IsNullOrEmpty(serviceUrl))
-            {
-                Debug.WriteLine($"[FoundryClient] ERROR: Failed to get service URL");
-                throw new InvalidOperationException("Failed to start Foundry Local web service");
-            }
-
-            Debug.WriteLine($"[FoundryClient] Service URL: {serviceUrl}, Model ID: {model.Id}");
-            _preparedModels[alias] = (serviceUrl, model.Id);
-            
-            // Test the endpoint to verify it's working
-            await TestEndpointAsync(serviceUrl, model.Id);
-            
+            // Store the model directly - no web service needed
             Debug.WriteLine($"[FoundryClient] Model {alias} prepared successfully");
+            _preparedModels[alias] = model;
         }
         catch (Exception ex)
         {
@@ -237,38 +214,17 @@ internal class FoundryClient
     }
 
     /// <summary>
-    /// Gets the service URL and model ID for a prepared model.
+    /// Gets the prepared model.
     /// Returns null if the model hasn't been prepared yet.
     /// </summary>
-    /// <returns>A tuple containing the service URL and model ID, or null if not prepared.</returns>
-    public (string ServiceUrl, string ModelId)? GetPreparedModel(string alias)
+    /// <returns>The IModel instance, or null if not prepared.</returns>
+    public IModel? GetPreparedModel(string alias)
     {
-        return _preparedModels.TryGetValue(alias, out var info) ? info : null;
+        return _preparedModels.TryGetValue(alias, out var model) ? model : null;
     }
 
     public Task<string?> GetServiceUrl()
     {
         return Task.FromResult(_manager?.Urls?.FirstOrDefault());
-    }
-
-    private async Task TestEndpointAsync(string serviceUrl, string modelId)
-    {
-        try
-        {
-            Debug.WriteLine($"[FoundryClient] Testing endpoint {serviceUrl}/v1/models...");
-            using var testClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            var response = await testClient.GetAsync($"{serviceUrl}/v1/models");
-            Debug.WriteLine($"[FoundryClient] Endpoint test response status: {response.StatusCode}");
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"[FoundryClient] Endpoint test response: {content.Substring(0, Math.Min(200, content.Length))}...");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[FoundryClient] WARNING: Endpoint test failed: {ex.Message}");
-        }
     }
 }

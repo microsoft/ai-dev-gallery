@@ -58,25 +58,27 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        Debug.WriteLine($"[FoundryLocal] Getting prepared model info for alias: {alias}");
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
-        if (preparedInfo == null)
+        Debug.WriteLine($"[FoundryLocal] Getting prepared model for alias: {alias}");
+        var model = _foundryManager.GetPreparedModel(alias);
+        if (model == null)
         {
             Debug.WriteLine($"[FoundryLocal] ERROR: Model not prepared yet");
             throw new InvalidOperationException(
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
         }
 
-        var (serviceUrl, modelId) = preparedInfo.Value;
-        Debug.WriteLine($"[FoundryLocal] Service URL: {serviceUrl}, Model ID: {modelId}");
-
-        // Use custom adapter that wraps OpenAI's synchronous streaming API
-        // This avoids SSE compatibility issues between Microsoft.Extensions.AI.OpenAI and FoundryLocal
+        Debug.WriteLine($"[FoundryLocal] Model ID: {model.Id}");
+        
+        // Get the native FoundryLocal chat client - no web service, no SSE issues!
+        Debug.WriteLine($"[FoundryLocal] Getting native chat client from model");
+        var chatClient = model.GetChatClientAsync().Result;
+        
+        // Wrap it in our adapter
         Debug.WriteLine($"[FoundryLocal] Creating FoundryLocalChatClientAdapter");
-        var client = new FoundryLocal.FoundryLocalChatClientAdapter(serviceUrl, modelId);
+        var adapter = new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
         
         Debug.WriteLine($"[FoundryLocal] IChatClient adapter created successfully");
-        return client;
+        return adapter;
     }
 
     public string? GetIChatClientString(string url)
@@ -88,14 +90,13 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return null;
         }
 
-        var preparedInfo = _foundryManager.GetPreparedModel(alias);
-        if (preparedInfo == null)
+        var model = _foundryManager.GetPreparedModel(alias);
+        if (model == null)
         {
             return null;
         }
 
-        var (serviceUrl, modelId) = preparedInfo.Value;
-        return $"var httpClient = new HttpClient {{ Timeout = Timeout.InfiniteTimeSpan }}; new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{serviceUrl}/v1\"), Transport = new HttpClientPipelineTransport(httpClient) }}).GetChatClient(\"{modelId}\").AsIChatClient()";
+        return $"var model = await catalog.GetModelAsync(\"{alias}\"); await model.LoadAsync(); var chatClient = await model.GetChatClientAsync(); /* Use chatClient.CompleteChatStreamingAsync() */";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
