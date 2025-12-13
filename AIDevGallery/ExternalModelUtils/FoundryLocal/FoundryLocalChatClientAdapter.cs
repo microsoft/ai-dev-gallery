@@ -38,6 +38,11 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         Debug.WriteLine($"[TEST] ===== DIRECT STREAMING TEST =====");
         Debug.WriteLine($"[TEST] ChatClient type: {_chatClient.GetType().FullName}");
         Debug.WriteLine($"[TEST] ChatClient.Settings: {_chatClient.Settings != null}");
+        if (_chatClient.Settings != null)
+        {
+            Debug.WriteLine($"[TEST]   Settings.MaxTokens: {_chatClient.Settings.MaxTokens}");
+            Debug.WriteLine($"[TEST]   Settings.Temperature: {_chatClient.Settings.Temperature}");
+        }
         
         // EXACTLY like official sample
         List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> messages = new()
