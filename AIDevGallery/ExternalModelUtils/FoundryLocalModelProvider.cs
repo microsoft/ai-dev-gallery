@@ -9,8 +9,11 @@ using Microsoft.Extensions.AI;
 using OpenAI;
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,27 +51,54 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public IChatClient? GetIChatClient(string url)
     {
+        Debug.WriteLine($"[FoundryLocal] GetIChatClient called with url: {url}");
         var alias = ExtractAlias(url);
+        Debug.WriteLine($"[FoundryLocal] Extracted alias: {alias}");
 
         if (_foundryManager == null || string.IsNullOrEmpty(alias))
         {
+            Debug.WriteLine($"[FoundryLocal] ERROR: Client not initialized or invalid alias");
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
+        Debug.WriteLine($"[FoundryLocal] Getting prepared model info for alias: {alias}");
         var preparedInfo = _foundryManager.GetPreparedModel(alias);
         if (preparedInfo == null)
         {
+            Debug.WriteLine($"[FoundryLocal] ERROR: Model not prepared yet");
             throw new InvalidOperationException(
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
         }
 
         var (serviceUrl, modelId) = preparedInfo.Value;
+        Debug.WriteLine($"[FoundryLocal] Service URL: {serviceUrl}, Model ID: {modelId}");
 
-        return new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
+        // Create HttpClient with long timeout for streaming and custom handler
+        Debug.WriteLine($"[FoundryLocal] Creating HttpClient with logging handler");
+        var loggingHandler = new FoundryLocal.LoggingHttpMessageHandler(new HttpClientHandler
         {
-            Endpoint = new Uri($"{serviceUrl}/v1")
+            UseProxy = false,
+            AllowAutoRedirect = false
+        });
+        
+        var httpClient = new HttpClient(loggingHandler)
+        {
+            Timeout = Timeout.InfiniteTimeSpan
+        };
+        
+        // Add KeepAlive: false header to prevent connection pooling issues
+        httpClient.DefaultRequestHeaders.ConnectionClose = true;
+
+        Debug.WriteLine($"[FoundryLocal] Creating OpenAI client with endpoint: {serviceUrl}/v1");
+        var client = new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
+        {
+            Endpoint = new Uri($"{serviceUrl}/v1"),
+            Transport = new HttpClientPipelineTransport(httpClient)
         }).GetChatClient(modelId).AsIChatClient();
+        
+        Debug.WriteLine($"[FoundryLocal] IChatClient created successfully");
+        return client;
     }
 
     public string? GetIChatClientString(string url)
@@ -87,7 +117,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         var (serviceUrl, modelId) = preparedInfo.Value;
-        return $"new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{serviceUrl}/v1\") }}).GetChatClient(\"{modelId}\").AsIChatClient()";
+        return $"var httpClient = new HttpClient {{ Timeout = Timeout.InfiniteTimeSpan }}; new OpenAIClient(new ApiKeyCredential(\"none\"), new OpenAIClientOptions{{ Endpoint = new Uri(\"{serviceUrl}/v1\"), Transport = new HttpClientPipelineTransport(httpClient) }}).GetChatClient(\"{modelId}\").AsIChatClient()";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
@@ -168,20 +198,6 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             if (hasCachedVariant)
             {
                 downloadedModels.Add(firstModel);
-
-                _ = Task.Run(
-                    async () =>
-                    {
-                        try
-                        {
-                            await _foundryManager.PrepareModelAsync(catalogModel.Alias, cancelationToken);
-                        }
-                        catch
-                        {
-                            // Silently fail - user will see "not ready" error when attempting to use the model
-                        }
-                    },
-                    cancelationToken);
             }
         }
 
@@ -217,18 +233,25 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task EnsureModelReadyAsync(string url, CancellationToken cancellationToken = default)
     {
+        Debug.WriteLine($"[FoundryLocal] EnsureModelReadyAsync called with url: {url}");
         var alias = ExtractAlias(url);
+        Debug.WriteLine($"[FoundryLocal] Extracted alias: {alias}");
 
         if (_foundryManager == null || string.IsNullOrEmpty(alias))
         {
+            Debug.WriteLine($"[FoundryLocal] ERROR: Client not initialized or invalid alias in EnsureModelReadyAsync");
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
+        Debug.WriteLine($"[FoundryLocal] Checking if model {alias} is already prepared...");
         if (_foundryManager.GetPreparedModel(alias) != null)
         {
+            Debug.WriteLine($"[FoundryLocal] Model {alias} already prepared, skipping PrepareModelAsync");
             return;
         }
 
+        Debug.WriteLine($"[FoundryLocal] Model {alias} not prepared yet, calling PrepareModelAsync...");
         await _foundryManager.PrepareModelAsync(alias, cancellationToken);
+        Debug.WriteLine($"[FoundryLocal] PrepareModelAsync completed for {alias}");
     }
 }

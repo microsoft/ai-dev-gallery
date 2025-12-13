@@ -116,6 +116,10 @@ internal sealed partial class Generate : BaseSamplePage
                     int outputTokens = 0;
 
                     // </exclude>
+                    Debug.WriteLine($"[Generate] Starting streaming request with system prompt: {systemPrompt}");
+                    Debug.WriteLine($"[Generate] User prompt: {userPrompt}");
+                    Debug.WriteLine($"[Generate] Calling GetStreamingResponseAsync...");
+                    
                     await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
@@ -128,6 +132,7 @@ internal sealed partial class Generate : BaseSamplePage
                         if (outputTokens == 0)
                         {
                             swTtft.Stop();
+                            Debug.WriteLine($"[Generate] First token received after {swTtft.Elapsed.TotalSeconds:0.00}s");
                         }
 
                         outputTokens++;
@@ -156,6 +161,8 @@ internal sealed partial class Generate : BaseSamplePage
                         });
                     }
 
+                    Debug.WriteLine($"[Generate] Streaming completed successfully. Total tokens: {outputTokens}");
+
                     // <exclude>
                     swEnd.Stop();
                     double tps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
@@ -165,6 +172,15 @@ internal sealed partial class Generate : BaseSamplePage
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine($"[Generate] ERROR during streaming: {ex.GetType().Name}");
+                    Debug.WriteLine($"[Generate] ERROR message: {ex.Message}");
+                    Debug.WriteLine($"[Generate] Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        Debug.WriteLine($"[Generate] Inner exception: {ex.InnerException.GetType().Name}");
+                        Debug.WriteLine($"[Generate] Inner message: {ex.InnerException.Message}");
+                    }
+                    
                     if (cts != null && !cts.Token.IsCancellationRequested)
                     {
                         ShowException(ex);
