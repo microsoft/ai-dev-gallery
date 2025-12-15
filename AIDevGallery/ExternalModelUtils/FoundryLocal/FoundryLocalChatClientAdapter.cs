@@ -24,17 +24,6 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         _modelId = modelId;
         _chatClient = chatClient;
-
-        // CRITICAL: MaxTokens must be set, otherwise the model won't generate any output
-        if (_chatClient.Settings.MaxTokens == null)
-        {
-            _chatClient.Settings.MaxTokens = 1024;
-        }
-
-        if (_chatClient.Settings.Temperature == null)
-        {
-            _chatClient.Settings.Temperature = 0.7f;
-        }
     }
 
     public ChatClientMetadata Metadata => new("FoundryLocal", new Uri($"foundrylocal:///{_modelId}"), _modelId);
@@ -50,6 +39,40 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        // Map ChatOptions to FoundryLocal ChatSettings
+        // CRITICAL: MaxTokens must be set, otherwise some model won't generate any output
+        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? 1024;
+        
+        if (options?.Temperature != null)
+        {
+            _chatClient.Settings.Temperature = (float)options.Temperature;
+        }
+
+        if (options?.TopP != null)
+        {
+            _chatClient.Settings.TopP = (float)options.TopP;
+        }
+
+        if (options?.TopK != null)
+        {
+            _chatClient.Settings.TopK = options.TopK;
+        }
+
+        if (options?.FrequencyPenalty != null)
+        {
+            _chatClient.Settings.FrequencyPenalty = (float)options.FrequencyPenalty;
+        }
+
+        if (options?.PresencePenalty != null)
+        {
+            _chatClient.Settings.PresencePenalty = (float)options.PresencePenalty;
+        }
+
+        if (options?.Seed != null)
+        {
+            _chatClient.Settings.RandomSeed = (int)options.Seed;
+        }
+
         var messageList = chatMessages.ToList();
         var openAIMessages = ConvertToFoundryMessages(messageList);
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
