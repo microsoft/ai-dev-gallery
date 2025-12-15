@@ -17,6 +17,8 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 /// </summary>
 internal class FoundryLocalChatClientAdapter : IChatClient
 {
+    private const int DefaultMaxTokens = 1024;
+
     private readonly Microsoft.AI.Foundry.Local.OpenAIChatClient _chatClient;
     private readonly string _modelId;
 
@@ -41,7 +43,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         // Map ChatOptions to FoundryLocal ChatSettings
         // CRITICAL: MaxTokens must be set, otherwise some model won't generate any output
-        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? 1024;
+        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? DefaultMaxTokens;
         
         if (options?.Temperature != null)
         {
