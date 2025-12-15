@@ -59,13 +59,55 @@ public static class ModelInformationHelper
         }
 
         return files.Select(f =>
-            new ModelFileDetails()
+        {
+            string? sha256 = null;
+
+            if (f.Content != null && f.Encoding == "base64")
+            {
+                try
+                {
+                    var decodedContent = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(f.Content));
+                    sha256 = ParseLfsPointerSha256(decodedContent);
+                }
+                catch (FormatException)
+                {
+                    Debug.WriteLine($"Failed to decode base64 content for {f.Path}");
+                }
+            }
+
+            return new ModelFileDetails()
             {
                 DownloadUrl = f.DownloadUrl,
                 Size = f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
-                Path = f.Path
-            }).ToList();
+                Path = f.Path,
+                Sha256 = sha256
+            };
+        }).ToList();
+    }
+
+    /// <summary>
+    /// Parses a Git LFS pointer file content to extract the SHA256 hash.
+    /// </summary>
+    /// <param name="lfsPointerContent">The content of the LFS pointer file.</param>
+    /// <returns>The SHA256 hash if found, otherwise null.</returns>
+    private static string? ParseLfsPointerSha256(string lfsPointerContent)
+    {
+        if (string.IsNullOrEmpty(lfsPointerContent))
+        {
+            return null;
+        }
+
+        var lines = lfsPointerContent.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("oid sha256:", StringComparison.OrdinalIgnoreCase))
+            {
+                return line.Substring("oid sha256:".Length).Trim();
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -173,13 +215,26 @@ public static class ModelInformationHelper
         }
 
         return hfFiles.Where(f => f.Type != "directory").Select(f =>
-            new ModelFileDetails()
+        {
+            string? sha256 = null;
+            if (f.Lfs?.Oid != null)
+            {
+                sha256 = f.Lfs.Oid;
+                if (sha256.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+                {
+                    sha256 = sha256.Substring(7);
+                }
+            }
+
+            return new ModelFileDetails()
             {
                 DownloadUrl = $"https://huggingface.co/{hfUrl.Organization}/{hfUrl.Repo}/resolve/{hfUrl.Ref}/{f.Path}",
                 Size = f.Size,
                 Name = (f.Path ?? string.Empty).Split(["/"], StringSplitOptions.RemoveEmptyEntries).LastOrDefault(),
-                Path = f.Path
-            }).ToList();
+                Path = f.Path,
+                Sha256 = sha256
+            };
+        }).ToList();
     }
 
     /// <summary>
