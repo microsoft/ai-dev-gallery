@@ -169,6 +169,24 @@
                                 Tag="{x:Bind}"
                                 ToolTipService.ToolTip="Cancel"
                                 Visibility="{x:Bind vm:DownloadableModel.VisibleWhenDownloading(Status), Mode=OneWay}" />
+                            <Button
+                                Grid.RowSpan="3"
+                                Grid.Column="2"
+                                Width="32"
+                                Height="32"
+                                Padding="0"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Verification failed - click to retry"
+                                Click="VerificationFailedClicked"
+                                Style="{StaticResource SubtleButtonStyle}"
+                                Tag="{x:Bind}"
+                                ToolTipService.ToolTip="{x:Bind vm:DownloadableModel.GetVerificationFailedTooltip(VerificationFailureMessage), Mode=OneWay}"
+                                Visibility="{x:Bind vm:DownloadableModel.VisibleWhenVerificationFailed(Status), Mode=OneWay}">
+                                <FontIcon
+                                    FontSize="14"
+                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                    Glyph="&#xE72C;" />
+                            </Button>
                         </Grid>
                     </toolkit:SettingsCard>
                 </DataTemplate>
