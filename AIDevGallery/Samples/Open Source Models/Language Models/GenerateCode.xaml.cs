@@ -118,7 +118,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, problem)
                     ],
-                    new() { MaxOutputTokens = _defaultMaxLength },
+                    null,
                     cts.Token))
                 {
                     generatedCode += messagePart;
