@@ -196,6 +196,13 @@ internal partial class DownloadableModel : BaseModel
         return status == DownloadStatus.VerificationFailed ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    public static string GetVerificationFailedTooltip(string? verificationFailureMessage)
+    {
+        return string.IsNullOrEmpty(verificationFailureMessage)
+            ? "Verification failed - click to retry"
+            : $"{verificationFailureMessage}. Click to retry";
+    }
+
     public static Visibility BoolToVisibilityInverse(bool value)
     {
         return value ? Visibility.Collapsed : Visibility.Visible;

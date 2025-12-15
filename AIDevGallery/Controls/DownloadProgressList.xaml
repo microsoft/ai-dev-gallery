@@ -180,7 +180,7 @@
                                 Click="VerificationFailedClicked"
                                 Style="{StaticResource SubtleButtonStyle}"
                                 Tag="{x:Bind}"
-                                ToolTipService.ToolTip="Verification failed - click to retry"
+                                ToolTipService.ToolTip="{x:Bind vm:DownloadableModel.GetVerificationFailedTooltip(VerificationFailureMessage), Mode=OneWay}"
                                 Visibility="{x:Bind vm:DownloadableModel.VisibleWhenVerificationFailed(Status), Mode=OneWay}">
                                 <FontIcon
                                     FontSize="14"
