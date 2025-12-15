@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal class FoundryClient
+internal class FoundryClient : IDisposable
 {
     private readonly Dictionary<string, IModel> _preparedModels = new();
     private readonly SemaphoreSlim _prepareLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
+    private bool _disposed;
 
     public static async Task<FoundryClient?> CreateAsync()
     {
@@ -190,5 +191,21 @@ internal class FoundryClient
     public Task<string?> GetServiceUrl()
     {
         return Task.FromResult(_manager?.Urls?.FirstOrDefault());
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _prepareLock.Dispose();
+
+        // Models are managed by FoundryLocalManager and should not be disposed here
+        // The FoundryLocalManager instance is a singleton and manages its own lifecycle
+        _preparedModels.Clear();
+
+        _disposed = true;
     }
 }

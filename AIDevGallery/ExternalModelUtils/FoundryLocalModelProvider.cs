@@ -27,7 +27,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public HardwareAccelerator ModelHardwareAccelerator => HardwareAccelerator.FOUNDRYLOCAL;
 
-    public List<string> NugetPackageReferences => ["Microsoft.Extensions.AI.OpenAI"];
+    public List<string> NugetPackageReferences => ["Microsoft.AI.Foundry.Local.WinML", "Microsoft.Extensions.AI"];
 
     public string ProviderDescription => "The model will run locally via Foundry Local";
 
@@ -62,7 +62,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
-        var chatClient = model.GetChatClientAsync().Result;
+        // Note: This synchronous wrapper is safe here because the model is already prepared/loaded
+        var chatClient = model.GetChatClientAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         // Wrap it in our adapter to implement IChatClient interface
         return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
@@ -83,7 +84,24 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return null;
         }
 
-        return $"var model = await catalog.GetModelAsync(\"{alias}\"); await model.LoadAsync(); var chatClient = await model.GetChatClientAsync(); /* Use chatClient.CompleteChatStreamingAsync() */";
+        return $@"// Initialize Foundry Local
+var config = new Configuration {{ AppName = ""YourApp"", LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning }};
+await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+var manager = FoundryLocalManager.Instance;
+var catalog = await manager.GetCatalogAsync();
+
+// Get and load the model
+var model = await catalog.GetModelAsync(""{alias}"");
+await model.LoadAsync();
+
+// Get chat client and use it
+var chatClient = await model.GetChatClientAsync();
+var messages = new List<ChatMessage> {{ new(""user"", ""Your message here"") }};
+await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
+{{
+    // Process streaming response
+    Console.Write(chunk.Choices[0].Message?.Content);
+}}";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
