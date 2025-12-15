@@ -28,7 +28,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         // CRITICAL: MaxTokens must be set, otherwise the model won't generate any output
         if (_chatClient.Settings.MaxTokens == null)
         {
-            _chatClient.Settings.MaxTokens = 512;
+            _chatClient.Settings.MaxTokens = 1024;
         }
 
         if (_chatClient.Settings.Temperature == null)
@@ -52,8 +52,6 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         var messageList = chatMessages.ToList();
         var openAIMessages = ConvertToFoundryMessages(messageList);
-
-        // Use FoundryLocal SDK's native streaming API - direct in-memory communication, no HTTP/SSE
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
