@@ -110,7 +110,7 @@ internal sealed partial class Translate : BaseSamplePage
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, userPrompt)
                         ],
-                        null,
+                        new() { MaxOutputTokens = _defaultMaxLength },
                         cts.Token))
                     {
                         DispatcherQueue.TryEnqueue(() =>
