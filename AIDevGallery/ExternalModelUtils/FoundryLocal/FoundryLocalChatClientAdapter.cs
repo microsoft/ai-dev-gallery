@@ -44,7 +44,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         // Map ChatOptions to FoundryLocal ChatSettings
         // CRITICAL: MaxTokens must be set, otherwise some model won't generate any output
         _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? DefaultMaxTokens;
-        
+
         if (options?.Temperature != null)
         {
             _chatClient.Settings.Temperature = (float)options.Temperature;
