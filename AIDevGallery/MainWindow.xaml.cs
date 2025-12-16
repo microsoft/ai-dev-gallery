@@ -132,9 +132,23 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavigateToApiOrModelPage(modelTypes[0]);
         }
-        else if (obj is ModelDetails)
+        else if (obj is ModelDetails modelDetails)
         {
-            Navigate("Models", obj);
+            // ModelDetails only contains an Id, not a direct ModelType reference.
+            // We need to look up the ModelType to determine if this should route to:
+            // - APISelectionPage (for WCRAPIs and children)
+            // - ModelSelectionPage (for all other models)
+            // This enables intelligent routing from search results and external navigation.
+            var modelTypeList = App.FindSampleItemById(modelDetails.Id);
+            if (modelTypeList.Count > 0)
+            {
+                NavigateToApiOrModelPage(modelTypeList[0]);
+            }
+            else
+            {
+                // Fallback: If ID lookup fails (e.g., user-added models), default to Models page
+                Navigate("Models", obj);
+            }
         }
         else if (obj is SampleNavigationArgs)
         {
@@ -198,8 +212,36 @@ internal sealed partial class MainWindow : WindowEx
 
             if (page == typeof(APISelectionPage) && NavFrame.Content is APISelectionPage apiPage && param != null)
             {
-                // No need to navigate to the APISelectionPage again, we just want to navigate to the right subpage
-                apiPage.SetSelectedApiInMenu((ModelType)param);
+                // Optimize: Avoid re-navigating if already on APISelectionPage
+                // Just update the selected item in the navigation menu
+                if (param is ModelType modelType)
+                {
+                    apiPage.SetSelectedApiInMenu(modelType);
+                }
+                else
+                {
+                    // ModelDetails needs full navigation as APISelectionPage.OnNavigatedTo handles the lookup
+                    // Unknown parameter type - perform full navigation to be safe
+                    NavFrame.Navigate(page, param);
+                }
+            }
+            else if (page == typeof(ModelSelectionPage) && NavFrame.Content is ModelSelectionPage modelPage && param != null)
+            {
+                // Optimize: Avoid re-navigating if already on ModelSelectionPage
+                // Use the same pattern as APISelectionPage
+                if (param is ModelType modelType)
+                {
+                    modelPage.SetSelectedModelInMenu(modelType);
+                }
+                else if (param is List<ModelType> modelTypes && modelTypes.Count > 0)
+                {
+                    modelPage.SetSelectedModelInMenu(modelTypes[0]);
+                }
+                else
+                {
+                    // For other parameter types (ModelDetails, string, MRU), perform full navigation
+                    NavFrame.Navigate(page, param);
+                }
             }
             else if (page == typeof(ScenarioSelectionPage) && NavFrame.Content is ScenarioSelectionPage scenarioPage && param != null)
             {
@@ -258,7 +300,7 @@ internal sealed partial class MainWindow : WindowEx
         }
         else if (result.Tag is ModelType modelType)
         {
-            Navigate("models", modelType);
+            NavigateToApiOrModelPage(modelType);
         }
     }
 
