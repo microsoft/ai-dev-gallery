@@ -380,7 +380,8 @@ jobs:
             exit 1
         } else {
             Write-Host "No accessibility issues found across all scanned pages."
-        }    - name: Upload Accessibility Results
+        }
+    - name: Upload Accessibility Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
