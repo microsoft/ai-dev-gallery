@@ -13,10 +13,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        
-        <!-- Intentionally inaccessible button for testing CI failure -->
-        <Button Width="20" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" />
-
         <ScrollViewer x:Name="scrollView">
             <Grid>
                 <Grid.RowDefinitions>
