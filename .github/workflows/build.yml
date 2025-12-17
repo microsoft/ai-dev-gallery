@@ -138,3 +138,260 @@ jobs:
       with:
         name: test-results-${{ matrix.dotnet-arch }}
         path: TestResults
+
+  accessibility-check:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: windows-2025
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Download MSIX Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MSIX-x64
+        path: ./DownloadedMSIX
+    - name: Verify Downloaded MSIX
+      shell: pwsh
+      run: |
+        Write-Host "Checking downloaded MSIX artifacts..."
+        $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
+        
+        if (-not (Test-Path $downloadPath)) {
+            Write-Error "Download directory does not exist: $downloadPath"
+            exit 1
+        }
+        
+        Write-Host "Contents of $downloadPath :"
+        Get-ChildItem -Path $downloadPath -Recurse | ForEach-Object {
+            Write-Host "  - $($_.FullName)"
+        }
+        
+        # Search recursively for MSIX files
+        $msixFiles = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue
+        if (-not $msixFiles) {
+            Write-Error "No .msix files found in $downloadPath"
+            exit 1
+        }
+        
+        Write-Host "Found MSIX files: $($msixFiles.Count)"
+        $msixFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
+    - name: Download and Install Axe.Windows CLI
+      shell: pwsh
+      run: |
+        $url = "https://api.github.com/repos/microsoft/axe-windows/releases/latest"
+        try {
+            Write-Host "Fetching Axe.Windows CLI release info from $url..."
+            $response = Invoke-RestMethod -Uri $url -ErrorAction Stop
+            $asset = $response.assets | Where-Object { $_.name -like "*CLI*.zip" } | Select-Object -First 1
+            
+            if (-not $asset) {
+                Write-Error "Could not find AxeWindowsCLI zip asset in release"
+                exit 1
+            }
+            
+            Write-Host "Downloading $($asset.name)..."
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "AxeWindowsCLI.zip" -ErrorAction Stop
+            
+            Write-Host "Extracting AxeWindowsCLI.zip..."
+            Expand-Archive "AxeWindowsCLI.zip" -DestinationPath "AxeWindowsCLI" -Force
+            
+            # Verify the executable exists
+            $cliExe = Join-Path (Get-Location) "AxeWindowsCLI\AxeWindowsCLI.exe"
+            if (-not (Test-Path $cliExe)) {
+                Write-Error "AxeWindowsCLI.exe not found at expected path: $cliExe"
+                exit 1
+            }
+            
+            echo "CLI_PATH=$cliExe" >> $env:GITHUB_ENV
+            Write-Host "CLI_PATH set to: $cliExe"
+        } catch {
+            Write-Error "Failed to download or setup Axe.Windows CLI: $_"
+            exit 1
+        }
+    - name: Install and Run Accessibility Check
+      shell: powershell
+      run: |
+        $ErrorActionPreference = "Stop"
+        
+        # Find MSIX from downloaded artifact (search recursively)
+        $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
+        Write-Host "Looking for MSIX in: $downloadPath"
+        
+        $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $msixFile) { 
+            Write-Error "MSIX file not found in $downloadPath (recursive search)"
+            exit 1 
+        }
+        
+        Write-Host "Using MSIX file: $($msixFile.FullName)"
+        
+        # Cleanup previous install
+        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        
+        # Ensure makeappx.exe is available
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
+            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
+            if (Test-Path $kitsRoot) {
+                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
+                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
+                             Sort-Object Name -Descending | 
+                             Select-Object -First 1
+                
+                if ($latestSdk) {
+                    $sdkPath = Join-Path $latestSdk.FullName "x64"
+                    if (Test-Path $sdkPath) {
+                        Write-Host "Found SDK at $sdkPath"
+                        $env:Path = "$sdkPath;$env:Path"
+                    }
+                }
+                
+                if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+                     $genericSdkPath = Join-Path $kitsRoot "x64"
+                     if (Test-Path $genericSdkPath) {
+                        Write-Host "Found generic SDK at $genericSdkPath"
+                        $env:Path = "$genericSdkPath;$env:Path"
+                     }
+                }
+            }
+        }
+        
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
+            exit 1
+        }
+        
+        # Unpack MSIX
+        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
+        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
+        Write-Host "Unpacking MSIX to $unpackedDir..."
+        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
+        
+        # Register Manifest
+        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
+        Write-Host "Registering AppxManifest.xml from $manifestPath..."
+        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
+        
+        # Launch App
+        $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
+        if (-not $package) { 
+             $package = Get-AppxPackage | Where-Object { $_.PackageFamilyName -like "*e7af07c0*" } | Select-Object -First 1
+        }
+        if (-not $package) { Write-Error "Package not found after installation"; exit 1 }
+        
+        $pfn = $package.PackageFamilyName
+        $aumid = "$pfn!App"
+        
+        Write-Host "Launching $aumid"
+        Start-Process -FilePath "shell:AppsFolder\$aumid"
+        
+        # Wait for app to initialize
+        $timeout = 60
+        $elapsed = 0
+        $appProcess = $null
+        
+        while ($elapsed -lt $timeout) {
+            $appProcess = Get-Process -Name "AIDevGallery" -ErrorAction SilentlyContinue
+            if ($appProcess -and $appProcess.MainWindowHandle -ne 0) {
+                break
+            }
+            Start-Sleep -Seconds 2
+            $elapsed += 2
+        }
+
+        if (-not $appProcess -or $appProcess.MainWindowHandle -eq 0) {
+             Write-Error "App failed to start or create a window within $timeout seconds."
+             if ($appProcess) { $appProcess.Kill() }
+             exit 1
+        }
+        
+        Write-Host "App started. ProcessId: $($appProcess.Id)"
+        Start-Sleep -Seconds 10
+        
+        # Load UI Automation
+        Add-Type -AssemblyName UIAutomationClient
+        Add-Type -AssemblyName UIAutomationTypes
+        $ae = [System.Windows.Automation.AutomationElement]
+        $scope = [System.Windows.Automation.TreeScope]::Descendants
+        
+        # Get App Window
+        $propCond = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $appProcess.Id)
+        $appWindow = $ae::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $propCond)
+        
+        $pagesToTest = @("Home", "Samples", "Models", "AI APIs", "Settings")
+        $cliPath = $env:CLI_PATH
+        $outputDir = Join-Path $PWD "AxeOutput"
+        New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+        
+        foreach ($pageName in $pagesToTest) {
+            Write-Host "--- Testing Page: $pageName ---"
+            
+            $navigationSuccess = $false
+            if ($appWindow) {
+                # Try to navigate
+                $nameCond = New-Object System.Windows.Automation.PropertyCondition($ae::NameProperty, $pageName)
+                $navItem = $appWindow.FindFirst($scope, $nameCond)
+                
+                if ($navItem) {
+                    try {
+                        $invokePattern = $navItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                        $invokePattern.Invoke()
+                        Write-Host "Navigated to $pageName"
+                        Start-Sleep -Seconds 3
+                        $navigationSuccess = $true
+                    } catch {
+                        try {
+                            $selectPattern = $navItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+                            $selectPattern.Select()
+                            Write-Host "Selected $pageName"
+                            Start-Sleep -Seconds 3
+                            $navigationSuccess = $true
+                        } catch {
+                            Write-Warning "Could not interact with navigation item: $pageName - skipping accessibility scan for this page"
+                        }
+                    }
+                } else {
+                    Write-Warning "Navigation item '$pageName' not found in UI tree - skipping accessibility scan for this page"
+                }
+            }
+            
+            # Only scan if navigation was successful
+            if ($navigationSuccess) {
+                # Scan
+                $pageOutputDir = Join-Path $outputDir $pageName
+                New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
+                
+                Write-Host "Scanning..."
+                & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
+            }
+        }
+        
+        $appProcess.Kill()
+        
+        # Check results
+        $allIssues = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -Recurse
+        if ($allIssues) {
+            Write-Error "Accessibility issues found in $($allIssues.Count) files."
+            exit 1
+        } else {
+            Write-Host "No accessibility issues found across all scanned pages."
+        }
+    - name: Upload Accessibility Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-results
+        path: AxeOutput
+        if-no-files-found: warn
+        retention-days: 7
