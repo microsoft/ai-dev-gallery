@@ -14,6 +14,8 @@
     mc:Ignorable="d">
     <Page.Resources>
         <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" AutomationProperties.AccessibilityView="Raw" />
     </Page.Resources>
     <Grid x:Name="RootGrid" MaxWidth="1600" RowSpacing="8">
         <Grid.RowDefinitions>
@@ -223,12 +225,7 @@
                             Background="Transparent"
                             FontSize="14"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            AutomationProperties.AccessibilityView="Raw"
                             OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
-                            <toolkit2:MarkdownTextBlock.Resources>
-                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" AutomationProperties.AccessibilityView="Raw" />
-                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" AutomationProperties.AccessibilityView="Raw" />
-                            </toolkit2:MarkdownTextBlock.Resources>
                         </toolkit2:MarkdownTextBlock>
                         <ProgressRing
                             x:Name="readmeProgressRing"
