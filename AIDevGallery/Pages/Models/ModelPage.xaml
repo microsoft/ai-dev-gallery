@@ -130,10 +130,11 @@
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
+                                AutomationProperties.AccessibilityView="Raw"
                                 OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
                                 <toolkit2:MarkdownTextBlock.Resources>
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
+                                    <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" AutomationProperties.AccessibilityView="Raw" />
+                                    <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" AutomationProperties.AccessibilityView="Raw" />
                                 </toolkit2:MarkdownTextBlock.Resources>
                             </toolkit2:MarkdownTextBlock>
                         </ScrollViewer>
