@@ -37,6 +37,8 @@ jobs:
       uses: microsoft/setup-msbuild@v2
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Build AIDevGallery.Utils
+      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
     - name: Build Test Project
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Unit Tests
@@ -62,8 +64,6 @@ jobs:
         path: TestResults
 
   build:
-    needs: pr-unit-test
-    if: ${{ !cancelled() && (needs.pr-unit-test.result == 'success' || needs.pr-unit-test.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
