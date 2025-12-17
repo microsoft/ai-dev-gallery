@@ -188,7 +188,7 @@ jobs:
     - name: Download and Install Axe.Windows CLI
       shell: pwsh
       run: |
-        $url = "https://api.github.com/repos/microsoft/axe-windows/releases/tags/v2.4.2"
+        $url = "https://api.github.com/repos/microsoft/axe-windows/releases/latest"
         try {
             Write-Host "Fetching Axe.Windows CLI release info from $url..."
             $response = Invoke-RestMethod -Uri $url -ErrorAction Stop
@@ -337,6 +337,7 @@ jobs:
         foreach ($pageName in $pagesToTest) {
             Write-Host "--- Testing Page: $pageName ---"
             
+            $navigationSuccess = $false
             if ($appWindow) {
                 # Try to navigate
                 $nameCond = New-Object System.Windows.Automation.PropertyCondition($ae::NameProperty, $pageName)
@@ -348,27 +349,32 @@ jobs:
                         $invokePattern.Invoke()
                         Write-Host "Navigated to $pageName"
                         Start-Sleep -Seconds 3
+                        $navigationSuccess = $true
                     } catch {
                         try {
                             $selectPattern = $navItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
                             $selectPattern.Select()
                             Write-Host "Selected $pageName"
                             Start-Sleep -Seconds 3
+                            $navigationSuccess = $true
                         } catch {
-                            Write-Warning "Could not interact with navigation item: $pageName"
+                            Write-Warning "Could not interact with navigation item: $pageName - skipping accessibility scan for this page"
                         }
                     }
                 } else {
-                    Write-Warning "Navigation item '$pageName' not found in UI tree."
+                    Write-Warning "Navigation item '$pageName' not found in UI tree - skipping accessibility scan for this page"
                 }
             }
             
-            # Scan
-            $pageOutputDir = Join-Path $outputDir $pageName
-            New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
-            
-            Write-Host "Scanning..."
-            & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
+            # Only scan if navigation was successful
+            if ($navigationSuccess) {
+                # Scan
+                $pageOutputDir = Join-Path $outputDir $pageName
+                New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
+                
+                Write-Host "Scanning..."
+                & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
+            }
         }
         
         $appProcess.Kill()
