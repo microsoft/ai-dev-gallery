@@ -21,9 +21,6 @@ public class AppUtilsTests
         // 1.5GB = 1.5 * 1024 * 1024 * 1024 = 1610612736
         Assert.AreEqual("1.5GB", AppUtils.FileSizeToString(1610612736));
         Assert.AreEqual("500 Bytes", AppUtils.FileSizeToString(500));
-
-        // TODO: Remove this intentional failure after verifying CI error detection
-        Assert.Fail("Intentionally failing to test CI error detection");
     }
 
     [TestMethod]
