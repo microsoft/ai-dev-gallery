@@ -14,8 +14,8 @@
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
-        <tkconverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
-        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <tkconverters:StringVisibilityConverter x:Key="StringVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
+        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
     </Page.Resources>
 
     <Grid
@@ -141,7 +141,8 @@
                         <ProgressRing
                             Grid.Row="2"
                             x:Name="readmeProgressRing"
-                            IsActive="True" />
+                            IsActive="True"
+                            AutomationProperties.AccessibilityView="Raw" />
                     </Grid>
                 </controls:Card>
                 <controls:Card
