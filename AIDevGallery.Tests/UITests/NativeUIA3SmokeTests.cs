@@ -23,7 +23,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
     [TestCategory("Smoke")]
     [TestCategory("NativeUIA3")]
     [Description("Verifies that the application can be found and launched using native UIA3")]
-    public void NativeUIA3_ApplicationLaunches()
+    public void NativeUIA3ApplicationLaunches()
     {
         // The TestInitialize already launched the app and got the main window
         Assert.IsNotNull(AppProcess, "Application process should be launched");
@@ -51,7 +51,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
     [TestCategory("Smoke")]
     [TestCategory("NativeUIA3")]
     [Description("Verifies that the main window has basic properties using native UIA3")]
-    public void NativeUIA3_MainWindowHasBasicProperties()
+    public void NativeUIA3MainWindowHasBasicProperties()
     {
         Assert.IsNotNull(MainWindow, "Main window should exist");
 
@@ -91,7 +91,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
     [TestCategory("Smoke")]
     [TestCategory("NativeUIA3")]
     [Description("Verifies that UI elements can be queried using native UIA3")]
-    public void NativeUIA3_CanQueryUIElements()
+    public void NativeUIA3CanQueryUIElements()
     {
         Assert.IsNotNull(MainWindow, "Main window should exist");
 
@@ -139,7 +139,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
     [TestCategory("Sample")]
     [TestCategory("NativeUIA3")]
     [Description("Logs details for elements that expose AutomationId values using native UIA3")]
-    public void NativeUIA3_LogAutomationIds()
+    public void NativeUIA3LogAutomationIds()
     {
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         Assert.IsNotNull(Automation, "Automation should be initialized");
@@ -341,7 +341,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
             }
         }
 
-        Assert.IsTrue(true, "This sample is intended only for logging AutomationId information");
+        // This sample is intended only for logging AutomationId information
     }
 
     [TestMethod]
@@ -349,7 +349,7 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
     [TestCategory("Sample")]
     [TestCategory("NativeUIA3")]
     [Description("Tests finding specific elements by AutomationId using native UIA3")]
-    public void NativeUIA3_FindElementByAutomationId()
+    public void NativeUIA3FindElementByAutomationId()
     {
         Assert.IsNotNull(MainWindow, "Main window should exist");
         Assert.IsNotNull(Automation, "Automation should be initialized");
@@ -401,6 +401,5 @@ public class NativeUIA3SmokeTests : NativeUIA3TestBase
         }
 
         // This test is informational, so always pass
-        Assert.IsTrue(true, "Element search test completed");
     }
 }

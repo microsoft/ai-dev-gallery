@@ -19,7 +19,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the main window launches successfully")]
-    public void MainWindow_Launches_Successfully()
+    public void MainWindowLaunchesSuccessfully()
     {
         // Assert
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -34,7 +34,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the main window is visible and not minimized")]
-    public void MainWindow_IsVisible()
+    public void MainWindowIsVisible()
     {
         // Assert
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -48,7 +48,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the main window can be resized")]
-    public void MainWindow_CanBeResized()
+    public void MainWindowCanBeResized()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -114,7 +114,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the main window contains UI elements")]
-    public void MainWindow_ContainsUIElements()
+    public void MainWindowContainsUIElements()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -143,7 +143,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that buttons can be found in the main window")]
-    public void MainWindow_ContainsButtons()
+    public void MainWindowContainsButtons()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -179,7 +179,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the main window can be closed")]
-    public void MainWindow_CanBeClosed()
+    public void MainWindowCanBeClosed()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -198,14 +198,14 @@ public class MainWindowTests : FlaUITestBase
         catch
         {
             // If accessing IsAvailable throws, the window is definitely closed
-            Assert.IsTrue(true, "Window was closed successfully");
+            // Window was closed successfully
         }
     }
 
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that text elements can be found in the main window")]
-    public void MainWindow_ContainsTextElements()
+    public void MainWindowContainsTextElements()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
@@ -238,7 +238,7 @@ public class MainWindowTests : FlaUITestBase
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies that the search box accepts input and displays search results")]
-    public void SearchBox_DisplaysResults_WhenQueryEntered()
+    public void SearchBoxDisplaysResultsWhenQueryEntered()
     {
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 

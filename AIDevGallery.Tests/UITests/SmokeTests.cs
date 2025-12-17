@@ -20,7 +20,7 @@ public class SmokeTests : FlaUITestBase
     [TestCategory("UI")]
     [TestCategory("Smoke")]
     [Description("Verifies that the application can be found and launched")]
-    public void Smoke_ApplicationLaunches()
+    public void SmokeApplicationLaunches()
     {
         // The TestInitialize already launched the app and got the main window
         // This test just verifies that setup worked
@@ -39,7 +39,7 @@ public class SmokeTests : FlaUITestBase
     [TestCategory("UI")]
     [TestCategory("Smoke")]
     [Description("Verifies that the main window has basic properties")]
-    public void Smoke_MainWindowHasBasicProperties()
+    public void SmokeMainWindowHasBasicProperties()
     {
         Assert.IsNotNull(MainWindow, "Main window should exist");
 
@@ -61,7 +61,7 @@ public class SmokeTests : FlaUITestBase
     [TestCategory("UI")]
     [TestCategory("Smoke")]
     [Description("Verifies that UI elements can be queried")]
-    public void Smoke_CanQueryUIElements()
+    public void SmokeCanQueryUIElements()
     {
         Assert.IsNotNull(MainWindow, "Main window should exist");
 
@@ -87,7 +87,7 @@ public class SmokeTests : FlaUITestBase
     [TestCategory("UI")]
     [TestCategory("Sample")]
     [Description("Logs details for elements that expose AutomationId values")]
-    public void Sample_LogAutomationIds()
+    public void SampleLogAutomationIds()
     {
         var window = MainWindow ?? throw new InvalidOperationException("Main window should be initialized");
 
@@ -209,6 +209,6 @@ public class SmokeTests : FlaUITestBase
             Console.WriteLine($"  ... and {elementsWithoutId.Count - 50} more without AutomationId");
         }
 
-        Assert.IsTrue(true, "This sample is intended only for logging AutomationId information");
+        // This sample is intended only for logging AutomationId information
     }
 }

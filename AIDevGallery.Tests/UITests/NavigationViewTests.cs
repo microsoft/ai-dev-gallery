@@ -22,7 +22,7 @@ public class NavigationViewTests : FlaUITestBase
     [TestCategory("UI")]
     [TestCategory("Navigation")]
     [Description("Test clicking all NavigationView items")]
-    public void NavigationView_ClickAllLeftMenuHostItems()
+    public void NavigationViewClickAllLeftMenuHostItems()
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");

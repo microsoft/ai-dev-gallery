@@ -12,7 +12,7 @@ namespace AIDevGallery.Tests.Unit;
 public class AppUtilsTests
 {
     [TestMethod]
-    public void FileSizeToString_ConvertsCorrectly()
+    public void FileSizeToStringConvertsCorrectly()
     {
         Assert.AreEqual("1.0KB", AppUtils.FileSizeToString(1024));
         Assert.AreEqual("1.0MB", AppUtils.FileSizeToString(1024 * 1024));
@@ -24,7 +24,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void StringToFileSize_ConvertsCorrectly()
+    public void StringToFileSizeConvertsCorrectly()
     {
         Assert.AreEqual(1024, AppUtils.StringToFileSize("1KB"));
         Assert.AreEqual(1024 * 1024, AppUtils.StringToFileSize("1MB"));
@@ -33,7 +33,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void ToLlmPromptTemplate_ConvertsCorrectly()
+    public void ToLlmPromptTemplateConvertsCorrectly()
     {
         var template = new PromptTemplate
         {
@@ -52,7 +52,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void ToPerc_FormatsCorrectly()
+    public void ToPercFormatsCorrectly()
     {
         Assert.AreEqual("50.5%", AppUtils.ToPerc(50.5f));
         Assert.AreEqual("100.0%", AppUtils.ToPerc(100.0f));
@@ -60,7 +60,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetHardwareAcceleratorsString_ReturnsCommaSeparatedString()
+    public void GetHardwareAcceleratorsStringReturnsCommaSeparatedString()
     {
         var accelerators = new List<HardwareAccelerator>
         {
@@ -78,7 +78,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetModelTypeStringFromHardwareAccelerators_ReturnsCorrectType()
+    public void GetModelTypeStringFromHardwareAcceleratorsReturnsCorrectType()
     {
         var accelerators = new List<HardwareAccelerator> { HardwareAccelerator.CPU };
         Assert.AreEqual("ONNX", AppUtils.GetModelTypeStringFromHardwareAccelerators(accelerators));
@@ -94,7 +94,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetHardwareAcceleratorString_ReturnsCorrectString()
+    public void GetHardwareAcceleratorStringReturnsCorrectString()
     {
         Assert.AreEqual("GPU", AppUtils.GetHardwareAcceleratorString(HardwareAccelerator.GPU));
         Assert.AreEqual("GPU", AppUtils.GetHardwareAcceleratorString(HardwareAccelerator.DML));
@@ -105,7 +105,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetHardwareAcceleratorDescription_ReturnsCorrectDescription()
+    public void GetHardwareAcceleratorDescriptionReturnsCorrectDescription()
     {
         Assert.AreEqual("This model will run on CPU", AppUtils.GetHardwareAcceleratorDescription(HardwareAccelerator.CPU));
         Assert.AreEqual("This model will run on supported GPUs with DirectML", AppUtils.GetHardwareAcceleratorDescription(HardwareAccelerator.GPU));
@@ -114,7 +114,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetModelSourceOriginFromUrl_ReturnsCorrectOrigin()
+    public void GetModelSourceOriginFromUrlReturnsCorrectOrigin()
     {
         Assert.AreEqual("This model was downloaded from Hugging Face", AppUtils.GetModelSourceOriginFromUrl("https://huggingface.co/model"));
         Assert.AreEqual("This model was downloaded from GitHub", AppUtils.GetModelSourceOriginFromUrl("https://github.com/model"));
@@ -123,14 +123,14 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetLicenseTitleFromString_ReturnsCorrectTitle()
+    public void GetLicenseTitleFromStringReturnsCorrectTitle()
     {
         Assert.AreEqual("MIT", AppUtils.GetLicenseTitleFromString("mit"));
         Assert.AreEqual("Unknown", AppUtils.GetLicenseTitleFromString("unknown-license"));
     }
 
     [TestMethod]
-    public void GetLicenseShortNameFromString_ReturnsCorrectName()
+    public void GetLicenseShortNameFromStringReturnsCorrectName()
     {
         Assert.AreEqual("mit", AppUtils.GetLicenseShortNameFromString("mit"));
         Assert.AreEqual("Unknown", AppUtils.GetLicenseShortNameFromString(null));
@@ -138,7 +138,7 @@ public class AppUtilsTests
     }
 
     [TestMethod]
-    public void GetLicenseUrlFromModel_ReturnsCorrectUrl()
+    public void GetLicenseUrlFromModelReturnsCorrectUrl()
     {
         var model = new ModelDetails
         {
