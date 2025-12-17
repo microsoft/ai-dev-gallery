@@ -251,7 +251,7 @@ public abstract class NativeUIA3TestBase
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var elapsed = DateTime.Now - startTime;
                 if (elapsed.TotalSeconds % 10 < 1)

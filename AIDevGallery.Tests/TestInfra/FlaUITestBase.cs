@@ -270,7 +270,7 @@ public abstract class FlaUITestBase
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Window not ready yet, continue waiting
                 var elapsed = DateTime.Now - startTime;
