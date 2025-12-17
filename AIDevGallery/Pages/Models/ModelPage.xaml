@@ -132,6 +132,7 @@
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
+                                AutomationProperties.AccessibilityView="Raw"
                                 OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
                             </toolkit2:MarkdownTextBlock>
                         </ScrollViewer>

@@ -225,6 +225,7 @@
                             Background="Transparent"
                             FontSize="14"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            AutomationProperties.AccessibilityView="Raw"
                             OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
                         </toolkit2:MarkdownTextBlock>
                         <ProgressRing
