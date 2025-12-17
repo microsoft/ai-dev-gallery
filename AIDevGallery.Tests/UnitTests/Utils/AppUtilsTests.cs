@@ -14,7 +14,7 @@ public class AppUtilsTests
     [TestMethod]
     public void FileSizeToStringConvertsCorrectly()
     {
-        Assert.AreEqual("1.0KB", AppUtils.FileSizeToString(1024));
+        Assert.AreEqual("2.0KB", AppUtils.FileSizeToString(1024));
         Assert.AreEqual("1.0MB", AppUtils.FileSizeToString(1024 * 1024));
 
         // Use a tolerance or exact string match if we know the implementation
