@@ -5,6 +5,7 @@ using AIDevGallery.Tests.TestInfra;
 using FlaUI.Core.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace AIDevGallery.Tests.UITests;
@@ -14,6 +15,7 @@ namespace AIDevGallery.Tests.UITests;
 /// These tests show how to interact with the AIDevGallery UI.
 /// </summary>
 [TestClass]
+[SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Test method naming convention")]
 public class BasicInteractionTests : FlaUITestBase
 {
     [TestMethod]
@@ -52,6 +54,7 @@ public class BasicInteractionTests : FlaUITestBase
             {
                 automationId = "(not supported)";
             }
+
             Console.WriteLine($"  - {name} [ID: {automationId}]");
         }
 

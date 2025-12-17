@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Tests.TestInfra;
-using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

@@ -242,13 +242,13 @@ public class MainWindowTests : FlaUITestBase
     {
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
-// pane 'Desktop 1'
-//  - windows 'AI Dev Gallery Dev'
-//    - pane ''
-//      - pane ''
-//        - title bar 'AI Dev Gallery' (AutomationId="titleBar")
-//          - group '' (AutomationId="SearchBox")
-//            - edit 'Name	Search samples, models & APIs..'(AutomationId="TextBox")
+        // pane 'Desktop 1'
+        //  - windows 'AI Dev Gallery Dev'
+        //    - pane ''
+        //      - pane ''
+        //        - title bar 'AI Dev Gallery' (AutomationId="titleBar")
+        //          - group '' (AutomationId="SearchBox")
+        //            - edit 'Name  Search samples, models & APIs..'(AutomationId="TextBox")
         var searchBoxGroupResult = Retry.WhileNull(
             () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox")),
             timeout: TimeSpan.FromSeconds(10));
@@ -263,17 +263,17 @@ public class MainWindowTests : FlaUITestBase
         searchBox.AsTextBox().Text = "Phi";
         Console.WriteLine("Search query 'Phi' entered");
 
-// pane 'Desktop 1'
-//   - windows 'AI Dev Gallery Dev'
-//     - pane 'PopupHost'
-//       - pane ''
-//         - title bar 'AI Dev Gallery' (AutomationId="titleBar")
-//           - group 'SearchBox' (AutomationId="SearchBox")
-//             - window 'Popup' (AutomationId="SuggestionsPopup")
-//               - list '' (AutomationId="SuggestionsList") // length needs to be > 0
-//                 - list item 'Phi 3 Medium'
-//                 - list item ...
-//                 - ...
+        // pane 'Desktop 1'
+        //   - windows 'AI Dev Gallery Dev'
+        //     - pane 'PopupHost'
+        //       - pane ''
+        //         - title bar 'AI Dev Gallery' (AutomationId="titleBar")
+        //           - group 'SearchBox' (AutomationId="SearchBox")
+        //             - window 'Popup' (AutomationId="SuggestionsPopup")
+        //               - list '' (AutomationId="SuggestionsList") // length needs to be > 0
+        //                 - list item 'Phi 3 Medium'
+        //                 - list item ...
+        //                 - ...
         var suggestionsPopupResult = Retry.WhileNull(
             () => searchBoxGroup.FindFirstDescendant(cf => cf.ByAutomationId("SuggestionsPopup")),
             timeout: TimeSpan.FromSeconds(5));

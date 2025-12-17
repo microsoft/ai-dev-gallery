@@ -79,6 +79,7 @@ public class Measurement
 /// </summary>
 public static class PerformanceCollector
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static readonly List<Measurement> _measurements = new();
     private static readonly object _lock = new();
 
