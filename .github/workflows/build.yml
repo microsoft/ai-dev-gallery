@@ -20,7 +20,7 @@ jobs:
           - os: windows-2025
             dotnet-arch: 'x64'
             dotnet-configuration: 'Release'
-    name: PR Unit Tests - win-${{ matrix.dotnet-arch }}
+    name: Unit Tests - win-${{ matrix.dotnet-arch }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -43,14 +43,18 @@ jobs:
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Unit Tests
       run: |
-        $testAssembly = ".\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.exe"
-        $testAdapterPath = "$HOME\.nuget\packages\mstest.testadapter\3.9.2\buildTransitive\net9.0"
-        
         # Create TestResults directory if it doesn't exist
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
         
         # Run only unit tests (exclude IntegrationTests and UITests)
-        vstest.console.exe $testAssembly /TestCaseFilter:"FullyQualifiedName~UnitTests" /TestAdapterPath:$testAdapterPath /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx"
+        dotnet test AIDevGallery.Tests `
+          --no-build `
+          --configuration ${{ matrix.dotnet-configuration }} `
+          --runtime win-${{ matrix.dotnet-arch }} `
+          --framework net9.0-windows10.0.26100.0 `
+          --filter "FullyQualifiedName~UnitTests" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
+          --verbosity normal
         
         if ($LASTEXITCODE -ne 0) {
           Write-Error "Unit tests failed with exit code $LASTEXITCODE"
@@ -131,7 +135,7 @@ jobs:
           - os: windows-11-arm
             dotnet-arch: 'arm64'
             dotnet-configuration: 'Release'
-    name: Test - win-${{ matrix.dotnet-arch }}
+    name: Regression Tests - win-${{ matrix.dotnet-arch }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -177,7 +181,18 @@ jobs:
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run All Tests
       if: github.event_name == 'workflow_dispatch'
-      run: vstest.console.exe .\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.exe /TestAdapterPath:"$HOME\.nuget\mstest.testadapter\3.9.2\buildTransitive\net9.0" /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx"
+      run: |
+        # Create TestResults directory if it doesn't exist
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        
+        # Run all tests using dotnet test
+        dotnet test AIDevGallery.Tests `
+          --no-build `
+          --configuration ${{ matrix.dotnet-configuration }} `
+          --runtime win-${{ matrix.dotnet-arch }} `
+          --framework net9.0-windows10.0.26100.0 `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\VsTestResults.trx" `
+          --verbosity normal
     - name: Publish Test Builds If Failed
       if: failure()
       uses: actions/upload-artifact@v4
