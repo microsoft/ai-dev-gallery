@@ -3,7 +3,7 @@
 
 using Microsoft.UI.Xaml;
 
-namespace AIDevGallery.UnitTests;
+namespace AIDevGallery.Tests;
 
 internal sealed partial class UnitTestAppWindow : Window
 {
