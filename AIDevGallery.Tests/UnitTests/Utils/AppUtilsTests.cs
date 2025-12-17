@@ -6,7 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
-namespace AIDevGallery.Tests.Unit;
+namespace AIDevGallery.Tests.UnitTests;
 
 [TestClass]
 public class AppUtilsTests
