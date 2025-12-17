@@ -248,7 +248,7 @@ public class MainWindowTests : FlaUITestBase
         //      - pane ''
         //        - title bar 'AI Dev Gallery' (AutomationId="titleBar")
         //          - group '' (AutomationId="SearchBox")
-        //            - edit 'Name  Search samples, models & APIs..'(AutomationId="TextBox")
+        //            - edit 'Name    Search samples, models & APIs..'(AutomationId="TextBox")
         var searchBoxGroupResult = Retry.WhileNull(
             () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("SearchBox")),
             timeout: TimeSpan.FromSeconds(10));

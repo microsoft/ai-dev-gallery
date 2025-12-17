@@ -26,7 +26,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Gets the path to the AIDevGallery executable.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The full path to the AIDevGallery executable.</returns>
     protected virtual string GetApplicationPath()
     {
         var solutionDir = FindSolutionDirectory();
@@ -204,7 +204,8 @@ public abstract class NativeUIA3TestBase
                 throw new InvalidOperationException(
                     $"Could not launch MSIX package: {packageFamilyName}{Environment.NewLine}" +
                     $"Error: {ex.Message}{Environment.NewLine}" +
-                    $"Try launching the app manually from Start Menu to verify it works.", ex);
+                    $"Try launching the app manually from Start Menu to verify it works.",
+                    ex);
             }
         }
         else
@@ -229,7 +230,8 @@ public abstract class NativeUIA3TestBase
                 throw new InvalidOperationException(
                     $"Could not launch unpackaged application. WinUI3 requires MSIX deployment for testing.{Environment.NewLine}" +
                     $"Please run: msbuild AIDevGallery\\AIDevGallery.csproj /t:Deploy /p:Configuration=Debug /p:Platform=x64{Environment.NewLine}" +
-                    $"See MSIX_DEPLOYMENT_REQUIRED.md for details.", ex);
+                    $"See MSIX_DEPLOYMENT_REQUIRED.md for details.",
+                    ex);
             }
         }
 
@@ -418,7 +420,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Waits for an element to appear with the specified automation ID.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The UI automation element if found, null otherwise.</returns>
     protected IUIAutomationElement? WaitForElement(string automationId, TimeSpan timeout)
     {
         if (MainWindow == null || Automation == null)
@@ -452,7 +454,7 @@ public abstract class NativeUIA3TestBase
     /// <summary>
     /// Gets all descendant elements.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Array of all descendant UI automation elements.</returns>
     protected IUIAutomationElement[] GetAllDescendants()
     {
         if (MainWindow == null || Automation == null)

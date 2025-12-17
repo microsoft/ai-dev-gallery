@@ -27,7 +27,7 @@ public abstract class FlaUITestBase
     /// <summary>
     /// Gets the path to the AIDevGallery executable.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The full path to the AIDevGallery executable.</returns>
     protected virtual string GetApplicationPath()
     {
         // Try to find the built application
@@ -224,7 +224,8 @@ public abstract class FlaUITestBase
                 throw new InvalidOperationException(
                     $"Could not launch MSIX package: {packageFamilyName}{Environment.NewLine}" +
                     $"Error: {ex.Message}{Environment.NewLine}" +
-                    $"Try launching the app manually from Start Menu to verify it works.", ex);
+                    $"Try launching the app manually from Start Menu to verify it works.",
+                    ex);
             }
         }
         else
@@ -246,7 +247,8 @@ public abstract class FlaUITestBase
                 throw new InvalidOperationException(
                     $"Could not launch unpackaged application. WinUI3 requires MSIX deployment for testing.{Environment.NewLine}" +
                     $"Please run: msbuild AIDevGallery\\AIDevGallery.csproj /t:Deploy /p:Configuration=Debug /p:Platform=x64{Environment.NewLine}" +
-                    $"See MSIX_DEPLOYMENT_REQUIRED.md for details.", ex);
+                    $"See MSIX_DEPLOYMENT_REQUIRED.md for details.",
+                    ex);
             }
         }
 
@@ -274,7 +276,9 @@ public abstract class FlaUITestBase
             {
                 // Window not ready yet, continue waiting
                 var elapsed = DateTime.Now - startTime;
-                if (elapsed.TotalSeconds % 10 < 1) // Log every ~10 seconds
+
+                // Log every ~10 seconds
+                if (elapsed.TotalSeconds % 10 < 1)
                 {
                     Console.WriteLine($"Still waiting for window... ({elapsed.TotalSeconds:F0}s elapsed)");
                 }
@@ -403,7 +407,7 @@ public abstract class FlaUITestBase
     /// <summary>
     /// Waits for an element to appear with the specified automation ID.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The automation element if found, null otherwise.</returns>
     protected AutomationElement? WaitForElement(string automationId, TimeSpan timeout)
     {
         if (MainWindow == null)

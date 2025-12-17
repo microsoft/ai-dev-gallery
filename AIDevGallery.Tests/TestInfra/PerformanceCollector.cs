@@ -131,8 +131,7 @@ public static class PerformanceCollector
             Measurements = measurementsSnapshot
         };
 
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        var json = JsonSerializer.Serialize(report, options);
+        var json = JsonSerializer.Serialize(report, JsonOptions);
 
         // Allow overriding output directory via environment variable (useful for CI)
         string? envOutputDir = Environment.GetEnvironmentVariable("PERFORMANCE_OUTPUT_PATH");
@@ -208,7 +207,7 @@ public static class PerformanceCollector
     /// <returns>True if successful, false if measurement failed.</returns>
     public static bool TrackCurrentProcessMemory(string metricName, Dictionary<string, string>? tags = null, string category = "Memory")
     {
-        return TrackMemoryUsage(Process.GetCurrentProcess().Id, metricName, tags, category);
+        return TrackMemoryUsage(Environment.ProcessId, metricName, tags, category);
     }
 
     /// <summary>
