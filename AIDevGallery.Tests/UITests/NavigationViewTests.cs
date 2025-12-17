@@ -31,7 +31,7 @@ public class NavigationViewTests : FlaUITestBase
         Thread.Sleep(1000);
 
         // Act - Find the MenuItemsHost to get only top-level navigation items
-        var menuItemsHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
+        var menuItemsHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHosty"));
 
         Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
 
