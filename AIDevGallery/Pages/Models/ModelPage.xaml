@@ -47,8 +47,8 @@
                 AutomationProperties.Name="Open in AI Toolkit"
                 Visibility="Visible">
                 <DropDownButton.Content>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Image Width="16">
+                    <StackPanel Orientation="Horizontal" Spacing="8" AutomationProperties.AccessibilityView="Raw">
+                        <Image Width="16" AutomationProperties.AccessibilityView="Raw">
                             <Image.Source>
                                 <BitmapImage
                                     DecodePixelHeight="16"
@@ -56,7 +56,7 @@
                                     UriSource="ms-appx:///Assets/AITKIcon.png" />
                             </Image.Source>
                         </Image>
-                        <TextBlock Text="Open in AI Toolkit" />
+                        <TextBlock Text="Open in AI Toolkit" AutomationProperties.AccessibilityView="Raw" />
                     </StackPanel>
                 </DropDownButton.Content>
                 <DropDownButton.Flyout>
