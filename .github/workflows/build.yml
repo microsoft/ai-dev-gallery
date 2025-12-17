@@ -47,11 +47,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
         
         # Run only unit tests (exclude IntegrationTests and UITests)
-        dotnet test AIDevGallery.Tests `
-          --no-build `
-          --configuration ${{ matrix.dotnet-configuration }} `
-          --runtime win-${{ matrix.dotnet-arch }} `
-          --framework net9.0-windows10.0.26100.0 `
+        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
           --filter "FullyQualifiedName~UnitTests" `
           --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
           --verbosity normal

@@ -14,13 +14,16 @@ public class AppUtilsTests
     [TestMethod]
     public void FileSizeToStringConvertsCorrectly()
     {
-        Assert.AreEqual("2.0KB", AppUtils.FileSizeToString(1024));
+        Assert.AreEqual("1.0KB", AppUtils.FileSizeToString(1024));
         Assert.AreEqual("1.0MB", AppUtils.FileSizeToString(1024 * 1024));
 
         // Use a tolerance or exact string match if we know the implementation
         // 1.5GB = 1.5 * 1024 * 1024 * 1024 = 1610612736
         Assert.AreEqual("1.5GB", AppUtils.FileSizeToString(1610612736));
         Assert.AreEqual("500 Bytes", AppUtils.FileSizeToString(500));
+
+        // TODO: Remove this intentional failure after verifying CI error detection
+        Assert.Fail("Intentionally failing to test CI error detection");
     }
 
     [TestMethod]
