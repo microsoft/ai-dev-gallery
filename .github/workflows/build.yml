@@ -133,13 +133,6 @@ jobs:
       with:
         name: MSIX-${{ matrix.dotnet-arch }}
         path: ${{ github.workspace }}/AIDevGallery/AppPackages/*_${{ matrix.dotnet-arch }}_Test/AIDevGallery_*_${{ matrix.dotnet-arch }}.msix
-    - name: Upload Build Artifacts for Testing
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-output-${{ matrix.dotnet-arch }}
-        path: |
-          ${{ github.workspace }}/AIDevGallery/bin/${{ matrix.dotnet-arch }}/${{ matrix.dotnet-configuration }}
-          ${{ github.workspace }}/AIDevGallery.Tests/bin/${{ matrix.dotnet-arch }}/${{ matrix.dotnet-configuration }}
 
   accessibility-check:
     needs: build
