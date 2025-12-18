@@ -245,6 +245,6 @@ jobs:
       uses: dorny/test-reporter@v2
       with:
         name: Regression Test Report - ${{ matrix.dotnet-arch }}
-        path: '${{ github.workspace }}\TestResults\*.trx'
+        path: 'TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
