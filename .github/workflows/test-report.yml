@@ -34,6 +34,14 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Download MSIX Artifact (from workflow_run)
+      if: github.event_name == 'workflow_run'
+      uses: actions/download-artifact@v4
+      with:
+        name: MSIX-${{ matrix.dotnet-arch }}
+        path: ./DownloadedMSIX
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download Build Artifacts
       if: github.event_name == 'workflow_run'
       uses: actions/download-artifact@v4
@@ -49,6 +57,70 @@ jobs:
         Copy-Item -Path "downloaded-artifacts\AIDevGallery\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}" -Destination "${{ github.workspace }}\AIDevGallery\bin\${{ matrix.dotnet-arch }}\" -Recurse -Force
         # Copy Tests build output
         Copy-Item -Path "downloaded-artifacts\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}" -Destination "${{ github.workspace }}\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\" -Recurse -Force
+    - name: Deploy MSIX Package
+      shell: powershell
+      run: |
+        $ErrorActionPreference = "Stop"
+        
+        # Find MSIX - either from downloaded artifact or local build
+        if ("${{ github.event_name }}" -eq "workflow_run") {
+            $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
+            Write-Host "Looking for MSIX in downloaded artifacts: $downloadPath"
+            $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        } else {
+            $appPackagesPath = Join-Path "${{ github.workspace }}" "AIDevGallery\AppPackages"
+            Write-Host "Looking for MSIX in local build: $appPackagesPath"
+            $msixFile = Get-ChildItem -Path $appPackagesPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        }
+        
+        if (-not $msixFile) { 
+            Write-Error "MSIX file not found"
+            exit 1 
+        }
+        
+        Write-Host "Using MSIX file: $($msixFile.FullName)"
+        
+        # Cleanup previous install
+        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+        
+        # Ensure makeappx.exe is available
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
+            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
+            if (Test-Path $kitsRoot) {
+                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
+                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
+                             Sort-Object Name -Descending | 
+                             Select-Object -First 1
+                
+                if ($latestSdk) {
+                    $sdkPath = Join-Path $latestSdk.FullName "x64"
+                    if (Test-Path $sdkPath) {
+                        Write-Host "Found SDK at $sdkPath"
+                        $env:Path = "$sdkPath;$env:Path"
+                    }
+                }
+            }
+        }
+        
+        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
+            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
+            exit 1
+        }
+        
+        # Unpack MSIX
+        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
+        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
+        Write-Host "Unpacking MSIX to $unpackedDir..."
+        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
+        
+        # Register Manifest
+        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
+        Write-Host "Registering AppxManifest.xml from $manifestPath..."
+        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
+        
+        Write-Host "MSIX package deployed successfully"
     - name: Setup .NET
       if: github.event_name != 'workflow_run'
       uses: actions/setup-dotnet@v4
