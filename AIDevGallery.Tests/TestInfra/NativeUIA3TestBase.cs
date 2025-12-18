@@ -18,11 +18,6 @@ namespace AIDevGallery.Tests.TestInfra;
 /// </summary>
 public abstract class NativeUIA3TestBase
 {
-    /// <summary>
-    /// The MSIX package identity name GUID from Package.appxmanifest.
-    /// This is the unique identifier used to locate the installed MSIX package.
-    /// </summary>
-    private const string MsixPackageIdentityName = "e7af07c0-77d2-43e5-ab82-9cdb9daa11b3";
 
     protected Process? AppProcess { get; private set; }
     protected CUIAutomation? Automation { get; private set; }
@@ -96,7 +91,7 @@ public abstract class NativeUIA3TestBase
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"-NoProfile -Command \"Get-AppxPackage | Where-Object {{$_.Name -like '*{MsixPackageIdentityName}*'}} | Select-Object -First 1 -ExpandProperty PackageFamilyName\"",
+                Arguments = $"-NoProfile -Command \"Get-AppxPackage | Where-Object {{$_.Name -like '*{TestConfiguration.MsixPackageIdentityName}*'}} | Select-Object -First 1 -ExpandProperty PackageFamilyName\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
