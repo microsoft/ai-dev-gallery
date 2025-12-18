@@ -60,7 +60,7 @@ jobs:
           /p:Configuration=${{ matrix.dotnet-configuration }} `
           /p:Platform=${{ matrix.dotnet-arch }} `
           --filter "FullyQualifiedName~UnitTests" `
-          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
+          --logger "trx;LogFileName=UnitTestResults.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
           --results-directory TestResults `
@@ -81,15 +81,6 @@ jobs:
         path: 'TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
-    
-    - name: Code Coverage Summary
-      if: always()
-      uses: irongut/CodeCoverageSummary@v1.3.0
-      with:
-        filename: '**/coverage.opencover.xml'
-        badge: true
-        format: markdown
-        output: both
 
   build:
     strategy:
