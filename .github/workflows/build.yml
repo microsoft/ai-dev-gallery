@@ -53,39 +53,19 @@ jobs:
     - name: Run Unit Tests
       shell: pwsh
       run: |
-        Write-Host "Current directory: $(Get-Location)"
-        $resultsDir = Join-Path (Get-Location) "TestResults"
-        Write-Host "Results directory will be: $resultsDir"
-        
-        dotnet test AIDevGallery.Tests `
-          --no-build `
-          -r win-${{ matrix.dotnet-arch }} `
-          -f net9.0-windows10.0.26100.0 `
-          /p:Configuration=${{ matrix.dotnet-configuration }} `
-          /p:Platform=${{ matrix.dotnet-arch }} `
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
           --filter "FullyQualifiedName~UnitTests" `
-          --logger "trx;LogFileName=UnitTestResults.trx" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
-          --results-directory "$resultsDir" `
+          --results-directory "${{ github.workspace }}\TestResults" `
+          --verbosity normal `
           -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         
-        Write-Host "Test command exit code: $LASTEXITCODE"
-    - name: List Test Results
-      if: always()
-      shell: pwsh
-      run: |
-        Write-Host "Current directory: $(Get-Location)"
-        Write-Host "Listing all files and directories:"
-        Get-ChildItem -Path . -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found TRX: $($_.FullName)" }
-        
-        $resultsDir = Join-Path (Get-Location) "TestResults"
-        Write-Host "Checking for TestResults at: $resultsDir"
-        if (Test-Path $resultsDir) {
-          Write-Host "TestResults directory contents:"
-          Get-ChildItem -Path $resultsDir -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
-        } else {
-          Write-Host "TestResults directory does not exist at expected location!"
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Unit tests failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
         }
     - name: Publish Test Results
       if: failure()
@@ -100,7 +80,7 @@ jobs:
       uses: dorny/test-reporter@v2
       with:
         name: Unit Test Report - ${{ matrix.dotnet-arch }}
-        path: '**/TestResults/*.trx'
+        path: 'TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
 
