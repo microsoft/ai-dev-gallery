@@ -2,15 +2,18 @@ name: Regression Tests
 
 on:
   workflow_dispatch:
-  #workflow_run:
-  #  workflows: ["CI"]
-  #  types:
-  #    - completed
+  # TODO: Enable workflow_run trigger after validating the workflow works reliably
+  # This would allow automatic testing after successful CI builds
+  # workflow_run:
+  #   workflows: ["CI"]
+  #   types:
+  #     - completed
 
 jobs:
   regression-tests:
-    # Only run if workflow_run was successful, or if manually triggered or on PR
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    # Currently only supports manual triggering via workflow_dispatch
+    # When workflow_run is enabled, add condition: github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -103,112 +106,22 @@ jobs:
     - name: Deploy MSIX Package
       shell: powershell
       run: |
-        $ErrorActionPreference = "Stop"
-        
-        # Find MSIX - either from downloaded artifact or local build
+        # Determine MSIX search path based on event type
         if ("${{ github.event_name }}" -eq "workflow_run") {
-            $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
-            Write-Host "Looking for MSIX in downloaded artifacts: $downloadPath"
-            $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $msixSearchPath = Join-Path (Get-Location) "DownloadedMSIX"
         } else {
-            $appPackagesPath = Join-Path "${{ github.workspace }}" "AIDevGallery\AppPackages"
-            Write-Host "Looking for MSIX in local build: $appPackagesPath"
-            $msixFile = Get-ChildItem -Path $appPackagesPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $msixSearchPath = Join-Path "${{ github.workspace }}" "AIDevGallery\AppPackages"
         }
         
-        if (-not $msixFile) { 
-            Write-Error "MSIX file not found"
-            exit 1 
+        # Call the deployment script
+        & "${{ github.workspace }}\.github\scripts\deploy-msix.ps1" `
+          -MsixSearchPath $msixSearchPath `
+          -IsWorkflowRun $("${{ github.event_name }}" -eq "workflow_run")
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "MSIX deployment failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
         }
-        
-        Write-Host "Using MSIX file: $($msixFile.FullName)"
-        
-        # Cleanup previous install
-        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        
-        # Ensure makeappx.exe is available
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
-            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
-            if (Test-Path $kitsRoot) {
-                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
-                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
-                             Sort-Object Name -Descending | 
-                             Select-Object -First 1
-                
-                if ($latestSdk) {
-                    $sdkPath = Join-Path $latestSdk.FullName "x64"
-                    if (Test-Path $sdkPath) {
-                        Write-Host "Found SDK at $sdkPath"
-                        $env:Path = "$sdkPath;$env:Path"
-                    }
-                }
-            }
-        }
-        
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
-            exit 1
-        }
-        
-        # Unpack MSIX
-        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
-        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
-        Write-Host "Unpacking MSIX to $unpackedDir..."
-        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
-        
-        # Register Manifest
-        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
-        Write-Host "Registering AppxManifest.xml from $manifestPath..."
-        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
-        
-        Write-Host "MSIX package deployed successfully"
-    - name: Setup .NET
-      if: github.event_name != 'workflow_run'
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-    - name: Add msbuild to PATH
-      if: github.event_name != 'workflow_run'
-      uses: microsoft/setup-msbuild@v2
-    - name: Install NBGV tool
-      if: github.event_name != 'workflow_run'
-      run: dotnet tool install --tool-path . nbgv
-    - name: Set Version
-      if: github.event_name != 'workflow_run'
-      run: ./nbgv cloud -c
-    - name: Update Package Manifest Version
-      if: github.event_name != 'workflow_run'
-      run: |
-        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
-        [xml]$manifest = get-content $manifestPath
-        $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
-        $manifest.Save($manifestPath)
-    - name: Set LAF build props
-      if: github.event_name != 'workflow_run'
-      shell: pwsh
-      run: |
-        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_TOKEN }}")) {
-          echo "LAF_TOKEN=${{ secrets.LAF_TOKEN }}" >> $env:GITHUB_ENV
-        }
-        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
-          echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
-        }
-    - name: Restore dependencies
-      if: github.event_name != 'workflow_run'
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
-    - name: Build
-      if: github.event_name != 'workflow_run'
-      run: |
-        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
-    - name: Setup Dev Tools
-      if: github.event_name != 'workflow_run'
-      uses: ilammy/msvc-dev-cmd@v1
-    - name: Build Test Suite
-      if: github.event_name != 'workflow_run'
-      run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run All Tests
       run: |
         # Create TestResults directory if it doesn't exist

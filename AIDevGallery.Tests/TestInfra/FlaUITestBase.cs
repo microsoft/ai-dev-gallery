@@ -19,6 +19,12 @@ namespace AIDevGallery.Tests.TestInfra;
 /// </summary>
 public abstract class FlaUITestBase
 {
+    /// <summary>
+    /// The MSIX package identity name GUID from Package.appxmanifest.
+    /// This is the unique identifier used to locate the installed MSIX package.
+    /// </summary>
+    private const string MsixPackageIdentityName = "e7af07c0-77d2-43e5-ab82-9cdb9daa11b3";
+
     protected Application? App { get; private set; }
     protected UIA3Automation? Automation { get; private set; }
     protected Window? MainWindow { get; private set; }
@@ -101,7 +107,7 @@ public abstract class FlaUITestBase
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = "-NoProfile -Command \"Get-AppxPackage | Where-Object {$_.Name -like '*e7af07c0-77d2-43e5-ab82-9cdb9daa11b3*'} | Select-Object -First 1 -ExpandProperty PackageFamilyName\"",
+                Arguments = $"-NoProfile -Command \"Get-AppxPackage | Where-Object {{$_.Name -like '*{MsixPackageIdentityName}*'}} | Select-Object -First 1 -ExpandProperty PackageFamilyName\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -217,6 +223,22 @@ public abstract class FlaUITestBase
                 Console.WriteLine($"Found application process with PID: {appProcess.Id}");
                 App = Application.Attach(appProcess.Id);
                 Console.WriteLine($"Attached to application with PID: {App.ProcessId}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new InvalidOperationException(
+                    $"Access denied when launching MSIX package: {packageFamilyName}{Environment.NewLine}" +
+                    $"Error: {ex.Message}{Environment.NewLine}" +
+                    $"Try running Visual Studio or the test runner as Administrator.",
+                    ex);
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to launch MSIX package via PowerShell: {packageFamilyName}{Environment.NewLine}" +
+                    $"Error: {ex.Message}{Environment.NewLine}" +
+                    $"Ensure PowerShell is available and the package is properly installed.",
+                    ex);
             }
             catch (Exception ex)
             {
