@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [ "main" ]
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
 
 jobs:
   regression-tests:
+    # Only run if workflow_run was successful, or if manually triggered or on PR
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -23,27 +29,49 @@ jobs:
     permissions:
       contents: read
       checks: write
+      actions: read
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Download Build Artifacts
+      if: github.event_name == 'workflow_run'
+      uses: actions/download-artifact@v4
+      with:
+        name: build-output-${{ matrix.dotnet-arch }}
+        path: downloaded-artifacts
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Copy Downloaded Artifacts to Workspace
+      if: github.event_name == 'workflow_run'
+      run: |
+        # Copy AIDevGallery build output
+        Copy-Item -Path "downloaded-artifacts\AIDevGallery\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}" -Destination "${{ github.workspace }}\AIDevGallery\bin\${{ matrix.dotnet-arch }}\" -Recurse -Force
+        # Copy Tests build output
+        Copy-Item -Path "downloaded-artifacts\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}" -Destination "${{ github.workspace }}\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\" -Recurse -Force
     - name: Setup .NET
+      if: github.event_name != 'workflow_run'
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
+      if: github.event_name != 'workflow_run'
       uses: microsoft/setup-msbuild@v2
     - name: Install NBGV tool
+      if: github.event_name != 'workflow_run'
       run: dotnet tool install --tool-path . nbgv
     - name: Set Version
+      if: github.event_name != 'workflow_run'
       run: ./nbgv cloud -c
     - name: Update Package Manifest Version
+      if: github.event_name != 'workflow_run'
       run: |
         $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
         [xml]$manifest = get-content $manifestPath
         $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
         $manifest.Save($manifestPath)
     - name: Set LAF build props
+      if: github.event_name != 'workflow_run'
       shell: pwsh
       run: |
         if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_TOKEN }}")) {
@@ -53,14 +81,18 @@ jobs:
           echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
         }
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+      if: github.event_name != 'workflow_run'
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
     - name: Build
+      if: github.event_name != 'workflow_run'
       run: |
         dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
-        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Setup Dev Tools
+      if: github.event_name != 'workflow_run'
       uses: ilammy/msvc-dev-cmd@v1
     - name: Build Test Suite
+      if: github.event_name != 'workflow_run'
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run All Tests
       run: |
