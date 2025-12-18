@@ -53,6 +53,10 @@ jobs:
     - name: Run Unit Tests
       shell: pwsh
       run: |
+        Write-Host "Current directory: $(Get-Location)"
+        $resultsDir = Join-Path (Get-Location) "TestResults"
+        Write-Host "Results directory will be: $resultsDir"
+        
         dotnet test AIDevGallery.Tests `
           --no-build `
           -r win-${{ matrix.dotnet-arch }} `
@@ -63,17 +67,25 @@ jobs:
           --logger "trx;LogFileName=UnitTestResults.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
-          --results-directory TestResults `
+          --results-directory "$resultsDir" `
           -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        
+        Write-Host "Test command exit code: $LASTEXITCODE"
     - name: List Test Results
       if: always()
       shell: pwsh
       run: |
-        Write-Host "Listing all files in TestResults directory:"
-        if (Test-Path TestResults) {
-          Get-ChildItem -Path TestResults -Recurse | ForEach-Object { Write-Host $_.FullName }
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "Listing all files and directories:"
+        Get-ChildItem -Path . -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found TRX: $($_.FullName)" }
+        
+        $resultsDir = Join-Path (Get-Location) "TestResults"
+        Write-Host "Checking for TestResults at: $resultsDir"
+        if (Test-Path $resultsDir) {
+          Write-Host "TestResults directory contents:"
+          Get-ChildItem -Path $resultsDir -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
         } else {
-          Write-Host "TestResults directory does not exist!"
+          Write-Host "TestResults directory does not exist at expected location!"
         }
     - name: Publish Test Results
       if: failure()
