@@ -373,8 +373,7 @@ jobs:
                 New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
                 
                 Write-Host "Scanning..."
-                $configPath = Join-Path ${{ github.workspace }} "axe-config.json"
-                & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default --customuia $configPath
+                & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
             }
         }
         
