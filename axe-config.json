@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "exclude": [
+      "MarkdownTextBlock",
+      "ProgressRing"
+    ]
+  },
+  "scanResults": {
+    "level": "error"
+  }
+}
