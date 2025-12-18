@@ -33,7 +33,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     Name = "Restyle image with SDXL",
     Model1Types = [ModelType.RestyleImage],
     Id = "a335a19a-2f78-4f68-b5e9-982e7da13b72",
-    Scenario = ScenarioType.ImageGenerateImage,
+    Scenario = ScenarioType.ImageRestyleImage,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
     ],
