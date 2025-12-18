@@ -76,6 +76,7 @@ internal sealed partial class WcrModelDownloader : UserControl
             case WcrApiDownloadState.Error:
                 VisualStateManager.GoToState(this, "Error", true);
                 this.Visibility = Visibility.Visible;
+
                 // TODO: Remove after SDXL is released to retail
                 WindowsInsiderErrorText.Visibility = (modelTypeHint != null && WcrApiHelpers.IsImageGeneratorBacked(modelTypeHint.Value))
                     ? Visibility.Visible
