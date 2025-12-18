@@ -119,7 +119,8 @@
                             </StackPanel>
                         </HyperlinkButton>
                     </controls:Card.TitleContent>
-                    <Grid>
+                    <Grid
+                        AutomationProperties.AccessibilityView="Raw">
                         <ScrollViewer
                             IsTabStop="False"
                             VerticalAlignment="Stretch"
