@@ -1,0 +1,101 @@
+name: Regression Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  regression-tests:
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+            dotnet-configuration: 'Release'
+          - os: windows-11-arm
+            dotnet-arch: 'arm64'
+            dotnet-configuration: 'Release'
+    name: Regression Tests - win-${{ matrix.dotnet-arch }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      checks: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Install NBGV tool
+      run: dotnet tool install --tool-path . nbgv
+    - name: Set Version
+      run: ./nbgv cloud -c
+    - name: Update Package Manifest Version
+      run: |
+        $manifestPath = "${{ github.workspace }}\AIDevGallery\Package.appxmanifest"
+        [xml]$manifest = get-content $manifestPath
+        $manifest.Package.Identity.Version = '${{ env.GitBuildVersionSimple }}.0'
+        $manifest.Save($manifestPath)
+    - name: Set LAF build props
+      shell: pwsh
+      run: |
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_TOKEN }}")) {
+          echo "LAF_TOKEN=${{ secrets.LAF_TOKEN }}" >> $env:GITHUB_ENV
+        }
+        if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
+          echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
+        }
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true
+    - name: Build
+      run: |
+        dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
+        dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
+    - name: Setup Dev Tools
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: Build Test Suite
+      run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Run All Tests
+      run: |
+        # Create TestResults directory if it doesn't exist
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        
+        # Run all tests (unit, integration, and UI tests)
+        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\RegressionTests.trx" `
+          --logger "console;verbosity=detailed" `
+          --verbosity normal
+        
+        # Check test results
+        if ($LASTEXITCODE -ne 0) {
+          Write-Warning "Tests failed with exit code $LASTEXITCODE. Artifacts will be uploaded for debugging."
+        }
+    - name: Publish Test Builds If Failed
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-builds-${{ matrix.dotnet-arch }}
+        path: |
+            .\AIDevGallery\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+            .\AIDevGallery\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+            .\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+            .\AIDevGallery.Tests\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
+    - name: Publish Test Results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: regression-test-results-${{ matrix.dotnet-arch }}
+        path: TestResults
+    - name: Display Test Report
+      if: ${{ !cancelled() }}
+      uses: dorny/test-reporter@v2
+      with:
+        name: Regression Test Report - ${{ matrix.dotnet-arch }}
+        path: '${{ github.workspace }}\TestResults\*.trx'
+        reporter: dotnet-trx
+        fail-on-error: false
