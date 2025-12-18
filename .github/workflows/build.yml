@@ -65,6 +65,16 @@ jobs:
           --collect:"XPlat Code Coverage" `
           --results-directory TestResults `
           -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+    - name: List Test Results
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "Listing all files in TestResults directory:"
+        if (Test-Path TestResults) {
+          Get-ChildItem -Path TestResults -Recurse | ForEach-Object { Write-Host $_.FullName }
+        } else {
+          Write-Host "TestResults directory does not exist!"
+        }
     - name: Publish Test Results
       if: failure()
       uses: actions/upload-artifact@v4
@@ -78,7 +88,7 @@ jobs:
       uses: dorny/test-reporter@v2
       with:
         name: Unit Test Report - ${{ matrix.dotnet-arch }}
-        path: 'TestResults/*.trx'
+        path: '**/TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
 
