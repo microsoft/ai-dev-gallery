@@ -1,0 +1,27 @@
+<Project>
+  <!-- Exclude duplicate resources.pri to avoid APPX1101 error when EnableMsixTooling is true.
+       The test project will use the resources.pri from the main AIDevGallery project. -->
+  
+  <!-- Inject into the middle of _ComputeAppxPackagePayload by replacing WinAppSdkRemovePayloadDuplicates -->
+  <Target Name="WinAppSdkRemovePayloadDuplicates">
+    <Message Importance="High" Text="=============== CUSTOM WinAppSdkRemovePayloadDuplicates ===============" />
+    <Message Importance="High" Text="Before cleanup: @(AppxPackagePayload-&gt;Count()) items in payload" />
+    
+    <ItemGroup>
+      <!-- Remove resources.pri from referenced AIDevGallery project -->
+      <AppxPackagePayload Remove="@(AppxPackagePayload)" 
+                         Condition="'%(FileName)%(Extension)' == 'resources.pri' and $([System.String]::Copy('%(FullPath)').Contains('AIDevGallery\bin'))" />
+      
+      <!-- Remove duplicates from obj folder -->
+      <AppxPackagePayload Remove="@(AppxPackagePayload)" 
+                         Condition="$([System.String]::Copy('%(FullPath)').Contains('\obj\'))" />
+    </ItemGroup>
+    
+    <Message Importance="High" Text="After cleanup: @(AppxPackagePayload-&gt;Count()) items in payload" />
+    <Message Importance="High" Text="=============== END CUSTOM CLEANUP ===============" />
+  </Target>
+  
+  <Target Name="GetPriOutputs" Returns="@(_PriFile)">
+    <!-- Return empty to prevent including PRI from referenced projects -->
+  </Target>
+</Project>
