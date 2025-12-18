@@ -13,7 +13,7 @@ on:
 jobs:
   pr-unit-test:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')
-    timeout-minutes: 10
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -41,9 +41,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
         restore-keys: |
-          ${{ runner.os }}-nuget-
+          ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Build AIDevGallery.Utils
@@ -51,24 +51,28 @@ jobs:
     - name: Build Test Project
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Unit Tests
+      shell: pwsh
       run: |
-        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
-        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
+        dotnet test AIDevGallery.Tests `
+          --no-build `
+          -r win-${{ matrix.dotnet-arch }} `
+          -f net9.0-windows10.0.26100.0 `
+          /p:Configuration=${{ matrix.dotnet-configuration }} `
+          /p:Platform=${{ matrix.dotnet-arch }} `
           --filter "FullyQualifiedName~UnitTests" `
           --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
           --logger "console;verbosity=detailed" `
-          --verbosity normal
-        
-        if ($LASTEXITCODE -ne 0) {
-          Write-Error "Unit tests failed with exit code $LASTEXITCODE"
-          exit $LASTEXITCODE
-        }
+          --collect:"XPlat Code Coverage" `
+          --results-directory TestResults `
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
     - name: Publish Test Results
-      if: always()
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: pr-unit-test-results-${{ matrix.dotnet-arch }}
-        path: TestResults
+        path: |
+          TestResults
+          **/coverage.opencover.xml
     - name: Display Test Report
       if: always()
       uses: dorny/test-reporter@v2
@@ -77,6 +81,15 @@ jobs:
         path: 'TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
+    
+    - name: Code Coverage Summary
+      if: always()
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: '**/coverage.opencover.xml'
+        badge: true
+        format: markdown
+        output: both
 
   build:
     strategy:
