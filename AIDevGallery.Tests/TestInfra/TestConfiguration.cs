@@ -13,3 +13,4 @@ public static class TestConfiguration
     /// </summary>
     public const string MsixPackageIdentityName = "e7af07c0-77d2-43e5-ab82-9cdb9daa11b3";
 }
+
