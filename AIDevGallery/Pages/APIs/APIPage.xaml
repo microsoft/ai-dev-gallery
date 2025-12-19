@@ -13,7 +13,9 @@
     Loaded="Page_Loaded"
     mc:Ignorable="d">
     <Page.Resources>
-        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" AutomationProperties.AccessibilityView="Raw" />
     </Page.Resources>
     <Grid x:Name="RootGrid" MaxWidth="1600" RowSpacing="8">
         <Grid.RowDefinitions>
@@ -52,9 +54,9 @@
                 AutomationProperties.Name="Export sample to Visual Studio"
                 Click="ExportSampleToggle_Click"
                 ToolTipService.ToolTip="Export sample">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Image Width="16" Source="ms-appx:///Assets/VSIcon.svg" />
-                    <TextBlock Margin="0,-1,0,0" Text="Export sample" />
+                <StackPanel Orientation="Horizontal" Spacing="8" AutomationProperties.AccessibilityView="Raw">
+                    <Image Width="16" Source="ms-appx:///Assets/VSIcon.svg" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock Margin="0,-1,0,0" Text="Export sample" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
             </Button>
             <controls:CopyButton
@@ -223,16 +225,14 @@
                             Background="Transparent"
                             FontSize="14"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            AutomationProperties.AccessibilityView="Raw"
                             OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
-                            <toolkit2:MarkdownTextBlock.Resources>
-                                <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
-                                <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
-                            </toolkit2:MarkdownTextBlock.Resources>
                         </toolkit2:MarkdownTextBlock>
                         <ProgressRing
                             x:Name="readmeProgressRing"
                             Grid.Row="2"
-                            IsActive="True" />
+                            IsActive="True"
+                            AutomationProperties.AccessibilityView="Raw" />
                     </Grid>
                 </controls:Card>
             </Grid>

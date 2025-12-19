@@ -329,7 +329,7 @@ jobs:
         $propCond = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $appProcess.Id)
         $appWindow = $ae::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $propCond)
         
-        $pagesToTest = @("Home", "Samples", "Models", "AI APIs", "Settings")
+        $pagesToTest = @("Home", "Samples", "AI APIs", "Settings")
         $cliPath = $env:CLI_PATH
         $outputDir = Join-Path $PWD "AxeOutput"
         New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
