@@ -23,6 +23,13 @@ internal static class WcrApiHelpers
         ModelType.TextRewriter,
         ModelType.TextToTableConverter
     };
+
+    private static readonly HashSet<ModelType> ImageGeneratorBacked = new()
+    {
+        ModelType.SDXL,
+        ModelType.RestyleImage,
+        ModelType.ColoringBook
+    };
     private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
@@ -165,9 +172,19 @@ internal static class WcrApiHelpers
                     return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
                 }
 
+                if (IsImageGeneratorBacked(type))
+                {
+                    return "Not supported on this system. This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";
+                }
+
                 return "Not supported on this system.";
             default:
                 return string.Empty;
         }
+    }
+
+    public static bool IsImageGeneratorBacked(ModelType type)
+    {
+        return ImageGeneratorBacked.Contains(type);
     }
 }
