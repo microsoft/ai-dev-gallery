@@ -76,6 +76,11 @@ internal sealed partial class WcrModelDownloader : UserControl
             case WcrApiDownloadState.Error:
                 VisualStateManager.GoToState(this, "Error", true);
                 this.Visibility = Visibility.Visible;
+
+                // TODO: Remove after SDXL is released to retail
+                WindowsInsiderErrorText.Visibility = (modelTypeHint != null && WcrApiHelpers.IsImageGeneratorBacked(modelTypeHint.Value))
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
                 break;
             default:
                 break;
@@ -155,6 +160,11 @@ internal sealed partial class WcrModelDownloader : UserControl
         WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
         this.modelTypeHint = modelType;
         this.sampleId = sampleId;
+
+        // TODO: Remove after SDXL is released to retail
+        WindowsInsiderInfoText.Visibility = WcrApiHelpers.IsImageGeneratorBacked(modelType)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
         {
