@@ -81,11 +81,11 @@ public class Measurement
 public static class PerformanceCollector
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-    
+
     // Use AsyncLocal to isolate measurements per test execution context
     // This prevents data mixing when multiple tests run in parallel
     private static readonly AsyncLocal<List<Measurement>> _measurements = new();
-    
+
     private static readonly object _lock = new();
 
     private static List<Measurement> GetMeasurements()
@@ -94,6 +94,7 @@ public static class PerformanceCollector
         {
             _measurements.Value = new List<Measurement>();
         }
+
         return _measurements.Value;
     }
 
