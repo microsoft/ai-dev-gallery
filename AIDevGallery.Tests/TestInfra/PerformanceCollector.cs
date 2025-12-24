@@ -162,6 +162,8 @@ public static class PerformanceCollector
         File.WriteAllText(filePath, json);
         Console.WriteLine($"Performance metrics saved to: {filePath}");
 
+        Clear();
+
         return filePath;
     }
 
