@@ -57,11 +57,11 @@ public class NavigationViewTests : FlaUITestBase
             {
                 item.Click();
 
-                Retry.While(
+                // Wait for window to become responsive after click
+                Retry.WhileTrue(
                     () => !MainWindow.IsAvailable || MainWindow.IsOffscreen,
                     timeout: TimeSpan.FromSeconds(5),
-                    throwOnTimeout: false,
-                    timeoutMessage: "Window did not become responsive");
+                    throwOnTimeout: false);
 
                 var screenshotName = $"NavigationView_Item_{item.Name?.Replace(" ", "_") ?? "Unknown"}";
                 TakeScreenshot(screenshotName);
