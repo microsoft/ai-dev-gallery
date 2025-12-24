@@ -219,70 +219,14 @@ jobs:
             Write-Error "Failed to download or setup Axe.Windows CLI: $_"
             exit 1
         }
-    - name: Install and Run Accessibility Check
+    - name: Deploy MSIX Package
+      shell: pwsh
+      run: |
+        .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
+    - name: Launch App and Run Accessibility Tests
       shell: powershell
       run: |
         $ErrorActionPreference = "Stop"
-        
-        # Find MSIX from downloaded artifact (search recursively)
-        $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
-        Write-Host "Looking for MSIX in: $downloadPath"
-        
-        $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $msixFile) { 
-            Write-Error "MSIX file not found in $downloadPath (recursive search)"
-            exit 1 
-        }
-        
-        Write-Host "Using MSIX file: $($msixFile.FullName)"
-        
-        # Cleanup previous install
-        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        
-        # Ensure makeappx.exe is available
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
-            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
-            if (Test-Path $kitsRoot) {
-                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
-                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
-                             Sort-Object Name -Descending | 
-                             Select-Object -First 1
-                
-                if ($latestSdk) {
-                    $sdkPath = Join-Path $latestSdk.FullName "x64"
-                    if (Test-Path $sdkPath) {
-                        Write-Host "Found SDK at $sdkPath"
-                        $env:Path = "$sdkPath;$env:Path"
-                    }
-                }
-                
-                if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-                     $genericSdkPath = Join-Path $kitsRoot "x64"
-                     if (Test-Path $genericSdkPath) {
-                        Write-Host "Found generic SDK at $genericSdkPath"
-                        $env:Path = "$genericSdkPath;$env:Path"
-                     }
-                }
-            }
-        }
-        
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
-            exit 1
-        }
-        
-        # Unpack MSIX
-        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
-        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
-        Write-Host "Unpacking MSIX to $unpackedDir..."
-        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
-        
-        # Register Manifest
-        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
-        Write-Host "Registering AppxManifest.xml from $manifestPath..."
-        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
         
         # Launch App
         $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
