@@ -41,7 +41,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
     - name: Restore dependencies
