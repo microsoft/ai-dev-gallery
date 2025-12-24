@@ -2,7 +2,6 @@ name: Regression Tests
 
 on:
   workflow_dispatch:
-  # TODO: Enable workflow_run trigger after validating the workflow works reliably
   # This would allow automatic testing after successful CI builds
   # workflow_run:
   #   workflows: ["CI"]
