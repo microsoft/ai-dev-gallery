@@ -7,6 +7,7 @@ using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace AIDevGallery.Tests.UITests;
 
@@ -55,7 +56,12 @@ public class NavigationViewTests : FlaUITestBase
             try
             {
                 item.Click();
-                Wait.UntilResponsive(MainWindow, TimeSpan.FromSeconds(5));
+
+                Retry.While(
+                    () => !MainWindow.IsAvailable || MainWindow.IsOffscreen,
+                    timeout: TimeSpan.FromSeconds(5),
+                    throwOnTimeout: false,
+                    timeoutMessage: "Window did not become responsive");
 
                 var screenshotName = $"NavigationView_Item_{item.Name?.Replace(" ", "_") ?? "Unknown"}";
                 TakeScreenshot(screenshotName);
