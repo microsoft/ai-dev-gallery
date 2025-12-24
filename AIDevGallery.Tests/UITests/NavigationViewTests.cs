@@ -28,10 +28,11 @@ public class NavigationViewTests : FlaUITestBase
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
         Console.WriteLine("Starting test: Click all navigation items");
 
-        Thread.Sleep(1000);
-
         // Act - Find the MenuItemsHost to get only top-level navigation items
-        var menuItemsHost = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost"));
+        var menuItemsHostResult = Retry.WhileNull(
+            () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
+            timeout: TimeSpan.FromSeconds(10));
+        var menuItemsHost = menuItemsHostResult.Result;
 
         Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
 
@@ -54,7 +55,12 @@ public class NavigationViewTests : FlaUITestBase
             try
             {
                 item.Click();
-                Thread.Sleep(1000);
+                
+                // Wait for navigation to complete (UI to stabilize)
+                Retry.WhileTrue(
+                    () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")) == null,
+                    timeout: TimeSpan.FromSeconds(5),
+                    throwOnTimeout: false);
 
                 var screenshotName = $"NavigationView_Item_{item.Name?.Replace(" ", "_") ?? "Unknown"}";
                 TakeScreenshot(screenshotName);
