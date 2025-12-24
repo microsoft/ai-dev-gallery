@@ -3,10 +3,10 @@
 
 using AIDevGallery.Tests.TestInfra;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace AIDevGallery.Tests.UITests;
 
@@ -55,12 +55,7 @@ public class NavigationViewTests : FlaUITestBase
             try
             {
                 item.Click();
-                
-                // Wait for navigation to complete (UI to stabilize)
-                Retry.WhileTrue(
-                    () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")) == null,
-                    timeout: TimeSpan.FromSeconds(5),
-                    throwOnTimeout: false);
+                Wait.UntilResponsive(MainWindow, TimeSpan.FromSeconds(5));
 
                 var screenshotName = $"NavigationView_Item_{item.Name?.Replace(" ", "_") ?? "Unknown"}";
                 TakeScreenshot(screenshotName);
