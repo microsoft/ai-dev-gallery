@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 
 namespace AIDevGallery.Tests.TestInfra;
 
@@ -80,14 +81,28 @@ public class Measurement
 public static class PerformanceCollector
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-    private static readonly List<Measurement> _measurements = new();
+    
+    // Use AsyncLocal to isolate measurements per test execution context
+    // This prevents data mixing when multiple tests run in parallel
+    private static readonly AsyncLocal<List<Measurement>> _measurements = new();
+    
     private static readonly object _lock = new();
+
+    private static List<Measurement> GetMeasurements()
+    {
+        if (_measurements.Value == null)
+        {
+            _measurements.Value = new List<Measurement>();
+        }
+        return _measurements.Value;
+    }
 
     public static void Track(string name, double value, string unit, Dictionary<string, string>? tags = null, string category = "General")
     {
         lock (_lock)
         {
-            _measurements.Add(new Measurement
+            var measurements = GetMeasurements();
+            measurements.Add(new Measurement
             {
                 Category = category,
                 Name = name,
@@ -103,14 +118,14 @@ public static class PerformanceCollector
         List<Measurement> measurementsSnapshot;
         lock (_lock)
         {
-            measurementsSnapshot = new List<Measurement>(_measurements);
+            var measurements = GetMeasurements();
+            measurementsSnapshot = new List<Measurement>(measurements);
         }
 
         var report = new PerformanceReport
         {
             Meta = new Metadata
             {
-                // Support both GitHub Actions and Azure Pipelines variables
                 RunId = Environment.GetEnvironmentVariable("GITHUB_RUN_ID") ?? Environment.GetEnvironmentVariable("BUILD_BUILDID") ?? "local-run",
                 CommitHash = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEVERSION") ?? "local-sha",
                 Branch = Environment.GetEnvironmentVariable("GITHUB_REF_NAME") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME") ?? "local-branch",
@@ -133,7 +148,6 @@ public static class PerformanceCollector
 
         var json = JsonSerializer.Serialize(report, JsonOptions);
 
-        // Allow overriding output directory via environment variable (useful for CI)
         string? envOutputDir = Environment.GetEnvironmentVariable("PERFORMANCE_OUTPUT_PATH");
         string dir = outputDirectory ?? envOutputDir ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PerfResults");
 
@@ -155,26 +169,17 @@ public static class PerformanceCollector
     {
         lock (_lock)
         {
-            _measurements.Clear();
+            var measurements = GetMeasurements();
+            measurements.Clear();
         }
     }
 
-    /// <summary>
-    /// Tracks memory usage for a specific process.
-    /// </summary>
-    /// <param name="processId">The process ID to measure.</param>
-    /// <param name="metricName">The name of the metric (e.g., "MemoryUsage_Startup").</param>
-    /// <param name="tags">Optional tags for categorization.</param>
-    /// <param name="category">The category for this metric (default: "Memory").</param>
-    /// <returns>True if successful, false if measurement failed.</returns>
     public static bool TrackMemoryUsage(int processId, string metricName, Dictionary<string, string>? tags = null, string category = "Memory")
     {
         try
         {
             Console.WriteLine($"Attempting to measure memory for process ID: {processId}");
             var process = Process.GetProcessById(processId);
-
-            // Refresh process info to get latest memory values
             process.Refresh();
 
             var memoryMB = process.PrivateMemorySize64 / 1024.0 / 1024.0;
@@ -183,7 +188,6 @@ public static class PerformanceCollector
             Track(metricName, memoryMB, "MB", tags, category);
             Console.WriteLine($"{metricName}: {memoryMB:F2} MB (Private), {workingSetMB:F2} MB (Working Set)");
 
-            // Also track working set as a separate metric
             Track($"{metricName}_WorkingSet", workingSetMB, "MB", tags, category);
 
             return true;
@@ -198,26 +202,11 @@ public static class PerformanceCollector
         }
     }
 
-    /// <summary>
-    /// Tracks memory usage for the current process.
-    /// </summary>
-    /// <param name="metricName">The name of the metric (e.g., "MemoryUsage_Current").</param>
-    /// <param name="tags">Optional tags for categorization.</param>
-    /// <param name="category">The category for this metric (default: "Memory").</param>
-    /// <returns>True if successful, false if measurement failed.</returns>
     public static bool TrackCurrentProcessMemory(string metricName, Dictionary<string, string>? tags = null, string category = "Memory")
     {
         return TrackMemoryUsage(Environment.ProcessId, metricName, tags, category);
     }
 
-    /// <summary>
-    /// Creates a timing scope that automatically tracks elapsed time when disposed.
-    /// Use with 'using' statement for automatic timing.
-    /// </summary>
-    /// <param name="metricName">The name of the metric to track.</param>
-    /// <param name="tags">Optional tags for categorization.</param>
-    /// <param name="category">The category for this metric (default: "Timing").</param>
-    /// <returns>A disposable timing scope.</returns>
     public static IDisposable BeginTiming(string metricName, Dictionary<string, string>? tags = null, string category = "Timing")
     {
         return new TimingScope(metricName, tags, category);
@@ -252,28 +241,23 @@ public static class PerformanceCollector
 
         try
         {
-            // Basic CPU info from environment if WMI fails or on non-Windows
             info.Cpu = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "Unknown CPU";
 
-            // On Windows, we can try to get more details via WMI (System.Management)
-            // Note: This requires the System.Management NuGet package and Windows OS
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             {
                 try
                 {
-                    // Simple memory check
                     var gcMemoryInfo = GC.GetGCMemoryInfo();
                     long totalMemoryBytes = gcMemoryInfo.TotalAvailableMemoryBytes;
                     info.Ram = $"{totalMemoryBytes / (1024 * 1024 * 1024)} GB";
                 }
                 catch
-                { /* Ignore hardware detection errors */
+                {
                 }
             }
         }
         catch
         {
-            // Fallback defaults
             info.Cpu = "Unknown";
             info.Ram = "Unknown";
         }
