@@ -7,7 +7,6 @@ using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace AIDevGallery.Tests.UITests;
 
