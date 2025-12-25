@@ -127,6 +127,7 @@
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="local:ModelSelectionItem">
                             <Border
+                                DataContext="{x:Bind}"
                                 MinWidth="248"
                                 MinHeight="48"
                                 Padding="8"
