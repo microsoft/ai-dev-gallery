@@ -91,6 +91,14 @@ internal class ModelCache
     public async Task DeleteModelFromCache(CachedModel model)
     {
         ModelDeletedEvent.Log(model.Url);
+
+        if (model.Source == CachedModelSource.FoundryLocal)
+        {
+            var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
+            foundryLocalProvider.DeleteCachedModel(model.Path);
+            return;
+        }
+
         await CacheStore.RemoveModel(model);
 
         if (model.Url.StartsWith("local", System.StringComparison.OrdinalIgnoreCase))

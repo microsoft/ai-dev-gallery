@@ -110,17 +110,7 @@ internal sealed partial class SettingsPage : Page
 
             if (result == ContentDialogResult.Primary)
             {
-                // Check if it's a FoundryLocal model
-                if (model.Source == CachedModelSource.FoundryLocal)
-                {
-                    var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-                    foundryLocalProvider.DeleteCachedModel(model.Path);
-                }
-                else
-                {
-                    await App.ModelCache.DeleteModelFromCache(model);
-                }
-
+                await App.ModelCache.DeleteModelFromCache(model);
                 GetStorageInfo();
             }
         }
