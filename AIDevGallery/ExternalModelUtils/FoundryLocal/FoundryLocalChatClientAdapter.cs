@@ -102,7 +102,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         if (chunkCount == 0)
         {
             var errorMessage = $"The model '{_modelId}' did not generate any output. " +
-                             "Please verify you have selected an appropriate language model for text generation.";
+                             "Please verify you have selected an appropriate language model.";
             throw new InvalidOperationException(errorMessage);
         }
     }
