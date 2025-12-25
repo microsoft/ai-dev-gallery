@@ -39,7 +39,7 @@ internal class FoundryLocalDownloadEvent : EventBase
         {
             TelemetryFactory.Get<ITelemetry>().Log(
                 "FoundryLocalDownload_Event",
-                LogLevel.Critical,
+                LogLevel.Info,
                 new FoundryLocalDownloadEvent(modelAlias, success, errorMessage, DateTime.Now));
         }
         else
