@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -27,7 +26,7 @@ internal class FoundryClient : IDisposable
         {
             var config = new Configuration
             {
-                AppName = AppUtils.AppName,
+                AppName = "AIDevGallery",
                 LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
                 Web = new Configuration.WebService
                 {
