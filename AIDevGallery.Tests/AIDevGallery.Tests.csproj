@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>AIDevGallery.UnitTests</RootNamespace>
+    <RootNamespace>AIDevGallery.Tests</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &gt;= 8">win-x64;win-arm64</RuntimeIdentifiers> 
@@ -24,8 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Page Remove="UnitTestApp.xaml" />
-    <ApplicationDefinition Include="UnitTestApp.xaml" />
+    <Page Remove="TestInfra\UnitTestApp.xaml" />
+    <ApplicationDefinition Include="TestInfra\UnitTestApp.xaml" />
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 
@@ -37,6 +37,10 @@
     <PackageReference Include="Microsoft.TestPlatform.TestHost">
       <ExcludeAssets>build</ExcludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
+    <PackageReference Include="FlaUI.UIA3" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

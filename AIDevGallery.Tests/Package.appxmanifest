@@ -15,7 +15,7 @@
   <mp:PhoneIdentity PhoneProductId="0576840d-b07a-40f3-b326-301ae3faf3f5" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>AIDevGallery.UnitTests</DisplayName>
+    <DisplayName>AIDevGallery.Tests</DisplayName>
     <PublisherDisplayName>alzollin</PublisherDisplayName>
     <Logo>Assets\AppIcon\StoreLogo.png</Logo>
   </Properties>
@@ -34,8 +34,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="AIDevGallery.UnitTests"
-        Description="AIDevGallery.UnitTests"
+        DisplayName="AIDevGallery.Tests"
+        Description="AIDevGallery.Tests"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\AppIcon\MedTile.png"
         Square44x44Logo="Assets\AppIcon\SmallTile.png">

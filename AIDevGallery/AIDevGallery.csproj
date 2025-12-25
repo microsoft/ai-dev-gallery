@@ -293,7 +293,7 @@
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>AIDevGallery.UnitTests</_Parameter1>
+      <_Parameter1>AIDevGallery.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
