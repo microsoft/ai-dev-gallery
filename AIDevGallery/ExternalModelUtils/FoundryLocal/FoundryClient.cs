@@ -140,14 +140,10 @@ internal class FoundryClient : IDisposable
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task PrepareModelAsync(string alias, CancellationToken cancellationToken = default)
     {
-        if (_preparedModels.ContainsKey(alias))
-        {
-            return;
-        }
-
         await _prepareLock.WaitAsync(cancellationToken);
         try
         {
+            // Double-check inside lock to ensure thread safety
             if (_preparedModels.ContainsKey(alias))
             {
                 return;
@@ -227,14 +223,33 @@ internal class FoundryClient : IDisposable
 
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("DeleteModelFailed", modelId, ex.Message);
             return false;
         }
     }
 
-    public void ClearPreparedModels()
+    public async Task ClearPreparedModelsAsync()
     {
+        // Unload all prepared models before clearing
+        foreach (var kvp in _preparedModels)
+        {
+            try
+            {
+                var model = kvp.Value;
+                if (await model.IsLoadedAsync())
+                {
+                    await model.UnloadAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but continue unloading other models
+                Telemetry.Events.FoundryLocalErrorEvent.Log("UnloadModelFailed", kvp.Key, ex.Message);
+            }
+        }
+
         _preparedModels.Clear();
         _modelMaxOutputTokens.Clear();
     }
@@ -251,6 +266,27 @@ internal class FoundryClient : IDisposable
             return;
         }
 
+        // Unload all prepared models synchronously
+        foreach (var kvp in _preparedModels)
+        {
+            try
+            {
+                var model = kvp.Value;
+
+                // Note: Using synchronous Wait here as Dispose cannot be async
+                if (model.IsLoadedAsync().ConfigureAwait(false).GetAwaiter().GetResult())
+                {
+                    model.UnloadAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+            }
+            catch
+            {
+                // Suppress exceptions during disposal to prevent finalizer issues
+            }
+        }
+
+        _preparedModels.Clear();
+        _modelMaxOutputTokens.Clear();
         _prepareLock.Dispose();
         _disposed = true;
     }

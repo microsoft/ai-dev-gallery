@@ -25,8 +25,6 @@ namespace AIDevGallery.Utils;
 
 internal static class AppUtils
 {
-    public const string AppName = "AIDevGallery";
-
     private static readonly Guid DXCORE_ADAPTER_ATTRIBUTE_D3D12_GENERIC_ML = new(0xb71b0d41, 0x1088, 0x422f, 0xa2, 0x7c, 0x2, 0x50, 0xb7, 0xd3, 0xa9, 0x88);
     private static bool? _hasNpu;
 

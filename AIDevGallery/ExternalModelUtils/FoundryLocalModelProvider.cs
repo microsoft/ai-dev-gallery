@@ -58,12 +58,18 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         if (model == null)
         {
             throw new InvalidOperationException(
-                $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please wait a moment and try again.");
+                $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please call EnsureModelReadyAsync(url) first.");
         }
 
         // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
-        // Note: This synchronous wrapper is safe here because the model is already prepared/loaded
-        var chatClient = model.GetChatClientAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        // SAFETY: This synchronous wrapper is safe because:
+        // 1. The model is already prepared/loaded (checked above)
+        // 2. GetChatClientAsync on a loaded model should complete synchronously
+        // 3. ConfigureAwait(false) prevents SynchronizationContext capture
+        var chatClient = Task.Run(async () => await model.GetChatClientAsync().ConfigureAwait(false))
+            .ConfigureAwait(false)
+            .GetAwaiter()
+            .GetResult();
 
         // Get model's MaxOutputTokens if available
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
@@ -111,7 +117,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     {
         if (ignoreCached)
         {
-            Reset();
+            await ResetAsync();
         }
 
         await InitializeAsync(cancelationToken);
@@ -143,11 +149,18 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         return result.Success;
     }
 
-    private void Reset()
+    /// <summary>
+    /// Resets the provider state by clearing downloaded models cache and unloading all prepared models.
+    /// WARNING: This will unload all currently loaded models. Any ongoing inference will fail.
+    /// </summary>
+    private async Task ResetAsync()
     {
         _downloadedModels = null;
 
-        _foundryManager?.ClearPreparedModels();
+        if (_foundryManager != null)
+        {
+            await _foundryManager.ClearPreparedModelsAsync();
+        }
     }
 
     private async Task InitializeAsync(CancellationToken cancelationToken = default)
@@ -275,7 +288,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 var result = await _foundryManager.DeleteModelAsync(catalogModel.ModelId);
                 if (result)
                 {
-                    Reset();
+                    await ResetAsync();
                 }
 
                 return result;
@@ -283,8 +296,9 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("DeleteCachedModelFailed", cachedModel.Details.Name, ex.Message);
             return false;
         }
     }
@@ -310,12 +324,13 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 }
             }
 
-            Reset();
+            await ResetAsync();
 
             return allDeleted;
         }
-        catch
+        catch (Exception ex)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ClearAllCacheFailed", "all", ex.Message);
             return false;
         }
     }
