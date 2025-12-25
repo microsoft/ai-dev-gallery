@@ -185,6 +185,12 @@ internal sealed partial class SettingsPage : Page
     {
         if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is CachedModel model)
         {
+            // FoundryLocal models are managed by the SDK, don't open folder
+            if (model.Source == CachedModelSource.FoundryLocal)
+            {
+                return;
+            }
+
             string? path = model.Path;
 
             if (model.IsFile)

@@ -237,37 +237,26 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         await _foundryManager.PrepareModelAsync(alias, cancellationToken);
     }
 
-    private string GetCacheBasePath()
-    {
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), $".{AppUtils.AppName}", "cache", "models", "Microsoft");
-    }
-
     public async Task<IEnumerable<CachedModel>> GetCachedModelsWithDetails()
     {
         var result = new List<CachedModel>();
-        var basePath = GetCacheBasePath();
 
-        if (!Directory.Exists(basePath))
-        {
-            return result;
-        }
-
+        // Get the list of downloaded models (which are already filtered by cached status)
         var models = await GetModelsAsync();
 
         foreach (var modelDetails in models)
         {
-            var matchingDir = Directory.GetDirectories(basePath)
-                .FirstOrDefault(dir => Path.GetFileName(dir).StartsWith(modelDetails.Name + "-", StringComparison.OrdinalIgnoreCase) ||
-                                      Path.GetFileName(dir).Equals(modelDetails.Name, StringComparison.OrdinalIgnoreCase));
-
-            if (matchingDir != null)
+            if (modelDetails.ProviderModelDetails is not FoundryCatalogModel catalogModel)
             {
-                var dirInfo = new DirectoryInfo(matchingDir);
-                long modelSize = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fi => fi.Length);
-
-                var cachedModel = new CachedModel(modelDetails, matchingDir, false, modelSize);
-                result.Add(cachedModel);
+                continue;
             }
+
+            var cachedModel = new CachedModel(
+                modelDetails,
+                $"FoundryLocal: {catalogModel.Alias}",
+                false,
+                modelDetails.Size);
+            result.Add(cachedModel);
         }
 
         return result;
