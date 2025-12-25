@@ -8,6 +8,7 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,8 +66,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         // Note: This synchronous wrapper is safe here because the model is already prepared/loaded
         var chatClient = model.GetChatClientAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
+        // Get model's MaxOutputTokens if available
+        int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
+
         // Wrap it in our adapter to implement IChatClient interface
-        return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id);
+        return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
     }
 
     public string? GetIChatClientString(string url)
@@ -144,6 +148,9 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     private void Reset()
     {
         _downloadedModels = null;
+
+        // Clear prepared models from FoundryClient to avoid stale references
+        _foundryManager?.ClearPreparedModels();
     }
 
     private async Task InitializeAsync(CancellationToken cancelationToken = default)
@@ -230,5 +237,104 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
 
         await _foundryManager.PrepareModelAsync(alias, cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the base cache directory path for FoundryLocal models.
+    /// </summary>
+    private string GetCacheBasePath()
+    {
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), $".{AppUtils.AppName}", "cache", "models", "Microsoft");
+    }
+
+    /// <summary>
+    /// Gets cached models with their file system details (path and size).
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task<IEnumerable<CachedModel>> GetCachedModelsWithDetails()
+    {
+        var result = new List<CachedModel>();
+        var basePath = GetCacheBasePath();
+
+        if (!Directory.Exists(basePath))
+        {
+            return result;
+        }
+
+        var models = await GetModelsAsync();
+
+        foreach (var modelDetails in models)
+        {
+            // Find directory that starts with the model name (actual directory has version suffix like -1, -2, etc.)
+            var matchingDir = Directory.GetDirectories(basePath)
+                .FirstOrDefault(dir => Path.GetFileName(dir).StartsWith(modelDetails.Name + "-", StringComparison.OrdinalIgnoreCase) ||
+                                      Path.GetFileName(dir).Equals(modelDetails.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (matchingDir != null)
+            {
+                var dirInfo = new DirectoryInfo(matchingDir);
+                long modelSize = dirInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fi => fi.Length);
+
+                var cachedModel = new CachedModel(modelDetails, matchingDir, false, modelSize);
+                result.Add(cachedModel);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Deletes a specific cached model directory.
+    /// </summary>
+    /// <param name="modelPath">The path to the model directory to delete.</param>
+    /// <returns>True if the model was successfully deleted; otherwise, false.</returns>
+    public bool DeleteCachedModel(string modelPath)
+    {
+        if (!Directory.Exists(modelPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            Directory.Delete(modelPath, true);
+
+            // Reset internal state after deleting a model
+            Reset();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Clears all FoundryLocal cached models.
+    /// </summary>
+    /// <returns>True if the cache was successfully cleared; otherwise, false.</returns>
+    public bool ClearAllCache()
+    {
+        var basePath = GetCacheBasePath();
+
+        if (!Directory.Exists(basePath))
+        {
+            return true;
+        }
+
+        try
+        {
+            Directory.Delete(basePath, true);
+
+            // Reset internal state after clearing cache
+            Reset();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

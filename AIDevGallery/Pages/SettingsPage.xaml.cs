@@ -60,7 +60,7 @@ internal sealed partial class SettingsPage : Page
         base.OnNavigatingFrom(e);
     }
 
-    private void GetStorageInfo()
+    private async void GetStorageInfo()
     {
         cachedModels.Clear();
 
@@ -75,7 +75,19 @@ internal sealed partial class SettingsPage : Page
             totalCacheSize += cachedModel.ModelSize;
         }
 
-        if (App.ModelCache.Models.Count > 0)
+        var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
+        if (await foundryLocalProvider.IsAvailable())
+        {
+            var foundryModels = await foundryLocalProvider.GetCachedModelsWithDetails();
+
+            foreach (var cachedModel in foundryModels)
+            {
+                cachedModels.Add(cachedModel);
+                totalCacheSize += cachedModel.ModelSize;
+            }
+        }
+
+        if (App.ModelCache.Models.Count > 0 || cachedModels.Count > 0)
         {
             ModelsExpander.IsExpanded = true;
         }
@@ -109,7 +121,17 @@ internal sealed partial class SettingsPage : Page
 
             if (result == ContentDialogResult.Primary)
             {
-                await App.ModelCache.DeleteModelFromCache(model);
+                // Check if it's a FoundryLocal model
+                if (model.Source == CachedModelSource.FoundryLocal)
+                {
+                    var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
+                    foundryLocalProvider.DeleteCachedModel(model.Path);
+                }
+                else
+                {
+                    await App.ModelCache.DeleteModelFromCache(model);
+                }
+
                 GetStorageInfo();
             }
         }
@@ -171,6 +193,11 @@ internal sealed partial class SettingsPage : Page
         if (result == ContentDialogResult.Primary)
         {
             await App.ModelCache.ClearCache();
+
+            // Clear FoundryLocal cache
+            var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
+            foundryLocalProvider.ClearAllCache();
+
             GetStorageInfo();
         }
     }

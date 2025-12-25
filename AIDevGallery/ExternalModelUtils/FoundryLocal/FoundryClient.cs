@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Utils;
 using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -14,6 +15,7 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 internal class FoundryClient : IDisposable
 {
     private readonly Dictionary<string, IModel> _preparedModels = new();
+    private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();
     private readonly SemaphoreSlim _prepareLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
@@ -25,7 +27,7 @@ internal class FoundryClient : IDisposable
         {
             var config = new Configuration
             {
-                AppName = "AIDevGallery",
+                AppName = AppUtils.AppName,
                 LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
                 Web = new Configuration.WebService
                 {
@@ -89,6 +91,7 @@ internal class FoundryClient : IDisposable
         }
 
         var cachedVariants = await _catalog.GetCachedModelsAsync();
+
         return cachedVariants.Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias)).ToList();
     }
 
@@ -169,8 +172,12 @@ internal class FoundryClient : IDisposable
                 await model.LoadAsync(cancellationToken);
             }
 
-            // Store the model directly - no web service needed
             _preparedModels[alias] = model;
+
+            if (!_modelMaxOutputTokens.ContainsKey(alias))
+            {
+                _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
+            }
         }
         finally
         {
@@ -186,6 +193,26 @@ internal class FoundryClient : IDisposable
     public IModel? GetPreparedModel(string alias)
     {
         return _preparedModels.TryGetValue(alias, out var model) ? model : null;
+    }
+
+    /// <summary>
+    /// Gets the MaxOutputTokens for a model by alias.
+    /// </summary>
+    /// <param name="alias">The model alias.</param>
+    /// <returns>The MaxOutputTokens value if found, otherwise null.</returns>
+    public int? GetModelMaxOutputTokens(string alias)
+    {
+        return _modelMaxOutputTokens.TryGetValue(alias, out var maxTokens) ? maxTokens : null;
+    }
+
+    /// <summary>
+    /// Clears all prepared models and cached metadata from memory.
+    /// Should be called when models are deleted from cache.
+    /// </summary>
+    public void ClearPreparedModels()
+    {
+        _preparedModels.Clear();
+        _modelMaxOutputTokens.Clear();
     }
 
     public Task<string?> GetServiceUrl()

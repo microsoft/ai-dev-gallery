@@ -21,11 +21,13 @@ internal class FoundryLocalChatClientAdapter : IChatClient
 
     private readonly Microsoft.AI.Foundry.Local.OpenAIChatClient _chatClient;
     private readonly string _modelId;
+    private readonly int? _modelMaxOutputTokens;
 
-    public FoundryLocalChatClientAdapter(Microsoft.AI.Foundry.Local.OpenAIChatClient chatClient, string modelId)
+    public FoundryLocalChatClientAdapter(Microsoft.AI.Foundry.Local.OpenAIChatClient chatClient, string modelId, int? modelMaxOutputTokens = null)
     {
         _modelId = modelId;
         _chatClient = chatClient;
+        _modelMaxOutputTokens = modelMaxOutputTokens;
     }
 
     public ChatClientMetadata Metadata => new("FoundryLocal", new Uri($"foundrylocal:///{_modelId}"), _modelId);
@@ -43,7 +45,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         // Map ChatOptions to FoundryLocal ChatSettings
         // CRITICAL: MaxTokens must be set, otherwise some model won't generate any output
-        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? DefaultMaxTokens;
+        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? _modelMaxOutputTokens ?? DefaultMaxTokens;
 
         if (options?.Temperature != null)
         {
