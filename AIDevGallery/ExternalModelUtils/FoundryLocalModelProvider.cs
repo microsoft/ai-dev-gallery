@@ -139,7 +139,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
         var result = await _foundryManager.DownloadModel(model, progress, cancellationToken);
 
-        // Log telemetry for both success and failure
         FoundryLocalDownloadEvent.Log(model.Alias, result.Success, result.ErrorMessage);
 
         return result.Success;
@@ -149,7 +148,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     {
         _downloadedModels = null;
 
-        // Clear prepared models from FoundryClient to avoid stale references
         _foundryManager?.ClearPreparedModels();
     }
 
@@ -167,7 +165,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             return;
         }
 
-        url = url ?? await _foundryManager.GetServiceUrl();
+        url = url ?? _foundryManager.GetServiceUrl();
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
@@ -239,18 +237,11 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         await _foundryManager.PrepareModelAsync(alias, cancellationToken);
     }
 
-    /// <summary>
-    /// Gets the base cache directory path for FoundryLocal models.
-    /// </summary>
     private string GetCacheBasePath()
     {
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), $".{AppUtils.AppName}", "cache", "models", "Microsoft");
     }
 
-    /// <summary>
-    /// Gets cached models with their file system details (path and size).
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<IEnumerable<CachedModel>> GetCachedModelsWithDetails()
     {
         var result = new List<CachedModel>();
@@ -265,7 +256,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
         foreach (var modelDetails in models)
         {
-            // Find directory that starts with the model name (actual directory has version suffix like -1, -2, etc.)
             var matchingDir = Directory.GetDirectories(basePath)
                 .FirstOrDefault(dir => Path.GetFileName(dir).StartsWith(modelDetails.Name + "-", StringComparison.OrdinalIgnoreCase) ||
                                       Path.GetFileName(dir).Equals(modelDetails.Name, StringComparison.OrdinalIgnoreCase));
@@ -283,26 +273,27 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         return result;
     }
 
-    /// <summary>
-    /// Deletes a specific cached model directory.
-    /// </summary>
-    /// <param name="modelPath">The path to the model directory to delete.</param>
-    /// <returns>True if the model was successfully deleted; otherwise, false.</returns>
-    public bool DeleteCachedModel(string modelPath)
+    public async Task<bool> DeleteCachedModelAsync(CachedModel cachedModel)
     {
-        if (!Directory.Exists(modelPath))
+        if (_foundryManager == null)
         {
             return false;
         }
 
         try
         {
-            Directory.Delete(modelPath, true);
+            if (cachedModel.Details.ProviderModelDetails is FoundryCatalogModel catalogModel)
+            {
+                var result = await _foundryManager.DeleteModelAsync(catalogModel.ModelId);
+                if (result)
+                {
+                    Reset();
+                }
 
-            // Reset internal state after deleting a model
-            Reset();
+                return result;
+            }
 
-            return true;
+            return false;
         }
         catch
         {
@@ -310,27 +301,30 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
     }
 
-    /// <summary>
-    /// Clears all FoundryLocal cached models.
-    /// </summary>
-    /// <returns>True if the cache was successfully cleared; otherwise, false.</returns>
-    public bool ClearAllCache()
+    public async Task<bool> ClearAllCacheAsync()
     {
-        var basePath = GetCacheBasePath();
-
-        if (!Directory.Exists(basePath))
+        if (_foundryManager == null)
         {
             return true;
         }
 
         try
         {
-            Directory.Delete(basePath, true);
+            var cachedModels = await GetCachedModelsWithDetails();
+            var allDeleted = true;
 
-            // Reset internal state after clearing cache
+            foreach (var cachedModel in cachedModels)
+            {
+                var deleted = await DeleteCachedModelAsync(cachedModel);
+                if (!deleted)
+                {
+                    allDeleted = false;
+                }
+            }
+
             Reset();
 
-            return true;
+            return allDeleted;
         }
         catch
         {

@@ -95,7 +95,7 @@ internal class ModelCache
         if (model.Source == CachedModelSource.FoundryLocal)
         {
             var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-            foundryLocalProvider.DeleteCachedModel(model.Path);
+            await foundryLocalProvider.DeleteCachedModelAsync(model);
             return;
         }
 
@@ -117,10 +117,6 @@ internal class ModelCache
         }
     }
 
-    /// <summary>
-    /// Gets all cached models including both local cache and FoundryLocal models.
-    /// </summary>
-    /// <returns>A list of all cached models.</returns>
     public async Task<List<CachedModel>> GetAllModelsAsync()
     {
         var allModels = new List<CachedModel>(CacheStore.Models);
@@ -144,7 +140,7 @@ internal class ModelCache
         await CacheStore.ClearAsync();
 
         var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-        foundryLocalProvider.ClearAllCache();
+        await foundryLocalProvider.ClearAllCacheAsync();
     }
 
     public async Task MoveCache(string path, CancellationToken ct)

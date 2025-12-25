@@ -134,7 +134,7 @@ internal class FoundryClient : IDisposable
     }
 
     /// <summary>
-    /// Prepares a model for use by loading it (no web service needed).
+    /// Prepares a model for use by loading it.
     /// Should be called after download or when first accessing a cached model.
     /// Thread-safe: multiple concurrent calls for the same alias will only prepare once.
     /// </summary>
@@ -149,7 +149,6 @@ internal class FoundryClient : IDisposable
         await _prepareLock.WaitAsync(cancellationToken);
         try
         {
-            // Double-check pattern for thread safety
             if (_preparedModels.ContainsKey(alias))
             {
                 return;
@@ -160,11 +159,15 @@ internal class FoundryClient : IDisposable
                 throw new InvalidOperationException("Foundry Local client not initialized");
             }
 
-            // SDK automatically selects the best variant for the given alias
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
+            }
+
+            if (!await model.IsCachedAsync())
+            {
+                throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
             }
 
             if (!await model.IsLoadedAsync())
@@ -173,11 +176,7 @@ internal class FoundryClient : IDisposable
             }
 
             _preparedModels[alias] = model;
-
-            if (!_modelMaxOutputTokens.ContainsKey(alias))
-            {
-                _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
-            }
+            _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
         }
         finally
         {
@@ -185,39 +184,65 @@ internal class FoundryClient : IDisposable
         }
     }
 
-    /// <summary>
-    /// Gets the prepared model.
-    /// Returns null if the model hasn't been prepared yet.
-    /// </summary>
-    /// <returns>The IModel instance, or null if not prepared.</returns>
     public IModel? GetPreparedModel(string alias)
     {
         return _preparedModels.TryGetValue(alias, out var model) ? model : null;
     }
 
-    /// <summary>
-    /// Gets the MaxOutputTokens for a model by alias.
-    /// </summary>
-    /// <param name="alias">The model alias.</param>
-    /// <returns>The MaxOutputTokens value if found, otherwise null.</returns>
     public int? GetModelMaxOutputTokens(string alias)
     {
         return _modelMaxOutputTokens.TryGetValue(alias, out var maxTokens) ? maxTokens : null;
     }
 
-    /// <summary>
-    /// Clears all prepared models and cached metadata from memory.
-    /// Should be called when models are deleted from cache.
-    /// </summary>
+    public async Task<bool> DeleteModelAsync(string modelId)
+    {
+        if (_catalog == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var variant = await _catalog.GetModelVariantAsync(modelId);
+            if (variant == null)
+            {
+                return false;
+            }
+
+            if (await variant.IsLoadedAsync())
+            {
+                await variant.UnloadAsync();
+            }
+
+            if (await variant.IsCachedAsync())
+            {
+                await variant.RemoveFromCacheAsync();
+            }
+
+            var alias = variant.Alias;
+            if (!string.IsNullOrEmpty(alias))
+            {
+                _preparedModels.Remove(alias);
+                _modelMaxOutputTokens.Remove(alias);
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void ClearPreparedModels()
     {
         _preparedModels.Clear();
         _modelMaxOutputTokens.Clear();
     }
 
-    public Task<string?> GetServiceUrl()
+    public string? GetServiceUrl()
     {
-        return Task.FromResult(_manager?.Urls?.FirstOrDefault());
+        return _manager?.Urls?.FirstOrDefault();
     }
 
     public void Dispose()
@@ -228,11 +253,6 @@ internal class FoundryClient : IDisposable
         }
 
         _prepareLock.Dispose();
-
-        // Models are managed by FoundryLocalManager and should not be disposed here
-        // The FoundryLocalManager instance is a singleton and manages its own lifecycle
-        _preparedModels.Clear();
-
         _disposed = true;
     }
 }
