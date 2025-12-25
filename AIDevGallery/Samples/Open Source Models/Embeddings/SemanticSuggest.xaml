@@ -9,6 +9,8 @@
     xmlns:shared="using:AIDevGallery.Samples.SharedCode"
     mc:Ignorable="d">
     <Grid>
-        <shared:SemanticComboBox x:Name="MySemanticComboBox" Items="{x:Bind ShoppingCategories}"/>
+        <shared:SemanticComboBox x:Name="MySemanticComboBox"
+                                 Items="{x:Bind ShoppingCategories}"
+                                 IsTabStop="False"/>
     </Grid>
 </samples:BaseSamplePage>

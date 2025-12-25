@@ -273,6 +273,19 @@ internal sealed partial class ModelSelectionPage : Page
         }
     }
 
+    /// <summary>
+    /// Public method to update the selected model in the navigation menu without re-navigating.
+    /// This mirrors the behavior of APISelectionPage.SetSelectedApiInMenu for consistency.
+    /// </summary>
+    public void SetSelectedModelInMenu(ModelType selectedType)
+    {
+        var modelTypes = new List<ModelType> { selectedType };
+        foreach (NavigationViewItem item in NavView.MenuItems)
+        {
+            SetSelectedSampleInMenu(item, modelTypes, null);
+        }
+    }
+
     private void SetSelectedSampleInMenu(NavigationViewItem item, List<ModelType>? selectedSample = null, ModelDetails? details = null)
     {
         if (selectedSample == null && details == null)

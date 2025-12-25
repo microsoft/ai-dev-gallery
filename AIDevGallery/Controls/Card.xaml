@@ -48,6 +48,7 @@
                 VerticalAlignment="Center"
                 FontSize="14"
                 FontWeight="SemiBold"
+                AutomationProperties.Level="1"
                 Text="{x:Bind Title, Mode=OneWay}" />
             <ContentPresenter
                 Grid.Column="2"

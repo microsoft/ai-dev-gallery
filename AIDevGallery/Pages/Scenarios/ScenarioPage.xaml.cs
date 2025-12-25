@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Controls;
@@ -97,10 +97,10 @@ internal sealed partial class ScenarioPage : Page
 
         List<List<ModelType>> modelDetailsList = [samples.SelectMany(s => s.Model1Types).ToList()];
 
-        // assume if first sample has two models, then all of them should need two models
+        // if any sample has a second model, collect all Model2Types from samples that define them
         if (samples[0].Model2Types != null)
         {
-            modelDetailsList.Add(samples.SelectMany(s => s.Model2Types!).ToList());
+            modelDetailsList.Add(samples.Where(s => s.Model2Types != null).SelectMany(s => s.Model2Types!).ToList());
         }
 
         var preSelectedModels = await App.MainWindow.ModelPicker.Load(modelDetailsList, initialModelToLoad);
@@ -142,38 +142,38 @@ internal sealed partial class ScenarioPage : Page
 
             switch (epName)
             {
-                case "VitisAIExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], "VitisAIExecutionProvider", "VitisAI", "NPU"));
+                case ExecutionProviderNames.VitisAI:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.VitisAI, HardwareAccelerator.NPU], ExecutionProviderNames.VitisAI, "VitisAI", "NPU"));
                     break;
 
-                case "OpenVINOExecutionProvider":
+                case ExecutionProviderNames.OpenVINO:
                     if (epDeviceTypes.Contains("CPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.CPU], "OpenVINOExecutionProvider", "OpenVINO", "CPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.CPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "CPU"));
                     }
 
                     if (epDeviceTypes.Contains("GPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.GPU], "OpenVINOExecutionProvider", "OpenVINO", "GPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.GPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "GPU"));
                     }
 
                     if (epDeviceTypes.Contains("NPU"))
                     {
-                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], "OpenVINOExecutionProvider", "OpenVINO", "NPU"));
+                        supportedHardwareAccelerators.Add(new([HardwareAccelerator.OpenVINO, HardwareAccelerator.NPU], ExecutionProviderNames.OpenVINO, "OpenVINO", "NPU"));
                     }
 
                     break;
 
-                case "QNNExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], "QNNExecutionProvider", "QNN", "NPU"));
+                case ExecutionProviderNames.QNN:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.QNN, HardwareAccelerator.NPU], ExecutionProviderNames.QNN, "QNN", "NPU"));
                     break;
 
-                case "DmlExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], "DmlExecutionProvider", "DML", "GPU"));
+                case ExecutionProviderNames.DML:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.DML, HardwareAccelerator.GPU], ExecutionProviderNames.DML, "DML", "GPU"));
                     break;
 
-                case "NvTensorRTRTXExecutionProvider":
-                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], "NvTensorRTRTXExecutionProvider", "NvTensorRT", "GPU"));
+                case ExecutionProviderNames.NvTensorRTRTX:
+                    supportedHardwareAccelerators.Add(new([HardwareAccelerator.NvTensorRT, HardwareAccelerator.GPU], ExecutionProviderNames.NvTensorRTRTX, "NvTensorRT", "GPU"));
                     break;
             }
         }
@@ -193,7 +193,13 @@ internal sealed partial class ScenarioPage : Page
         VisualStateManager.GoToState(this, "PageLoading", true);
 
         modelDetails.Clear();
-        selectedModels.ForEach(modelDetails.Add);
+        foreach (var model in selectedModels)
+        {
+            if (model != null)
+            {
+                modelDetails.Add(model!);
+            }
+        }
 
         // temporary fix EP dropdown list for useradded local languagemodel
         if (selectedModels.Any(m => m != null && m.IsOnnxModel() && string.IsNullOrEmpty(m.ParameterSize) && m.Id.StartsWith("useradded-local-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) == false))
@@ -296,6 +302,7 @@ internal sealed partial class ScenarioPage : Page
             CompileModelCheckBox.IsChecked = options.CompileModel;
             WinMlModelOptionsButtonText.Text = (DeviceComboBox.SelectedItem as WinMlEp)?.ShortName;
             segmentedControl.SelectedIndex = 1;
+            UpdateCompileModelVisibility();
         }
 
         // in case already saved options do not apply to this sample
@@ -315,7 +322,7 @@ internal sealed partial class ScenarioPage : Page
 
         // TODO: don't load sample if model is not cached, but still let code to be seen
         //       this would probably be handled in the SampleContainer
-        _ = SampleContainer.LoadSampleAsync(sample, [.. modelDetails], App.AppData.WinMLSampleOptions);
+        _ = SampleContainer.LoadSampleAsync(sample, modelDetails.Where(m => m != null).Select(m => m!).ToList(), App.AppData.WinMLSampleOptions);
         _ = App.AppData.AddMru(
             new MostRecentlyUsedItem()
             {
@@ -414,12 +421,21 @@ internal sealed partial class ScenarioPage : Page
 
     private void ModelBtn_Click(object sender, RoutedEventArgs e)
     {
+        var button = sender as Button;
+
+        var picker = App.MainWindow.ModelPicker;
+        picker.Closed += (s, args) =>
+        {
+            button?.Focus(FocusState.Programmatic);
+        };
+
         App.MainWindow.ModelPicker.Show(modelDetails.ToList());
     }
 
     private void ModelOrApiPicker_SelectedModelsChanged(object sender, List<ModelDetails?> modelDetails)
     {
         HandleModelSelectionChanged(modelDetails);
+        contentHost.Focus(FocusState.Programmatic);
     }
 
     private void SampleSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -466,5 +482,22 @@ internal sealed partial class ScenarioPage : Page
     private void WinMLOptionsFlyout_Opening(object sender, object e)
     {
         UpdateWinMLFlyout();
+        UpdateCompileModelVisibility();
+    }
+
+    private void DeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateCompileModelVisibility();
+    }
+
+    private void UpdateCompileModelVisibility()
+    {
+        var device = DeviceComboBox.SelectedItem as WinMlEp;
+        bool supported = device != null && WinMLHelpers.IsCompileModelSupported(device.DeviceType);
+        CompileModelCheckBox.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
+        if (!supported)
+        {
+            CompileModelCheckBox.IsChecked = false;
+        }
     }
 }

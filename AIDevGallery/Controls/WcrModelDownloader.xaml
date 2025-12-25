@@ -34,6 +34,17 @@
                 <Run Text="This Windows AI API requires a one-time model download via Windows Update." /><LineBreak /> <LineBreak />
                 <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
             </TextBlock>
+            <TextBlock
+                x:Name="WindowsInsiderInfoText"
+                Margin="0,4,0,0"
+                FontSize="12"
+                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                Visibility="Collapsed">
+                <Run FontFamily="Segoe Fluent Icons" Text="&#xE7BA;" />
+                <Run Text="This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel)." />
+            </TextBlock>
             <Button
                 Margin="0,16,0,0"
                 HorizontalAlignment="Center"
@@ -79,6 +90,17 @@
                 TextAlignment="Center" />
             <TextBlock FontSize="12" TextAlignment="Center">
                 <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
+            </TextBlock>
+            <TextBlock
+                x:Name="WindowsInsiderErrorText"
+                Margin="0,4,0,0"
+                FontSize="12"
+                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                Visibility="Collapsed">
+                <Run FontFamily="Segoe Fluent Icons" Text="&#xE7BA;" />
+                <Run Text="This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel)." />
             </TextBlock>
             <TextBlock
                 FontFamily="Consolas"

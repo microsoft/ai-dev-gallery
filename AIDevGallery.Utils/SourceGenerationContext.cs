@@ -9,6 +9,7 @@ namespace AIDevGallery.Utils;
 [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
 [JsonSerializable(typeof(List<GitHubModelFileDetails>))]
 [JsonSerializable(typeof(List<HuggingFaceModelFileDetails>))]
+[JsonSerializable(typeof(HuggingFaceLfsInfo))]
 internal partial class SourceGenerationContext : JsonSerializerContext
 {
 }
