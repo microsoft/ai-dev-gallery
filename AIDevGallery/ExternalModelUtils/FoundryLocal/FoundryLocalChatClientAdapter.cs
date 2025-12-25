@@ -80,8 +80,10 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
+        int chunkCount = 0;
         await foreach (var chunk in streamingResponse)
         {
+            chunkCount++;
             cancellationToken.ThrowIfCancellationRequested();
 
             if (chunk.Choices != null && chunk.Choices.Count > 0)
@@ -95,6 +97,14 @@ internal class FoundryLocalChatClientAdapter : IChatClient
                     };
                 }
             }
+        }
+
+        if (chunkCount == 0)
+        {
+            var errorMessage = $"The model '{_modelId}' did not generate any output. " +
+                             "Please verify you have selected an appropriate language model for text generation.";
+            
+            throw new InvalidOperationException(errorMessage);
         }
     }
 
