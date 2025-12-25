@@ -68,26 +68,15 @@ internal sealed partial class SettingsPage : Page
         FolderPathTxt.Content = cacheFolderPath;
 
         long totalCacheSize = 0;
+        var allModels = await App.ModelCache.GetAllModelsAsync();
 
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
+        foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
         {
             cachedModels.Add(cachedModel);
             totalCacheSize += cachedModel.ModelSize;
         }
 
-        var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-        if (await foundryLocalProvider.IsAvailable())
-        {
-            var foundryModels = await foundryLocalProvider.GetCachedModelsWithDetails();
-
-            foreach (var cachedModel in foundryModels)
-            {
-                cachedModels.Add(cachedModel);
-                totalCacheSize += cachedModel.ModelSize;
-            }
-        }
-
-        if (App.ModelCache.Models.Count > 0 || cachedModels.Count > 0)
+        if (cachedModels.Count > 0)
         {
             ModelsExpander.IsExpanded = true;
         }
@@ -193,11 +182,6 @@ internal sealed partial class SettingsPage : Page
         if (result == ContentDialogResult.Primary)
         {
             await App.ModelCache.ClearCache();
-
-            // Clear FoundryLocal cache
-            var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-            foundryLocalProvider.ClearAllCache();
-
             GetStorageInfo();
         }
     }
