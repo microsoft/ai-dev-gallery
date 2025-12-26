@@ -27,11 +27,7 @@ internal class FoundryClient : IDisposable
             var config = new Configuration
             {
                 AppName = "AIDevGallery",
-                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
-                Web = new Configuration.WebService
-                {
-                    Urls = "http://127.0.0.1:0"
-                }
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning
             };
 
             await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
@@ -293,11 +289,6 @@ internal class FoundryClient : IDisposable
         {
             Telemetry.Events.FoundryLocalOperationEvent.Log("ClearPreparedModels", $"{modelCount} models");
         }
-    }
-
-    public string? GetServiceUrl()
-    {
-        return _manager?.Urls?.FirstOrDefault();
     }
 
     public void Dispose()

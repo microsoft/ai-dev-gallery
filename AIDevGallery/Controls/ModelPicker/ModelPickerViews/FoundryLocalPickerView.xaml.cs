@@ -23,7 +23,6 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
     private ObservableCollection<FoundryModelPair> AvailableModels { get; } = [];
     private ObservableCollection<FoundryCatalogModelGroup> CatalogModels { get; } = [];
-    private string FoundryLocalUrl => FoundryLocalModelProvider.Instance?.Url ?? string.Empty;
 
     public FoundryLocalPickerView()
     {
@@ -159,13 +158,6 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries).FirstOrDefault();
 
         return string.IsNullOrWhiteSpace(shortprovider) ? provider : shortprovider;
-    }
-
-    private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(FoundryLocalUrl);
-        Clipboard.SetContentWithOptions(dataPackage, null);
     }
 
     private async void RetryButton_Click(object sender, RoutedEventArgs e)

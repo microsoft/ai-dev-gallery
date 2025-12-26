@@ -185,17 +185,6 @@
                         x:Name="DownloadableModelsTxt"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="Available models on Foundry Local" />
-                    <HyperlinkButton
-                        Grid.Column="1"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        AutomationProperties.Name="Copy url"
-                        Click="CopyUrlButton_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Bind FoundryLocalUrl}" />
-                            <FontIcon FontSize="12" Glyph="&#xE8C8;" />
-                        </StackPanel>
-                    </HyperlinkButton>
                 </Grid>
                 <ItemsRepeater
                     Grid.Row="2"

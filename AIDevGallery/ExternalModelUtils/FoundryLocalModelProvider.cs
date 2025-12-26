@@ -19,7 +19,6 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
     private FoundryClient? _foundryManager;
-    private string? url;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
 
@@ -34,7 +33,6 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     public string UrlPrefix => "fl://";
 
     public string Icon => $"fl{AppUtils.GetThemeAssetSuffix()}.svg";
-    public string Url => url ?? string.Empty;
 
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";
     public string? GetDetailsUrl(ModelDetails details)
@@ -206,8 +204,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         {
             return;
         }
-
-        url = url ?? _foundryManager.GetServiceUrl();
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
