@@ -43,4 +43,3 @@ internal class FoundryLocalErrorEvent : EventBase
             relatedActivityId);
     }
 }
-
