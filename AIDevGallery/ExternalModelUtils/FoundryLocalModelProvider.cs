@@ -99,8 +99,12 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         return $@"// Initialize Foundry Local
-var config = new Configuration {{ AppName = ""YourApp"", LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning }};
-await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+var config = new Configuration 
+{{ 
+    AppName = ""YourApp"", 
+    LogLevel = LogLevel.Warning 
+}};
+await FoundryLocalManager.CreateAsync(config);
 var manager = FoundryLocalManager.Instance;
 var catalog = await manager.GetCatalogAsync();
 
@@ -110,11 +114,11 @@ await model.LoadAsync();
 
 // Get chat client and use it
 var chatClient = await model.GetChatClientAsync();
-var messages = new List<ChatMessage> {{ new(""user"", ""Your message here"") }};
+var messages = new List<ChatMessage> {{ new ChatMessage(ChatRole.User, ""Your message here"") }};
 await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 {{
     // Process streaming response
-    Console.Write(chunk.Choices[0].Message?.Content);
+    Console.Write(chunk.Choices[0].Delta?.Content);
 }}";
     }
 
@@ -243,7 +247,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             Id = $"fl-{model.Alias}",
             Name = model.DisplayName,
             Url = $"{UrlPrefix}{model.Alias}",
-            Description = $"{model.DisplayName} running locally with Foundry Local",
+            Description = $"{model.DisplayName} is running locally with Foundry Local",
             HardwareAccelerators = [HardwareAccelerator.FOUNDRYLOCAL],
             Size = model.FileSizeMb * 1024 * 1024,
             SupportedOnQualcomm = true,
