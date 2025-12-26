@@ -37,10 +37,11 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     // Note: Foundry Local uses direct SDK calls, not web service, so Url is not applicable
     public string Url => string.Empty;
 
-    public string? IChatClientImplementationNamespace { get; } = "OpenAI";
+    public string? IChatClientImplementationNamespace { get; } = "Microsoft.AI.Foundry.Local";
     public string? GetDetailsUrl(ModelDetails details)
     {
-        throw new NotImplementedException();
+        // Foundry Local models run locally via SDK, no online details page available
+        return null;
     }
 
     private string ExtractAlias(string url) => url.Replace(UrlPrefix, string.Empty);
