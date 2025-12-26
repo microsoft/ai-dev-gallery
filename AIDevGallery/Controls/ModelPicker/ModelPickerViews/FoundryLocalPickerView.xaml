@@ -373,7 +373,7 @@
                 <Image Width="36" Source="ms-appx:///Assets/ModelIcons/fl.light.svg" />
                 <TextBlock
                     FontWeight="SemiBold"
-                    Text="Foundry Local is not installed on this machine"
+                    Text="Foundry Local is not available"
                     TextAlignment="Center" />
                 <TextBlock
                     FontSize="12"
@@ -381,8 +381,8 @@
                     IsTextSelectionEnabled="True"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run Text="" /> <LineBreak /><Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Install Foundry Local</Hyperlink> <LineBreak />  <LineBreak />
-                    <Run Text="You will be able to download and use models once Foundry Local is installed on this machine" />
+                    <Run Text="Foundry Local SDK failed to initialize. This may be due to missing system requirements or runtime dependencies." /> <LineBreak /><LineBreak />
+                    <Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Learn more about Foundry Local</Hyperlink>
                 </TextBlock>
             </StackPanel>
         </Grid>
