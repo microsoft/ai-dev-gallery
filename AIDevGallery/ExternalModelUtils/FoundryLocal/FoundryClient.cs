@@ -27,7 +27,8 @@ internal class FoundryClient : IDisposable
             var config = new Configuration
             {
                 AppName = "AIDevGallery",
-                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                ModelCacheDir = App.ModelCache.GetCacheFolder()
             };
 
             await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
