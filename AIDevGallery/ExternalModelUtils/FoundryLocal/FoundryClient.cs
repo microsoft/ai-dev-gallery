@@ -38,6 +38,7 @@ internal class FoundryClient : IDisposable
 
             if (!FoundryLocalManager.IsInitialized)
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "ManagerCreation", "N/A", "FoundryLocalManager failed to initialize");
                 return null;
             }
 
@@ -49,10 +50,12 @@ internal class FoundryClient : IDisposable
             await client._manager.EnsureEpsDownloadedAsync();
             client._catalog = await client._manager.GetCatalogAsync();
 
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ClientInitialization", "N/A");
             return client;
         }
-        catch
+        catch (Exception ex)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "Exception", "N/A", ex.Message);
             return null;
         }
     }
@@ -61,6 +64,7 @@ internal class FoundryClient : IDisposable
     {
         if (_catalog == null)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCatalogModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
             return [];
         }
 
@@ -86,6 +90,7 @@ internal class FoundryClient : IDisposable
     {
         if (_catalog == null)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCachedModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
             return [];
         }
 
@@ -101,11 +106,13 @@ internal class FoundryClient : IDisposable
             return new FoundryDownloadResult(false, "Catalog not initialized");
         }
 
+        var startTime = DateTime.Now;
         try
         {
             var model = await _catalog.GetModelAsync(catalogModel.Alias);
             if (model == null)
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "ModelNotFound", catalogModel.Alias, "Model not found in catalog");
                 return new FoundryDownloadResult(false, "Model not found in catalog");
             }
 
@@ -124,10 +131,15 @@ internal class FoundryClient : IDisposable
 
             await PrepareModelAsync(catalogModel.Alias, cancellationToken);
 
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
+
             return new FoundryDownloadResult(true, null);
         }
         catch (Exception e)
         {
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "Exception", catalogModel.Alias, e.Message);
             return new FoundryDownloadResult(false, e.Message);
         }
     }
@@ -140,6 +152,12 @@ internal class FoundryClient : IDisposable
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task PrepareModelAsync(string alias, CancellationToken cancellationToken = default)
     {
+        if (_preparedModels.ContainsKey(alias))
+        {
+            return;
+        }
+
+        var startTime = DateTime.Now;
         await _prepareLock.WaitAsync(cancellationToken);
         try
         {
@@ -151,17 +169,20 @@ internal class FoundryClient : IDisposable
 
             if (_catalog == null || _manager == null)
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ClientNotInitialized", alias, "Foundry Local client not initialized");
                 throw new InvalidOperationException("Foundry Local client not initialized");
             }
 
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ModelNotFound", alias, $"Model with alias '{alias}' not found in catalog");
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
             }
 
             if (!await model.IsCachedAsync())
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ModelNotCached", alias, $"Model with alias '{alias}' is not cached");
                 throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
             }
 
@@ -172,6 +193,15 @@ internal class FoundryClient : IDisposable
 
             _preparedModels[alias] = model;
             _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
+
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelPrepare", alias, duration);
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "Exception", alias, ex.Message);
+            throw;
         }
         finally
         {
@@ -193,6 +223,7 @@ internal class FoundryClient : IDisposable
     {
         if (_catalog == null)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "CatalogNotInitialized", modelId, "Catalog not initialized");
             return false;
         }
 
@@ -201,8 +232,11 @@ internal class FoundryClient : IDisposable
             var variant = await _catalog.GetModelVariantAsync(modelId);
             if (variant == null)
             {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "VariantNotFound", modelId, "Model variant not found");
                 return false;
             }
+
+            var alias = variant.Alias;
 
             if (await variant.IsLoadedAsync())
             {
@@ -214,24 +248,26 @@ internal class FoundryClient : IDisposable
                 await variant.RemoveFromCacheAsync();
             }
 
-            var alias = variant.Alias;
             if (!string.IsNullOrEmpty(alias))
             {
                 _preparedModels.Remove(alias);
                 _modelMaxOutputTokens.Remove(alias);
             }
 
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDelete", alias ?? modelId);
             return true;
         }
         catch (Exception ex)
         {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("DeleteModelFailed", modelId, ex.Message);
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "Exception", modelId, ex.Message);
             return false;
         }
     }
 
     public async Task ClearPreparedModelsAsync()
     {
+        var modelCount = _preparedModels.Count;
+
         // Unload all prepared models before clearing
         foreach (var kvp in _preparedModels)
         {
@@ -246,12 +282,17 @@ internal class FoundryClient : IDisposable
             catch (Exception ex)
             {
                 // Log but continue unloading other models
-                Telemetry.Events.FoundryLocalErrorEvent.Log("UnloadModelFailed", kvp.Key, ex.Message);
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelUnload", "Exception", kvp.Key, ex.Message);
             }
         }
 
         _preparedModels.Clear();
         _modelMaxOutputTokens.Clear();
+
+        if (modelCount > 0)
+        {
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ClearPreparedModels", $"{modelCount} models");
+        }
     }
 
     public string? GetServiceUrl()
@@ -264,25 +305,6 @@ internal class FoundryClient : IDisposable
         if (_disposed)
         {
             return;
-        }
-
-        // Unload all prepared models synchronously
-        foreach (var kvp in _preparedModels)
-        {
-            try
-            {
-                var model = kvp.Value;
-
-                // Note: Using synchronous Wait here as Dispose cannot be async
-                if (model.IsLoadedAsync().ConfigureAwait(false).GetAwaiter().GetResult())
-                {
-                    model.UnloadAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-                }
-            }
-            catch
-            {
-                // Suppress exceptions during disposal to prevent finalizer issues
-            }
         }
 
         _preparedModels.Clear();

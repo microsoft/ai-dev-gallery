@@ -50,6 +50,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         if (_foundryManager == null || string.IsNullOrEmpty(alias))
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ClientNotInitialized", alias ?? "unknown", "Foundry Local client not initialized or invalid model alias");
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
@@ -57,6 +58,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var model = _foundryManager.GetPreparedModel(alias);
         if (model == null)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ModelNotReady", alias, "Model is not ready yet. EnsureModelReadyAsync must be called first");
             throw new InvalidOperationException(
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please call EnsureModelReadyAsync(url) first.");
         }
@@ -75,6 +77,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
 
         // Wrap it in our adapter to implement IChatClient interface
+        Telemetry.Events.FoundryLocalOperationEvent.Log("GetChatClient", alias);
         return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
     }
 
@@ -142,9 +145,16 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             return false;
         }
 
+        var startTime = DateTime.Now;
         var result = await _foundryManager.DownloadModel(model, progress, cancellationToken);
+        var duration = (DateTime.Now - startTime).TotalSeconds;
 
-        FoundryLocalDownloadEvent.Log(model.Alias, result.Success, result.ErrorMessage);
+        FoundryLocalDownloadEvent.Log(
+            model.Alias,
+            result.Success,
+            result.ErrorMessage,
+            model.FileSizeMb,
+            duration);
 
         return result.Success;
     }
@@ -203,6 +213,8 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
 
         _downloadedModels = downloadedModels;
+
+        Telemetry.Events.FoundryLocalOperationEvent.Log("ProviderInitialization", $"{downloadedModels.Count} cached models");
     }
 
     private ModelDetails ToModelDetails(FoundryCatalogModel model)
@@ -288,7 +300,11 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 var result = await _foundryManager.DeleteModelAsync(catalogModel.ModelId);
                 if (result)
                 {
-                    await ResetAsync();
+                    if (_downloadedModels != null)
+                    {
+                        _downloadedModels = _downloadedModels.Where(m =>
+                            (m.ProviderModelDetails as FoundryCatalogModel)?.Alias != catalogModel.Alias);
+                    }
                 }
 
                 return result;
@@ -298,7 +314,11 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
         catch (Exception ex)
         {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("DeleteCachedModelFailed", cachedModel.Details.Name, ex.Message);
+            Telemetry.Events.FoundryLocalErrorEvent.Log(
+                "CachedModelDelete",
+                "Exception",
+                cachedModel.Details.Name,
+                ex.Message);
             return false;
         }
     }
@@ -312,25 +332,56 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
         try
         {
-            var cachedModels = await GetCachedModelsWithDetails();
+            // Get snapshot of cached models to avoid collection modification during enumeration
+            var cachedModels = (await GetCachedModelsWithDetails()).ToList();
             var allDeleted = true;
+            var deletedCount = 0;
 
             foreach (var cachedModel in cachedModels)
             {
-                var deleted = await DeleteCachedModelAsync(cachedModel);
-                if (!deleted)
+                if (cachedModel.Details.ProviderModelDetails is not FoundryCatalogModel catalogModel)
                 {
+                    continue;
+                }
+
+                try
+                {
+                    var deleted = await _foundryManager.DeleteModelAsync(catalogModel.ModelId);
+                    if (deleted)
+                    {
+                        deletedCount++;
+                    }
+                    else
+                    {
+                        allDeleted = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Telemetry.Events.FoundryLocalErrorEvent.Log(
+                        "ClearAllCache",
+                        "ModelDeletion",
+                        catalogModel.Alias,
+                        ex.Message);
                     allDeleted = false;
                 }
             }
 
             await ResetAsync();
 
+            Telemetry.Events.FoundryLocalOperationEvent.Log(
+                "ClearAllCache",
+                $"{deletedCount}/{cachedModels.Count} models deleted");
+
             return allDeleted;
         }
         catch (Exception ex)
         {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ClearAllCacheFailed", "all", ex.Message);
+            Telemetry.Events.FoundryLocalErrorEvent.Log(
+                "ClearAllCache",
+                "Exception",
+                "all",
+                ex.Message);
             return false;
         }
     }

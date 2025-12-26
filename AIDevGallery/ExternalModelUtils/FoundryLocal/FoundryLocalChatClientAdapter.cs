@@ -105,6 +105,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         {
             var errorMessage = $"The model '{_modelId}' did not generate any output. " +
                              "Please verify you have selected an appropriate language model.";
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ChatStreaming", "NoOutput", _modelId, errorMessage);
             throw new InvalidOperationException(errorMessage);
         }
     }
