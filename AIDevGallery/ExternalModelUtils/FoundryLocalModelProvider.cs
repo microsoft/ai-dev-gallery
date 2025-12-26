@@ -34,6 +34,9 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public string Icon => $"fl{AppUtils.GetThemeAssetSuffix()}.svg";
 
+    // Note: Foundry Local uses direct SDK calls, not web service, so Url is not applicable
+    public string Url => string.Empty;
+
     public string? IChatClientImplementationNamespace { get; } = "OpenAI";
     public string? GetDetailsUrl(ModelDetails details)
     {
@@ -182,7 +185,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         _downloadedModels = null;
         _catalogModels = null;
         _foundryManager = null;
-        url = null;
 
         // Attempt to reinitialize
         await InitializeAsync();
