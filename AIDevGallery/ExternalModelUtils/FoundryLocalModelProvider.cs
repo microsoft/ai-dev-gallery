@@ -173,6 +173,26 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
     }
 
+    /// <summary>
+    /// Retries initialization of the Foundry Local provider.
+    /// This will reset the provider state and attempt to reinitialize the manager.
+    /// </summary>
+    /// <returns>True if initialization succeeded, false otherwise.</returns>
+    public async Task<bool> RetryInitializationAsync()
+    {
+        // Clear existing state
+        _downloadedModels = null;
+        _catalogModels = null;
+        _foundryManager = null;
+        url = null;
+
+        // Attempt to reinitialize
+        await InitializeAsync();
+
+        // Check if initialization succeeded
+        return _foundryManager != null;
+    }
+
     private async Task InitializeAsync(CancellationToken cancelationToken = default)
     {
         if (_foundryManager != null && _downloadedModels != null && _downloadedModels.Any())

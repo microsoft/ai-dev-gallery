@@ -384,6 +384,13 @@
                     <Run Text="Foundry Local SDK failed to initialize. This may be due to missing system requirements or runtime dependencies." /> <LineBreak /><LineBreak />
                     <Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Learn more about Foundry Local</Hyperlink>
                 </TextBlock>
+                <Button
+                    x:Name="RetryButton"
+                    Margin="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Click="RetryButton_Click"
+                    Content="Retry"
+                    Style="{StaticResource AccentButtonStyle}" />
             </StackPanel>
         </Grid>
         <VisualStateManager.VisualStateGroups>

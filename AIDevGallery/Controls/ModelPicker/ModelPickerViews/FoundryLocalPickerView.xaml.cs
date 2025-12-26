@@ -167,4 +167,27 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         dataPackage.SetText(FoundryLocalUrl);
         Clipboard.SetContentWithOptions(dataPackage, null);
     }
+
+    private async void RetryButton_Click(object sender, RoutedEventArgs e)
+    {
+        VisualStateManager.GoToState(this, "ShowLoading", true);
+
+        try
+        {
+            var success = await FoundryLocalModelProvider.Instance.RetryInitializationAsync();
+
+            if (success)
+            {
+                await Load([]);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "ShowNotAvailable", true);
+            }
+        }
+        catch
+        {
+            VisualStateManager.GoToState(this, "ShowNotAvailable", true);
+        }
+    }
 }
