@@ -28,6 +28,7 @@ internal class FoundryClient : IDisposable
             {
                 AppName = "AIDevGallery",
                 LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                ModelCacheDir = App.ModelCache.GetCacheFolder(),
                 Web = new Configuration.WebService
                 {
                     Urls = "http://127.0.0.1:0"
