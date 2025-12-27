@@ -57,7 +57,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         }
 
         // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        var model = _foundryManager.GetPreparedModel(alias);
+        var model = _foundryManager.GetLoadedModel(alias);
         if (model == null)
         {
             Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ModelNotReady", alias, "Model is not ready yet. EnsureModelReadyAsync must be called first");
@@ -92,7 +92,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
             return null;
         }
 
-        var model = _foundryManager.GetPreparedModel(alias);
+        var model = _foundryManager.GetLoadedModel(alias);
         if (model == null)
         {
             return null;
@@ -253,7 +253,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     }
 
     /// <summary>
-    /// Resets the provider state by clearing downloaded models cache and unloading all prepared models.
+    /// Resets the provider state by clearing downloaded models cache and unloading all loaded models.
     /// WARNING: This will unload all currently loaded models. Any ongoing inference will fail.
     /// </summary>
     private async Task ResetAsync()
@@ -262,7 +262,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
         if (_foundryManager != null)
         {
-            await _foundryManager.ClearPreparedModelsAsync();
+            await _foundryManager.UnloadAllModelsAsync();
         }
     }
 
@@ -360,12 +360,12 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
         }
 
-        if (_foundryManager.GetPreparedModel(alias) != null)
+        if (_foundryManager.GetLoadedModel(alias) != null)
         {
             return;
         }
 
-        await _foundryManager.PrepareModelAsync(alias, cancellationToken);
+        await _foundryManager.EnsureModelLoadedAsync(alias, cancellationToken);
     }
 
     public async Task<IEnumerable<CachedModel>> GetCachedModelsWithDetails()

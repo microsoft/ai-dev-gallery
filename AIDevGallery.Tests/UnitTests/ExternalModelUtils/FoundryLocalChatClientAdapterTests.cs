@@ -17,7 +17,7 @@ namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
 public class FoundryLocalChatClientAdapterTests
 {
     [TestMethod]
-    public void ConvertToFoundryMessagesConvertsSimpleMessage()
+    public void ConvertToOpenAIMessagesConvertsSimpleMessage()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -26,7 +26,7 @@ public class FoundryLocalChatClientAdapterTests
         };
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(1, result.Count);
@@ -35,7 +35,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToFoundryMessagesConvertsMultipleMessages()
+    public void ConvertToOpenAIMessagesConvertsMultipleMessages()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -46,7 +46,7 @@ public class FoundryLocalChatClientAdapterTests
         };
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(3, result.Count);
@@ -59,7 +59,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToFoundryMessagesHandlesEmptyText()
+    public void ConvertToOpenAIMessagesHandlesEmptyText()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -68,7 +68,7 @@ public class FoundryLocalChatClientAdapterTests
         };
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(1, result.Count);
@@ -77,20 +77,20 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToFoundryMessagesHandlesEmptyList()
+    public void ConvertToOpenAIMessagesHandlesEmptyList()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>();
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(0, result.Count);
     }
 
     [TestMethod]
-    public void ConvertToFoundryMessagesPreservesMultipleUserMessages()
+    public void ConvertToOpenAIMessagesPreservesMultipleUserMessages()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -101,7 +101,7 @@ public class FoundryLocalChatClientAdapterTests
         };
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(3, result.Count);
@@ -112,7 +112,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToFoundryMessagesHandlesCustomRoles()
+    public void ConvertToOpenAIMessagesHandlesCustomRoles()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -121,7 +121,7 @@ public class FoundryLocalChatClientAdapterTests
         };
 
         // Act
-        var result = InvokeConvertToFoundryMessages(messages);
+        var result = InvokeConvertToOpenAIMessages(messages);
 
         // Assert
         Assert.AreEqual(1, result.Count);
@@ -130,19 +130,19 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     /// <summary>
-    /// Uses reflection to invoke the private static ConvertToFoundryMessages method.
+    /// Uses reflection to invoke the private static ConvertToOpenAIMessages method.
     /// </summary>
-    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> InvokeConvertToFoundryMessages(
+    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> InvokeConvertToOpenAIMessages(
         IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
     {
         var adapterType = Type.GetType("AIDevGallery.ExternalModelUtils.FoundryLocal.FoundryLocalChatClientAdapter, AIDevGallery");
         Assert.IsNotNull(adapterType, "FoundryLocalChatClientAdapter type not found");
 
         var method = adapterType.GetMethod(
-            "ConvertToFoundryMessages",
+            "ConvertToOpenAIMessages",
             BindingFlags.NonPublic | BindingFlags.Static);
 
-        Assert.IsNotNull(method, "ConvertToFoundryMessages method not found");
+        Assert.IsNotNull(method, "ConvertToOpenAIMessages method not found");
 
         var result = method.Invoke(null, new object[] { messages });
         return (List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage>)result!;

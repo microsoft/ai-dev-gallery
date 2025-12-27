@@ -12,9 +12,9 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
 internal class FoundryClient : IDisposable
 {
-    private readonly Dictionary<string, IModel> _preparedModels = new();
+    private readonly Dictionary<string, IModel> _loadedModels = new();
     private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();
-    private readonly SemaphoreSlim _prepareLock = new(1, 1);
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
     private bool _disposed;
@@ -81,15 +81,15 @@ internal class FoundryClient : IDisposable
 
             if (await model.IsCachedAsync())
             {
-                await PrepareModelAsync(catalogModel.Alias, cancellationToken);
-                return new FoundryDownloadResult(true, "Model already downloaded");
+                await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
+                return new FoundryDownloadResult(true, "Model already cached and loaded");
             }
 
             await model.DownloadAsync(
                 progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
 
-            await PrepareModelAsync(catalogModel.Alias, cancellationToken);
+            await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
@@ -105,44 +105,44 @@ internal class FoundryClient : IDisposable
     }
 
     /// <summary>
-    /// Prepares a model for use by loading it.
+    /// Ensures a model is loaded into memory for use.
     /// Should be called after download or when first accessing a cached model.
-    /// Thread-safe: multiple concurrent calls for the same alias will only prepare once.
+    /// Thread-safe: multiple concurrent calls for the same alias will only load once.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task PrepareModelAsync(string alias, CancellationToken cancellationToken = default)
+    public async Task EnsureModelLoadedAsync(string alias, CancellationToken cancellationToken = default)
     {
-        if (_preparedModels.ContainsKey(alias))
+        if (_loadedModels.ContainsKey(alias))
         {
             return;
         }
 
         var startTime = DateTime.Now;
-        await _prepareLock.WaitAsync(cancellationToken);
+        await _loadLock.WaitAsync(cancellationToken);
         try
         {
             // Double-check inside lock to ensure thread safety
-            if (_preparedModels.ContainsKey(alias))
+            if (_loadedModels.ContainsKey(alias))
             {
                 return;
             }
 
             if (_catalog == null || _manager == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ClientNotInitialized", alias, "Foundry Local client not initialized");
-                throw new InvalidOperationException("Foundry Local client not initialized");
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ClientNotInitialized", alias, "FoundryLocal client not initialized");
+                throw new InvalidOperationException("FoundryLocal client not initialized");
             }
 
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ModelNotFound", alias, $"Model with alias '{alias}' not found in catalog");
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ModelNotFound", alias, $"Model with alias '{alias}' not found in catalog");
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
             }
 
             if (!await model.IsCachedAsync())
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "ModelNotCached", alias, $"Model with alias '{alias}' is not cached");
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ModelNotCached", alias, $"Model with alias '{alias}' is not cached");
                 throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
             }
 
@@ -151,26 +151,26 @@ internal class FoundryClient : IDisposable
                 await model.LoadAsync(cancellationToken);
             }
 
-            _preparedModels[alias] = model;
+            _loadedModels[alias] = model;
             _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
-            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelPrepare", alias, duration);
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelLoad", alias, duration);
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
             var duration = (DateTime.Now - startTime).TotalSeconds;
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelPrepare", "Exception", alias, ex.Message);
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "Exception", alias, ex.Message);
             throw;
         }
         finally
         {
-            _prepareLock.Release();
+            _loadLock.Release();
         }
     }
 
-    public IModel? GetPreparedModel(string alias) =>
-        _preparedModels.GetValueOrDefault(alias);
+    public IModel? GetLoadedModel(string alias) =>
+        _loadedModels.GetValueOrDefault(alias);
 
     public int? GetModelMaxOutputTokens(string alias) =>
         _modelMaxOutputTokens.GetValueOrDefault(alias);
@@ -204,9 +204,10 @@ internal class FoundryClient : IDisposable
                 await variant.RemoveFromCacheAsync();
             }
 
+            // Clean up loaded model tracking regardless of alias
             if (!string.IsNullOrEmpty(alias))
             {
-                _preparedModels.Remove(alias);
+                _loadedModels.Remove(alias);
                 _modelMaxOutputTokens.Remove(alias);
             }
 
@@ -220,12 +221,12 @@ internal class FoundryClient : IDisposable
         }
     }
 
-    public async Task ClearPreparedModelsAsync()
+    public async Task UnloadAllModelsAsync()
     {
-        var modelCount = _preparedModels.Count;
+        var modelCount = _loadedModels.Count;
 
-        // Unload all prepared models before clearing
-        foreach (var (alias, model) in _preparedModels)
+        // Unload all loaded models before clearing
+        foreach (var (alias, model) in _loadedModels)
         {
             try
             {
@@ -241,12 +242,12 @@ internal class FoundryClient : IDisposable
             }
         }
 
-        _preparedModels.Clear();
+        _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
 
         if (modelCount > 0)
         {
-            Telemetry.Events.FoundryLocalOperationEvent.Log("ClearPreparedModels", $"{modelCount} models");
+            Telemetry.Events.FoundryLocalOperationEvent.Log("UnloadAllModels", $"{modelCount} models");
         }
     }
 
@@ -257,9 +258,9 @@ internal class FoundryClient : IDisposable
             return;
         }
 
-        _preparedModels.Clear();
+        _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
-        _prepareLock.Dispose();
+        _loadLock.Dispose();
         _disposed = true;
     }
 }

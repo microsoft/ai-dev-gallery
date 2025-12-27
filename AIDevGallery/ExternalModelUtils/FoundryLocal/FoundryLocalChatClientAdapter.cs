@@ -45,7 +45,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
     {
         ApplyChatOptions(options);
 
-        var openAIMessages = ConvertToFoundryMessages(chatMessages);
+        var openAIMessages = ConvertToOpenAIMessages(chatMessages);
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
@@ -123,7 +123,10 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         }
     }
 
-    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> ConvertToFoundryMessages(IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
+    /// <summary>
+    /// Converts Microsoft.Extensions.AI chat messages to OpenAI-compatible format.
+    /// </summary>
+    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> ConvertToOpenAIMessages(IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
     {
         return messages.Select(m => new Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage
         {
