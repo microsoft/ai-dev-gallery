@@ -78,7 +78,8 @@ internal class FoundryClient : IDisposable
                 FileSizeMb = info.FileSizeMb ?? 0,
                 License = info.License ?? string.Empty,
                 ModelId = variant.Id,
-                Runtime = info.Runtime
+                Runtime = info.Runtime,
+                Task = info.Task
             };
         }).ToList();
     }

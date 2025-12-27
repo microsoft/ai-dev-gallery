@@ -18,4 +18,5 @@ internal record FoundryCatalogModel
     public string License { get; init; } = default!;
     public string ModelId { get; init; } = default!;
     public Runtime? Runtime { get; init; }
+    public string? Task { get; init; }
 }

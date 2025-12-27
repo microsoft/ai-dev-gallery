@@ -49,11 +49,16 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         AvailableModels.Clear();
         CatalogModels.Clear();
 
+        var requiredTasks = GetRequiredTasksForModelTypes(types);
+
         foreach (var model in await FoundryLocalModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [])
         {
             if (model.ProviderModelDetails is FoundryCatalogModel foundryModel)
             {
-                AvailableModels.Add(new(foundryModel.Alias, model, foundryModel));
+                if (requiredTasks.Count == 0 || requiredTasks.Contains(foundryModel.Task ?? string.Empty))
+                {
+                    AvailableModels.Add(new(foundryModel.Alias, model, foundryModel));
+                }
             }
             else
             {
@@ -65,27 +70,67 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
         var catalogModels = catalogModelsDict.Values
             .Select(m => (m.ProviderModelDetails as FoundryCatalogModel)!)
+            .Where(f => requiredTasks.Count == 0 || requiredTasks.Contains(f?.Task ?? string.Empty))
             .GroupBy(f => f!.Alias)
             .OrderByDescending(f => f.Key);
 
-        foreach (var m in catalogModels)
+        foreach (var modelGroup in catalogModels)
         {
-            var firstModel = m.FirstOrDefault(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name));
-            if (firstModel == null)
+            var notDownloadedModels = modelGroup
+                .Where(model => !AvailableModels.Any(cm => cm.ModelDetails.Name == model.Name))
+                .ToList();
+
+            if (notDownloadedModels.Count == 0)
             {
                 continue;
             }
 
-            // DownloadableModels.Add(new DownloadableModel(m));
+            var firstModel = notDownloadedModels[0];
             CatalogModels.Add(new FoundryCatalogModelGroup(
-                m.Key,
-                firstModel!.License.ToLowerInvariant(),
-                m.Where(m => m.Runtime != null).Select(m => new FoundryCatalogModelDetails(m.Runtime!, m.FileSizeMb * 1024 * 1024)),
-                m.Where(m => !AvailableModels.Any(cm => cm.ModelDetails.Name == m.Name))
-                .Select(m => new DownloadableModel(catalogModelsDict[m.Name]))));
+                modelGroup.Key,
+                firstModel.License.ToLowerInvariant(),
+                modelGroup.Where(model => model.Runtime != null)
+                    .Select(model => new FoundryCatalogModelDetails(model.Runtime!, model.FileSizeMb * 1024 * 1024)),
+                notDownloadedModels.Select(model => new DownloadableModel(catalogModelsDict[model.Name]))));
         }
 
         VisualStateManager.GoToState(this, "ShowModels", true);
+    }
+
+    private static HashSet<string> GetRequiredTasksForModelTypes(List<ModelType> types)
+    {
+        var requiredTasks = new HashSet<string>();
+
+        foreach (var type in types)
+        {
+            var typeName = type.ToString();
+
+            // Language models and chat-related models use chat-completion
+            if (type == ModelType.LanguageModels ||
+                type == ModelType.PhiSilica ||
+                type == ModelType.PhiSilicaLora ||
+                (typeName.StartsWith("Phi") && !typeName.Contains("Vision")) ||
+                typeName.StartsWith("Mistral") ||
+                type == ModelType.TextSummarizer ||
+                type == ModelType.TextRewriter ||
+                type == ModelType.DescribeYourChange ||
+                type == ModelType.TextToTableConverter)
+            {
+                requiredTasks.Add("chat-completion");
+            }
+
+            // Audio models use automatic-speech-recognition
+            else if (type == ModelType.AudioModels ||
+                     type == ModelType.Whisper ||
+                     typeName.StartsWith("Whisper"))
+            {
+                requiredTasks.Add("automatic-speech-recognition");
+            }
+
+            // For other model types, no filtering is applied (empty set will show all models)
+        }
+
+        return requiredTasks;
     }
 
     private void CopyModelName_Click(object sender, RoutedEventArgs e)
@@ -115,16 +160,11 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             if (modelToSelect != null)
             {
                 DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.Select(AvailableModels.IndexOf(modelToSelect)));
-            }
-            else
-            {
-                DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
+                return;
             }
         }
-        else
-        {
-            DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
-        }
+
+        DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
     }
 
     private void DownloadModelButton_Click(object sender, RoutedEventArgs e)
