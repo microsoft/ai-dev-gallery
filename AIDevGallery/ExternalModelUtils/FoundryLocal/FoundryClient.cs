@@ -92,9 +92,9 @@ internal class FoundryClient : IDisposable
             return [];
         }
 
-        var cachedVariants = await _catalog.GetCachedModelsAsync();
-
-        return cachedVariants.Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias)).ToList();
+        return (await _catalog.GetCachedModelsAsync())
+            .Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias))
+            .ToList();
     }
 
     public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)
@@ -121,10 +121,7 @@ internal class FoundryClient : IDisposable
             }
 
             await model.DownloadAsync(
-                progressPercent =>
-                {
-                    progress?.Report(progressPercent / 100f);
-                },
+                progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
 
             await PrepareModelAsync(catalogModel.Alias, cancellationToken);
@@ -207,15 +204,11 @@ internal class FoundryClient : IDisposable
         }
     }
 
-    public IModel? GetPreparedModel(string alias)
-    {
-        return _preparedModels.TryGetValue(alias, out var model) ? model : null;
-    }
+    public IModel? GetPreparedModel(string alias) =>
+        _preparedModels.GetValueOrDefault(alias);
 
-    public int? GetModelMaxOutputTokens(string alias)
-    {
-        return _modelMaxOutputTokens.TryGetValue(alias, out var maxTokens) ? maxTokens : null;
-    }
+    public int? GetModelMaxOutputTokens(string alias) =>
+        _modelMaxOutputTokens.GetValueOrDefault(alias);
 
     public async Task<bool> DeleteModelAsync(string modelId)
     {
@@ -267,11 +260,10 @@ internal class FoundryClient : IDisposable
         var modelCount = _preparedModels.Count;
 
         // Unload all prepared models before clearing
-        foreach (var kvp in _preparedModels)
+        foreach (var (alias, model) in _preparedModels)
         {
             try
             {
-                var model = kvp.Value;
                 if (await model.IsLoadedAsync())
                 {
                     await model.UnloadAsync();
@@ -280,7 +272,7 @@ internal class FoundryClient : IDisposable
             catch (Exception ex)
             {
                 // Log but continue unloading other models
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelUnload", "Exception", kvp.Key, ex.Message);
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelUnload", "Exception", alias, ex.Message);
             }
         }
 

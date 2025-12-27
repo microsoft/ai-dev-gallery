@@ -43,50 +43,17 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Map ChatOptions to FoundryLocal ChatSettings
-        // CRITICAL: MaxTokens must be set, otherwise some model won't generate any output
-        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? _modelMaxOutputTokens ?? DefaultMaxTokens;
+        ApplyChatOptions(options);
 
-        if (options?.Temperature != null)
-        {
-            _chatClient.Settings.Temperature = (float)options.Temperature;
-        }
-
-        if (options?.TopP != null)
-        {
-            _chatClient.Settings.TopP = (float)options.TopP;
-        }
-
-        if (options?.TopK != null)
-        {
-            _chatClient.Settings.TopK = options.TopK;
-        }
-
-        if (options?.FrequencyPenalty != null)
-        {
-            _chatClient.Settings.FrequencyPenalty = (float)options.FrequencyPenalty;
-        }
-
-        if (options?.PresencePenalty != null)
-        {
-            _chatClient.Settings.PresencePenalty = (float)options.PresencePenalty;
-        }
-
-        if (options?.Seed != null)
-        {
-            _chatClient.Settings.RandomSeed = (int)options.Seed;
-        }
-
-        var messageList = chatMessages.ToList();
-        var openAIMessages = ConvertToFoundryMessages(messageList);
+        var openAIMessages = ConvertToFoundryMessages(chatMessages);
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
         int chunkCount = 0;
         await foreach (var chunk in streamingResponse)
         {
-            chunkCount++;
             cancellationToken.ThrowIfCancellationRequested();
+            chunkCount++;
 
             if (chunk.Choices != null && chunk.Choices.Count > 0)
             {
@@ -120,12 +87,48 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         // ChatClient doesn't need disposal
     }
 
-    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> ConvertToFoundryMessages(IList<Microsoft.Extensions.AI.ChatMessage> messages)
+    private void ApplyChatOptions(ChatOptions? options)
+    {
+        // CRITICAL: MaxTokens must be set, otherwise some models won't generate any output
+        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? _modelMaxOutputTokens ?? DefaultMaxTokens;
+
+        if (options?.Temperature is float temperature)
+        {
+            _chatClient.Settings.Temperature = temperature;
+        }
+
+        if (options?.TopP is float topP)
+        {
+            _chatClient.Settings.TopP = topP;
+        }
+
+        if (options?.TopK is int topK)
+        {
+            _chatClient.Settings.TopK = topK;
+        }
+
+        if (options?.FrequencyPenalty is float frequencyPenalty)
+        {
+            _chatClient.Settings.FrequencyPenalty = frequencyPenalty;
+        }
+
+        if (options?.PresencePenalty is float presencePenalty)
+        {
+            _chatClient.Settings.PresencePenalty = presencePenalty;
+        }
+
+        if (options?.Seed is long seed)
+        {
+            _chatClient.Settings.RandomSeed = (int)seed;
+        }
+    }
+
+    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> ConvertToFoundryMessages(IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
     {
         return messages.Select(m => new Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage
         {
             Role = m.Role.Value,
-            Content = m.Text ?? string.Empty
+            Content = m.Text ?? string.Empty // NOTE: Only supports text content; multi-modal content (images, etc.) is not handled
         }).ToList();
     }
 }

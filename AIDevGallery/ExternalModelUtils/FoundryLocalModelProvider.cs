@@ -186,15 +186,12 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     /// <returns>True if initialization succeeded, false otherwise.</returns>
     public async Task<bool> RetryInitializationAsync()
     {
-        // Clear existing state
         _downloadedModels = null;
         _catalogModels = null;
         _foundryManager = null;
 
-        // Attempt to reinitialize
         await InitializeAsync();
 
-        // Check if initialization succeeded
         return _foundryManager != null;
     }
 
