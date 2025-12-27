@@ -60,7 +60,7 @@ internal sealed partial class SettingsPage : Page
         base.OnNavigatingFrom(e);
     }
 
-    private void GetStorageInfo()
+    private async void GetStorageInfo()
     {
         cachedModels.Clear();
 
@@ -68,14 +68,15 @@ internal sealed partial class SettingsPage : Page
         FolderPathTxt.Content = cacheFolderPath;
 
         long totalCacheSize = 0;
+        var allModels = await App.ModelCache.GetAllModelsAsync();
 
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
+        foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
         {
             cachedModels.Add(cachedModel);
             totalCacheSize += cachedModel.ModelSize;
         }
 
-        if (App.ModelCache.Models.Count > 0)
+        if (cachedModels.Count > 0)
         {
             ModelsExpander.IsExpanded = true;
         }
@@ -184,6 +185,12 @@ internal sealed partial class SettingsPage : Page
     {
         if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is CachedModel model)
         {
+            // FoundryLocal models are managed by the SDK, don't open folder
+            if (model.Source == CachedModelSource.FoundryLocal)
+            {
+                return;
+            }
+
             string? path = model.Path;
 
             if (model.IsFile)
