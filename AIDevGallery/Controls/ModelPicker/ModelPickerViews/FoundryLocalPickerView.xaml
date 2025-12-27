@@ -99,7 +99,7 @@
                                                 ToolTipService.ToolTip="More info"
                                                 Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel.Runtime)}">
                                                 <TextBlock>
-                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(FoundryCatalogModel.Runtime.ExecutionProvider), FallbackValue=''}" />
+                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExecutionProvider(FoundryCatalogModel.Runtime.ExecutionProvider), FallbackValue=''}" />
                                                 </TextBlock>
                                                 <Button.Flyout>
                                                     <Flyout ShouldConstrainToRootBounds="False">
@@ -248,7 +248,7 @@
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             ToolTipService.ToolTip="More info">
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(Runtime.ExecutionProvider)}" />
+                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExecutionProvider(Runtime.ExecutionProvider)}" />
                                                                 <Rectangle
                                                                     Width="1"
                                                                     HorizontalAlignment="Stretch"

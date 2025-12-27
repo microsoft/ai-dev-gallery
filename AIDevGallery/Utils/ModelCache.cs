@@ -140,7 +140,10 @@ internal class ModelCache
         await CacheStore.ClearAsync();
 
         var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-        await foundryLocalProvider.ClearAllCacheAsync();
+        if (await foundryLocalProvider.IsAvailable())
+        {
+            await foundryLocalProvider.ClearAllCacheAsync();
+        }
     }
 
     public async Task MoveCache(string path, CancellationToken ct)

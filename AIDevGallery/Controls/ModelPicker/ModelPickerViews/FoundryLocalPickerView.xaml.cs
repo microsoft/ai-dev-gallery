@@ -147,10 +147,10 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
             return string.Empty;
         }
 
-        return $"Download {GetShortExectionProvider(foundryModel.Runtime.ExecutionProvider)} variant";
+        return $"Download {GetShortExecutionProvider(foundryModel.Runtime.ExecutionProvider)} variant";
     }
 
-    internal static string GetShortExectionProvider(string? provider)
+    internal static string GetShortExecutionProvider(string? provider)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
