@@ -148,5 +148,3 @@ public class FoundryLocalChatClientAdapterTests
         return (List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage>)result!;
     }
 }
-
-

@@ -110,5 +110,3 @@ public class FoundryLocalModelProviderTests
         Assert.AreEqual(string.Empty, provider.Url, "Foundry Local uses direct SDK calls, not web service");
     }
 }
-
-
