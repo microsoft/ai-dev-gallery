@@ -139,6 +139,93 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         return _catalogModels ?? [];
     }
 
+    /// <summary>
+    /// Maps ModelType enums to Foundry Local task type strings for filtering models.
+    /// </summary>
+    /// <param name="types">List of ModelType enums to map.</param>
+    /// <returns>Set of task type strings (e.g., "chat-completion", "automatic-speech-recognition").</returns>
+    public static HashSet<string> GetRequiredTasksForModelTypes(List<ModelType> types)
+    {
+        var requiredTasks = new HashSet<string>();
+
+        foreach (var type in types)
+        {
+            var typeName = type.ToString();
+
+            // Language models and chat-related models use chat-completion
+            if (type == ModelType.LanguageModels ||
+                type == ModelType.PhiSilica ||
+                type == ModelType.PhiSilicaLora ||
+                (typeName.StartsWith("Phi", StringComparison.Ordinal) && !typeName.Contains("Vision")) ||
+                typeName.StartsWith("Mistral", StringComparison.Ordinal) ||
+                type == ModelType.TextSummarizer ||
+                type == ModelType.TextRewriter ||
+                type == ModelType.DescribeYourChange ||
+                type == ModelType.TextToTableConverter)
+            {
+                requiredTasks.Add(ModelTaskTypes.ChatCompletion);
+            }
+
+            // Audio models use automatic-speech-recognition
+            else if (type == ModelType.AudioModels ||
+                     type == ModelType.Whisper ||
+                     typeName.StartsWith("Whisper", StringComparison.Ordinal))
+            {
+                requiredTasks.Add(ModelTaskTypes.AutomaticSpeechRecognition);
+            }
+
+            // For other model types, no filtering is applied (empty set will show all models)
+        }
+
+        return requiredTasks;
+    }
+
+    /// <summary>
+    /// Lists all models available in the Foundry Local catalog.
+    /// </summary>
+    private async Task<List<FoundryCatalogModel>> ListCatalogModelsAsync()
+    {
+        if (_foundryManager?.Catalog == null)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCatalogModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
+            return [];
+        }
+
+        var models = await _foundryManager.Catalog.ListModelsAsync();
+        return models.Select(model =>
+        {
+            var variant = model.SelectedVariant;
+            var info = variant.Info;
+            return new FoundryCatalogModel
+            {
+                Name = info.Name,
+                DisplayName = info.DisplayName ?? info.Name,
+                Alias = model.Alias,
+                FileSizeMb = info.FileSizeMb ?? 0,
+                License = info.License ?? string.Empty,
+                ModelId = variant.Id,
+                Runtime = info.Runtime,
+                Task = info.Task
+            };
+        }).ToList();
+    }
+
+    /// <summary>
+    /// Lists all cached (downloaded) models.
+    /// </summary>
+    private async Task<List<FoundryCachedModelInfo>> ListCachedModelsAsync()
+    {
+        if (_foundryManager?.Catalog == null)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCachedModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
+            return [];
+        }
+
+        return (await _foundryManager.Catalog.GetCachedModelsAsync())
+            .Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias))
+            .ToList();
+    }
+
     public async Task<bool> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
         if (_foundryManager == null)
@@ -211,10 +298,10 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
         if (_catalogModels == null || !_catalogModels.Any())
         {
-            _catalogModels = (await _foundryManager.ListCatalogModels()).Select(m => ToModelDetails(m));
+            _catalogModels = (await ListCatalogModelsAsync()).Select(m => ToModelDetails(m));
         }
 
-        var cachedModels = await _foundryManager.ListCachedModels();
+        var cachedModels = await ListCachedModelsAsync();
 
         List<ModelDetails> downloadedModels = [];
 
@@ -297,7 +384,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
             var cachedModel = new CachedModel(
                 modelDetails,
-                $"FoundryLocal: {catalogModel.Alias}",
+                $"FoundryLocal: {catalogModel.Alias}/{catalogModel.ModelId}",
                 false,
                 modelDetails.Size);
             result.Add(cachedModel);

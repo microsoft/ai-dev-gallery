@@ -20,6 +20,12 @@ internal class FoundryClient : IDisposable
     private ICatalog? _catalog;
     private bool _disposed;
 
+    /// <summary>
+    /// Gets the underlying catalog for direct access to model queries.
+    /// Provider layer should use this to implement business logic.
+    /// </summary>
+    public ICatalog? Catalog => _catalog;
+
     public static async Task<FoundryClient?> CreateAsync()
     {
         try
@@ -55,46 +61,6 @@ internal class FoundryClient : IDisposable
             Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "Exception", "N/A", ex.Message);
             return null;
         }
-    }
-
-    public async Task<List<FoundryCatalogModel>> ListCatalogModels()
-    {
-        if (_catalog == null)
-        {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCatalogModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
-            return [];
-        }
-
-        var models = await _catalog.ListModelsAsync();
-        return models.Select(model =>
-        {
-            var variant = model.SelectedVariant;
-            var info = variant.Info;
-            return new FoundryCatalogModel
-            {
-                Name = info.Name,
-                DisplayName = info.DisplayName ?? info.Name,
-                Alias = model.Alias,
-                FileSizeMb = info.FileSizeMb ?? 0,
-                License = info.License ?? string.Empty,
-                ModelId = variant.Id,
-                Runtime = info.Runtime,
-                Task = info.Task
-            };
-        }).ToList();
-    }
-
-    public async Task<List<FoundryCachedModelInfo>> ListCachedModels()
-    {
-        if (_catalog == null)
-        {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCachedModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
-            return [];
-        }
-
-        return (await _catalog.GetCachedModelsAsync())
-            .Select(variant => new FoundryCachedModelInfo(variant.Info.Name, variant.Alias))
-            .ToList();
     }
 
     public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)

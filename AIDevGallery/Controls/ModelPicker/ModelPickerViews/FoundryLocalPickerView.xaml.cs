@@ -49,7 +49,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         AvailableModels.Clear();
         CatalogModels.Clear();
 
-        var requiredTasks = GetRequiredTasksForModelTypes(types);
+        var requiredTasks = FoundryLocalModelProvider.GetRequiredTasksForModelTypes(types);
 
         foreach (var model in await FoundryLocalModelProvider.Instance.GetModelsAsync(ignoreCached: true) ?? [])
         {
@@ -95,42 +95,6 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         }
 
         VisualStateManager.GoToState(this, "ShowModels", true);
-    }
-
-    private static HashSet<string> GetRequiredTasksForModelTypes(List<ModelType> types)
-    {
-        var requiredTasks = new HashSet<string>();
-
-        foreach (var type in types)
-        {
-            var typeName = type.ToString();
-
-            // Language models and chat-related models use chat-completion
-            if (type == ModelType.LanguageModels ||
-                type == ModelType.PhiSilica ||
-                type == ModelType.PhiSilicaLora ||
-                (typeName.StartsWith("Phi") && !typeName.Contains("Vision")) ||
-                typeName.StartsWith("Mistral") ||
-                type == ModelType.TextSummarizer ||
-                type == ModelType.TextRewriter ||
-                type == ModelType.DescribeYourChange ||
-                type == ModelType.TextToTableConverter)
-            {
-                requiredTasks.Add(ModelTaskTypes.ChatCompletion);
-            }
-
-            // Audio models use automatic-speech-recognition
-            else if (type == ModelType.AudioModels ||
-                     type == ModelType.Whisper ||
-                     typeName.StartsWith("Whisper"))
-            {
-                requiredTasks.Add(ModelTaskTypes.AutomaticSpeechRecognition);
-            }
-
-            // For other model types, no filtering is applied (empty set will show all models)
-        }
-
-        return requiredTasks;
     }
 
     private void CopyModelName_Click(object sender, RoutedEventArgs e)
