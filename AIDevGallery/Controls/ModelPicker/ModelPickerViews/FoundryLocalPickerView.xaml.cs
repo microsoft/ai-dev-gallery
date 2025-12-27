@@ -116,7 +116,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
                 type == ModelType.DescribeYourChange ||
                 type == ModelType.TextToTableConverter)
             {
-                requiredTasks.Add("chat-completion");
+                requiredTasks.Add(ModelTaskTypes.ChatCompletion);
             }
 
             // Audio models use automatic-speech-recognition
@@ -124,7 +124,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
                      type == ModelType.Whisper ||
                      typeName.StartsWith("Whisper"))
             {
-                requiredTasks.Add("automatic-speech-recognition");
+                requiredTasks.Add(ModelTaskTypes.AutomaticSpeechRecognition);
             }
 
             // For other model types, no filtering is applied (empty set will show all models)

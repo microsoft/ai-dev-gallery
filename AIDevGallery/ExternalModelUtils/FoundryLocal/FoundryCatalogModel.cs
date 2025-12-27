@@ -9,6 +9,12 @@ internal record FoundryCachedModelInfo(string Name, string? Id);
 
 internal record FoundryDownloadResult(bool Success, string? ErrorMessage);
 
+internal static class ModelTaskTypes
+{
+    public const string ChatCompletion = "chat-completion";
+    public const string AutomaticSpeechRecognition = "automatic-speech-recognition";
+}
+
 internal record FoundryCatalogModel
 {
     public string Name { get; init; } = default!;
