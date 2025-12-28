@@ -44,8 +44,9 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ApplyChatOptions(options);
-
         var openAIMessages = ConvertToOpenAIMessages(chatMessages);
+
+        System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting inference");
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
@@ -53,8 +54,12 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         await foreach (var chunk in streamingResponse)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            chunkCount++;
+            if (chunkCount == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] First token received");
+            }
 
+            chunkCount++;
             if (chunk.Choices != null && chunk.Choices.Count > 0)
             {
                 var content = chunk.Choices[0].Message?.Content;

@@ -23,6 +23,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 {
     private ObservableCollection<FoundryModelPair> AvailableModels { get; } = [];
     private ObservableCollection<FoundryCatalogModelGroup> CatalogModels { get; } = [];
+    private List<ModelType> _currentModelTypes = [];
 
     public FoundryLocalPickerView()
     {
@@ -33,11 +34,12 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
     private void ModelDownloadQueue_ModelDownloadCompleted(object? sender, Utils.ModelDownloadCompletedEventArgs e)
     {
-        _ = Load([]);
+        _ = Load(_currentModelTypes);
     }
 
     public override async Task Load(List<ModelType> types)
     {
+        _currentModelTypes = types;
         VisualStateManager.GoToState(this, "ShowLoading", true);
 
         if (!await FoundryLocalModelProvider.Instance.IsAvailable())
@@ -174,7 +176,7 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
 
             if (success)
             {
-                await Load([]);
+                await Load(_currentModelTypes);
             }
             else
             {

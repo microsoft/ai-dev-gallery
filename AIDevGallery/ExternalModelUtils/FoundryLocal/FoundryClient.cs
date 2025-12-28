@@ -5,6 +5,7 @@ using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ internal class FoundryClient : IDisposable
 {
     private readonly Dictionary<string, IModel> _loadedModels = new();
     private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();
+    private readonly Dictionary<string, OpenAIChatClient> _chatClients = new();
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
@@ -85,9 +87,11 @@ internal class FoundryClient : IDisposable
                 return new FoundryDownloadResult(true, "Model already cached and loaded");
             }
 
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
             await model.DownloadAsync(
                 progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download completed for model: {catalogModel.Alias}");
 
             await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
 
@@ -148,11 +152,17 @@ internal class FoundryClient : IDisposable
 
             if (!await model.IsLoadedAsync())
             {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.SelectedVariant.Info.Id})");
                 await model.LoadAsync(cancellationToken);
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model loaded: {alias}");
             }
 
             _loadedModels[alias] = model;
             _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
+
+            // Pre-create and cache the chat client to avoid sync-over-async in GetChatClient
+            var chatClient = await model.GetChatClientAsync();
+            _chatClients[alias] = chatClient;
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelLoad", alias, duration);
@@ -171,6 +181,9 @@ internal class FoundryClient : IDisposable
 
     public IModel? GetLoadedModel(string alias) =>
         _loadedModels.GetValueOrDefault(alias);
+
+    public OpenAIChatClient? GetChatClient(string alias) =>
+        _chatClients.GetValueOrDefault(alias);
 
     public int? GetModelMaxOutputTokens(string alias) =>
         _modelMaxOutputTokens.GetValueOrDefault(alias);
@@ -201,14 +214,21 @@ internal class FoundryClient : IDisposable
 
             if (await variant.IsCachedAsync())
             {
-                await variant.RemoveFromCacheAsync();
+                try
+                {
+                    await variant.RemoveFromCacheAsync();
+                }
+                catch (FoundryLocalException ex) when (ex.InnerException is System.IO.DirectoryNotFoundException)
+                {
+                    Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "CacheDirectoryNotFound", modelId, "Cache directory already removed or corrupted");
+                }
             }
 
-            // Clean up loaded model tracking regardless of alias
             if (!string.IsNullOrEmpty(alias))
             {
                 _loadedModels.Remove(alias);
                 _modelMaxOutputTokens.Remove(alias);
+                _chatClients.Remove(alias);
             }
 
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDelete", alias ?? modelId);
@@ -244,6 +264,7 @@ internal class FoundryClient : IDisposable
 
         _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
+        _chatClients.Clear();
 
         if (modelCount > 0)
         {
@@ -260,6 +281,7 @@ internal class FoundryClient : IDisposable
 
         _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
+        _chatClients.Clear();
         _loadLock.Dispose();
         _disposed = true;
     }

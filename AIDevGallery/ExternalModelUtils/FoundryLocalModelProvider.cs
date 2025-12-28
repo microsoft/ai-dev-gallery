@@ -65,15 +65,14 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please call EnsureModelReadyAsync(url) first.");
         }
 
-        // Get the native FoundryLocal chat client - direct SDK usage, no web service needed
-        // SAFETY: This synchronous wrapper is safe because:
-        // 1. The model is already prepared/loaded (checked above)
-        // 2. GetChatClientAsync on a loaded model should complete synchronously
-        // 3. ConfigureAwait(false) prevents SynchronizationContext capture
-        var chatClient = Task.Run(async () => await model.GetChatClientAsync().ConfigureAwait(false))
-            .ConfigureAwait(false)
-            .GetAwaiter()
-            .GetResult();
+        // Get the pre-cached chat client created during EnsureModelLoadedAsync
+        // This avoids sync-over-async anti-pattern
+        var chatClient = _foundryManager.GetChatClient(alias);
+        if (chatClient == null)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ChatClientNotCached", alias, "Chat client not cached. This should not happen.");
+            throw new InvalidOperationException($"Chat client for model '{alias}' was not cached during loading.");
+        }
 
         // Get model's MaxOutputTokens if available
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
