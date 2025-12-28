@@ -135,15 +135,16 @@ internal class ModelCache
     {
         ModelCacheDeletedEvent.Log();
 
-        var cacheDir = GetCacheFolder();
-        Directory.Delete(cacheDir, true);
-        await CacheStore.ClearAsync();
-
+        // Clear FoundryLocal cache first to prevent directory access conflicts
         var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
         if (await foundryLocalProvider.IsAvailable())
         {
             await foundryLocalProvider.ClearAllCacheAsync();
         }
+
+        var cacheDir = GetCacheFolder();
+        Directory.Delete(cacheDir, true);
+        await CacheStore.ClearAsync();
     }
 
     public async Task MoveCache(string path, CancellationToken ct)

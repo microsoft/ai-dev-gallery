@@ -214,14 +214,7 @@ internal class FoundryClient : IDisposable
 
             if (await variant.IsCachedAsync())
             {
-                try
-                {
-                    await variant.RemoveFromCacheAsync();
-                }
-                catch (FoundryLocalException ex) when (ex.InnerException is System.IO.DirectoryNotFoundException)
-                {
-                    Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "CacheDirectoryNotFound", modelId, "Cache directory already removed or corrupted");
-                }
+                await variant.RemoveFromCacheAsync();
             }
 
             if (!string.IsNullOrEmpty(alias))

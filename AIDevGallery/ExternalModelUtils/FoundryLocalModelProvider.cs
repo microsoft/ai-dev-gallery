@@ -369,10 +369,8 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
     public async Task<IEnumerable<CachedModel>> GetCachedModelsWithDetails()
     {
-        var result = new List<CachedModel>();
-
-        // Get the list of downloaded models (which are already filtered by cached status)
         var models = await GetModelsAsync();
+        var result = new List<CachedModel>();
 
         foreach (var modelDetails in models)
         {
@@ -381,12 +379,17 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 continue;
             }
 
-            var cachedModel = new CachedModel(
-                modelDetails,
-                $"FoundryLocal: {catalogModel.Alias}/{catalogModel.ModelId}",
-                false,
-                modelDetails.Size);
-            result.Add(cachedModel);
+            string modelPath = $"fl://{catalogModel.Alias}/{catalogModel.ModelId}";
+            if (_foundryManager?.Catalog != null)
+            {
+                var model = await _foundryManager.Catalog.GetModelAsync(catalogModel.Alias);
+                if (model != null)
+                {
+                    modelPath = await model.GetPathAsync();
+                }
+            }
+
+            result.Add(new CachedModel(modelDetails, modelPath, false, modelDetails.Size));
         }
 
         return result;
