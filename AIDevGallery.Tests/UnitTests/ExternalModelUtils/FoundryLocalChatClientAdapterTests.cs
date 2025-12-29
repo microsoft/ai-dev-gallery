@@ -17,25 +17,7 @@ namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
 public class FoundryLocalChatClientAdapterTests
 {
     [TestMethod]
-    public void ConvertToOpenAIMessagesConvertsSimpleMessage()
-    {
-        // Arrange
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
-        {
-            new(ChatRole.User, "Hello, world!")
-        };
-
-        // Act
-        var result = InvokeConvertToOpenAIMessages(messages);
-
-        // Assert
-        Assert.AreEqual(1, result.Count);
-        Assert.AreEqual("user", result[0].Role);
-        Assert.AreEqual("Hello, world!", result[0].Content);
-    }
-
-    [TestMethod]
-    public void ConvertToOpenAIMessagesConvertsMultipleMessages()
+    public void ConvertToOpenAIMessagesConvertsMultipleMessagesWithDifferentRoles()
     {
         // Arrange
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -59,9 +41,9 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessagesHandlesEmptyText()
+    public void ConvertToOpenAIMessagesHandlesNullTextAsEmptyString()
     {
-        // Arrange
+        // Arrange - Critical: null content should be converted to empty string, not cause NullReferenceException
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(ChatRole.User, (string?)null)
@@ -90,31 +72,9 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessagesPreservesMultipleUserMessages()
-    {
-        // Arrange
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
-        {
-            new(ChatRole.User, "First question"),
-            new(ChatRole.User, "Second question"),
-            new(ChatRole.User, "Third question")
-        };
-
-        // Act
-        var result = InvokeConvertToOpenAIMessages(messages);
-
-        // Assert
-        Assert.AreEqual(3, result.Count);
-        Assert.IsTrue(result.TrueForAll(m => m.Role == "user"));
-        Assert.AreEqual("First question", result[0].Content);
-        Assert.AreEqual("Second question", result[1].Content);
-        Assert.AreEqual("Third question", result[2].Content);
-    }
-
-    [TestMethod]
     public void ConvertToOpenAIMessagesHandlesCustomRoles()
     {
-        // Arrange
+        // Arrange - Important: custom roles like "tool" should be preserved
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(new ChatRole("tool"), "Tool output")

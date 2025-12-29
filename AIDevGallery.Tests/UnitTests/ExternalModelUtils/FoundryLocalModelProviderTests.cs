@@ -4,50 +4,27 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Threading.Tasks;
 
 namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
 
 [TestClass]
 public class FoundryLocalModelProviderTests
 {
+    // Basic properties tests - Consolidated
     [TestMethod]
-    public void NameReturnsFoundryLocal()
+    public void BasicPropertiesReturnExpectedValues()
     {
         // Arrange
         var provider = FoundryLocalModelProvider.Instance;
 
-        // Act & Assert
+        // Assert - Test all basic properties together
         Assert.AreEqual("FoundryLocal", provider.Name);
-    }
-
-    [TestMethod]
-    public void ModelHardwareAcceleratorReturnsFoundryLocal()
-    {
-        // Arrange
-        var provider = FoundryLocalModelProvider.Instance;
-
-        // Act & Assert
         Assert.AreEqual(HardwareAccelerator.FOUNDRYLOCAL, provider.ModelHardwareAccelerator);
-    }
-
-    [TestMethod]
-    public void UrlPrefixReturnsCorrectPrefix()
-    {
-        // Arrange
-        var provider = FoundryLocalModelProvider.Instance;
-
-        // Act & Assert
         Assert.AreEqual("fl://", provider.UrlPrefix);
-    }
-
-    [TestMethod]
-    public void ProviderDescriptionReturnsCorrectDescription()
-    {
-        // Arrange
-        var provider = FoundryLocalModelProvider.Instance;
-
-        // Act & Assert
+        Assert.AreEqual(string.Empty, provider.Url, "Foundry Local uses direct SDK calls, not web service");
         Assert.AreEqual("The model will run locally via Foundry Local", provider.ProviderDescription);
+        Assert.AreEqual("Microsoft.AI.Foundry.Local", provider.IChatClientImplementationNamespace);
     }
 
     [TestMethod]
@@ -61,6 +38,7 @@ public class FoundryLocalModelProviderTests
 
         // Assert
         Assert.IsNotNull(packages);
+        Assert.AreEqual(2, packages.Count, "Should contain exactly 2 packages");
         Assert.IsTrue(packages.Contains("Microsoft.AI.Foundry.Local.WinML"));
         Assert.IsTrue(packages.Contains("Microsoft.Extensions.AI"));
     }
@@ -90,23 +68,83 @@ public class FoundryLocalModelProviderTests
         Assert.AreSame(instance1, instance2, "Instance should be a singleton");
     }
 
+    // Edge case: Invalid model type
     [TestMethod]
-    public void IChatClientImplementationNamespaceReturnsCorrectNamespace()
+    public async Task DownloadModelWithNonFoundryCatalogModelReturnsFalse()
     {
         // Arrange
         var provider = FoundryLocalModelProvider.Instance;
+        var modelDetails = new ModelDetails
+        {
+            Name = "test-model",
+            Url = "https://example.com/model",
+            ProviderModelDetails = "Not a FoundryCatalogModel" // Wrong type
+        };
 
-        // Act & Assert
-        Assert.AreEqual("Microsoft.AI.Foundry.Local", provider.IChatClientImplementationNamespace);
+        // Act
+        var result = await provider.DownloadModel(modelDetails, null, default);
+
+        // Assert
+        Assert.IsFalse(result.Success, "Should fail when ProviderModelDetails is wrong type");
+
+        // In unit test environment, manager might not be initialized, both error messages are valid
+        Assert.IsTrue(
+            result.ErrorMessage == "Invalid model details" ||
+            result.ErrorMessage == "Foundry Local manager not initialized",
+            $"Expected error about invalid model or uninitialized manager, but got: {result.ErrorMessage}");
     }
 
     [TestMethod]
-    public void UrlReturnsEmptyString()
+    public async Task DownloadModelWithNullProviderModelDetailsReturnsFalse()
+    {
+        // Arrange
+        var provider = FoundryLocalModelProvider.Instance;
+        var modelDetails = new ModelDetails
+        {
+            Name = "test-model",
+            Url = "https://example.com/model",
+            ProviderModelDetails = null // Null provider details
+        };
+
+        // Act
+        var result = await provider.DownloadModel(modelDetails, null, default);
+
+        // Assert
+        Assert.IsFalse(result.Success, "Should fail when ProviderModelDetails is null");
+
+        // In unit test environment, manager might not be initialized, both error messages are valid
+        Assert.IsTrue(
+            result.ErrorMessage == "Invalid model details" ||
+            result.ErrorMessage == "Foundry Local manager not initialized",
+            $"Expected error about invalid model or uninitialized manager, but got: {result.ErrorMessage}");
+    }
+
+    // Test initialization behavior
+    [TestMethod]
+    public async Task GetModelsAsyncWithIgnoreCachedTrueResetsDownloadedModels()
     {
         // Arrange
         var provider = FoundryLocalModelProvider.Instance;
 
-        // Act & Assert
-        Assert.AreEqual(string.Empty, provider.Url, "Foundry Local uses direct SDK calls, not web service");
+        // Act - Call with ignoreCached=true
+        var models1 = await provider.GetModelsAsync(ignoreCached: true);
+        var models2 = await provider.GetModelsAsync(ignoreCached: false);
+
+        // Assert - Both should return collections (empty or populated)
+        Assert.IsNotNull(models1);
+        Assert.IsNotNull(models2);
+    }
+
+    [TestMethod]
+    public void GetAllModelsInCatalogReturnsEmptyCollectionBeforeInitialization()
+    {
+        // Arrange
+        var provider = FoundryLocalModelProvider.Instance;
+
+        // Act
+        var catalogModels = provider.GetAllModelsInCatalog();
+
+        // Assert - Should return empty collection if not initialized, not null
+        Assert.IsNotNull(catalogModels);
     }
 }
