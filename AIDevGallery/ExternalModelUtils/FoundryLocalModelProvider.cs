@@ -198,7 +198,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     {
         if (_foundryManager?.Catalog == null)
         {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCatalogModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
             return [];
         }
 
@@ -228,7 +227,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     {
         if (_foundryManager?.Catalog == null)
         {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ListCachedModels", "CatalogNotInitialized", "N/A", "Catalog not initialized");
             return [];
         }
 
@@ -331,8 +329,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         }
 
         _downloadedModels = downloadedModels;
-
-        Telemetry.Events.FoundryLocalOperationEvent.Log("ProviderInitialization", $"{downloadedModels.Count} cached models");
     }
 
     private ModelDetails ToModelDetails(FoundryCatalogModel model)
@@ -489,10 +485,6 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             }
 
             await ResetAsync();
-
-            Telemetry.Events.FoundryLocalOperationEvent.Log(
-                "ClearAllCache",
-                $"{deletedCount}/{cachedModels.Count} models deleted");
 
             return allDeleted;
         }

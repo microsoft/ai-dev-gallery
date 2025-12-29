@@ -54,7 +54,6 @@ internal class FoundryClient : IDisposable
             await client._manager.EnsureEpsDownloadedAsync();
             client._catalog = await client._manager.GetCatalogAsync();
 
-            Telemetry.Events.FoundryLocalOperationEvent.Log("ClientInitialization", "N/A");
             return client;
         }
         catch (Exception ex)
@@ -77,7 +76,6 @@ internal class FoundryClient : IDisposable
             var model = await _catalog.GetModelAsync(catalogModel.Alias);
             if (model == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "ModelNotFound", catalogModel.Alias, "Model not found in catalog");
                 return new FoundryDownloadResult(false, "Model not found in catalog");
             }
 
@@ -96,7 +94,6 @@ internal class FoundryClient : IDisposable
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
 
-            // Try to load model after download; treat loading failures as warnings, not download failures
             try
             {
                 await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
@@ -104,7 +101,7 @@ internal class FoundryClient : IDisposable
             }
             catch (Exception ex)
             {
-                var warningMsg = ex.Message.Split('\n')[0]; // Only first line, no stack trace
+                var warningMsg = ex.Message.Split('\n')[0];
                 Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "LoadWarning", catalogModel.Alias, ex.Message);
                 Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load warning: {warningMsg}");
                 return new FoundryDownloadResult(true, warningMsg);
@@ -112,7 +109,6 @@ internal class FoundryClient : IDisposable
         }
         catch (Exception e)
         {
-            var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "Exception", catalogModel.Alias, e.Message);
             return new FoundryDownloadResult(false, e.Message);
         }
@@ -143,20 +139,17 @@ internal class FoundryClient : IDisposable
 
             if (_catalog == null || _manager == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ClientNotInitialized", alias, "FoundryLocal client not initialized");
                 throw new InvalidOperationException("FoundryLocal client not initialized");
             }
 
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ModelNotFound", alias, $"Model with alias '{alias}' not found in catalog");
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
             }
 
             if (!await model.IsCachedAsync())
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "ModelNotCached", alias, $"Model with alias '{alias}' is not cached");
                 throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
             }
 
@@ -179,7 +172,6 @@ internal class FoundryClient : IDisposable
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
-            var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "Exception", alias, ex.Message);
             throw;
         }
@@ -211,7 +203,6 @@ internal class FoundryClient : IDisposable
             var variant = await _catalog.GetModelVariantAsync(modelId);
             if (variant == null)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "VariantNotFound", modelId, "Model variant not found");
                 return false;
             }
 
@@ -234,7 +225,6 @@ internal class FoundryClient : IDisposable
                 _chatClients.Remove(alias);
             }
 
-            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDelete", alias ?? modelId);
             return true;
         }
         catch (Exception ex)
@@ -260,7 +250,6 @@ internal class FoundryClient : IDisposable
             }
             catch (Exception ex)
             {
-                // Log but continue unloading other models
                 Telemetry.Events.FoundryLocalErrorEvent.Log("ModelUnload", "Exception", alias, ex.Message);
             }
         }
@@ -268,11 +257,6 @@ internal class FoundryClient : IDisposable
         _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
         _chatClients.Clear();
-
-        if (modelCount > 0)
-        {
-            Telemetry.Events.FoundryLocalOperationEvent.Log("UnloadAllModels", $"{modelCount} models");
-        }
     }
 
     public void Dispose()
