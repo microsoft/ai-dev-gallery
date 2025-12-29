@@ -46,6 +46,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         ApplyChatOptions(options);
         var openAIMessages = ConvertToOpenAIMessages(chatMessages);
 
+        // Key Perf Log
         System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting inference");
         var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
 
@@ -56,6 +57,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
             cancellationToken.ThrowIfCancellationRequested();
             if (chunkCount == 0)
             {
+                // Key Perf Log
                 System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] First token received");
             }
 

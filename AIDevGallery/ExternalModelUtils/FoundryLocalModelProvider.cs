@@ -178,12 +178,13 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             }
 
             // Audio models use automatic-speech-recognition
-            else if (type == ModelType.AudioModels ||
-                     type == ModelType.Whisper ||
-                     typeName.StartsWith("Whisper", StringComparison.Ordinal))
-            {
-                requiredTasks.Add(ModelTaskTypes.AutomaticSpeechRecognition);
-            }
+            // Currently, AIDG does not have any Sample that support Foundry Local AutomaticSpeechRecognition model.
+            // else if (type == ModelType.AudioModels ||
+            //          type == ModelType.Whisper ||
+            //          typeName.StartsWith("Whisper", StringComparison.Ordinal))
+            // {
+            //     requiredTasks.Add(ModelTaskTypes.AutomaticSpeechRecognition);
+            // }
 
             // For other model types, no filtering is applied (empty set will show all models)
         }

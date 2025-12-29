@@ -85,10 +85,13 @@ internal class FoundryClient : IDisposable
                 return new FoundryDownloadResult(true, "Model already cached and loaded");
             }
 
+            // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
             await model.DownloadAsync(
                 progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
+
+            // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download completed for model: {catalogModel.Alias}");
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
@@ -155,8 +158,11 @@ internal class FoundryClient : IDisposable
 
             if (!await model.IsLoadedAsync())
             {
+                // Key Perf Log
                 Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.SelectedVariant.Info.Id})");
                 await model.LoadAsync(cancellationToken);
+
+                // Key Perf Log
                 Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model loaded: {alias}");
             }
 
