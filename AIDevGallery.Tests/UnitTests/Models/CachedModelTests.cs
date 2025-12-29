@@ -11,7 +11,7 @@ namespace AIDevGallery.Tests.UnitTests;
 public class CachedModelTests
 {
     [TestMethod]
-    public void CachedModel_WithFoundryLocalUrl_SetsSourceToFoundryLocal()
+    public void CachedModelWithFoundryLocalUrlSetsSourceToFoundryLocal()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -29,7 +29,7 @@ public class CachedModelTests
     }
 
     [TestMethod]
-    public void CachedModel_WithGitHubUrl_SetsSourceToGitHub()
+    public void CachedModelWithGitHubUrlSetsSourceToGitHub()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -46,7 +46,7 @@ public class CachedModelTests
     }
 
     [TestMethod]
-    public void CachedModel_WithLocalUrl_SetsSourceToLocal()
+    public void CachedModelWithLocalUrlSetsSourceToLocal()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -63,7 +63,7 @@ public class CachedModelTests
     }
 
     [TestMethod]
-    public void CachedModel_WithHuggingFaceUrl_SetsSourceToHuggingFace()
+    public void CachedModelWithHuggingFaceUrlSetsSourceToHuggingFace()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -80,7 +80,7 @@ public class CachedModelTests
     }
 
     [TestMethod]
-    public void CachedModel_Constructor_SetsAllProperties()
+    public void CachedModelConstructorSetsAllProperties()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -105,7 +105,7 @@ public class CachedModelTests
     }
 
     [TestMethod]
-    public void CachedModel_FoundryLocalUrl_CaseInsensitive()
+    public void CachedModelFoundryLocalUrlCaseInsensitive()
     {
         // Arrange - Test case insensitivity
         var testUrls = new[] { "fl://model", "FL://model", "Fl://model" };
@@ -122,23 +122,25 @@ public class CachedModelTests
             var cachedModel = new CachedModel(modelDetails, "/path", false, 100);
 
             // Assert
-            Assert.AreEqual(CachedModelSource.FoundryLocal, cachedModel.Source, 
+            Assert.AreEqual(
+                CachedModelSource.FoundryLocal,
+                cachedModel.Source,
                 $"URL '{url}' should be recognized as FoundryLocal");
         }
     }
 
     [TestMethod]
-    public void CachedModelSource_FoundryLocal_EnumExists()
+    public void CachedModelSourceFoundryLocalEnumExists()
     {
         // Verify the new enum value exists
         var foundryLocalValue = CachedModelSource.FoundryLocal;
-        
-        Assert.IsTrue(Enum.IsDefined(typeof(CachedModelSource), foundryLocalValue));
+
+        Assert.IsTrue(Enum.IsDefined(foundryLocalValue));
         Assert.AreEqual("FoundryLocal", foundryLocalValue.ToString());
     }
 
     [TestMethod]
-    public void CachedModelSource_AllValues_AreDefined()
+    public void CachedModelSourceAllValuesAreDefined()
     {
         // Ensure all expected sources are defined
         var expectedSources = new[]
@@ -151,7 +153,8 @@ public class CachedModelTests
 
         foreach (var source in expectedSources)
         {
-            Assert.IsTrue(Enum.IsDefined(typeof(CachedModelSource), source),
+            Assert.IsTrue(
+                Enum.IsDefined(source),
                 $"CachedModelSource.{source} should be defined");
         }
     }

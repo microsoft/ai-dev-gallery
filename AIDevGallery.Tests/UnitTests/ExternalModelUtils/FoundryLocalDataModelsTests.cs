@@ -9,14 +9,13 @@ namespace AIDevGallery.Tests.UnitTests;
 /// <summary>
 /// Tests for FoundryLocal data models and utility types.
 /// </summary>
-[TestClass]
 public class FoundryLocalDataModelsTests
 {
     [TestClass]
     public class FoundryCatalogModelTests
     {
         [TestMethod]
-        public void FoundryCatalogModel_AllProperties_CanBeSetAndRetrieved()
+        public void FoundryCatalogModelAllPropertiesCanBeSetAndRetrieved()
         {
             // Arrange & Act
             var model = new FoundryCatalogModel
@@ -41,7 +40,7 @@ public class FoundryLocalDataModelsTests
         }
 
         [TestMethod]
-        public void FoundryCatalogModel_DefaultValues_AreZeroOrNull()
+        public void FoundryCatalogModelDefaultValuesAreZeroOrNull()
         {
             // Arrange & Act
             var model = new FoundryCatalogModel();
@@ -58,7 +57,7 @@ public class FoundryLocalDataModelsTests
     public class FoundryCachedModelInfoTests
     {
         [TestMethod]
-        public void FoundryCachedModelInfo_Constructor_SetsProperties()
+        public void FoundryCachedModelInfoConstructorSetsProperties()
         {
             // Arrange & Act
             var modelInfo = new FoundryCachedModelInfo("phi-3.5-mini-instruct", "phi-3.5-mini");
@@ -69,7 +68,7 @@ public class FoundryLocalDataModelsTests
         }
 
         [TestMethod]
-        public void FoundryCachedModelInfo_IsRecord_SupportsValueEquality()
+        public void FoundryCachedModelInfoIsRecordSupportsValueEquality()
         {
             // Arrange
             var info1 = new FoundryCachedModelInfo("test-model", "test-id");
@@ -86,7 +85,7 @@ public class FoundryLocalDataModelsTests
     public class FoundryDownloadResultTests
     {
         [TestMethod]
-        public void FoundryDownloadResult_SuccessfulDownload_HasNoErrorMessage()
+        public void FoundryDownloadResultSuccessfulDownloadHasNoErrorMessage()
         {
             // Arrange & Act
             var result = new FoundryDownloadResult(true, null);
@@ -97,7 +96,7 @@ public class FoundryLocalDataModelsTests
         }
 
         [TestMethod]
-        public void FoundryDownloadResult_FailedDownload_HasErrorMessage()
+        public void FoundryDownloadResultFailedDownloadHasErrorMessage()
         {
             // Arrange
             var errorMsg = "Network timeout";
@@ -111,7 +110,7 @@ public class FoundryLocalDataModelsTests
         }
 
         [TestMethod]
-        public void FoundryDownloadResult_SuccessWithWarning_BothSuccessAndMessage()
+        public void FoundryDownloadResultSuccessWithWarningBothSuccessAndMessage()
         {
             // Arrange - Important: download can succeed but have warnings
             var warningMsg = "Model loaded but some features unavailable";
@@ -129,7 +128,7 @@ public class FoundryLocalDataModelsTests
     public class ModelTaskTypesTests
     {
         [TestMethod]
-        public void ModelTaskTypes_ChatCompletion_HasCorrectValue()
+        public void ModelTaskTypesChatCompletionHasCorrectValue()
         {
             // Arrange & Act
             var chatCompletion = ModelTaskTypes.ChatCompletion;
@@ -139,7 +138,7 @@ public class FoundryLocalDataModelsTests
         }
 
         [TestMethod]
-        public void ModelTaskTypes_AutomaticSpeechRecognition_HasCorrectValue()
+        public void ModelTaskTypesAutomaticSpeechRecognitionHasCorrectValue()
         {
             // Arrange & Act
             var asr = ModelTaskTypes.AutomaticSpeechRecognition;

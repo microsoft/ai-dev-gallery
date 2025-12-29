@@ -13,7 +13,7 @@ namespace AIDevGallery.Tests.UnitTests;
 public class ModelDownloadTests
 {
     [TestMethod]
-    public void ModelDownloadEventArgs_WithWarningMessage_StoresWarning()
+    public void ModelDownloadEventArgsWithWarningMessageStoresWarning()
     {
         // Arrange
         var warningMessage = "Model loaded but with minor issues";
@@ -31,7 +31,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void ModelDownloadEventArgs_WithoutWarningMessage_IsNull()
+    public void ModelDownloadEventArgsWithoutWarningMessageIsNull()
     {
         // Arrange
         var eventArgs = new ModelDownloadEventArgs
@@ -45,7 +45,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void DownloadStatus_HasExpectedValues()
+    public void DownloadStatusHasExpectedValues()
     {
         // This test ensures the DownloadStatus enum has expected values
         // Critical for FoundryLocal integration which uses these states
@@ -58,7 +58,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void FoundryLocalModelDownload_IsSubclassOfModelDownload()
+    public void FoundryLocalModelDownloadIsSubclassOfModelDownload()
     {
         // Arrange
         var foundryDownloadType = Type.GetType("AIDevGallery.Utils.FoundryLocalModelDownload, AIDevGallery");
@@ -72,7 +72,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void FoundryLocalModelDownload_Constructor_InitializesWithModelDetails()
+    public void FoundryLocalModelDownloadConstructorInitializesWithModelDetails()
     {
         // Arrange
         var modelDetails = new ModelDetails
@@ -92,7 +92,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void ModelDownload_WarningMessage_PropertyExists()
+    public void ModelDownloadWarningMessagePropertyExists()
     {
         // Verify that the WarningMessage property was added to ModelDownload base class
         var modelDownloadType = typeof(ModelDownload);
@@ -120,4 +120,3 @@ public class ModelDownloadTests
         return (T)property.GetValue(obj)!;
     }
 }
-

@@ -120,7 +120,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessages_OnlyTextContent_IgnoresMultiModal()
+    public void ConvertToOpenAIMessagesOnlyTextContentIgnoresMultiModal()
     {
         // NOTE: This test documents current limitation - multi-modal content is not supported
         // The current implementation only handles text content via ChatMessage.Text property
@@ -141,7 +141,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessages_MultipleConsecutiveSameRole_Allowed()
+    public void ConvertToOpenAIMessagesMultipleConsecutiveSameRoleAllowed()
     {
         // Arrange - Some models allow multiple messages from same role
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -162,7 +162,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessages_VeryLongMessage_IsPreserved()
+    public void ConvertToOpenAIMessagesVeryLongMessageIsPreserved()
     {
         // Arrange - Test with a very long message
         var longContent = new string('A', 10000); // 10K characters
@@ -181,7 +181,7 @@ public class FoundryLocalChatClientAdapterTests
     }
 
     [TestMethod]
-    public void ConvertToOpenAIMessages_SpecialCharacters_ArePreserved()
+    public void ConvertToOpenAIMessagesSpecialCharactersArePreserved()
     {
         // Arrange - Test with special characters that might need escaping
         var specialContent = "Hello\nWorld\tWith\"Quotes\" and 'apostrophes' & symbols <>";
