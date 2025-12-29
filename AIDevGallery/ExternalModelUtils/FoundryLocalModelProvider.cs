@@ -238,19 +238,28 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 
     public async Task<FoundryDownloadResult> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] DownloadModel called for: {modelDetails.Name}");
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] CancellationToken.CanBeCanceled: {cancellationToken.CanBeCanceled}");
+        
         if (_foundryManager == null)
         {
+            System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] ERROR: Manager not initialized");
             return new FoundryDownloadResult(false, "Foundry Local manager not initialized");
         }
 
         if (modelDetails.ProviderModelDetails is not FoundryCatalogModel model)
         {
+            System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] ERROR: Invalid model details");
             return new FoundryDownloadResult(false, "Invalid model details");
         }
 
         var startTime = DateTime.Now;
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] Calling FoundryClient.DownloadModel");
         var result = await _foundryManager.DownloadModel(model, progress, cancellationToken);
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] DownloadModel returned - Success: {result.Success}, Error: {result.ErrorMessage}");
         var duration = (DateTime.Now - startTime).TotalSeconds;
+        System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [Provider] Total download time: {duration:F2} seconds");
 
         FoundryLocalDownloadEvent.Log(
             model.Alias,

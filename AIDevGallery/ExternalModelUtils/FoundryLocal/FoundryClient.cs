@@ -65,21 +65,32 @@ internal class FoundryClient : IDisposable
 
     public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] DownloadModel called for: {catalogModel.Alias}");
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken.CanBeCanceled: {cancellationToken.CanBeCanceled}");
+        
         if (_catalog == null)
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] ERROR: Catalog not initialized");
             return new FoundryDownloadResult(false, "Catalog not initialized");
         }
 
         var startTime = DateTime.Now;
         try
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Getting model from catalog: {catalogModel.Alias}");
             var model = await _catalog.GetModelAsync(catalogModel.Alias);
             if (model == null)
             {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] ERROR: Model not found in catalog");
                 return new FoundryDownloadResult(false, "Model not found in catalog");
             }
 
-            if (await model.IsCachedAsync())
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model found, checking if cached");
+            var isCached = await model.IsCachedAsync();
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model IsCached: {isCached}");
+            
+            if (isCached)
             {
                 await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
                 return new FoundryDownloadResult(true, "Model already cached and loaded");
@@ -87,31 +98,70 @@ internal class FoundryClient : IDisposable
 
             // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model size: {catalogModel.FileSizeMb} MB");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken status before download - IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+            
+            var lastReportedProgress = -1f;
             await model.DownloadAsync(
-                progressPercent => progress?.Report(progressPercent / 100f),
+                progressPercent =>
+                {
+                    // Log every 10% progress
+                    if (progressPercent - lastReportedProgress >= 10)
+                    {
+                        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download progress: {progressPercent:F1}% (CancelRequested: {cancellationToken.IsCancellationRequested})");
+                        lastReportedProgress = progressPercent;
+                    }
+                    progress?.Report(progressPercent / 100f);
+                },
                 cancellationToken);
 
             // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download completed for model: {catalogModel.Alias}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken status after download - IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
 
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Attempting to load model after download");
             try
             {
                 await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model loaded successfully after download");
                 return new FoundryDownloadResult(true, null);
             }
             catch (Exception ex)
             {
                 var warningMsg = ex.Message.Split('\n')[0];
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load warning after download: {warningMsg}");
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Exception type: {ex.GetType().Name}");
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Full exception message: {ex.Message}");
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Inner exception: {ex.InnerException.Message}");
+                }
                 Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "LoadWarning", catalogModel.Alias, ex.Message);
-                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load warning: {warningMsg}");
                 return new FoundryDownloadResult(true, warningMsg);
             }
         }
+        catch (OperationCanceledException e)
+        {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download was canceled: {catalogModel.Alias}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Exception message: {e.Message}");
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "Canceled", catalogModel.Alias, e.Message);
+            return new FoundryDownloadResult(false, "Download was canceled");
+        }
         catch (Exception e)
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download exception for model: {catalogModel.Alias}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Exception type: {e.GetType().Name}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Exception message: {e.Message}");
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Stack trace: {e.StackTrace}");
+            if (e.InnerException != null)
+            {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Inner exception: {e.InnerException.Message}");
+            }
             Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "Exception", catalogModel.Alias, e.Message);
             return new FoundryDownloadResult(false, e.Message);
         }
@@ -125,13 +175,19 @@ internal class FoundryClient : IDisposable
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task EnsureModelLoadedAsync(string alias, CancellationToken cancellationToken = default)
     {
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] EnsureModelLoadedAsync called for: {alias}");
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+        
         if (_loadedModels.ContainsKey(alias))
         {
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model already loaded: {alias}");
             return;
         }
 
         var startTime = DateTime.Now;
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Waiting for load lock...");
         await _loadLock.WaitAsync(cancellationToken);
+        Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load lock acquired");
         try
         {
             // Double-check inside lock to ensure thread safety
@@ -142,21 +198,31 @@ internal class FoundryClient : IDisposable
 
             if (_catalog == null || _manager == null)
             {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] ERROR: Client not initialized");
                 throw new InvalidOperationException("FoundryLocal client not initialized");
             }
 
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Getting model from catalog for loading: {alias}");
             var model = await _catalog.GetModelAsync(alias);
             if (model == null)
             {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] ERROR: Model not found in catalog");
                 throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
             }
 
-            if (!await model.IsCachedAsync())
+            var isCached = await model.IsCachedAsync();
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model IsCached check: {isCached}");
+            
+            if (!isCached)
             {
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] ERROR: Model not cached");
                 throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
             }
 
-            if (!await model.IsLoadedAsync())
+            var isLoaded = await model.IsLoadedAsync();
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model IsLoaded check: {isLoaded}");
+            
+            if (!isLoaded)
             {
                 // Key Perf Log
                 Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.SelectedVariant.Info.Id})");
@@ -166,14 +232,18 @@ internal class FoundryClient : IDisposable
                 Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model loaded: {alias}");
             }
 
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Caching loaded model");
             _loadedModels[alias] = model;
             _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
 
             // Pre-create and cache the chat client to avoid sync-over-async in GetChatClient
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Creating chat client");
             var chatClient = await model.GetChatClientAsync();
             _chatClients[alias] = chatClient;
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Chat client created and cached");
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model load completed in {duration:F2} seconds");
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelLoad", alias, duration);
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
