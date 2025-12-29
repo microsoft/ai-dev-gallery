@@ -93,12 +93,22 @@ internal class FoundryClient : IDisposable
                 cancellationToken);
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download completed for model: {catalogModel.Alias}");
 
-            await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
-
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
 
-            return new FoundryDownloadResult(true, null);
+            // Try to load model after download; treat loading failures as warnings, not download failures
+            try
+            {
+                await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
+                return new FoundryDownloadResult(true, null);
+            }
+            catch (Exception ex)
+            {
+                var warningMsg = ex.Message.Split('\n')[0]; // Only first line, no stack trace
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "LoadWarning", catalogModel.Alias, ex.Message);
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load warning: {warningMsg}");
+                return new FoundryDownloadResult(true, warningMsg);
+            }
         }
         catch (Exception e)
         {

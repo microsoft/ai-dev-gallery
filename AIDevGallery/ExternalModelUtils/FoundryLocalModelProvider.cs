@@ -50,36 +50,48 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null || string.IsNullOrEmpty(alias))
-        {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ClientNotInitialized", alias ?? "unknown", "Foundry Local client not initialized or invalid model alias");
-            throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
-        }
+        ValidateClient(alias);
+        ValidateModelExistsInCatalog(alias);
 
-        // Must be prepared beforehand via EnsureModelReadyAsync to avoid deadlock
-        var model = _foundryManager.GetLoadedModel(alias);
-        if (model == null)
-        {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ModelNotReady", alias, "Model is not ready yet. EnsureModelReadyAsync must be called first");
-            throw new InvalidOperationException(
-                $"Model '{alias}' is not ready yet. The model is being loaded in the background. Please call EnsureModelReadyAsync(url) first.");
-        }
+        var model = _foundryManager!.GetLoadedModel(alias)
+            ?? throw new InvalidOperationException($"Model '{alias}' is not ready yet. Please call EnsureModelReadyAsync(url) first.");
 
-        // Get the pre-cached chat client created during EnsureModelLoadedAsync
-        // This avoids sync-over-async anti-pattern
-        var chatClient = _foundryManager.GetChatClient(alias);
-        if (chatClient == null)
-        {
-            Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", "ChatClientNotCached", alias, "Chat client not cached. This should not happen.");
-            throw new InvalidOperationException($"Chat client for model '{alias}' was not cached during loading.");
-        }
+        var chatClient = _foundryManager.GetChatClient(alias)
+            ?? throw new InvalidOperationException($"Chat client for model '{alias}' was not cached during loading.");
 
-        // Get model's MaxOutputTokens if available
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
-
-        // Wrap it in our adapter to implement IChatClient interface
         Telemetry.Events.FoundryLocalOperationEvent.Log("GetChatClient", alias);
         return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
+    }
+
+    private void ValidateClient(string alias)
+    {
+        if (_foundryManager == null)
+        {
+            LogAndThrow("ClientNotInitialized", alias ?? "unknown", "Foundry Local client not initialized");
+        }
+
+        if (string.IsNullOrEmpty(alias))
+        {
+            LogAndThrow("EmptyAlias", "empty", "Model alias cannot be empty");
+        }
+    }
+
+    private void ValidateModelExistsInCatalog(string alias)
+    {
+        var modelExists = _catalogModels?.Any(m =>
+            ((FoundryCatalogModel)m.ProviderModelDetails!).Alias == alias) ?? false;
+
+        if (!modelExists)
+        {
+            LogAndThrow("ModelNotFound", alias, $"Model '{alias}' does not exist. Please verify the model alias is correct.");
+        }
+    }
+
+    private void LogAndThrow(string errorType, string alias, string message)
+    {
+        Telemetry.Events.FoundryLocalErrorEvent.Log("GetChatClient", errorType, alias, message);
+        throw new InvalidOperationException(message);
     }
 
     public string? GetIChatClientString(string url)
@@ -225,16 +237,16 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             .ToList();
     }
 
-    public async Task<bool> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
+    public async Task<FoundryDownloadResult> DownloadModel(ModelDetails modelDetails, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
         if (_foundryManager == null)
         {
-            return false;
+            return new FoundryDownloadResult(false, "Foundry Local manager not initialized");
         }
 
         if (modelDetails.ProviderModelDetails is not FoundryCatalogModel model)
         {
-            return false;
+            return new FoundryDownloadResult(false, "Invalid model details");
         }
 
         var startTime = DateTime.Now;
@@ -248,7 +260,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             model.FileSizeMb,
             duration);
 
-        return result.Success;
+        return result;
     }
 
     /// <summary>
@@ -349,17 +361,17 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     /// Ensures the model is ready to use before calling GetIChatClient.
     /// This method must be called before GetIChatClient to avoid deadlock.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <param name="url">The model URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task EnsureModelReadyAsync(string url, CancellationToken cancellationToken = default)
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null || string.IsNullOrEmpty(alias))
-        {
-            throw new InvalidOperationException("Foundry Local client not initialized or invalid model alias");
-        }
+        ValidateClient(alias);
+        ValidateModelExistsInCatalog(alias);
 
-        if (_foundryManager.GetLoadedModel(alias) != null)
+        if (_foundryManager!.GetLoadedModel(alias) != null)
         {
             return;
         }
