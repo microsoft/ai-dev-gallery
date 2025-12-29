@@ -177,7 +177,7 @@ public class FoundryLocalChatClientAdapterTests
         // Assert
         Assert.AreEqual(1, result.Count);
         Assert.AreEqual(longContent, result[0].Content);
-        Assert.AreEqual(10000, result[0].Content.Length);
+        Assert.AreEqual(10000, result[0].Content!.Length);
     }
 
     [TestMethod]
