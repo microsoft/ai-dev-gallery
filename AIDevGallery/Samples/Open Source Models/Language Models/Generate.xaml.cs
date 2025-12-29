@@ -121,7 +121,7 @@ internal sealed partial class Generate : BaseSamplePage
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, userPrompt)
                         ],
-                        new() { MaxOutputTokens = _maxTokenLength },
+                        null,
                         cts.Token))
                     {
                         // <exclude>
