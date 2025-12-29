@@ -379,7 +379,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 continue;
             }
 
-            string modelPath = $"fl://{catalogModel.Alias}/{catalogModel.ModelId}";
+            string modelPath = string.Empty;
             if (_foundryManager?.Catalog != null)
             {
                 var model = await _foundryManager.Catalog.GetModelAsync(catalogModel.Alias);

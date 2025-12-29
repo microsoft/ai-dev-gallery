@@ -187,14 +187,6 @@ internal sealed partial class SettingsPage : Page
         {
             string? path = model.Path;
 
-            if (model.Source == CachedModelSource.FoundryLocal)
-            {
-                if (string.IsNullOrEmpty(path) || path.StartsWith("fl://", StringComparison.Ordinal))
-                {
-                    return;
-                }
-            }
-
             if (model.IsFile)
             {
                 path = Path.GetDirectoryName(path);
