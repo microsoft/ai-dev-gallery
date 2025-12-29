@@ -97,17 +97,17 @@
                                                 AutomationProperties.Name="More info"
                                                 Style="{StaticResource TertiaryButtonStyle}"
                                                 ToolTipService.ToolTip="More info"
-                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel)}">
+                                                Visibility="{x:Bind utils:XamlHelpers.VisibleWhenNotNull(FoundryCatalogModel.Runtime)}">
                                                 <TextBlock>
-                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(FoundryCatalogModel.Runtime.ExecutionProvider)}" />
+                                                    <Run Text="{x:Bind local:FoundryLocalPickerView.GetShortExecutionProvider(FoundryCatalogModel.Runtime.ExecutionProvider), FallbackValue=''}" />
                                                 </TextBlock>
                                                 <Button.Flyout>
                                                     <Flyout ShouldConstrainToRootBounds="False">
                                                         <TextBlock MaxWidth="360" TextWrapping="Wrap">
                                                             <Run Text="This model can run on your" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.DeviceType}" />
+                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.DeviceType, FallbackValue=''}" />
                                                             <Run Text="with the" />
-                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.ExecutionProvider}" />
+                                                            <Run Text="{x:Bind FoundryCatalogModel.Runtime.ExecutionProvider, FallbackValue=''}" />
                                                         </TextBlock>
                                                     </Flyout>
                                                 </Button.Flyout>
@@ -185,17 +185,6 @@
                         x:Name="DownloadableModelsTxt"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="Available models on Foundry Local" />
-                    <HyperlinkButton
-                        Grid.Column="1"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        AutomationProperties.Name="Copy url"
-                        Click="CopyUrlButton_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Bind FoundryLocalUrl}" />
-                            <FontIcon FontSize="12" Glyph="&#xE8C8;" />
-                        </StackPanel>
-                    </HyperlinkButton>
                 </Grid>
                 <ItemsRepeater
                     Grid.Row="2"
@@ -259,7 +248,7 @@
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             ToolTipService.ToolTip="More info">
                                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExectionProvider(Runtime.ExecutionProvider)}" />
+                                                                <TextBlock Text="{x:Bind local:FoundryLocalPickerView.GetShortExecutionProvider(Runtime.ExecutionProvider)}" />
                                                                 <Rectangle
                                                                     Width="1"
                                                                     HorizontalAlignment="Stretch"
@@ -373,7 +362,7 @@
                 <Image Width="36" Source="ms-appx:///Assets/ModelIcons/fl.light.svg" />
                 <TextBlock
                     FontWeight="SemiBold"
-                    Text="Foundry Local is not installed on this machine"
+                    Text="Foundry Local is not available"
                     TextAlignment="Center" />
                 <TextBlock
                     FontSize="12"
@@ -381,9 +370,16 @@
                     IsTextSelectionEnabled="True"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run Text="" /> <LineBreak /><Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Install Foundry Local</Hyperlink> <LineBreak />  <LineBreak />
-                    <Run Text="You will be able to download and use models once Foundry Local is installed on this machine" />
+                    <Run Text="Foundry Local SDK failed to initialize. This may be due to missing system requirements or runtime dependencies." /> <LineBreak /><LineBreak />
+                    <Hyperlink NavigateUri="https://aka.ms/fl-install-from-gallery" UnderlineStyle="None">Learn more about Foundry Local</Hyperlink>
                 </TextBlock>
+                <Button
+                    x:Name="RetryButton"
+                    Margin="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Click="RetryButton_Click"
+                    Content="Retry"
+                    Style="{StaticResource AccentButtonStyle}" />
             </StackPanel>
         </Grid>
         <VisualStateManager.VisualStateGroups>

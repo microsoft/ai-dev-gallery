@@ -60,7 +60,7 @@ internal sealed partial class SettingsPage : Page
         base.OnNavigatingFrom(e);
     }
 
-    private void GetStorageInfo()
+    private async void GetStorageInfo()
     {
         cachedModels.Clear();
 
@@ -68,14 +68,15 @@ internal sealed partial class SettingsPage : Page
         FolderPathTxt.Content = cacheFolderPath;
 
         long totalCacheSize = 0;
+        var allModels = await App.ModelCache.GetAllModelsAsync();
 
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
+        foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
         {
             cachedModels.Add(cachedModel);
             totalCacheSize += cachedModel.ModelSize;
         }
 
-        if (App.ModelCache.Models.Count > 0)
+        if (cachedModels.Count > 0)
         {
             ModelsExpander.IsExpanded = true;
         }
@@ -191,7 +192,7 @@ internal sealed partial class SettingsPage : Page
                 path = Path.GetDirectoryName(path);
             }
 
-            if (path != null)
+            if (path != null && Directory.Exists(path))
             {
                 Process.Start("explorer.exe", path);
             }
