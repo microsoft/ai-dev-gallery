@@ -7,11 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 
-namespace AIDevGallery.Tests.UnitTests.Utils;
+namespace AIDevGallery.Tests.UnitTests;
 
-/// <summary>
-/// Tests for ModelDownload and related classes, focusing on new FoundryLocal integration.
-/// </summary>
 [TestClass]
 public class ModelDownloadTests
 {

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
+namespace AIDevGallery.Tests.UnitTests;
 
 [TestClass]
 public class FoundryLocalModelProviderTests

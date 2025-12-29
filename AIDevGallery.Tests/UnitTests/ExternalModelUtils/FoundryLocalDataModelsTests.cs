@@ -4,7 +4,7 @@
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
+namespace AIDevGallery.Tests.UnitTests;
 
 /// <summary>
 /// Tests for FoundryLocal data models and utility types.

@@ -5,11 +5,8 @@ using AIDevGallery.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace AIDevGallery.Tests.UnitTests.Models;
+namespace AIDevGallery.Tests.UnitTests;
 
-/// <summary>
-/// Tests for CachedModel, focusing on new FoundryLocal source detection.
-/// </summary>
 [TestClass]
 public class CachedModelTests
 {

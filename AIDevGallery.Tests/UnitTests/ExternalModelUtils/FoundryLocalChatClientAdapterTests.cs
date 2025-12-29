@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace AIDevGallery.Tests.UnitTests.ExternalModelUtils;
+namespace AIDevGallery.Tests.UnitTests;
 
 /// <summary>
 /// Tests for FoundryLocalChatClientAdapter focusing on pure functions and data transformations.
