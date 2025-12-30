@@ -449,7 +449,7 @@ Do you want to proceed with the move?",
             using var cts = new CancellationTokenSource();
 
             // Allow retry when user manually clicks the download button
-            bool success = await CudaDllManager.EnsureCudaDllAsync(progress, cts.Token, forceRetry: true);
+            bool success = await CudaDllManager.EnsureCudaDllAsync(progress, forceRetry: true, cts.Token);
 
             Debug.WriteLine($"[CUDA] Manual download completed, success: {success}");
 

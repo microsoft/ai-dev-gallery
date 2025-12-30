@@ -120,10 +120,10 @@ internal static class CudaDllManager
     /// Attempts to download CUDA DLL if needed
     /// </summary>
     /// <param name="progress">Optional progress reporter (0.0 to 1.0)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="forceRetry">If true, allows retrying even if a previous download attempt failed</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if DLL is available (either already exists or successfully downloaded)</returns>
-    public static async Task<bool> EnsureCudaDllAsync(IProgress<float>? progress = null, CancellationToken cancellationToken = default, bool forceRetry = false)
+    public static async Task<bool> EnsureCudaDllAsync(IProgress<float>? progress = null, bool forceRetry = false, CancellationToken cancellationToken = default)
     {
         Debug.WriteLine("[CUDA] EnsureCudaDllAsync called");
 

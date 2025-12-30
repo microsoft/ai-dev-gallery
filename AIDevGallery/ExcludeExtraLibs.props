@@ -34,6 +34,20 @@
     <Message Importance="High" Text="Deleted onnxruntime-genai-cuda.dll from output directory: @(CudaDllsToDelete)" />
   </Target>
 
+  <!-- Remove CUDA DLLs before MSIX packaging -->
+  <Target Name="RemoveCudaDllsBeforePackaging" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(Platform)'=='x64'" 
+          BeforeTargets="_GenerateCurrentProjectAppxManifest;_GenerateAppxPackage">
+    <ItemGroup>
+      <AppxPackagePayload Remove="@(AppxPackagePayload)" 
+                          Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <AppxUploadPackagePayload Remove="@(AppxUploadPackagePayload)" 
+                                Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <CudaDllsInLayout Include="$(LayoutDir)**\onnxruntime-genai-cuda.dll" />
+    </ItemGroup>
+    <Delete Files="@(CudaDllsInLayout)" />
+    <Message Importance="High" Text="Removed onnxruntime-genai-cuda.dll from MSIX package payload" />
+  </Target>
+
   <!-- Remove QNN EP and IHV libraries on Windows ARM64 -->
   <Target Name="ExcludeQnnLibs" Condition="'$(RuntimeIdentifier)'=='win-arm64' Or '$(Platform)'=='ARM64'" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
