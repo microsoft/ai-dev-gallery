@@ -352,6 +352,32 @@
                 </ItemsRepeater>
             </Grid>
         </ScrollViewer>
+        <ContentDialog
+            x:Name="DownloadDialog"
+            Title="Download model"
+            DefaultButton="Primary"
+            IsPrimaryButtonEnabled="{Binding ElementName=AgreeCheckBox, Path=IsChecked}"
+            PrimaryButtonText="Download"
+            SecondaryButtonText="Cancel">
+            <ContentDialog.Content>
+                <StackPanel MinWidth="360">
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="You are about to download" />
+                        <Run x:Name="ModelNameTxt" FontWeight="SemiBold" />
+                        <Run Text="from Foundry Local" />
+                        <LineBreak />
+                        <LineBreak /><Run Text="License:" />
+                        <Hyperlink x:Name="ModelLicenseLink">
+                            <Run x:Name="ModelLicenseLabel" />
+                        </Hyperlink>
+                    </TextBlock>
+                    <CheckBox
+                        x:Name="AgreeCheckBox"
+                        Margin="0,16,0,0"
+                        Content="I have reviewed and agree with the license" />
+                </StackPanel>
+            </ContentDialog.Content>
+        </ContentDialog>
         <Grid x:Name="NotAvailableGrid" Visibility="Collapsed">
             <StackPanel
                 Margin="48,0,48,48"

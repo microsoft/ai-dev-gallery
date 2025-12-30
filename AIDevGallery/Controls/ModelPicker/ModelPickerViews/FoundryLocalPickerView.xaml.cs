@@ -8,6 +8,7 @@ using AIDevGallery.ViewModels;
 using Microsoft.AI.Foundry.Local;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -133,11 +134,24 @@ internal sealed partial class FoundryLocalPickerView : BaseModelPickerView
         DispatcherQueue.TryEnqueue(() => ModelSelectionItemsView.DeselectAll());
     }
 
-    private void DownloadModelButton_Click(object sender, RoutedEventArgs e)
+    private async void DownloadModelButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
-            downloadableModel.StartDownload();
+            var license = Utils.LicenseInfo.GetLicenseInfo(downloadableModel.ModelDetails.License);
+
+            ModelNameTxt.Text = downloadableModel.ModelDetails.Name;
+            ModelLicenseLink.NavigateUri = new System.Uri(license.LicenseUrl ?? downloadableModel.ModelDetails.Url);
+            ModelLicenseLabel.Text = license.Name;
+
+            AgreeCheckBox.IsChecked = false;
+
+            var output = await DownloadDialog.ShowAsync();
+
+            if (output == ContentDialogResult.Primary)
+            {
+                downloadableModel.StartDownload();
+            }
         }
     }
 
