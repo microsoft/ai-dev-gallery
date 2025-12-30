@@ -121,8 +121,9 @@ internal static class CudaDllManager
     /// </summary>
     /// <param name="progress">Optional progress reporter (0.0 to 1.0)</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="forceRetry">If true, allows retrying even if a previous download attempt failed</param>
     /// <returns>True if DLL is available (either already exists or successfully downloaded)</returns>
-    public static async Task<bool> EnsureCudaDllAsync(IProgress<float>? progress = null, CancellationToken cancellationToken = default)
+    public static async Task<bool> EnsureCudaDllAsync(IProgress<float>? progress = null, CancellationToken cancellationToken = default, bool forceRetry = false)
     {
         Debug.WriteLine("[CUDA] EnsureCudaDllAsync called");
 
@@ -134,11 +135,18 @@ internal static class CudaDllManager
             return true;
         }
 
-        // If already attempted and failed, don't try again
-        if (_downloadAttempted && !_isDownloading)
+        // If already attempted and failed, don't try again (unless forceRetry is true)
+        if (_downloadAttempted && !_isDownloading && !forceRetry)
         {
             Debug.WriteLine("[CUDA] Download already attempted and failed, skipping");
             return false;
+        }
+
+        // Reset download attempted flag if forcing retry
+        if (forceRetry)
+        {
+            Debug.WriteLine("[CUDA] Force retry requested, resetting download attempt flag");
+            _downloadAttempted = false;
         }
 
         // Ensure only one download at a time
@@ -152,9 +160,15 @@ internal static class CudaDllManager
                 return true;
             }
 
-            if (_downloadAttempted && !_isDownloading)
+            if (_downloadAttempted && !_isDownloading && !forceRetry)
             {
                 return false;
+            }
+
+            // Reset download attempted flag if forcing retry (double-check after lock)
+            if (forceRetry && _downloadAttempted)
+            {
+                _downloadAttempted = false;
             }
 
             _isDownloading = true;

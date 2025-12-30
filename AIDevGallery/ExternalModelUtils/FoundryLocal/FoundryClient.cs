@@ -31,10 +31,8 @@ internal class FoundryClient : IDisposable
     {
         try
         {
-            // Load CUDA DLL if available (LoadCudaDll handles all checks internally)
             Utils.CudaDllManager.LoadCudaDll();
 
-            // Try to create the manager if it doesn't exist yet
             if (!FoundryLocalManager.IsInitialized)
             {
                 var config = new Configuration
@@ -44,15 +42,7 @@ internal class FoundryClient : IDisposable
                     ModelCacheDir = App.ModelCache.GetCacheFolder()
                 };
 
-                try
-                {
-                    await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
-                }
-                catch (Exception ex) when (ex.Message.Contains("FoundryLocalManager has already been created"))
-                {
-                    // This is not an error - the manager was created by another thread, just continue
-                    Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Manager already created (expected in concurrent scenarios)");
-                }
+                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
 
                 // Try to ensure EPs are downloaded after manager creation
                 // If some EPs fail (e.g., TensorRT needs onnxruntime-genai-cuda.dll), continue as long as basic EPs work
