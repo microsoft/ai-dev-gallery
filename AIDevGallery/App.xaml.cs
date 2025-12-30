@@ -8,7 +8,9 @@ using AIDevGallery.Telemetry;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -121,14 +123,24 @@ public partial class App : Application
         {
             try
             {
+                Debug.WriteLine("[CUDA] Background check initiated");
                 if (CudaDllManager.HasNvidiaGpu() && !CudaDllManager.IsCudaDllAvailable())
                 {
+                    Debug.WriteLine("[CUDA] NVIDIA GPU detected without CUDA DLL, starting background download");
+
                     // Silently attempt to download CUDA DLL in background
-                    await CudaDllManager.EnsureCudaDllAsync();
+                    var success = await CudaDllManager.EnsureCudaDllAsync();
+                    Debug.WriteLine($"[CUDA] Background download completed, success: {success}");
+                }
+                else
+                {
+                    Debug.WriteLine("[CUDA] No background download needed");
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[CUDA] Background download error: {ex.Message}");
+
                 // Silently fail - app will work without CUDA
             }
         });

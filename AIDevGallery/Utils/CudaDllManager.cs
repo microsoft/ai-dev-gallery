@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -38,24 +40,31 @@ internal static class CudaDllManager
     {
         try
         {
+            Debug.WriteLine("[CUDA] Checking for NVIDIA GPU...");
             var epDevices = DeviceUtils.GetEpDevices();
+            var deviceList = epDevices.ToList();
+            Debug.WriteLine($"[CUDA] Found {deviceList.Count} execution provider devices");
 
             // Check if any device is an NVIDIA GPU by checking for CUDA or TensorRT execution providers
-            foreach (var device in epDevices)
+            foreach (var device in deviceList)
             {
                 var epName = device.EpName?.ToLowerInvariant() ?? string.Empty;
+                Debug.WriteLine($"[CUDA] Checking device with EP: {device.EpName}");
 
                 // Only consider it NVIDIA if it explicitly supports CUDA or TensorRT
                 if (epName.Contains("cuda") || epName.Contains("tensorrt"))
                 {
+                    Debug.WriteLine($"[CUDA] NVIDIA GPU detected via EP: {device.EpName}");
                     return true;
                 }
             }
 
+            Debug.WriteLine("[CUDA] No NVIDIA GPU detected");
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"[CUDA] Error detecting NVIDIA GPU: {ex.Message}");
             return false;
         }
     }
@@ -66,16 +75,26 @@ internal static class CudaDllManager
     /// <returns>True if CUDA DLL is available</returns>
     public static bool IsCudaDllAvailable()
     {
+        Debug.WriteLine("[CUDA] Checking if CUDA DLL is available...");
+
         // Check if it exists in the download folder
         if (File.Exists(CudaDllPath))
         {
+            Debug.WriteLine($"[CUDA] CUDA DLL found in download folder: {CudaDllPath}");
             return true;
         }
 
         // Check if it's in the app directory (included in package)
         var appDir = AppContext.BaseDirectory;
         var cudaDllInAppDir = Path.Combine(appDir, CudaDllName);
-        return File.Exists(cudaDllInAppDir);
+        if (File.Exists(cudaDllInAppDir))
+        {
+            Debug.WriteLine($"[CUDA] CUDA DLL found in app directory: {cudaDllInAppDir}");
+            return true;
+        }
+
+        Debug.WriteLine("[CUDA] CUDA DLL not found");
+        return false;
     }
 
     /// <summary>
@@ -86,9 +105,12 @@ internal static class CudaDllManager
     /// <returns>True if DLL is available (either already exists or successfully downloaded)</returns>
     public static async Task<bool> EnsureCudaDllAsync(IProgress<float>? progress = null, CancellationToken cancellationToken = default)
     {
+        Debug.WriteLine("[CUDA] EnsureCudaDllAsync called");
+
         // If already available, no need to download
         if (IsCudaDllAvailable())
         {
+            Debug.WriteLine("[CUDA] CUDA DLL already available, loading it");
             LoadCudaDll();
             return true;
         }
@@ -96,6 +118,7 @@ internal static class CudaDllManager
         // If already attempted and failed, don't try again
         if (_downloadAttempted && !_isDownloading)
         {
+            Debug.WriteLine("[CUDA] Download already attempted and failed, skipping");
             return false;
         }
 
@@ -117,13 +140,16 @@ internal static class CudaDllManager
 
             _isDownloading = true;
             _downloadAttempted = true;
+            Debug.WriteLine("[CUDA] Starting download process");
 
             // Create directory if it doesn't exist
             Directory.CreateDirectory(CudaDllFolder);
+            Debug.WriteLine($"[CUDA] Created/verified download folder: {CudaDllFolder}");
 
             // Download and extract from NuGet package
             using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
             var tempNupkgPath = Path.Combine(CudaDllFolder, "temp.nupkg");
+            Debug.WriteLine($"[CUDA] Downloading NuGet package from: {NuGetPackageUrl}");
 
             try
             {
@@ -134,32 +160,42 @@ internal static class CudaDllManager
                     await fileStream.FlushAsync(cancellationToken);
                 }
 
+                Debug.WriteLine($"[CUDA] NuGet package downloaded to: {tempNupkgPath}");
+
                 // Extract the CUDA DLL from the NuGet package (which is a ZIP file)
+                Debug.WriteLine("[CUDA] Extracting CUDA DLL from NuGet package...");
                 using (var archive = System.IO.Compression.ZipFile.OpenRead(tempNupkgPath))
                 {
                     var entry = archive.GetEntry(DllPathInPackage);
                     if (entry != null)
                     {
                         entry.ExtractToFile(CudaDllPath, overwrite: true);
+                        Debug.WriteLine($"[CUDA] Extracted CUDA DLL to: {CudaDllPath}");
                     }
                     else
                     {
+                        Debug.WriteLine($"[CUDA] ERROR: Could not find {DllPathInPackage} in NuGet package");
                         throw new FileNotFoundException($"Could not find {DllPathInPackage} in NuGet package");
                     }
                 }
 
                 // Clean up temp file
                 File.Delete(tempNupkgPath);
+                Debug.WriteLine("[CUDA] Cleaned up temporary NuGet package file");
 
                 // Verify the downloaded file
                 // File must be at least 1MB
                 if (File.Exists(CudaDllPath) && new FileInfo(CudaDllPath).Length > 1024 * 1024)
                 {
+                    var fileSizeMB = new FileInfo(CudaDllPath).Length / (1024.0 * 1024.0);
+                    Debug.WriteLine($"[CUDA] CUDA DLL verified successfully ({fileSizeMB:F2} MB)");
                     LoadCudaDll();
                     return true;
                 }
                 else
                 {
+                    Debug.WriteLine("[CUDA] ERROR: Downloaded file is invalid or too small");
+
                     // Invalid file, delete it
                     File.Delete(CudaDllPath);
                     return false;
@@ -167,12 +203,16 @@ internal static class CudaDllManager
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"[CUDA] ERROR during download: {ex.Message}");
+                Debug.WriteLine($"[CUDA] Stack trace: {ex.StackTrace}");
+
                 // Clean up on failure
                 if (File.Exists(CudaDllPath))
                 {
                     try
                     {
                         File.Delete(CudaDllPath);
+                        Debug.WriteLine("[CUDA] Cleaned up partial CUDA DLL file");
                     }
                     catch
                     {
@@ -184,6 +224,7 @@ internal static class CudaDllManager
                     try
                     {
                         File.Delete(tempNupkgPath);
+                        Debug.WriteLine("[CUDA] Cleaned up temporary NuGet package");
                     }
                     catch
                     {
@@ -198,6 +239,7 @@ internal static class CudaDllManager
         {
             _isDownloading = false;
             _downloadLock.Release();
+            Debug.WriteLine("[CUDA] Download process completed");
         }
     }
 
@@ -208,15 +250,20 @@ internal static class CudaDllManager
     {
         try
         {
+            Debug.WriteLine("[CUDA] Attempting to load CUDA DLL...");
             if (File.Exists(CudaDllPath))
             {
+                Debug.WriteLine($"[CUDA] CUDA DLL path: {CudaDllPath}");
+
                 // Add the directory to the DLL search path
                 NativeLibrary.SetDllImportResolver(typeof(CudaDllManager).Assembly, (libraryName, assembly, searchPath) =>
                 {
                     if (libraryName == CudaDllName)
                     {
+                        Debug.WriteLine($"[CUDA] DLL import resolver called for: {libraryName}");
                         if (NativeLibrary.TryLoad(CudaDllPath, out var handle))
                         {
+                            Debug.WriteLine($"[CUDA] Successfully loaded DLL via resolver, handle: {handle}");
                             return handle;
                         }
                     }
@@ -225,15 +272,26 @@ internal static class CudaDllManager
                 });
 
                 // Pre-load the DLL
-                if (NativeLibrary.TryLoad(CudaDllPath, out _))
+                if (NativeLibrary.TryLoad(CudaDllPath, out var mainHandle))
                 {
+                    Debug.WriteLine($"[CUDA] Successfully pre-loaded CUDA DLL, handle: {mainHandle}");
                     var emptyEvent = new Telemetry.EmptyEvent(Microsoft.Diagnostics.Telemetry.Internal.PartA_PrivTags.ProductAndServiceUsage);
                     Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().Log("CudaDllLoaded", Telemetry.LogLevel.Info, emptyEvent);
                 }
+                else
+                {
+                    Debug.WriteLine("[CUDA] WARNING: Failed to pre-load CUDA DLL");
+                }
+            }
+            else
+            {
+                Debug.WriteLine($"[CUDA] WARNING: CUDA DLL not found at expected path: {CudaDllPath}");
             }
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[CUDA] ERROR loading CUDA DLL: {ex.Message}");
+            Debug.WriteLine($"[CUDA] Stack trace: {ex.StackTrace}");
             Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("CudaDllLoadFailed", ex);
         }
     }

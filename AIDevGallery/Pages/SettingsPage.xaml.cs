@@ -360,16 +360,21 @@ Do you want to proceed with the move?",
 
     private void InitializeCudaAccelerationUI()
     {
+        Debug.WriteLine("[CUDA] Initializing CUDA acceleration UI");
+
         // Always show the card
         CudaAccelerationCard.Visibility = Visibility.Visible;
 
         // Check if user has NVIDIA GPU
         if (CudaDllManager.HasNvidiaGpu())
         {
+            Debug.WriteLine("[CUDA] NVIDIA GPU detected, showing download options");
             UpdateCudaStatus();
         }
         else
         {
+            Debug.WriteLine("[CUDA] No NVIDIA GPU detected, showing informational message");
+
             // Show message that NVIDIA GPU is not supported
             CudaStatusText.Text = "NVIDIA GPU not detected. Using DirectML for GPU acceleration.";
             DownloadCudaButton.Visibility = Visibility.Collapsed;
@@ -397,24 +402,34 @@ Do you want to proceed with the move?",
 
     private async void DownloadCuda_Click(object sender, RoutedEventArgs e)
     {
+        Debug.WriteLine("[CUDA] Download button clicked");
+
         // If CUDA is already available, open the folder
         if (CudaDllManager.IsCudaDllAvailable())
         {
+            Debug.WriteLine("[CUDA] CUDA already available, opening folder");
             try
             {
                 var folderPath = CudaDllManager.GetCudaDllFolderPath();
                 if (System.IO.Directory.Exists(folderPath))
                 {
+                    Debug.WriteLine($"[CUDA] Opening folder: {folderPath}");
                     System.Diagnostics.Process.Start("explorer.exe", folderPath);
                 }
+                else
+                {
+                    Debug.WriteLine($"[CUDA] Folder does not exist: {folderPath}");
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[CUDA] Error opening folder: {ex.Message}");
             }
 
             return;
         }
 
+        Debug.WriteLine("[CUDA] Starting manual download from UI");
         try
         {
             DownloadCudaButton.Visibility = Visibility.Collapsed;
@@ -433,6 +448,8 @@ Do you want to proceed with the move?",
 
             using var cts = new CancellationTokenSource();
             bool success = await CudaDllManager.EnsureCudaDllAsync(progress, cts.Token);
+
+            Debug.WriteLine($"[CUDA] Manual download completed, success: {success}");
 
             if (success)
             {
