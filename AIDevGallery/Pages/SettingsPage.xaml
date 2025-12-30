@@ -118,7 +118,7 @@
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="GPU Acceleration" />
                     <toolkit:SettingsCard
                         x:Name="CudaAccelerationCard"
-                        Description="NVIDIA CUDA acceleration for improved performance on RTX GPUs"
+                        Description="Improved performance on RTX GPUs"
                         Header="NVIDIA GPU Acceleration"
                         HeaderIcon="{ui:FontIcon Glyph=&#xE950;}"
                         Visibility="Collapsed">

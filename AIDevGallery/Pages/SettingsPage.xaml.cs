@@ -376,7 +376,7 @@ Do you want to proceed with the move?",
             Debug.WriteLine("[CUDA] No NVIDIA GPU detected, showing informational message");
 
             // Show message that NVIDIA GPU is not supported
-            CudaStatusText.Text = "NVIDIA GPU not detected. Using DirectML for GPU acceleration.";
+            CudaStatusText.Text = "NVIDIA GPU not detected.";
             DownloadCudaButton.Visibility = Visibility.Collapsed;
             CudaDownloadProgress.Visibility = Visibility.Collapsed;
         }

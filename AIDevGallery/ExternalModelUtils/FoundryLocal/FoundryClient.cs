@@ -31,14 +31,41 @@ internal class FoundryClient : IDisposable
     {
         try
         {
-            var config = new Configuration
-            {
-                AppName = "AIDevGallery",
-                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
-                ModelCacheDir = App.ModelCache.GetCacheFolder()
-            };
+            // Load CUDA DLL if available (LoadCudaDll handles all checks internally)
+            Utils.CudaDllManager.LoadCudaDll();
 
-            await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+            // Try to create the manager if it doesn't exist yet
+            if (!FoundryLocalManager.IsInitialized)
+            {
+                var config = new Configuration
+                {
+                    AppName = "AIDevGallery",
+                    LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                    ModelCacheDir = App.ModelCache.GetCacheFolder()
+                };
+
+                try
+                {
+                    await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+                }
+                catch (Exception ex) when (ex.Message.Contains("FoundryLocalManager has already been created"))
+                {
+                    // This is not an error - the manager was created by another thread, just continue
+                    Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Manager already created (expected in concurrent scenarios)");
+                }
+
+                // Try to ensure EPs are downloaded after manager creation
+                // If some EPs fail (e.g., TensorRT needs onnxruntime-genai-cuda.dll), continue as long as basic EPs work
+                try
+                {
+                    await FoundryLocalManager.Instance.EnsureEpsDownloadedAsync();
+                }
+                catch (Exception ex) when (ex.Message.Contains("Successfully downloaded"))
+                {
+                    // Partial success - at least some EPs (like CUDA) registered successfully
+                    Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Partial EP registration (some failed): {ex.Message}");
+                }
+            }
 
             if (!FoundryLocalManager.IsInitialized)
             {
@@ -48,11 +75,9 @@ internal class FoundryClient : IDisposable
 
             var client = new FoundryClient
             {
-                _manager = FoundryLocalManager.Instance
+                _manager = FoundryLocalManager.Instance,
+                _catalog = await FoundryLocalManager.Instance.GetCatalogAsync()
             };
-
-            await client._manager.EnsureEpsDownloadedAsync();
-            client._catalog = await client._manager.GetCatalogAsync();
 
             return client;
         }

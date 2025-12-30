@@ -31,13 +31,20 @@ internal static class CudaDllManager
 
     private static bool _downloadAttempted;
     private static bool _isDownloading;
+    private static bool _dllLoaded;
+    private static bool? _hasNvidiaGpu;
 
     /// <summary>
-    /// Checks if the system has an NVIDIA GPU
+    /// Checks if the system has an NVIDIA GPU (cached result)
     /// </summary>
     /// <returns>True if NVIDIA GPU is detected</returns>
     public static bool HasNvidiaGpu()
     {
+        if (_hasNvidiaGpu.HasValue)
+        {
+            return _hasNvidiaGpu.Value;
+        }
+
         try
         {
             Debug.WriteLine("[CUDA] Checking for NVIDIA GPU...");
@@ -55,18 +62,30 @@ internal static class CudaDllManager
                 if (epName.Contains("cuda") || epName.Contains("tensorrt"))
                 {
                     Debug.WriteLine($"[CUDA] NVIDIA GPU detected via EP: {device.EpName}");
+                    _hasNvidiaGpu = true;
                     return true;
                 }
             }
 
             Debug.WriteLine("[CUDA] No NVIDIA GPU detected");
+            _hasNvidiaGpu = false;
             return false;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[CUDA] Error detecting NVIDIA GPU: {ex.Message}");
+            _hasNvidiaGpu = false;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Checks if CUDA DLL has been loaded into the process
+    /// </summary>
+    /// <returns>True if CUDA DLL is loaded</returns>
+    public static bool IsCudaDllLoaded()
+    {
+        return _dllLoaded;
     }
 
     /// <summary>
@@ -244,10 +263,22 @@ internal static class CudaDllManager
     }
 
     /// <summary>
-    /// Loads the CUDA DLL into the process
+    /// Loads the CUDA DLL into the process if available
     /// </summary>
-    private static void LoadCudaDll()
+    public static void LoadCudaDll()
     {
+        if (_dllLoaded)
+        {
+            Debug.WriteLine("[CUDA] CUDA DLL already loaded, skipping");
+            return;
+        }
+
+        if (!IsCudaDllAvailable())
+        {
+            Debug.WriteLine("[CUDA] CUDA DLL not available, skipping load");
+            return;
+        }
+
         try
         {
             Debug.WriteLine("[CUDA] Attempting to load CUDA DLL...");
@@ -275,6 +306,7 @@ internal static class CudaDllManager
                 if (NativeLibrary.TryLoad(CudaDllPath, out var mainHandle))
                 {
                     Debug.WriteLine($"[CUDA] Successfully pre-loaded CUDA DLL, handle: {mainHandle}");
+                    _dllLoaded = true;
                     var emptyEvent = new Telemetry.EmptyEvent(Microsoft.Diagnostics.Telemetry.Internal.PartA_PrivTags.ProductAndServiceUsage);
                     Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().Log("CudaDllLoaded", Telemetry.LogLevel.Info, emptyEvent);
                 }
@@ -304,20 +336,20 @@ internal static class CudaDllManager
     {
         if (IsCudaDllAvailable())
         {
-            return "NVIDIA GPU acceleration (CUDA) is available";
+            return "CUDA is available";
         }
 
         if (_isDownloading)
         {
-            return "Downloading NVIDIA GPU acceleration support...";
+            return "Downloading CUDA support...";
         }
 
         if (_downloadAttempted)
         {
-            return "NVIDIA GPU acceleration download failed. Using DirectML instead.";
+            return "CUDA download failed. Using DirectML instead.";
         }
 
-        return "NVIDIA GPU detected. CUDA acceleration can be downloaded for better performance.";
+        return "NVIDIA GPU detected. CUDA support can be downloaded for better performance.";
     }
 
     /// <summary>
