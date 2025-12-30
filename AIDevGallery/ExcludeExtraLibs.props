@@ -13,9 +13,24 @@
       <!-- match onnxruntime_providers_cuda (we're matching %(Filename) which excludes the extension) -->
       <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
                             Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)', 
-                                      'onnxruntime_providers_cuda', RegexOptions.IgnoreCase))" />
+                                      'onnxruntime.*cuda|onnxruntime-genai-cuda', RegexOptions.IgnoreCase))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)', 
+                                         'onnxruntime.*cuda|onnxruntime-genai-cuda', RegexOptions.IgnoreCase))" />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)"
+                             Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)', 
+                                       'onnxruntime.*cuda|onnxruntime-genai-cuda', RegexOptions.IgnoreCase))" />
     </ItemGroup>
-    <Message Importance="Normal" Text="Excluded onnxruntime CUDA libraries from package (except onnxruntime-genai-cuda)." />
+    <Message Importance="Normal" Text="Excluded ALL onnxruntime CUDA libraries from package (including onnxruntime-genai-cuda)." />
+  </Target>
+  
+  <!-- Additional cleanup after CopyFilesToOutputDirectory to ensure CUDA DLLs are removed -->
+  <Target Name="RemoveCudaDllsFromOutput" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(Platform)'=='x64'" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <CudaDllsToDelete Include="$(OutDir)**\*cuda*.dll" />
+    </ItemGroup>
+    <Delete Files="@(CudaDllsToDelete)" />
+    <Message Importance="High" Text="Deleted CUDA DLLs from output directory: @(CudaDllsToDelete)" />
   </Target>
 
   <!-- Remove QNN EP and IHV libraries on Windows ARM64 -->

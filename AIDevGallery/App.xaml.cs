@@ -115,6 +115,23 @@ public partial class App : Application
         ModelDownloadQueue = new ModelDownloadQueue();
 
         GenerateSearchIndex();
+
+        // Check for NVIDIA GPU and optionally download CUDA DLL in background
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (CudaDllManager.HasNvidiaGpu() && !CudaDllManager.IsCudaDllAvailable())
+                {
+                    // Silently attempt to download CUDA DLL in background
+                    await CudaDllManager.EnsureCudaDllAsync();
+                }
+            }
+            catch
+            {
+                // Silently fail - app will work without CUDA
+            }
+        });
     }
 
     private void GenerateSearchIndex()

@@ -44,6 +44,10 @@ internal sealed partial class SettingsPage : Page
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
         SemanticSearchToggleSwitch.IsOn = App.AppData.IsAppContentSearchEnabled;
+
+        // Initialize CUDA acceleration UI
+        InitializeCudaAccelerationUI();
+
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
@@ -352,5 +356,127 @@ Do you want to proceed with the move?",
         ProgressDialog?.Hide();
         _cts?.Dispose();
         _cts = null;
+    }
+
+    private void InitializeCudaAccelerationUI()
+    {
+        // Always show the card
+        CudaAccelerationCard.Visibility = Visibility.Visible;
+
+        // Check if user has NVIDIA GPU
+        if (CudaDllManager.HasNvidiaGpu())
+        {
+            UpdateCudaStatus();
+        }
+        else
+        {
+            // Show message that NVIDIA GPU is not supported
+            CudaStatusText.Text = "NVIDIA GPU not detected. Using DirectML for GPU acceleration.";
+            DownloadCudaButton.Visibility = Visibility.Collapsed;
+            CudaDownloadProgress.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void UpdateCudaStatus()
+    {
+        CudaStatusText.Text = CudaDllManager.GetStatusMessage();
+
+        if (CudaDllManager.IsCudaDllAvailable())
+        {
+            DownloadCudaButton.Content = "Open Folder";
+            DownloadCudaButton.Visibility = Visibility.Visible;
+            CudaDownloadProgress.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            DownloadCudaButton.Content = "Download CUDA Support";
+            DownloadCudaButton.Visibility = Visibility.Visible;
+            CudaDownloadProgress.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async void DownloadCuda_Click(object sender, RoutedEventArgs e)
+    {
+        // If CUDA is already available, open the folder
+        if (CudaDllManager.IsCudaDllAvailable())
+        {
+            try
+            {
+                var folderPath = CudaDllManager.GetCudaDllFolderPath();
+                if (System.IO.Directory.Exists(folderPath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", folderPath);
+                }
+            }
+            catch
+            {
+            }
+
+            return;
+        }
+
+        try
+        {
+            DownloadCudaButton.Visibility = Visibility.Collapsed;
+            CudaDownloadProgress.Visibility = Visibility.Visible;
+            CudaDownloadProgress.IsIndeterminate = false;
+            CudaDownloadProgress.Value = 0;
+
+            var progress = new Progress<float>(value =>
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    CudaDownloadProgress.Value = value * 100;
+                    CudaStatusText.Text = $"Downloading... {value:P0}";
+                });
+            });
+
+            using var cts = new CancellationTokenSource();
+            bool success = await CudaDllManager.EnsureCudaDllAsync(progress, cts.Token);
+
+            if (success)
+            {
+                CudaStatusText.Text = "NVIDIA GPU acceleration is now available!";
+
+                ContentDialog successDialog = new()
+                {
+                    Title = "Download Complete",
+                    Content = "NVIDIA CUDA acceleration has been successfully downloaded. Restart the app to use improved GPU performance.",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.XamlRoot
+                };
+                await successDialog.ShowAsync();
+            }
+            else
+            {
+                CudaStatusText.Text = "Download failed. Using DirectML acceleration instead.";
+
+                ContentDialog errorDialog = new()
+                {
+                    Title = "Download Failed",
+                    Content = "Failed to download CUDA support. The app will continue to use DirectML for GPU acceleration.",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.XamlRoot
+                };
+                await errorDialog.ShowAsync();
+            }
+
+            UpdateCudaStatus();
+        }
+        catch (Exception ex)
+        {
+            CudaStatusText.Text = "An error occurred during download.";
+
+            ContentDialog errorDialog = new()
+            {
+                Title = "Error",
+                Content = $"An error occurred: {ex.Message}",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await errorDialog.ShowAsync();
+
+            UpdateCudaStatus();
+        }
     }
 }
