@@ -1,224 +1,281 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AI.Foundry.Local;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal class FoundryClient
+internal class FoundryClient : IDisposable
 {
+    private readonly Dictionary<string, IModel> _loadedModels = new();
+    private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();
+    private readonly Dictionary<string, OpenAIChatClient> _chatClients = new();
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private FoundryLocalManager? _manager;
+    private ICatalog? _catalog;
+    private bool _disposed;
+
+    /// <summary>
+    /// Gets the underlying catalog for direct access to model queries.
+    /// Provider layer should use this to implement business logic.
+    /// </summary>
+    public ICatalog? Catalog => _catalog;
+
     public static async Task<FoundryClient?> CreateAsync()
     {
-        var serviceManager = FoundryServiceManager.TryCreate();
-        if (serviceManager == null)
+        try
         {
-            return null;
-        }
-
-        if (!await serviceManager.IsRunning())
-        {
-            if (!await serviceManager.StartService())
+            var config = new Configuration
             {
+                AppName = "AIDevGallery",
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                ModelCacheDir = App.ModelCache.GetCacheFolder()
+            };
+
+            await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+
+            if (!FoundryLocalManager.IsInitialized)
+            {
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "ManagerCreation", "N/A", "FoundryLocalManager failed to initialize");
                 return null;
             }
+
+            var client = new FoundryClient
+            {
+                _manager = FoundryLocalManager.Instance
+            };
+
+            await client._manager.EnsureEpsDownloadedAsync();
+            client._catalog = await client._manager.GetCatalogAsync();
+
+            return client;
         }
-
-        var serviceUrl = await serviceManager.GetServiceUrl();
-
-        if (string.IsNullOrEmpty(serviceUrl))
+        catch (Exception ex)
         {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "Exception", "N/A", ex.Message);
             return null;
         }
-
-        return new FoundryClient(serviceUrl, serviceManager, new HttpClient());
     }
 
-    public FoundryServiceManager ServiceManager { get; init; }
-
-    private HttpClient _httpClient;
-    private string _baseUrl;
-    private List<FoundryCatalogModel> _catalogModels = [];
-
-    private FoundryClient(string baseUrl, FoundryServiceManager serviceManager, HttpClient httpClient)
+    public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel catalogModel, IProgress<float>? progress, CancellationToken cancellationToken = default)
     {
-        this.ServiceManager = serviceManager;
-        this._baseUrl = baseUrl;
-        this._httpClient = httpClient;
-    }
-
-    public async Task<List<FoundryCatalogModel>> ListCatalogModels()
-    {
-        if (_catalogModels.Count > 0)
+        if (_catalog == null)
         {
-            return _catalogModels;
+            return new FoundryDownloadResult(false, "Catalog not initialized");
+        }
+
+        var startTime = DateTime.Now;
+        try
+        {
+            var model = await _catalog.GetModelAsync(catalogModel.Alias);
+            if (model == null)
+            {
+                return new FoundryDownloadResult(false, "Model not found in catalog");
+            }
+
+            if (await model.IsCachedAsync())
+            {
+                await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
+                return new FoundryDownloadResult(true, "Model already cached and loaded");
+            }
+
+            // Key Perf Log
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
+            await model.DownloadAsync(
+                progressPercent => progress?.Report(progressPercent / 100f),
+                cancellationToken);
+
+            // Key Perf Log
+            Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Download completed for model: {catalogModel.Alias}");
+
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelDownload", catalogModel.Alias, duration);
+
+            try
+            {
+                await EnsureModelLoadedAsync(catalogModel.Alias, cancellationToken);
+                return new FoundryDownloadResult(true, null);
+            }
+            catch (Exception ex)
+            {
+                var warningMsg = ex.Message.Split('\n')[0];
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "LoadWarning", catalogModel.Alias, ex.Message);
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Load warning: {warningMsg}");
+                return new FoundryDownloadResult(true, warningMsg);
+            }
+        }
+        catch (Exception e)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDownload", "Exception", catalogModel.Alias, e.Message);
+            return new FoundryDownloadResult(false, e.Message);
+        }
+    }
+
+    /// <summary>
+    /// Ensures a model is loaded into memory for use.
+    /// Should be called after download or when first accessing a cached model.
+    /// Thread-safe: multiple concurrent calls for the same alias will only load once.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task EnsureModelLoadedAsync(string alias, CancellationToken cancellationToken = default)
+    {
+        if (_loadedModels.ContainsKey(alias))
+        {
+            return;
+        }
+
+        var startTime = DateTime.Now;
+        await _loadLock.WaitAsync(cancellationToken);
+        try
+        {
+            // Double-check inside lock to ensure thread safety
+            if (_loadedModels.ContainsKey(alias))
+            {
+                return;
+            }
+
+            if (_catalog == null || _manager == null)
+            {
+                throw new InvalidOperationException("FoundryLocal client not initialized");
+            }
+
+            var model = await _catalog.GetModelAsync(alias);
+            if (model == null)
+            {
+                throw new InvalidOperationException($"Model with alias '{alias}' not found in catalog");
+            }
+
+            if (!await model.IsCachedAsync())
+            {
+                throw new InvalidOperationException($"Model with alias '{alias}' is not cached. Please download it first.");
+            }
+
+            if (!await model.IsLoadedAsync())
+            {
+                // Key Perf Log
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.SelectedVariant.Info.Id})");
+                await model.LoadAsync(cancellationToken);
+
+                // Key Perf Log
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Model loaded: {alias}");
+            }
+
+            _loadedModels[alias] = model;
+            _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
+
+            // Pre-create and cache the chat client to avoid sync-over-async in GetChatClient
+            var chatClient = await model.GetChatClientAsync();
+            _chatClients[alias] = chatClient;
+
+            var duration = (DateTime.Now - startTime).TotalSeconds;
+            Telemetry.Events.FoundryLocalOperationEvent.Log("ModelLoad", alias, duration);
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelLoad", "Exception", alias, ex.Message);
+            throw;
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    public IModel? GetLoadedModel(string alias) =>
+        _loadedModels.GetValueOrDefault(alias);
+
+    public OpenAIChatClient? GetChatClient(string alias) =>
+        _chatClients.GetValueOrDefault(alias);
+
+    public int? GetModelMaxOutputTokens(string alias) =>
+        _modelMaxOutputTokens.GetValueOrDefault(alias);
+
+    public async Task<bool> DeleteModelAsync(string modelId)
+    {
+        if (_catalog == null)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "CatalogNotInitialized", modelId, "Catalog not initialized");
+            return false;
         }
 
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/foundry/list");
-            response.EnsureSuccessStatusCode();
-
-            var models = await JsonSerializer.DeserializeAsync(
-                response.Content.ReadAsStream(),
-                FoundryJsonContext.Default.ListFoundryCatalogModel);
-
-            if (models != null && models.Count > 0)
+            var variant = await _catalog.GetModelVariantAsync(modelId);
+            if (variant == null)
             {
-                models.ForEach(_catalogModels.Add);
+                return false;
             }
-        }
-        catch
-        {
-        }
 
-        return _catalogModels;
+            var alias = variant.Alias;
+
+            if (await variant.IsLoadedAsync())
+            {
+                await variant.UnloadAsync();
+            }
+
+            if (await variant.IsCachedAsync())
+            {
+                await variant.RemoveFromCacheAsync();
+            }
+
+            if (!string.IsNullOrEmpty(alias))
+            {
+                _loadedModels.Remove(alias);
+                _modelMaxOutputTokens.Remove(alias);
+                _chatClients.Remove(alias);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ModelDelete", "Exception", modelId, ex.Message);
+            return false;
+        }
     }
 
-    public async Task<List<FoundryCachedModel>> ListCachedModels()
+    public async Task UnloadAllModelsAsync()
     {
-        var response = await _httpClient.GetAsync($"{_baseUrl}/openai/models");
-        response.EnsureSuccessStatusCode();
+        var modelCount = _loadedModels.Count;
 
-        var catalogModels = await ListCatalogModels();
-
-        var content = await response.Content.ReadAsStringAsync();
-        var modelIds = content.Trim('[', ']').Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(id => id.Trim('"'));
-
-        List<FoundryCachedModel> models = [];
-
-        foreach (var id in modelIds)
-        {
-            var model = catalogModels.FirstOrDefault(m => m.Name == id);
-            if (model != null)
-            {
-                models.Add(new FoundryCachedModel(id, model.Alias));
-            }
-            else
-            {
-                models.Add(new FoundryCachedModel(id, null));
-            }
-        }
-
-        return models;
-    }
-
-    public async Task<FoundryDownloadResult> DownloadModel(FoundryCatalogModel model, IProgress<float>? progress, CancellationToken cancellationToken = default)
-    {
-        var models = await ListCachedModels();
-
-        if (models.Any(m => m.Name == model.Name))
-        {
-            return new(true, "Model already downloaded");
-        }
-
-        return await Task.Run(async () =>
+        // Unload all loaded models before clearing
+        foreach (var (alias, model) in _loadedModels)
         {
             try
             {
-                var uploadBody = new FoundryDownloadBody(
-                    new FoundryModelDownload(
-                        Name: model.Name,
-                        Uri: model.Uri,
-                        Path: await GetModelPath(model.Uri), // temporary
-                        ProviderType: model.ProviderType,
-                        PromptTemplate: model.PromptTemplate),
-                    IgnorePipeReport: true);
-
-                string body = JsonSerializer.Serialize(
-                     uploadBody,
-                     FoundryJsonContext.Default.FoundryDownloadBody);
-
-                using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/openai/download")
+                if (await model.IsLoadedAsync())
                 {
-                    Content = new StringContent(body, Encoding.UTF8, "application/json")
-                };
-
-                using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-                response.EnsureSuccessStatusCode();
-
-                using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                using var reader = new StreamReader(stream);
-
-                string? finalJson = null;
-                var line = await reader.ReadLineAsync(cancellationToken);
-
-                while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    line = await reader.ReadLineAsync(cancellationToken);
-                    if (line is null)
-                    {
-                        continue;
-                    }
-
-                    line = line.Trim();
-
-                    // Final response starts with '{'
-                    if (finalJson != null || line.StartsWith('{'))
-                    {
-                        finalJson += line;
-                        continue;
-                    }
-
-                    var match = Regex.Match(line, @"\d+(\.\d+)?%");
-                    if (match.Success)
-                    {
-                        var percentage = match.Value;
-                        if (float.TryParse(percentage.TrimEnd('%'), out float progressValue))
-                        {
-                            progress?.Report(progressValue / 100);
-                        }
-                    }
+                    await model.UnloadAsync();
                 }
-
-                // Parse closing JSON; default if malformed
-                var result = finalJson is not null
-                       ? JsonSerializer.Deserialize(finalJson, FoundryJsonContext.Default.FoundryDownloadResult)!
-                       : new FoundryDownloadResult(false, "Missing final result from server.");
-
-                return result;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return new FoundryDownloadResult(false, e.Message);
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ModelUnload", "Exception", alias, ex.Message);
             }
-        });
+        }
+
+        _loadedModels.Clear();
+        _modelMaxOutputTokens.Clear();
+        _chatClients.Clear();
     }
 
-    // this is a temporary function to get the model path from the blob storage
-    //  it will be removed once the tag is available in the list response
-    private async Task<string> GetModelPath(string assetId)
+    public void Dispose()
     {
-        var registryUri =
-           $"https://eastus.api.azureml.ms/modelregistry/v1.0/registry/models/nonazureaccount?assetId={Uri.EscapeDataString(assetId)}";
+        if (_disposed)
+        {
+            return;
+        }
 
-        using var resp = await _httpClient.GetAsync(registryUri);
-        resp.EnsureSuccessStatusCode();
-
-        await using var jsonStream = await resp.Content.ReadAsStreamAsync();
-        var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
-        var blobSasUri = jsonRoot.RootElement.GetProperty("blobSasUri").GetString()!;
-
-        var uriBuilder = new UriBuilder(blobSasUri);
-        var existingQuery = string.IsNullOrWhiteSpace(uriBuilder.Query)
-            ? string.Empty
-            : uriBuilder.Query.TrimStart('?') + "&";
-
-        uriBuilder.Query = existingQuery + "restype=container&comp=list&delimiter=/";
-
-        var listXml = await _httpClient.GetStringAsync(uriBuilder.Uri);
-
-        var match = Regex.Match(listXml, @"<Name>(.*?)\/<\/Name>");
-        return match.Success ? match.Groups[1].Value : string.Empty;
+        _loadedModels.Clear();
+        _modelMaxOutputTokens.Clear();
+        _chatClients.Clear();
+        _loadLock.Dispose();
+        _disposed = true;
     }
 }

@@ -143,16 +143,25 @@ internal class ModelDownloadQueue()
         {
             ModelDownloadCompleteEvent.Log(modelDownload.Details.Url);
             ModelDownloadCompleted?.Invoke(this, new ModelDownloadCompletedEventArgs());
-            SendNotification(modelDownload.Details);
+            SendNotification(modelDownload.Details, modelDownload.WarningMessage);
         }
     }
 
-    private static void SendNotification(ModelDetails model)
+    private static void SendNotification(ModelDetails model, string? warningMessage = null)
     {
-        var builder = new AppNotificationBuilder()
-                        .AddText(model.Name + " is ready to use.")
-                        .AddButton(new AppNotificationButton("Try it out")
-                        .AddArgument("model", model.Id));
+        var builder = new AppNotificationBuilder();
+
+        if (string.IsNullOrEmpty(warningMessage))
+        {
+            builder.AddText(model.Name + " is ready to use.")
+                   .AddButton(new AppNotificationButton("Try it out")
+                   .AddArgument("model", model.Id));
+        }
+        else
+        {
+            builder.AddText(model.Name + " download completed with warning.")
+                   .AddText(warningMessage);
+        }
 
         var notificationManager = AppNotificationManager.Default;
         notificationManager.Show(builder.BuildNotification());

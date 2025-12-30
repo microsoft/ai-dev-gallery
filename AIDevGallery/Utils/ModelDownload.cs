@@ -68,6 +68,22 @@ internal abstract class ModelDownload : IDisposable
         }
     }
 
+    private string? _warningMessage;
+    public string? WarningMessage
+    {
+        get => _warningMessage;
+        protected set
+        {
+            _warningMessage = value;
+            StateChanged?.Invoke(this, new ModelDownloadEventArgs
+            {
+                Progress = DownloadProgress,
+                Status = DownloadStatus,
+                WarningMessage = _warningMessage
+            });
+        }
+    }
+
     protected CancellationTokenSource CancellationTokenSource { get; }
 
     public void Dispose()
@@ -329,27 +345,24 @@ internal class FoundryLocalModelDownload : ModelDownload
     {
         DownloadStatus = DownloadStatus.InProgress;
 
-        Progress<float> internalProgress = new(p =>
-        {
-            DownloadProgress = p;
-        });
-
-        bool result = false;
+        var internalProgress = new Progress<float>(p => DownloadProgress = p);
 
         try
         {
-            result = await FoundryLocalModelProvider.Instance.DownloadModel(Details, internalProgress, CancellationTokenSource.Token);
+            var downloadResult = await FoundryLocalModelProvider.Instance.DownloadModel(
+                Details, internalProgress, CancellationTokenSource.Token);
+
+            if (downloadResult.Success)
+            {
+                DownloadStatus = DownloadStatus.Completed;
+                WarningMessage = downloadResult.ErrorMessage; // May be null or contain warning
+                return true;
+            }
+
+            DownloadStatus = DownloadStatus.Canceled;
+            return false;
         }
         catch
-        {
-        }
-
-        if (result)
-        {
-            DownloadStatus = DownloadStatus.Completed;
-            return true;
-        }
-        else
         {
             DownloadStatus = DownloadStatus.Canceled;
             return false;
@@ -373,4 +386,5 @@ internal class ModelDownloadEventArgs
     public required float Progress { get; init; }
     public required DownloadStatus Status { get; init; }
     public string? VerificationFailureMessage { get; init; }
+    public string? WarningMessage { get; init; }
 }
