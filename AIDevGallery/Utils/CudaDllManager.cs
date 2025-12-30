@@ -21,7 +21,7 @@ internal static class CudaDllManager
 {
     // Official Microsoft OnnxRuntimeGenAI NuGet package v0.11.4
     // This downloads the entire NuGet package, then extracts the CUDA DLL
-    private const string NuGetPackageUrl = "https://www.nuget.org/api/v2/package/Microsoft.ML.OnnxRuntimeGenAI.Managed/0.11.4";
+    private const string NuGetPackageUrl = "https://www.nuget.org/api/v2/package/Microsoft.ML.OnnxRuntimeGenAI.Cuda/0.11.4";
     private const string DllPathInPackage = "runtimes/win-x64/native/onnxruntime-genai-cuda.dll";
 
     private static readonly string CudaDllFolder = Path.Combine(ApplicationData.Current.LocalFolder.Path, "CudaDlls");
