@@ -115,6 +115,31 @@
                         </toolkit:SettingsExpander.ItemTemplate>
                     </toolkit:SettingsExpander>
 
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="GPU Acceleration" />
+                    <toolkit:SettingsCard
+                        x:Name="CudaAccelerationCard"
+                        Description="Improved performance on RTX GPUs"
+                        Header="NVIDIA GPU Acceleration"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE950;}"
+                        Visibility="Collapsed">
+                        <StackPanel Orientation="Vertical" Spacing="8">
+                            <TextBlock
+                                x:Name="CudaStatusText"
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Button
+                                x:Name="DownloadCudaButton"
+                                Click="DownloadCuda_Click"
+                                Content="Download CUDA Support"
+                                Visibility="Collapsed" />
+                            <ProgressBar
+                                x:Name="CudaDownloadProgress"
+                                IsIndeterminate="False"
+                                Maximum="100"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </toolkit:SettingsCard>
+
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="App Content Search" />
                     <toolkit:SettingsExpander
                         Description="Enable app semantic search with AppContentIndexer. If disabled, search falls back to in-memory lexical search."

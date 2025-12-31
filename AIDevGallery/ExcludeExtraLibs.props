@@ -1,0 +1,38 @@
+<Project>
+  <!-- Remove CUDA EP on Windows x64. onnxruntime-genai-cuda.dll will be downloaded on-demand for NVIDIA GPU users. -->
+  <Target Name="ExcludeCudaLibs" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(Platform)'=='x64'" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <!-- Exclude onnxruntime-genai-cuda.dll (81 MB, will be downloaded on-demand for NVIDIA GPUs) -->
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                            Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)"
+                             Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+    </ItemGroup>
+    <Message Importance="Normal" Text="Excluded onnxruntime-genai-cuda.dll from package (will be downloaded on-demand)." />
+  </Target>
+
+  <!-- Additional cleanup after CopyFilesToOutputDirectory to ensure onnxruntime-genai-cuda.dll is removed -->
+  <Target Name="RemoveCudaDllsFromOutput" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(Platform)'=='x64'" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <CudaDllsToDelete Include="$(OutDir)**\onnxruntime-genai-cuda.dll" />
+    </ItemGroup>
+    <Delete Files="@(CudaDllsToDelete)" />
+    <Message Importance="High" Text="Deleted onnxruntime-genai-cuda.dll from output directory: @(CudaDllsToDelete)" />
+  </Target>
+
+  <!-- Remove CUDA DLLs before MSIX packaging -->
+  <Target Name="RemoveCudaDllsBeforePackaging" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(Platform)'=='x64'"
+          BeforeTargets="_GenerateCurrentProjectAppxManifest;_GenerateAppxPackage">
+    <ItemGroup>
+      <AppxPackagePayload Remove="@(AppxPackagePayload)"
+                          Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <AppxUploadPackagePayload Remove="@(AppxUploadPackagePayload)"
+                                Condition="'%(Filename)' == 'onnxruntime-genai-cuda'" />
+      <CudaDllsInLayout Include="$(LayoutDir)**\onnxruntime-genai-cuda.dll" />
+    </ItemGroup>
+    <Delete Files="@(CudaDllsInLayout)" />
+    <Message Importance="High" Text="Removed onnxruntime-genai-cuda.dll from MSIX package payload" />
+  </Target>
+</Project>

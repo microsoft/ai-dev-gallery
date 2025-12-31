@@ -350,6 +350,9 @@
   <ItemGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
     <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!-- Exclude CUDA DLL from package (will be downloaded on-demand) -->
+  <Import Project="ExcludeExtraLibs.props"/>
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
