@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
@@ -25,14 +24,17 @@ internal class VaeDecoder : IDisposable
     public static async Task<VaeDecoder> CreateAsync(
         StableDiffusionConfig config,
         string modelPath,
-        WinMlSampleOptions winMlSampleOptions)
+        ExecutionProviderDevicePolicy? policy,
+        string? epName,
+        bool compileModel,
+        string? deviceType)
     {
         var instance = new VaeDecoder();
-        instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(config, modelPath, winMlSampleOptions);
+        instance.vaeDecoderInferenceSession = await instance.GetInferenceSession(config, modelPath, policy, epName, compileModel, deviceType);
         return instance;
     }
 
-    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task<InferenceSession> GetInferenceSession(StableDiffusionConfig config, string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -57,20 +59,17 @@ internal class VaeDecoder : IDisposable
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);
             sessionOptions.AddFreeDimensionOverrideByName("channels", 4);
-            sessionOptions.AddFreeDimensionOverrideByName("height", config.Height / 8);
-            sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
-
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 

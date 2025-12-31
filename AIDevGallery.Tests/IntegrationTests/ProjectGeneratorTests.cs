@@ -22,7 +22,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.UnitTests;
+namespace AIDevGallery.Tests.Integration;
 
 #pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
@@ -139,28 +139,35 @@ public class ProjectGenerator
         Directory.CreateDirectory(TmpPathProjectGenerator);
         Directory.CreateDirectory(TmpPathLogs);
 
-        TaskCompletionSource taskCompletionSource = new();
-
-        UITestMethodAttribute.DispatcherQueue?.TryEnqueue(() =>
+        if (UITestMethodAttribute.DispatcherQueue != null)
         {
-            SampleUIData.greenSolidColorBrush = new(Colors.Green);
-            SampleUIData.redSolidColorBrush = new(Colors.Red);
-            SampleUIData.yellowSolidColorBrush = new(Colors.Yellow);
-            SampleUIData.graySolidColorBrush = new(Colors.LightGray);
+            TaskCompletionSource taskCompletionSource = new();
 
-            Source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
-
-            listView = new ListView
+            UITestMethodAttribute.DispatcherQueue.TryEnqueue(() =>
             {
-                ItemsSource = Source,
-                ItemTemplate = Microsoft.UI.Xaml.Application.Current.Resources["SampleItemTemplate"] as Microsoft.UI.Xaml.DataTemplate
-            };
-            UnitTestApp.SetWindowContent(listView);
+                SampleUIData.greenSolidColorBrush = new(Colors.Green);
+                SampleUIData.redSolidColorBrush = new(Colors.Red);
+                SampleUIData.yellowSolidColorBrush = new(Colors.Yellow);
+                SampleUIData.graySolidColorBrush = new(Colors.LightGray);
 
-            taskCompletionSource.SetResult();
-        });
+                Source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
 
-        await taskCompletionSource.Task;
+                listView = new ListView
+                {
+                    ItemsSource = Source,
+                    ItemTemplate = Microsoft.UI.Xaml.Application.Current.Resources["SampleItemTemplate"] as Microsoft.UI.Xaml.DataTemplate
+                };
+                UnitTestApp.SetWindowContent(listView);
+
+                taskCompletionSource.SetResult();
+            });
+
+            await taskCompletionSource.Task;
+        }
+        else
+        {
+            Source = SampleDetails.Samples.SelectMany(s => GetAllForSample(s)).ToList();
+        }
 
         context.WriteLine($"Running {Source.Count} tests");
     }
@@ -217,7 +224,7 @@ public class ProjectGenerator
 
     public async Task GenerateForSampleUI(SampleUIData item, CancellationToken ct)
     {
-        listView.DispatcherQueue.TryEnqueue(() =>
+        listView?.DispatcherQueue?.TryEnqueue(() =>
         {
             item.StatusColor = SampleUIData.yellowSolidColorBrush;
         });
@@ -227,7 +234,7 @@ public class ProjectGenerator
         TestContext.WriteLine($"Built {item.SampleName} with status {success}");
         Debug.WriteLine($"Built {item.SampleName} with status {success}");
 
-        listView.DispatcherQueue.TryEnqueue(() =>
+        listView?.DispatcherQueue?.TryEnqueue(() =>
         {
             item.StatusColor = success ? SampleUIData.greenSolidColorBrush : SampleUIData.redSolidColorBrush;
         });

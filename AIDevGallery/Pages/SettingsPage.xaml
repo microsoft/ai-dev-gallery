@@ -37,6 +37,16 @@
                     </StackPanel.ChildrenTransitions>-->
                     <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Model management" />
+                    <toolkit:SettingsCard
+                        Description="Reset model preferences and usage history"
+                        Header="Model configuration"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE7C3;}">
+                        <Button
+                            AutomationProperties.Name="Reset model config"
+                            Click="ResetModelConfig_Click"
+                            Content="Reset"
+                            ToolTipService.ToolTip="Reset model configuration" />
+                    </toolkit:SettingsCard>
                     <toolkit:SettingsExpander
                         x:Name="ModelsExpander"
                         AutomationProperties.AccessibilityView="Raw"
@@ -103,6 +113,22 @@
                                 </toolkit:SettingsCard>
                             </DataTemplate>
                         </toolkit:SettingsExpander.ItemTemplate>
+                    </toolkit:SettingsExpander>
+
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="App Content Search" />
+                    <toolkit:SettingsExpander
+                        Description="Enable app semantic search with AppContentIndexer. If disabled, search falls back to in-memory lexical search."
+                        Header="Enable app content search"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xED37;}">
+                        <ToggleSwitch x:Name="SemanticSearchToggleSwitch" Toggled="SemanticSearchToggleSwitch_Toggled"/>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="Re-index app content search index">
+                                <Button
+                                    AutomationProperties.Name="Reindex"
+                                    Click="Reindex_Click"
+                                    Content="Re-index"/>
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
 
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />

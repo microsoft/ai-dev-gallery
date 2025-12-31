@@ -6,6 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.Text;
+using Microsoft.Windows.AI.Video;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -17,14 +18,25 @@ internal static class WcrApiHelpers
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
         ModelType.PhiSilica,
+        ModelType.PhiSilicaLora,
         ModelType.TextSummarizer,
         ModelType.TextRewriter,
         ModelType.TextToTableConverter
+    };
+
+    private static readonly HashSet<ModelType> ImageGeneratorBacked = new()
+    {
+        ModelType.SDXL,
+        ModelType.RestyleImage,
+        ModelType.ColoringBook
     };
     private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
             ModelType.PhiSilica, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.GetReadyState
         },
         {
             ModelType.TextSummarizer, LanguageModel.GetReadyState
@@ -45,10 +57,25 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.GetReadyState
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.GetReadyState
+        },
+        {
             ModelType.ImageDescription, ImageDescriptionGenerator.GetReadyState
         },
         {
             ModelType.ObjectRemover, ImageObjectRemover.GetReadyState
+        },
+        {
+            ModelType.SDXL, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.GetReadyState
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.GetReadyState
         }
     };
 
@@ -56,6 +83,9 @@ internal static class WcrApiHelpers
     {
         {
             ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextSummarizer, LanguageModel.EnsureReadyAsync
@@ -76,10 +106,25 @@ internal static class WcrApiHelpers
             ModelType.BackgroundRemover, ImageObjectExtractor.EnsureReadyAsync
         },
         {
+            ModelType.ForegroundExtractor, ImageForegroundExtractor.EnsureReadyAsync
+        },
+        {
             ModelType.ObjectRemover, ImageObjectRemover.EnsureReadyAsync
         },
         {
             ModelType.ImageDescription, ImageDescriptionGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.SDXL, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.RestyleImage, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.ColoringBook, ImageGenerator.EnsureReadyAsync
+        },
+        {
+            ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
         }
     };
 
@@ -127,9 +172,19 @@ internal static class WcrApiHelpers
                     return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
                 }
 
+                if (IsImageGeneratorBacked(type))
+                {
+                    return "Not supported on this system. This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";
+                }
+
                 return "Not supported on this system.";
             default:
                 return string.Empty;
         }
+    }
+
+    public static bool IsImageGeneratorBacked(ModelType type)
+    {
+        return ImageGeneratorBacked.Contains(type);
     }
 }

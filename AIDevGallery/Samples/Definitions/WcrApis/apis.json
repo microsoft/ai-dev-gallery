@@ -15,6 +15,17 @@
         "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
         "Category": "Phi Silica"
       },
+      "PhiSilicaLora": {
+        "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
+        "Name": "Phi Silica LoRA",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEA54",
+        "Description": "Generate text using adapter.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica-lora.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12",
+        "Category": "Phi Silica"
+      },
       "TextSummarizer": {
         "Id": "55eb4d48-3908-44ac-95b1-fa47318a5cbf",
         "Name": "Text Summarizer",
@@ -35,6 +46,17 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b",
+        "Category": "Phi Silica"
+      },
+      "DescribeYourChange": {
+        "Id": "c5f8d3a7-9e2b-4f6a-8d1c-7b3e5a9c4f2d",
+        "Name": "Describe Your Change",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF15",
+        "Description": "Describes changes in text.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b",
         "Category": "Phi Silica"
       },
       "TextToTableConverter": {
@@ -70,13 +92,25 @@
       },
       "BackgroundRemover": {
         "Id": "9d445930-b353-429a-9674-777eef771ccf",
-        "Name": "Image Segmentation",
+        "Name": "Background Remover",
         "Icon": "WCRAPI.svg",
         "IconGlyph": "\uE7C5",
         "Description": "Remove the background from an image.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559"
+        "SampleIdToShowInDocs": "79eca6f0-3092-4b6f-9a81-94a2aff22559",
+        "Category": "Image Segmentation"
+      },
+      "ForegroundExtractor": {
+        "Id": "e2a1c7b2-6f8e-4e2a-9b7a-2c8e4f1a2b3c",
+        "Name": "Foreground Extractor",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE7C5",
+        "Description": "Extract the foreground from an image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "877ff911-19c9-400b-8f60-83fb8e808c20",
+        "Category": "Image Segmentation"
       },
       "ImageDescription": {
         "Id": "bdab049c-9b01-48f4-b12d-acb911b0a61c",
@@ -97,6 +131,82 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "de3d6919-5f2a-431e-ac19-3411d13e7d9b"
+      },
+      "SDXL": {
+        "Id": "3127a6b2-57af-4594-bbf5-27609dd880c8",
+        "Name": "Generate Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE34D",
+        "Description": "Generate image with prompt.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "01b9a242-05bf-415a-ac25-9f74544a9c91",
+        "Category": "SDXL"
+      },
+      "RestyleImage": {
+        "Id": "dff41807-54db-4c0a-a684-31a90ba43ecf",
+        "Name": "Restyle Image",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEB9F",
+        "Description": "Restyle image.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "a335a19a-2f78-4f68-b5e9-982e7da13b72",
+        "Category": "SDXL"
+      },
+      "ColoringBook": {
+        "Id": "f2bb8273-d617-43df-9d80-7189654653f8",
+        "Name": "Coloring book",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEF6B",
+        "Description": "Coloring Book.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/imaging.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "ab877fc9-b183-47be-aac5-fac2c4ab8940",
+        "Category": "SDXL"
+      },
+      "SemanticSearch": {
+        "Id": "f8465a45-8e23-4485-8c16-9909e96eacf6",
+        "Name": "Lexical & Semantic Search",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uED37",
+        "Description": "Search image and text by semantic meaning.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "f8465a45-8e23-4485-8c16-9909e96eacf6",
+        "Category": "App Content Search"
+      },
+      "KnowledgeRetrieval": {
+        "Id": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
+        "Name": "Retrieval Augmented Generation (RAG)",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEAB7",
+        "Description": "Enhance language model responses with local knowledge retrieval.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "6a526fdd-359f-4eac-9aa6-f01db11ae542",
+        "Category": "App Content Search"
+      },
+      "AppIndexCapability": {
+        "Id": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
+        "Name": "Index Capabilities",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uEDA2",
+        "Description": "Get system and index capabilities for App Content Search.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
+        "Category": "App Content Search"
+      },
+      "VideoSuperRes": {
+        "Id": "1698eb3d-6c4f-4de0-aab8-72edca349eec",
+        "Name": "Video Super Resolution",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE714",
+        "Description": "Improve video resolution.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/video-super-resolution.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650"
       }
     }
   }

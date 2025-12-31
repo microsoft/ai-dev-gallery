@@ -1,0 +1,14 @@
+# Protect `.github` folder except the spell-check rules inside it. (The exception happens by not defining any owner user or group for the path.)
+# Protection of the spell-check rules makes no sense as it needs to be changed in nearly every PR.
+/.github/ @microsoft/aidevgalleryteam
+
+# locking down pipeline folder
+/.pipelines/ @microsoft/aidevgalleryteam
+
+# locking down nuget config
+nuget.config  @microsoft/aidevgalleryteam
+
+# locking down files that should not change
+LICENSE @microsoft/aidevgalleryteam
+SECURITY.md @microsoft/aidevgalleryteam
+CODE_OF_CONDUCT.md @microsoft/aidevgalleryteam

@@ -14,8 +14,10 @@
     xmlns:utils="using:AIDevGallery.Utils"
     mc:Ignorable="d">
     <Page.Resources>
-        <tkconverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
-        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <tkconverters:StringVisibilityConverter x:Key="StringVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
+        <tkconverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" AutomationProperties.AccessibilityView="Raw" />
+        <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" AutomationProperties.AccessibilityView="Raw" />
     </Page.Resources>
 
     <Grid
@@ -45,8 +47,8 @@
                 AutomationProperties.Name="Open in AI Toolkit"
                 Visibility="Visible">
                 <DropDownButton.Content>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Image Width="16">
+                    <StackPanel Orientation="Horizontal" Spacing="8" AutomationProperties.AccessibilityView="Raw">
+                        <Image Width="16" AutomationProperties.AccessibilityView="Raw">
                             <Image.Source>
                                 <BitmapImage
                                     DecodePixelHeight="16"
@@ -54,7 +56,7 @@
                                     UriSource="ms-appx:///Assets/AITKIcon.png" />
                             </Image.Source>
                         </Image>
-                        <TextBlock Text="Open in AI Toolkit" />
+                        <TextBlock Text="Open in AI Toolkit" AutomationProperties.AccessibilityView="Raw" />
                     </StackPanel>
                 </DropDownButton.Content>
                 <DropDownButton.Flyout>
@@ -78,7 +80,7 @@
             Margin="-16,8,-16,-16"
             Padding="16,0,16,16"
             VerticalAlignment="Stretch"
-            VerticalScrollBarVisibility="Disabled">
+            IsVerticalScrollChainingEnabled="True">
             <Grid
                 x:Name="ContentGrid"
                 ColumnSpacing="16"
@@ -117,26 +119,29 @@
                             </StackPanel>
                         </HyperlinkButton>
                     </controls:Card.TitleContent>
-                    <Grid>
+                    <Grid
+                        AutomationProperties.AccessibilityView="Raw">
                         <ScrollViewer
+                            IsTabStop="False"
+                            VerticalAlignment="Stretch"
+                            VerticalScrollBarVisibility="Auto"
                             Grid.Row="2"
                             Margin="-16"
                             Padding="20,12,20,0">
                             <toolkit2:MarkdownTextBlock
+                                IsTabStop="False"
                                 x:Name="markdownTextBlock"
                                 Margin="0,16,0,16"
                                 Background="Transparent"
+                                AutomationProperties.AccessibilityView="Raw"
                                 OnLinkClicked="MarkdownTextBlock_OnLinkClicked">
-                                <toolkit2:MarkdownTextBlock.Resources>
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeBackgroundBrush" Color="{ThemeResource LayerFillColorAlt}" />
-                                    <SolidColorBrush x:Key="MarkdownInlineCodeForegroundBrush" Color="{ThemeResource TextFillColorPrimary}" />
-                                </toolkit2:MarkdownTextBlock.Resources>
                             </toolkit2:MarkdownTextBlock>
                         </ScrollViewer>
                         <ProgressRing
-                            x:Name="readmeProgressRing"
                             Grid.Row="2"
-                            IsActive="True" />
+                            x:Name="readmeProgressRing"
+                            IsActive="True"
+                            AutomationProperties.AccessibilityView="Raw" />
                     </Grid>
                 </controls:Card>
                 <controls:Card

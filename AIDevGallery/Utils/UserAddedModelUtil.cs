@@ -30,8 +30,8 @@ internal static class UserAddedModelUtil
 
         if (folder != null)
         {
-            var files = Directory.GetFiles(folder.Path);
-            var config = files.Where(r => Path.GetFileName(r) == "genai_config.json").FirstOrDefault();
+            var config = Directory.GetFiles(folder.Path)
+                .FirstOrDefault(r => Path.GetFileName(r) == "genai_config.json");
 
             if (string.IsNullOrEmpty(config) || App.ModelCache.Models.Any(m => m.Path == folder.Path))
             {
@@ -52,10 +52,10 @@ internal static class UserAddedModelUtil
             }
 
             HardwareAccelerator accelerator = HardwareAccelerator.CPU;
+            string configContents = string.Empty;
 
             try
             {
-                string configContents = string.Empty;
                 configContents = await File.ReadAllTextAsync(config);
                 accelerator = GetHardwareAcceleratorFromConfig(configContents);
             }
@@ -71,6 +71,35 @@ internal static class UserAddedModelUtil
 
                 await confirmFolderDialog.ShowAsync();
                 return;
+            }
+
+            var (isValid, unavailableProviders) = ValidateExecutionProviders(configContents);
+            if (!isValid)
+            {
+                var warningMessage = "This model requires execution providers that are not available on your device:\n\n" +
+                    string.Join(", ", unavailableProviders) +
+                    "\n\nThe model may fail to load or run. Do you want to add it anyway?";
+
+                ContentDialog warningDialog = new()
+                {
+                    Title = "Incompatible Execution Providers",
+                    Content = new TextBlock()
+                    {
+                        Text = warningMessage,
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    XamlRoot = root,
+                    CloseButtonText = "Cancel",
+                    PrimaryButtonText = "Add Anyway",
+                    DefaultButton = ContentDialogButton.Close,
+                    Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+                };
+
+                var warningResult = await warningDialog.ShowAsync();
+                if (warningResult != ContentDialogResult.Primary)
+                {
+                    return;
+                }
             }
 
             var nameTextBox = new TextBox()
@@ -220,17 +249,10 @@ internal static class UserAddedModelUtil
 
     private static List<ModelType> GetValidatedModelTypesForUploadedOnnxModel(string modelFilepath, List<ModelType> modelTypes)
     {
-        List<ModelType> validatedModelTypes = new();
-
-        foreach (var (type, models) in ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes))
-        {
-            if (ValidateUserAddedModelDimensionsForModelTypeModelDetails(models, modelFilepath))
-            {
-                validatedModelTypes.Add(type);
-            }
-        }
-
-        return validatedModelTypes;
+        return ModelDetailsHelper.GetModelDetailsForModelTypes(modelTypes)
+            .Where(pair => ValidateUserAddedModelDimensionsForModelTypeModelDetails(pair.Value, modelFilepath))
+            .Select(pair => pair.Key)
+            .ToList();
     }
 
     private static bool ValidateUserAddedModelDimensionsForModelTypeModelDetails(List<ModelDetails> modelDetailsList, string modelFilepath)
@@ -239,21 +261,11 @@ internal static class UserAddedModelUtil
         sessionOptions.RegisterOrtExtensions();
 
         using InferenceSession inferenceSession = new(modelFilepath, sessionOptions);
-        List<int[]> inputDimensions = new();
-        List<int[]> outputDimensions = new();
+        var inputDimensions = inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
+        var outputDimensions = inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions).ToList();
 
-        inputDimensions.AddRange(inferenceSession.InputMetadata.Select(kvp => kvp.Value.Dimensions));
-        outputDimensions.AddRange(inferenceSession.OutputMetadata.Select(kvp => kvp.Value.Dimensions));
-
-        foreach (ModelDetails modelDetails in modelDetailsList)
-        {
-            if (ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modelDetailsList.Any(modelDetails =>
+            ValidateUserAddedModelAgainstModelDimensions(inputDimensions, outputDimensions, modelDetails));
     }
 
     private static bool ValidateUserAddedModelAgainstModelDimensions(List<int[]> inputDimensions, List<int[]> outputDimensions, ModelDetails modelDetails)
@@ -304,15 +316,7 @@ internal static class UserAddedModelUtil
 
     public static bool IsModelsDetailsListUploadCompatible(this IEnumerable<ModelDetails> modelDetailsList)
     {
-        foreach (ModelDetails modelDetails in modelDetailsList)
-        {
-            if (modelDetails.InputDimensions != null && modelDetails.OutputDimensions != null)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modelDetailsList.Any(m => m.InputDimensions != null && m.OutputDimensions != null);
     }
 
     public static HardwareAccelerator GetHardwareAcceleratorFromConfig(string configContents)
@@ -328,12 +332,179 @@ internal static class UserAddedModelUtil
             throw new InvalidDataException("genai_config.json is not valid");
         }
 
-        if (config.Model.Decoder.SessionOptions.ProviderOptions.Any(p => p.Dml != null))
+        // Return based on priority: QNN > DML > NPU > GPU > CPU
+        bool hasGpu = false;
+        bool hasNpu = false;
+        bool hasCpu = false;
+
+        // Check all provider options from decoder-level and pipeline-level
+        var allProviderOptions = GetAllProviderOptions(config);
+        foreach (var provider in allProviderOptions)
+        {
+            var accelerator = CheckProviderForAccelerator(provider, ref hasGpu, ref hasNpu, ref hasCpu);
+            if (accelerator.HasValue)
+            {
+                return accelerator.Value;
+            }
+        }
+
+        if (hasNpu)
+        {
+            return HardwareAccelerator.NPU;
+        }
+
+        if (hasGpu)
+        {
+            return HardwareAccelerator.GPU;
+        }
+
+        return HardwareAccelerator.CPU;
+    }
+
+    private static IEnumerable<ProviderOptions> GetAllProviderOptions(GenAIConfig config)
+    {
+        foreach (var provider in config.Model.Decoder.SessionOptions.ProviderOptions)
+        {
+            yield return provider;
+        }
+
+        if (config.Model.Decoder.Pipeline == null)
+        {
+            yield break;
+        }
+
+        foreach (var pipelineItem in config.Model.Decoder.Pipeline)
+        {
+            if (pipelineItem.Stages == null)
+            {
+                continue;
+            }
+
+            foreach (var stageEntry in pipelineItem.Stages)
+            {
+                PipelineStage? stage = null;
+                try
+                {
+                    stage = JsonSerializer.Deserialize(stageEntry.Value.GetRawText(), SourceGenerationContext.Default.PipelineStage);
+                }
+                catch (JsonException)
+                {
+                    continue;
+                }
+
+                if (stage?.SessionOptions?.ProviderOptions != null)
+                {
+                    foreach (var provider in stage.SessionOptions.ProviderOptions)
+                    {
+                        yield return provider;
+                    }
+                }
+            }
+        }
+    }
+
+    private static HardwareAccelerator? CheckProviderForAccelerator(ProviderOptions provider, ref bool hasGpu, ref bool hasNpu, ref bool hasCpu)
+    {
+        if (provider.HasProvider("qnn"))
+        {
+            return HardwareAccelerator.QNN;
+        }
+
+        if (provider.HasProvider("dml"))
         {
             return HardwareAccelerator.DML;
         }
 
-        return HardwareAccelerator.CPU;
+        var openvinoOptions = provider.GetProviderOptions("OpenVINO");
+        if (openvinoOptions != null && openvinoOptions.TryGetValue("device_type", out var deviceType))
+        {
+            var devType = deviceType.ToLowerInvariant();
+            if (devType == "npu")
+            {
+                hasNpu = true;
+            }
+            else if (devType == "gpu")
+            {
+                hasGpu = true;
+            }
+            else if (devType == "cpu")
+            {
+                hasCpu = true;
+            }
+        }
+
+        if (provider.HasProvider("vitisai"))
+        {
+            hasNpu = true;
+        }
+
+        if (provider.HasProvider("cpu"))
+        {
+            hasCpu = true;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Validates that the execution providers specified in the genai_config.json are available on this device.
+    /// </summary>
+    /// <returns>A tuple with (isValid, unavailableProviders)</returns>
+    private static (bool IsValid, List<string> UnavailableProviders) ValidateExecutionProviders(string configContents)
+    {
+        var config = JsonSerializer.Deserialize(configContents, SourceGenerationContext.Default.GenAIConfig);
+        if (config == null)
+        {
+            return (false, new List<string> { "Invalid genai_config.json" });
+        }
+
+        var availableEPs = DeviceUtils.GetEpDevices()
+            .Select(device => device.EpName)
+            .Distinct()
+            .ToList();
+        var unavailableProviders = new List<string>();
+
+        var providerMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "qnn", ExecutionProviderNames.QNN },
+            { "dml", ExecutionProviderNames.DML },
+            { "openvino", ExecutionProviderNames.OpenVINO },
+            { "vitisai", ExecutionProviderNames.VitisAI },
+            { "cuda", ExecutionProviderNames.CUDA },
+            { "tensorrt", ExecutionProviderNames.TensorRT },
+            { "cpu", ExecutionProviderNames.CPU }
+        };
+
+        var allProviderOptions = GetAllProviderOptions(config);
+        foreach (var provider in allProviderOptions)
+        {
+            if (provider.ExtensionData == null)
+            {
+                continue;
+            }
+
+            foreach (var providerKey in provider.ExtensionData.Keys)
+            {
+                // Skip CPU as it's always available
+                if (providerKey.Equals("cpu", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (providerMapping.TryGetValue(providerKey, out var expectedEP))
+                {
+                    if (!availableEPs.Any(ep => ep.Equals(expectedEP, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!unavailableProviders.Contains(providerKey, StringComparer.OrdinalIgnoreCase))
+                        {
+                            unavailableProviders.Add(providerKey);
+                        }
+                    }
+                }
+            }
+        }
+
+        return (unavailableProviders.Count == 0, unavailableProviders);
     }
 
     public static async Task<ModelDetails?> AddModelFromLocalFilePath(string filepath, string name, List<ModelType> modelTypes)

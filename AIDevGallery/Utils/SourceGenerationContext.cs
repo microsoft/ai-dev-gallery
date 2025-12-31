@@ -9,6 +9,8 @@ namespace AIDevGallery.Utils;
 
 [JsonSerializable(typeof(List<HFSearchResult>))]
 [JsonSerializable(typeof(GenAIConfig))]
+[JsonSerializable(typeof(PipelineStage))]
+[JsonSerializable(typeof(Dictionary<string, string>))]
 internal partial class SourceGenerationContext : JsonSerializerContext
 {
 }

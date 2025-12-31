@@ -70,6 +70,12 @@
         "Instructions": "Enter a system prompt, a query, and manipulate parameters related to token selection to fine-tune language model output. Hover over any field on this page to see a tooltip containing more info on the parameter.",
         "Id": "custom-parameters"
       },
+      "LoRAAdapters": {
+        "Name": "LoRA fine-tuning for Phi Silica",
+        "Description": "Generate text by fine-tuning Phi Silica with a Low Rank Adaption (LoRA) adapter.",
+        "Instructions": "Select a LoRA adapter to use with a language model. Enter a prompt to pass to the model and adapter and generate the response.",
+        "Id": "generate-with-lora"
+      },
       "WinAiSummarize": {
         "Name": "Windows AI Text Summarization",
         "Description": "Summarize Text using Windows AI Text Summarizer.",
@@ -81,6 +87,12 @@
         "Description": "Rewrite Text using Windows AI Text Rewriter.",
         "Instructions": "Enter some text into the textbox and click 'Rewrite' to get the rewritten text.",
         "Id": "win-ai-rewrite"
+      },
+      "WinAiDescribeYourChange": {
+        "Name": "Windows AI Describe Your Change",
+        "Description": "Describe how you want your text to be rewritten using Windows AI Text Rewriter.",
+        "Instructions": "Enter some text into the textboxes and click 'Rewrite' to get the rewritten text.",
+        "Id": "win-ai-describe-your-change"
       },
       "WinAiTextToTable": {
         "Name": "Windows AI Text To Table Converter",
@@ -178,7 +190,7 @@
         "Description": "Label the main object in a photo with an image classification model.",
         "Instructions": "Select a photo to get potential labels along with a confidence score associated with each label.",
         "Id": "classify-image",
-         "Icon": "\uE8EC"
+        "Icon": "\uE8EC"
       },
       "DetectObjects": {
         "Name": "Detect Objects",
@@ -204,6 +216,12 @@
         "Description": "Remove image backgrounds with an image segmentation model.",
         "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select remove background to get the extracted objects without the background.",
         "Id": "background-remover"
+      },
+      "ForegroundExtractor": {
+        "Name": "Extract Foreground",
+        "Description": "Extract the foreground from an image.",
+        "Instructions": "Select an image and select what objects in the image you want to include by clicking on locations in the image. Select extract foreground to get the extracted objects without the background.",
+        "Id": "foreground-extractor"
       },
       "BackgroundDetector": {
         "Name": "Detect Background",
@@ -245,6 +263,18 @@
         "Instructions": "Select an image or video.",
         "Id": "detect-face",
         "Icon": "\uE8D4"
+      },
+      "RestyleImage": {
+        "Name": "Restyle Image",
+        "Description": "Restyle images from text.",
+        "Instructions": "Enter a prompt to restyle an image to restyle it then click 'Restyle' to apply the transformation. Note: this may take a while.",
+        "Id": "restyle-image"
+      },
+      "ColoringBook": {
+        "Name": "Coloring Book",
+        "Description": "Color images using SDXL.",
+        "Instructions": "Select the parts to color by clicking on them, enter a prompt to color them, then click 'Change' to color that image. Note: this may take a while.",
+        "Id": "color-image"
       }
     }
   },
@@ -273,6 +303,13 @@
         "Instructions": "Record audio with the 'Start Recording' button and then click 'Stop Recording' to have the input audio translated to English and transcribed.",
         "Id": "translate-audio",
         "Icon": "\uF2B7"
+      },
+      "VideoSuperResolution": {
+        "Name": "Video Super Resolution",
+        "Description": "Enhance video quality in real-time with super resolution.",
+        "Instructions": "Start the camera to see real-time video enhancement with super resolution processing.",
+        "Id": "video-super-resolution",
+        "Icon": "\uE714"
       }
     }
   }
