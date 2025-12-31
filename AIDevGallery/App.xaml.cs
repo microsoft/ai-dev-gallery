@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery;
@@ -48,6 +49,39 @@ public partial class App : Application
         MainWindow = new MainWindow(activationParam);
 
         MainWindow.Activate();
+
+        // Check for NVIDIA GPU and optionally download CUDA DLL in background
+        // This runs after the main window is shown to avoid impacting startup time
+        // Using Task.Run with ConfigureAwait(false) and low priority to ensure minimal impact
+        _ = Task.Run(
+            async () =>
+            {
+                await Task.Delay(1000).ConfigureAwait(false);
+
+                try
+                {
+                    Debug.WriteLine("[CUDA] Background check initiated");
+                    if (CudaDllManager.HasNvidiaGpu() && !CudaDllManager.IsCudaDllAvailable())
+                    {
+                        Debug.WriteLine("[CUDA] NVIDIA GPU detected without CUDA DLL, starting background download");
+
+                        // Silently attempt to download CUDA DLL in background
+                        var success = await CudaDllManager.EnsureCudaDllAsync().ConfigureAwait(false);
+                        Debug.WriteLine($"[CUDA] Background download completed, success: {success}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[CUDA] No background download needed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[CUDA] Background download error: {ex.Message}");
+
+                    // Silently fail - app will work without CUDA
+                }
+            },
+            CancellationToken.None);
     }
 
     internal static List<ModelType> FindSampleItemById(string id)
@@ -117,33 +151,6 @@ public partial class App : Application
         ModelDownloadQueue = new ModelDownloadQueue();
 
         GenerateSearchIndex();
-
-        // Check for NVIDIA GPU and optionally download CUDA DLL in background
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                Debug.WriteLine("[CUDA] Background check initiated");
-                if (CudaDllManager.HasNvidiaGpu() && !CudaDllManager.IsCudaDllAvailable())
-                {
-                    Debug.WriteLine("[CUDA] NVIDIA GPU detected without CUDA DLL, starting background download");
-
-                    // Silently attempt to download CUDA DLL in background
-                    var success = await CudaDllManager.EnsureCudaDllAsync();
-                    Debug.WriteLine($"[CUDA] Background download completed, success: {success}");
-                }
-                else
-                {
-                    Debug.WriteLine("[CUDA] No background download needed");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[CUDA] Background download error: {ex.Message}");
-
-                // Silently fail - app will work without CUDA
-            }
-        });
     }
 
     private void GenerateSearchIndex()
