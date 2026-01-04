@@ -87,6 +87,8 @@ internal class FoundryClient : IDisposable
 
             // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
+
+            // Known Issue: SDK ignores standard .NET cancellation patterns during download operations.(https://github.com/microsoft/Foundry-Local/issues/365)
             await model.DownloadAsync(
                 progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
