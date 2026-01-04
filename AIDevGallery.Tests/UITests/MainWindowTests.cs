@@ -298,4 +298,211 @@ public class MainWindowTests : FlaUITestBase
 
         TakeScreenshot("SearchBox_WithResults");
     }
-}
+
+    [TestMethod]
+    [TestCategory("UI")]
+    [Description("Verifies accessibility compliance of the main window using Axe.Windows CLI")]
+    public void MainWindowAccessibilityAxeWindowsCliTest()
+    {
+        // Arrange
+        Assert.IsNotNull(MainWindow, "Main window should be initialized");
+
+        var appProcess = System.Diagnostics.Process.GetCurrentProcess();
+        var processId = appProcess.Id;
+
+        Console.WriteLine($"Testing app process ID: {processId}");
+
+        // Act - Run Axe.Windows CLI scan
+        try
+        {
+            // Determine CLI path - check common locations
+            string cliPath = null;
+            var possiblePaths = new[]
+            {
+                "AxeWindowsCLI.exe",
+                System.IO.Path.Combine(System.IO.Path.GetDirectoryName(typeof(MainWindowTests).Assembly.Location), "AxeWindowsCLI.exe"),
+                System.IO.Path.Combine(Environment.CurrentDirectory, "AxeWindowsCLI.exe"),
+                System.IO.Path.Combine(Environment.GetEnvironmentVariable("CLI_PATH") ?? "")
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                if (!string.IsNullOrEmpty(path) && System.IO.File.Exists(path))
+                {
+                    cliPath = path;
+                    Console.WriteLine($"Found Axe.Windows CLI at: {cliPath}");
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(cliPath))
+            {
+                Console.WriteLine("Axe.Windows CLI not found locally. Attempting to download...");
+                cliPath = DownloadAxeWindowsCli();
+                
+                if (string.IsNullOrEmpty(cliPath))
+                {
+                    Assert.Inconclusive("Failed to download Axe.Windows CLI. Please ensure it's available in the test environment.");
+                    return;
+                }
+            }
+
+            // Create output directory for results
+            var outputDir = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(typeof(MainWindowTests).Assembly.Location),
+                "AxeResults");
+            System.IO.Directory.CreateDirectory(outputDir);
+
+            Console.WriteLine($"Output directory: {outputDir}");
+
+            // Run Axe.Windows CLI with fast pass scan
+            var processInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = cliPath,
+                Arguments = $"--processId {processId} --outputDirectory \"{outputDir}\" --verbosity default",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            Console.WriteLine($"Running Axe.Windows CLI: {cliPath} {processInfo.Arguments}");
+
+            using (var process = System.Diagnostics.Process.Start(processInfo))
+            {
+                var timeout = TimeSpan.FromSeconds(60);
+                bool completed = process.WaitForExit((int)timeout.TotalMilliseconds);
+
+                if (!completed)
+                {
+                    process.Kill();
+                    Assert.Fail("Axe.Windows CLI scan timed out");
+                }
+
+                var output = process.StandardOutput.ReadToEnd();
+                var error = process.StandardError.ReadToEnd();
+
+                Console.WriteLine($"Axe.Windows CLI exit code: {process.ExitCode}");
+                if (!string.IsNullOrEmpty(output))
+                {
+                    Console.WriteLine($"Output:\n{output}");
+                }
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Console.WriteLine($"Errors:\n{error}");
+                }
+
+                // Check for accessibility issues
+                var issueFiles = System.IO.Directory.GetFiles(outputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
+                
+                if (issueFiles.Length > 0)
+                {
+                    Console.WriteLine($"\n⚠ Accessibility issues found in {issueFiles.Length} files:");
+                    foreach (var issueFile in issueFiles)
+                    {
+                        Console.WriteLine($"  - {issueFile}");
+                        try
+                        {
+                            var issueContent = System.IO.File.ReadAllText(issueFile);
+                            Console.WriteLine($"    Content: {issueContent}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"    (Could not read file: {ex.Message})");
+                        }
+                    }
+                    Assert.Fail($"Accessibility issues found. See details above.");
+                }
+                else
+                {
+                    Console.WriteLine("✓ No accessibility issues found - scan passed");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Assert.Inconclusive($"Failed to run Axe.Windows CLI accessibility test: {ex.Message}");
+        }
+
+        TakeScreenshot("MainWindow_AxeWindowsCliTest");
+    }
+
+    /// <summary>
+    /// Downloads Axe.Windows CLI from GitHub releases if not available locally
+    /// </summary>
+    private string DownloadAxeWindowsCli()
+    {
+        try
+        {
+            var downloadDir = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(typeof(MainWindowTests).Assembly.Location),
+                "AxeWindowsCLI");
+
+            Console.WriteLine($"Download directory: {downloadDir}");
+
+            // Fetch latest release info from GitHub
+            var gitHubUrl = "https://api.github.com/repos/microsoft/axe-windows/releases/latest";
+            Console.WriteLine($"Fetching latest Axe.Windows release from {gitHubUrl}...");
+
+            using (var httpClient = new System.Net.Http.HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "AIDevGallery-Test");
+                
+                var response = httpClient.GetStringAsync(gitHubUrl).GetAwaiter().GetResult();
+                
+                // Parse JSON response to find the CLI asset
+                var json = System.Text.Json.JsonDocument.Parse(response);
+                var assets = json.RootElement.GetProperty("assets");
+                
+                string downloadUrl = null;
+                foreach (var asset in assets.EnumerateArray())
+                {
+                    var name = asset.GetProperty("name").GetString();
+                    if (name.Contains("CLI") && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        downloadUrl = asset.GetProperty("browser_download_url").GetString();
+                        Console.WriteLine($"Found CLI asset: {name}");
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(downloadUrl))
+                {
+                    Console.WriteLine("Could not find AxeWindowsCLI zip asset in release");
+                    return null;
+                }
+
+                // Download the file
+                var zipPath = System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(typeof(MainWindowTests).Assembly.Location),
+                    "AxeWindowsCLI.zip");
+
+                Console.WriteLine($"Downloading from {downloadUrl}...");
+                using (var fileStream = System.IO.File.Create(zipPath))
+                {
+                    httpClient.GetStreamAsync(downloadUrl).GetAwaiter().GetResult().CopyTo(fileStream);
+                }
+                Console.WriteLine($"Downloaded to {zipPath}");
+
+                // Extract the archive
+                Console.WriteLine($"Extracting to {downloadDir}...");
+                System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, downloadDir, overwriteFiles: true);
+
+                // Find and verify the executable
+                var cliExePath = System.IO.Path.Combine(downloadDir, "AxeWindowsCLI.exe");
+                if (!System.IO.File.Exists(cliExePath))
+                {
+                    Console.WriteLine($"AxeWindowsCLI.exe not found at expected path: {cliExePath}");
+                    return null;
+                }
+
+                Console.WriteLine($"✓ Successfully downloaded and extracted Axe.Windows CLI to: {cliExePath}");
+                return cliExePath;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to download Axe.Windows CLI: {ex.Message}");
+            return null;
+        }
+    }
