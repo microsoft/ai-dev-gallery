@@ -1,10 +1,18 @@
 <Project>
-  <!-- We want to ensure we're using the onnxruntime libraries from Foundry Local Core so 
-  we delete the WindowsAppSdk versions once they're unzipped. -->
-  <Target Name="ExcludeOnnxRuntimeLibs" AfterTargets="ExtractMicrosoftWindowsAppSDKMsixFiles">
-    <Delete Files="$(MicrosoftWindowsAppSDKMsixContent)\onnxruntime.dll"/>
-    <Delete Files="$(MicrosoftWindowsAppSDKMsixContent)\onnxruntime_providers_shared.dll"/>
-    <Message Importance="Normal" Text="Deleted onnxruntime libraries from $(MicrosoftWindowsAppSDKMsixContent)." />
+  <!-- Using the onnxruntime libraries from WindowsAppSDK (via transitive dependencies) instead of Foundry Local Core. -->
+  <Target Name="ExcludeFoundryOnnxRuntimeLibs" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <!-- Exclude onnxruntime libraries from Microsoft.ML.OnnxRuntime.Foundry package -->
+      <!-- WindowsAppSDK will provide onnxruntime through its transitive dependencies (WindowsAppSDK.ML) -->
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                            Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntime.Foundry', StringComparison.OrdinalIgnoreCase)) 
+                                       And ($([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', 
+                                      '^onnxruntime\.dll$', RegexOptions.IgnoreCase)) 
+                                       Or $([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', 
+                                      '^onnxruntime_providers_shared\.dll$', RegexOptions.IgnoreCase)))" />
+    </ItemGroup>
+    
+    <Message Importance="High" Text="Excluded Foundry onnxruntime libraries. Using WindowsAppSDK's transitive dependencies instead." />
   </Target>
 
   <!-- Remove CUDA EP on Windows x64. onnxruntime-genai-cuda.dll is required for TRT RTX models. -->
