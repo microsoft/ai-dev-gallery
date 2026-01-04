@@ -18,7 +18,6 @@ namespace AIDevGallery.Tests.TestInfra;
 /// </summary>
 public abstract class NativeUIA3TestBase
 {
-
     protected Process? AppProcess { get; private set; }
     protected CUIAutomation? Automation { get; private set; }
     protected IUIAutomationElement? MainWindow { get; private set; }

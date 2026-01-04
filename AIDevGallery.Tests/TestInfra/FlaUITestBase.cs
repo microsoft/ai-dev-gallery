@@ -19,7 +19,6 @@ namespace AIDevGallery.Tests.TestInfra;
 /// </summary>
 public abstract class FlaUITestBase
 {
-
     protected Application? App { get; private set; }
     protected UIA3Automation? Automation { get; private set; }
     protected Window? MainWindow { get; private set; }

@@ -7,7 +7,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:SmartTextBox">
-                    <Grid>
+                    <Grid
+                        IsTabStop="False">
                         <Grid.Resources>
                             <Style
                                 x:Key="CustomFlyoutPresenterStyle"
@@ -17,7 +18,9 @@
                                 <Setter Property="Padding" Value="0" />
                             </Style>
                         </Grid.Resources>
-                        <StackPanel Margin="32">
+                        <StackPanel 
+                            IsTabStop="False"
+                            Margin="32">
                             <TeachingTip
                                 x:Name="AiConfirmTip"
                                 Title="Keep changes?"

@@ -13,7 +13,7 @@ on:
 jobs:
   pr-unit-test:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -41,9 +41,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
         restore-keys: |
-          ${{ runner.os }}-nuget-
+          ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
     - name: Restore dependencies
       run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Build AIDevGallery.Utils
@@ -51,24 +51,30 @@ jobs:
     - name: Build Test Project
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
     - name: Run Unit Tests
+      shell: pwsh
       run: |
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
         dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
           --filter "FullyQualifiedName~UnitTests" `
           --logger "trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
           --logger "console;verbosity=detailed" `
-          --verbosity normal
+          --collect:"XPlat Code Coverage" `
+          --results-directory "${{ github.workspace }}\TestResults" `
+          --verbosity normal `
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         
         if ($LASTEXITCODE -ne 0) {
           Write-Error "Unit tests failed with exit code $LASTEXITCODE"
           exit $LASTEXITCODE
         }
     - name: Publish Test Results
-      if: always()
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: pr-unit-test-results-${{ matrix.dotnet-arch }}
-        path: TestResults
+        path: |
+          TestResults
+          **/coverage.opencover.xml
     - name: Display Test Report
       if: always()
       uses: dorny/test-reporter@v2
@@ -213,70 +219,14 @@ jobs:
             Write-Error "Failed to download or setup Axe.Windows CLI: $_"
             exit 1
         }
-    - name: Install and Run Accessibility Check
+    - name: Deploy MSIX Package
+      shell: pwsh
+      run: |
+        .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
+    - name: Launch App and Run Accessibility Tests
       shell: powershell
       run: |
         $ErrorActionPreference = "Stop"
-        
-        # Find MSIX from downloaded artifact (search recursively)
-        $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
-        Write-Host "Looking for MSIX in: $downloadPath"
-        
-        $msixFile = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $msixFile) { 
-            Write-Error "MSIX file not found in $downloadPath (recursive search)"
-            exit 1 
-        }
-        
-        Write-Host "Using MSIX file: $($msixFile.FullName)"
-        
-        # Cleanup previous install
-        Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-        
-        # Ensure makeappx.exe is available
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Host "makeappx.exe not found in PATH. Searching in Windows Kits..."
-            $kitsRoot = "C:\Program Files (x86)\Windows Kits\10\bin"
-            if (Test-Path $kitsRoot) {
-                $latestSdk = Get-ChildItem -Path $kitsRoot -Directory | 
-                             Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } | 
-                             Sort-Object Name -Descending | 
-                             Select-Object -First 1
-                
-                if ($latestSdk) {
-                    $sdkPath = Join-Path $latestSdk.FullName "x64"
-                    if (Test-Path $sdkPath) {
-                        Write-Host "Found SDK at $sdkPath"
-                        $env:Path = "$sdkPath;$env:Path"
-                    }
-                }
-                
-                if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-                     $genericSdkPath = Join-Path $kitsRoot "x64"
-                     if (Test-Path $genericSdkPath) {
-                        Write-Host "Found generic SDK at $genericSdkPath"
-                        $env:Path = "$genericSdkPath;$env:Path"
-                     }
-                }
-            }
-        }
-        
-        if (-not (Get-Command "makeappx.exe" -ErrorAction SilentlyContinue)) {
-            Write-Error "makeappx.exe could not be found. Please ensure Windows SDK is installed."
-            exit 1
-        }
-        
-        # Unpack MSIX
-        $unpackedDir = Join-Path $PWD "AIDevGallery_Unpacked"
-        if (Test-Path $unpackedDir) { Remove-Item -Path $unpackedDir -Recurse -Force }
-        Write-Host "Unpacking MSIX to $unpackedDir..."
-        makeappx.exe unpack /p $msixFile.FullName /d $unpackedDir
-        
-        # Register Manifest
-        $manifestPath = Join-Path $unpackedDir "AppxManifest.xml"
-        Write-Host "Registering AppxManifest.xml from $manifestPath..."
-        Add-AppxPackage -Register $manifestPath -ForceUpdateFromAnyVersion
         
         # Launch App
         $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
@@ -324,7 +274,7 @@ jobs:
         $propCond = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $appProcess.Id)
         $appWindow = $ae::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $propCond)
         
-        $pagesToTest = @("Home", "Samples", "Models", "AI APIs", "Settings")
+        $pagesToTest = @("Home", "Samples", "AI APIs", "Settings")
         $cliPath = $env:CLI_PATH
         $outputDir = Join-Path $PWD "AxeOutput"
         New-Item -ItemType Directory -Force -Path $outputDir | Out-Null

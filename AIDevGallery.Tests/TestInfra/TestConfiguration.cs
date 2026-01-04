@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+
 namespace AIDevGallery.Tests.TestInfra;
 
 /// <summary>
@@ -10,6 +12,10 @@ public static class TestConfiguration
 {
     /// <summary>
     /// The MSIX package identity name GUID from Package.appxmanifest.
+    /// Can be overridden via environment variable TEST_PACKAGE_IDENTITY_NAME for local development.
+    /// Default: e7af07c0-77d2-43e5-ab82-9cdb9daa11b3
     /// </summary>
-    public const string MsixPackageIdentityName = "e7af07c0-77d2-43e5-ab82-9cdb9daa11b3";
+    public static readonly string MsixPackageIdentityName =
+        Environment.GetEnvironmentVariable("TEST_PACKAGE_IDENTITY_NAME")
+        ?? "e7af07c0-77d2-43e5-ab82-9cdb9daa11b3";
 }

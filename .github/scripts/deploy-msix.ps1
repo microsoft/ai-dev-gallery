@@ -47,8 +47,34 @@ Write-Host ""
 
 # Cleanup previous installations
 Write-Host "Cleaning up previous installations..."
-Get-AppxPackage -Name "*AIDevGallery*" | Remove-AppxPackage -ErrorAction SilentlyContinue
-Get-AppxPackage -Name "*e7af07c0*" | Remove-AppxPackage -ErrorAction SilentlyContinue
+$cleanupFailed = $false
+
+$existingPackage = Get-AppxPackage -Name "*AIDevGallery*"
+if ($existingPackage) {
+    try {
+        $existingPackage | Remove-AppxPackage
+        Write-Host "Removed AIDevGallery package(s)"
+    } catch {
+        Write-Warning "Failed to remove AIDevGallery package: $_"
+        $cleanupFailed = $true
+    }
+}
+
+$existingPackage2 = Get-AppxPackage -Name "*e7af07c0*"
+if ($existingPackage2) {
+    try {
+        $existingPackage2 | Remove-AppxPackage
+        Write-Host "Removed e7af07c0 package(s)"
+    } catch {
+        Write-Warning "Failed to remove e7af07c0 package: $_"
+        $cleanupFailed = $true
+    }
+}
+
+if ($cleanupFailed) {
+    Write-Warning "Some cleanup operations failed. This may cause installation issues if conflicting packages remain."
+}
+
 Write-Host "Cleanup completed"
 Write-Host ""
 
