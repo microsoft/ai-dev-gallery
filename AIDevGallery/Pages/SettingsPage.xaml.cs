@@ -95,9 +95,10 @@ internal sealed partial class SettingsPage : Page
     {
         if (cacheFolderPath != null)
         {
-            using (Process.Start("explorer.exe", cacheFolderPath))
-            {
-            }
+            // Process.Start for explorer doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start("explorer.exe", cacheFolderPath);
+#pragma warning restore IDISP004
         }
     }
 
@@ -203,9 +204,10 @@ internal sealed partial class SettingsPage : Page
 
             if (path != null && Directory.Exists(path))
             {
-                using (Process.Start("explorer.exe", path))
-                {
-                }
+                // Process.Start for explorer doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+                Process.Start("explorer.exe", path);
+#pragma warning restore IDISP004
             }
         }
     }

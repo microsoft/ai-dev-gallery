@@ -184,13 +184,15 @@ internal sealed partial class APIPage : Page
         }
 
         ModelDetailsLinkClickedEvent.Log(link);
-        using (Process.Start(new ProcessStartInfo()
+
+        // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+        Process.Start(new ProcessStartInfo()
         {
             FileName = link,
             UseShellExecute = true
-        }))
-        {
-        }
+        });
+#pragma warning restore IDISP004
     }
 
     private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)

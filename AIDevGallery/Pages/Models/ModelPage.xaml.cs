@@ -252,24 +252,26 @@ internal sealed partial class ModelPage : Page
             bool wasDeeplinkSuccesful = true;
             try
             {
-                using (Process.Start(new ProcessStartInfo()
+                // Process.Start for external process doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+                Process.Start(new ProcessStartInfo()
                 {
                     FileName = toolkitDeeplink,
                     UseShellExecute = true
-                }))
-                {
-                }
+                });
+#pragma warning restore IDISP004
             }
             catch
             {
-                using (Process.Start(new ProcessStartInfo()
+                // Process.Start for external process doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+                Process.Start(new ProcessStartInfo()
                 {
                     FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
                     UseShellExecute = true
-                }))
-                {
-                    wasDeeplinkSuccesful = false;
-                }
+                });
+#pragma warning restore IDISP004
+                wasDeeplinkSuccesful = false;
             }
             finally
             {
@@ -323,9 +325,11 @@ internal sealed partial class ModelPage : Page
                 FileName = uri.AbsoluteUri,
                 UseShellExecute = true
             };
-            using (Process.Start(psi))
-            {
-            }
+
+            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(psi);
+#pragma warning restore IDISP004
         }
         catch (Exception ex) when (ex is Win32Exception
                                 || ex is InvalidOperationException
