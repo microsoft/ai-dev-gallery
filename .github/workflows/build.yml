@@ -140,7 +140,137 @@ jobs:
         name: MSIX-${{ matrix.dotnet-arch }}
         path: ${{ github.workspace }}/AIDevGallery/AppPackages/*_${{ matrix.dotnet-arch }}_Test/AIDevGallery_*_${{ matrix.dotnet-arch }}.msix
 
-  accessibility-check:
+  Accessibility-Test:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: windows-2025
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    - name: Download MSIX Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MSIX-x64
+        path: ./DownloadedMSIX
+    - name: Verify Downloaded MSIX
+      shell: pwsh
+      run: |
+        Write-Host "Checking downloaded MSIX artifacts..."
+        $downloadPath = Join-Path (Get-Location) "DownloadedMSIX"
+        
+        if (-not (Test-Path $downloadPath)) {
+            Write-Error "Download directory does not exist: $downloadPath"
+            exit 1
+        }
+        
+        Write-Host "Contents of $downloadPath :"
+        Get-ChildItem -Path $downloadPath -Recurse | ForEach-Object {
+            Write-Host "  - $($_.FullName)"
+        }
+        
+        # Search recursively for MSIX files
+        $msixFiles = Get-ChildItem -Path $downloadPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue
+        if (-not $msixFiles) {
+            Write-Error "No .msix files found in $downloadPath"
+            exit 1
+        }
+        
+        Write-Host "Found MSIX files: $($msixFiles.Count)"
+        $msixFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
+    - name: Download and Install Axe.Windows CLI
+      shell: pwsh
+      run: |
+        $url = "https://api.github.com/repos/microsoft/axe-windows/releases/latest"
+        try {
+            Write-Host "Fetching Axe.Windows CLI release info from $url..."
+            $response = Invoke-RestMethod -Uri $url -ErrorAction Stop
+            $asset = $response.assets | Where-Object { $_.name -like "*CLI*.zip" } | Select-Object -First 1
+            
+            if (-not $asset) {
+                Write-Error "Could not find AxeWindowsCLI zip asset in release"
+                exit 1
+            }
+            
+            Write-Host "Downloading $($asset.name)..."
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "AxeWindowsCLI.zip" -ErrorAction Stop
+            
+            Write-Host "Extracting AxeWindowsCLI.zip..."
+            Expand-Archive "AxeWindowsCLI.zip" -DestinationPath "AxeWindowsCLI" -Force
+            
+            # Verify the executable exists
+            $cliExe = Join-Path (Get-Location) "AxeWindowsCLI\AxeWindowsCLI.exe"
+            if (-not (Test-Path $cliExe)) {
+                Write-Error "AxeWindowsCLI.exe not found at expected path: $cliExe"
+                exit 1
+            }
+            
+            echo "CLI_PATH=$cliExe" >> $env:GITHUB_ENV
+            Write-Host "CLI_PATH set to: $cliExe"
+        } catch {
+            Write-Error "Failed to download or setup Axe.Windows CLI: $_"
+            exit 1
+        }
+    - name: Deploy MSIX Package
+      shell: pwsh
+      run: |
+        .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Build AIDevGallery.Utils
+      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
+    - name: Build Test Project
+      run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Run Accessibility Tests
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
+          --filter "FullyQualifiedName~AccessibilityTests" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\AccessibilityTestsResults.trx" `
+          --logger "console;verbosity=detailed" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory "${{ github.workspace }}\TestResults" `
+          --verbosity normal `
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Accessibility tests failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+        }
+    - name: Publish Test Results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pr-accessibility-test-results-${{ matrix.dotnet-arch }}
+        path: |
+          TestResults
+          **/coverage.opencover.xml
+    - name: Display Test Report
+      if: always()
+      uses: dorny/test-reporter@v2
+      with:
+        name: Accessibility Test Report - ${{ matrix.dotnet-arch }}
+        path: 'TestResults/*.trx'
+        reporter: dotnet-trx
+        fail-on-error: false
+
+  Accessibility-Check:
     needs: build
     if: github.event_name == 'pull_request'
     runs-on: windows-2025
