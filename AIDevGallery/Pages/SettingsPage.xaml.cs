@@ -62,26 +62,33 @@ internal sealed partial class SettingsPage : Page
 
     private async void GetStorageInfo()
     {
-        cachedModels.Clear();
-
-        cacheFolderPath = App.ModelCache.GetCacheFolder();
-        FolderPathTxt.Content = cacheFolderPath;
-
-        long totalCacheSize = 0;
-        var allModels = await App.ModelCache.GetAllModelsAsync();
-
-        foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
+        try
         {
-            cachedModels.Add(cachedModel);
-            totalCacheSize += cachedModel.ModelSize;
-        }
+            cachedModels.Clear();
 
-        if (cachedModels.Count > 0)
+            cacheFolderPath = App.ModelCache.GetCacheFolder();
+            FolderPathTxt.Content = cacheFolderPath;
+
+            long totalCacheSize = 0;
+            var allModels = await App.ModelCache.GetAllModelsAsync();
+
+            foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
+            {
+                cachedModels.Add(cachedModel);
+                totalCacheSize += cachedModel.ModelSize;
+            }
+
+            if (cachedModels.Count > 0)
+            {
+                ModelsExpander.IsExpanded = true;
+            }
+
+            TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
+        }
+        catch ()
         {
-            ModelsExpander.IsExpanded = true;
+            TotalCacheTxt.Text = $"Error loading cache info";
         }
-
-        TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
     }
 
     private void FolderPathTxt_Click(object sender, RoutedEventArgs e)

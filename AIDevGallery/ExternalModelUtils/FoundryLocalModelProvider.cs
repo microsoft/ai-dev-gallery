@@ -66,14 +66,14 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     private void ValidateClient(string alias)
     {
-        if (_foundryManager == null)
-        {
-            LogAndThrow("ClientNotInitialized", alias ?? "unknown", "Foundry Local client not initialized");
-        }
-
         if (string.IsNullOrEmpty(alias))
         {
             LogAndThrow("EmptyAlias", "empty", "Model alias cannot be empty");
+        }
+
+        if (_foundryManager == null)
+        {
+            LogAndThrow("ClientNotInitialized", alias, "Foundry Local client not initialized");
         }
     }
 
