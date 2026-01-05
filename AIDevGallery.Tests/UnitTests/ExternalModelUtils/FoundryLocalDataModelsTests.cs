@@ -64,7 +64,7 @@ public class FoundryLocalDataModelsTests
 
             // Assert
             Assert.AreEqual("phi-3.5-mini-instruct", modelInfo.Name);
-            Assert.AreEqual("phi-3.5-mini", modelInfo.Id);
+            Assert.AreEqual("phi-3.5-mini", modelInfo.Alias);
         }
 
         [TestMethod]

@@ -5,7 +5,7 @@ using Microsoft.AI.Foundry.Local;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal record FoundryCachedModelInfo(string Name, string? Id);
+internal record FoundryCachedModelInfo(string Name, string Alias);
 
 internal record FoundryDownloadResult(bool Success, string? ErrorMessage);
 

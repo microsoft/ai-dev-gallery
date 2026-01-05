@@ -321,7 +321,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         {
             var firstModel = aliasGroup.First();
             var catalogModel = (FoundryCatalogModel)firstModel.ProviderModelDetails!;
-            var hasCachedVariant = cachedModels.Any(cm => cm.Id == catalogModel.Alias);
+            var hasCachedVariant = cachedModels.Any(cm => cm.Alias == catalogModel.Alias);
 
             if (hasCachedVariant)
             {
