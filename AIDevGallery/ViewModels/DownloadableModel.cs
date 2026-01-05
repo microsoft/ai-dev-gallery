@@ -27,6 +27,7 @@ internal partial class DownloadableModel : BaseModel
 
     public bool IsDownloadEnabled => Compatibility.CompatibilityState != ModelCompatibilityState.NotCompatible;
 
+#pragma warning disable IDISP008 // Don't assign member with injected and created disposables - ModelDownload lifecycle is managed by ModelDownloadQueue
     private ModelDownload? _modelDownload;
 
     public ModelDownload? ModelDownload
@@ -59,6 +60,7 @@ internal partial class DownloadableModel : BaseModel
             CanDownload = false;
         }
     }
+#pragma warning restore IDISP008
 
     private DownloadableModel(ModelDetails modelDetails, ModelDownload? modelDownload)
         : base(modelDetails)

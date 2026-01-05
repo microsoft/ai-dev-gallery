@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     SharedCode = [],
     Id = "language-content-moderation",
     Icon = "\uE8D4")]
-internal sealed partial class ContentModeration : BaseSamplePage
+internal sealed partial class ContentModeration : BaseSamplePage, IDisposable
 {
     private IChatClient? model;
     private CancellationTokenSource? cts;
@@ -42,6 +42,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
     {
         try
         {
+            model?.Dispose();
             model = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -63,6 +64,11 @@ internal sealed partial class ContentModeration : BaseSamplePage
     {
         CancelGeneration();
         model?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public void GenerateText(string prompt)
@@ -87,6 +93,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
             {
                 string systemPrompt = "You are a helpful assistant.";
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 var isProgressVisible = true;

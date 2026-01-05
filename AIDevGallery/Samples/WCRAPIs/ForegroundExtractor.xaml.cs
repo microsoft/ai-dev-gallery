@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "horse.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class ForegroundExtractor : BaseSamplePage
+internal sealed partial class ForegroundExtractor : BaseSamplePage, IDisposable
 {
     private ImageForegroundExtractor? _foregroundExtractor;
     private SoftwareBitmap? _inputBitmap;
@@ -38,6 +38,13 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
     public ForegroundExtractor()
     {
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _foregroundExtractor?.Dispose();
+        _inputBitmap?.Dispose();
+        _outputBitmap?.Dispose();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -88,6 +95,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         SaveButton.Visibility = Visibility.Collapsed;
         await SetImage(InputImage, _inputBitmap);
         GeneratedImage.Source = null;
+        _outputBitmap?.Dispose();
         _outputBitmap = await Task.Run(() => GetForeground(_inputBitmap));
         if (_outputBitmap != null)
         {
@@ -173,11 +181,6 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
             return;
         }
 
-        if (image.Source is SoftwareBitmapSource previousSource)
-        {
-            previousSource.Dispose();
-        }
-
         var convertedBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         var bitmapSource = new SoftwareBitmapSource();
 
@@ -194,7 +197,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
 
         try
         {
-            var mask = _foregroundExtractor.GetMaskFromSoftwareBitmap(bitmap);
+            using var mask = _foregroundExtractor.GetMaskFromSoftwareBitmap(bitmap);
             return ApplyMask(bitmap, mask);
         }
         catch (Exception ex)

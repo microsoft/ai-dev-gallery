@@ -30,7 +30,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uE8D4")]
-internal sealed partial class TextSummarize : BaseSamplePage
+internal sealed partial class TextSummarize : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -115,6 +115,11 @@ internal sealed partial class TextSummarize : BaseSamplePage
         _languageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -148,6 +153,7 @@ internal sealed partial class TextSummarize : BaseSamplePage
         IsProgressVisible = true;
 
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         // <exclude>

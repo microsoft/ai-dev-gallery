@@ -13,7 +13,10 @@ internal class DefaultSVGRenderer : ISVGRenderer
 {
     public async Task<Image> SvgToImage(string svgString)
     {
+        // SvgImageSource ownership is transferred to Image.Source, so it should not be disposed here
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
         SvgImageSource svgImageSource = new SvgImageSource();
+#pragma warning restore IDISP004
         var image = new Image();
 
         // Create a MemoryStream object and write the SVG string to it
@@ -27,7 +30,9 @@ internal class DefaultSVGRenderer : ISVGRenderer
             memoryStream.Position = 0;
 
             // Load the SVG from the MemoryStream
-            await svgImageSource.SetSourceAsync(memoryStream.AsRandomAccessStream());
+            // AsRandomAccessStream() returns an IDisposable that's owned by the SvgImageSource after SetSourceAsync
+            using var randomAccessStream = memoryStream.AsRandomAccessStream();
+            await svgImageSource.SetSourceAsync(randomAccessStream);
         }
 
         // Set the Source property of the Image control to the SvgImageSource object

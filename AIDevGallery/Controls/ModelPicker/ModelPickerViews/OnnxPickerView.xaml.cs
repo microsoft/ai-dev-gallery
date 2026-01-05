@@ -227,7 +227,9 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
                     OpenModelFolderEvent.Log(cachedModel.Url);
 
-                    Process.Start("explorer.exe", path!);
+                    using (Process.Start("explorer.exe", path!))
+                    {
+                    }
                 }
             }
         }
@@ -302,11 +304,13 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 licenseUrl = details.Url;
             }
 
-            Process.Start(new ProcessStartInfo()
+            using (Process.Start(new ProcessStartInfo()
             {
                 FileName = licenseUrl,
                 UseShellExecute = true
-            });
+            }))
+            {
+            }
         }
     }
 
@@ -383,20 +387,24 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         bool wasDeeplinkSuccessful = true;
         try
         {
-            Process.Start(new ProcessStartInfo()
+            using (Process.Start(new ProcessStartInfo()
             {
                 FileName = toolkitDeeplink,
                 UseShellExecute = true
-            });
+            }))
+            {
+            }
         }
         catch
         {
-            Process.Start(new ProcessStartInfo()
+            using (Process.Start(new ProcessStartInfo()
             {
                 FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
                 UseShellExecute = true
-            });
-            wasDeeplinkSuccessful = false;
+            }))
+            {
+                wasDeeplinkSuccessful = false;
+            }
         }
         finally
         {
@@ -406,11 +414,13 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void ViewDocumentationButton_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo()
+        using (Process.Start(new ProcessStartInfo()
         {
             FileName = "https://aka.ms/winml-gallery-tutorial",
             UseShellExecute = true
-        });
+        }))
+        {
+        }
     }
 
     private async void ShowException(Exception? ex, string? optionalMessage = null)

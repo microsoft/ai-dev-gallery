@@ -31,7 +31,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE56")]
-internal sealed partial class TextToTable : BaseSamplePage
+internal sealed partial class TextToTable : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -116,6 +116,11 @@ internal sealed partial class TextToTable : BaseSamplePage
         _languageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -149,6 +154,7 @@ internal sealed partial class TextToTable : BaseSamplePage
         IsProgressVisible = true;
 
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         var result = await _textToTableConverter.ConvertAsync(prompt).AsTask(_cts.Token);

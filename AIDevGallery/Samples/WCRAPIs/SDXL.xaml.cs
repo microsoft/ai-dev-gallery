@@ -36,7 +36,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class SDXL : BaseSamplePage
+internal sealed partial class SDXL : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
@@ -92,6 +92,11 @@ internal sealed partial class SDXL : BaseSamplePage
         _generator?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -123,6 +128,7 @@ internal sealed partial class SDXL : BaseSamplePage
 
         SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         ImageGeneratorResult? result = null;
 
@@ -155,8 +161,8 @@ internal sealed partial class SDXL : BaseSamplePage
             return;
         }
 
-        var softwareBitmap = result.Image.CopyToSoftwareBitmap();
-        var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        using var softwareBitmap = result.Image.CopyToSoftwareBitmap();
+        using var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         if (convertedImage != null)
         {
             var source = new SoftwareBitmapSource();

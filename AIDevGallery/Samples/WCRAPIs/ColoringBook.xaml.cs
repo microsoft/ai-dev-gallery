@@ -37,7 +37,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "WinDev.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class ColoringBook : BaseSamplePage
+internal sealed partial class ColoringBook : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 1000;
     private const int FloodFillTolerance = 25;
@@ -51,6 +51,18 @@ internal sealed partial class ColoringBook : BaseSamplePage
     public ColoringBook()
     {
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        while (_bitmaps.Count > 0)
+        {
+            _bitmaps.Pop()?.Dispose();
+        }
+
+        _inputBitmap?.Dispose();
+        _generator?.Dispose();
+        _cts?.Dispose();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -155,6 +167,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
     private async Task SetImage(IRandomAccessStream stream)
     {
         var decoder = await BitmapDecoder.CreateAsync(stream);
+        _inputBitmap?.Dispose();
         _inputBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
         if (_inputBitmap == null)
@@ -196,6 +209,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
         StopBtn.Visibility = Visibility.Visible;
         IsProgressVisible = true;
         InputTextBox.IsEnabled = false;
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         var prompt = InputTextBox.Text;
 
@@ -209,18 +223,26 @@ internal sealed partial class ColoringBook : BaseSamplePage
                     return;
                 }
 
-                var outputBitmap = ApplyMaskWithPrompt(prompt, _inputBitmap, mask);
-                if (_cts!.Token.IsCancellationRequested)
+                using (mask)
+                {
+                    // Ownership of outputBitmap is transferred to _inputBitmap, so it should not be disposed here
+#pragma warning disable IDISP001 // Dispose created
+#pragma warning disable IDISP003 // Dispose previous before re-assigning
+                    var outputBitmap = ApplyMaskWithPrompt(prompt, _inputBitmap, mask);
+                    if (_cts!.Token.IsCancellationRequested)
                 {
                     return;
                 }
 
-                if (outputBitmap != null)
-                {
-                    SetImageSource(outputBitmap);
-                    _bitmaps.Push(_inputBitmap);
-                    _inputBitmap = outputBitmap;
-                    SwitchInputOutputView();
+                    if (outputBitmap != null)
+                    {
+                        SetImageSource(outputBitmap);
+                        _bitmaps.Push(_inputBitmap);
+                        _inputBitmap = outputBitmap;
+                        SwitchInputOutputView();
+                    }
+#pragma warning restore IDISP003
+#pragma warning restore IDISP001
                 }
             },
             _cts.Token);
@@ -281,6 +303,7 @@ internal sealed partial class ColoringBook : BaseSamplePage
     {
         if (_bitmaps.Count > 0)
         {
+            _inputBitmap?.Dispose();
             _inputBitmap = _bitmaps.Pop();
             SetImageSource(_inputBitmap);
         }

@@ -38,7 +38,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class RestyleImage : BaseSamplePage
+internal sealed partial class RestyleImage : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
@@ -96,6 +96,11 @@ internal sealed partial class RestyleImage : BaseSamplePage
         _imageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -140,6 +145,7 @@ internal sealed partial class RestyleImage : BaseSamplePage
         using var inputBuffer = ImageBuffer.CreateForSoftwareBitmap(_inputBitmap);
         SendSampleInteractedEvent("GenerateImage"); // <exclude-line>
 
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         var result = await Task.Run(
@@ -171,8 +177,8 @@ internal sealed partial class RestyleImage : BaseSamplePage
             return;
         }
 
-        var softwareBitmap = result.Image.CopyToSoftwareBitmap();
-        var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        using var softwareBitmap = result.Image.CopyToSoftwareBitmap();
+        using var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         if (convertedImage != null)
         {
             var source = new SoftwareBitmapSource();

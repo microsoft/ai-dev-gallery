@@ -23,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     Id = "f045fca2-c657-4894-99f2-d0a1115176bc",
     Icon = "\uE8D4")]
-internal sealed partial class Translate : BaseSamplePage
+internal sealed partial class Translate : BaseSamplePage, IDisposable
 {
     private const int _defaultMaxLength = 1024;
     private IChatClient? chatClient;
@@ -40,6 +40,7 @@ internal sealed partial class Translate : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _defaultMaxLength;
         }
@@ -62,6 +63,11 @@ internal sealed partial class Translate : BaseSamplePage
     {
         CancelTranslation();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -101,6 +107,7 @@ internal sealed partial class Translate : BaseSamplePage
                     string systemPrompt = "You translate user provided text. Do not reply with any extraneous content besides the translated text itself.";
                     string userPrompt = $@"Translate the following text to {targetLanguage}: '{text}'";
 
+                    cts?.Dispose();
                     cts = new CancellationTokenSource();
 
                     IsProgressVisible = true;

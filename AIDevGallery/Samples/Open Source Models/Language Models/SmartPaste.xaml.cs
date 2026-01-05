@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
         SharedCodeEnum.SmartPasteFormCs,
         SharedCodeEnum.SmartPasteFormXaml
     ])]
-internal sealed partial class SmartPaste : BaseSamplePage
+internal sealed partial class SmartPaste : BaseSamplePage, IDisposable
 {
     private IChatClient? model;
     public List<string> FieldLabels { get; set; } = ["Name", "Address", "City", "State", "Zip"];
@@ -47,6 +47,7 @@ internal sealed partial class SmartPaste : BaseSamplePage
     {
         try
         {
+            model?.Dispose();
             model = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -65,5 +66,10 @@ internal sealed partial class SmartPaste : BaseSamplePage
     private void CleanUp()
     {
         model?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 }

@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls;
 
-internal sealed partial class SampleContainer : UserControl
+internal sealed partial class SampleContainer : UserControl, IDisposable
 {
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
@@ -111,6 +111,7 @@ internal sealed partial class SampleContainer : UserControl
         if (_sampleLoadingCts != null)
         {
             _sampleLoadingCts.Cancel();
+            _sampleLoadingCts.Dispose();
             _sampleLoadingCts = null;
         }
     }
@@ -213,6 +214,7 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        _sampleLoadingCts?.Dispose();
         _sampleLoadingCts = new CancellationTokenSource();
         var token = _sampleLoadingCts.Token;
 
@@ -311,10 +313,12 @@ internal sealed partial class SampleContainer : UserControl
         finally
         {
             _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts?.Dispose();
             _sampleLoadingCts = null;
         }
 
         _sampleLoadedCompletionSource = null;
+        _sampleLoadingCts?.Dispose();
         _sampleLoadingCts = null;
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
@@ -586,5 +590,10 @@ internal sealed partial class SampleContainer : UserControl
                 VisualStateManager.GoToState(this, "WarningVisible", true);
             }
         }
+    }
+
+    public void Dispose()
+    {
+        _sampleLoadingCts?.Dispose();
     }
 }

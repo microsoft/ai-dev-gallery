@@ -178,7 +178,10 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
         try
         {
+            // Ownership of outputBitmap is transferred to _inputBitmap, so it should not be disposed here
+#pragma warning disable IDISP001 // Dispose created
             var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
+#pragma warning restore IDISP001
             if (outputBitmap != null)
             {
                 _bitmaps.Push(_inputBitmap);

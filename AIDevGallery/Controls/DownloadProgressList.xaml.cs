@@ -72,7 +72,9 @@ internal sealed partial class DownloadProgressList : UserControl
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
             downloadProgresses.Remove(downloadableModel);
-            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
+            using (App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails))
+            {
+            }
         }
     }
 
@@ -93,7 +95,9 @@ internal sealed partial class DownloadProgressList : UserControl
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
             downloadProgresses.Remove(downloadableModel);
-            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
+            using (App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails))
+            {
+            }
         }
     }
 }

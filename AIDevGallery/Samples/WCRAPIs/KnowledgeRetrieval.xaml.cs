@@ -41,7 +41,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-internal sealed partial class KnowledgeRetrieval : BaseSamplePage
+internal sealed partial class KnowledgeRetrieval : BaseSamplePage, IDisposable
 {
     private ObservableCollection<TextDataItem> TextDataItems { get; } = new();
     public ObservableCollection<Message> Messages { get; } = [];
@@ -58,7 +58,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     // This is some text data that we want to add to the index:
     private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
-        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
+        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sautï¿½ them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
         { "item3", "Domestic cats communicate through posture, tail flicks, and vocalizations. Play mimics hunting behaviors like stalking and pouncing, supporting agility and mental stimulation. Scratching maintains claws and marks territory, so provide sturdy posts. Balanced diets, hydration, and routine veterinary care sustain health. Safe retreats and vertical spaces reduce stress and encourage exploration." },
         { "item4", "Snowboarding across pristine slopes combines agility, balance, and speed. Riders carve smooth turns on powder, adjust stance for control, and master jumps in terrain parks. Essential gear includes boots, bindings, and helmets for safety. Embrace crisp alpine air while perfecting tricks and enjoying the thrill of winter adventure." },
@@ -97,6 +97,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                     winMlSampleOptions: null,
                     loadingCanceledToken: CancellationToken.None);
 
+                _model?.Dispose();
                 _model = await ragSampleParams.GetIChatClientAsync();
             }
             catch (Exception ex)
@@ -151,6 +152,11 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         _indexer?.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     private void CancelResponse()
@@ -293,6 +299,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
                 InputBox.IsEnabled = false;
             });
 
+            cts?.Dispose();
             cts = new CancellationTokenSource();
 
             // Use AppContentIndexer query here.

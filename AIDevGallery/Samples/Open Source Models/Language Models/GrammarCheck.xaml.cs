@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Grammar Check",
     Id = "9e1b5ac5-3521-4e88-a2ce-60152a6cb44f",
     Icon = "\uE8D4")]
-internal sealed partial class GrammarCheck : BaseSamplePage
+internal sealed partial class GrammarCheck : BaseSamplePage, IDisposable
 {
     private const int _maxTokenLength = 1024;
     private IChatClient? chatClient;
@@ -40,6 +40,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _maxTokenLength;
         }
@@ -62,6 +63,11 @@ internal sealed partial class GrammarCheck : BaseSamplePage
     {
         CancelGrammarCheck();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -99,6 +105,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
 
                 string userPrompt = "Grammar check this text: " + text;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

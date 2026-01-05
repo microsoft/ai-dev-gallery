@@ -31,9 +31,7 @@ internal class WhisperWrapper : IDisposable
             Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
         }
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        SessionOptions sessionOptions = new();
-#pragma warning restore CA2000 // Dispose objects before losing scope
+        using SessionOptions sessionOptions = new();
         sessionOptions.RegisterOrtExtensions();
 
         if (policy != null)

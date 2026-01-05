@@ -19,7 +19,7 @@ namespace AIDevGallery.Controls;
 /// A generic shimmer control that can be used to construct a beautiful loading effect.
 /// </summary>
 [TemplatePart(Name = PART_Shape, Type = typeof(Rectangle))]
-internal partial class Shimmer : Control
+internal sealed partial class Shimmer : Control, IDisposable
 {
     /// <summary>
     /// Identifies the <see cref="Duration"/> dependency property.
@@ -68,9 +68,11 @@ internal partial class Shimmer : Control
     private ShapeVisual? _shapeVisual;
     private CompositionLinearGradientBrush? _shimmerMaskGradient;
     private Border? _shape;
+    private CompositionSpriteShape? _spriteShape;
 
     private bool _initialized;
     private bool _animationStarted;
+    private bool _disposed;
 
     public Shimmer()
     {
@@ -103,22 +105,7 @@ internal partial class Shimmer : Control
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         ActualThemeChanged -= OnActualThemeChanged;
-        StopAnimation();
-
-        if (_initialized && _shape != null)
-        {
-            ElementCompositionPreview.SetElementChildVisual(_shape, null);
-
-            _rectangleGeometry!.Dispose();
-            _shapeVisual!.Dispose();
-            _shimmerMaskGradient!.Dispose();
-            _gradientStop1!.Dispose();
-            _gradientStop2!.Dispose();
-            _gradientStop3!.Dispose();
-            _gradientStop4!.Dispose();
-
-            _initialized = false;
-        }
+        Dispose();
     }
 
     private void OnActualThemeChanged(FrameworkElement sender, object args)
@@ -143,22 +130,34 @@ internal partial class Shimmer : Control
             return false;
         }
 
-        var compositor = _shape.GetVisual().Compositor;
+        using (var shapeVisual = _shape.GetVisual())
+        {
+            var compositor = shapeVisual.Compositor;
 
-        _rectangleGeometry = compositor.CreateRoundedRectangleGeometry();
-        _shapeVisual = compositor.CreateShapeVisual();
-        _shimmerMaskGradient = compositor.CreateLinearGradientBrush();
-        _gradientStop1 = compositor.CreateColorGradientStop();
-        _gradientStop2 = compositor.CreateColorGradientStop();
-        _gradientStop3 = compositor.CreateColorGradientStop();
-        _gradientStop4 = compositor.CreateColorGradientStop();
-        SetGradientAndStops();
-        SetGradientStopColorsByTheme();
-        _rectangleGeometry.CornerRadius = new Vector2((float)CornerRadius.TopLeft);
-        var spriteShape = compositor.CreateSpriteShape(_rectangleGeometry);
-        spriteShape.FillBrush = _shimmerMaskGradient;
-        _shapeVisual.Shapes.Add(spriteShape);
-        ElementCompositionPreview.SetElementChildVisual(_shape, _shapeVisual);
+            _rectangleGeometry?.Dispose();
+            _rectangleGeometry = compositor.CreateRoundedRectangleGeometry();
+            _shapeVisual?.Dispose();
+            _shapeVisual = compositor.CreateShapeVisual();
+            _shimmerMaskGradient?.Dispose();
+            _shimmerMaskGradient = compositor.CreateLinearGradientBrush();
+            _gradientStop1?.Dispose();
+            _gradientStop1 = compositor.CreateColorGradientStop();
+            _gradientStop2?.Dispose();
+            _gradientStop2 = compositor.CreateColorGradientStop();
+            _gradientStop3?.Dispose();
+            _gradientStop3 = compositor.CreateColorGradientStop();
+            _gradientStop4?.Dispose();
+            _gradientStop4 = compositor.CreateColorGradientStop();
+            SetGradientAndStops();
+            SetGradientStopColorsByTheme();
+            _rectangleGeometry.CornerRadius = new Vector2((float)CornerRadius.TopLeft);
+            _spriteShape?.Dispose();
+            _spriteShape = compositor.CreateSpriteShape(_rectangleGeometry);
+            _spriteShape.FillBrush = _shimmerMaskGradient;
+            _shapeVisual.Shapes.Clear();
+            _shapeVisual.Shapes.Add(_spriteShape);
+            ElementCompositionPreview.SetElementChildVisual(_shape, _shapeVisual);
+        }
 
         _initialized = true;
         return true;
@@ -207,24 +206,33 @@ internal partial class Shimmer : Control
             return;
         }
 
-        var rootVisual = _shape.GetVisual();
-        _sizeAnimation = rootVisual.GetReference().Size;
-        _shapeVisual.StartAnimation(nameof(ShapeVisual.Size), _sizeAnimation);
-        _rectangleGeometry.StartAnimation(nameof(CompositionRoundedRectangleGeometry.Size), _sizeAnimation);
+        using (var rootVisual = _shape.GetVisual())
+        {
+            using (var reference = rootVisual.GetReference())
+            {
+                _sizeAnimation?.Dispose();
+                _sizeAnimation = reference.Size;
+            }
 
-        _gradientStartPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
-        _gradientStartPointAnimation.Duration = Duration;
-        _gradientStartPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-        _gradientStartPointAnimation.InsertKeyFrame(0.0f, new Vector2(InitialStartPointX, 0.0f));
-        _gradientStartPointAnimation.InsertKeyFrame(1.0f, Vector2.Zero);
-        _shimmerMaskGradient!.StartAnimation(nameof(CompositionLinearGradientBrush.StartPoint), _gradientStartPointAnimation);
+            _shapeVisual.StartAnimation(nameof(ShapeVisual.Size), _sizeAnimation);
+            _rectangleGeometry.StartAnimation(nameof(CompositionRoundedRectangleGeometry.Size), _sizeAnimation);
 
-        _gradientEndPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
-        _gradientEndPointAnimation.Duration = Duration;
-        _gradientEndPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-        _gradientEndPointAnimation.InsertKeyFrame(0.0f, new Vector2(1.0f, 0.0f));
-        _gradientEndPointAnimation.InsertKeyFrame(1.0f, new Vector2(-InitialStartPointX, 1.0f));
-        _shimmerMaskGradient.StartAnimation(nameof(CompositionLinearGradientBrush.EndPoint), _gradientEndPointAnimation);
+            _gradientStartPointAnimation?.Dispose();
+            _gradientStartPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
+            _gradientStartPointAnimation.Duration = Duration;
+            _gradientStartPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
+            _gradientStartPointAnimation.InsertKeyFrame(0.0f, new Vector2(InitialStartPointX, 0.0f));
+            _gradientStartPointAnimation.InsertKeyFrame(1.0f, Vector2.Zero);
+            _shimmerMaskGradient!.StartAnimation(nameof(CompositionLinearGradientBrush.StartPoint), _gradientStartPointAnimation);
+
+            _gradientEndPointAnimation?.Dispose();
+            _gradientEndPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
+            _gradientEndPointAnimation.Duration = Duration;
+            _gradientEndPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
+            _gradientEndPointAnimation.InsertKeyFrame(0.0f, new Vector2(1.0f, 0.0f));
+            _gradientEndPointAnimation.InsertKeyFrame(1.0f, new Vector2(-InitialStartPointX, 1.0f));
+            _shimmerMaskGradient.StartAnimation(nameof(CompositionLinearGradientBrush.EndPoint), _gradientEndPointAnimation);
+        }
 
         _animationStarted = true;
     }
@@ -259,5 +267,33 @@ internal partial class Shimmer : Control
         {
             self.StopAnimation();
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        StopAnimation();
+
+        if (_initialized && _shape != null)
+        {
+            ElementCompositionPreview.SetElementChildVisual(_shape, null);
+
+            _rectangleGeometry?.Dispose();
+            _shapeVisual?.Dispose();
+            _shimmerMaskGradient?.Dispose();
+            _gradientStop1?.Dispose();
+            _gradientStop2?.Dispose();
+            _gradientStop3?.Dispose();
+            _gradientStop4?.Dispose();
+            _spriteShape?.Dispose();
+
+            _initialized = false;
+        }
+
+        _disposed = true;
     }
 }

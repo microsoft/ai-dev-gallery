@@ -11,41 +11,55 @@ using System.Numerics;
 
 namespace AIDevGallery.Controls;
 
-internal partial class HoverLight : XamlLight
+internal sealed partial class HoverLight : XamlLight, IDisposable
 {
     private ExpressionAnimation? _lightPositionExpression;
     private Vector3KeyFrameAnimation? _offsetAnimation;
+    private SpotLight? _spotLight;
+    private Compositor? _compositor;
+    private CompositionPropertySet? _hoverPosition;
     private static readonly string Id = typeof(HoverLight).FullName!;
+    private bool _disposed;
 
     protected override void OnConnected(UIElement targetElement)
     {
-        Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
+        _compositor?.Dispose();
+        _compositor = CompositionTarget.GetCompositorForCurrentThread();
 
         // Create SpotLight and set its properties
-        SpotLight spotLight = compositor.CreateSpotLight();
-        spotLight.InnerConeAngleInDegrees = 50f;
-        spotLight.InnerConeColor = Colors.FloralWhite;
-        spotLight.OuterConeAngleInDegrees = 20f;
-        spotLight.ConstantAttenuation = 1f;
-        spotLight.LinearAttenuation = 0.253f;
-        spotLight.QuadraticAttenuation = 0.58f;
+        _spotLight?.Dispose();
+        _spotLight = _compositor.CreateSpotLight();
+        _spotLight.InnerConeAngleInDegrees = 50f;
+        _spotLight.InnerConeColor = Colors.FloralWhite;
+        _spotLight.OuterConeAngleInDegrees = 20f;
+        _spotLight.ConstantAttenuation = 1f;
+        _spotLight.LinearAttenuation = 0.253f;
+        _spotLight.QuadraticAttenuation = 0.58f;
+
+        // Dispose previous CompositionLight if exists
+        CompositionLight?.Dispose();
 
         // Associate CompositionLight with XamlLight
-        CompositionLight = spotLight;
+        CompositionLight = _spotLight;
 
         // Define resting position Animation
         Vector3 restingPosition = new(200, 200, 400);
-        CubicBezierEasingFunction cbEasing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.3f, 0.7f), new Vector2(0.9f, 0.5f));
-        _offsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-        _offsetAnimation.InsertKeyFrame(1, restingPosition, cbEasing);
-        _offsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+        using (CubicBezierEasingFunction cbEasing = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.3f, 0.7f), new Vector2(0.9f, 0.5f)))
+        {
+            _offsetAnimation?.Dispose();
+            _offsetAnimation = _compositor.CreateVector3KeyFrameAnimation();
+            _offsetAnimation.InsertKeyFrame(1, restingPosition, cbEasing);
+            _offsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+        }
 
-        spotLight.Offset = restingPosition;
+        _spotLight.Offset = restingPosition;
 
         // Define expression animation that relates light's offset to pointer position
-        CompositionPropertySet hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
-        _lightPositionExpression = compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
-        _lightPositionExpression.SetReferenceParameter("hover", hoverPosition);
+        _hoverPosition?.Dispose();
+        _hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
+        _lightPositionExpression?.Dispose();
+        _lightPositionExpression = _compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
+        _lightPositionExpression.SetReferenceParameter("hover", _hoverPosition);
         _lightPositionExpression.SetScalarParameter("height", 100.0f);
 
         // Configure pointer entered/ exited events
@@ -98,14 +112,27 @@ internal partial class HoverLight : XamlLight
 
         // Dispose Light and Composition resources when it is removed from the tree
         RemoveTargetElement(GetId(), oldElement);
-        CompositionLight.Dispose();
-
-        _lightPositionExpression?.Dispose();
-        _offsetAnimation?.Dispose();
+        Dispose();
     }
 
     protected override string GetId()
     {
         return Id;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        CompositionLight?.Dispose();
+        _lightPositionExpression?.Dispose();
+        _offsetAnimation?.Dispose();
+        _spotLight?.Dispose();
+        _compositor?.Dispose();
+        _hoverPosition?.Dispose();
+        _disposed = true;
     }
 }

@@ -245,8 +245,10 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (output == ContentDialogResult.Primary)
         {
-            App.ModelDownloadQueue.AddModel(result!.Details);
-            result.State = ResultState.Downloading;
+            using (App.ModelDownloadQueue.AddModel(result!.Details))
+            {
+                result.State = ResultState.Downloading;
+            }
         }
     }
 
@@ -257,11 +259,13 @@ internal sealed partial class AddHFModelView : UserControl
 
         string url = result!.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}";
 
-        Process.Start(new ProcessStartInfo()
+        using (Process.Start(new ProcessStartInfo()
         {
             FileName = url,
             UseShellExecute = true
-        });
+        }))
+        {
+        }
     }
 
     private void ViewModelDetails(object sender, RoutedEventArgs e)

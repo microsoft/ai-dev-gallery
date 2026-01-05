@@ -27,7 +27,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEF15")]
-internal sealed partial class DescribeYourChange : BaseSamplePage
+internal sealed partial class DescribeYourChange : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -113,6 +113,11 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         _languageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -174,6 +179,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
         IsProgressVisible = true;
 
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         // <exclude>

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.AI;
@@ -102,7 +103,7 @@ Rules:
             return [];
         }
 
-        SampleInteractionEvent.SendSampleInteractedEvent(model, Models.ScenarioType.SmartControlsSmartPaste, "InferPasteValues"); // <exclude-line>
+        SampleInteractionEvent.SendSampleInteractedEvent(model, ScenarioType.SmartControlsSmartPaste, "InferPasteValues"); // <exclude-line>
         string outputMessage = string.Empty;
         PromptInput input = new()
         {
@@ -111,30 +112,29 @@ Rules:
                 clipboardText[.._defaultMaxLength] :
                 clipboardText
         };
-
-        CancellationTokenSource cts = new();
         string output = string.Empty;
-
-        await foreach (var messagePart in model.GetStreamingResponseAsync(
-            [
-                new ChatMessage(ChatRole.System, _systemPrompt),
-                new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
-            ],
-            null,
-            cts.Token))
+        using (
+                CancellationTokenSource cts = new())
         {
-            outputMessage += messagePart;
-
-            Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
-            if (match.Success)
+            await foreach (var messagePart in model.GetStreamingResponseAsync(
+                [
+                    new ChatMessage(ChatRole.System, _systemPrompt),
+                new ChatMessage(ChatRole.User, JsonSerializer.Serialize(input, SmartPasteSourceGenerationContext.Default.PromptInput))
+                ],
+                null,
+                cts.Token))
             {
-                output = match.Value;
-                cts.Cancel();
-                break;
+                outputMessage += messagePart;
+
+                Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
+                if (match.Success)
+                {
+                    output = match.Value;
+                    cts.Cancel();
+                    break;
+                }
             }
         }
-
-        cts.Dispose();
 
         if (string.IsNullOrWhiteSpace(output))
         {

@@ -20,7 +20,7 @@ using Windows.ApplicationModel;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal class WCRException : Exception
+internal sealed class WCRException : Exception
 {
     public WCRException(string message)
         : base(message)
@@ -28,7 +28,12 @@ internal class WCRException : Exception
     }
 }
 
-internal class PhiSilicaClient : IChatClient
+// Class is already sealed and all disposable members are properly disposed in Dispose() method
+#pragma warning disable IDISP025 // Class with no virtual dispose method should be sealed
+#pragma warning disable IDISP002 // Dispose member
+internal sealed class PhiSilicaClient : IChatClient, IDisposable
+#pragma warning restore IDISP002
+#pragma warning restore IDISP025
 {
     // Search Options
     private const SeverityLevel DefaultInputModeration = SeverityLevel.Minimum;
@@ -39,6 +44,7 @@ internal class PhiSilicaClient : IChatClient
 
     private LanguageModel _languageModel;
     private LanguageModelContext? _languageModelContext;
+    private bool _disposed;
 
     public ChatClientMetadata Metadata { get; }
 
@@ -191,6 +197,7 @@ internal class PhiSilicaClient : IChatClient
 
         var firstMessage = history.FirstOrDefault();
 
+        _languageModelContext?.Dispose();
         _languageModelContext = firstMessage?.Role == ChatRole.System ?
             _languageModel?.CreateContext(firstMessage.Text, new ContentFilterOptions()) :
             _languageModel?.CreateContext();
@@ -217,11 +224,6 @@ internal class PhiSilicaClient : IChatClient
         }
 
         return prompt;
-    }
-
-    public void Dispose()
-    {
-        _languageModel.Dispose();
     }
 
     public object? GetService(Type serviceType, object? serviceKey = null)
@@ -285,5 +287,17 @@ internal class PhiSilicaClient : IChatClient
             LanguageModelResponseStatus.Error => "\nError",
             _ => string.Empty,
         };
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _languageModelContext?.Dispose();
+        _languageModel?.Dispose();
+        _disposed = true;
     }
 }

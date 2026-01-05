@@ -52,12 +52,13 @@ internal static class OnnxRuntimeGenAIChatClientFactory
                 () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var config = new Config(modelDir);
+                    using var config = new Config(modelDir);
                     if (!string.IsNullOrEmpty(provider))
                     {
                         config.AppendProvider(provider);
                     }
 
+                    chatClient?.Dispose();
                     chatClient = new OnnxRuntimeGenAIChatClient(config, true, options);
                     cancellationToken.ThrowIfCancellationRequested();
                 },

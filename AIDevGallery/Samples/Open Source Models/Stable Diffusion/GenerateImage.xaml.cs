@@ -54,7 +54,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.StableDiffusionImageGeneration;
     ],
     Icon = "\uEE71")]
 
-internal sealed partial class GenerateImage : BaseSamplePage
+internal sealed partial class GenerateImage : BaseSamplePage, IDisposable
 {
     private string prompt = string.Empty;
     private bool modelReady;
@@ -83,6 +83,7 @@ internal sealed partial class GenerateImage : BaseSamplePage
 
         try
         {
+            stableDiffusion?.Dispose();
             stableDiffusion = new StableDiffusion(parentFolder);
             await stableDiffusion.InitializeAsync(policy, epName, compileModel, deviceType);
         }
@@ -108,6 +109,11 @@ internal sealed partial class GenerateImage : BaseSamplePage
         cts?.Cancel();
         cts?.Dispose();
         stableDiffusion?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     private async void GenerateButton_Click(object sender, RoutedEventArgs e)

@@ -323,7 +323,9 @@ internal partial class ModelSelectionControl : UserControl
 
                     OpenModelFolderEvent.Log(cachedModel.Url);
 
-                    Process.Start("explorer.exe", path!);
+                    using (Process.Start("explorer.exe", path!))
+                    {
+                    }
                 }
             }
         }
@@ -381,11 +383,13 @@ internal partial class ModelSelectionControl : UserControl
                     }
                 }
 
-                Process.Start(new ProcessStartInfo()
+                using (Process.Start(new ProcessStartInfo()
                 {
                     FileName = modelcardUrl,
                     UseShellExecute = true
-                });
+                }))
+                {
+                }
             }
         }
     }
@@ -431,11 +435,13 @@ internal partial class ModelSelectionControl : UserControl
                 licenseUrl = details.Url;
             }
 
-            Process.Start(new ProcessStartInfo()
+            using (Process.Start(new ProcessStartInfo()
             {
                 FileName = licenseUrl,
                 UseShellExecute = true
-            });
+            }))
+            {
+            }
         }
     }
 
@@ -605,11 +611,13 @@ internal partial class ModelSelectionControl : UserControl
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
+            using (Process.Start(new ProcessStartInfo
             {
                 FileName = modelDetailsUrl,
                 UseShellExecute = true
-            });
+            }))
+            {
+            }
         }
     }
 }

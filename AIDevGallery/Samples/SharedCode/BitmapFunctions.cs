@@ -96,16 +96,20 @@ internal class BitmapFunctions
             stream.Seek(0); // Reset stream position
 
             // Convert to System.Drawing.Bitmap
-            using var tempBitmap = new Bitmap(stream.AsStream());
-            Bitmap paddedBitmap = new(targetWidth, targetHeight);
-
-            using (Graphics graphics = Graphics.FromImage(paddedBitmap))
+            Bitmap paddedBitmap;
+            using (var streamWrapper = stream.AsStream())
+            using (var tempBitmap = new Bitmap(streamWrapper))
             {
-                graphics.Clear(Color.White); // White padding background
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                paddedBitmap = new(targetWidth, targetHeight);
 
-                // Draw the resized image centered
-                graphics.DrawImage(tempBitmap, offsetX, offsetY, scaledWidth, scaledHeight);
+                using (Graphics graphics = Graphics.FromImage(paddedBitmap))
+                {
+                    graphics.Clear(Color.White); // White padding background
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                    // Draw the resized image centered
+                    graphics.DrawImage(tempBitmap, offsetX, offsetY, scaledWidth, scaledHeight);
+                }
             }
 
             return paddedBitmap;
@@ -317,7 +321,8 @@ internal class BitmapFunctions
 
             memoryStream.Position = 0;
 
-            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+            using var randomAccessStream = memoryStream.AsRandomAccessStream();
+            bitmapImage.SetSource(randomAccessStream);
         }
 
         return bitmapImage;
@@ -351,7 +356,8 @@ internal class BitmapFunctions
         {
             image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
             memoryStream.Position = 0;
-            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+            using var randomAccessStream = memoryStream.AsRandomAccessStream();
+            bitmapImage.SetSource(randomAccessStream);
         }
 
         return bitmapImage;
@@ -469,7 +475,11 @@ internal class BitmapFunctions
         using var stream = new InMemoryRandomAccessStream();
 
         // Save the bitmap to a stream
-        bitmap.Save(stream.AsStream(), ImageFormat.Png);
+        using (var streamWrapper = stream.AsStream())
+        {
+            bitmap.Save(streamWrapper, ImageFormat.Png);
+        }
+
         stream.Seek(0);
 
         // Create a BitmapImage from the stream

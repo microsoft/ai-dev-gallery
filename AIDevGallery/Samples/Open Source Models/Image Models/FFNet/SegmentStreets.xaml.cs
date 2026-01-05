@@ -39,7 +39,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FFNet;
     ],
     Id = "9b74acc0-a5f7-430f-bed0-958ffc063598",
     Icon = "\uE8B3")]
-internal sealed partial class SegmentStreets : BaseSamplePage
+internal sealed partial class SegmentStreets : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
     public SegmentStreets()
@@ -47,6 +47,11 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         this.Unloaded += (s, e) => _inferenceSession?.Dispose();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     // <exclude>
@@ -92,7 +97,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -109,6 +114,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }

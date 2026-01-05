@@ -24,7 +24,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     Id = "25bb4e58-d909-4377-b59c-975cd6baff19",
     Icon = "\uE8D4")]
-internal sealed partial class Generate : BaseSamplePage
+internal sealed partial class Generate : BaseSamplePage, IDisposable
 {
     private const int _maxTokenLength = 1024;
     private IChatClient? chatClient;
@@ -43,6 +43,7 @@ internal sealed partial class Generate : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _maxTokenLength;
         }
@@ -65,6 +66,11 @@ internal sealed partial class Generate : BaseSamplePage
     {
         CancelGeneration();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -103,6 +109,7 @@ internal sealed partial class Generate : BaseSamplePage
                 string systemPrompt = "You generate text based on a user-provided topic. Respond with only the generated content and no extraneous text.";
                 string userPrompt = "Generate text based on the topic: " + topic;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

@@ -75,9 +75,12 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
             return;
         }
 
+        using (model)
+        {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _chatCompletionService = model.AsChatCompletionService();
+            _chatCompletionService = model.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        }
 
         IKernelBuilder builder = Kernel.CreateBuilder();
         _semanticKernel = builder.Build();
@@ -179,6 +182,7 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
                 InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
             });
 
+            cts?.Dispose();
             cts = new CancellationTokenSource();
             string fullResponse = string.Empty;
 
