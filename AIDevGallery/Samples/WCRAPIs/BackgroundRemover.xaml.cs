@@ -258,6 +258,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
+        // outputBitmap is disposed after display, as SetImageSource creates a copy
         using var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
         if (outputBitmap != null)
         {

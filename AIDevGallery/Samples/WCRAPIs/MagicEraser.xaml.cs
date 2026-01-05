@@ -33,7 +33,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "WinDev.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class MagicEraser : BaseSamplePage
+internal sealed partial class MagicEraser : BaseSamplePage, IDisposable
 {
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _maskBitmap;
@@ -44,6 +44,18 @@ internal sealed partial class MagicEraser : BaseSamplePage
     public MagicEraser()
     {
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        while (_bitmaps.Count > 0)
+        {
+            _bitmaps.Pop()?.Dispose();
+        }
+
+        _inputBitmap?.Dispose();
+        _maskBitmap?.Dispose();
+        _eraser?.Dispose();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)

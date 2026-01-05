@@ -181,6 +181,15 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage, IDisposable
             return;
         }
 
+        // Dispose previous source to avoid memory leaks
+        // Image.Source is managed by this class, not injected, so disposal is appropriate
+#pragma warning disable IDISP007 // Don't dispose injected - Image.Source is managed by this class
+        if (image.Source is SoftwareBitmapSource previousSource)
+        {
+            previousSource.Dispose();
+        }
+#pragma warning restore IDISP007
+
         var convertedBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         var bitmapSource = new SoftwareBitmapSource();
 

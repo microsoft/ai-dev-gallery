@@ -161,8 +161,11 @@ internal sealed partial class SDXL : BaseSamplePage, IDisposable
             return;
         }
 
-        using var softwareBitmap = result.Image.CopyToSoftwareBitmap();
-        using var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+        // Bitmap ownership is transferred to SoftwareBitmapSource, suppress IDISP001 warning
+#pragma warning disable IDISP001 // Dispose created - ownership transferred to SoftwareBitmapSource
+        var softwareBitmap = result.Image.CopyToSoftwareBitmap();
+        var convertedImage = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+#pragma warning restore IDISP001
         if (convertedImage != null)
         {
             var source = new SoftwareBitmapSource();
