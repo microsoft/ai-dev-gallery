@@ -88,6 +88,7 @@ internal class ModelDownloadQueue()
         ModelDownloadCancelEvent.Log(download.Details.Url);
         _queue.Remove(download);
         ModelsChanged?.Invoke(this);
+        download.Dispose();
     }
 
     public IReadOnlyList<ModelDownload> GetDownloads()
