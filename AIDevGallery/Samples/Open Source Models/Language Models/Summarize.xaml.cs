@@ -40,7 +40,7 @@ internal sealed partial class Summarize : BaseSamplePage, IDisposable
     {
         try
         {
-            (chatClient as IDisposable)?.Dispose();
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _defaultMaxLength;
         }

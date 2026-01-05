@@ -63,7 +63,11 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
         IChatClient? model = null;
         try
         {
+            // The model's lifetime is transferred to the Semantic Kernel framework after AsChatCompletionService().
+            // The framework manages the disposal, so we suppress IDISP001 for this created instance.
+#pragma warning disable IDISP001 // Dispose created
             model = await sampleParams.GetIChatClientAsync();
+#pragma warning restore IDISP001 // Dispose created
         }
         catch (Exception ex)
         {
@@ -75,12 +79,9 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
             return;
         }
 
-        using (model)
-        {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            _chatCompletionService = model.AsChatCompletionService();
+        _chatCompletionService = model.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        }
 
         IKernelBuilder builder = Kernel.CreateBuilder();
         _semanticKernel = builder.Build();
