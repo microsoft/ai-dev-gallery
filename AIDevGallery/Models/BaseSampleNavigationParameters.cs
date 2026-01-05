@@ -34,6 +34,11 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
         }
         else if (ExternalModelHelper.IsUrlFromExternalProvider(ChatClientModelPath))
         {
+            if (ChatClientHardwareAccelerator == HardwareAccelerator.FOUNDRYLOCAL)
+            {
+                await FoundryLocalModelProvider.Instance.EnsureModelReadyAsync(ChatClientModelPath, CancellationToken).ConfigureAwait(false);
+            }
+
             return ExternalModelHelper.GetIChatClient(ChatClientModelPath);
         }
 

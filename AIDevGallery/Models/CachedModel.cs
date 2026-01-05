@@ -30,6 +30,11 @@ internal class CachedModel
             Url = details.Url;
             Source = CachedModelSource.Local;
         }
+        else if (details.Url.StartsWith("fl://", StringComparison.OrdinalIgnoreCase))
+        {
+            Url = details.Url;
+            Source = CachedModelSource.FoundryLocal;
+        }
         else
         {
             Url = new HuggingFaceUrl(details.Url).FullUrl;
@@ -48,5 +53,6 @@ internal enum CachedModelSource
 {
     GitHub,
     HuggingFace,
-    Local
+    Local,
+    FoundryLocal
 }

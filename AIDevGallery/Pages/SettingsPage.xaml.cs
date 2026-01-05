@@ -60,27 +60,35 @@ internal sealed partial class SettingsPage : Page
         base.OnNavigatingFrom(e);
     }
 
-    private void GetStorageInfo()
+    private async void GetStorageInfo()
     {
-        cachedModels.Clear();
-
-        cacheFolderPath = App.ModelCache.GetCacheFolder();
-        FolderPathTxt.Content = cacheFolderPath;
-
-        long totalCacheSize = 0;
-
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
+        try
         {
-            cachedModels.Add(cachedModel);
-            totalCacheSize += cachedModel.ModelSize;
-        }
+            cachedModels.Clear();
 
-        if (App.ModelCache.Models.Count > 0)
+            cacheFolderPath = App.ModelCache.GetCacheFolder();
+            FolderPathTxt.Content = cacheFolderPath;
+
+            long totalCacheSize = 0;
+            var allModels = await App.ModelCache.GetAllModelsAsync();
+
+            foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
+            {
+                cachedModels.Add(cachedModel);
+                totalCacheSize += cachedModel.ModelSize;
+            }
+
+            if (cachedModels.Count > 0)
+            {
+                ModelsExpander.IsExpanded = true;
+            }
+
+            TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
+        }
+        catch (Exception)
         {
-            ModelsExpander.IsExpanded = true;
+            TotalCacheTxt.Text = $"Error loading cache info";
         }
-
-        TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
     }
 
     private void FolderPathTxt_Click(object sender, RoutedEventArgs e)
@@ -191,7 +199,7 @@ internal sealed partial class SettingsPage : Page
                 path = Path.GetDirectoryName(path);
             }
 
-            if (path != null)
+            if (path != null && Directory.Exists(path))
             {
                 Process.Start("explorer.exe", path);
             }
