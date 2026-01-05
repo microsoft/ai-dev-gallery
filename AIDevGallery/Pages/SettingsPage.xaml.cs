@@ -85,7 +85,7 @@ internal sealed partial class SettingsPage : Page
 
             TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
         }
-        catch ()
+        catch (Exception)
         {
             TotalCacheTxt.Text = $"Error loading cache info";
         }
