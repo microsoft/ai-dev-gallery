@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "AIDevGallery.UnitTests (Package)": {
+    "AIDevGallery.Tests (Package)": {
       "commandName": "MsixPackage"
     },
-    "AIDevGallery.UnitTests (Unpackaged)": {
+    "AIDevGallery.Tests (Unpackaged)": {
       "commandName": "Project"
     }
   }

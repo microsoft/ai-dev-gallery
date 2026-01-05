@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.SourceGenerato
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.Utils", "AIDevGallery.Utils\AIDevGallery.Utils.csproj", "{987BD688-3416-4741-89D8-CFBEED197F7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.UnitTests", "AIDevGallery.UnitTests\AIDevGallery.UnitTests.csproj", "{A6D0DD34-2584-4634-8D4B-5D3D227B5679}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.Tests", "AIDevGallery.Tests\AIDevGallery.Tests.csproj", "{A6D0DD34-2584-4634-8D4B-5D3D227B5679}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

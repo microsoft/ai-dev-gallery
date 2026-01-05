@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.VisualStudio.TestTools.UnitTesting.AppContainer;
 using System;
 
-namespace AIDevGallery.UnitTests;
+namespace AIDevGallery.Tests;
 
 /// <summary>
 /// Provides application-specific behavior to supplement the default Application class.
