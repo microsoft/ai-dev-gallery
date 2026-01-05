@@ -16,12 +16,15 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
     private ExpressionAnimation? _lightPositionExpression;
     private Vector3KeyFrameAnimation? _offsetAnimation;
     private SpotLight? _spotLight;
+    private CompositionPropertySet? _hoverPosition;
     private static readonly string Id = typeof(HoverLight).FullName!;
     private bool _disposed;
 
     protected override void OnConnected(UIElement targetElement)
     {
+#pragma warning disable IDISP001 // Compositor is provided by the system and should not be disposed
         Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
+#pragma warning restore IDISP001
 
         // Create SpotLight and set its properties
         _spotLight?.Dispose();
@@ -32,9 +35,6 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
         _spotLight.ConstantAttenuation = 1f;
         _spotLight.LinearAttenuation = 0.253f;
         _spotLight.QuadraticAttenuation = 0.58f;
-
-        // Dispose previous CompositionLight if exists
-        CompositionLight?.Dispose();
 
         // Associate CompositionLight with XamlLight
         CompositionLight = _spotLight;
@@ -52,10 +52,11 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
         _spotLight.Offset = restingPosition;
 
         // Define expression animation that relates light's offset to pointer position
-        CompositionPropertySet hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
+        _hoverPosition?.Dispose();
+        _hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
         _lightPositionExpression?.Dispose();
         _lightPositionExpression = compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
-        _lightPositionExpression.SetReferenceParameter("hover", hoverPosition);
+        _lightPositionExpression.SetReferenceParameter("hover", _hoverPosition);
         _lightPositionExpression.SetScalarParameter("height", 100.0f);
 
         // Configure pointer entered/ exited events
@@ -123,10 +124,11 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
             return;
         }
 
-        CompositionLight?.Dispose();
         _lightPositionExpression?.Dispose();
         _offsetAnimation?.Dispose();
+        _hoverPosition?.Dispose();
         _spotLight?.Dispose();
+        CompositionLight?.Dispose();
         _disposed = true;
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Numerics;
 
 namespace AIDevGallery.Controls;
@@ -16,7 +17,7 @@ namespace AIDevGallery.Controls;
 [TemplatePart(Name = RootGridTemplateName, Type = typeof(Grid))]
 [TemplatePart(Name = MaskContainerTemplateName, Type = typeof(Border))]
 [TemplatePart(Name = ContentPresenterTemplateName, Type = typeof(ContentPresenter))]
-public partial class OpacityMaskView : ContentControl, IDisposable
+public sealed partial class OpacityMaskView : ContentControl, IDisposable
 {
     // This is from Windows Community Toolkit Labs: https://github.com/CommunityToolkit/Labs-Windows/pull/491
 
@@ -30,10 +31,16 @@ public partial class OpacityMaskView : ContentControl, IDisposable
     private const string MaskContainerTemplateName = "PART_MaskContainer";
     private const string RootGridTemplateName = "PART_RootGrid";
 
+#pragma warning disable IDISP002 // Compositor is provided by the system and should not be disposed
     private readonly Compositor _compositor = CompositionTarget.GetCompositorForCurrentThread();
+#pragma warning restore IDISP002
     private CompositionBrush? _mask;
     private CompositionMaskBrush? _maskBrush;
     private SpriteVisual? _redirectVisual;
+    private CompositionVisualSurface? _contentVisualSurface;
+    private ExpressionAnimation? _contentSizeAnimation;
+    private CompositionVisualSurface? _maskVisualSurface;
+    private ExpressionAnimation? _maskSizeAnimation;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpacityMaskView"/> class.
@@ -64,9 +71,13 @@ public partial class OpacityMaskView : ContentControl, IDisposable
 
         _maskBrush?.Dispose();
         _maskBrush = _compositor.CreateMaskBrush();
-        _maskBrush.Source = GetVisualBrush(contentPresenter);
+        _contentVisualSurface?.Dispose();
+        _contentSizeAnimation?.Dispose();
+        _maskBrush.Source = GetVisualBrush(contentPresenter, ref _contentVisualSurface, ref _contentSizeAnimation);
         _mask?.Dispose();
-        _mask = GetVisualBrush(maskContainer);
+        _maskVisualSurface?.Dispose();
+        _maskSizeAnimation?.Dispose();
+        _mask = GetVisualBrush(maskContainer, ref _maskVisualSurface, ref _maskSizeAnimation);
         _maskBrush.Mask = OpacityMask is null ? null : _mask;
 
         _redirectVisual?.Dispose();
@@ -76,17 +87,18 @@ public partial class OpacityMaskView : ContentControl, IDisposable
         ElementCompositionPreview.SetElementChildVisual(rootGrid, _redirectVisual);
     }
 
-    private static CompositionBrush GetVisualBrush(UIElement element)
+    private static CompositionBrush GetVisualBrush(UIElement element, ref CompositionVisualSurface? visualSurface, ref ExpressionAnimation? sizeAnimation)
     {
         Visual visual = ElementCompositionPreview.GetElementVisual(element);
 
         Compositor compositor = visual.Compositor;
 
-        using CompositionVisualSurface visualSurface = compositor.CreateVisualSurface();
+        // Create visual surface and animation
+        visualSurface = compositor.CreateVisualSurface();
         visualSurface.SourceVisual = visual;
-        using ExpressionAnimation sourceSizeAnimation = compositor.CreateExpressionAnimation($"{nameof(visual)}.Size");
-        sourceSizeAnimation.SetReferenceParameter(nameof(visual), visual);
-        visualSurface.StartAnimation(nameof(visualSurface.SourceSize), sourceSizeAnimation);
+        sizeAnimation = compositor.CreateExpressionAnimation($"{nameof(visual)}.Size");
+        sizeAnimation.SetReferenceParameter(nameof(visual), visual);
+        visualSurface.StartAnimation(nameof(visualSurface.SourceSize), sizeAnimation);
 
         CompositionSurfaceBrush brush = compositor.CreateSurfaceBrush(visualSurface);
 
@@ -107,8 +119,15 @@ public partial class OpacityMaskView : ContentControl, IDisposable
         maskBrush.Mask = opacityMask is null ? null : self._mask;
     }
 
+    /// <summary>
+    /// Disposes the composition resources.
+    /// </summary>
     public void Dispose()
     {
+        _contentVisualSurface?.Dispose();
+        _contentSizeAnimation?.Dispose();
+        _maskVisualSurface?.Dispose();
+        _maskSizeAnimation?.Dispose();
         _mask?.Dispose();
         _maskBrush?.Dispose();
         _redirectVisual?.Dispose();
