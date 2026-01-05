@@ -28,12 +28,7 @@ internal sealed class WCRException : Exception
     }
 }
 
-// Class is already sealed and all disposable members are properly disposed in Dispose() method
-#pragma warning disable IDISP025 // Class with no virtual dispose method should be sealed
-#pragma warning disable IDISP002 // Dispose member
 internal sealed class PhiSilicaClient : IChatClient, IDisposable
-#pragma warning restore IDISP002
-#pragma warning restore IDISP025
 {
     // Search Options
     private const SeverityLevel DefaultInputModeration = SeverityLevel.Minimum;

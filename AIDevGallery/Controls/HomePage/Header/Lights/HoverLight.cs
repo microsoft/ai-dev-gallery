@@ -16,19 +16,16 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
     private ExpressionAnimation? _lightPositionExpression;
     private Vector3KeyFrameAnimation? _offsetAnimation;
     private SpotLight? _spotLight;
-    private Compositor? _compositor;
-    private CompositionPropertySet? _hoverPosition;
     private static readonly string Id = typeof(HoverLight).FullName!;
     private bool _disposed;
 
     protected override void OnConnected(UIElement targetElement)
     {
-        _compositor?.Dispose();
-        _compositor = CompositionTarget.GetCompositorForCurrentThread();
+        Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
 
         // Create SpotLight and set its properties
         _spotLight?.Dispose();
-        _spotLight = _compositor.CreateSpotLight();
+        _spotLight = compositor.CreateSpotLight();
         _spotLight.InnerConeAngleInDegrees = 50f;
         _spotLight.InnerConeColor = Colors.FloralWhite;
         _spotLight.OuterConeAngleInDegrees = 20f;
@@ -44,10 +41,10 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
 
         // Define resting position Animation
         Vector3 restingPosition = new(200, 200, 400);
-        using (CubicBezierEasingFunction cbEasing = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.3f, 0.7f), new Vector2(0.9f, 0.5f)))
+        using (CubicBezierEasingFunction cbEasing = compositor.CreateCubicBezierEasingFunction(new Vector2(0.3f, 0.7f), new Vector2(0.9f, 0.5f)))
         {
             _offsetAnimation?.Dispose();
-            _offsetAnimation = _compositor.CreateVector3KeyFrameAnimation();
+            _offsetAnimation = compositor.CreateVector3KeyFrameAnimation();
             _offsetAnimation.InsertKeyFrame(1, restingPosition, cbEasing);
             _offsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
         }
@@ -55,11 +52,10 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
         _spotLight.Offset = restingPosition;
 
         // Define expression animation that relates light's offset to pointer position
-        _hoverPosition?.Dispose();
-        _hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
+        CompositionPropertySet hoverPosition = ElementCompositionPreview.GetPointerPositionPropertySet(targetElement);
         _lightPositionExpression?.Dispose();
-        _lightPositionExpression = _compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
-        _lightPositionExpression.SetReferenceParameter("hover", _hoverPosition);
+        _lightPositionExpression = compositor.CreateExpressionAnimation("Vector3(hover.Position.X, hover.Position.Y, height)");
+        _lightPositionExpression.SetReferenceParameter("hover", hoverPosition);
         _lightPositionExpression.SetScalarParameter("height", 100.0f);
 
         // Configure pointer entered/ exited events
@@ -131,8 +127,6 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
         _lightPositionExpression?.Dispose();
         _offsetAnimation?.Dispose();
         _spotLight?.Dispose();
-        _compositor?.Dispose();
-        _hoverPosition?.Dispose();
         _disposed = true;
     }
 }

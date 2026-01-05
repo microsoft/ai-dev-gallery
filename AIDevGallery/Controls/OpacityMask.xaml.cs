@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
-using System;
 using System.Numerics;
 
 namespace AIDevGallery.Controls;
@@ -17,7 +16,7 @@ namespace AIDevGallery.Controls;
 [TemplatePart(Name = RootGridTemplateName, Type = typeof(Grid))]
 [TemplatePart(Name = MaskContainerTemplateName, Type = typeof(Border))]
 [TemplatePart(Name = ContentPresenterTemplateName, Type = typeof(ContentPresenter))]
-public sealed partial class OpacityMaskView : ContentControl, IDisposable
+public partial class OpacityMaskView : ContentControl, IDisposable
 {
     // This is from Windows Community Toolkit Labs: https://github.com/CommunityToolkit/Labs-Windows/pull/491
 
@@ -35,7 +34,6 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
     private CompositionBrush? _mask;
     private CompositionMaskBrush? _maskBrush;
     private SpriteVisual? _redirectVisual;
-    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpacityMaskView"/> class.
@@ -109,20 +107,10 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
         maskBrush.Mask = opacityMask is null ? null : self._mask;
     }
 
-    /// <summary>
-    /// Disposes the composition resources used by this control.
-    /// </summary>
     public void Dispose()
     {
-        if (_disposed)
-        {
-            return;
-        }
-
         _mask?.Dispose();
         _maskBrush?.Dispose();
         _redirectVisual?.Dispose();
-        _compositor?.Dispose();
-        _disposed = true;
     }
 }
