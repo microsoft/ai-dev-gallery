@@ -72,9 +72,11 @@ internal sealed partial class DownloadProgressList : UserControl
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
             downloadProgresses.Remove(downloadableModel);
-            using (App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails))
-            {
-            }
+
+            // ModelDownload lifecycle is managed by ModelDownloadQueue, should not be disposed immediately
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
+#pragma warning restore IDISP004
         }
     }
 
@@ -95,9 +97,11 @@ internal sealed partial class DownloadProgressList : UserControl
         if (sender is Button button && button.Tag is DownloadableModel downloadableModel)
         {
             downloadProgresses.Remove(downloadableModel);
-            using (App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails))
-            {
-            }
+
+            // ModelDownload lifecycle is managed by ModelDownloadQueue, should not be disposed immediately
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            App.ModelDownloadQueue.AddModel(downloadableModel.ModelDetails);
+#pragma warning restore IDISP004
         }
     }
 }

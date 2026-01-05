@@ -57,13 +57,14 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
                 return;
             }
 
-            using (Process.Start(new ProcessStartInfo
+            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(new ProcessStartInfo
             {
                 FileName = modelDetailsUrl,
                 UseShellExecute = true
-            }))
-            {
-            }
+            });
+#pragma warning restore IDISP004
         }
     }
 

@@ -245,10 +245,11 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (output == ContentDialogResult.Primary)
         {
-            using (App.ModelDownloadQueue.AddModel(result!.Details))
-            {
-                result.State = ResultState.Downloading;
-            }
+            // ModelDownload lifecycle is managed by ModelDownloadQueue, should not be disposed immediately
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            App.ModelDownloadQueue.AddModel(result!.Details);
+#pragma warning restore IDISP004
+            result.State = ResultState.Downloading;
         }
     }
 
@@ -259,13 +260,14 @@ internal sealed partial class AddHFModelView : UserControl
 
         string url = result!.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}";
 
-        using (Process.Start(new ProcessStartInfo()
+        // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+        Process.Start(new ProcessStartInfo()
         {
             FileName = url,
             UseShellExecute = true
-        }))
-        {
-        }
+        });
+#pragma warning restore IDISP004
     }
 
     private void ViewModelDetails(object sender, RoutedEventArgs e)

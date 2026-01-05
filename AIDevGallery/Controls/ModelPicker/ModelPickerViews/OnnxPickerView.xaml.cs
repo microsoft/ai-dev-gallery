@@ -227,9 +227,10 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
                     OpenModelFolderEvent.Log(cachedModel.Url);
 
-                    using (Process.Start("explorer.exe", path!))
-                    {
-                    }
+                    // Process.Start for explorer doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+                    Process.Start("explorer.exe", path!);
+#pragma warning restore IDISP004
                 }
             }
         }
@@ -304,13 +305,14 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
                 licenseUrl = details.Url;
             }
 
-            using (Process.Start(new ProcessStartInfo()
+            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(new ProcessStartInfo()
             {
                 FileName = licenseUrl,
                 UseShellExecute = true
-            }))
-            {
-            }
+            });
+#pragma warning restore IDISP004
         }
     }
 
@@ -387,24 +389,26 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
         bool wasDeeplinkSuccessful = true;
         try
         {
-            using (Process.Start(new ProcessStartInfo()
+            // Process.Start for external process doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(new ProcessStartInfo()
             {
                 FileName = toolkitDeeplink,
                 UseShellExecute = true
-            }))
-            {
-            }
+            });
+#pragma warning restore IDISP004
         }
         catch
         {
-            using (Process.Start(new ProcessStartInfo()
+            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(new ProcessStartInfo()
             {
                 FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
                 UseShellExecute = true
-            }))
-            {
-                wasDeeplinkSuccessful = false;
-            }
+            });
+#pragma warning restore IDISP004
+            wasDeeplinkSuccessful = false;
         }
         finally
         {
@@ -414,13 +418,14 @@ internal sealed partial class OnnxPickerView : BaseModelPickerView
 
     private void ViewDocumentationButton_Click(object sender, RoutedEventArgs e)
     {
-        using (Process.Start(new ProcessStartInfo()
+        // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+        Process.Start(new ProcessStartInfo()
         {
             FileName = "https://aka.ms/winml-gallery-tutorial",
             UseShellExecute = true
-        }))
-        {
-        }
+        });
+#pragma warning restore IDISP004
     }
 
     private async void ShowException(Exception? ex, string? optionalMessage = null)
