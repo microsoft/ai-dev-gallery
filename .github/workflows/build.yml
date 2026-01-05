@@ -143,7 +143,13 @@ jobs:
   Accessibility-Test:
     needs: build
     if: github.event_name == 'pull_request'
-    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+            dotnet-configuration: 'Release'
     permissions:
       contents: read
     steps:

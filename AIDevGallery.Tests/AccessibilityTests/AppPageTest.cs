@@ -317,6 +317,7 @@ public class AccessibilityTests : FlaUITestBase
                 {
                     httpClient.GetStreamAsync(downloadUrl).GetAwaiter().GetResult().CopyTo(fileStream);
                 }
+
                 Console.WriteLine($"Downloaded to {zipPath}");
 
                 // Extract the archive
