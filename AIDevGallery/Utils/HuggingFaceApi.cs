@@ -28,7 +28,7 @@ internal class HuggingFaceApi
     public static async Task<List<HFSearchResult>?> FindModels(string query, string filter = "onnx")
     {
         string searchUrl = $"{HFApiUrl}/models?search={query}&filter={filter}&full=true&config=true";
-        var response = await _httpClient.GetAsync(searchUrl);
+        using var response = await _httpClient.GetAsync(searchUrl);
         var responseContent = await response.Content.ReadAsStringAsync();
 
         try
@@ -53,7 +53,7 @@ internal class HuggingFaceApi
     {
         var url = $"{HFUrl}/{modelId}/resolve/{commitOrBranch}/{filePath}";
 
-        var response = await _httpClient.GetAsync(url);
+        using var response = await _httpClient.GetAsync(url);
         return await response.Content.ReadAsStringAsync();
     }
 
@@ -68,7 +68,7 @@ internal class HuggingFaceApi
 
         var requestUrl = $"{HFUrl}/{url.Organization}/{url.Repo}/resolve/{url.Ref}/{url.Path}";
 
-        var response = await _httpClient.GetAsync(requestUrl);
+        using var response = await _httpClient.GetAsync(requestUrl);
         return await response.Content.ReadAsStringAsync();
     }
 }
