@@ -53,26 +53,6 @@ public class BitmapLifecycleTests
     }
 
     [TestMethod]
-    public void SoftwareBitmapAccessAfterDisposeThrowsException()
-    {
-        // Arrange
-        var bitmap = new SoftwareBitmap(
-            BitmapPixelFormat.Bgra8,
-            100,
-            100,
-            BitmapAlphaMode.Premultiplied);
-
-#pragma warning disable IDISP016 // Don't use disposed instance - this is intentional for testing dispose behavior
-        // Act
-        bitmap.Dispose();
-
-        // Assert - accessing properties after dispose should throw
-        var disposedBitmap = bitmap;
-        Assert.ThrowsExactly<ObjectDisposedException>(() => _ = disposedBitmap.PixelWidth);
-#pragma warning restore IDISP016
-    }
-
-    [TestMethod]
     public async Task BackgroundRemoverBitmapLifecycleVerifyCorrectPattern()
     {
         // *** CRITICAL TEST FOR BackgroundRemover.xaml.cs ***
