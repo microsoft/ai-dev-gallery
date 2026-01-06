@@ -23,18 +23,28 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
-        var pagesToTest = new[] { "Home", "Samples", "AI APIs", "Settings" };
+        var pagesToTest = new System.Collections.Generic.Dictionary<string, System.Func<bool>>
+        {
+            { "Home", NavigateToHome },
+            { "Samples", NavigateToSamples },
+            { "AI APIs", NavigateToAIAPIs },
+            { "Settings", NavigateToSettings }
+        };
+
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
         try
         {
-            foreach (var pageName in pagesToTest)
+            foreach (var pageItem in pagesToTest)
             {
+                string pageName = pageItem.Key;
+                System.Func<bool> navigateFunc = pageItem.Value;
+
                 Console.WriteLine($"\n--- Testing Page: {pageName} ---");
 
                 // Navigate to the page
-                bool navigationSuccess = NavigateToPage(pageName);
+                bool navigationSuccess = navigateFunc();
 
                 if (!navigationSuccess)
                 {
@@ -81,9 +91,41 @@ public class AccessibilityTests : FlaUITestBase
     }
 
     /// <summary>
+    /// Navigates to the Home page
+    /// </summary>
+    private bool NavigateToHome()
+    {
+        return NavigateToPageByName("Home");
+    }
+
+    /// <summary>
+    /// Navigates to the Samples page
+    /// </summary>
+    private bool NavigateToSamples()
+    {
+        return NavigateToPageByName("Samples");
+    }
+
+    /// <summary>
+    /// Navigates to the AI APIs page
+    /// </summary>
+    private bool NavigateToAIAPIs()
+    {
+        return NavigateToPageByName("AI APIs");
+    }
+
+    /// <summary>
+    /// Navigates to the Settings page
+    /// </summary>
+    private bool NavigateToSettings()
+    {
+        return NavigateToPageByName("Settings");
+    }
+
+    /// <summary>
     /// Navigates to a specific page in the application using FlaUI
     /// </summary>
-    private bool NavigateToPage(string pageName)
+    private bool NavigateToPageByName(string pageName)
     {
         try
         {
