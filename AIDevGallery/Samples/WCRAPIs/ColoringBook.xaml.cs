@@ -230,9 +230,9 @@ internal sealed partial class ColoringBook : BaseSamplePage, IDisposable
 #pragma warning disable IDISP003 // Dispose previous before re-assigning
                     var outputBitmap = ApplyMaskWithPrompt(prompt, _inputBitmap, mask);
                     if (_cts!.Token.IsCancellationRequested)
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
 
                     if (outputBitmap != null)
                     {
