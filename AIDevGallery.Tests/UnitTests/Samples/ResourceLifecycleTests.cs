@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 
