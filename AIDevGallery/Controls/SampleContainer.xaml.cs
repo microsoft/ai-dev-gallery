@@ -108,12 +108,21 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
 
     private void CancelCTS()
     {
-        if (_sampleLoadingCts != null)
+#pragma warning disable IDISP017 // Prefer using. - CancellationTokenSource is managed across method boundaries
+        var cts = _sampleLoadingCts;
+        if (cts != null)
         {
-            _sampleLoadingCts.Cancel();
-            _sampleLoadingCts.Dispose();
             _sampleLoadingCts = null;
+            try
+            {
+                cts.Cancel();
+            }
+            finally
+            {
+                cts.Dispose();
+            }
         }
+#pragma warning restore IDISP017 // Prefer using.
     }
 
     public SampleContainer()
