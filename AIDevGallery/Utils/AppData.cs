@@ -54,7 +54,7 @@ internal partial class AppData : ObservableObject
         IsAppContentSearchEnabled = true;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
-        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
+        WinMLSampleOptions = new WinMlSampleOptions(null, "CPU", false, null);
     }
 
     private static string GetConfigFilePath()
