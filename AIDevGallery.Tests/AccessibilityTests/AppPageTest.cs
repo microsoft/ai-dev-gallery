@@ -4,6 +4,7 @@
 using AIDevGallery.Tests.TestInfra;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 
 namespace AIDevGallery.Tests.AccessibilityTests;
 
@@ -23,28 +24,18 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
-        var pagesToTest = new System.Collections.Generic.Dictionary<string, System.Func<bool>>
-        {
-            { "Home", NavigateToHome },
-            { "Samples", NavigateToSamples },
-            { "AI APIs", NavigateToAIAPIs },
-            { "Settings", NavigateToSettings }
-        };
-
+        var pagesToTest = new[] { "Home", "Samples", "Models", "AI APIs", "Settings" };
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
         try
         {
-            foreach (var pageItem in pagesToTest)
+            foreach (var pageName in pagesToTest)
             {
-                string pageName = pageItem.Key;
-                System.Func<bool> navigateFunc = pageItem.Value;
-
                 Console.WriteLine($"\n--- Testing Page: {pageName} ---");
 
                 // Navigate to the page
-                bool navigationSuccess = navigateFunc();
+                bool navigationSuccess = NavigateToPage(pageName);
 
                 if (!navigationSuccess)
                 {
@@ -52,18 +43,14 @@ public class AccessibilityTests : FlaUITestBase
                     continue;
                 }
 
-                // Run Axe.Windows CLI scan for this page
-                bool scanPassed = RunAxeWindowsCliScan(processId, pageName);
-
-                scanResults.Add($"{pageName}: {(scanPassed ? "PASSED" : "FAILED")}");
-
-                if (!scanPassed)
+                // Check if this page has list items to test
+                if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
                 {
-                    failedPages.Add(pageName);
+                    TestPageWithListItems(processId, pageName, scanResults, failedPages);
                 }
 
-                // Small delay between page tests
-                System.Threading.Thread.Sleep(1000);
+                // Execute scan and track results for regular pages
+                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
             }
 
             // Assert - All pages should pass
@@ -91,41 +78,9 @@ public class AccessibilityTests : FlaUITestBase
     }
 
     /// <summary>
-    /// Navigates to the Home page
-    /// </summary>
-    private bool NavigateToHome()
-    {
-        return NavigateToPageByName("Home");
-    }
-
-    /// <summary>
-    /// Navigates to the Samples page
-    /// </summary>
-    private bool NavigateToSamples()
-    {
-        return NavigateToPageByName("Samples");
-    }
-
-    /// <summary>
-    /// Navigates to the AI APIs page
-    /// </summary>
-    private bool NavigateToAIAPIs()
-    {
-        return NavigateToPageByName("AI APIs");
-    }
-
-    /// <summary>
-    /// Navigates to the Settings page
-    /// </summary>
-    private bool NavigateToSettings()
-    {
-        return NavigateToPageByName("Settings");
-    }
-
-    /// <summary>
     /// Navigates to a specific page in the application using FlaUI
     /// </summary>
-    private bool NavigateToPageByName(string pageName)
+    private bool NavigateToPage(string pageName)
     {
         try
         {
@@ -177,6 +132,170 @@ public class AccessibilityTests : FlaUITestBase
             Console.WriteLine($"Navigation error: {ex.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Tests a page that contains list items by opening each item and scanning
+    /// </summary>
+    private void TestPageWithListItems(int processId, string pageName, System.Collections.Generic.List<string> scanResults, System.Collections.Generic.List<string> failedPages)
+    {
+        try
+        {
+            // Arrange - Verify main window is available
+            Assert.IsNotNull(MainWindow, "Main window should be initialized");
+
+            // First scan the page without opening any items
+            Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
+            ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
+
+            // Find all descendants in the current page
+            var allElements = MainWindow.FindAllDescendants();
+            if (allElements == null || allElements.Length == 0)
+            {
+                Console.WriteLine($"No elements found in '{pageName}'");
+                return;
+            }
+
+            Console.WriteLine($"Found {allElements.Length} total elements in '{pageName}'");
+
+            // Filter for clickable/selectable items (exclude navigation items and the page itself)
+            var clickableItems = allElements.Where(item =>
+                !string.IsNullOrWhiteSpace(item.Name) &&
+                item.Name != pageName &&
+                item.IsEnabled &&
+                (item.Patterns.Invoke.IsSupported || item.Patterns.SelectionItem.IsSupported))
+                .ToList();
+
+            Console.WriteLine($"Found {clickableItems.Count} enabled, clickable items");
+
+            if (clickableItems.Count == 0)
+            {
+                Console.WriteLine($"No clickable items found in '{pageName}'");
+                return;
+            }
+
+            // Act - Test each clickable item
+            int itemCount = 0;
+            foreach (var item in clickableItems)
+            {
+                try
+                {
+                    var itemName = item.Name;
+                    itemCount++;
+                    Console.WriteLine($"\n  [{itemCount}] Testing item: '{itemName}'");
+
+                    // Try to invoke or select the item
+                    bool itemOpened = TryOpenItem(item, itemName);
+                    if (!itemOpened)
+                    {
+                        Console.WriteLine($"  ⚠ Skipping accessibility scan for '{itemName}' - could not open");
+                        continue;
+                    }
+
+                    // Wait for the item detail to load
+                    System.Threading.Thread.Sleep(1500);
+
+                    // Scan the opened item detail
+                    string itemScanPath = $"{pageName}::{itemName}";
+                    Console.WriteLine($"  Scanning '{itemName}'...");
+                    bool itemScanPassed = RunAxeWindowsCliScan(processId, itemScanPath);
+
+                    string result = $"{itemScanPath}: {(itemScanPassed ? "PASSED" : "FAILED")}";
+                    scanResults.Add(result);
+
+                    if (!itemScanPassed)
+                    {
+                        failedPages.Add(itemScanPath);
+                        Console.WriteLine($"  ⚠ Accessibility issues found in '{itemName}'");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  ✓ '{itemName}' passed accessibility check");
+                    }
+
+                    // Navigate back to the page
+                    Console.WriteLine($"  Navigating back to '{pageName}'...");
+                    NavigateToPage(pageName);
+                    System.Threading.Thread.Sleep(1000);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Error testing item: {ex.Message}");
+                }
+            }
+
+            // Assert - Report testing summary for this page
+            Console.WriteLine($"\n✓ Completed testing {itemCount} items in page '{pageName}'");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error testing page with list items '{pageName}': {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Attempts to open a UI item using Invoke or SelectionItem patterns
+    /// </summary>
+    private bool TryOpenItem(FlaUI.Core.AutomationElements.AutomationElement item, string itemName)
+    {
+        try
+        {
+            // Try Invoke pattern first
+            if (item.Patterns.Invoke.IsSupported)
+            {
+                try
+                {
+                    item.Patterns.Invoke.Pattern.Invoke();
+                    Console.WriteLine($"  Invoked: {itemName}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Could not invoke: {ex.Message}");
+                }
+            }
+
+            // Try SelectionItem pattern as fallback
+            if (item.Patterns.SelectionItem.IsSupported)
+            {
+                try
+                {
+                    item.Patterns.SelectionItem.Pattern.Select();
+                    Console.WriteLine($"  Selected: {itemName}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Could not select: {ex.Message}");
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  Error trying to open item: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Executes accessibility scan on a page and tracks results in collections
+    /// </summary>
+    private void ExecutePageScanAndTrackResults(int processId, string pageName, System.Collections.Generic.List<string> scanResults, System.Collections.Generic.List<string> failedPages)
+    {
+        bool scanPassed = RunAxeWindowsCliScan(processId, pageName);
+        string result = $"{pageName}: {(scanPassed ? "PASSED" : "FAILED")}";
+        
+        scanResults.Add(result);
+        
+        if (!scanPassed)
+        {
+            failedPages.Add(pageName);
+        }
+
+        // Small delay between page tests
+        System.Threading.Thread.Sleep(1000);
     }
 
     /// <summary>
