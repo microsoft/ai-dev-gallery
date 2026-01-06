@@ -150,6 +150,7 @@ jobs:
           - os: windows-2025
             dotnet-arch: 'x64'
             dotnet-configuration: 'Release'
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     steps:
