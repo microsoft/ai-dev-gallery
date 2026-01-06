@@ -26,6 +26,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Scenario = ScenarioType.TextChat,
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
+        "CommunityToolkit.WinUI.Converters",
         "Microsoft.Extensions.AI"
     ],
     SharedCode = [
@@ -73,6 +74,8 @@ internal sealed partial class Chat : BaseSamplePage
     private void Page_Loaded()
     {
         InputBox.Focus(FocusState.Programmatic);
+        UpdateRewriteButtonState();
+        UpdateClearButtonState();
     }
 
     // </exclude>
@@ -142,8 +145,10 @@ internal sealed partial class Chat : BaseSamplePage
         }
 
         Messages.Add(new Message(text.Trim(), DateTime.Now, ChatRole.User));
+        UpdateRewriteButtonState();
+        UpdateClearButtonState();
         var contentStartedBeingGenerated = false; // <exclude-line>
-        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>>
+        NarratorHelper.Announce(InputBox, "Generating response, please wait.", "ChatWaitAnnouncementActivityId"); // <exclude-line>
         SendSampleInteractedEvent("AddMessage"); // <exclude-line>
 
         Task.Run(async () =>
@@ -158,6 +163,7 @@ internal sealed partial class Chat : BaseSamplePage
             DispatcherQueue.TryEnqueue(() =>
             {
                 Messages.Add(responseMessage);
+                UpdateClearButtonState();
                 StopBtn.Visibility = Visibility.Visible;
                 InputBox.IsEnabled = false;
                 InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
@@ -336,6 +342,18 @@ internal sealed partial class Chat : BaseSamplePage
         CancelResponse();
     }
 
+    private void ClearBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Cancel any ongoing response generation before clearing chat
+        CancelResponse();
+        ClearChat();
+    }
+
+    private void RewriteBtn_Click(object sender, RoutedEventArgs e)
+    {
+        RewriteLastMessage();
+    }
+
     private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         SendBtn.IsEnabled = !string.IsNullOrWhiteSpace(InputBox.Text);
@@ -345,6 +363,44 @@ internal sealed partial class Chat : BaseSamplePage
     {
         InputBox.IsEnabled = true;
         InputBox.PlaceholderText = "Enter your prompt (Press Shift + Enter to insert a newline)";
+    }
+
+    private void ClearChat()
+    {
+        Messages.Clear();
+        UpdateRewriteButtonState();
+        UpdateClearButtonState();
+        SendSampleInteractedEvent("ClearChat"); // <exclude-line>
+    }
+
+    private void RewriteLastMessage()
+    {
+        var lastUserMessage = Messages.LastOrDefault(m => m.Role == ChatRole.User);
+        if (lastUserMessage != null)
+        {
+            InputBox.Text = lastUserMessage.Content;
+            InputBox.Focus(FocusState.Programmatic);
+
+            InputBox.SelectionStart = InputBox.Text.Length;
+            InputBox.SelectionLength = 0;
+            SendSampleInteractedEvent("RewriteLastMessage"); // <exclude-line>
+        }
+    }
+
+    private void UpdateRewriteButtonState()
+    {
+        foreach (var message in Messages.Where(m => m.Role == ChatRole.User))
+        {
+            message.IsLastUserMessage = false;
+        }
+
+        var lastUserMessage = Messages.LastOrDefault(m => m.Role == ChatRole.User);
+        lastUserMessage?.IsLastUserMessage = true;
+    }
+
+    private void UpdateClearButtonState()
+    {
+        ClearBtn.IsEnabled = Messages.Count > 0;
     }
 
     private void InvertedListView_Loaded(object sender, RoutedEventArgs e)

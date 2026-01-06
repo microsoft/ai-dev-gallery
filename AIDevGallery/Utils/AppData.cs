@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
@@ -16,7 +17,7 @@ using Windows.Storage;
 
 namespace AIDevGallery.Utils;
 
-internal class AppData
+internal partial class AppData : ObservableObject
 {
     private static readonly SemaphoreSlim _saveSemaphore = new(1, 1);
 
@@ -31,6 +32,10 @@ internal class AppData
     public bool IsFirstRun { get; set; }
 
     public bool IsDiagnosticsMessageDismissed { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAppContentSearchEnabled { get; set; }
+    public bool IsAppContentIndexCompleted { get; set; }
     public Dictionary<string, List<string>>? ModelTypeToUserAddedModelsMapping { get; set; }
 
     public string LastAdapterPath { get; set; }
@@ -46,6 +51,7 @@ internal class AppData
         IsDiagnosticDataEnabled = !PrivacyConsentHelpers.IsPrivacySensitiveRegion();
         IsFirstRun = true;
         IsDiagnosticsMessageDismissed = false;
+        IsAppContentSearchEnabled = true;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
         WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);

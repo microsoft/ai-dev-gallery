@@ -11,6 +11,9 @@
     <AnalysisMode>Recommended</AnalysisMode>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- TODO: Fix IDisposableAnalyzers warnings from Microsoft.AI.Foundry.Local.WinML transitive dependency in next PR -->
+    <!-- Temporarily suppress IDISP001, IDISP003, IDISP017 -->
+    <NoWarn>$(NoWarn);IDISP001;IDISP003;IDISP017</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

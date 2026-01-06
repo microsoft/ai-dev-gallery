@@ -12,6 +12,7 @@ using Microsoft.Windows.AI.ContentSafety;
 using Microsoft.Windows.AI.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -137,7 +138,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
                 }
                 catch
                 {
-                    Console.WriteLine("Invalid Image File");
+                    Debug.WriteLine("Invalid Image File");
                 }
             }
         }

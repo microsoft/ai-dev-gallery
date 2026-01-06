@@ -43,6 +43,7 @@ internal sealed partial class SettingsPage : Page
         GetStorageInfo();
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
+        SemanticSearchToggleSwitch.IsOn = App.AppData.IsAppContentSearchEnabled;
         if (e.Parameter is string manageModels && manageModels == "ModelManagement")
         {
             ModelsExpander.IsExpanded = true;
@@ -59,27 +60,35 @@ internal sealed partial class SettingsPage : Page
         base.OnNavigatingFrom(e);
     }
 
-    private void GetStorageInfo()
+    private async void GetStorageInfo()
     {
-        cachedModels.Clear();
-
-        cacheFolderPath = App.ModelCache.GetCacheFolder();
-        FolderPathTxt.Content = cacheFolderPath;
-
-        long totalCacheSize = 0;
-
-        foreach (var cachedModel in App.ModelCache.Models.Where(m => m.Path.StartsWith(cacheFolderPath, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.Details.Name))
+        try
         {
-            cachedModels.Add(cachedModel);
-            totalCacheSize += cachedModel.ModelSize;
-        }
+            cachedModels.Clear();
 
-        if (App.ModelCache.Models.Count > 0)
+            cacheFolderPath = App.ModelCache.GetCacheFolder();
+            FolderPathTxt.Content = cacheFolderPath;
+
+            long totalCacheSize = 0;
+            var allModels = await App.ModelCache.GetAllModelsAsync();
+
+            foreach (var cachedModel in allModels.OrderBy(m => m.Details.Name))
+            {
+                cachedModels.Add(cachedModel);
+                totalCacheSize += cachedModel.ModelSize;
+            }
+
+            if (cachedModels.Count > 0)
+            {
+                ModelsExpander.IsExpanded = true;
+            }
+
+            TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
+        }
+        catch (Exception)
         {
-            ModelsExpander.IsExpanded = true;
+            TotalCacheTxt.Text = $"Error loading cache info";
         }
-
-        TotalCacheTxt.Text = AppUtils.FileSizeToString(totalCacheSize);
     }
 
     private void FolderPathTxt_Click(object sender, RoutedEventArgs e)
@@ -114,6 +123,45 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
+    private async void ResetModelConfig_Click(object sender, RoutedEventArgs e)
+    {
+        ContentDialog resetDialog = new()
+        {
+            Title = "Reset model configuration",
+            Content = "Are you sure you want to reset model configuration?\n\nDownloaded model files will not be affected.",
+            PrimaryButtonText = "Reset",
+            XamlRoot = this.Content.XamlRoot,
+            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+            CloseButtonText = "Cancel"
+        };
+
+        var result = await resetDialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary)
+        {
+            // Clear usage history
+            App.AppData.UsageHistoryV2?.Clear();
+
+            // Clear user-added model mappings
+            App.AppData.ModelTypeToUserAddedModelsMapping?.Clear();
+
+            // Clear most recently used items
+            App.AppData.MostRecentlyUsedItems.Clear();
+
+            await App.AppData.SaveAsync();
+
+            // Show confirmation
+            ContentDialog confirmDialog = new()
+            {
+                Title = "Reset complete",
+                Content = "Model configuration has been reset successfully.",
+                CloseButtonText = "OK",
+                XamlRoot = this.Content.XamlRoot
+            };
+            await confirmDialog.ShowAsync();
+        }
+    }
+
     private async void ClearCache_Click(object sender, RoutedEventArgs e)
     {
         ContentDialog deleteDialog = new()
@@ -135,6 +183,11 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
+    private void Reindex_Click(object sender, RoutedEventArgs e)
+    {
+        MainWindow.IndexAppSearchIndexStatic();
+    }
+
     private void ModelFolder_Click(object sender, RoutedEventArgs e)
     {
         if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is CachedModel model)
@@ -146,7 +199,7 @@ internal sealed partial class SettingsPage : Page
                 path = Path.GetDirectoryName(path);
             }
 
-            if (path != null)
+            if (path != null && Directory.Exists(path))
             {
                 Process.Start("explorer.exe", path);
             }
@@ -158,6 +211,15 @@ internal sealed partial class SettingsPage : Page
         if (App.AppData.IsDiagnosticDataEnabled != DiagnosticDataToggleSwitch.IsOn)
         {
             App.AppData.IsDiagnosticDataEnabled = DiagnosticDataToggleSwitch.IsOn;
+            await App.AppData.SaveAsync();
+        }
+    }
+
+    private async void SemanticSearchToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (App.AppData.IsAppContentSearchEnabled != SemanticSearchToggleSwitch.IsOn)
+        {
+            App.AppData.IsAppContentSearchEnabled = SemanticSearchToggleSwitch.IsOn;
             await App.AppData.SaveAsync();
         }
     }

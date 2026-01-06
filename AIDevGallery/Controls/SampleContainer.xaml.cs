@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,9 @@ internal sealed partial class SampleContainer : UserControl
     private ModelType? _wcrApi;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
+
+    [DllImport("onnxruntime.dll")]
+    private static extern IntPtr OrtGetApiBase();
 
     internal static bool AnySamplesLoading()
     {
@@ -140,6 +144,9 @@ internal sealed partial class SampleContainer : UserControl
         {
             return;
         }
+
+        // To workaround a WinML auto initializer issue.
+        OrtGetApiBase();
 
         // Narrator speak
         SampleCardGrid.Visibility = Visibility.Collapsed;
@@ -231,7 +238,8 @@ internal sealed partial class SampleContainer : UserControl
                     _wcrApi = apiType;
 
                     VisualStateManager.GoToState(this, "WcrModelNeedsDownload", true);
-                    if (!await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
+                    if (!ModelDetailsHelper.IsACIApi(wcrApi) &&
+                        !await modelDownloader.SetDownloadOperation(apiType, sample.Id, WcrApiHelpers.EnsureReadyFuncs[apiType]).WaitAsync(token))
                     {
                         return;
                     }
@@ -318,15 +326,17 @@ internal sealed partial class SampleContainer : UserControl
     {
         if (string.IsNullOrEmpty(contents))
         {
+            SampleDebugInfoButtonText.Visibility = Visibility.Collapsed;
             SampleDebugInfoButton.Visibility = Visibility.Collapsed;
-            SampleDebugInfoButton.Text = string.Empty;
+            SampleDebugInfoButtonText.Text = string.Empty;
             SampleDebugInfoContent.Text = string.Empty;
             return;
         }
 
-        SampleDebugInfoButton.Text = contents.Split('\n')[0];
+        SampleDebugInfoButtonText.Text = contents.Split('\n')[0];
         SampleDebugInfoContent.Text = contents;
 
+        SampleDebugInfoButtonText.Visibility = Visibility.Visible;
         SampleDebugInfoButton.Visibility = Visibility.Visible;
     }
 

@@ -13,13 +13,13 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:winuiex="using:WinUIEx"
     Width="1280"
-    MinWidth="640"
-    MinHeight="480"
+    MinWidth="1280"
+    MinHeight="960"
     mc:Ignorable="d">
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
-    <Grid>
+    <Grid Loaded="MainWindow_Loaded">
         <Grid.Resources>
             <DataTemplate x:Key="ScenarioTemplate" x:DataType="models:SearchResult">
                 <Grid AutomationProperties.Name="{x:Bind Label}" ColumnSpacing="8">
@@ -153,10 +153,17 @@
                     VerticalAlignment="Center"
                     ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"
                     PlaceholderText="Search samples, models &amp; APIs.."
-                    QueryIcon="Find"
                     QuerySubmitted="SearchBox_QuerySubmitted"
                     TextChanged="SearchBox_TextChanged"
-                    UpdateTextOnSelect="False" />
+                    UpdateTextOnSelect="False">
+                    <AutoSuggestBox.QueryIcon>
+                        <FontIcon
+                            x:Name="SearchBoxQueryIcon"
+                            FontSize="16"
+                            Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                            Glyph="&#xE721;" />
+                    </AutoSuggestBox.QueryIcon>
+                </AutoSuggestBox>
             </TitleBar.Content>
             <TitleBar.RightHeader>
                 <StackPanel

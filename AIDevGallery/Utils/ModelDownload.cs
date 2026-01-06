@@ -6,9 +6,11 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,6 +48,38 @@ internal abstract class ModelDownload : IDisposable
             {
                 Progress = _downloadProgress,
                 Status = DownloadStatus
+            });
+        }
+    }
+
+    private string? _verificationFailureMessage;
+    public string? VerificationFailureMessage
+    {
+        get => _verificationFailureMessage;
+        protected set
+        {
+            _verificationFailureMessage = value;
+            StateChanged?.Invoke(this, new ModelDownloadEventArgs
+            {
+                Progress = DownloadProgress,
+                Status = DownloadStatus,
+                VerificationFailureMessage = _verificationFailureMessage
+            });
+        }
+    }
+
+    private string? _warningMessage;
+    public string? WarningMessage
+    {
+        get => _warningMessage;
+        protected set
+        {
+            _warningMessage = value;
+            StateChanged?.Invoke(this, new ModelDownloadEventArgs
+            {
+                Progress = DownloadProgress,
+                Status = DownloadStatus,
+                WarningMessage = _warningMessage
             });
         }
     }
@@ -108,12 +142,15 @@ internal class OnnxModelDownload : ModelDownload
 
         if (cachedModel == null)
         {
-            DownloadStatus = DownloadStatus.Canceled;
-
-            var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
-            if (Directory.Exists(localPath))
+            if (DownloadStatus != DownloadStatus.VerificationFailed)
             {
-                Directory.Delete(localPath, true);
+                DownloadStatus = DownloadStatus.Canceled;
+
+                var localPath = ModelUrl.GetLocalPath(App.AppData.ModelCachePath);
+                if (Directory.Exists(localPath))
+                {
+                    Directory.Delete(localPath, true);
+                }
             }
 
             return false;
@@ -130,7 +167,7 @@ internal class OnnxModelDownload : ModelDownload
         DownloadStatus = DownloadStatus.Canceled;
     }
 
-    private async Task<CachedModel> DownloadModel(string cacheDir, IProgress<float>? progress = null)
+    private async Task<CachedModel?> DownloadModel(string cacheDir, IProgress<float>? progress = null)
     {
         ModelUrl url;
         List<ModelFileDetails> filesToDownload;
@@ -171,6 +208,9 @@ internal class OnnxModelDownload : ModelDownload
 
         using var client = new HttpClient();
 
+        // Track files that need verification
+        List<(string FilePath, ModelFileDetails FileDetails)> filesToVerify = [];
+
         foreach (var downloadableFile in filesToDownload)
         {
             if (downloadableFile.DownloadUrl == null)
@@ -187,6 +227,12 @@ internal class OnnxModelDownload : ModelDownload
                 var existingFileInfo = new FileInfo(existingFile);
                 if (existingFileInfo.Length == downloadableFile.Size)
                 {
+                    // Still need to verify existing files if they have a hash
+                    if (downloadableFile.ShouldVerifyIntegrity && downloadableFile.HasVerificationHash)
+                    {
+                        filesToVerify.Add((filePath, downloadableFile));
+                    }
+
                     continue;
                 }
             }
@@ -201,15 +247,84 @@ internal class OnnxModelDownload : ModelDownload
             var fileInfo = new FileInfo(filePath);
             if (fileInfo.Length != downloadableFile.Size)
             {
-                // file did not download properly, should retry
+                // Size mismatch - log telemetry
+                ModelIntegrityVerificationFailedEvent.Log(
+                    Details.Url,
+                    downloadableFile.Name ?? filePath,
+                    verificationType: "Size",
+                    expectedValue: downloadableFile.Size.ToString(CultureInfo.InvariantCulture),
+                    actualValue: fileInfo.Length.ToString(CultureInfo.InvariantCulture));
+                VerificationFailureMessage = $"Size verification failed for: {downloadableFile.Name}";
+                DownloadStatus = DownloadStatus.VerificationFailed;
+
+                var localPath = url.GetLocalPath(cacheDir);
+                if (Directory.Exists(localPath))
+                {
+                    Directory.Delete(localPath, true);
+                }
+
+                return null;
+            }
+
+            // Add to verification list if it's a main model file with hash
+            if (downloadableFile.ShouldVerifyIntegrity && downloadableFile.HasVerificationHash)
+            {
+                filesToVerify.Add((filePath, downloadableFile));
             }
 
             bytesDownloaded += downloadableFile.Size;
         }
 
+        // Verify integrity of main model files
+        if (filesToVerify.Count > 0)
+        {
+            DownloadStatus = DownloadStatus.Verifying;
+
+            foreach (var (filePath, fileDetails) in filesToVerify)
+            {
+                if (string.IsNullOrEmpty(fileDetails.Sha256))
+                {
+                    continue;
+                }
+
+                var expectedHash = fileDetails.Sha256;
+                var actualHash = await ComputeSha256Async(filePath, cancellationToken);
+                var verified = string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+
+                if (!verified)
+                {
+                    ModelIntegrityVerificationFailedEvent.Log(
+                        Details.Url,
+                        fileDetails.Name ?? filePath,
+                        verificationType: "SHA256",
+                        expectedValue: expectedHash,
+                        actualValue: actualHash);
+                    VerificationFailureMessage = $"Integrity verification failed for: {fileDetails.Name ?? filePath}";
+                    DownloadStatus = DownloadStatus.VerificationFailed;
+
+                    // Delete the downloaded files
+                    var localPath = url.GetLocalPath(cacheDir);
+                    if (Directory.Exists(localPath))
+                    {
+                        Directory.Delete(localPath, true);
+                    }
+
+                    return null;
+                }
+            }
+        }
+
         var modelDirectory = url.GetLocalPath(cacheDir);
 
         return new CachedModel(Details, url.IsFile ? $"{modelDirectory}\\{filesToDownload.First().Name}" : modelDirectory, url.IsFile, modelSize);
+    }
+
+    private static async Task<string> ComputeSha256Async(string filePath, CancellationToken cancellationToken)
+    {
+        using var sha256 = SHA256.Create();
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+        var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 }
 
@@ -230,27 +345,24 @@ internal class FoundryLocalModelDownload : ModelDownload
     {
         DownloadStatus = DownloadStatus.InProgress;
 
-        Progress<float> internalProgress = new(p =>
-        {
-            DownloadProgress = p;
-        });
-
-        bool result = false;
+        var internalProgress = new Progress<float>(p => DownloadProgress = p);
 
         try
         {
-            result = await FoundryLocalModelProvider.Instance.DownloadModel(Details, internalProgress, CancellationTokenSource.Token);
+            var downloadResult = await FoundryLocalModelProvider.Instance.DownloadModel(
+                Details, internalProgress, CancellationTokenSource.Token);
+
+            if (downloadResult.Success)
+            {
+                DownloadStatus = DownloadStatus.Completed;
+                WarningMessage = downloadResult.ErrorMessage; // May be null or contain warning
+                return true;
+            }
+
+            DownloadStatus = DownloadStatus.Canceled;
+            return false;
         }
         catch
-        {
-        }
-
-        if (result)
-        {
-            DownloadStatus = DownloadStatus.Completed;
-            return true;
-        }
-        else
         {
             DownloadStatus = DownloadStatus.Canceled;
             return false;
@@ -263,12 +375,16 @@ internal enum DownloadStatus
 {
     Waiting,
     InProgress,
+    Verifying,
     Completed,
-    Canceled
+    Canceled,
+    VerificationFailed
 }
 
 internal class ModelDownloadEventArgs
 {
     public required float Progress { get; init; }
     public required DownloadStatus Status { get; init; }
+    public string? VerificationFailureMessage { get; init; }
+    public string? WarningMessage { get; init; }
 }

@@ -14,6 +14,7 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:utils="using:AIDevGallery.Utils"
     xmlns:vm="using:AIDevGallery.ViewModels"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
 
     <Grid>
@@ -40,7 +41,7 @@
                         Grid.Row="1"
                         TextWrapping="Wrap" 
                         Text="To use a custom model, convert it to a WindowsML-compatible format using the AI Toolkit conversion tool. Note: Currently, only select models are supported for conversion in AI Toolkit, with additional models coming soon." />
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="12" VerticalSpacing="12">
                             <Button
                             x:Name="OpenAIToolkitButton"
                             Click="OpenAIToolkitButton_Click"
@@ -65,7 +66,7 @@
                                     <TextBlock Text="View documentation" Margin="5,0,0,0" />
                                 </StackPanel>
                             </Button>
-                        </StackPanel>
+                        </controls:WrapPanel>
                     </StackPanel>
                     <StackPanel
                     Margin="0,12"
@@ -104,6 +105,7 @@
                                 CornerRadius="{StaticResource ControlCornerRadius}"
                                 GotFocus="ItemContainer_GotFocus"
                                 PointerEntered="ItemContainer_PointerEntered"
+                                AutomationProperties.Name="{x:Bind ModelDetails.Name, Mode=OneWay}"
                                 Tag="{x:Bind}">
                                 <ItemContainer.Resources>
                                     <SolidColorBrush x:Key="ItemContainerPointerOverBackground" Color="Transparent" />
@@ -113,6 +115,7 @@
                                 <toolkit:SettingsCard
                                     MinHeight="48"
                                     Padding="14,10,14,10"
+                                    AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                     Background="{ThemeResource LayerFillColorAltBrush}"
                                     Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}">
                                     <toolkit:SettingsCard.Resources>
@@ -130,7 +133,8 @@
                                                 VerticalAlignment="Center"
                                                 Text="{x:Bind ModelDetails.Name}"
                                                 TextTrimming="CharacterEllipsis"
-                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                                ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" 
+                                                TextWrapping="Wrap" />
                                             <ItemsRepeater
                                                 Grid.Column="1"
                                                 Margin="4,0,0,0"
@@ -146,7 +150,8 @@
                                                             Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             Tapped="StopPropagatingHandler"
-                                                            ToolTipService.ToolTip="More info">
+                                                            ToolTipService.ToolTip="More info"
+                                                            Background="{ThemeResource ButtonBackground}">
                                                             <Button.Flyout>
                                                                 <Flyout ShouldConstrainToRootBounds="False">
                                                                     <TextBlock
@@ -280,6 +285,7 @@
                             <toolkit:SettingsCard
                                 MinHeight="48"
                                 Padding="20,8,16,6"
+                                AutomationProperties.Name="{x:Bind ModelDetails.Name}"
                                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                 Description="{x:Bind utils:AppUtils.FileSizeToString(ModelDetails.Size)}"
                                 GotFocus="ItemContainer_GotFocus"
@@ -301,7 +307,8 @@
                                             VerticalAlignment="Center"
                                             Text="{x:Bind ModelDetails.Name}"
                                             TextTrimming="CharacterEllipsis"
-                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}" />
+                                            ToolTipService.ToolTip="{x:Bind ModelDetails.Name}"
+                                            TextWrapping="Wrap" />
                                         <ItemsRepeater
                                             Grid.Column="1"
                                             Margin="4,0,0,0"
@@ -316,7 +323,8 @@
                                                         AutomationProperties.Name="More info"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
-                                                        ToolTipService.ToolTip="More info">
+                                                        ToolTipService.ToolTip="More info"
+                                                        Background="{ThemeResource ButtonBackground}">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
                                                                 <TextBlock

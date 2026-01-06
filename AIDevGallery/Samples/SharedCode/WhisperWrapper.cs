@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using System;
@@ -19,7 +18,7 @@ internal class WhisperWrapper : IDisposable
     private bool _disposedValue;
     private bool _running;
 
-    public static async Task<WhisperWrapper> CreateAsync(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    public static async Task<WhisperWrapper> CreateAsync(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
 
@@ -37,17 +36,17 @@ internal class WhisperWrapper : IDisposable
 #pragma warning restore CA2000 // Dispose objects before losing scope
         sessionOptions.RegisterOrtExtensions();
 
-        if (winMlSampleOptions.Policy != null)
+        if (policy != null)
         {
-            sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+            sessionOptions.SetEpSelectionPolicy(policy.Value);
         }
-        else if (winMlSampleOptions.EpName != null)
+        else if (epName != null)
         {
-            sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+            sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-            if (winMlSampleOptions.CompileModel)
+            if (compileModel)
             {
-                modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
             }
         }
 

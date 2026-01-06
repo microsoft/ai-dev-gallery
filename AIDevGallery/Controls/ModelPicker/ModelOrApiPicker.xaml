@@ -16,11 +16,13 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <ThemeShadow x:Name="DialogShadow" />
+        <SolidColorBrush x:Key="AppSmokeBrush" Color="#4D000000" />
     </UserControl.Resources>
-    <Grid>
+	<Grid x:Name="ModelOrApiPickerOverlayRoot" TabFocusNavigation="Cycle">
         <Grid
             x:Name="ShadowGrid"
-            Background="{ThemeResource SmokeFillColorDefaultBrush}"
+            Background="{ThemeResource AppSmokeBrush}"
+            HighContrastAdjustment="None"
             Loaded="ShadowGrid_Loaded"
             Tapped="ShadowGrid_Tapped" />
 
@@ -79,13 +81,14 @@
                 SelectionChanged="ModelTypeSelector_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="modelpickerviews:ModelPickerDefinition">
-                        <Grid ColumnSpacing="16">
+                        <Grid ColumnSpacing="16"
+                            AutomationProperties.Name="{x:Bind Name}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Image Source="{x:Bind Icon}" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Name}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextWrapping="Wrap" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -112,26 +115,33 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Models selected for this sample" />
-                <ItemsView
-                    x:Name="SelectedModelsItemsView"
+                <ItemsRepeater
+                    x:Name="SelectedModelsRepeater"
                     Grid.Row="1"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    SelectionChanged="ModelSelectionItemChanged"
-                    SelectionMode="Single">
-                    <ItemsView.Layout>
+                    ItemsSource="{x:Bind modelSelectionItems}">
+                    <ItemsRepeater.Layout>
                         <StackLayout Orientation="Horizontal" Spacing="4" />
-                    </ItemsView.Layout>
-                    <ItemsView.ItemTemplate>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="local:ModelSelectionItem">
-                            <ItemContainer>
-                                <Grid
-                                    MinWidth="248"
-                                    MinHeight="48"
-                                    Padding="8"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1">
+                            <Border
+                                DataContext="{x:Bind}"
+                                MinWidth="248"
+                                MinHeight="48"
+                                Padding="8"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource ControlCornerRadius}"
+                                IsTabStop="True"
+                                UseSystemFocusVisuals="True"
+                                KeyDown="SelectedModelItem_KeyDown"
+                                Tapped="SelectedModelItem_Tapped"
+                                AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}"
+                                AutomationProperties.HelpText="Press Enter or Space to select model.">
+                                <Grid>
                                     <Grid
                                         Padding="8,0,0,0"
                                         VerticalAlignment="Center"
@@ -166,7 +176,8 @@
                                                         AutomationProperties.Name="More info"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
-                                                        ToolTipService.ToolTip="More info">
+                                                        ToolTipService.ToolTip="More info"
+                                                        Background="{ThemeResource ButtonBackground}">
                                                         <Button.Flyout>
                                                             <Flyout ShouldConstrainToRootBounds="False">
                                                                 <TextBlock
@@ -181,10 +192,10 @@
                                         </ItemsRepeater>
                                     </Grid>
                                 </Grid>
-                            </ItemContainer>
+                            </Border>
                         </DataTemplate>
-                    </ItemsView.ItemTemplate>
-                </ItemsView>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
                 <Button
                     x:Name="SaveButton"
                     Grid.Row="1"
@@ -195,7 +206,7 @@
                     Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Vertical" Spacing="4">
                         <FontIcon FontSize="14" Glyph="&#xE72A;" />
-                        <TextBlock Text="Run sample" />
+                        <TextBlock Text="Run sample" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Button>
             </Grid>

@@ -248,6 +248,7 @@ internal static partial class SamplesHelper
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
+                cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.DeviceType", GetValueOrNull(winmlOptions?.DeviceType, "null"));
                 cleanCsSource = cleanCsSource.Replace($"sampleParams.ModelPaths[{i}]", modelInfo.Value.ModelPathStr);
 
                 i++;
@@ -264,6 +265,7 @@ internal static partial class SamplesHelper
             cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.Policy", (winmlOptions?.Policy != null) ? $"ExecutionProviderDevicePolicy.{winmlOptions.Policy}" : "null");
             cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.EpName", GetValueOrNull(winmlOptions?.EpName, "null"));
             cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.CompileModel", (winmlOptions != null && winmlOptions.CompileModel) ? "true" : "false");
+            cleanCsSource = cleanCsSource.Replace($"sampleParams.WinMlSampleOptions.DeviceType", GetValueOrNull(winmlOptions?.DeviceType, "null"));
             cleanCsSource = cleanCsSource.Replace("sampleParams.ModelPath", modelInfo.ModelPathStr);
             modelPathStr = modelInfo.ModelPathStr;
         }

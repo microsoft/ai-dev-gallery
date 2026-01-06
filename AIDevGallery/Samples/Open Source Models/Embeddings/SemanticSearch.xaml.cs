@@ -6,6 +6,7 @@ using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -59,7 +60,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         try
         {
-            _embeddings = await EmbeddingGenerator.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
+            string modelPath = sampleParams.ModelPath;
+            ExecutionProviderDevicePolicy? policy = sampleParams.WinMlSampleOptions.Policy;
+            string? epName = sampleParams.WinMlSampleOptions.EpName;
+            bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
+            string? deviceType = sampleParams.WinMlSampleOptions.DeviceType;
+
+            _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel, deviceType);
             sampleParams.NotifyCompletion();
         }
         catch (Exception ex)
@@ -167,7 +174,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                         SearchTextBox.IsEnabled = true;
                     }
 
-                    this.ResultsTextBlock.Text = resultMessage;
+                    this.ResultsTextBox.Text = resultMessage;
                 });
             },
             ct);

@@ -219,12 +219,21 @@ internal sealed partial class SmartTextBox : Control
     private void InputTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
         bool isControlKeyPressed = (InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-        if (e.Key == VirtualKey.A && isControlKeyPressed)
+        bool isShiftKeyPressed = (InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        if (isControlKeyPressed || isShiftKeyPressed)
         {
             FlyoutShowOptions flyoutShowOptions = new();
-            flyoutShowOptions.ShowMode = FlyoutShowMode.Transient;
-            DispatcherQueue.TryEnqueue(() => _aiFlyout!.ShowAt((FrameworkElement)sender, flyoutShowOptions));
-            _inputTextBox!.Document.Selection.SetRange(0, int.MaxValue);
+            if (e.Key == VirtualKey.Up || e.Key == VirtualKey.Down || e.Key == VirtualKey.Left || e.Key == VirtualKey.Right)
+            {
+                flyoutShowOptions.ShowMode = FlyoutShowMode.Transient;
+                DispatcherQueue.TryEnqueue(() => _aiFlyout!.ShowAt((FrameworkElement)sender, flyoutShowOptions));
+            }
+            else if (e.Key == VirtualKey.A)
+            {
+                flyoutShowOptions.ShowMode = FlyoutShowMode.Transient;
+                DispatcherQueue.TryEnqueue(() => _aiFlyout!.ShowAt((FrameworkElement)sender, flyoutShowOptions));
+                _inputTextBox!.Document.Selection.SetRange(0, int.MaxValue);
+            }
         }
     }
 

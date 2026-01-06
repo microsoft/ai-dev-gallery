@@ -43,14 +43,14 @@ internal class StableDiffusion : IDisposable
         config.DeviceId = DeviceUtils.GetBestDeviceId();
     }
 
-    public async Task InitializeAsync(WinMlSampleOptions winMlSampleOptions)
+    public async Task InitializeAsync(ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
 
-        textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, winMlSampleOptions);
-        unetInferenceSession = await GetInferenceSession(config.UnetModelPath, winMlSampleOptions);
-        vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, winMlSampleOptions);
-        safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, winMlSampleOptions);
+        textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, policy, epName, compileModel, deviceType);
+        unetInferenceSession = await GetInferenceSession(config.UnetModelPath, policy, epName, compileModel, deviceType);
+        vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, policy, epName, compileModel, deviceType);
+        safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, policy, epName, compileModel, deviceType);
     }
 
     public StableDiffusion(string modelFolder)
@@ -58,7 +58,7 @@ internal class StableDiffusion : IDisposable
     {
     }
 
-    private Task<InferenceSession> GetInferenceSession(string modelPath, WinMlSampleOptions winMlSampleOptions)
+    private Task<InferenceSession> GetInferenceSession(string modelPath, ExecutionProviderDevicePolicy? policy, string? epName, bool compileModel, string? deviceType)
     {
         return Task.Run(async () =>
         {
@@ -87,17 +87,17 @@ internal class StableDiffusion : IDisposable
             sessionOptions.AddFreeDimensionOverrideByName("width", config.Width / 8);
             sessionOptions.AddFreeDimensionOverrideByName("sequence", 77);
 
-            if (winMlSampleOptions.Policy != null)
+            if (policy != null)
             {
-                sessionOptions.SetEpSelectionPolicy(winMlSampleOptions.Policy.Value);
+                sessionOptions.SetEpSelectionPolicy(policy.Value);
             }
-            else if (winMlSampleOptions.EpName != null)
+            else if (epName != null)
             {
-                sessionOptions.AppendExecutionProviderFromEpName(winMlSampleOptions.EpName, winMlSampleOptions.DeviceType);
+                sessionOptions.AppendExecutionProviderFromEpName(epName, deviceType);
 
-                if (winMlSampleOptions.CompileModel)
+                if (compileModel)
                 {
-                    modelPath = sessionOptions.GetCompiledModel(modelPath, winMlSampleOptions.EpName) ?? modelPath;
+                    modelPath = sessionOptions.GetCompiledModel(modelPath, epName) ?? modelPath;
                 }
             }
 
