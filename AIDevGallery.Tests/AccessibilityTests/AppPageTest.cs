@@ -26,8 +26,8 @@ public class AccessibilityTests : FlaUITestBase
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
-        var appProcess = System.Diagnostics.Process.GetCurrentProcess();
-        var processId = appProcess.Id;
+        // Get the actual process ID from the window, not the test runner process
+        var processId = MainWindow.Properties.ProcessId.Value;
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
@@ -131,19 +131,12 @@ public class AccessibilityTests : FlaUITestBase
     {
         try
         {
-            // Arrange - Verify main window is available
-            Assert.IsNotNull(MainWindow, "Main window should be initialized");
-
             // First scan the page without opening any items
             Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
-            ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
+            // Act - Find scenario navigation view
             var scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
-            if (scenario == null)
-            {
-                Console.WriteLine($"ScenarioNavView not found in '{pageName}'");
-                return;
-            }
+            Assert.IsNotNull(scenario, "scenario should be found");
 
             // Act - Find the MenuItemsHost in scenario navigation view
             var menuItemsHostResult = Retry.WhileNull(
