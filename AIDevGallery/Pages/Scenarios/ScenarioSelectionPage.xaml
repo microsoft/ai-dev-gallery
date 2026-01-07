@@ -8,7 +8,8 @@
     mc:Ignorable="d">
 
     <NavigationView
-        x:Name="ScenarioNavView"
+        x:Name="NavView"
+        AutomationProperties.AutomationId="ScenarioNavView"
         CompactModeThresholdWidth="0"
         ExpandedModeThresholdWidth="1000"
         IsBackButtonVisible="Collapsed"

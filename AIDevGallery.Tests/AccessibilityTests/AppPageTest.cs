@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Tests.TestInfra;
+using FlaUI.Core.Definitions;
+using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -136,11 +138,11 @@ public class AccessibilityTests : FlaUITestBase
             Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
             ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
-            var Scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
+            var scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
 
             // Act - Find the MenuItemsHost in scenario navigation view
             var menuItemsHostResult = Retry.WhileNull(
-                () => Scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
+                () => scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
                 timeout: TimeSpan.FromSeconds(10));
             var menuItemsHost = menuItemsHostResult.Result;
 
@@ -183,7 +185,7 @@ public class AccessibilityTests : FlaUITestBase
             }
 
             // Assert - Report testing summary for this page
-            Console.WriteLine($"\n✓ Completed testing {itemCount} items in page '{pageName}'");
+            Console.WriteLine($"\n✓ Completed testing items in page '{pageName}'");
         }
         catch (Exception ex)
         {
