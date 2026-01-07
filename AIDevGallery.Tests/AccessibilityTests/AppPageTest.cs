@@ -48,14 +48,14 @@ public class AccessibilityTests : FlaUITestBase
                     continue;
                 }
 
+                // Execute scan and track results for regular pages
+                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
+
                 // Check if this page has list items to test
                 if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
                 {
                     TestPageWithListItems(processId, pageName, scanResults, failedPages);
                 }
-
-                // Execute scan and track results for regular pages
-                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
             }
 
             // Assert - All pages should pass
@@ -100,36 +100,17 @@ public class AccessibilityTests : FlaUITestBase
                 return false;
             }
 
-            // Try to invoke the navigation item
+            // Try to click the navigation item (since it's a button)
             try
             {
-                if (navigationItem.Patterns.Invoke.IsSupported)
-                {
-                    navigationItem.Patterns.Invoke.Pattern.Invoke();
-                    Console.WriteLine($"Invoked navigation item: {pageName}");
-                    System.Threading.Thread.Sleep(2000); // Wait for page to load
-                    return true;
-                }
+                navigationItem.Click();
+                Console.WriteLine($"Clicked navigation item: {pageName}");
+                System.Threading.Thread.Sleep(2000); // Wait for page to load
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Could not invoke {pageName}: {ex.Message}");
-            }
-
-            // Try selection pattern as fallback
-            try
-            {
-                if (navigationItem.Patterns.SelectionItem.IsSupported)
-                {
-                    navigationItem.Patterns.SelectionItem.Pattern.Select();
-                    Console.WriteLine($"Selected navigation item: {pageName}");
-                    System.Threading.Thread.Sleep(2000); // Wait for page to load
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Could not select {pageName}: {ex.Message}");
+                Console.WriteLine($"Could not click {pageName}: {ex.Message}");
             }
 
             return false;
@@ -155,79 +136,47 @@ public class AccessibilityTests : FlaUITestBase
             Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
             ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
-            // Find all descendants in the current page
-            var allElements = MainWindow.FindAllDescendants();
-            if (allElements == null || allElements.Length == 0)
+            // Act - Find the MenuItemsHost to get only top-level navigation items
+            var menuItemsHostResult = Retry.WhileNull(
+                () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
+                timeout: TimeSpan.FromSeconds(10));
+            var menuItemsHost = menuItemsHostResult.Result;
+
+            Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
+
+            // Find only DIRECT children ListItems, not all descendants
+            // This prevents getting nested navigation items from inner NavigationViews
+            var navigationItems = menuItemsHost.FindAllChildren(cf =>
+                cf.ByControlType(ControlType.ListItem))
+                .Where(item => item.IsEnabled && item.IsOffscreen == false)
+                .ToArray();
+
+            Console.WriteLine($"Found {navigationItems.Length} enabled navigation items");
+
+            Assert.IsTrue(navigationItems.Length > 0, "Should have at least one navigation item");
+
+            // Click each item
+            foreach (var item in navigationItems)
             {
-                Console.WriteLine($"No elements found in '{pageName}'");
-                return;
-            }
+                Console.WriteLine($"\nClicking navigation item: {item.Name}");
 
-            Console.WriteLine($"Found {allElements.Length} total elements in '{pageName}'");
-
-            // Filter for clickable/selectable items (exclude navigation items and the page itself)
-            var clickableItems = allElements.Where(item =>
-                !string.IsNullOrWhiteSpace(item.Name) &&
-                item.Name != pageName &&
-                item.IsEnabled &&
-                (item.Patterns.Invoke.IsSupported || item.Patterns.SelectionItem.IsSupported))
-                .ToList();
-
-            Console.WriteLine($"Found {clickableItems.Count} enabled, clickable items");
-
-            if (clickableItems.Count == 0)
-            {
-                Console.WriteLine($"No clickable items found in '{pageName}'");
-                return;
-            }
-
-            // Act - Test each clickable item
-            int itemCount = 0;
-            foreach (var item in clickableItems)
-            {
                 try
                 {
-                    var itemName = item.Name;
-                    itemCount++;
-                    Console.WriteLine($"\n  [{itemCount}] Testing item: '{itemName}'");
+                    item.Click();
 
-                    // Try to invoke or select the item
-                    bool itemOpened = TryOpenItem(item, itemName);
-                    if (!itemOpened)
-                    {
-                        Console.WriteLine($"  ⚠ Skipping accessibility scan for '{itemName}' - could not open");
-                        continue;
-                    }
+                    // Wait for window to become responsive after click
+                    Retry.WhileTrue(
+                        () => !MainWindow.IsAvailable || MainWindow.IsOffscreen,
+                        timeout: TimeSpan.FromSeconds(5),
+                        throwOnTimeout: false);
 
-                    // Wait for the item detail to load
-                    System.Threading.Thread.Sleep(1500);
+                    ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
 
-                    // Scan the opened item detail
-                    string itemScanPath = $"{pageName}::{itemName}";
-                    Console.WriteLine($"  Scanning '{itemName}'...");
-                    bool itemScanPassed = RunAxeWindowsCliScan(processId, itemScanPath);
-
-                    string result = $"{itemScanPath}: {(itemScanPassed ? "PASSED" : "FAILED")}";
-                    scanResults.Add(result);
-
-                    if (!itemScanPassed)
-                    {
-                        failedPages.Add(itemScanPath);
-                        Console.WriteLine($"  ⚠ Accessibility issues found in '{itemName}'");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"  ✓ '{itemName}' passed accessibility check");
-                    }
-
-                    // Navigate back to the page
-                    Console.WriteLine($"  Navigating back to '{pageName}'...");
-                    NavigateToPage(pageName);
-                    System.Threading.Thread.Sleep(1000);
+                    Console.WriteLine($"Successfully clicked: {item.Name}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"  Error testing item: {ex.Message}");
+                    Console.WriteLine($"Failed to click item {item.Name}: {ex.Message}");
                 }
             }
 
@@ -237,52 +186,6 @@ public class AccessibilityTests : FlaUITestBase
         catch (Exception ex)
         {
             Console.WriteLine($"Error testing page with list items '{pageName}': {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Attempts to open a UI item using Invoke or SelectionItem patterns
-    /// </summary>
-    private bool TryOpenItem(FlaUI.Core.AutomationElements.AutomationElement item, string itemName)
-    {
-        try
-        {
-            // Try Invoke pattern first
-            if (item.Patterns.Invoke.IsSupported)
-            {
-                try
-                {
-                    item.Patterns.Invoke.Pattern.Invoke();
-                    Console.WriteLine($"  Invoked: {itemName}");
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"  Could not invoke: {ex.Message}");
-                }
-            }
-
-            // Try SelectionItem pattern as fallback
-            if (item.Patterns.SelectionItem.IsSupported)
-            {
-                try
-                {
-                    item.Patterns.SelectionItem.Pattern.Select();
-                    Console.WriteLine($"  Selected: {itemName}");
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"  Could not select: {ex.Message}");
-                }
-            }
-
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"  Error trying to open item: {ex.Message}");
-            return false;
         }
     }
 
@@ -335,7 +238,7 @@ public class AccessibilityTests : FlaUITestBase
                 return false;
             }
 
-            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeResults");
+            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeOutput");
             var pageOutputDir = System.IO.Path.Combine(baseOutputDir, pageName);
             System.IO.Directory.CreateDirectory(pageOutputDir);
 
@@ -524,7 +427,7 @@ public class AccessibilityTests : FlaUITestBase
                 return;
             }
 
-            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeResults");
+            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeOutput");
             if (System.IO.Directory.Exists(baseOutputDir))
             {
                 var files = System.IO.Directory.GetFiles(baseOutputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
