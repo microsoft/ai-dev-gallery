@@ -34,12 +34,12 @@ Both `scenarios.json` and `promptTemplates.json` are embedded at build time by R
 ## Required Scenario Fields
 
 - `Name`: Display name shown in UI
-- `Description`: Brief description of the scenario
-- `Instructions`: User instructions for the sample UI
 - `Id`: Unique kebab-case identifier (e.g., `"summarize-text"`)
 
 ## Optional Fields
 
+- `Description`: Brief description of the scenario
+- `Instructions`: User instructions for the sample UI
 - `Icon`: Segoe MDL2 glyph code (e.g., `"\uE8BD"`)
 
 ## Usage in Samples
@@ -60,18 +60,23 @@ The naming pattern is `{Category}{ScenarioName}` in PascalCase.
 ```json
 {
   "TemplateName": {
-    "System": "<|system|>\n{{system}}<|end|>\n",
-    "User": "<|user|>\n{{user}}<|end|>\n<|assistant|>\n",
-    "Stop": ["<|end|>", "<|user|>"]
+    "system": "<|system|>\n{{CONTENT}}<|end|>\n",
+    "user": "<|user|>\n{{CONTENT}}<|end|>\n",
+    "assistant": "<|assistant|>\n{{CONTENT}}<|end|>\n",
+    "stop": ["<|end|>", "<|user|>"]
   }
 }
 ```
 
 ## Required Prompt Template Fields
 
-- `System`: Template for system prompt with `{{system}}` placeholder
-- `User`: Template for user prompt with `{{user}}` placeholder  
-- `Stop`: Array of stop sequences
+- `user`: Template for user messages with `{{CONTENT}}` placeholder
+- `stop`: Array of stop sequences
+
+## Optional Prompt Template Fields
+
+- `system`: Template for system prompt with `{{CONTENT}}` placeholder
+- `assistant`: Template for assistant responses with `{{CONTENT}}` placeholder
 
 ## Code Review Checks
 
@@ -79,13 +84,14 @@ The naming pattern is `{Category}{ScenarioName}` in PascalCase.
 - `Id` is unique across all scenarios
 - `Id` uses kebab-case (lowercase with hyphens)
 - No duplicate scenario names within a category
-- Icon codes are valid Segoe MDL2 glyphs
+- Icon codes are valid glyphs
 - Instructions are clear and user-friendly
 - Category grouping is logical
 
 ### For promptTemplates.json
-- Template name matches what models reference
-- Contains `{{system}}` and `{{user}}` placeholders
+- Template name matches what models reference in `.modelgroup.json`
+- Contains `{{CONTENT}}` placeholder in templates
+- `user` and `stop` fields are required
 - Stop sequences are correct for the model family
 - Special tokens match model's training format
 
@@ -94,15 +100,3 @@ The naming pattern is `{Category}{ScenarioName}` in PascalCase.
 - **Changes not appearing**: Forgot to rebuild after editing
 - **ScenarioType not found**: Scenario name doesn't match expected format
 - **Prompt format mismatch**: Wrong template causes garbled output
-- **Missing stop sequences**: Model generates excessive tokens
-
-## Icon Reference
-
-Common Segoe MDL2 icons:
-- `\uE8BD` - Document (text)
-- `\uE8D4` - Edit
-- `\uEB9F` - Lightbulb (generate)
-- `\uE8F2` - Chat
-- `\uF2B7` - Translate
-- `\uE9D5` - Sentiment
-- `\uE8B9` - Image
