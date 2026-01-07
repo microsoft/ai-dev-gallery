@@ -11,6 +11,11 @@ namespace AIDevGallery.Tests.AccessibilityTests;
 [TestClass]
 public class AccessibilityTests : FlaUITestBase
 {
+    /// <summary>
+    /// Gets or sets the test context which provides information about and functionality for the current test run.
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies accessibility compliance of multiple pages using Axe.Windows CLI")]
@@ -62,6 +67,7 @@ public class AccessibilityTests : FlaUITestBase
 
             if (failedPages.Count > 0)
             {
+                AttachAxeResultsToTestContext();
                 Assert.Fail($"Accessibility issues found on pages: {string.Join(", ", failedPages)}");
             }
             else
@@ -71,6 +77,7 @@ public class AccessibilityTests : FlaUITestBase
         }
         catch (Exception ex)
         {
+            AttachAxeResultsToTestContext();
             Assert.Inconclusive($"Failed to run multi-page accessibility tests: {ex.Message}");
         }
 
@@ -501,6 +508,35 @@ public class AccessibilityTests : FlaUITestBase
         {
             Console.WriteLine($"Failed to download Axe.Windows CLI: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Attaches generated Axe.Windows result files to the TestContext so they are available in pipeline results
+    /// </summary>
+    private void AttachAxeResultsToTestContext()
+    {
+        try
+        {
+            var assemblyDir = System.IO.Path.GetDirectoryName(typeof(AccessibilityTests).Assembly.Location);
+            if (string.IsNullOrEmpty(assemblyDir)) return;
+
+            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeResults");
+            if (System.IO.Directory.Exists(baseOutputDir))
+            {
+                var files = System.IO.Directory.GetFiles(baseOutputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
+                Console.WriteLine($"Found {files.Length} Axe result files to attach");
+                
+                foreach (var file in files)
+                {
+                    Console.WriteLine($"Attaching result file: {file}");
+                    TestContext?.AddResultFile(file);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to attach result files: {ex.Message}");
         }
     }
 }
