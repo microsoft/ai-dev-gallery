@@ -286,9 +286,9 @@ public class AccessibilityTests : FlaUITestBase
     {
         bool scanPassed = RunAxeWindowsCliScan(processId, pageName);
         string result = $"{pageName}: {(scanPassed ? "PASSED" : "FAILED")}";
-        
+
         scanResults.Add(result);
-        
+
         if (!scanPassed)
         {
             failedPages.Add(pageName);
