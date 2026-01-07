@@ -139,7 +139,6 @@ public class AccessibilityTests : FlaUITestBase
             ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
             var scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
-            
             if (scenario == null)
             {
                 Console.WriteLine($"ScenarioNavView not found in '{pageName}'");
