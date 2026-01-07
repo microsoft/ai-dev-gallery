@@ -175,15 +175,15 @@ public class AccessibilityTests : FlaUITestBase
                         throwOnTimeout: false);
 
                     // Small delay to allow content to load
-                    var ListItems = menuItemsHost.FindAllChildren(cf =>
+                    var listItems = menuItemsHost.FindAllChildren(cf =>
                         cf.ByControlType(ControlType.ListItem))
                         .Where(item => item.IsEnabled && item.IsOffscreen == false)
                         .ToArray();
 
                     // If there are further list items, we could extend this to click into them as well
-                    if (ListItems.Length > 0)
+                    if (listItems.Length > 0)
                     {
-                        foreach (var listItem in ListItems)
+                        foreach (var listItem in listItems)
                         {
                             Console.WriteLine($"  - Found sub-item: {listItem.Name}");
                             listItem.Click();
