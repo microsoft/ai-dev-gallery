@@ -131,6 +131,9 @@ public class AccessibilityTests : FlaUITestBase
     {
         try
         {
+            // Arrange
+            Assert.IsNotNull(MainWindow, "Main window should be initialized");
+
             // First scan the page without opening any items
             Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
 
