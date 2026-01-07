@@ -152,6 +152,8 @@ public class MyHyperlinkTests
     [DataRow("relative/path", null, DisplayName = "Relative path without base")]
     [DataRow("/absolute/path", null, DisplayName = "Absolute path without base")]
     [DataRow("test.html", "invalid-base-url", DisplayName = "Relative URL with invalid base")]
+    [DataRow("page.html", "relative/base/path", DisplayName = "Relative URL with relative base")]
+    [DataRow("../other/page.html", "some/relative/path", DisplayName = "Relative URL with dot-dot and relative base")]
     public void NavigateUriShouldBeNullWhenUrlCannotBeResolved(string url, string baseUrl)
     {
         // Arrange
@@ -204,6 +206,43 @@ public class MyHyperlinkTests
         var hyperlinkNull = new MyHyperlink(linkInlineNull, null);
         Assert.IsNotNull(hyperlinkNull);
         Assert.IsFalse(hyperlinkNull.IsHtml);
+    }
+
+    [TestMethod]
+    public void RelativeBaseUrlShouldNotResolveRelativeUrls()
+    {
+        // Arrange
+        var relativeUrl = "page.html";
+        var relativeBaseUrl = "relative/base/path";
+        var linkInline = new LinkInline { Url = relativeUrl };
+
+        // Act
+        var hyperlink = new MyHyperlink(linkInline, relativeBaseUrl);
+
+        // Assert
+        var hyperlinkElement = (Hyperlink)hyperlink.TextElement;
+        Assert.IsNull(
+            hyperlinkElement.NavigateUri,
+            "NavigateUri should be null when base URL is relative (not absolute)");
+    }
+
+    [TestMethod]
+    public void RelativeBaseUrlWithAbsoluteUrlShouldUseAbsoluteUrl()
+    {
+        // Arrange - Even with a relative base, absolute URLs should work
+        var absoluteUrl = "https://example.com/page";
+        var relativeBaseUrl = "relative/base/path";
+        var linkInline = new LinkInline { Url = absoluteUrl };
+
+        // Act
+        var hyperlink = new MyHyperlink(linkInline, relativeBaseUrl);
+
+        // Assert
+        var hyperlinkElement = (Hyperlink)hyperlink.TextElement;
+        Assert.IsNotNull(
+            hyperlinkElement.NavigateUri,
+            "Absolute URL should be resolved even when base URL is relative");
+        Assert.AreEqual(new Uri(absoluteUrl), hyperlinkElement.NavigateUri);
     }
 
     [TestMethod]

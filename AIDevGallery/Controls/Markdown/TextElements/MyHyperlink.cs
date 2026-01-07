@@ -65,11 +65,14 @@ internal class MyHyperlink : IAddChild
             {
                 _hyperlink.NavigateUri = uri;
             }
-            else if (!string.IsNullOrEmpty(_baseUrl) && Uri.TryCreate(_baseUrl, UriKind.Absolute, out Uri? baseUri))
+            else if (!string.IsNullOrEmpty(_baseUrl))
             {
-                if (Uri.TryCreate(baseUri, uri, out Uri? absoluteUri))
+                if (Uri.TryCreate(_baseUrl, UriKind.Absolute, out Uri? baseUri))
                 {
-                    _hyperlink.NavigateUri = absoluteUri;
+                    if (Uri.TryCreate(baseUri, uri, out Uri? absoluteUri))
+                    {
+                        _hyperlink.NavigateUri = absoluteUri;
+                    }
                 }
             }
         }
@@ -87,9 +90,9 @@ internal class MyHyperlink : IAddChild
         {
             _hyperlink.Inlines.Add(inlineChild);
         }
-        catch (ArgumentException ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[MyHyperlink] Failed to add {inlineChild.GetType().Name}: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Exception when adding {inlineChild.GetType().Name}: {ex.GetType().Name} - {ex.Message}");
         }
     }
 }
