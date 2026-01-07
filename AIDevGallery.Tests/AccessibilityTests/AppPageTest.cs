@@ -519,14 +519,17 @@ public class AccessibilityTests : FlaUITestBase
         try
         {
             var assemblyDir = System.IO.Path.GetDirectoryName(typeof(AccessibilityTests).Assembly.Location);
-            if (string.IsNullOrEmpty(assemblyDir)) return;
+            if (string.IsNullOrEmpty(assemblyDir))
+            {
+                return;
+            }
 
             var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeResults");
             if (System.IO.Directory.Exists(baseOutputDir))
             {
                 var files = System.IO.Directory.GetFiles(baseOutputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
                 Console.WriteLine($"Found {files.Length} Axe result files to attach");
-                
+
                 foreach (var file in files)
                 {
                     Console.WriteLine($"Attaching result file: {file}");
