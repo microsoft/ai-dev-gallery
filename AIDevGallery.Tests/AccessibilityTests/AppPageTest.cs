@@ -143,7 +143,6 @@ public class AccessibilityTests : FlaUITestBase
                 () => scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
                 timeout: TimeSpan.FromSeconds(10));
             var menuItemsHost = menuItemsHostResult.Result;
-
             Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
 
             // Find only DIRECT children ListItems, not all descendants
@@ -172,7 +171,33 @@ public class AccessibilityTests : FlaUITestBase
                         timeout: TimeSpan.FromSeconds(5),
                         throwOnTimeout: false);
 
-                    ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
+                    // Small delay to allow content to load
+                    var ListItems = menuItemsHost.FindAllChildren(cf =>
+                        cf.ByControlType(ControlType.ListItem))
+                        .Where(item => item.IsEnabled && item.IsOffscreen == false)
+                        .ToArray();
+
+                    // If there are further list items, we could extend this to click into them as well
+                    if (ListItems.Length > 0)
+                    {
+                        foreach (var listItem in ListItems)
+                        {
+                            Console.WriteLine($"  - Found sub-item: {listItem.Name}");
+                            listItem.Click();
+
+                            // Wait for window to become responsive after click
+                            Retry.WhileTrue(
+                                () => !MainWindow.IsAvailable || MainWindow.IsOffscreen,
+                                timeout: TimeSpan.FromSeconds(5),
+                                throwOnTimeout: false);
+
+                            ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
+                        }
+                    }
+                    else
+                    {
+                        ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
+                    }
 
                     Console.WriteLine($"Successfully clicked: {item.Name}");
                 }
