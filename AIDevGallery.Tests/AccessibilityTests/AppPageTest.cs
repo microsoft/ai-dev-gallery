@@ -136,9 +136,11 @@ public class AccessibilityTests : FlaUITestBase
             Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
             ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
-            // Act - Find the MenuItemsHost to get only top-level navigation items
+            var Scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
+
+            // Act - Find the MenuItemsHost in scenario navigation view
             var menuItemsHostResult = Retry.WhileNull(
-                () => MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
+                () => Scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
                 timeout: TimeSpan.FromSeconds(10));
             var menuItemsHost = menuItemsHostResult.Result;
 
