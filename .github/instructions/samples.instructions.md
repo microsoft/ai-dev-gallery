@@ -15,23 +15,27 @@ Every sample MUST:
 4. Register cleanup in constructor via `this.Unloaded += (s, e) => CleanUp();`
 5. Call `sampleParams.NotifyCompletion()` when model is ready
 
-## [GallerySample] Attribute Checklist
+## [GallerySample] Attribute
 
 Required properties:
-- `Name`: Display name for the sample
-- `Model1Types`: Array of `ModelType` values (e.g., `[ModelType.LanguageModels, ModelType.PhiSilica]`)
-- `Scenario`: Must reference a `ScenarioType` from `scenarios.json`
-- `Id`: Unique GUID string (generate a new one for each sample)
-- `Icon`: Segoe MDL2 glyph code (e.g., `"\uE8D4"`)
+- `Name`: Display name
+- `Model1Types`: Array of `ModelType` values
+- `Id`: Unique GUID string
+- `Icon`: Segoe MDL2 glyph code
 
-Common optional properties:
+Optional properties:
+- `Scenario`: Reference a `ScenarioType` from `scenarios.json`
 - `Model2Types`: For dual-model samples
-- `NugetPackageReferences`: Required packages (e.g., `["Microsoft.Extensions.AI"]`)
-- `SharedCode`: Array of `SharedCodeEnum` values for exportable utilities
+- `NugetPackageReferences`: Required packages
+- `SharedCode`: Array of `SharedCodeEnum` values
+- `AssetFilenames`: Asset files needed by the sample
 
-## Model Loading Patterns
+---
 
-### For Language Models (IChatClient)
+## Language Model Samples (IChatClient)
+
+For samples using language models (LLMs):
+
 ```csharp
 protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
 {
@@ -43,30 +47,81 @@ protected override async Task LoadModelAsync(SampleNavigationParameters samplePa
     {
         ShowException(ex);
     }
+
     sampleParams.NotifyCompletion();
 }
 ```
 
-### For WinML/ONNX Models
+---
+
+## Windows ML
+
+For samples using ONNX models with Windows ML / ONNX Runtime:
+
+### Initialization Flow
+
+1. **Ensure certified EPs** - Install/register hardware acceleration packages (DML, QNN, etc.)
+2. **Create SessionOptions** - Call `RegisterOrtExtensions()` for additional operators
+3. **Honor WinMlSampleOptions** - Use `Policy` for auto-selection or `EpName`/`DeviceType` for specific EP
+4. **Create InferenceSession** - Optionally use compiled model for faster subsequent runs
+5. **Call NotifyCompletion** - Hide loading spinner when ready
+
+### LoadModelAsync Pattern
+
 ```csharp
 protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
 {
     try
     {
-        await InitModel(
-            sampleParams.ModelPath,
-            sampleParams.WinMlSampleOptions.Policy,
-            sampleParams.WinMlSampleOptions.EpName,
-            sampleParams.WinMlSampleOptions.CompileModel,
-            sampleParams.WinMlSampleOptions.DeviceType);
+        await InitializeModelAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions);
     }
     catch (Exception ex)
     {
         ShowException(ex, "Failed to load model.");
     }
+
     sampleParams.NotifyCompletion();
 }
 ```
+
+### WinML Initialization (in InitializeModelAsync or SharedCode)
+
+```csharp
+// 1. Ensure certified EPs are available
+var catalog = Microsoft.Windows.AI.MachineLearning.ExecutionProviderCatalog.GetDefault();
+await catalog.EnsureAndRegisterCertifiedAsync();
+
+// 2. Create session options
+SessionOptions sessionOptions = new();
+sessionOptions.RegisterOrtExtensions();
+
+// 3. Configure EP based on WinMlSampleOptions
+if (options.Policy != null)
+{
+    sessionOptions.SetEpSelectionPolicy(options.Policy.Value);
+}
+else if (options.EpName != null)
+{
+    sessionOptions.AppendExecutionProviderFromEpName(options.EpName, options.DeviceType);
+    if (options.CompileModel)
+    {
+        modelPath = sessionOptions.GetCompiledModel(modelPath, options.EpName) ?? modelPath;
+    }
+}
+
+// 4. Create inference session
+_inferenceSession = new InferenceSession(modelPath, sessionOptions);
+```
+
+### WinML Code Review Checks
+
+- `EnsureAndRegisterCertifiedAsync()` called for EP registration
+- `RegisterOrtExtensions()` called on SessionOptions
+- `WinMlSampleOptions` honored (Policy or EpName/DeviceType)
+- `CompileModel` option handled when applicable
+- InferenceSession disposed in cleanup
+
+---
 
 ## Cleanup Pattern
 
@@ -88,7 +143,7 @@ private void CleanUp()
 
 ## Code Review Checks
 
-- `NotifyCompletion()` is called (otherwise loading spinner never hides)
+- `NotifyCompletion()` called when model is ready
 - Resources disposed in `Unloaded` handler
 - Long operations run on background thread (`Task.Run`)
 - CancellationToken used for cancellable operations
@@ -97,23 +152,19 @@ private void CleanUp()
 - All referenced `SharedCode` files exist
 - NuGet packages match what SharedCode files need
 
-## Telemetry
+## Other Patterns
 
-Use `SendSampleInteractedEvent("action")` to track user interactions:
+### Telemetry
 ```csharp
 SendSampleInteractedEvent("ClassifyImage");
 ```
 
-## Accessibility
-
-Use `NarratorHelper` for screen reader announcements:
+### Accessibility
 ```csharp
 NarratorHelper.Announce(InputTextBox, "Processing complete.", "ProcessingCompleteAnnouncementId");
 ```
 
-## File Copyright Headers
-
-Every C# file must start with:
+### File Copyright Headers
 ```csharp
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
