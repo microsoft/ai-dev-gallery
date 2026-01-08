@@ -17,6 +17,7 @@ namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
 
 internal class MyImage : IAddChild
 {
+    private static readonly HttpClient _httpClient = new HttpClient();
     private InlineUIContainer _container = new InlineUIContainer();
     private LinkInline? _linkInline;
     private Image _image = new Image();
@@ -108,10 +109,8 @@ internal class MyImage : IAddChild
             }
             else
             {
-                using HttpClient client = new();
-
                 // Download data from URL
-                using HttpResponseMessage response = await client.GetAsync(_uri);
+                using HttpResponseMessage response = await _httpClient.GetAsync(_uri);
 
                 // Get the Content-Type header
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
