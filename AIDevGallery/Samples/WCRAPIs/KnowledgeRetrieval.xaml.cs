@@ -152,6 +152,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage, IDisposable
         _indexer?.RemoveAll();
         _indexer?.Dispose();
         _indexer = null;
+        cts?.Dispose();
+        cts = null;
     }
 
     public void Dispose()
