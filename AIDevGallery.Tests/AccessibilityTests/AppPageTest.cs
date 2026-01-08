@@ -90,6 +90,7 @@ public class AccessibilityTests : FlaUITestBase
 
                     // Open List
                     item.Click();
+                    Thread.Sleep(200);
 
                     // Wait for window to become responsive after click
                     Retry.WhileTrue(
