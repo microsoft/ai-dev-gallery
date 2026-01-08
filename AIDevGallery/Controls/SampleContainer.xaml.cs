@@ -326,10 +326,6 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
             _sampleLoadingCts = null;
         }
 
-        _sampleLoadedCompletionSource = null;
-        _sampleLoadingCts?.Dispose();
-        _sampleLoadingCts = null;
-
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
         VisualStateManager.GoToState(this, "SampleLoaded", true);
