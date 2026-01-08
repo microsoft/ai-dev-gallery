@@ -45,33 +45,6 @@ else
 }
 ```
 
-## Common WCRAPI Patterns
-
-### Phi Silica Text Generation
-```csharp
-using Microsoft.Windows.AI;
-using Microsoft.Windows.AI.Text;
-
-_languageModel = await LanguageModel.CreateAsync();
-var result = await _languageModel.GenerateResponseAsync(prompt);
-```
-
-### Text Recognition (OCR)
-```csharp
-using Microsoft.Windows.AI.Vision;
-
-var textRecognizer = await TextRecognizer.CreateAsync();
-var result = await textRecognizer.RecognizeTextAsync(softwareBitmap);
-```
-
-### Image Description
-```csharp
-using Microsoft.Windows.AI.Vision;
-
-var imageDescriber = await ImageDescriber.CreateAsync();
-var description = await imageDescriber.DescribeImageAsync(softwareBitmap);
-```
-
 ## Model Types for WCRAPIs
 
 Use `ModelType.PhiSilica` or specific WCRAPI model types:
