@@ -270,9 +270,10 @@ internal sealed partial class ModelPage : Page
                             UseShellExecute = true
                         });
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Silently fail if fallback also fails
+                        // Log the failure to open the fallback URL for diagnostics, but do not surface it to the user.
+                        Debug.WriteLine($"Failed to open AI Toolkit fallback URL: {ex}");
                     }
 
                     wasDeeplinkSuccesful = false;
