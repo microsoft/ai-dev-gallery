@@ -249,28 +249,38 @@ internal sealed partial class ModelPage : Page
             (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
 
             string toolkitDeeplink = modelDetails.CreateAiToolkitDeeplink(action);
-            bool wasDeeplinkSuccesful = true;
-            try
+            _ = Task.Run(() =>
             {
-                _ = Task.Run(() => Process.Start(new ProcessStartInfo()
+                bool wasDeeplinkSuccesful = true;
+                try
                 {
-                    FileName = toolkitDeeplink,
-                    UseShellExecute = true
-                }));
-            }
-            catch
-            {
-                _ = Task.Run(() => Process.Start(new ProcessStartInfo()
+                    Process.Start(new ProcessStartInfo()
+                    {
+                        FileName = toolkitDeeplink,
+                        UseShellExecute = true
+                    });
+                }
+                catch
                 {
-                    FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
-                    UseShellExecute = true
-                }));
-                wasDeeplinkSuccesful = false;
-            }
-            finally
-            {
-                AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
-            }
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo()
+                        {
+                            FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
+                            UseShellExecute = true
+                        });
+                    }
+                    catch
+                    {
+                        // Silently fail if fallback also fails
+                    }
+                    wasDeeplinkSuccesful = false;
+                }
+                finally
+                {
+                    AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
+                }
+            });
         }
     }
 
@@ -312,22 +322,24 @@ internal sealed partial class ModelPage : Page
             return;
         }
 
-        try
+        _ = Task.Run(() =>
         {
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = uri.AbsoluteUri,
-                UseShellExecute = true
-            };
-            _ = Task.Run(() => Process.Start(psi));
-        }
-        catch (Exception ex) when (ex is Win32Exception
-                                || ex is InvalidOperationException
-                                || ex is PlatformNotSupportedException)
-        {
-            ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
-            ShowDialog(message: errorMessage);
-        }
+                var psi = new ProcessStartInfo
+                {
+                    FileName = uri.AbsoluteUri,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            catch (Exception ex) when (ex is Win32Exception
+                                    || ex is InvalidOperationException
+                                    || ex is PlatformNotSupportedException)
+            {
+                ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
+            }
+        });
     }
 
     private async void ShowDialog(string? message)
