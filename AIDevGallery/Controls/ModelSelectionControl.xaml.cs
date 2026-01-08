@@ -12,7 +12,6 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
@@ -323,10 +322,7 @@ internal partial class ModelSelectionControl : UserControl
 
                     OpenModelFolderEvent.Log(cachedModel.Url);
 
-                    // Process.Start for explorer doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                    Process.Start("explorer.exe", path!);
-#pragma warning restore IDISP004
+                    ProcessHelper.OpenFolder(path!);
                 }
             }
         }
@@ -384,14 +380,10 @@ internal partial class ModelSelectionControl : UserControl
                     }
                 }
 
-                // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                Process.Start(new ProcessStartInfo()
+                if (!string.IsNullOrEmpty(modelcardUrl))
                 {
-                    FileName = modelcardUrl,
-                    UseShellExecute = true
-                });
-#pragma warning restore IDISP004
+                    ProcessHelper.OpenUrl(modelcardUrl);
+                }
             }
         }
     }
@@ -437,14 +429,7 @@ internal partial class ModelSelectionControl : UserControl
                 licenseUrl = details.Url;
             }
 
-            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-            Process.Start(new ProcessStartInfo()
-            {
-                FileName = licenseUrl,
-                UseShellExecute = true
-            });
-#pragma warning restore IDISP004
+            ProcessHelper.OpenUrl(licenseUrl);
         }
     }
 
@@ -614,14 +599,7 @@ internal partial class ModelSelectionControl : UserControl
                 return;
             }
 
-            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = modelDetailsUrl,
-                UseShellExecute = true
-            });
-#pragma warning restore IDISP004
+            ProcessHelper.OpenUrl(modelDetailsUrl);
         }
     }
 }

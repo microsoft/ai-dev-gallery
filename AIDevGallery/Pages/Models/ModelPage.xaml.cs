@@ -254,26 +254,13 @@ internal sealed partial class ModelPage : Page
                 bool wasDeeplinkSuccesful = true;
                 try
                 {
-                    // Process.Start for external process doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                    Process.Start(new ProcessStartInfo()
-                    {
-                        FileName = toolkitDeeplink,
-                        UseShellExecute = true
-                    });
-#pragma warning restore IDISP004 // Don't ignore created IDisposable
+                    ProcessHelper.OpenUrl(toolkitDeeplink);
                 }
                 catch
                 {
                     try
                     {
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                        Process.Start(new ProcessStartInfo()
-                        {
-                            FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
-                            UseShellExecute = true
-                        });
-#pragma warning restore IDISP004 // Don't ignore created IDisposable
+                        ProcessHelper.OpenUrl("https://learn.microsoft.com/en-us/windows/ai/toolkit/");
                     }
                     catch (Exception ex)
                     {
@@ -333,14 +320,7 @@ internal sealed partial class ModelPage : Page
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = uri.AbsoluteUri,
-                    UseShellExecute = true
-                };
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                Process.Start(psi);
-#pragma warning restore IDISP004 // Don't ignore created IDisposable
+                ProcessHelper.OpenUrl(uri.AbsoluteUri);
             }
             catch (Exception ex) when (ex is Win32Exception
                                     || ex is InvalidOperationException

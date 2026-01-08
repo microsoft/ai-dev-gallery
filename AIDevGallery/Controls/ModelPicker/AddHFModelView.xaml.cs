@@ -11,7 +11,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -260,14 +259,7 @@ internal sealed partial class AddHFModelView : UserControl
 
         string url = result!.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}";
 
-        // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-        Process.Start(new ProcessStartInfo()
-        {
-            FileName = url,
-            UseShellExecute = true
-        });
-#pragma warning restore IDISP004
+        ProcessHelper.OpenUrl(url);
     }
 
     private void ViewModelDetails(object sender, RoutedEventArgs e)
