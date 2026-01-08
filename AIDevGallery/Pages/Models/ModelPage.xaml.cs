@@ -338,6 +338,10 @@ internal sealed partial class ModelPage : Page
                                     || ex is PlatformNotSupportedException)
             {
                 ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ShowDialog(message: errorMessage);
+                });
             }
         });
     }
