@@ -249,34 +249,45 @@ internal sealed partial class ModelPage : Page
             (AIToolkitAction action, ModelDetails modelDetails) = ((AIToolkitAction, ModelDetails))actionFlyoutItem.Tag;
 
             string toolkitDeeplink = modelDetails.CreateAiToolkitDeeplink(action);
-            bool wasDeeplinkSuccesful = true;
-            try
+            _ = Task.Run(() =>
             {
-                // Process.Start for external process doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-                Process.Start(new ProcessStartInfo()
+                bool wasDeeplinkSuccesful = true;
+                try
                 {
-                    FileName = toolkitDeeplink,
-                    UseShellExecute = true
-                });
-#pragma warning restore IDISP004
-            }
-            catch
-            {
-                // Process.Start for external process doesn't need disposal - process lifecycle is independent
+                    // Process.Start for external process doesn't need disposal - process lifecycle is independent
 #pragma warning disable IDISP004 // Don't ignore created IDisposable
-                Process.Start(new ProcessStartInfo()
+                    Process.Start(new ProcessStartInfo()
+                    {
+                        FileName = toolkitDeeplink,
+                        UseShellExecute = true
+                    });
+#pragma warning restore IDISP004 // Don't ignore created IDisposable
+                }
+                catch
                 {
-                    FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
-                    UseShellExecute = true
-                });
-#pragma warning restore IDISP004
-                wasDeeplinkSuccesful = false;
-            }
-            finally
-            {
-                AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
-            }
+                    try
+                    {
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+                        Process.Start(new ProcessStartInfo()
+                        {
+                            FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
+                            UseShellExecute = true
+                        });
+#pragma warning restore IDISP004 // Don't ignore created IDisposable
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the failure to open the fallback URL for diagnostics, but do not surface it to the user.
+                        Debug.WriteLine($"Failed to open AI Toolkit fallback URL: {ex}");
+                    }
+
+                    wasDeeplinkSuccesful = false;
+                }
+                finally
+                {
+                    AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
+                }
+            });
         }
     }
 
@@ -318,26 +329,30 @@ internal sealed partial class ModelPage : Page
             return;
         }
 
-        try
+        _ = Task.Run(() =>
         {
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = uri.AbsoluteUri,
-                UseShellExecute = true
-            };
-
-            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+                var psi = new ProcessStartInfo
+                {
+                    FileName = uri.AbsoluteUri,
+                    UseShellExecute = true
+                };
 #pragma warning disable IDISP004 // Don't ignore created IDisposable
-            Process.Start(psi);
-#pragma warning restore IDISP004
-        }
-        catch (Exception ex) when (ex is Win32Exception
-                                || ex is InvalidOperationException
-                                || ex is PlatformNotSupportedException)
-        {
-            ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
-            ShowDialog(message: errorMessage);
-        }
+                Process.Start(psi);
+#pragma warning restore IDISP004 // Don't ignore created IDisposable
+            }
+            catch (Exception ex) when (ex is Win32Exception
+                                    || ex is InvalidOperationException
+                                    || ex is PlatformNotSupportedException)
+            {
+                ModelDetailsLinkClickedEvent.Log($"OpenFailed: {uri} | {ex.GetType().Name}: {ex.Message}");
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ShowDialog(message: errorMessage);
+                });
+            }
+        });
     }
 
     private async void ShowDialog(string? message)

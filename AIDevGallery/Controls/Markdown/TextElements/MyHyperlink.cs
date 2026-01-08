@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
 using HtmlAgilityPack;
 using Markdig.Syntax.Inlines;
 using Microsoft.UI.Xaml.Documents;
+using System;
 using Windows.Foundation;
 
 namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
@@ -52,15 +52,19 @@ internal class MyHyperlink : IAddChild
 
     public void AddChild(IAddChild child)
     {
-        if (child.TextElement is Microsoft.UI.Xaml.Documents.Inline inlineChild)
+        // Hyperlink cannot contain InlineUIContainer - this is a WinUI limitation
+        if (child.TextElement is not Microsoft.UI.Xaml.Documents.Inline inlineChild || inlineChild is InlineUIContainer)
         {
-            try
-            {
-                _hyperlink.Inlines.Add(inlineChild);
-            }
-            catch
-            {
-            }
+            return;
+        }
+
+        try
+        {
+            _hyperlink.Inlines.Add(inlineChild);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Exception when adding {inlineChild.GetType().Name}: {ex.GetType().Name} - {ex.Message}");
         }
     }
 }
