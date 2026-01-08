@@ -53,17 +53,19 @@ public class AccessibilityTests : FlaUITestBase
 
                 if (!navigationSuccess)
                 {
-                    Console.WriteLine($"⚠ Skipping accessibility scan for {pageName} due to navigation failure");
+                    Console.WriteLine($"Skipping accessibility scan for {pageName} due to navigation failure");
                     continue;
                 }
-
-                // Execute scan and track results for regular pages
-                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
 
                 // Check if this page has list items to test
                 if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
                 {
                     TestPageWithListItems(processId, pageName, scanResults, failedPages);
+                }
+                else
+                {
+                    // Execute scan and track results for regular pages
+                    ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
                 }
             }
 
@@ -81,7 +83,7 @@ public class AccessibilityTests : FlaUITestBase
             }
             else
             {
-                Console.WriteLine("✓ All pages passed accessibility checks");
+                Console.WriteLine("All pages passed accessibility checks");
             }
         }
         catch (Exception ex)
@@ -141,9 +143,6 @@ public class AccessibilityTests : FlaUITestBase
             // Arrange
             Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
-            // First scan the page without opening any items
-            Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
-
             // Act - Find scenario navigation view
             var scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
             Assert.IsNotNull(scenario, "scenario should be found");
@@ -187,6 +186,8 @@ public class AccessibilityTests : FlaUITestBase
                         .Where(item => item.IsEnabled && item.IsOffscreen == false)
                         .ToArray();
 
+                    Console.WriteLine($"Inside List Found {listItems.Length} items");
+
                     // If there are further list items, we could extend this to click into them as well
                     if (listItems.Length > 0)
                     {
@@ -218,7 +219,7 @@ public class AccessibilityTests : FlaUITestBase
             }
 
             // Assert - Report testing summary for this page
-            Console.WriteLine($"\n✓ Completed testing items in page '{pageName}'");
+            Console.WriteLine($"\nCompleted testing items in page '{pageName}'");
         }
         catch (Exception ex)
         {
@@ -329,7 +330,7 @@ public class AccessibilityTests : FlaUITestBase
 
                 if (issueFiles.Length > 0)
                 {
-                    Console.WriteLine($"⚠ Accessibility issues found on '{pageName}':");
+                    Console.WriteLine($"Accessibility issues found on '{pageName}':");
                     foreach (var issueFile in issueFiles)
                     {
                         Console.WriteLine($"  - {issueFile}");
@@ -339,7 +340,7 @@ public class AccessibilityTests : FlaUITestBase
                 }
                 else
                 {
-                    Console.WriteLine($"✓ '{pageName}' passed accessibility check");
+                    Console.WriteLine($"'{pageName}' passed accessibility check");
                     return true;
                 }
             }
@@ -448,7 +449,7 @@ public class AccessibilityTests : FlaUITestBase
                     return null;
                 }
 
-                Console.WriteLine($"✓ Successfully downloaded and extracted Axe.Windows CLI to: {cliExePath}");
+                Console.WriteLine($"Successfully downloaded and extracted Axe.Windows CLI to: {cliExePath}");
                 return cliExePath;
             }
         }
