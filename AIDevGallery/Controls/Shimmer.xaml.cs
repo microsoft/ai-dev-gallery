@@ -105,7 +105,6 @@ internal sealed partial class Shimmer : Control, IDisposable
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         ActualThemeChanged -= OnActualThemeChanged;
-        Dispose();
     }
 
     private void OnActualThemeChanged(FrameworkElement sender, object args)

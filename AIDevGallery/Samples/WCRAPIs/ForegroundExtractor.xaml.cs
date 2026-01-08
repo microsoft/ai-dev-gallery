@@ -34,17 +34,26 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage, IDisposable
     private ImageForegroundExtractor? _foregroundExtractor;
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _outputBitmap;
+    private bool _disposed;
 
     public ForegroundExtractor()
     {
+        this.Unloaded += (s, e) => Dispose();
         this.InitializeComponent();
     }
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         _foregroundExtractor?.Dispose();
         _inputBitmap?.Dispose();
         _outputBitmap?.Dispose();
+
+        _disposed = true;
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -181,9 +190,8 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage, IDisposable
             return;
         }
 
-        // Dispose previous source to avoid memory leaks
-        // Image.Source is managed by this class, not injected, so disposal is appropriate
-#pragma warning disable IDISP007 // Don't dispose injected - Image.Source is managed by this class
+        // Dispose previous source created by this method to avoid memory leaks
+#pragma warning disable IDISP007 // Don't dispose injected - image.Source is created and managed by this method
         if (image.Source is SoftwareBitmapSource previousSource)
         {
             previousSource.Dispose();

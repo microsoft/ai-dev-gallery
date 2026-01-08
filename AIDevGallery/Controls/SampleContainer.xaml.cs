@@ -68,6 +68,7 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
     private ModelType? _wcrApi;
+    private bool _disposed;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -108,21 +109,17 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
 
     private void CancelCTS()
     {
-#pragma warning disable IDISP017 // Prefer using. - CancellationTokenSource is managed across method boundaries
         var cts = _sampleLoadingCts;
-        if (cts != null)
+        if (cts == null)
         {
-            _sampleLoadingCts = null;
-            try
-            {
-                cts.Cancel();
-            }
-            finally
-            {
-                cts.Dispose();
-            }
+            return;
         }
-#pragma warning restore IDISP017 // Prefer using.
+
+        _sampleLoadingCts = null;
+        using (cts)
+        {
+            cts.Cancel();
+        }
     }
 
     public SampleContainer()
@@ -132,7 +129,7 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
         References.Add(new WeakReference<SampleContainer>(this));
         this.Unloaded += (sender, args) =>
         {
-            CancelCTS();
+            Dispose();
             var reference = References.FirstOrDefault(r => r.TryGetTarget(out var sampleContainer) && sampleContainer == this);
             if (reference != null)
             {
@@ -599,6 +596,12 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
 
     public void Dispose()
     {
-        _sampleLoadingCts?.Dispose();
+        if (_disposed)
+        {
+            return;
+        }
+
+        CancelCTS();
+        _disposed = true;
     }
 }

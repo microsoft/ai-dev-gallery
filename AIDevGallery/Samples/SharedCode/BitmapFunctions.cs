@@ -96,8 +96,10 @@ internal class BitmapFunctions
             stream.Seek(0); // Reset stream position
 
             // Convert to System.Drawing.Bitmap
-            // IDISP: AsStream() returns a wrapper view of the same stream, disposing it here would close the underlying stream prematurely
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            // AsStream() returns a Stream wrapper over the IRandomAccessStream - we intentionally don't capture it
+            // The wrapper should not be disposed separately; it's valid as long as the underlying 'stream' is alive
+            // We do dispose the Bitmap in the using statement after we're done using it
+#pragma warning disable IDISP004 // Don't ignore created IDisposable - AsStream() wrapper is intentionally not captured
             using var tempBitmap = new Bitmap(stream.AsStream());
 #pragma warning restore IDISP004
             Bitmap paddedBitmap = new(targetWidth, targetHeight);

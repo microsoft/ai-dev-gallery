@@ -52,6 +52,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage, IDisposable
     private string _adapterFilePath = string.Empty;
     private string _systemPrompt = string.Empty;
     private GenerationType _generationType = GenerationType.All;
+    private bool _disposed;
 
     public PhiSilicaLoRa()
     {
@@ -142,14 +143,21 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage, IDisposable
         App.AppData.LastSystemPrompt = SystemPromptBox.Text; // <exclude-line>
         App.AppData.LastAdapterPath = _adapterFilePath; // <exclude-line>
         await App.AppData.SaveAsync(); // <exclude-line>
-        _languageModel?.Dispose();
+        Dispose();
     }
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         _languageModel?.Dispose();
         _loraModel?.Dispose();
         _cts?.Dispose();
+
+        _disposed = true;
     }
 
     public bool IsProgressVisible

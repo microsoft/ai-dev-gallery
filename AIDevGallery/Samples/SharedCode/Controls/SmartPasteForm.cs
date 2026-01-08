@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -104,7 +105,7 @@ Rules:
         }
 
         SampleInteractionEvent.SendSampleInteractedEvent(model, ScenarioType.SmartControlsSmartPaste, "InferPasteValues"); // <exclude-line>
-        string outputMessage = string.Empty;
+        StringBuilder outputMessage = new();
         PromptInput input = new()
         {
             Labels = fieldLabels,
@@ -124,9 +125,9 @@ Rules:
                 null,
                 cts.Token))
             {
-                outputMessage += messagePart;
+                outputMessage.Append(messagePart);
 
-                Match match = Regex.Match(outputMessage, "{([^}]*)}", RegexOptions.Multiline);
+                Match match = Regex.Match(outputMessage.ToString(), "{([^}]*)}", RegexOptions.Multiline);
                 if (match.Success)
                 {
                     output = match.Value;

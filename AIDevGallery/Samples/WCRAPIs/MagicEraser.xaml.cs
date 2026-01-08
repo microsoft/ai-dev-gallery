@@ -40,14 +40,21 @@ internal sealed partial class MagicEraser : BaseSamplePage, IDisposable
     private bool _isDragging;
     private ImageObjectRemover? _eraser;
     private Stack<SoftwareBitmap> _bitmaps = new();
+    private bool _disposed;
 
     public MagicEraser()
     {
+        this.Unloaded += (s, e) => Dispose();
         this.InitializeComponent();
     }
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         while (_bitmaps.Count > 0)
         {
             _bitmaps.Pop()?.Dispose();
@@ -56,6 +63,8 @@ internal sealed partial class MagicEraser : BaseSamplePage, IDisposable
         _inputBitmap?.Dispose();
         _maskBitmap?.Dispose();
         _eraser?.Dispose();
+
+        _disposed = true;
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)

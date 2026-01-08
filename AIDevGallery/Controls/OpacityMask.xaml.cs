@@ -31,9 +31,6 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
     private const string MaskContainerTemplateName = "PART_MaskContainer";
     private const string RootGridTemplateName = "PART_RootGrid";
 
-#pragma warning disable IDISP002 // Compositor is provided by the system and should not be disposed
-    private readonly Compositor _compositor = CompositionTarget.GetCompositorForCurrentThread();
-#pragma warning restore IDISP002
     private CompositionBrush? _mask;
     private CompositionMaskBrush? _maskBrush;
     private SpriteVisual? _redirectVisual;
@@ -69,8 +66,13 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
         ContentPresenter contentPresenter = (ContentPresenter)GetTemplateChild(ContentPresenterTemplateName);
         Border maskContainer = (Border)GetTemplateChild(MaskContainerTemplateName);
 
+        // Get compositor locally - it's provided by the system and should not be stored or disposed
+#pragma warning disable IDISP001 // Dispose created - Compositor is a system-managed shared instance
+        Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
+#pragma warning restore IDISP001
+
         _maskBrush?.Dispose();
-        _maskBrush = _compositor.CreateMaskBrush();
+        _maskBrush = compositor.CreateMaskBrush();
         _contentVisualSurface?.Dispose();
         _contentSizeAnimation?.Dispose();
         _maskBrush.Source = GetVisualBrush(contentPresenter, ref _contentVisualSurface, ref _contentSizeAnimation);
@@ -81,7 +83,7 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
         _maskBrush.Mask = OpacityMask is null ? null : _mask;
 
         _redirectVisual?.Dispose();
-        _redirectVisual = _compositor.CreateSpriteVisual();
+        _redirectVisual = compositor.CreateSpriteVisual();
         _redirectVisual.RelativeSizeAdjustment = Vector2.One;
         _redirectVisual.Brush = _maskBrush;
         ElementCompositionPreview.SetElementChildVisual(rootGrid, _redirectVisual);

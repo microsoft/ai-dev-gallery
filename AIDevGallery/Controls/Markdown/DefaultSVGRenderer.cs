@@ -30,7 +30,9 @@ internal class DefaultSVGRenderer : ISVGRenderer
             memoryStream.Position = 0;
 
             // Load the SVG from the MemoryStream
-            // AsRandomAccessStream() returns a wrapper that should not be disposed - it's owned by SvgImageSource after SetSourceAsync
+            // AsRandomAccessStream() returns a wrapper around memoryStream that should not be disposed separately
+            // The wrapper is valid as long as the underlying memoryStream is alive
+            // The await ensures SetSourceAsync completes before memoryStream is disposed at the end of the using block
 #pragma warning disable IDISP001 // Dispose created
             var randomAccessStream = memoryStream.AsRandomAccessStream();
 #pragma warning restore IDISP001

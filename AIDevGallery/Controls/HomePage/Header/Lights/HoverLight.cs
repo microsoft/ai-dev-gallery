@@ -128,7 +128,7 @@ internal sealed partial class HoverLight : XamlLight, IDisposable
         _offsetAnimation?.Dispose();
         _hoverPosition?.Dispose();
         _spotLight?.Dispose();
-        CompositionLight?.Dispose();
+        CompositionLight = null;
         _disposed = true;
     }
 }
