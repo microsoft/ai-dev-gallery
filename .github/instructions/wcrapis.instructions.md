@@ -8,10 +8,7 @@ When reviewing or modifying samples in `AIDevGallery/Samples/WCRAPIs/`:
 
 ## Overview
 
-WCRAPI samples use Windows Copilot Runtime APIs (Phi Silica, Text Recognition, etc.) that are:
-- Built into Windows on Copilot+ PCs
-- Accessed via `Microsoft.Windows.AI.*` namespaces
-- Subject to Limited Access Features (LAF) requirements
+Windows AI APIs samples use Windows Copilot Runtime APIs (Phi Silica, Text Recognition, etc.) that are built into Windows on Copilot+ PCs.
 
 ## Limited Access Features (LAF)
 
@@ -19,12 +16,6 @@ WCRAPI samples use Windows Copilot Runtime APIs (Phi Silica, Text Recognition, e
 - **NEVER commit production LAF tokens to the repository**
 - Demo tokens in code are for development only
 - Use `LimitedAccessFeaturesHelper` for token management
-
-### Pattern
-```csharp
-var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
-var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
-```
 
 ## Feature Availability Checks
 
@@ -100,26 +91,3 @@ Use `ModelType.PhiSilica` or specific WCRAPI model types:
 - Graceful fallback when API is not ready
 - CancellationToken support for long operations
 - Proper disposal of AI resources
-
-## ARM64 Requirements
-
-Most WCRAPIs require ARM64 Copilot+ PCs:
-- Test on ARM64 hardware or emulator
-- Document ARM64 requirement clearly
-- Handle unavailability on x64 gracefully
-
-## API Categories
-
-Each WCRAPI sample should reference the correct category in `apis.json`:
-- `"Phi Silica"` - Text generation, summarization, rewriting
-- `"Vision"` - OCR, image description, background removal
-- `"Imaging"` - Super resolution, image enhancement
-
-## NuGet References
-
-WCRAPI samples typically need:
-```csharp
-NugetPackageReferences = [
-    "Microsoft.Extensions.AI"
-]
-```
