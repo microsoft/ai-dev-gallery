@@ -88,7 +88,12 @@ internal class ModelDownloadQueue()
         ModelDownloadCancelEvent.Log(download.Details.Url);
         _queue.Remove(download);
         ModelsChanged?.Invoke(this);
+
+        // ModelDownload is managed by the queue and will be disposed when removed
+        // Don't dispose injected or externally managed instances
+#pragma warning disable IDISP007 // Don't dispose injected
         download.Dispose();
+#pragma warning restore IDISP007
     }
 
     public IReadOnlyList<ModelDownload> GetDownloads()

@@ -32,7 +32,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels;
         "Microsoft.ML.OnnxRuntimeGenAI.WinML"
     ],
     Name = "Describe Image")]
-internal sealed partial class DescribeImage : BaseSamplePage
+internal sealed partial class DescribeImage : BaseSamplePage, IDisposable
 {
     private Model? model;
     private MultiModalProcessor? processor;
@@ -70,12 +70,15 @@ internal sealed partial class DescribeImage : BaseSamplePage
             {
                 try
                 {
+                    model?.Dispose();
                     model = new Model(modelPath);
                     ct.ThrowIfCancellationRequested();
 
+                    processor?.Dispose();
                     processor = new MultiModalProcessor(model);
                     ct.ThrowIfCancellationRequested();
 
+                    tokenizerStream?.Dispose();
                     tokenizerStream = processor.CreateStream();
                     ct.ThrowIfCancellationRequested();
                 }
@@ -88,7 +91,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
             ct);
     }
 
-    private void Dispose()
+    public void Dispose()
     {
         _cts?.Cancel();
         _cts?.Dispose();
@@ -129,7 +132,7 @@ internal sealed partial class DescribeImage : BaseSamplePage
         var prompt = $@"<|user|>\n<|image_1|>\n{question}<|end|>\n<|assistant|>\n";
         string[] stopTokens = ["</s>", "<|user|>", "<|end|>", "<|assistant|>"];
 
-        var inputTensors = processor.ProcessImages(prompt, images);
+        using var inputTensors = processor.ProcessImages(prompt, images);
 
         using GeneratorParams generatorParams = new(model);
         generatorParams.SetSearchOption("max_length", 4096);

@@ -36,7 +36,7 @@ namespace AIDevGallery.Samples.OpenSourceModels;
     Name = "ImageNet Image Classification",
     Id = "09d73ba7-b877-45f9-9de6-41898ab4d339",
     Icon = "\uE8B9")]
-internal sealed partial class ImageClassification : BaseSamplePage
+internal sealed partial class ImageClassification : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
@@ -45,6 +45,11 @@ internal sealed partial class ImageClassification : BaseSamplePage
         this.Unloaded += (s, e) => _inferenceSession?.Dispose();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -96,7 +101,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -113,6 +118,7 @@ internal sealed partial class ImageClassification : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }

@@ -14,10 +14,19 @@ internal partial class AmbLight : XamlLight
 
     protected override void OnConnected(UIElement newElement)
     {
+        // Compositor is a shared system resource and should not be disposed
+#pragma warning disable IDISP001 // Dispose created
         Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
+#pragma warning restore IDISP001
+
+        // Dispose previous CompositionLight if exists
+        CompositionLight?.Dispose();
 
         // Create AmbientLight and set its properties
+        // Ownership of ambientLight is transferred to CompositionLight property
+#pragma warning disable IDISP001 // Dispose created
         AmbientLight ambientLight = compositor.CreateAmbientLight();
+#pragma warning restore IDISP001
         ambientLight.Color = Colors.White;
 
         // Associate CompositionLight with XamlLight

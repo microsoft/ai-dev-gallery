@@ -14,11 +14,12 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils;
 
-internal class FoundryLocalModelProvider : IExternalModelProvider
+internal sealed class FoundryLocalModelProvider : IExternalModelProvider, IDisposable
 {
     private IEnumerable<ModelDetails>? _downloadedModels;
     private IEnumerable<ModelDetails>? _catalogModels;
     private FoundryClient? _foundryManager;
+    private bool _disposed;
 
     public static FoundryLocalModelProvider Instance { get; } = new FoundryLocalModelProvider();
 
@@ -285,6 +286,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
     {
         _downloadedModels = null;
         _catalogModels = null;
+        _foundryManager?.Dispose();
         _foundryManager = null;
 
         await InitializeAsync();
@@ -299,7 +301,10 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
             return;
         }
 
-        _foundryManager = _foundryManager ?? await FoundryClient.CreateAsync();
+        if (_foundryManager == null)
+        {
+            _foundryManager = await FoundryClient.CreateAsync();
+        }
 
         if (_foundryManager == null)
         {
@@ -498,5 +503,16 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
                 ex.Message);
             return false;
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _foundryManager?.Dispose();
+        _disposed = true;
     }
 }

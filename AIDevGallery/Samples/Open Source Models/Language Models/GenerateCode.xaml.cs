@@ -29,7 +29,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Generate Code",
     Id = "2270c051-a91c-4af9-8975-a99fda6b024b",
     Icon = "\uE8D4")]
-internal sealed partial class GenerateCode : BaseSamplePage
+internal sealed partial class GenerateCode : BaseSamplePage, IDisposable
 {
     private const int _defaultMaxLength = 1024;
     private RichTextBlockFormatter formatter;
@@ -54,6 +54,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _defaultMaxLength;
         }
@@ -76,6 +77,11 @@ internal sealed partial class GenerateCode : BaseSamplePage
     {
         CancelGenerate();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -110,6 +116,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
             async () =>
             {
                 string systemPrompt = "You generate code in " + currentLanguage + ". Respond with only the code in " + currentLanguage + " and no extraneous text.";
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

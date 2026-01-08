@@ -40,7 +40,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     ],
     Id = "41391b3f-f143-4719-a171-b0ce9c4cdcd6",
     Icon = "\uE8D4")]
-internal sealed partial class SemanticSearch : BaseSamplePage
+internal sealed partial class SemanticSearch : BaseSamplePage, IDisposable
 {
     private EmbeddingGenerator? _embeddings;
     private CancellationTokenSource cts = new();
@@ -66,6 +66,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
             string? deviceType = sampleParams.WinMlSampleOptions.DeviceType;
 
+            _embeddings?.Dispose();
             _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel, deviceType);
             sampleParams.NotifyCompletion();
         }
@@ -93,6 +94,12 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     private void CleanUp()
     {
         _embeddings?.Dispose();
+        cts?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     private void SemanticTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -145,8 +152,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         Task.Run(
             async () =>
             {
-                VectorStore? vectorStore = new InMemoryVectorStore();
-                VectorStoreCollection<object, Dictionary<string, object?>> embeddingsCollection = vectorStore.GetDynamicCollection("embeddings", StringData.VectorStoreDefinition);
+                using VectorStore? vectorStore = new InMemoryVectorStore();
+                using VectorStoreCollection<object, Dictionary<string, object?>> embeddingsCollection = vectorStore.GetDynamicCollection("embeddings", StringData.VectorStoreDefinition);
                 await embeddingsCollection.EnsureCollectionExistsAsync(ct).ConfigureAwait(false);
 
                 List<string> sourceContent = ChunkSourceText(sourceText, 512);

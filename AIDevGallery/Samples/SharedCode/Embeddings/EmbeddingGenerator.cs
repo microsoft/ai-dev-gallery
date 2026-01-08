@@ -22,7 +22,7 @@ using Tensor = System.Numerics.Tensors.Tensor;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<string, Embedding<float>>
+internal sealed partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<string, Embedding<float>>
 {
     [GeneratedRegex(@"[\u0000-\u001F\u007F-\uFFFF]")]
     private static partial Regex MyRegex();

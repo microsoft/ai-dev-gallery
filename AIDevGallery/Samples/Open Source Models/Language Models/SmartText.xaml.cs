@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
         SharedCodeEnum.SmartTextBoxCs,
         SharedCodeEnum.SmartTextBoxXaml
     ])]
-internal sealed partial class SmartText : BaseSamplePage
+internal sealed partial class SmartText : BaseSamplePage, IDisposable
 {
     private IChatClient? _model;
 
@@ -43,6 +43,7 @@ internal sealed partial class SmartText : BaseSamplePage
     {
         try
         {
+            _model?.Dispose();
             _model = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -61,5 +62,10 @@ internal sealed partial class SmartText : BaseSamplePage
     private void CleanUp()
     {
         _model?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 }

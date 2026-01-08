@@ -33,7 +33,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-internal sealed partial class PhiSilicaLoRa : BaseSamplePage
+internal sealed partial class PhiSilicaLoRa : BaseSamplePage, IDisposable
 {
     internal enum GenerationType
     {
@@ -52,6 +52,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private string _adapterFilePath = string.Empty;
     private string _systemPrompt = string.Empty;
     private GenerationType _generationType = GenerationType.All;
+    private bool _disposed;
 
     public PhiSilicaLoRa()
     {
@@ -98,6 +99,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             }
 
             _languageModel = await LanguageModel.CreateAsync();
+            _loraModel?.Dispose();
             _loraModel = new LanguageModelExperimental(_languageModel);
         }
         else
@@ -141,7 +143,21 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         App.AppData.LastSystemPrompt = SystemPromptBox.Text; // <exclude-line>
         App.AppData.LastAdapterPath = _adapterFilePath; // <exclude-line>
         await App.AppData.SaveAsync(); // <exclude-line>
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
         _languageModel?.Dispose();
+        _loraModel?.Dispose();
+        _cts?.Dispose();
+
+        _disposed = true;
     }
 
     public bool IsProgressVisible
@@ -174,7 +190,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         // the context has the system prompt and history
         //  it is created for each query to avoid bringing history from previous queries
-        LanguageModelContext? context = systemPrompt.Length > 0 ? _languageModel.CreateContext(systemPrompt) : null;
+        using LanguageModelContext? context = systemPrompt.Length > 0 ? _languageModel.CreateContext(systemPrompt) : null;
         operation = context == null ?
             options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
             options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
@@ -265,6 +281,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             IsProgressVisible = true;
 
             _cts?.Cancel();
+            _cts?.Dispose();
             _cts = new CancellationTokenSource();
             var options = new LanguageModelOptionsExperimental();
             try

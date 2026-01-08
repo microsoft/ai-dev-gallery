@@ -30,7 +30,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class PhiSilicaBasic : BaseSamplePage
+internal sealed partial class PhiSilicaBasic : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
@@ -107,6 +107,11 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
         _languageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -136,6 +141,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
         _languageModel ??= await LanguageModel.CreateAsync();
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         // <exclude>

@@ -27,7 +27,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
     ])]
-internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
+internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged, IDisposable
 {
     private readonly int defaultTopK = 50;
     private readonly float defaultTopP = 0.9f;
@@ -71,6 +71,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             chatOptions = GetDefaultChatOptions(chatClient);
             IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
@@ -136,6 +137,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         chatClient?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public string GetAutomationName(string name, double value) => $"{name} {value:F0}";
 
     public ChatOptions GetDefaultChatOptions(IChatClient? chatClient)
@@ -188,6 +194,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         Task.Run(
             async () =>
             {
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

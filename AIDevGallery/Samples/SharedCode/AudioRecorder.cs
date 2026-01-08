@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Samples.SharedCode;
 
-internal class AudioRecorder : IDisposable
+internal sealed class AudioRecorder : IDisposable
 {
     private const int BufferSize = 32000; // Adjust buffer size if needed
     private readonly WaveInEvent waveIn;

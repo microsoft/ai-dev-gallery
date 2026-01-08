@@ -30,7 +30,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE56")]
-internal sealed partial class TextRewrite : BaseSamplePage
+internal sealed partial class TextRewrite : BaseSamplePage, IDisposable
 {
     private const int MaxLength = 5000;
     private bool _isProgressVisible;
@@ -115,6 +115,11 @@ internal sealed partial class TextRewrite : BaseSamplePage
         _languageModel?.Dispose();
     }
 
+    public void Dispose()
+    {
+        CleanUp();
+    }
+
     public bool IsProgressVisible
     {
         get => _isProgressVisible;
@@ -148,6 +153,7 @@ internal sealed partial class TextRewrite : BaseSamplePage
         IsProgressVisible = true;
 
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         // <exclude>

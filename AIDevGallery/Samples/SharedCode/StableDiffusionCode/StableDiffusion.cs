@@ -47,9 +47,13 @@ internal class StableDiffusion : IDisposable
     {
         string tokenizerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", config.TokenizerModelPath);
 
+        textProcessor?.Dispose();
         textProcessor = await TextProcessing.CreateAsync(config, tokenizerPath, config.TextEncoderModelPath, policy, epName, compileModel, deviceType);
+        unetInferenceSession?.Dispose();
         unetInferenceSession = await GetInferenceSession(config.UnetModelPath, policy, epName, compileModel, deviceType);
+        vaeDecoder?.Dispose();
         vaeDecoder = await VaeDecoder.CreateAsync(config, config.VaeDecoderModelPath, policy, epName, compileModel, deviceType);
+        safetyChecker?.Dispose();
         safetyChecker = await SafetyChecker.CreateAsync(config.SafetyModelPath, policy, epName, compileModel, deviceType);
     }
 
@@ -78,7 +82,7 @@ internal class StableDiffusion : IDisposable
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 2);

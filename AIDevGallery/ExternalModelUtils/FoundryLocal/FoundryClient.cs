@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 
-internal class FoundryClient : IDisposable
+internal sealed class FoundryClient : IDisposable
 {
     private readonly Dictionary<string, IModel> _loadedModels = new();
     private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();

@@ -38,7 +38,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ObjectDetection.FasterRCNN;
     Name = "Faster RCNN Object Detection",
     Id = "9b74ccc0-f5f7-430f-bed0-758ffc063508",
     Icon = "\uE8B3")]
-internal sealed partial class ObjectDetection : BaseSamplePage
+internal sealed partial class ObjectDetection : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
@@ -47,6 +47,11 @@ internal sealed partial class ObjectDetection : BaseSamplePage
         this.Unloaded += (s, e) => _inferenceSession?.Dispose();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -93,7 +98,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -110,6 +115,7 @@ internal sealed partial class ObjectDetection : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }

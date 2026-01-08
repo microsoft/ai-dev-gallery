@@ -38,7 +38,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.ESRGAN;
       Name = "Enhance Image",
       Id = "9b74cdc1-f5f7-430f-bed0-712ffc063508",
       Icon = "\uE8B3")]
-internal sealed partial class SuperResolution : BaseSamplePage
+internal sealed partial class SuperResolution : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
@@ -48,6 +48,11 @@ internal sealed partial class SuperResolution : BaseSamplePage
 
         this.Loaded += (s, e) => Page_Loaded();
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     private void Page_Loaded()
@@ -92,7 +97,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -109,6 +114,7 @@ internal sealed partial class SuperResolution : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }

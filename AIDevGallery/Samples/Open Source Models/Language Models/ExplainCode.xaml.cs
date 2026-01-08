@@ -23,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Explain Code",
     Id = "ad763407-6a97-4916-ab05-30fd22f54252",
     Icon = "\uE8D4")]
-internal sealed partial class ExplainCode : BaseSamplePage
+internal sealed partial class ExplainCode : BaseSamplePage, IDisposable
 {
     private IChatClient? model;
     private CancellationTokenSource? cts;
@@ -41,6 +41,7 @@ internal sealed partial class ExplainCode : BaseSamplePage
     {
         try
         {
+            model?.Dispose();
             model = await sampleParams.GetIChatClientAsync();
 
             // Increase the default max length to allow larger pieces of code
@@ -67,6 +68,11 @@ internal sealed partial class ExplainCode : BaseSamplePage
     {
         CancelExplain();
         model?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -102,6 +108,7 @@ internal sealed partial class ExplainCode : BaseSamplePage
                 string systemPrompt = "You explain user provided code. Provide an explanation of code and no extraneous text. If you can't find code in the user prompt, reply with \"No Code Found.\"";
                 string userPrompt = "Explain this code: " + code;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 var isProgressVisible = true;

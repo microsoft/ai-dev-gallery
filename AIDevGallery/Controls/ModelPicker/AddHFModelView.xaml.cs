@@ -11,7 +11,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -245,7 +244,10 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (output == ContentDialogResult.Primary)
         {
+            // ModelDownload lifecycle is managed by ModelDownloadQueue, should not be disposed immediately
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
             App.ModelDownloadQueue.AddModel(result!.Details);
+#pragma warning restore IDISP004
             result.State = ResultState.Downloading;
         }
     }
@@ -257,11 +259,7 @@ internal sealed partial class AddHFModelView : UserControl
 
         string url = result!.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}";
 
-        Process.Start(new ProcessStartInfo()
-        {
-            FileName = url,
-            UseShellExecute = true
-        });
+        ProcessHelper.OpenUrl(url);
     }
 
     private void ViewModelDetails(object sender, RoutedEventArgs e)

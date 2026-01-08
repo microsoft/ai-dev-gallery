@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     Id = "9e006e82-8e3f-4401-8a83-d4c4c59cc20c",
     Icon = "\uE8D4")]
-internal sealed partial class Paraphrase : BaseSamplePage
+internal sealed partial class Paraphrase : BaseSamplePage, IDisposable
 {
     private const int _defaultMaxLength = 1024;
     private IChatClient? chatClient;
@@ -40,6 +40,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _defaultMaxLength;
         }
@@ -62,6 +63,11 @@ internal sealed partial class Paraphrase : BaseSamplePage
     {
         CancelParaphrase();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -98,6 +104,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
                 "Respond with only the paraphrased content and no extraneous text.";
                 string userPrompt = "Paraphrase this text: " + text;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

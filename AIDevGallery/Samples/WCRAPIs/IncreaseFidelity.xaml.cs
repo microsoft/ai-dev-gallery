@@ -183,13 +183,16 @@ internal sealed partial class IncreaseFidelity : BaseSamplePage
 
         var newWidth = (int)(_originalImage.PixelWidth * ScaleSlider.Value);
         var newHeight = (int)(_originalImage.PixelHeight * ScaleSlider.Value);
-        SoftwareBitmap? bitmap;
+        SoftwareBitmap? bitmap = null;
         try
         {
+            // Ownership of bitmap is transferred to another variable, so it should not be disposed here
+#pragma warning disable IDISP001 // Dispose created
             bitmap = await Task.Run(() =>
             {
                 return _imageScaler.ScaleSoftwareBitmap(_originalImage, newWidth, newHeight);
             });
+#pragma warning restore IDISP001
         }
         catch (Exception ex)
         {

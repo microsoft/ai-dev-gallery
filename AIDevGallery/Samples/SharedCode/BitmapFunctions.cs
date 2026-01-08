@@ -96,7 +96,12 @@ internal class BitmapFunctions
             stream.Seek(0); // Reset stream position
 
             // Convert to System.Drawing.Bitmap
+            // AsStream() returns a Stream wrapper over the IRandomAccessStream - we intentionally don't capture it
+            // The wrapper should not be disposed separately; it's valid as long as the underlying 'stream' is alive
+            // We do dispose the Bitmap in the using statement after we're done using it
+#pragma warning disable IDISP004 // Don't ignore created IDisposable - AsStream() wrapper is intentionally not captured
             using var tempBitmap = new Bitmap(stream.AsStream());
+#pragma warning restore IDISP004
             Bitmap paddedBitmap = new(targetWidth, targetHeight);
 
             using (Graphics graphics = Graphics.FromImage(paddedBitmap))
@@ -317,7 +322,11 @@ internal class BitmapFunctions
 
             memoryStream.Position = 0;
 
+            // IDISP: AsRandomAccessStream() returns a wrapper of the MemoryStream. The MemoryStream is already in a using block and will be disposed properly.
+            // Disposing the wrapper here would close the underlying MemoryStream prematurely before SetSource can use it.
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
             bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+#pragma warning restore IDISP004
         }
 
         return bitmapImage;
@@ -351,7 +360,12 @@ internal class BitmapFunctions
         {
             image.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
             memoryStream.Position = 0;
+
+            // IDISP: AsRandomAccessStream() returns a wrapper of the MemoryStream. The MemoryStream is already in a using block and will be disposed properly.
+            // Disposing the wrapper here would close the underlying MemoryStream prematurely before SetSource can use it.
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
             bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+#pragma warning restore IDISP004
         }
 
         return bitmapImage;
@@ -469,7 +483,11 @@ internal class BitmapFunctions
         using var stream = new InMemoryRandomAccessStream();
 
         // Save the bitmap to a stream
+        // IDISP: AsStream() returns a wrapper view of the InMemoryRandomAccessStream. The stream is already in a using statement and will be disposed properly.
+        // Disposing the wrapper here would close the underlying stream prematurely.
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
         bitmap.Save(stream.AsStream(), ImageFormat.Png);
+#pragma warning restore IDISP004
         stream.Seek(0);
 
         // Create a BitmapImage from the stream

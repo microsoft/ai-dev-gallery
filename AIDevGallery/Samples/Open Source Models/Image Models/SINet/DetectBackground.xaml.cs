@@ -41,7 +41,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SINet;
     Id = "9b74ccc0-15f7-430f-red1-7581fd163509",
     Icon = "\uE8B3")]
 
-internal sealed partial class DetectBackground : BaseSamplePage
+internal sealed partial class DetectBackground : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
@@ -51,6 +51,11 @@ internal sealed partial class DetectBackground : BaseSamplePage
 
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     private void Page_Loaded()
@@ -95,7 +100,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -112,6 +117,7 @@ internal sealed partial class DetectBackground : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }
@@ -154,45 +160,46 @@ internal sealed partial class DetectBackground : BaseSamplePage
 
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
-
-        Bitmap image = new(filePath);
-        int originalImageWidth = image.Width;
-        int originalImageHeight = image.Height;
-
-        var inputMetadataName = _inferenceSession.InputNames[0];
-        var inputDimensions = _inferenceSession.InputMetadata[inputMetadataName].Dimensions;
-
-        int modelInputHeight = inputDimensions[2];
-        int modelInputWidth = inputDimensions[3];
-
-        var backgroundMask = await Task.Run(() =>
+        using (
+                Bitmap image = new(filePath))
         {
-            using var resizedImage = BitmapFunctions.ResizeWithPadding(image, modelInputWidth, modelInputHeight);
+            int originalImageWidth = image.Width;
+            int originalImageHeight = image.Height;
 
-            Tensor<float> input = new DenseTensor<float>(inputDimensions);
-            input = BitmapFunctions.PreprocessBitmapWithoutStandardization(resizedImage, input);
+            var inputMetadataName = _inferenceSession.InputNames[0];
+            var inputDimensions = _inferenceSession.InputMetadata[inputMetadataName].Dimensions;
 
-            var inputs = new List<NamedOnnxValue>
+            int modelInputHeight = inputDimensions[2];
+            int modelInputWidth = inputDimensions[3];
+
+            var backgroundMask = await Task.Run(() =>
             {
+                using var resizedImage = BitmapFunctions.ResizeWithPadding(image, modelInputWidth, modelInputHeight);
+
+                Tensor<float> input = new DenseTensor<float>(inputDimensions);
+                input = BitmapFunctions.PreprocessBitmapWithoutStandardization(resizedImage, input);
+
+                var inputs = new List<NamedOnnxValue>
+                {
                 NamedOnnxValue.CreateFromTensor(inputMetadataName, input)
-            };
+                };
 
-            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
-            IEnumerable<float> output = results[0].AsEnumerable<float>();
-            return BackgroundHelpers.GetForegroundMask(output, modelInputWidth, modelInputHeight, originalImageWidth, originalImageHeight);
-        });
+                using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
+                IEnumerable<float> output = results[0].AsEnumerable<float>();
+                return BackgroundHelpers.GetForegroundMask(output, modelInputWidth, modelInputHeight, originalImageWidth, originalImageHeight);
+            });
 
-        BitmapImage? outputImage = BitmapFunctions.RenderBackgroundMask(image, backgroundMask, originalImageWidth, originalImageHeight);
+            BitmapImage? outputImage = BitmapFunctions.RenderBackgroundMask(image, backgroundMask, originalImageWidth, originalImageHeight);
 
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            DefaultImage.Source = outputImage!;
-            Loader.IsActive = false;
-            Loader.Visibility = Visibility.Collapsed;
-            UploadButton.Visibility = Visibility.Visible;
-        });
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                DefaultImage.Source = outputImage!;
+                Loader.IsActive = false;
+                Loader.Visibility = Visibility.Collapsed;
+                UploadButton.Visibility = Visibility.Visible;
+            });
 
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
-        image.Dispose();
+            NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: objects detected."); // <exclude-line>
+        }
     }
 }
