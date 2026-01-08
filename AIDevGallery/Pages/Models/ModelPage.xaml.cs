@@ -274,6 +274,7 @@ internal sealed partial class ModelPage : Page
                     {
                         // Silently fail if fallback also fails
                     }
+
                     wasDeeplinkSuccesful = false;
                 }
                 finally
