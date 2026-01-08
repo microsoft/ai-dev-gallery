@@ -18,6 +18,11 @@ public class AccessibilityTests : FlaUITestBase
     /// </summary>
     public TestContext TestContext { get; set; }
 
+    /// <summary>
+    /// Path to Axe.Windows CLI executable
+    /// </summary>
+    private string? cliPath;
+
     [TestMethod]
     [TestCategory("UI")]
     [Description("Verifies accessibility compliance of multiple pages using Axe.Windows CLI")]
@@ -25,6 +30,8 @@ public class AccessibilityTests : FlaUITestBase
     {
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
+
+        Assert.IsTrue(InitAxeWindows(), "Axe Init Failed");
 
         // Get the actual process ID from the window, not the test runner process
         var processId = MainWindow.Properties.ProcessId.Value;
@@ -239,27 +246,35 @@ public class AccessibilityTests : FlaUITestBase
     }
 
     /// <summary>
+    /// Initializes Axe.Windows CLI by locating or downloading it
+    /// </summary>
+    private bool InitAxeWindows()
+    {
+        // Determine CLI path - check common locations
+        cliPath = GetAxeWindowsCliPath();
+
+        if (string.IsNullOrEmpty(cliPath))
+        {
+            Console.WriteLine("Axe.Windows CLI not found locally. Attempting to download...");
+            cliPath = DownloadAxeWindowsCli();
+
+            if (string.IsNullOrEmpty(cliPath))
+            {
+                Console.WriteLine("Failed to download Axe.Windows CLI.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Runs Axe.Windows CLI scan on the current page
     /// </summary>
     private bool RunAxeWindowsCliScan(int processId, string pageName)
     {
         try
         {
-            // Determine CLI path - check common locations
-            string? cliPath = GetAxeWindowsCliPath();
-
-            if (string.IsNullOrEmpty(cliPath))
-            {
-                Console.WriteLine("Axe.Windows CLI not found locally. Attempting to download...");
-                cliPath = DownloadAxeWindowsCli();
-
-                if (string.IsNullOrEmpty(cliPath))
-                {
-                    Console.WriteLine("Failed to download Axe.Windows CLI.");
-                    return false;
-                }
-            }
-
             // Create output directory for this page's results
             var assemblyDir = System.IO.Path.GetDirectoryName(typeof(AccessibilityTests).Assembly.Location);
             if (string.IsNullOrEmpty(assemblyDir))
