@@ -39,7 +39,7 @@ internal static class AIToolkitHelper
         string deeplink = CreateAiToolkitDeeplink(action);
         if (action != AIToolkitAction.Conversion)
         {
-            string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFinetuningId! : modelDetails.AIToolkitId!;
+            string modelId = action == AIToolkitAction.FineTuning ? modelDetails.AIToolkitFineTuningId! : modelDetails.AIToolkitId!;
 
             if (aiToolkitActionInfos.TryGetValue(action, out actionInfo) && !string.IsNullOrEmpty(modelId))
             {
@@ -52,7 +52,7 @@ internal static class AIToolkitHelper
 
     public static bool ValidateForFineTuning(this ModelDetails modelDetails)
     {
-        return modelDetails.AIToolkitActions != null && modelDetails.AIToolkitActions.Contains(AIToolkitAction.FineTuning) && !string.IsNullOrEmpty(modelDetails.AIToolkitFinetuningId);
+        return modelDetails.AIToolkitActions != null && modelDetails.AIToolkitActions.Contains(AIToolkitAction.FineTuning) && !string.IsNullOrEmpty(modelDetails.AIToolkitFineTuningId);
     }
 
     public static bool ValidateForGeneralToolkit(this ModelDetails modelDetails)

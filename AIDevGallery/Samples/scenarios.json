@@ -28,7 +28,7 @@
       "SemanticKernelChat": {
         "Name": "Semantic Kernel Chat",
         "Description": "Chat with a local language model via the semantic kernel.",
-        "Instruction": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history.",
+        "Instructions": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history.",
         "Id": "semantic-kernel-chat"
       },
       "TranslateText": {
@@ -48,13 +48,13 @@
       "ParaphraseText": {
         "Name": "Paraphrase Text",
         "Description": "Paraphrase text with a local language model.",
-        "Instruction": "Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
+        "Instructions": "Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
         "Id": "paraphrase-text"
       },
       "AnalyzeSentimentText": {
         "Name": "Analyze Text Sentiment",
         "Description": "Analyze text sentiment with a local language model.",
-        "Instructions": "Enter some text into the textbox and click 'Analyze' to the analyze the sentiment of the text. The output will contain an integer sentiment score in the range of -2 to 2, and an associated sentiment string.",
+        "Instructions": "Enter some text into the textbox and click 'Analyze' to analyze the sentiment of the text. The output will contain an integer sentiment score in the range of -2 to 2, and an associated sentiment string.",
         "Id": "analyze-sentiment-text",
         "Icon": "\uE9D5"
       },
@@ -156,7 +156,7 @@
       "ExplainCode": {
         "Name": "Explain Code",
         "Description": "Explain code with a local language model.",
-        "Instructions": "Enter some code in any programming language into the textbox and click 'Explain' to output a explanation of the provided code.",
+        "Instructions": "Enter some code in any programming language into the textbox and click 'Explain' to output an explanation of the provided code.",
         "Id": "explain-code"
       }
     }

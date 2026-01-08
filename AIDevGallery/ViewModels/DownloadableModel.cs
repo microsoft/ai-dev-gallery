@@ -227,11 +227,11 @@ internal partial class DownloadableModel : BaseModel
         switch (status)
         {
             case DownloadStatus.Waiting:
-                return "Waiting..";
+                return "Waiting...";
             case DownloadStatus.InProgress:
-                return "Downloading..";
+                return "Downloading...";
             case DownloadStatus.Verifying:
-                return "Verifying integrity..";
+                return "Verifying integrity...";
             case DownloadStatus.Completed:
                 return "Downloaded";
             case DownloadStatus.Canceled:

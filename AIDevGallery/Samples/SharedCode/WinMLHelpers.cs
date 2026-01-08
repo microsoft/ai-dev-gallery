@@ -31,7 +31,7 @@ internal static class WinMLHelpers
             {
                 case ExecutionProviderNames.DML:
                     // Configure performance mode for Dml EP
-                    // Dml some times have multiple devices which cause exception, we pick the first one here
+                    // Dml sometimes have multiple devices which cause exception, we pick the first one here
                     sessionOptions.AppendExecutionProvider(environment, [devices[0]], epOptions);
                     return true;
                 case ExecutionProviderNames.OpenVINO:

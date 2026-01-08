@@ -202,7 +202,7 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
         }
         catch (Exception ex)
         {
-            ShowException(ex, "Failed to create ImageObjectExtractor session.");
+            ShowException(ex, "Failed to get mask.");
             return null;
         }
     }

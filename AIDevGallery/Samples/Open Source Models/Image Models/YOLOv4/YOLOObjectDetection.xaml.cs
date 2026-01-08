@@ -40,11 +40,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
     Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
     Icon = "\uE8B3")]
 
-internal sealed partial class YOLOObjectionDetection : BaseSamplePage, IDisposable
+internal sealed partial class YOLOObjectDetection : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
-    public YOLOObjectionDetection()
+    public YOLOObjectDetection()
     {
         this.Unloaded += (s, e) => _inferenceSession?.Dispose();
 

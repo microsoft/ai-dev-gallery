@@ -26,7 +26,7 @@ internal class Model
     public List<string>? FileFilters { get; init; }
     public List<AIToolkitAction>? AIToolkitActions { get; init; }
     public string? AIToolkitId { get; init; }
-    public string? AIToolkitFinetuningId { get; init; }
+    public string? AIToolkitFineTuningId { get; init; }
     public List<int[]>? InputDimensions { get; set; }
     public List<int[]>? OutputDimensions { get; set; }
 }

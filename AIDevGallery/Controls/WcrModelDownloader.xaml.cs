@@ -155,9 +155,9 @@ internal sealed partial class WcrModelDownloader : UserControl
     // <exclude>
     public Task<bool> SetDownloadOperation(ModelType modelType, string sampleId, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>> makeAvailable)
     {
-        IAsyncOperationWithProgress<AIFeatureReadyResult, double>? exisitingOperation;
+        IAsyncOperationWithProgress<AIFeatureReadyResult, double>? existingOperation;
 
-        WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out exisitingOperation);
+        WcrDownloadOperationTracker.Operations.TryGetValue(modelType, out existingOperation);
         this.modelTypeHint = modelType;
         this.sampleId = sampleId;
 
@@ -166,7 +166,7 @@ internal sealed partial class WcrModelDownloader : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
-        if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
+        if (existingOperation != null && existingOperation.Status == AsyncStatus.Started)
         {
             // don't reuse same one because we can only have one Progress delegate
             return SetDownloadOperation(makeAvailable());

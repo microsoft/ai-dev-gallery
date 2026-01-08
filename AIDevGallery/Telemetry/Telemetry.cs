@@ -136,7 +136,7 @@ internal sealed class Telemetry : ITelemetry
     /// </summary>
     /// <param name="action">What we trying to do when the exception occurred.</param>
     /// <param name="e">Exception object</param>
-    /// <param name="relatedActivityId">Optional relatedActivityId which will allow to correlate this telemetry with other telemetry in the same action/activity or thread and corelate them</param>
+    /// <param name="relatedActivityId">Optional relatedActivityId which will allow to correlate this telemetry with other telemetry in the same action/activity or thread and correlate them</param>
     public void LogException(string action, Exception e, Guid? relatedActivityId = null)
     {
         var innerMessage = this.ReplaceSensitiveStrings(e.InnerException?.Message);
@@ -175,7 +175,7 @@ internal sealed class Telemetry : ITelemetry
     /// </summary>
     /// <param name="eventName">The measurement we're performing (ex. "DeployTime").</param>
     /// <param name="timeTakenMilliseconds">How long the action took in milliseconds.</param>
-    /// <param name="relatedActivityId">Optional relatedActivityId which will allow to correlate this telemetry with other telemetry in the same action/activity or thread and corelate them</param>
+    /// <param name="relatedActivityId">Optional relatedActivityId which will allow to correlate this telemetry with other telemetry in the same action/activity or thread and correlate them</param>
     public void LogTimeTaken(string eventName, uint timeTakenMilliseconds, Guid? relatedActivityId = null)
     {
         this.LogInternal(

@@ -43,7 +43,7 @@ internal class HuggingFaceApi
     }
 
     /// <summary>
-    /// Gets contens from a file in a Hugging Face repo
+    /// Gets contents from a file in a Hugging Face repo
     /// </summary>
     /// <param name="modelId">the id of the model</param>
     /// <param name="filePath">the path of the file</param>
@@ -58,7 +58,7 @@ internal class HuggingFaceApi
     }
 
     /// <summary>
-    /// Gets contens from a file in a Hugging Face repo
+    /// Gets contents from a file in a Hugging Face repo
     /// </summary>
     /// <param name="fileUrl">url of file</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>

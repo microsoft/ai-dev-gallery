@@ -80,7 +80,7 @@ internal class ModelDetails
     public List<string>? FileFilters { get; set; }
     public List<AIToolkitAction>? AIToolkitActions { get; set; }
     public string? AIToolkitId { get; set; }
-    public string? AIToolkitFinetuningId { get; set; }
+    public string? AIToolkitFineTuningId { get; set; }
     public List<int[]>? InputDimensions { get; set; }
     public List<int[]>? OutputDimensions { get; set; }
 
