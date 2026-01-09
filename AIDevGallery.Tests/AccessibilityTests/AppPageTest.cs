@@ -154,7 +154,7 @@ public class AccessibilityTests : FlaUITestBase
                                 timeout: TimeSpan.FromSeconds(5),
                                 throwOnTimeout: false);
 
-                            ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
+                            ExecutePageScanAndTrackResults(processId, listItem.Name, scanResults, failedPages);
                         }
                     }
                     else
