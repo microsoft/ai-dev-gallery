@@ -90,20 +90,23 @@ public class AccessibilityTests : FlaUITestBase
                 // Click each item
                 foreach (var item in navigationItems)
                 {
-                    Console.WriteLine($"\nClicking navigation item: {item.Name}");
-
                     if (item == null)
                     {
                         continue;
                     }
 
+                    Console.WriteLine($"\nClicking navigation item: {item.Name}");
+
+                    // Save the item's name to identify it later, in case the UI tree is rebuilt
+                    var itemName = item.Name;
+
                     // Open List
                     bool isExpanded = IsItemExpanded(item);
                     if (!isExpanded)
                     {
-                        Thread.Sleep(200);
                         if (!item.IsOffscreen)
                         {
+                            Thread.Sleep(200);
                             item.Click();
                         }
                         else
@@ -139,10 +142,11 @@ public class AccessibilityTests : FlaUITestBase
                                 continue;
                             }
 
-                            Thread.Sleep(100);
+                            Thread.Sleep(200);
                             listItem.Click();
                             Thread.Sleep(3000);
                             listItem.Click();
+                            Thread.Sleep(200);
 
                             // Wait for window to become responsive after click
                             Retry.WhileTrue(
@@ -158,10 +162,19 @@ public class AccessibilityTests : FlaUITestBase
                         ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
                     }
 
-                    // Close List
-                    Thread.Sleep(200);
-                    item.Click();
-                    Console.WriteLine($"Successfully clicked: {item.Name}");
+                    // Close List - Re-find the item by saved identifier since UI tree may have been rebuilt
+                    var itemToClose = menuItemsHost.FindFirstDescendant(cf => cf.ByName(itemName));
+                    if (itemToClose != null)
+                    {
+                        Thread.Sleep(200);
+                        itemToClose.Click();
+                        Thread.Sleep(200);
+                        Console.WriteLine($"Successfully closed: {itemToClose.Name}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Warning: Could not find item to close: {itemName}");
+                    }
                 }
 
                 // Assert - Report testing summary for this page
@@ -208,21 +221,23 @@ public class AccessibilityTests : FlaUITestBase
             return false;
         }
 
-        // Try to click the navigation item (since it's a button)
-        try
+        // Find the navigation item by name
+        var settingItem = MainWindow?.FindFirstDescendant(cf => cf.ByName("Settings"));
+
+        if (settingItem == null)
         {
-            Thread.Sleep(200);
-            navigationItem.Click();
-            Console.WriteLine($"Clicked navigation item: {pageName}");
-            System.Threading.Thread.Sleep(2000); // Wait for page to load
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Could not click {pageName}: {ex.Message}");
+            Console.WriteLine($"Navigation item '{pageName}' not found");
+            return false;
         }
 
-        return false;
+        Thread.Sleep(200);
+        settingItem.Click();
+        Thread.Sleep(200);
+        navigationItem.Click();
+        Thread.Sleep(200);
+        Console.WriteLine($"Clicked navigation item: {pageName}");
+        Thread.Sleep(2000); // Wait for page to load
+        return true;
     }
 
     /// <summary>
