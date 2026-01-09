@@ -102,7 +102,14 @@ public class AccessibilityTests : FlaUITestBase
                     if (!isExpanded)
                     {
                         Thread.Sleep(200);
-                        item.Click();
+                        if (!item.IsOffscreen)
+                        {
+                            item.Click();
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
 
                     // Wait for window to become responsive after click
