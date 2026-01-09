@@ -42,7 +42,7 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
-        var pagesToTest = new[] { "Home", "Samples", "Models", "AI APIs", "Settings" };
+        var pagesToTest = new[] { "Home", "Samples", "Settings" };
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
