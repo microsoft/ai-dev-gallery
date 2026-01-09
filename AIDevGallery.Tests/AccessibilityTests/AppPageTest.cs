@@ -7,6 +7,7 @@ using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace AIDevGallery.Tests.AccessibilityTests;
 
@@ -45,144 +46,55 @@ public class AccessibilityTests : FlaUITestBase
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
-        try
+        var mainPage = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
+        Assert.IsNotNull(mainPage, "Main page should be initialized");
+
+        foreach (var pageName in pagesToTest)
         {
-            foreach (var pageName in pagesToTest)
+            Console.WriteLine($"\n--- Testing Page: {pageName} ---");
+
+            // Navigate to the page
+            bool navigationSuccess = NavigateToPage(pageName);
+
+            if (!navigationSuccess)
             {
-                Console.WriteLine($"\n--- Testing Page: {pageName} ---");
+                Console.WriteLine($"Skipping accessibility scan for {pageName} due to navigation failure");
+                continue;
+            }
 
-                // Navigate to the page
-                bool navigationSuccess = NavigateToPage(pageName);
+            // Check if this page has list items to test
+            if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
+            {
+                // Act - Find scenario navigation view
+                var scenario = mainPage.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
+                Assert.IsNotNull(scenario, "scenario should be found");
 
-                if (!navigationSuccess)
+                // Act - Find the MenuItemsHost in scenario navigation view
+                var menuItemsHostResult = Retry.WhileNull(
+                    () => scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
+                    timeout: TimeSpan.FromSeconds(10));
+                var menuItemsHost = menuItemsHostResult.Result;
+                Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
+
+                // Find only DIRECT children ListItems, not all descendants
+                // This prevents getting nested navigation items from inner NavigationViews
+                var navigationItems = menuItemsHost.FindAllChildren(cf =>
+                    cf.ByControlType(ControlType.ListItem))
+                    .Where(item => item.IsEnabled && item.IsOffscreen == false)
+                    .ToArray();
+
+                Console.WriteLine($"Found {navigationItems.Length} enabled navigation items");
+
+                Assert.IsTrue(navigationItems.Length > 0, "Should have at least one navigation item");
+
+                // Click each item
+                foreach (var item in navigationItems)
                 {
-                    Console.WriteLine($"⚠ Skipping accessibility scan for {pageName} due to navigation failure");
-                    continue;
-                }
+                    Console.WriteLine($"\nClicking navigation item: {item.Name}");
 
-                // Execute scan and track results for regular pages
-                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
-
-                // Check if this page has list items to test
-                if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
-                {
-                    TestPageWithListItems(processId, pageName, scanResults, failedPages);
-                }
-            }
-
-            // Assert - All pages should pass
-            Console.WriteLine("\n=== Accessibility Test Summary ===");
-            foreach (var result in scanResults)
-            {
-                Console.WriteLine(result);
-            }
-
-            if (failedPages.Count > 0)
-            {
-                AttachAxeResultsToTestContext();
-                Assert.Fail($"Accessibility issues found on pages: {string.Join(", ", failedPages)}");
-            }
-            else
-            {
-                Console.WriteLine("✓ All pages passed accessibility checks");
-            }
-        }
-        catch (Exception ex)
-        {
-            AttachAxeResultsToTestContext();
-            Assert.Inconclusive($"Failed to run multi-page accessibility tests: {ex.Message}");
-        }
-
-        TakeScreenshot("MultiPage_AccessibilityTest");
-    }
-
-    /// <summary>
-    /// Navigates to a specific page in the application using FlaUI
-    /// </summary>
-    private bool NavigateToPage(string pageName)
-    {
-        try
-        {
-            // Find the navigation item by name
-            var navigationItem = MainWindow?.FindFirstDescendant(cf => cf.ByName(pageName));
-
-            if (navigationItem == null)
-            {
-                Console.WriteLine($"Navigation item '{pageName}' not found");
-                return false;
-            }
-
-            // Try to click the navigation item (since it's a button)
-            try
-            {
-                navigationItem.Click();
-                Console.WriteLine($"Clicked navigation item: {pageName}");
-                System.Threading.Thread.Sleep(2000); // Wait for page to load
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Could not click {pageName}: {ex.Message}");
-            }
-
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Navigation error: {ex.Message}");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Tests a page that contains list items by opening each item and scanning
-    /// </summary>
-    private void TestPageWithListItems(int processId, string pageName, System.Collections.Generic.List<string> scanResults, System.Collections.Generic.List<string> failedPages)
-    {
-        try
-        {
-            // Arrange
-            Assert.IsNotNull(MainWindow, "Main window should be initialized");
-
-            // First scan the page without opening any items
-            Console.WriteLine($"\n=== Scanning page '{pageName}' ===");
-
-            // Act - Find scenario navigation view
-            var scenario = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
-            Assert.IsNotNull(scenario, "scenario should be found");
-
-            // Act - Find the MenuItemsHost in scenario navigation view
-            var menuItemsHostResult = Retry.WhileNull(
-                () => scenario.FindFirstDescendant(cf => cf.ByAutomationId("MenuItemsHost")),
-                timeout: TimeSpan.FromSeconds(10));
-            var menuItemsHost = menuItemsHostResult.Result;
-            Assert.IsNotNull(menuItemsHost, "MenuItemsHost should be found");
-
-            // Find only DIRECT children ListItems, not all descendants
-            // This prevents getting nested navigation items from inner NavigationViews
-            var navigationItems = menuItemsHost.FindAllChildren(cf =>
-                cf.ByControlType(ControlType.ListItem))
-                .Where(item => item.IsEnabled && item.IsOffscreen == false)
-                .ToArray();
-
-            Console.WriteLine($"Found {navigationItems.Length} enabled navigation items");
-
-            Assert.IsTrue(navigationItems.Length > 0, "Should have at least one navigation item");
-
-            // Click each item
-            foreach (var item in navigationItems)
-            {
-                Console.WriteLine($"\nClicking navigation item: {item.Name}");
-
-                try
-                {
-                    if (!item.TryGetClickablePoint(out _))
-                    {
-                        Console.WriteLine($"Skipping item {item.Name} as it is likely off-screen or covered");
-                        continue;
-                    }
-
+                    // Open List
                     item.Click();
+                    Thread.Sleep(200);
 
                     // Wait for window to become responsive after click
                     Retry.WhileTrue(
@@ -191,10 +103,12 @@ public class AccessibilityTests : FlaUITestBase
                         throwOnTimeout: false);
 
                     // Small delay to allow content to load
-                    var listItems = menuItemsHost.FindAllChildren(cf =>
+                    var listItems = item.FindAllChildren(cf =>
                         cf.ByControlType(ControlType.ListItem))
                         .Where(item => item.IsEnabled && item.IsOffscreen == false)
                         .ToArray();
+
+                    Console.WriteLine($"Inside List Found {listItems.Length} items");
 
                     // If there are further list items, we could extend this to click into them as well
                     if (listItems.Length > 0)
@@ -209,6 +123,8 @@ public class AccessibilityTests : FlaUITestBase
                                 continue;
                             }
 
+                            listItem.Click();
+                            Thread.Sleep(3000);
                             listItem.Click();
 
                             // Wait for window to become responsive after click
@@ -225,21 +141,69 @@ public class AccessibilityTests : FlaUITestBase
                         ExecutePageScanAndTrackResults(processId, item.Name, scanResults, failedPages);
                     }
 
+                    // Close List
+                    item.Click();
                     Console.WriteLine($"Successfully clicked: {item.Name}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to click item {item.Name}: {ex.Message}");
-                }
-            }
 
-            // Assert - Report testing summary for this page
-            Console.WriteLine($"\n✓ Completed testing items in page '{pageName}'");
+                // Assert - Report testing summary for this page
+                Console.WriteLine($"\nCompleted testing items in page '{pageName}'");
+            }
+            else
+            {
+                // Execute scan and track results for regular pages
+                ExecutePageScanAndTrackResults(processId, pageName, scanResults, failedPages);
+            }
+        }
+
+        // Assert - All pages should pass
+        Console.WriteLine("\n=== Accessibility Test Summary ===");
+        foreach (var result in scanResults)
+        {
+            Console.WriteLine(result);
+        }
+
+        if (failedPages.Count > 0)
+        {
+            AttachAxeResultsToTestContext();
+            Assert.Fail($"Accessibility issues found on pages: {string.Join(", ", failedPages)}");
+        }
+        else
+        {
+            Console.WriteLine("All pages passed accessibility checks");
+        }
+
+        TakeScreenshot("MultiPage_AccessibilityTest");
+    }
+
+    /// <summary>
+    /// Navigates to a specific page in the application using FlaUI
+    /// </summary>
+    private bool NavigateToPage(string pageName)
+    {
+        // Find the navigation item by name
+        var navigationItem = MainWindow?.FindFirstDescendant(cf => cf.ByName(pageName));
+
+        if (navigationItem == null)
+        {
+            Console.WriteLine($"Navigation item '{pageName}' not found");
+            return false;
+        }
+
+        // Try to click the navigation item (since it's a button)
+        try
+        {
+            navigationItem.Click();
+            Console.WriteLine($"Clicked navigation item: {pageName}");
+            System.Threading.Thread.Sleep(2000); // Wait for page to load
+            return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error testing page with list items '{pageName}': {ex.Message}");
+            Console.WriteLine($"Could not click {pageName}: {ex.Message}");
         }
+
+        return false;
     }
 
     /// <summary>
@@ -289,81 +253,73 @@ public class AccessibilityTests : FlaUITestBase
     /// </summary>
     private bool RunAxeWindowsCliScan(int processId, string pageName)
     {
-        try
+        // Create output directory for this page's results
+        var assemblyDir = System.IO.Path.GetDirectoryName(typeof(AccessibilityTests).Assembly.Location);
+        if (string.IsNullOrEmpty(assemblyDir))
         {
-            // Create output directory for this page's results
-            var assemblyDir = System.IO.Path.GetDirectoryName(typeof(AccessibilityTests).Assembly.Location);
-            if (string.IsNullOrEmpty(assemblyDir))
+            Console.WriteLine("Could not determine assembly directory");
+            return false;
+        }
+
+        var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeOutput");
+        var pageOutputDir = System.IO.Path.Combine(baseOutputDir, pageName);
+        System.IO.Directory.CreateDirectory(pageOutputDir);
+
+        Console.WriteLine($"Scanning page '{pageName}'...");
+
+        // Run Axe.Windows CLI
+        var processInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = cliPath,
+            Arguments = $"--processId {processId} --outputDirectory \"{pageOutputDir}\" --verbosity default",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        using (var process = System.Diagnostics.Process.Start(processInfo))
+        {
+            if (process == null)
             {
-                Console.WriteLine("Could not determine assembly directory");
+                Console.WriteLine("Failed to start Axe.Windows CLI process");
                 return false;
             }
 
-            var baseOutputDir = System.IO.Path.Combine(assemblyDir, "AxeOutput");
-            var pageOutputDir = System.IO.Path.Combine(baseOutputDir, pageName);
-            System.IO.Directory.CreateDirectory(pageOutputDir);
+            var timeout = TimeSpan.FromSeconds(60);
+            bool completed = process.WaitForExit((int)timeout.TotalMilliseconds);
 
-            Console.WriteLine($"Scanning page '{pageName}'...");
-
-            // Run Axe.Windows CLI
-            var processInfo = new System.Diagnostics.ProcessStartInfo
+            if (!completed)
             {
-                FileName = cliPath,
-                Arguments = $"--processId {processId} --outputDirectory \"{pageOutputDir}\" --verbosity default",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            using (var process = System.Diagnostics.Process.Start(processInfo))
-            {
-                if (process == null)
-                {
-                    Console.WriteLine("Failed to start Axe.Windows CLI process");
-                    return false;
-                }
-
-                var timeout = TimeSpan.FromSeconds(60);
-                bool completed = process.WaitForExit((int)timeout.TotalMilliseconds);
-
-                if (!completed)
-                {
-                    process.Kill();
-                    Console.WriteLine($"Axe.Windows CLI scan timed out for page '{pageName}'");
-                    return false;
-                }
-
-                var output = process.StandardOutput.ReadToEnd();
-                if (!string.IsNullOrEmpty(output))
-                {
-                    Console.WriteLine($"CLI Output: {output}");
-                }
-
-                // Check for accessibility issues
-                var issueFiles = System.IO.Directory.GetFiles(pageOutputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
-
-                if (issueFiles.Length > 0)
-                {
-                    Console.WriteLine($"⚠ Accessibility issues found on '{pageName}':");
-                    foreach (var issueFile in issueFiles)
-                    {
-                        Console.WriteLine($"  - {issueFile}");
-                    }
-
-                    return false;
-                }
-                else
-                {
-                    Console.WriteLine($"✓ '{pageName}' passed accessibility check");
-                    return true;
-                }
+                process.Kill();
+                Console.WriteLine($"Axe.Windows CLI scan timed out for page '{pageName}'");
+                return false;
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error running Axe.Windows CLI scan for '{pageName}': {ex.Message}");
-            return false;
+
+            var output = process.StandardOutput.ReadToEnd();
+            if (!string.IsNullOrEmpty(output))
+            {
+                Console.WriteLine($"CLI Output: {output}");
+            }
+
+            // Check for accessibility issues
+            var issueFiles = System.IO.Directory.GetFiles(pageOutputDir, "*.a11ytest", System.IO.SearchOption.AllDirectories);
+
+            if (issueFiles.Length > 0)
+            {
+                Console.WriteLine($"Accessibility issues found on '{pageName}':");
+                foreach (var issueFile in issueFiles)
+                {
+                    Console.WriteLine($"  - {issueFile}");
+                }
+
+                return false;
+            }
+            else
+            {
+                Console.WriteLine($"'{pageName}' passed accessibility check");
+                return true;
+            }
         }
     }
 
@@ -464,7 +420,7 @@ public class AccessibilityTests : FlaUITestBase
                     return null;
                 }
 
-                Console.WriteLine($"✓ Successfully downloaded and extracted Axe.Windows CLI to: {cliExePath}");
+                Console.WriteLine($"Successfully downloaded and extracted Axe.Windows CLI to: {cliExePath}");
                 return cliExePath;
             }
         }
