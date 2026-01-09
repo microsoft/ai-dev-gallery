@@ -23,7 +23,7 @@ internal partial class AppData : ObservableObject
 
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
-    public CustomParametersState? LastCustomParamtersState { get; set; }
+    public CustomParametersState? LastCustomParametersState { get; set; }
 
     public LinkedList<UsageHistory>? UsageHistoryV2 { get; set; }
 

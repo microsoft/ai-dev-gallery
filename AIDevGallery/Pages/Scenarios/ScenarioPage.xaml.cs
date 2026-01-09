@@ -29,7 +29,7 @@ internal sealed partial class ScenarioPage : Page
     private readonly Dictionary<string, ExecutionProviderDevicePolicy> executionProviderDevicePolicies = new()
     {
         { "Default", ExecutionProviderDevicePolicy.DEFAULT },
-        { "Max Efficency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
+        { "Max Efficiency", ExecutionProviderDevicePolicy.MAX_EFFICIENCY },
         { "Max Performance", ExecutionProviderDevicePolicy.MAX_PERFORMANCE },
         { "Minimize Overall Power", ExecutionProviderDevicePolicy.MIN_OVERALL_POWER },
         { "Prefer NPU", ExecutionProviderDevicePolicy.PREFER_NPU },
