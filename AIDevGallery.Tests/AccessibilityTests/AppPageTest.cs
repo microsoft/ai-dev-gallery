@@ -88,6 +88,11 @@ public class AccessibilityTests : FlaUITestBase
                 {
                     Console.WriteLine($"\nClicking navigation item: {item.Name}");
 
+                    if (item == null)
+                    {
+                        continue;
+                    }
+
                     // Open List
                     item.Click();
                     Thread.Sleep(200);
