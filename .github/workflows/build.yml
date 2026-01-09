@@ -360,6 +360,11 @@ jobs:
       shell: pwsh
       run: |
         .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
+    - name: Set Screen Resolution
+      shell: pwsh
+      run: |
+        Set-DisplayResolution -Width 1920 -Height 1080 -Force
+      continue-on-error: true
     - name: Launch App and Run Accessibility Tests
       shell: powershell
       run: |

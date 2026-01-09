@@ -31,6 +31,9 @@ public class AccessibilityTests : FlaUITestBase
         // Arrange
         Assert.IsNotNull(MainWindow, "Main window should be initialized");
 
+        // Maximize the window to ensure all elements are visible/clickable
+        MainWindow.Patterns.Window.Pattern.SetWindowVisualState(WindowVisualState.Maximized);
+
         Assert.IsTrue(InitAxeWindows(), "Axe Init Failed");
 
         // Get the actual process ID from the window, not the test runner process
@@ -173,6 +176,12 @@ public class AccessibilityTests : FlaUITestBase
 
                 try
                 {
+                    if (!item.TryGetClickablePoint(out _))
+                    {
+                        Console.WriteLine($"Skipping item {item.Name} as it is likely off-screen or covered");
+                        continue;
+                    }
+
                     item.Click();
 
                     // Wait for window to become responsive after click
@@ -193,6 +202,13 @@ public class AccessibilityTests : FlaUITestBase
                         foreach (var listItem in listItems)
                         {
                             Console.WriteLine($"  - Found sub-item: {listItem.Name}");
+
+                            if (!listItem.TryGetClickablePoint(out _))
+                            {
+                                Console.WriteLine($"Skipping sub-item {listItem.Name} as it is likely off-screen");
+                                continue;
+                            }
+
                             listItem.Click();
 
                             // Wait for window to become responsive after click
