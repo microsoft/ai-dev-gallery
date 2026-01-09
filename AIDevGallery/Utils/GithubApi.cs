@@ -11,7 +11,7 @@ internal class GithubApi
     private static readonly string RawGhUrl = "https://raw.githubusercontent.com";
 
     /// <summary>
-    /// Gets contens from a file in a Hugging Face repo
+    /// Gets contents from a file in a Hugging Face repo
     /// </summary>
     /// <param name="fileUrl">url of file</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
