@@ -101,8 +101,8 @@ public class AccessibilityTests : FlaUITestBase
                     bool isExpanded = IsItemExpanded(item);
                     if (!isExpanded)
                     {
-                        item.Click();
                         Thread.Sleep(200);
+                        item.Click();
                     }
 
                     // Wait for window to become responsive after click
@@ -132,6 +132,7 @@ public class AccessibilityTests : FlaUITestBase
                                 continue;
                             }
 
+                            Thread.Sleep(100);
                             listItem.Click();
                             Thread.Sleep(3000);
                             listItem.Click();
@@ -151,8 +152,8 @@ public class AccessibilityTests : FlaUITestBase
                     }
 
                     // Close List
-                    item.Click();
                     Thread.Sleep(200);
+                    item.Click();
                     Console.WriteLine($"Successfully clicked: {item.Name}");
                 }
 
