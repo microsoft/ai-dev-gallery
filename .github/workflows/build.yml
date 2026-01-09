@@ -128,8 +128,35 @@ jobs:
         if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
           echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
         }
+    - name: List NuGet sources
+      run: dotnet nuget list source
+    - name: Create ephemeral nuget.pr.config
+      shell: pwsh
+      run: |
+        $cfg = @'
+        <?xml version="1.0" encoding="utf-8"?>
+        <configuration>
+          <packageSources>
+            <clear/>
+            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            <add key="ORT" value="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/nuget/v3/index.json" />
+          </packageSources>
+          <packageSourceMapping>
+            <packageSource key="nuget.org">
+              <package pattern="*" />
+            </packageSource>
+            <packageSource key="ORT">
+              <package pattern="*Foundry*" />
+            </packageSource>
+          </packageSourceMapping>
+        </configuration>
+        '@
+        $path = "$env:RUNNER_TEMP/nuget.pr.config"
+        Set-Content -Path $path -Value $cfg -Encoding UTF8
+        Write-Host "Ephemeral NuGet config written to: $path"
+        echo "EPHEMERAL_NUGET_CONFIG=$path" >> $env:GITHUB_ENV
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true --configfile "${{ env.EPHEMERAL_NUGET_CONFIG }}"
     - name: Build
       run: |
         dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
