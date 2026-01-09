@@ -36,10 +36,10 @@ internal class WinUIRenderer : RendererBase
 
         // set style
         _stack.Push(FlowDocument);
-        LoadOverridenRenderers();
+        LoadOverriddenRenderers();
     }
 
-    private void LoadOverridenRenderers()
+    private void LoadOverriddenRenderers()
     {
         LoadRenderers();
     }
@@ -55,7 +55,7 @@ internal class WinUIRenderer : RendererBase
         _stack.Clear();
         FlowDocument.RichTextBlock.Blocks.Clear();
         _stack.Push(FlowDocument);
-        LoadOverridenRenderers();
+        LoadOverriddenRenderers();
     }
 
     public void WriteLeafInline(LeafBlock leafBlock)

@@ -43,7 +43,7 @@ internal class HuggingFaceApi
     }
 
     /// <summary>
-    /// Gets contens from a file in a Hugging Face repo
+    /// Gets contents from a file in a Hugging Face repo
     /// </summary>
     /// <param name="modelId">the id of the model</param>
     /// <param name="filePath">the path of the file</param>

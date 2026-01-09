@@ -16,13 +16,13 @@ internal class AIToolkitActionClickedEvent : EventBase
     public string ToolkitActionQueryName { get; }
 
     public string ModelName { get; }
-    public bool WasDeeplinkSucessful { get; }
+    public bool WasDeeplinkSuccessful { get; }
 
-    private AIToolkitActionClickedEvent(string toolkitActionQueryName, string modelName, bool wasDeeplinkSucessful)
+    private AIToolkitActionClickedEvent(string toolkitActionQueryName, string modelName, bool wasDeeplinkSuccessful)
     {
         ToolkitActionQueryName = toolkitActionQueryName;
         ModelName = modelName;
-        WasDeeplinkSucessful = wasDeeplinkSucessful;
+        WasDeeplinkSuccessful = wasDeeplinkSuccessful;
     }
 
     public override void ReplaceSensitiveStrings(Func<string?, string?> replaceSensitiveStrings)
@@ -30,8 +30,8 @@ internal class AIToolkitActionClickedEvent : EventBase
         // No sensitive strings
     }
 
-    public static void Log(string toolkitActionQueryName, string modelName, bool wasDeeplinkSuccesful)
+    public static void Log(string toolkitActionQueryName, string modelName, bool wasDeeplinkSuccessful)
     {
-        TelemetryFactory.Get<ITelemetry>().Log("AIToolkitActionClicked_Event", LogLevel.Critical, new AIToolkitActionClickedEvent(toolkitActionQueryName, modelName, wasDeeplinkSuccesful));
+        TelemetryFactory.Get<ITelemetry>().Log("AIToolkitActionClicked_Event", LogLevel.Critical, new AIToolkitActionClickedEvent(toolkitActionQueryName, modelName, wasDeeplinkSuccessful));
     }
 }

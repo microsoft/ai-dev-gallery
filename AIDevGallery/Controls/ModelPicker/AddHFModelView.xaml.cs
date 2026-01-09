@@ -115,11 +115,11 @@ internal sealed partial class AddHFModelView : UserControl
 
                 var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
 
-                var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
+                var curatedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
 
                 var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
 
-                var details = curratedModel ?? new ModelDetails()
+                var details = curatedModel ?? new ModelDetails()
                 {
                     Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
                     Name = result.Id + " " + accelerator.ToString(),
@@ -142,7 +142,7 @@ internal sealed partial class AddHFModelView : UserControl
                     }
                 }
 
-                if (curratedModel == null)
+                if (curatedModel == null)
                 {
                     details.License = licenseKey;
                 }
@@ -270,11 +270,11 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (button!.DataContext is Result result)
         {
-            var curratedModels = ModelTypeHelpers.ModelDetails.Where(p => p.Value.Url == result.Details.Url).ToList();
+            var curatedModels = ModelTypeHelpers.ModelDetails.Where(p => p.Value.Url == result.Details.Url).ToList();
 
-            if (curratedModels.Count > 0)
+            if (curatedModels.Count > 0)
             {
-                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(p => p.Value.Contains(curratedModels[0].Key));
+                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(p => p.Value.Contains(curatedModels[0].Key));
                 App.MainWindow.Navigate("models", parentKey.Key);
             }
             else
