@@ -109,6 +109,8 @@ jobs:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
+    - name: Add nuget.org source for tool installation
+      run: dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
     - name: Install NBGV tool
       run: dotnet tool install --tool-path . nbgv
     - name: Set Version
