@@ -9,6 +9,7 @@
 
     <NavigationView
         x:Name="NavView"
+        AutomationProperties.AutomationId="ScenarioNavView"
         CompactModeThresholdWidth="0"
         ExpandedModeThresholdWidth="0"
         IsBackButtonVisible="Collapsed"

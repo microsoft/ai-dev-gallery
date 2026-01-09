@@ -46,12 +46,12 @@ public class AccessibilityTests : FlaUITestBase
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
-        var mainPage = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
-        Assert.IsNotNull(mainPage, "Main page should be initialized");
-
         foreach (var pageName in pagesToTest)
         {
             Console.WriteLine($"\n--- Testing Page: {pageName} ---");
+
+            var mainPage = MainWindow.FindFirstDescendant(cf => cf.ByAutomationId("NavView"));
+            Assert.IsNotNull(mainPage, "Main page should be initialized");
 
             // Navigate to the page
             bool navigationSuccess = NavigateToPage(pageName);
@@ -98,8 +98,12 @@ public class AccessibilityTests : FlaUITestBase
                     }
 
                     // Open List
-                    item.Click();
-                    Thread.Sleep(200);
+                    bool isExpanded = IsItemExpanded(item);
+                    if (!isExpanded)
+                    {
+                        item.Click();
+                        Thread.Sleep(200);
+                    }
 
                     // Wait for window to become responsive after click
                     Retry.WhileTrue(
@@ -148,6 +152,7 @@ public class AccessibilityTests : FlaUITestBase
 
                     // Close List
                     item.Click();
+                    Thread.Sleep(200);
                     Console.WriteLine($"Successfully clicked: {item.Name}");
                 }
 
@@ -198,6 +203,7 @@ public class AccessibilityTests : FlaUITestBase
         // Try to click the navigation item (since it's a button)
         try
         {
+            Thread.Sleep(200);
             navigationItem.Click();
             Console.WriteLine($"Clicked navigation item: {pageName}");
             System.Threading.Thread.Sleep(2000); // Wait for page to load
@@ -206,6 +212,19 @@ public class AccessibilityTests : FlaUITestBase
         catch (Exception ex)
         {
             Console.WriteLine($"Could not click {pageName}: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an item is expanded (opened) using the ExpandCollapse pattern
+    /// </summary>
+    private bool IsItemExpanded(FlaUI.Core.AutomationElements.AutomationElement item)
+    {
+        if (item.Patterns.ExpandCollapse.IsSupported)
+        {
+            return item.Patterns.ExpandCollapse.Pattern.ExpandCollapseState == ExpandCollapseState.Expanded;
         }
 
         return false;
