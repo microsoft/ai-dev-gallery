@@ -110,7 +110,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: Install NBGV tool
-      run: dotnet tool install --tool-path . nbgv --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources
+      run: dotnet tool install --tool-path . nbgv
     - name: Set Version
       run: ./nbgv cloud -c
     - name: Update Package Manifest Version
