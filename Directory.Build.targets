@@ -2,4 +2,22 @@
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
   </ItemGroup>
+
+  <!-- Auto-create nuget.config from template for local development -->
+  <Target Name="EnsureNuGetConfig" BeforeTargets="CollectPackageReferences;Restore">
+    <PropertyGroup>
+      <NuGetConfigTemplate>$(MSBuildThisFileDirectory)nuget.config.template</NuGetConfigTemplate>
+      <NuGetConfigTarget>$(MSBuildThisFileDirectory)nuget.config</NuGetConfigTarget>
+    </PropertyGroup>
+    <Message Text="Checking for nuget.config..." Importance="low" />
+    <Copy SourceFiles="$(NuGetConfigTemplate)" 
+          DestinationFiles="$(NuGetConfigTarget)" 
+          Condition="Exists('$(NuGetConfigTemplate)') And !Exists('$(NuGetConfigTarget)')"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="NuGetConfigCreated" />
+    </Copy>
+    <Message Text="Created nuget.config from template for local development" 
+             Importance="high" 
+             Condition="'@(NuGetConfigCreated)' != ''" />
+  </Target>
 </Project>
