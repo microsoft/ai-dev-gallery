@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 
-  This is a template for local development NuGet configuration.
-  
-  To use this file:
-  1. Copy this file to nuget.config in the same directory
-  2. Or run: copy nuget.config.template nuget.config
-  
-  Note: nuget.config is git-ignored to avoid ADO SSCA compliance issues.
--->
 <configuration>
   <packageSources>
-    <clear/>
+    <clear />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
     <add key="ORT" value="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/nuget/v3/index.json" />
   </packageSources>
