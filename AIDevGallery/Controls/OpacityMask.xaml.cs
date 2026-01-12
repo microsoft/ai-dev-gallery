@@ -38,6 +38,7 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
     private ExpressionAnimation? _contentSizeAnimation;
     private CompositionVisualSurface? _maskVisualSurface;
     private ExpressionAnimation? _maskSizeAnimation;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpacityMaskView"/> class.
@@ -126,6 +127,11 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         _contentVisualSurface?.Dispose();
         _contentSizeAnimation?.Dispose();
         _maskVisualSurface?.Dispose();
@@ -133,5 +139,7 @@ public sealed partial class OpacityMaskView : ContentControl, IDisposable
         _mask?.Dispose();
         _maskBrush?.Dispose();
         _redirectVisual?.Dispose();
+
+        _disposed = true;
     }
 }

@@ -249,10 +249,6 @@ internal sealed partial class Shimmer : Control, IDisposable
         _rectangleGeometry!.StopAnimation(nameof(CompositionRoundedRectangleGeometry.Size));
         _shimmerMaskGradient!.StopAnimation(nameof(CompositionLinearGradientBrush.StartPoint));
         _shimmerMaskGradient.StopAnimation(nameof(CompositionLinearGradientBrush.EndPoint));
-
-        _sizeAnimation!.Dispose();
-        _gradientStartPointAnimation!.Dispose();
-        _gradientEndPointAnimation!.Dispose();
         _animationStarted = false;
     }
 

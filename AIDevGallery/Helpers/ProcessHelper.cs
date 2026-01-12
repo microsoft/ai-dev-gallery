@@ -17,14 +17,17 @@ internal static class ProcessHelper
     /// <param name="url">The URL to open.</param>
     public static void OpenUrl(string url)
     {
-        // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
-#pragma warning disable IDISP004 // Don't ignore created IDisposable
-        Process.Start(new ProcessStartInfo()
+        if (!string.IsNullOrWhiteSpace(url))
         {
-            FileName = url,
-            UseShellExecute = true
-        });
+            // Process.Start for external process (browser) doesn't need disposal - process lifecycle is independent
+#pragma warning disable IDISP004 // Don't ignore created IDisposable
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
 #pragma warning restore IDISP004
+        }
     }
 
     /// <summary>
@@ -33,9 +36,12 @@ internal static class ProcessHelper
     /// <param name="folderPath">The folder path to open in Explorer.</param>
     public static void OpenFolder(string folderPath)
     {
-        // Process.Start for explorer doesn't need disposal - process lifecycle is independent
+        if (!string.IsNullOrWhiteSpace(folderPath))
+        {
+            // Process.Start for explorer doesn't need disposal - process lifecycle is independent
 #pragma warning disable IDISP004 // Don't ignore created IDisposable
-        Process.Start("explorer.exe", folderPath);
+            Process.Start("explorer.exe", folderPath);
 #pragma warning restore IDISP004
+        }
     }
 }
