@@ -144,6 +144,8 @@ public class AccessibilityTests : FlaUITestBase
                                 continue;
                             }
 
+                            // Clicks twice to select and then close the potential model-not-supported popup.
+                            // Note: Popup styles vary across pages, making a unified close function difficult without standardization.
                             Thread.Sleep(200);
                             listItem.Click();
                             Thread.Sleep(3000);
@@ -232,6 +234,7 @@ public class AccessibilityTests : FlaUITestBase
             return false;
         }
 
+        // Prevents test-generated popups from blocking the target element click.
         Thread.Sleep(200);
         settingItem.Click();
         Thread.Sleep(200);
