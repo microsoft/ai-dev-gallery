@@ -94,7 +94,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
     private void Page_Loaded()
     {
         InputTextBox.Focus(FocusState.Programmatic);
-        CustomParametersState? lastState = App.AppData.LastCustomParamtersState;
+        CustomParametersState? lastState = App.AppData.LastCustomParametersState;
         if (lastState != null)
         {
             DoSampleToggle.IsOn = lastState.DoSample ?? defaultDoSample;
@@ -126,7 +126,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             OutputContentModeration = OutputModerationLevel
         };
 
-        App.AppData.LastCustomParamtersState = lastState;
+        App.AppData.LastCustomParametersState = lastState;
         await App.AppData.SaveAsync();
     }
 

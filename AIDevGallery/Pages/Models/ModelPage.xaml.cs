@@ -251,7 +251,7 @@ internal sealed partial class ModelPage : Page
             string toolkitDeeplink = modelDetails.CreateAiToolkitDeeplink(action);
             _ = Task.Run(() =>
             {
-                bool wasDeeplinkSuccesful = true;
+                bool wasDeeplinkSuccessful = true;
                 try
                 {
                     ProcessHelper.OpenUrl(toolkitDeeplink);
@@ -268,11 +268,11 @@ internal sealed partial class ModelPage : Page
                         Debug.WriteLine($"Failed to open AI Toolkit fallback URL: {ex}");
                     }
 
-                    wasDeeplinkSuccesful = false;
+                    wasDeeplinkSuccessful = false;
                 }
                 finally
                 {
-                    AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccesful);
+                    AIToolkitActionClickedEvent.Log(AIToolkitHelper.AIToolkitActionInfos[action].QueryName, modelDetails.Name, wasDeeplinkSuccessful);
                 }
             });
         }

@@ -79,7 +79,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         _cachedModels = null;
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCache = false, CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCache = false, CancellationToken cancellationToken = default)
     {
         if (ignoreCache)
         {
@@ -97,7 +97,7 @@ internal class OpenAIModelProvider : IExternalModelProvider
         {
             OpenAIModelClient client = new OpenAIModelClient(OpenAIKey);
 
-            var models = await client.GetModelsAsync(cancelationToken);
+            var models = await client.GetModelsAsync(cancellationToken);
 
             if (models?.Value == null)
             {

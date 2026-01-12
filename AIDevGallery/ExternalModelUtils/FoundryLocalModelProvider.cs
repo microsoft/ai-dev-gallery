@@ -134,14 +134,14 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
 }}";
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancellationToken = default)
     {
         if (ignoreCached)
         {
             await ResetAsync();
         }
 
-        await InitializeAsync(cancelationToken);
+        await InitializeAsync(cancellationToken);
 
         return _downloadedModels ?? [];
     }
@@ -294,7 +294,7 @@ await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
         return _foundryManager != null;
     }
 
-    private async Task InitializeAsync(CancellationToken cancelationToken = default)
+    private async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         if (_foundryManager != null && _downloadedModels != null && _downloadedModels.Any())
         {
