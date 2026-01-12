@@ -42,7 +42,9 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
+        // TODO: Next steps - nees add "Models" and "AI APIs" pages to the test list
         var pagesToTest = new[] { "Home", "Samples", "Settings" };
+        var pagesToDeepTest = new[] { "Samples"};
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
@@ -63,7 +65,7 @@ public class AccessibilityTests : FlaUITestBase
             }
 
             // Check if this page has list items to test
-            if (pageName == "Samples" || pageName == "Models" || pageName == "AI APIs")
+            if (pagesToDeepTest.Contains(pageName))
             {
                 // Act - Find scenario navigation view
                 var scenario = mainPage.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
@@ -226,7 +228,7 @@ public class AccessibilityTests : FlaUITestBase
 
         if (settingItem == null)
         {
-            Console.WriteLine($"Navigation item '{pageName}' not found");
+            Console.WriteLine($"Setting item '{pageName}' not found");
             return false;
         }
 
