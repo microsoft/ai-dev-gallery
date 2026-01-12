@@ -85,6 +85,7 @@
     <PackageReference Include="Microsoft.AI.Foundry.Local.WinML" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Base" />
     <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Extensions" />
@@ -355,7 +356,7 @@
   </ItemGroup>
   
   <!-- Exclude superfluous ORT and IHV libs when using Foundry Local WinML -->
-  <Import Project="ExcludeExtraLibs.props"/>
+  <Import Project="ExcludeExtraLibs.props" />
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
