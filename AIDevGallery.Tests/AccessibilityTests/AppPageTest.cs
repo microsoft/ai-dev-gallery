@@ -42,9 +42,9 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
-        // TODO: Next steps - nees add "Models" and "AI APIs" pages to the test list
+        // TODO: Next steps - nees to add "Models" and "AI APIs" pages
         var pagesToTest = new[] { "Home", "Samples", "Settings" };
-        var pagesToDeepTest = new[] { "Samples"};
+        var pagesToDeepTest = new[] { "Samples" };
         var scanResults = new System.Collections.Generic.List<string>();
         var failedPages = new System.Collections.Generic.List<string>();
 
@@ -230,16 +230,21 @@ public class AccessibilityTests : FlaUITestBase
 
         if (settingItem == null)
         {
-            Console.WriteLine($"Setting item '{pageName}' not found");
+            Console.WriteLine($"Setting item not found");
             return false;
         }
 
         // Prevents test-generated popups from blocking the target element click.
-        Thread.Sleep(200);
-        settingItem.Click();
-        Thread.Sleep(200);
-        navigationItem.Click();
-        Thread.Sleep(200);
+        Retry.WhileTrue(() =>
+        {
+            settingItem.Click();
+            return IsItemSelected(settingItem);
+        }, timeout: TimeSpan.FromSeconds(5));
+        Retry.WhileTrue(() =>
+        {
+            navigationItem.Click();
+            return IsItemSelected(settingItem);
+        }, timeout: TimeSpan.FromSeconds(5));
         Console.WriteLine($"Clicked navigation item: {pageName}");
         Thread.Sleep(2000); // Wait for page to load
         return true;
@@ -253,6 +258,19 @@ public class AccessibilityTests : FlaUITestBase
         if (item.Patterns.ExpandCollapse.IsSupported)
         {
             return item.Patterns.ExpandCollapse.Pattern.ExpandCollapseState == ExpandCollapseState.Expanded;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an item is selected using the SelectionItem pattern
+    /// </summary>
+    private bool IsItemSelected(FlaUI.Core.AutomationElements.AutomationElement item)
+    {
+        if (item.Patterns.SelectionItem.IsSupported)
+        {
+            return item.Patterns.SelectionItem.Pattern.IsSelected.Value;
         }
 
         return false;
