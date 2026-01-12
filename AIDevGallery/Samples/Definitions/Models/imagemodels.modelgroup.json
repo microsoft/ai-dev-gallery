@@ -295,7 +295,7 @@
           "SINet": {
             "Id": "b7cae321-478f-1177-9559-709df5dfe703",
             "Name": "SINet",
-            "Url": "https://huggingface.co/qualcomm/SINet/blob/main/SINet.onnx",
+            "Url": "https://huggingface.co/qualcomm/SINet/blob/c76eed22a7d493836189bf892e83ebf8c59152f6/SINet.onnx",
             "Description": "SINet is a machine learning model that is designed to segment people from close\u2011up portrait images in real time.",
             "HardwareAccelerator": [
               "CPU",
