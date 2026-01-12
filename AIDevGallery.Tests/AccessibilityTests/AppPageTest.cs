@@ -235,16 +235,21 @@ public class AccessibilityTests : FlaUITestBase
         }
 
         // Prevents test-generated popups from blocking the target element click.
-        Retry.WhileTrue(() =>
-        {
-            settingItem.Click();
-            return IsItemSelected(settingItem);
-        }, timeout: TimeSpan.FromSeconds(5));
-        Retry.WhileTrue(() =>
-        {
-            navigationItem.Click();
-            return IsItemSelected(settingItem);
-        }, timeout: TimeSpan.FromSeconds(5));
+        Retry.WhileTrue(
+            () =>
+            {
+                settingItem.Click();
+                return IsItemSelected(settingItem);
+            },
+            timeout: TimeSpan.FromSeconds(5));
+
+        Retry.WhileTrue(
+            () =>
+            {
+                navigationItem.Click();
+                return IsItemSelected(navigationItem);
+            },
+            timeout: TimeSpan.FromSeconds(5));
         Console.WriteLine($"Clicked navigation item: {pageName}");
         Thread.Sleep(2000); // Wait for page to load
         return true;
