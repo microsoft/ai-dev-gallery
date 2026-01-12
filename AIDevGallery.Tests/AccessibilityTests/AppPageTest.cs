@@ -108,8 +108,13 @@ public class AccessibilityTests : FlaUITestBase
                     {
                         if (!item.IsOffscreen)
                         {
-                            Thread.Sleep(200);
-                            item.Click();
+                            Retry.WhileTrue(
+                                () =>
+                                {
+                                    item.Click();
+                                    return IsItemSelected(item);
+                                },
+                                timeout: TimeSpan.FromSeconds(5));
                         }
                         else
                         {
@@ -146,11 +151,21 @@ public class AccessibilityTests : FlaUITestBase
 
                             // Clicks twice to select and then close the potential model-not-supported popup.
                             // Note: Popup styles vary across pages, making a unified close function difficult without standardization.
-                            Thread.Sleep(200);
-                            listItem.Click();
+                            Retry.WhileTrue(
+                                () =>
+                                {
+                                    listItem.Click();
+                                    return IsItemSelected(listItem);
+                                },
+                                timeout: TimeSpan.FromSeconds(5));
                             Thread.Sleep(3000);
-                            listItem.Click();
-                            Thread.Sleep(200);
+                            Retry.WhileTrue(
+                                () =>
+                                {
+                                    listItem.Click();
+                                    return IsItemSelected(listItem);
+                                },
+                            timeout: TimeSpan.FromSeconds(5));
 
                             // Wait for window to become responsive after click
                             Retry.WhileTrue(
@@ -170,9 +185,13 @@ public class AccessibilityTests : FlaUITestBase
                     var itemToClose = menuItemsHost.FindFirstDescendant(cf => cf.ByName(itemName));
                     if (itemToClose != null)
                     {
-                        Thread.Sleep(200);
-                        itemToClose.Click();
-                        Thread.Sleep(200);
+                        Retry.WhileTrue(
+                            () =>
+                            {
+                                itemToClose.Click();
+                                return IsItemSelected(itemToClose);
+                            },
+                        timeout: TimeSpan.FromSeconds(5));
                         Console.WriteLine($"Successfully closed: {itemToClose.Name}");
                     }
                     else
