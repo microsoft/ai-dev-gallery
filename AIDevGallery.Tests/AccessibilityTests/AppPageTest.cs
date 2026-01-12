@@ -165,7 +165,7 @@ public class AccessibilityTests : FlaUITestBase
                                     listItem.Click();
                                     return IsItemSelected(listItem);
                                 },
-                            timeout: TimeSpan.FromSeconds(5));
+                                timeout: TimeSpan.FromSeconds(5));
 
                             // Wait for window to become responsive after click
                             Retry.WhileTrue(
@@ -191,7 +191,7 @@ public class AccessibilityTests : FlaUITestBase
                                 itemToClose.Click();
                                 return IsItemSelected(itemToClose);
                             },
-                        timeout: TimeSpan.FromSeconds(5));
+                            timeout: TimeSpan.FromSeconds(5));
                         Console.WriteLine($"Successfully closed: {itemToClose.Name}");
                     }
                     else
