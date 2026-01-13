@@ -278,7 +278,7 @@ internal sealed partial class AddHFModelView : UserControl
         var result = button!.DataContext as Result;
 
         var parts = result!.SearchResult.Id.Split('/');
-        string url = result.License.LicenseUrl;
+        string? url = result.License.LicenseUrl;
         if (string.IsNullOrEmpty(url) && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
         {
             url = HuggingFaceUrl.BuildRepoUrl(parts[0], parts[1]);
