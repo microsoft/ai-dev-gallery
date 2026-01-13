@@ -112,7 +112,7 @@ public class AccessibilityTests : FlaUITestBase
                                 () =>
                                 {
                                     item.Click();
-                                    return IsItemFocused(item);
+                                    return IsItemSelected(item);
                                 },
                                 timeout: TimeSpan.FromSeconds(5));
                         }
@@ -156,7 +156,7 @@ public class AccessibilityTests : FlaUITestBase
                                 () =>
                                 {
                                     listItem.Click();
-                                    return IsItemFocused(listItem);
+                                    return IsItemSelected(listItem);
                                 },
                                 timeout: TimeSpan.FromSeconds(5));
                             Thread.Sleep(3000);
@@ -164,7 +164,7 @@ public class AccessibilityTests : FlaUITestBase
                                 () =>
                                 {
                                     listItem.Click();
-                                    return IsItemFocused(listItem);
+                                    return IsItemSelected(listItem);
                                 },
                                 timeout: TimeSpan.FromSeconds(5));
 
@@ -190,7 +190,7 @@ public class AccessibilityTests : FlaUITestBase
                             () =>
                             {
                                 itemToClose.Click();
-                                return IsItemFocused(itemToClose);
+                                return IsItemSelected(itemToClose);
                             },
                             timeout: TimeSpan.FromSeconds(5));
                         Console.WriteLine($"Successfully closed: {itemToClose.Name}");
@@ -259,7 +259,7 @@ public class AccessibilityTests : FlaUITestBase
             () =>
             {
                 settingItem.Click();
-                return IsItemFocused(settingItem);
+                return IsItemSelected(settingItem);
             },
             timeout: TimeSpan.FromSeconds(5));
 
@@ -267,7 +267,7 @@ public class AccessibilityTests : FlaUITestBase
             () =>
             {
                 navigationItem.Click();
-                return IsItemFocused(navigationItem);
+                return IsItemSelected(navigationItem);
             },
             timeout: TimeSpan.FromSeconds(5));
         Console.WriteLine($"Clicked navigation item: {pageName}");
