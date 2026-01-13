@@ -190,7 +190,7 @@ public class ModelUrlConnectivityTests
                 // GitHub file: test raw URL (this is what gets downloaded - from API's DownloadUrl field)
                 // GitHub directory: test API endpoint (fetches file list)
                 var convertedUrl = isFile
-                    ? GitHubUrl.BuildRawUrl(ghUrl.Organization, ghUrl.Repo, ghUrl.Ref, ghUrl.Path)
+                    ? GitHubUrl.BuildRawUrl(ghUrl.Organization, ghUrl.Repo, ghUrl.Ref, ghUrl.Path!)
                     : GitHubUrl.BuildApiUrl(ghUrl.Organization, ghUrl.Repo, ghUrl.Ref, ghUrl.Path);
 
                 return (convertedUrl, !isFile);
@@ -202,7 +202,7 @@ public class ModelUrlConnectivityTests
                 if (hfUrl.IsFile && !string.IsNullOrEmpty(hfUrl.Path))
                 {
                     // HuggingFace file: test resolve URL (business code builds this for download)
-                    return (HuggingFaceUrl.BuildResolveUrl(hfUrl.Organization, hfUrl.Repo, hfUrl.Ref, hfUrl.Path), false);
+                    return (HuggingFaceUrl.BuildResolveUrl(hfUrl.Organization, hfUrl.Repo, hfUrl.Ref, hfUrl.Path!), false);
                 }
                 else
                 {
