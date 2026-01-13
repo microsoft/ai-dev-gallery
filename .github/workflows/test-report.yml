@@ -88,9 +88,22 @@ jobs:
         if (-not [string]::IsNullOrWhiteSpace("${{ secrets.LAF_PUBLISHER_ID }}")) {
           echo "LAF_PUBLISHER_ID=${{ secrets.LAF_PUBLISHER_ID }}" >> $env:GITHUB_ENV
         }
+    - name: Create ephemeral nuget config from template
+      shell: pwsh
+      run: |
+        $templatePath = "${{ github.workspace }}\nuget.config.template"
+        $configPath = "$env:RUNNER_TEMP\nuget.config"
+        
+        if (-not (Test-Path $templatePath)) {
+          Write-Error "Template file not found: $templatePath"
+          exit 1
+        }
+        
+        Copy-Item -Path $templatePath -Destination $configPath -Force
+        echo "EPHEMERAL_NUGET_CONFIG=$configPath" >> $env:GITHUB_ENV
     - name: Restore dependencies
       if: github.event_name != 'workflow_run'
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:PublishReadyToRun=true /p:SelfContainedIfPreviewWASDK=true --configfile "${{ env.EPHEMERAL_NUGET_CONFIG }}"
     - name: Build
       if: github.event_name != 'workflow_run'
       run: |
