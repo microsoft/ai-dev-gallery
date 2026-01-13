@@ -224,13 +224,13 @@ public class AccessibilityTests : FlaUITestBase
             return false;
         }
 
-        // Find the navigation item by name
+        // Find the Settings navigation item used to clear any blocking popups
         var settingItem = MainWindow?.FindFirstDescendant(cf => cf.ByName("Settings"));
 
         if (settingItem == null)
         {
             Console.WriteLine($"Setting item not found");
-            return false;
+            return false";
         }
 
         // Prevents test-generated popups from blocking the target element click.
