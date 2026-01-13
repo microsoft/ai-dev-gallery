@@ -143,7 +143,7 @@ public class AccessibilityTests : FlaUITestBase
                                 continue;
                             }
 
-                            // Clicks twice to select and then close the potential model-not-supported popup.
+                            // Clicks select and then close the potential model-not-supported popup.
                             // Note: Popup styles vary across pages, making a unified close function difficult without standardization.
                             // Wait 3s to allow the sample to load its model before scanning
                             Retry.WhileTrue(
