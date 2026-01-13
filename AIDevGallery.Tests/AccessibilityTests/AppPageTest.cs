@@ -42,7 +42,7 @@ public class AccessibilityTests : FlaUITestBase
 
         Console.WriteLine($"Testing app process ID: {processId}");
 
-        // TODO: Next steps - nees to add "Models" and "AI APIs" pages
+        // TODO: Next steps - needs to add "Models" and "AI APIs" pages
         var pagesToTest = new[] { "Home", "Samples", "Settings" };
         var pagesToDeepTest = new[] { "Samples" };
         var scanResults = new System.Collections.Generic.List<string>();
