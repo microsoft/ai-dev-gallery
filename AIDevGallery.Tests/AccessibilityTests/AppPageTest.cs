@@ -230,7 +230,7 @@ public class AccessibilityTests : FlaUITestBase
         if (settingItem == null)
         {
             Console.WriteLine($"Setting item not found");
-            return false";
+            return false;
         }
 
         // Prevents test-generated popups from blocking the target element click.
