@@ -23,7 +23,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.Tests.IntegrationTests;
+namespace AIDevGallery.Tests.Integration;
 
 [TestClass]
 public class ModelUrlConnectivityTests
@@ -79,10 +79,13 @@ public class ModelUrlConnectivityTests
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
+    [TestCategory("Network")]
     public async Task AllModelUrlsShouldBeAccessibleBatchTest()
     {
         // This test checks all URLs across all model files in one go
         // Useful for getting a complete report of all broken URLs
+        // WARNING: This test can take several minutes to complete due to rate limiting
         var projectRoot = GetProjectRoot();
         var modelsDir = Path.Combine(projectRoot, ModelDefinitionsPath);
         var allFailedUrls = new List<(string File, string Url, string ModelName, int StatusCode, string Error)>();

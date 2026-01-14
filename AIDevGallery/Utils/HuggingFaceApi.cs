@@ -49,7 +49,7 @@ internal class HuggingFaceApi
     public static async Task<string> GetContentsOfTextFile(string modelId, string filePath, string commitOrBranch = "main")
     {
         var parts = modelId.Split('/');
-        if (parts.Length != 2)
+        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
         {
             throw new ArgumentException("modelId must be in format 'organization/repo'", nameof(modelId));
         }
