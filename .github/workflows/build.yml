@@ -252,7 +252,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} --configfile "${{ env.EPHEMERAL_NUGET_CONFIG }}"
     - name: Build AIDevGallery.Utils
       run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
     - name: Build Test Project

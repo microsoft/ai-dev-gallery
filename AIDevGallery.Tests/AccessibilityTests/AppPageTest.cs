@@ -125,7 +125,7 @@ public class AccessibilityTests : FlaUITestBase
                     // Small delay to allow content to load
                     var listItems = item.FindAllChildren(cf =>
                         cf.ByControlType(ControlType.ListItem))
-                        .Where(item => item.IsEnabled && item.IsOffscreen == false)
+                        .Where(subItem => subItem.IsEnabled && subItem.IsOffscreen == false)
                         .ToArray();
 
                     Console.WriteLine($"Inside List Found {listItems.Length} items");
