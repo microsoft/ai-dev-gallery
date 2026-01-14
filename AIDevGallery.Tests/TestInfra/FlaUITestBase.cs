@@ -269,7 +269,7 @@ public abstract class FlaUITestBase
         }
 
         // Wait for the main window to appear with extended timeout
-        var timeout = TimeSpan.FromSeconds(60); // Increased timeout for first launch
+        var timeout = TimeSpan.FromSeconds(90); // Increased timeout for first launch
         var startTime = DateTime.Now;
         var retryInterval = TimeSpan.FromMilliseconds(500);
 

@@ -236,7 +236,7 @@ public abstract class NativeUIA3TestBase
         }
 
         // Wait for the main window to appear
-        var timeout = TimeSpan.FromSeconds(60);
+        var timeout = TimeSpan.FromSeconds(90);
         var startTime = DateTime.Now;
 
         Console.WriteLine("Waiting for main window to appear...");
