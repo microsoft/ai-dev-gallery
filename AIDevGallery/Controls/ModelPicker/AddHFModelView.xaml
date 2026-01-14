@@ -56,7 +56,9 @@
                     Grid.Row="1"
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Browse and download generative language models from Hugging Face." />
+                    Text="Browse and download generative language models from Hugging Face."
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
                 <Grid
                     Grid.Row="2"
                     MaxWidth="560"

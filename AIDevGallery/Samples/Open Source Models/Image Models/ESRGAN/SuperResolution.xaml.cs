@@ -133,10 +133,10 @@ internal sealed partial class SuperResolution : BaseSamplePage
 
         // Pick a file
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
             // Call function to run inference and classify image
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await EnhanceImage(file.Path);
         }

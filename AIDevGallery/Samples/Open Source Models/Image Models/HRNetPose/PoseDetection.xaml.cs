@@ -127,9 +127,9 @@ internal sealed partial class PoseDetection : BaseSamplePage
         picker.ViewMode = PickerViewMode.Thumbnail;
 
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await DetectPose(file.Path);
         }
@@ -146,7 +146,7 @@ internal sealed partial class PoseDetection : BaseSamplePage
         Loader.Visibility = Visibility.Visible;
         UploadButton.Visibility = Visibility.Collapsed;
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Content changed: new upload."); // <exclude-line>
 
         using Bitmap originalImage = new(filePath);
 
@@ -182,7 +182,7 @@ internal sealed partial class PoseDetection : BaseSamplePage
 
         using Bitmap output = PoseHelper.RenderPredictions(originalImage, predictions, .02f);
         BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(output);
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: key points rendered."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Content changed: key points rendered."); // <exclude-line>
 
         DispatcherQueue.TryEnqueue(() =>
         {
