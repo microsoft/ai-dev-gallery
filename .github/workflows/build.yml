@@ -251,8 +251,21 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
+    - name: Create ephemeral nuget config from template
+      shell: pwsh
+      run: |
+        $templatePath = "${{ github.workspace }}\nuget.config.template"
+        $configPath = "$env:RUNNER_TEMP\nuget.config"
+        
+        if (-not (Test-Path $templatePath)) {
+          Write-Error "Template file not found: $templatePath"
+          exit 1
+        }
+        
+        Copy-Item -Path $templatePath -Destination $configPath -Force
+        echo "EPHEMERAL_NUGET_CONFIG=$configPath" >> $env:GITHUB_ENV
     - name: Restore dependencies
-      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} --configfile "${{ env.EPHEMERAL_NUGET_CONFIG }}"
     - name: Build AIDevGallery.Utils
       run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
     - name: Build Test Project
