@@ -41,7 +41,7 @@
                         Grid.Row="1"
                         TextWrapping="Wrap" 
                         Text="To use a custom model, convert it to a WindowsML-compatible format using the AI Toolkit conversion tool. Note: Currently, only select models are supported for conversion in AI Toolkit, with additional models coming soon." />
-                        <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="12" VerticalSpacing="12">
+                        <WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="12">
                             <Button
                             x:Name="OpenAIToolkitButton"
                             Click="OpenAIToolkitButton_Click"
@@ -66,7 +66,7 @@
                                     <TextBlock Text="View documentation" Margin="5,0,0,0" />
                                 </StackPanel>
                             </Button>
-                        </controls:WrapPanel>
+                        </WrapPanel>
                     </StackPanel>
                     <StackPanel
                     Margin="0,12"
