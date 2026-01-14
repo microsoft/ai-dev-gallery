@@ -32,10 +32,18 @@ public class ModelUrlConnectivityTests
     private const int RateLimitDelayMs = 500;
     private const string ModelDefinitionsPath = "AIDevGallery/Samples/Definitions/Models";
 
-    private static readonly HttpClient HttpClient = new()
+    private static HttpClient? _httpClient;
+
+    private static HttpClient HttpClient => _httpClient ??= new HttpClient
     {
         Timeout = TimeSpan.FromSeconds(RequestTimeoutSeconds)
     };
+
+    [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
+    public static void ClassCleanup()
+    {
+        _httpClient?.Dispose();
+    }
 
     public static IEnumerable<object[]> GetModelGroupFiles()
     {
