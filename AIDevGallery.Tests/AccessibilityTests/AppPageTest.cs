@@ -150,7 +150,7 @@ public class AccessibilityTests : FlaUITestBase
                                 () =>
                                 {
                                     listItem.Click();
-                                    return IsItemSelected(listItem);
+                                    return !IsItemSelected(listItem);
                                 },
                                 timeout: TimeSpan.FromSeconds(3));
 
@@ -238,7 +238,7 @@ public class AccessibilityTests : FlaUITestBase
             () =>
             {
                 settingItem.Click();
-                return IsItemSelected(settingItem);
+                return !IsItemSelected(settingItem);
             },
             timeout: TimeSpan.FromSeconds(4));
         navigationItem.Click();
