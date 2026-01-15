@@ -1,0 +1,67 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+# Limit concurrent runs to prevent race conditions on Gist updates
+concurrency:
+  group: issue-triage
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    name: AI Issue Triage
+    runs-on: ubuntu-latest
+    # Don't run on issues created by bots
+    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
+
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run AI Triage
+        id: triage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIST_PAT: ${{ secrets.GIST_PAT }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: node .github/scripts/triage-issue.js
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Issue Triage Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issue:** #${{ github.event.issue.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Title:** ${{ github.event.issue.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.triage.outputs.labels }}" ]; then
+            echo "**Labels Applied:** ${{ steps.triage.outputs.labels }}" >> $GITHUB_STEP_SUMMARY
+            echo "**AI Summary:** ${{ steps.triage.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Confidence:** ${{ steps.triage.outputs.confidence }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "[WARN] No labels were applied" >> $GITHUB_STEP_SUMMARY
+          fi
