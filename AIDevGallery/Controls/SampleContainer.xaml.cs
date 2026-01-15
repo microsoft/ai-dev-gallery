@@ -65,6 +65,7 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
     private List<ModelDetails>? _modelsCache;
     private WinMlSampleOptions? _currentWinMlSampleOptions;
     private CancellationTokenSource? _sampleLoadingCts;
+    private readonly object _ctsLock = new object();
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
     private ModelType? _wcrApi;
@@ -109,16 +110,19 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
 
     private void CancelCTS()
     {
-        var cts = _sampleLoadingCts;
-        if (cts == null)
+        CancellationTokenSource? cts;
+        lock (_ctsLock)
         {
-            return;
+            cts = _sampleLoadingCts;
+            _sampleLoadingCts = null;
         }
 
-        _sampleLoadingCts = null;
-        using (cts)
+        if (cts != null)
         {
-            cts.Cancel();
+            using (cts)
+            {
+                cts.Cancel();
+            }
         }
     }
 
@@ -220,9 +224,13 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
             return;
         }
 
-        _sampleLoadingCts?.Dispose();
-        _sampleLoadingCts = new CancellationTokenSource();
-        var token = _sampleLoadingCts.Token;
+        CancellationToken token;
+        lock (_ctsLock)
+        {
+            _sampleLoadingCts?.Dispose();
+            _sampleLoadingCts = new CancellationTokenSource();
+            token = _sampleLoadingCts.Token;
+        }
 
         // if WCR API, check if model is downloaded
         foreach (var wcrApi in models.Where(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
@@ -319,8 +327,11 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
         finally
         {
             _sampleLoadedCompletionSource = null;
-            _sampleLoadingCts?.Dispose();
-            _sampleLoadingCts = null;
+            lock (_ctsLock)
+            {
+                _sampleLoadingCts?.Dispose();
+                _sampleLoadingCts = null;
+            }
         }
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
