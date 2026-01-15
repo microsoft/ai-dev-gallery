@@ -58,6 +58,7 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
     public static readonly DependencyProperty NugetPackageReferencesProperty =
         DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
 
+    private readonly object _ctsLock = new object();
     private RichTextBlockFormatter codeFormatter;
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
@@ -65,7 +66,6 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
     private List<ModelDetails>? _modelsCache;
     private WinMlSampleOptions? _currentWinMlSampleOptions;
     private CancellationTokenSource? _sampleLoadingCts;
-    private readonly object _ctsLock = new object();
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
     private ModelType? _wcrApi;
@@ -119,9 +119,13 @@ internal sealed partial class SampleContainer : UserControl, IDisposable
 
         if (cts != null)
         {
-            using (cts)
+            try
             {
                 cts.Cancel();
+            }
+            finally
+            {
+                cts.Dispose();
             }
         }
     }
