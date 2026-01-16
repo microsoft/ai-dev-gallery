@@ -299,7 +299,7 @@ async function updateStats(gistId, gistToken, triageResult, issue) {
         .join('\n');
 
     const recentRows = stats.recentTriage.slice(0, 20).map(t => {
-        const date = new Date(t.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+        const date = new Date(t.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         const labels = t.labels.map(l => `\`${l}\``).join(' ');
         const safeTitle = escapeMarkdownTableCell(t.title);
         return `| [#${t.issueNumber}](${t.url}) | ${safeTitle} | ${labels} | ${date} |`;
