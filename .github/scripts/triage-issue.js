@@ -402,10 +402,10 @@ async function main() {
         CONFIG.availableLabels.some(l => l.name === label)
     );
 
+    // Step 2: Add labels to issue
     if (validLabels.length === 0) {
-        console.log('\n[WARN] No valid labels found, skipping label assignment');
+        console.log('\n[2/3] Skipping label assignment (no valid labels)');
     } else {
-        // Step 2: Add labels to issue
         console.log(`\n[2/3] Adding labels: ${validLabels.join(', ')}`);
         try {
             await addLabelsToIssue(repoOwner, repoName, issueNumber, validLabels, githubToken);
