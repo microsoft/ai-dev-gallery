@@ -437,7 +437,7 @@ async function main() {
     const outputFile = process.env.GITHUB_OUTPUT;
     if (outputFile) {
         fs.appendFileSync(outputFile, `labels=${validLabels.join(',')}\n`);
-        fs.appendFileSync(outputFile, `summary=${triageResult.summary}\n`);
+        fs.appendFileSync(outputFile, `summary<<EOF\n${triageResult.summary}\nEOF\n`);
         fs.appendFileSync(outputFile, `confidence=${triageResult.confidence}\n`);
     }
 }
