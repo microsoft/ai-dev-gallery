@@ -66,7 +66,8 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -n "$TRIAGE_LABELS" ]; then
             echo "**Labels Applied:** $TRIAGE_LABELS" >> "$GITHUB_STEP_SUMMARY"
-            echo "**AI Summary:** $TRIAGE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+            SAFE_TRIAGE_SUMMARY=$(printf '%s' "$TRIAGE_SUMMARY" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g')
+            echo "**AI Summary:** $SAFE_TRIAGE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
             echo "**Confidence:** $TRIAGE_CONFIDENCE" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "[WARN] No labels were applied" >> "$GITHUB_STEP_SUMMARY"
