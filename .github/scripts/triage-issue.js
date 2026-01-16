@@ -381,8 +381,14 @@ async function main() {
     let triageResult;
     try {
         triageResult = await classifyIssue(issueTitle, issueBody, githubToken);
+
+        // Ensure labels is an array
+        if (!Array.isArray(triageResult.labels)) {
+            triageResult.labels = [];
+        }
+
         console.log('\n[OK] Classification complete:');
-        console.log(`     Labels: ${triageResult.labels.join(', ')}`);
+        console.log(`     Labels: ${triageResult.labels.join(', ') || '(none)'}`);
         console.log(`     Summary: ${triageResult.summary}`);
         console.log(`     Confidence: ${(triageResult.confidence * 100).toFixed(0)}%`);
         console.log(`     Reasoning: ${triageResult.reasoning}`);
