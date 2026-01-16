@@ -152,7 +152,17 @@ Respond ONLY with valid JSON, no markdown formatting.`;
         jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
     }
 
-    return JSON.parse(jsonStr);
+    try {
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error('Failed to parse AI triage response as JSON.', {
+            rawContent: content,
+            cleanedContent: jsonStr,
+            error: errorMsg
+        });
+        throw new Error(`AI triage response was not valid JSON: ${errorMsg}\nCleaned content: ${jsonStr.substring(0, 300)}`);
+    }
 }
 
 /**
