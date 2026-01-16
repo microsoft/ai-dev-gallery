@@ -132,6 +132,19 @@ Respond ONLY with valid JSON, no markdown formatting.`;
         }
     );
 
+    // Validate API response structure
+    if (
+        !response ||
+        !response.data ||
+        !Array.isArray(response.data.choices) ||
+        response.data.choices.length === 0 ||
+        !response.data.choices[0] ||
+        !response.data.choices[0].message ||
+        typeof response.data.choices[0].message.content !== 'string'
+    ) {
+        throw new Error('Invalid API response: expected response.data.choices[0].message.content');
+    }
+
     const content = response.data.choices[0].message.content;
     // Try to parse JSON, handling potential markdown code blocks
     let jsonStr = content;
