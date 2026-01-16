@@ -10,6 +10,7 @@
  */
 
 const https = require('https');
+const fs = require('fs');
 
 // Configuration
 const CONFIG = {
@@ -435,7 +436,6 @@ async function main() {
     // Output for GitHub Actions
     const outputFile = process.env.GITHUB_OUTPUT;
     if (outputFile) {
-        const fs = require('fs');
         fs.appendFileSync(outputFile, `labels=${validLabels.join(',')}\n`);
         fs.appendFileSync(outputFile, `summary=${triageResult.summary}\n`);
         fs.appendFileSync(outputFile, `confidence=${triageResult.confidence}\n`);
