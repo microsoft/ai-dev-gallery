@@ -52,16 +52,22 @@ jobs:
 
       - name: Summary
         if: always()
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          TRIAGE_LABELS: ${{ steps.triage.outputs.labels }}
+          TRIAGE_SUMMARY: ${{ steps.triage.outputs.summary }}
+          TRIAGE_CONFIDENCE: ${{ steps.triage.outputs.confidence }}
         run: |
-          echo "## Issue Triage Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Issue:** #${{ github.event.issue.number }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Title:** ${{ github.event.issue.title }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ steps.triage.outputs.labels }}" ]; then
-            echo "**Labels Applied:** ${{ steps.triage.outputs.labels }}" >> $GITHUB_STEP_SUMMARY
-            echo "**AI Summary:** ${{ steps.triage.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
-            echo "**Confidence:** ${{ steps.triage.outputs.confidence }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Issue Triage Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Issue:** #$ISSUE_NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Title:** $ISSUE_TITLE" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$TRIAGE_LABELS" ]; then
+            echo "**Labels Applied:** $TRIAGE_LABELS" >> "$GITHUB_STEP_SUMMARY"
+            echo "**AI Summary:** $TRIAGE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Confidence:** $TRIAGE_CONFIDENCE" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "[WARN] No labels were applied" >> $GITHUB_STEP_SUMMARY
+            echo "[WARN] No labels were applied" >> "$GITHUB_STEP_SUMMARY"
           fi
