@@ -175,7 +175,8 @@ async function addLabelsToIssue(owner, repo, issueNumber, labels, token) {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
             'Content-Type': 'application/json',
             'User-Agent': 'AI-Dev-Gallery-Triage-Bot'
         }
@@ -192,7 +193,8 @@ async function getGist(gistId, token) {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
             'User-Agent': 'AI-Dev-Gallery-Triage-Bot'
         }
     });
@@ -208,7 +210,8 @@ async function updateGist(gistId, files, token) {
         method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
             'Content-Type': 'application/json',
             'User-Agent': 'AI-Dev-Gallery-Triage-Bot'
         }
