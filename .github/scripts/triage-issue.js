@@ -222,7 +222,10 @@ async function updateGist(gistId, files, token) {
  * Generate progress bar for markdown
  */
 function progressBar(value, max, length = 10) {
-    const filled = Math.round((value / max) * length);
+    if (max <= 0 || !Number.isFinite(value)) {
+        return '-'.repeat(length);
+    }
+    const filled = Math.max(0, Math.min(length, Math.round((value / max) * length)));
     const empty = length - filled;
     return '#'.repeat(filled) + '-'.repeat(empty);
 }
