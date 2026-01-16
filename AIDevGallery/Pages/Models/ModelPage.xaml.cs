@@ -254,21 +254,13 @@ internal sealed partial class ModelPage : Page
                 bool wasDeeplinkSuccessful = true;
                 try
                 {
-                    Process.Start(new ProcessStartInfo()
-                    {
-                        FileName = toolkitDeeplink,
-                        UseShellExecute = true
-                    });
+                    ProcessHelper.OpenUrl(toolkitDeeplink);
                 }
                 catch
                 {
                     try
                     {
-                        Process.Start(new ProcessStartInfo()
-                        {
-                            FileName = "https://learn.microsoft.com/en-us/windows/ai/toolkit/",
-                            UseShellExecute = true
-                        });
+                        ProcessHelper.OpenUrl("https://learn.microsoft.com/en-us/windows/ai/toolkit/");
                     }
                     catch (Exception ex)
                     {
@@ -328,12 +320,7 @@ internal sealed partial class ModelPage : Page
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = uri.AbsoluteUri,
-                    UseShellExecute = true
-                };
-                Process.Start(psi);
+                ProcessHelper.OpenUrl(uri.AbsoluteUri);
             }
             catch (Exception ex) when (ex is Win32Exception
                                     || ex is InvalidOperationException

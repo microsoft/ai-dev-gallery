@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Numerics;
 
 namespace AIDevGallery.Controls;
@@ -16,7 +17,7 @@ namespace AIDevGallery.Controls;
 [TemplatePart(Name = RootGridTemplateName, Type = typeof(Grid))]
 [TemplatePart(Name = MaskContainerTemplateName, Type = typeof(Border))]
 [TemplatePart(Name = ContentPresenterTemplateName, Type = typeof(ContentPresenter))]
-public partial class OpacityMaskView : ContentControl
+public sealed partial class OpacityMaskView : ContentControl, IDisposable
 {
     // This is from Windows Community Toolkit Labs: https://github.com/CommunityToolkit/Labs-Windows/pull/491
 
@@ -30,9 +31,14 @@ public partial class OpacityMaskView : ContentControl
     private const string MaskContainerTemplateName = "PART_MaskContainer";
     private const string RootGridTemplateName = "PART_RootGrid";
 
-    private readonly Compositor _compositor = CompositionTarget.GetCompositorForCurrentThread();
     private CompositionBrush? _mask;
     private CompositionMaskBrush? _maskBrush;
+    private SpriteVisual? _redirectVisual;
+    private CompositionVisualSurface? _contentVisualSurface;
+    private ExpressionAnimation? _contentSizeAnimation;
+    private CompositionVisualSurface? _maskVisualSurface;
+    private ExpressionAnimation? _maskSizeAnimation;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpacityMaskView"/> class.
@@ -61,28 +67,41 @@ public partial class OpacityMaskView : ContentControl
         ContentPresenter contentPresenter = (ContentPresenter)GetTemplateChild(ContentPresenterTemplateName);
         Border maskContainer = (Border)GetTemplateChild(MaskContainerTemplateName);
 
-        _maskBrush = _compositor.CreateMaskBrush();
-        _maskBrush.Source = GetVisualBrush(contentPresenter);
-        _mask = GetVisualBrush(maskContainer);
+        // Get compositor locally - it's provided by the system and should not be stored or disposed
+#pragma warning disable IDISP001 // Dispose created - Compositor is a system-managed shared instance
+        Compositor compositor = CompositionTarget.GetCompositorForCurrentThread();
+#pragma warning restore IDISP001
+
+        _maskBrush?.Dispose();
+        _maskBrush = compositor.CreateMaskBrush();
+        _contentVisualSurface?.Dispose();
+        _contentSizeAnimation?.Dispose();
+        _maskBrush.Source = GetVisualBrush(contentPresenter, ref _contentVisualSurface, ref _contentSizeAnimation);
+        _mask?.Dispose();
+        _maskVisualSurface?.Dispose();
+        _maskSizeAnimation?.Dispose();
+        _mask = GetVisualBrush(maskContainer, ref _maskVisualSurface, ref _maskSizeAnimation);
         _maskBrush.Mask = OpacityMask is null ? null : _mask;
 
-        SpriteVisual redirectVisual = _compositor.CreateSpriteVisual();
-        redirectVisual.RelativeSizeAdjustment = Vector2.One;
-        redirectVisual.Brush = _maskBrush;
-        ElementCompositionPreview.SetElementChildVisual(rootGrid, redirectVisual);
+        _redirectVisual?.Dispose();
+        _redirectVisual = compositor.CreateSpriteVisual();
+        _redirectVisual.RelativeSizeAdjustment = Vector2.One;
+        _redirectVisual.Brush = _maskBrush;
+        ElementCompositionPreview.SetElementChildVisual(rootGrid, _redirectVisual);
     }
 
-    private static CompositionBrush GetVisualBrush(UIElement element)
+    private static CompositionBrush GetVisualBrush(UIElement element, ref CompositionVisualSurface? visualSurface, ref ExpressionAnimation? sizeAnimation)
     {
         Visual visual = ElementCompositionPreview.GetElementVisual(element);
 
         Compositor compositor = visual.Compositor;
 
-        CompositionVisualSurface visualSurface = compositor.CreateVisualSurface();
+        // Create visual surface and animation
+        visualSurface = compositor.CreateVisualSurface();
         visualSurface.SourceVisual = visual;
-        ExpressionAnimation sourceSizeAnimation = compositor.CreateExpressionAnimation($"{nameof(visual)}.Size");
-        sourceSizeAnimation.SetReferenceParameter(nameof(visual), visual);
-        visualSurface.StartAnimation(nameof(visualSurface.SourceSize), sourceSizeAnimation);
+        sizeAnimation = compositor.CreateExpressionAnimation($"{nameof(visual)}.Size");
+        sizeAnimation.SetReferenceParameter(nameof(visual), visual);
+        visualSurface.StartAnimation(nameof(visualSurface.SourceSize), sizeAnimation);
 
         CompositionSurfaceBrush brush = compositor.CreateSurfaceBrush(visualSurface);
 
@@ -101,5 +120,26 @@ public partial class OpacityMaskView : ContentControl
 
         UIElement? opacityMask = (UIElement?)e.NewValue;
         maskBrush.Mask = opacityMask is null ? null : self._mask;
+    }
+
+    /// <summary>
+    /// Disposes the composition resources.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _contentVisualSurface?.Dispose();
+        _contentSizeAnimation?.Dispose();
+        _maskVisualSurface?.Dispose();
+        _maskSizeAnimation?.Dispose();
+        _mask?.Dispose();
+        _maskBrush?.Dispose();
+        _redirectVisual?.Dispose();
+
+        _disposed = true;
     }
 }

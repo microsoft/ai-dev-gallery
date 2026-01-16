@@ -57,7 +57,7 @@ internal class TextProcessing : IDisposable
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             sessionOptions.AddFreeDimensionOverrideByName("batch", 1);

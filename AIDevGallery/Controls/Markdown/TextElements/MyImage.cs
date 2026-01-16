@@ -17,6 +17,7 @@ namespace CommunityToolkit.Labs.WinUI.MarkdownTextBlock.TextElements;
 
 internal class MyImage : IAddChild
 {
+    private static readonly HttpClient _httpClient = new HttpClient();
     private InlineUIContainer _container = new InlineUIContainer();
     private LinkInline? _linkInline;
     private Image _image = new Image();
@@ -108,48 +109,45 @@ internal class MyImage : IAddChild
             }
             else
             {
-                using (HttpClient client = new())
-                {
-                    // Download data from URL
-                    HttpResponseMessage response = await client.GetAsync(_uri);
+                // Download data from URL
+                using HttpResponseMessage response = await _httpClient.GetAsync(_uri);
 
-                    // Get the Content-Type header
+                // Get the Content-Type header
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    string contentType = response.Content.Headers.ContentType.MediaType;
+                string contentType = response.Content.Headers.ContentType.MediaType;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
-                    if (contentType == "image/svg+xml")
+                if (contentType == "image/svg+xml")
+                {
+                    var svgString = await response.Content.ReadAsStringAsync();
+                    var resImage = await _svgRenderer.SvgToImage(svgString);
+                    if (resImage != null)
                     {
-                        var svgString = await response.Content.ReadAsStringAsync();
-                        var resImage = await _svgRenderer.SvgToImage(svgString);
-                        if (resImage != null)
-                        {
-                            _image = resImage;
-                            _container.Child = _image;
-                        }
+                        _image = resImage;
+                        _container.Child = _image;
                     }
-                    else
+                }
+                else
+                {
+                    byte[] data = await response.Content.ReadAsByteArrayAsync();
+
+                    // Create a BitmapImage for other supported formats
+                    BitmapImage bitmap = new BitmapImage();
+                    using (InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream())
                     {
-                        byte[] data = await response.Content.ReadAsByteArrayAsync();
+                        // Write the data to the stream
+                        await stream.WriteAsync(data.AsBuffer());
+                        stream.Seek(0);
 
-                        // Create a BitmapImage for other supported formats
-                        BitmapImage bitmap = new BitmapImage();
-                        using (InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream())
-                        {
-                            // Write the data to the stream
-                            await stream.WriteAsync(data.AsBuffer());
-                            stream.Seek(0);
-
-                            // Set the source of the BitmapImage
-                            await bitmap.SetSourceAsync(stream);
-                        }
-
-                        _image.Source = bitmap;
-                        _image.Width = bitmap.PixelWidth == 0 ? bitmap.DecodePixelWidth : bitmap.PixelWidth;
-                        _image.Height = bitmap.PixelHeight == 0 ? bitmap.DecodePixelHeight : bitmap.PixelHeight;
+                        // Set the source of the BitmapImage
+                        await bitmap.SetSourceAsync(stream);
                     }
+
+                    _image.Source = bitmap;
+                    _image.Width = bitmap.PixelWidth == 0 ? bitmap.DecodePixelWidth : bitmap.PixelWidth;
+                    _image.Height = bitmap.PixelHeight == 0 ? bitmap.DecodePixelHeight : bitmap.PixelHeight;
                 }
 
                 _loaded = true;

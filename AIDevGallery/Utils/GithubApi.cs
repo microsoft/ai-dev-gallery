@@ -8,6 +8,7 @@ namespace AIDevGallery.Utils;
 
 internal class GithubApi
 {
+    private static readonly HttpClient _httpClient = new();
     private static readonly string RawGhUrl = "https://raw.githubusercontent.com";
 
     /// <summary>
@@ -21,8 +22,7 @@ internal class GithubApi
 
         var requestUrl = $"{RawGhUrl}/{url.Organization}/{url.Repo}/{url.Ref}/{url.Path}";
 
-        using var client = new HttpClient();
-        var response = await client.GetAsync(requestUrl);
+        using var response = await _httpClient.GetAsync(requestUrl);
         return await response.Content.ReadAsStringAsync();
     }
 }

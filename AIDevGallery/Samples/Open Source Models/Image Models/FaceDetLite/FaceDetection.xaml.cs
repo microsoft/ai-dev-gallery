@@ -44,7 +44,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.FaceDetLite;
     Id = "9b74ccc0-f5f7-417f-bed0-712ffc063508",
     Icon = "\uE8B3")]
 
-internal sealed partial class FaceDetection : BaseSamplePage
+internal sealed partial class FaceDetection : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
     private List<Prediction> predictions = [];
@@ -53,6 +53,13 @@ internal sealed partial class FaceDetection : BaseSamplePage
     private VideoFrame? _latestVideoFrame;
 
     private bool modelActive = true;
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
+        _frameRateTimer?.Stop();
+        _frameProcessingLock?.Dispose();
+    }
 
     private DateTimeOffset lastFaceDetectionCount = DateTimeOffset.Now;
     private int faceDetectionsCount;
@@ -139,7 +146,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -156,6 +163,7 @@ internal sealed partial class FaceDetection : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }

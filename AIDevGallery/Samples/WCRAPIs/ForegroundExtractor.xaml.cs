@@ -29,15 +29,31 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "horse.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class ForegroundExtractor : BaseSamplePage
+internal sealed partial class ForegroundExtractor : BaseSamplePage, IDisposable
 {
     private ImageForegroundExtractor? _foregroundExtractor;
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _outputBitmap;
+    private bool _disposed;
 
     public ForegroundExtractor()
     {
+        this.Unloaded += (s, e) => Dispose();
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _foregroundExtractor?.Dispose();
+        _inputBitmap?.Dispose();
+        _outputBitmap?.Dispose();
+
+        _disposed = true;
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -88,6 +104,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
         SaveButton.Visibility = Visibility.Collapsed;
         await SetImage(InputImage, _inputBitmap);
         GeneratedImage.Source = null;
+        _outputBitmap?.Dispose();
         _outputBitmap = await Task.Run(() => GetForeground(_inputBitmap));
         if (_outputBitmap != null)
         {
@@ -173,10 +190,13 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
             return;
         }
 
+        // Dispose previous source created by this method to avoid memory leaks
+#pragma warning disable IDISP007 // Don't dispose injected - image.Source is created and managed by this method
         if (image.Source is SoftwareBitmapSource previousSource)
         {
             previousSource.Dispose();
         }
+#pragma warning restore IDISP007
 
         var convertedBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
         var bitmapSource = new SoftwareBitmapSource();
@@ -194,7 +214,7 @@ internal sealed partial class ForegroundExtractor : BaseSamplePage
 
         try
         {
-            var mask = _foregroundExtractor.GetMaskFromSoftwareBitmap(bitmap);
+            using var mask = _foregroundExtractor.GetMaskFromSoftwareBitmap(bitmap);
             return ApplyMask(bitmap, mask);
         }
         catch (Exception ex)

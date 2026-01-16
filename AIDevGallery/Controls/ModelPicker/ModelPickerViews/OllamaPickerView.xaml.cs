@@ -2,12 +2,12 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.ExternalModelUtils;
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -57,11 +57,7 @@ internal sealed partial class OllamaPickerView : BaseModelPickerView
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = modelDetailsUrl,
-                UseShellExecute = true
-            });
+            ProcessHelper.OpenUrl(modelDetailsUrl);
         }
     }
 

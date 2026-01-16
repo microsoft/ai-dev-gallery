@@ -47,7 +47,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
     ],
     Id = "9C1FB14D-4841-449C-9563-4551106BB693",
     Icon = "\uE8D4")]
-internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
+internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage, IDisposable
 {
     private EmbeddingGenerator? _embeddings;
     private IChatClient? _chatClient;
@@ -58,6 +58,7 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
     private CancellationTokenSource? _cts;
     private bool _isCancellable;
     private bool isImeActive = true;
+    private bool _disposed;
 
     private List<uint>? selectedPages;
     private int selectedPageIndex = -1;
@@ -91,7 +92,9 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             bool compileModel = sampleParams.WinMlSampleOptions.CompileModel;
             string? deviceType = sampleParams.WinMlSampleOptions.DeviceType;
 
+            _embeddings?.Dispose();
             _embeddings = await EmbeddingGenerator.CreateAsync(modelPath, policy, epName, compileModel, deviceType);
+            (_chatClient as IDisposable)?.Dispose();
             _chatClient = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -356,11 +359,13 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             return;
         }
 
-        var page = pdfDocument.GetPage(pageId - 1);
-        _inMemoryRandomAccessStream?.Dispose();
-        _inMemoryRandomAccessStream = new();
-        var rect = page.Dimensions.TrimBox;
-        await page.RenderToStreamAsync(_inMemoryRandomAccessStream).AsTask().ConfigureAwait(false);
+        using (var page = pdfDocument.GetPage(pageId - 1))
+        {
+            _inMemoryRandomAccessStream?.Dispose();
+            _inMemoryRandomAccessStream = new();
+            var rect = page.Dimensions.TrimBox;
+            await page.RenderToStreamAsync(_inMemoryRandomAccessStream).AsTask().ConfigureAwait(false);
+        }
 
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -568,5 +573,21 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
         ProgressPanel.Visibility = Visibility.Collapsed;
         IndexingProgressBar.Value = 0;
         ProgressStatusTextBlock.Text = string.Empty;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _embeddings?.Dispose();
+        (_chatClient as IDisposable)?.Dispose();
+        _inMemoryRandomAccessStream?.Dispose();
+        _cts?.Dispose();
+        (_pdfPages as IDisposable)?.Dispose();
+        (_vectorStore as IDisposable)?.Dispose();
+        _disposed = true;
     }
 }

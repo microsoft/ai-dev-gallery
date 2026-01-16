@@ -40,7 +40,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
     Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
     Icon = "\uE8B3")]
 
-internal sealed partial class YOLOObjectDetection : BaseSamplePage
+internal sealed partial class YOLOObjectDetection : BaseSamplePage, IDisposable
 {
     private InferenceSession? _inferenceSession;
 
@@ -50,6 +50,11 @@ internal sealed partial class YOLOObjectDetection : BaseSamplePage
 
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        _inferenceSession?.Dispose();
     }
 
     private void Page_Loaded()
@@ -95,7 +100,7 @@ internal sealed partial class YOLOObjectDetection : BaseSamplePage
                 Debug.WriteLine($"WARNING: Failed to install packages: {ex.Message}");
             }
 
-            SessionOptions sessionOptions = new();
+            using SessionOptions sessionOptions = new();
             sessionOptions.RegisterOrtExtensions();
 
             if (policy != null)
@@ -112,6 +117,7 @@ internal sealed partial class YOLOObjectDetection : BaseSamplePage
                 }
             }
 
+            _inferenceSession?.Dispose();
             _inferenceSession = new InferenceSession(modelPath, sessionOptions);
         });
     }
@@ -158,77 +164,77 @@ internal sealed partial class YOLOObjectDetection : BaseSamplePage
 
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
         NarratorHelper.AnnounceImageChanged(DefaultImage, "Photo changed: new upload."); // <exclude-line>
-
-        Bitmap image = new(filePath);
-
-        int originalWidth = image.Width;
-        int originalHeight = image.Height;
-
-        var predictions = await Task.Run(() =>
+        using (
+                Bitmap image = new(filePath))
         {
-            // Set up
-            var inputName = _inferenceSession.InputNames[0];
-            var inputDimensions = _inferenceSession.InputMetadata[inputName].Dimensions;
+            int originalWidth = image.Width;
+            int originalHeight = image.Height;
 
-            // Set batch size
-            int batchSize = 1;
-            inputDimensions[0] = batchSize;
-
-            // I know the input dimensions to be [batchSize, 416, 416, 3]
-            int inputWidth = inputDimensions[1];
-            int inputHeight = inputDimensions[2];
-
-            using var resizedImage = BitmapFunctions.ResizeWithPadding(image, inputWidth, inputHeight);
-
-            // Preprocessing
-            Tensor<float> input = new DenseTensor<float>(inputDimensions);
-            input = BitmapFunctions.PreprocessBitmapForYOLO(resizedImage, input);
-
-            // Setup inputs and outputs
-            var inputMetadataName = _inferenceSession!.InputNames[0];
-            var inputs = new List<NamedOnnxValue>
+            var predictions = await Task.Run(() =>
             {
+                // Set up
+                var inputName = _inferenceSession.InputNames[0];
+                var inputDimensions = _inferenceSession.InputMetadata[inputName].Dimensions;
+
+                // Set batch size
+                int batchSize = 1;
+                inputDimensions[0] = batchSize;
+
+                // I know the input dimensions to be [batchSize, 416, 416, 3]
+                int inputWidth = inputDimensions[1];
+                int inputHeight = inputDimensions[2];
+
+                using var resizedImage = BitmapFunctions.ResizeWithPadding(image, inputWidth, inputHeight);
+
+                // Preprocessing
+                Tensor<float> input = new DenseTensor<float>(inputDimensions);
+                input = BitmapFunctions.PreprocessBitmapForYOLO(resizedImage, input);
+
+                // Setup inputs and outputs
+                var inputMetadataName = _inferenceSession!.InputNames[0];
+                var inputs = new List<NamedOnnxValue>
+                {
                 NamedOnnxValue.CreateFromTensor(inputMetadataName, input)
-            };
+                };
 
-            // Run inference
-            using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
+                // Run inference
+                using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _inferenceSession!.Run(inputs);
 
-            // Extract tensors from inference results
-            var outputTensor1 = results[0].AsTensor<float>();
-            var outputTensor2 = results[1].AsTensor<float>();
-            var outputTensor3 = results[2].AsTensor<float>();
+                // Extract tensors from inference results
+                var outputTensor1 = results[0].AsTensor<float>();
+                var outputTensor2 = results[1].AsTensor<float>();
+                var outputTensor3 = results[2].AsTensor<float>();
 
-            // Define anchors (as per your model)
-            var anchors = new List<(float Width, float Height)>
-            {
+                // Define anchors (as per your model)
+                var anchors = new List<(float Width, float Height)>
+                {
                 (12, 16), (19, 36), (40, 28),   // Small grid (52x52)
                 (36, 75), (76, 55), (72, 146),  // Medium grid (26x26)
                 (142, 110), (192, 243), (459, 401) // Large grid (13x13)
-            };
+                };
 
-            // Combine tensors into a list for processing
-            var gridTensors = new List<Tensor<float>> { outputTensor1, outputTensor2, outputTensor3 };
+                // Combine tensors into a list for processing
+                var gridTensors = new List<Tensor<float>> { outputTensor1, outputTensor2, outputTensor3 };
 
-            // Postprocessing steps
-            var extractedPredictions = YOLOHelpers.ExtractPredictions(gridTensors, anchors, inputWidth, inputHeight, originalWidth, originalHeight);
-            var filteredPredictions = YOLOHelpers.ApplyNms(extractedPredictions, .4f);
+                // Postprocessing steps
+                var extractedPredictions = YOLOHelpers.ExtractPredictions(gridTensors, anchors, inputWidth, inputHeight, originalWidth, originalHeight);
+                var filteredPredictions = YOLOHelpers.ApplyNms(extractedPredictions, .4f);
 
-            // Return the final predictions
-            return filteredPredictions;
-        });
+                // Return the final predictions
+                return filteredPredictions;
+            });
 
-        BitmapImage outputImage = BitmapFunctions.RenderPredictions(image, predictions);
+            BitmapImage outputImage = BitmapFunctions.RenderPredictions(image, predictions);
 
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            DefaultImage.Source = outputImage;
-            Loader.IsActive = false;
-            Loader.Visibility = Visibility.Collapsed;
-            UploadButton.Visibility = Visibility.Visible;
-        });
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                DefaultImage.Source = outputImage;
+                Loader.IsActive = false;
+                Loader.Visibility = Visibility.Collapsed;
+                UploadButton.Visibility = Visibility.Visible;
+            });
 
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Photo changed: objects detected."); // <exclude-line>
-        image.Dispose();
+            NarratorHelper.AnnounceImageChanged(DefaultImage, "Photo changed: objects detected."); // <exclude-line>
+        }
     }
 }

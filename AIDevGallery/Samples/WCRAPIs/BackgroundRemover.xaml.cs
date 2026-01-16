@@ -188,10 +188,10 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
 
         try
         {
-            var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
+            using var extractor = await ImageObjectExtractor.CreateWithSoftwareBitmapAsync(bitmap);
             try
             {
-                var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
+                using var mask = extractor.GetSoftwareBitmapObjectMask(new ImageObjectExtractorHint([], includePoints, []));
                 return ApplyMask(bitmap, mask);
             }
             catch (Exception ex)
@@ -258,7 +258,8 @@ internal sealed partial class BackgroundRemover : BaseSamplePage
             return;
         }
 
-        var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
+        // outputBitmap is disposed after display, as SetImageSource creates a copy
+        using var outputBitmap = await ExtractBackground(_inputBitmap, _selectionPoints);
         if (outputBitmap != null)
         {
             _originalBitmap = _inputBitmap;

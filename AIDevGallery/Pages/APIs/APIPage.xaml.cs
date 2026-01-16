@@ -12,7 +12,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -184,11 +183,8 @@ internal sealed partial class APIPage : Page
         }
 
         ModelDetailsLinkClickedEvent.Log(link);
-        Process.Start(new ProcessStartInfo()
-        {
-            FileName = link,
-            UseShellExecute = true
-        });
+
+        ProcessHelper.OpenUrl(link);
     }
 
     private void SampleList_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)

@@ -15,6 +15,7 @@ namespace AIDevGallery.Utils;
 /// </summary>
 internal class HuggingFaceApi
 {
+    private static readonly HttpClient _httpClient = new();
     private static readonly string HFApiUrl = "https://huggingface.co/api";
     private static readonly string HFUrl = "https://huggingface.co";
 
@@ -27,8 +28,7 @@ internal class HuggingFaceApi
     public static async Task<List<HFSearchResult>?> FindModels(string query, string filter = "onnx")
     {
         string searchUrl = $"{HFApiUrl}/models?search={query}&filter={filter}&full=true&config=true";
-        using var client = new HttpClient();
-        var response = await client.GetAsync(searchUrl);
+        using var response = await _httpClient.GetAsync(searchUrl);
         var responseContent = await response.Content.ReadAsStringAsync();
 
         try
@@ -53,8 +53,7 @@ internal class HuggingFaceApi
     {
         var url = $"{HFUrl}/{modelId}/resolve/{commitOrBranch}/{filePath}";
 
-        using var client = new HttpClient();
-        var response = await client.GetAsync(url);
+        using var response = await _httpClient.GetAsync(url);
         return await response.Content.ReadAsStringAsync();
     }
 
@@ -69,8 +68,7 @@ internal class HuggingFaceApi
 
         var requestUrl = $"{HFUrl}/{url.Organization}/{url.Repo}/resolve/{url.Ref}/{url.Path}";
 
-        using var client = new HttpClient();
-        var response = await client.GetAsync(requestUrl);
+        using var response = await _httpClient.GetAsync(requestUrl);
         return await response.Content.ReadAsStringAsync();
     }
 }

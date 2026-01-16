@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace AIDevGallery.Controls;
 
-internal sealed partial class SampleContainer : UserControl
+internal sealed partial class SampleContainer : UserControl, IDisposable
 {
     public static readonly DependencyProperty DisclaimerHorizontalAlignmentProperty = DependencyProperty.Register(nameof(DisclaimerHorizontalAlignment), typeof(HorizontalAlignment), typeof(SampleContainer), new PropertyMetadata(defaultValue: HorizontalAlignment.Left));
 
@@ -68,6 +68,7 @@ internal sealed partial class SampleContainer : UserControl
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
     private ModelType? _wcrApi;
+    private bool _disposed;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -108,10 +109,16 @@ internal sealed partial class SampleContainer : UserControl
 
     private void CancelCTS()
     {
-        if (_sampleLoadingCts != null)
+        var cts = _sampleLoadingCts;
+        if (cts == null)
         {
-            _sampleLoadingCts.Cancel();
-            _sampleLoadingCts = null;
+            return;
+        }
+
+        _sampleLoadingCts = null;
+        using (cts)
+        {
+            cts.Cancel();
         }
     }
 
@@ -122,7 +129,7 @@ internal sealed partial class SampleContainer : UserControl
         References.Add(new WeakReference<SampleContainer>(this));
         this.Unloaded += (sender, args) =>
         {
-            CancelCTS();
+            Dispose();
             var reference = References.FirstOrDefault(r => r.TryGetTarget(out var sampleContainer) && sampleContainer == this);
             if (reference != null)
             {
@@ -213,6 +220,7 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        _sampleLoadingCts?.Dispose();
         _sampleLoadingCts = new CancellationTokenSource();
         var token = _sampleLoadingCts.Token;
 
@@ -311,11 +319,9 @@ internal sealed partial class SampleContainer : UserControl
         finally
         {
             _sampleLoadedCompletionSource = null;
+            _sampleLoadingCts?.Dispose();
             _sampleLoadingCts = null;
         }
-
-        _sampleLoadedCompletionSource = null;
-        _sampleLoadingCts = null;
 
         NavigatedToSampleLoadedEvent.Log(sample.Name ?? string.Empty);
 
@@ -586,5 +592,16 @@ internal sealed partial class SampleContainer : UserControl
                 VisualStateManager.GoToState(this, "WarningVisible", true);
             }
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        CancelCTS();
+        _disposed = true;
     }
 }

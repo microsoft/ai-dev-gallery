@@ -12,7 +12,6 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
@@ -323,7 +322,7 @@ internal partial class ModelSelectionControl : UserControl
 
                     OpenModelFolderEvent.Log(cachedModel.Url);
 
-                    Process.Start("explorer.exe", path!);
+                    ProcessHelper.OpenFolder(path!);
                 }
             }
         }
@@ -381,11 +380,10 @@ internal partial class ModelSelectionControl : UserControl
                     }
                 }
 
-                Process.Start(new ProcessStartInfo()
+                if (!string.IsNullOrEmpty(modelcardUrl))
                 {
-                    FileName = modelcardUrl,
-                    UseShellExecute = true
-                });
+                    ProcessHelper.OpenUrl(modelcardUrl);
+                }
             }
         }
     }
@@ -431,11 +429,7 @@ internal partial class ModelSelectionControl : UserControl
                 licenseUrl = details.Url;
             }
 
-            Process.Start(new ProcessStartInfo()
-            {
-                FileName = licenseUrl,
-                UseShellExecute = true
-            });
+            ProcessHelper.OpenUrl(licenseUrl);
         }
     }
 
@@ -605,11 +599,7 @@ internal partial class ModelSelectionControl : UserControl
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = modelDetailsUrl,
-                UseShellExecute = true
-            });
+            ProcessHelper.OpenUrl(modelDetailsUrl);
         }
     }
 }

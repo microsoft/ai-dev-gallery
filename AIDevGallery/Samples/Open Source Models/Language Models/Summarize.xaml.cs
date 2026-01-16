@@ -7,6 +7,7 @@ using AIDevGallery.Samples.SharedCode;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     ],
     Id = "21bf3574-aaa5-42fd-9f6c-3bfbbca00876",
     Icon = "\uE8D4")]
-internal sealed partial class Summarize : BaseSamplePage
+internal sealed partial class Summarize : BaseSamplePage, IDisposable
 {
     private const int _defaultMaxLength = 1024;
     private IChatClient? chatClient;
@@ -39,6 +40,7 @@ internal sealed partial class Summarize : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _defaultMaxLength;
         }
@@ -59,6 +61,11 @@ internal sealed partial class Summarize : BaseSamplePage
     {
         CancelSummary();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -95,6 +102,7 @@ internal sealed partial class Summarize : BaseSamplePage
                 "Respond with only the summary itself and no extraneous text.";
                 string userPrompt = "Summarize this text: " + text;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;

@@ -15,7 +15,7 @@ namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
 /// Adapter that wraps FoundryLocal SDK's native OpenAIChatClient to work with Microsoft.Extensions.AI.IChatClient.
 /// Uses the SDK's direct model API (no web service) to avoid SSE compatibility issues.
 /// </summary>
-internal class FoundryLocalChatClientAdapter : IChatClient
+internal sealed class FoundryLocalChatClientAdapter : IChatClient
 {
     private const int DefaultMaxTokens = 1024;
 

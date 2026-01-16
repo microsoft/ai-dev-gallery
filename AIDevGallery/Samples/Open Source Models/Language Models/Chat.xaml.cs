@@ -33,7 +33,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
         SharedCodeEnum.Message,
         SharedCodeEnum.ChatTemplateSelector,
     ])]
-internal sealed partial class Chat : BaseSamplePage
+internal sealed partial class Chat : BaseSamplePage, IDisposable
 {
     private CancellationTokenSource? cts;
     public ObservableCollection<Message> Messages { get; } = [];
@@ -60,6 +60,7 @@ internal sealed partial class Chat : BaseSamplePage
     {
         try
         {
+            model?.Dispose();
             model = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
@@ -83,6 +84,11 @@ internal sealed partial class Chat : BaseSamplePage
     {
         CancelResponse();
         model?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     private void CancelResponse()
@@ -169,6 +175,7 @@ internal sealed partial class Chat : BaseSamplePage
                 InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
             });
 
+            cts?.Dispose();
             cts = new CancellationTokenSource();
 
             history.Insert(0, new ChatMessage(ChatRole.System, "You are a helpful assistant"));

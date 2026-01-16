@@ -35,7 +35,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-internal sealed partial class ImageDescription : BaseSamplePage
+internal sealed partial class ImageDescription : BaseSamplePage, IDisposable
 {
     private readonly Dictionary<string, ImageDescriptionKind> _descriptionKindDictionary = new Dictionary<string, ImageDescriptionKind>
     {
@@ -49,10 +49,26 @@ internal sealed partial class ImageDescription : BaseSamplePage
     private CancellationTokenSource? _cts;
     private SoftwareBitmap? _currentBitmap;
     private ImageDescriptionKind _currentKind = ImageDescriptionKind.BriefDescription;
+    private bool _disposed;
 
     public ImageDescription()
     {
+        this.Unloaded += (s, e) => Dispose();
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _imageDescriptor?.Dispose();
+        _cts?.Dispose();
+        _currentBitmap?.Dispose();
+
+        _disposed = true;
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -174,6 +190,7 @@ internal sealed partial class ImageDescription : BaseSamplePage
     private async Task DescribeImage(SoftwareBitmap bitmap, ImageDescriptionKind descriptionKind)
     {
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         DispatcherQueue?.TryEnqueue(() =>
         {

@@ -23,7 +23,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
     Name = "Sentiment Analysis",
     Id = "9cc84d1e-6b02-4bd2-a350-6e38c3a92ced",
     Icon = "\uE8D4")]
-internal sealed partial class SentimentAnalysis : BaseSamplePage
+internal sealed partial class SentimentAnalysis : BaseSamplePage, IDisposable
 {
     private const int _maxTokenLength = 1024;
     private IChatClient? chatClient;
@@ -41,6 +41,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
     {
         try
         {
+            chatClient?.Dispose();
             chatClient = await sampleParams.GetIChatClientAsync();
             InputTextBox.MaxLength = _maxTokenLength;
         }
@@ -63,6 +64,11 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
     {
         CancelSentiment();
         chatClient?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        CleanUp();
     }
 
     public bool IsProgressVisible
@@ -102,6 +108,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
 
                 var userPrompt = "Analyze the sentiment of the following text: " + text;
 
+                cts?.Dispose();
                 cts = new CancellationTokenSource();
 
                 var response = string.Empty;

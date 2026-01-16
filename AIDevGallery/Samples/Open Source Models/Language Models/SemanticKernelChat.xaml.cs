@@ -63,7 +63,11 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
         IChatClient? model = null;
         try
         {
+            // The model's lifetime is transferred to the Semantic Kernel framework after AsChatCompletionService().
+            // The framework manages the disposal, so we suppress IDISP001 for this created instance.
+#pragma warning disable IDISP001 // Dispose created
             model = await sampleParams.GetIChatClientAsync();
+#pragma warning restore IDISP001 // Dispose created
         }
         catch (Exception ex)
         {
@@ -179,6 +183,7 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
                 InputBox.PlaceholderText = "Please wait for the response to complete before entering a new prompt";
             });
 
+            cts?.Dispose();
             cts = new CancellationTokenSource();
             string fullResponse = string.Empty;
 

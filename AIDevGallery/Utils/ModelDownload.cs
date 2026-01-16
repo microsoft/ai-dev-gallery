@@ -88,7 +88,16 @@ internal abstract class ModelDownload : IDisposable
 
     public void Dispose()
     {
-        CancellationTokenSource.Dispose();
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            CancellationTokenSource.Dispose();
+        }
     }
 
     public ModelDownload(ModelDetails details)
@@ -103,7 +112,7 @@ internal abstract class ModelDownload : IDisposable
     public abstract void CancelDownload();
 }
 
-internal class OnnxModelDownload : ModelDownload
+internal sealed class OnnxModelDownload : ModelDownload
 {
     public ModelUrl ModelUrl { get; set; }
 
@@ -328,7 +337,7 @@ internal class OnnxModelDownload : ModelDownload
     }
 }
 
-internal class FoundryLocalModelDownload : ModelDownload
+internal sealed class FoundryLocalModelDownload : ModelDownload
 {
     public FoundryLocalModelDownload(ModelDetails details)
         : base(details)

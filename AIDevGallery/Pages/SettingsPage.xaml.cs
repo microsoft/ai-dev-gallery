@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
@@ -10,7 +11,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -95,7 +95,7 @@ internal sealed partial class SettingsPage : Page
     {
         if (cacheFolderPath != null)
         {
-            Process.Start("explorer.exe", cacheFolderPath);
+            ProcessHelper.OpenFolder(cacheFolderPath);
         }
     }
 
@@ -201,7 +201,7 @@ internal sealed partial class SettingsPage : Page
 
             if (path != null && Directory.Exists(path))
             {
-                Process.Start("explorer.exe", path);
+                ProcessHelper.OpenFolder(path);
             }
         }
     }

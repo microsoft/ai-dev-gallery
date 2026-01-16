@@ -33,17 +33,38 @@ namespace AIDevGallery.Samples.WCRAPIs;
         "WinDev.png"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class MagicEraser : BaseSamplePage
+internal sealed partial class MagicEraser : BaseSamplePage, IDisposable
 {
     private SoftwareBitmap? _inputBitmap;
     private SoftwareBitmap? _maskBitmap;
     private bool _isDragging;
     private ImageObjectRemover? _eraser;
     private Stack<SoftwareBitmap> _bitmaps = new();
+    private bool _disposed;
 
     public MagicEraser()
     {
+        this.Unloaded += (s, e) => Dispose();
         this.InitializeComponent();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        while (_bitmaps.Count > 0)
+        {
+            _bitmaps.Pop()?.Dispose();
+        }
+
+        _inputBitmap?.Dispose();
+        _maskBitmap?.Dispose();
+        _eraser?.Dispose();
+
+        _disposed = true;
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -178,7 +199,10 @@ internal sealed partial class MagicEraser : BaseSamplePage
 
         try
         {
+            // outputBitmap's ownership is transferred to become the new _inputBitmap, so it should not be disposed here
+#pragma warning disable IDISP001 // Dispose created
             var outputBitmap = _eraser.RemoveFromSoftwareBitmap(_inputBitmap, _maskBitmap);
+#pragma warning restore IDISP001
             if (outputBitmap != null)
             {
                 _bitmaps.Push(_inputBitmap);

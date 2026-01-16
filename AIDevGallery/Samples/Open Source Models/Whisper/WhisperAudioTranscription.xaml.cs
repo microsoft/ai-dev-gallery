@@ -28,7 +28,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     ],
     Id = "c7e248af-86e8-49ba-9f44-022230963261",
     Icon = "\uE8D4")]
-internal sealed partial class WhisperAudioTranscription : BaseSamplePage
+internal sealed partial class WhisperAudioTranscription : BaseSamplePage, IDisposable
 {
     private WaveInEvent? waveIn;
     private MemoryStream? audioStream;
@@ -52,6 +52,7 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
     {
         try
         {
+            whisper?.Dispose();
             whisper = await WhisperWrapper.CreateAsync(sampleParams.ModelPath, sampleParams.WinMlSampleOptions.Policy, sampleParams.WinMlSampleOptions.EpName, sampleParams.WinMlSampleOptions.CompileModel, sampleParams.WinMlSampleOptions.DeviceType);
             sampleParams.NotifyCompletion();
         }
@@ -193,5 +194,10 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
         audioStream?.Dispose();
         recordingTimer?.Stop();
         recordingTimer?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        DisposeMemory();
     }
 }

@@ -19,7 +19,7 @@ namespace AIDevGallery.Controls;
 /// A generic shimmer control that can be used to construct a beautiful loading effect.
 /// </summary>
 [TemplatePart(Name = PART_Shape, Type = typeof(Rectangle))]
-internal partial class Shimmer : Control
+internal sealed partial class Shimmer : Control, IDisposable
 {
     /// <summary>
     /// Identifies the <see cref="Duration"/> dependency property.
@@ -68,9 +68,11 @@ internal partial class Shimmer : Control
     private ShapeVisual? _shapeVisual;
     private CompositionLinearGradientBrush? _shimmerMaskGradient;
     private Border? _shape;
+    private CompositionSpriteShape? _spriteShape;
 
     private bool _initialized;
     private bool _animationStarted;
+    private bool _disposed;
 
     public Shimmer()
     {
@@ -103,22 +105,6 @@ internal partial class Shimmer : Control
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         ActualThemeChanged -= OnActualThemeChanged;
-        StopAnimation();
-
-        if (_initialized && _shape != null)
-        {
-            ElementCompositionPreview.SetElementChildVisual(_shape, null);
-
-            _rectangleGeometry!.Dispose();
-            _shapeVisual!.Dispose();
-            _shimmerMaskGradient!.Dispose();
-            _gradientStop1!.Dispose();
-            _gradientStop2!.Dispose();
-            _gradientStop3!.Dispose();
-            _gradientStop4!.Dispose();
-
-            _initialized = false;
-        }
     }
 
     private void OnActualThemeChanged(FrameworkElement sender, object args)
@@ -143,21 +129,39 @@ internal partial class Shimmer : Control
             return false;
         }
 
-        var compositor = _shape.GetVisual().Compositor;
+#pragma warning disable IDISP001 // shapeVisual and compositor are provided by the system
+        var shapeVisual = _shape.GetVisual();
+        var compositor = shapeVisual.Compositor;
+#pragma warning restore IDISP001
 
+        _rectangleGeometry?.Dispose();
         _rectangleGeometry = compositor.CreateRoundedRectangleGeometry();
+        _shapeVisual?.Dispose();
         _shapeVisual = compositor.CreateShapeVisual();
+        _shimmerMaskGradient?.Dispose();
         _shimmerMaskGradient = compositor.CreateLinearGradientBrush();
+        _gradientStop1?.Dispose();
         _gradientStop1 = compositor.CreateColorGradientStop();
+        _gradientStop2?.Dispose();
         _gradientStop2 = compositor.CreateColorGradientStop();
+        _gradientStop3?.Dispose();
         _gradientStop3 = compositor.CreateColorGradientStop();
+        _gradientStop4?.Dispose();
         _gradientStop4 = compositor.CreateColorGradientStop();
         SetGradientAndStops();
         SetGradientStopColorsByTheme();
         _rectangleGeometry.CornerRadius = new Vector2((float)CornerRadius.TopLeft);
-        var spriteShape = compositor.CreateSpriteShape(_rectangleGeometry);
-        spriteShape.FillBrush = _shimmerMaskGradient;
-        _shapeVisual.Shapes.Add(spriteShape);
+
+        // Clear and dispose old shapes before adding new one
+        if (_shapeVisual.Shapes.Count > 0)
+        {
+            _spriteShape?.Dispose();
+            _shapeVisual.Shapes.Clear();
+        }
+
+        _spriteShape = compositor.CreateSpriteShape(_rectangleGeometry);
+        _spriteShape.FillBrush = _shimmerMaskGradient;
+        _shapeVisual.Shapes.Add(_spriteShape);
         ElementCompositionPreview.SetElementChildVisual(_shape, _shapeVisual);
 
         _initialized = true;
@@ -207,11 +211,15 @@ internal partial class Shimmer : Control
             return;
         }
 
+#pragma warning disable IDISP001, IDISP004 // rootVisual and its reference are provided by the system
         var rootVisual = _shape.GetVisual();
+        _sizeAnimation?.Dispose();
         _sizeAnimation = rootVisual.GetReference().Size;
+#pragma warning restore IDISP001, IDISP004
         _shapeVisual.StartAnimation(nameof(ShapeVisual.Size), _sizeAnimation);
         _rectangleGeometry.StartAnimation(nameof(CompositionRoundedRectangleGeometry.Size), _sizeAnimation);
 
+        _gradientStartPointAnimation?.Dispose();
         _gradientStartPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
         _gradientStartPointAnimation.Duration = Duration;
         _gradientStartPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
@@ -219,6 +227,7 @@ internal partial class Shimmer : Control
         _gradientStartPointAnimation.InsertKeyFrame(1.0f, Vector2.Zero);
         _shimmerMaskGradient!.StartAnimation(nameof(CompositionLinearGradientBrush.StartPoint), _gradientStartPointAnimation);
 
+        _gradientEndPointAnimation?.Dispose();
         _gradientEndPointAnimation = rootVisual.Compositor.CreateVector2KeyFrameAnimation();
         _gradientEndPointAnimation.Duration = Duration;
         _gradientEndPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
@@ -240,10 +249,6 @@ internal partial class Shimmer : Control
         _rectangleGeometry!.StopAnimation(nameof(CompositionRoundedRectangleGeometry.Size));
         _shimmerMaskGradient!.StopAnimation(nameof(CompositionLinearGradientBrush.StartPoint));
         _shimmerMaskGradient.StopAnimation(nameof(CompositionLinearGradientBrush.EndPoint));
-
-        _sizeAnimation!.Dispose();
-        _gradientStartPointAnimation!.Dispose();
-        _gradientEndPointAnimation!.Dispose();
         _animationStarted = false;
     }
 
@@ -259,5 +264,36 @@ internal partial class Shimmer : Control
         {
             self.StopAnimation();
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        StopAnimation();
+
+        if (_initialized && _shape != null)
+        {
+            ElementCompositionPreview.SetElementChildVisual(_shape, null);
+
+            _rectangleGeometry?.Dispose();
+            _shapeVisual?.Dispose();
+            _shimmerMaskGradient?.Dispose();
+            _gradientStop1?.Dispose();
+            _gradientStop2?.Dispose();
+            _gradientStop3?.Dispose();
+            _gradientStop4?.Dispose();
+            _spriteShape?.Dispose();
+            _gradientStartPointAnimation?.Dispose();
+            _gradientEndPointAnimation?.Dispose();
+            _sizeAnimation?.Dispose();
+
+            _initialized = false;
+        }
+
+        _disposed = true;
     }
 }
