@@ -231,6 +231,17 @@ function progressBar(value, max, length = 10) {
 }
 
 /**
+ * Escape special characters for markdown table cells
+ */
+function escapeMarkdownTableCell(text) {
+    if (!text) return '';
+    return text
+        .replace(/\\/g, '\\\\')  // Escape backslashes first
+        .replace(/\|/g, '\\|')   // Escape pipe characters
+        .replace(/\n/g, ' ');    // Replace newlines with spaces
+}
+
+/**
  * Update statistics in Gist
  */
 async function updateStats(gistId, gistToken, triageResult, issue) {
@@ -289,7 +300,8 @@ async function updateStats(gistId, gistToken, triageResult, issue) {
     const recentRows = stats.recentTriage.slice(0, 20).map(t => {
         const date = new Date(t.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
         const labels = t.labels.map(l => `\`${l}\``).join(' ');
-        return `| [#${t.issueNumber}](${t.url}) | ${t.title} | ${labels} | ${date} |`;
+        const safeTitle = escapeMarkdownTableCell(t.title);
+        return `| [#${t.issueNumber}](${t.url}) | ${safeTitle} | ${labels} | ${date} |`;
     }).join('\n');
 
     const trackingSinceDate = new Date(stats.trackingSince).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
