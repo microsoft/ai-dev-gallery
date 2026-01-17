@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace AIDevGallery.Utils;
 
@@ -12,19 +11,6 @@ namespace AIDevGallery.Utils;
 /// </summary>
 public abstract class ModelUrl
 {
-    /// <summary>
-    /// Throws an ArgumentException if the argument is null, empty, or consists only of white-space characters.
-    /// </summary>
-    /// <param name="argument">The string argument to validate.</param>
-    /// <param name="paramName">The name of the parameter with which argument corresponds.</param>
-    private protected static void ThrowIfNullOrWhiteSpace(string? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
-    {
-        if (string.IsNullOrWhiteSpace(argument))
-        {
-            throw new ArgumentException($"{paramName} cannot be null or whitespace.", paramName);
-        }
-    }
-
     /// <summary>
     /// Gets the FullUrl property
     /// </summary>
@@ -186,9 +172,9 @@ public class HuggingFaceUrl : ModelUrl
     /// <returns>The tree URL</returns>
     public static string BuildTreeUrl(string organization, string repo, string @ref = "main", string? path = null)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
 
         var url = $"{BaseUrl}/{organization}/{repo}/tree/{@ref}";
         if (!string.IsNullOrEmpty(path))
@@ -209,10 +195,10 @@ public class HuggingFaceUrl : ModelUrl
     /// <returns>The resolve URL</returns>
     public static string BuildResolveUrl(string organization, string repo, string @ref, string filePath)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
-        ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(filePath);
 
         return $"{BaseUrl}/{organization}/{repo}/resolve/{@ref}/{filePath}";
     }
@@ -227,10 +213,10 @@ public class HuggingFaceUrl : ModelUrl
     /// <returns>The blob URL</returns>
     public static string BuildBlobUrl(string organization, string repo, string @ref, string filePath)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
-        ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(filePath);
 
         return $"{BaseUrl}/{organization}/{repo}/blob/{@ref}/{filePath}";
     }
@@ -243,8 +229,8 @@ public class HuggingFaceUrl : ModelUrl
     /// <returns>The base repository URL</returns>
     public static string BuildRepoUrl(string organization, string repo)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
 
         return $"{BaseUrl}/{organization}/{repo}";
     }
@@ -259,9 +245,9 @@ public class HuggingFaceUrl : ModelUrl
     /// <returns>The API URL</returns>
     public static string BuildApiUrl(string organization, string repo, string @ref, string? path = null)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
 
         var url = $"{ApiUrl}/models/{organization}/{repo}/tree/{@ref}";
         if (!string.IsNullOrEmpty(path))
@@ -365,8 +351,8 @@ public class GitHubUrl : ModelUrl
     /// <returns>The base repository URL</returns>
     public static string BuildRepoUrl(string organization, string repo)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
 
         return $"{BaseUrl}/{organization}/{repo}";
     }
@@ -381,9 +367,9 @@ public class GitHubUrl : ModelUrl
     /// <returns>The GitHub API endpoint URL</returns>
     public static string BuildApiUrl(string organization, string repo, string @ref, string? path = null)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
 
         var url = $"{ApiBaseUrl}/{organization}/{repo}/contents";
         if (!string.IsNullOrEmpty(path))
@@ -405,10 +391,10 @@ public class GitHubUrl : ModelUrl
     /// <returns>The raw.githubusercontent.com URL</returns>
     public static string BuildRawUrl(string organization, string repo, string @ref, string filePath)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
-        ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(filePath);
 
         return $"{RawBaseUrl}/{organization}/{repo}/{@ref}/{filePath}";
     }
@@ -423,10 +409,10 @@ public class GitHubUrl : ModelUrl
     /// <returns>The blob URL</returns>
     public static string BuildBlobUrl(string organization, string repo, string @ref, string filePath)
     {
-        ThrowIfNullOrWhiteSpace(organization);
-        ThrowIfNullOrWhiteSpace(repo);
-        ThrowIfNullOrWhiteSpace(@ref);
-        ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(organization);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(repo);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(@ref);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(filePath);
 
         return $"{BaseUrl}/{organization}/{repo}/blob/{@ref}/{filePath}";
     }
