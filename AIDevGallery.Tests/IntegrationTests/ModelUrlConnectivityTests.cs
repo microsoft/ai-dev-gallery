@@ -65,6 +65,8 @@ public class ModelUrlConnectivityTests
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
+    [TestCategory("Network")]
     [DynamicData(nameof(GetModelGroupFiles), DynamicDataSourceType.Method)]
     public async Task ModelUrlsShouldBeAccessible(string fileName)
     {
