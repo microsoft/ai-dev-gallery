@@ -197,6 +197,13 @@ internal class OnnxModelDownload : ModelDownload
 
         filesToDownload = ModelInformationHelper.FilterFiles(filesToDownload, Details.FileFilters);
 
+        if (filesToDownload.Count == 0)
+        {
+            ModelDownloadFailedEvent.Log(Details.Url, new InvalidOperationException("No files to download after filtering"));
+            DownloadStatus = DownloadStatus.Canceled;
+            return null;
+        }
+
         long modelSize = filesToDownload.Sum(f => f.Size);
         long bytesDownloaded = 0;
 

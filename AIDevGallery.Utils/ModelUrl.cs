@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -11,6 +11,19 @@ namespace AIDevGallery.Utils;
 /// </summary>
 public abstract class ModelUrl
 {
+    /// <summary>
+    /// Throws an ArgumentException if the argument is null, empty, or consists only of white-space characters.
+    /// </summary>
+    /// <param name="argument">The string argument to validate.</param>
+    /// <param name="paramName">The name of the parameter with which argument corresponds.</param>
+    private protected static void ThrowIfNullOrWhiteSpace(string? argument, string? paramName = null)
+    {
+        if (string.IsNullOrWhiteSpace(argument))
+        {
+            throw new ArgumentException($"{paramName ?? nameof(argument)} cannot be null or whitespace.", paramName ?? nameof(argument));
+        }
+    }
+
     /// <summary>
     /// Gets the FullUrl property
     /// </summary>
@@ -75,10 +88,17 @@ public abstract class ModelUrl
 /// </summary>
 public class HuggingFaceUrl : ModelUrl
 {
+    internal const string BaseUrl = "https://huggingface.co";
+
+    /// <summary>
+    /// The base API URL for Hugging Face
+    /// </summary>
+    public const string ApiUrl = "https://huggingface.co/api";
+
     /// <inheritdoc/>
     public override string FullUrl
     {
-        get { return $"https://huggingface.co/{PartialUrl}"; }
+        get { return $"{BaseUrl}/{PartialUrl}"; }
         private protected init { }
     }
 
@@ -106,7 +126,7 @@ public class HuggingFaceUrl : ModelUrl
 
         if (modelNameOrUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            if (!modelNameOrUrl.StartsWith("https://huggingface.co", StringComparison.OrdinalIgnoreCase))
+            if (!modelNameOrUrl.StartsWith(BaseUrl, StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Invalid URL", nameof(modelNameOrUrl));
             }
@@ -132,7 +152,8 @@ public class HuggingFaceUrl : ModelUrl
 
         Ref = urlComponents[3];
 
-        if (urlComponents[2].Equals("blob", StringComparison.OrdinalIgnoreCase))
+        if (urlComponents[2].Equals("blob", StringComparison.OrdinalIgnoreCase) ||
+            urlComponents[2].Equals("resolve", StringComparison.OrdinalIgnoreCase))
         {
             IsFile = true;
         }
@@ -146,12 +167,108 @@ public class HuggingFaceUrl : ModelUrl
     }
 
     /// <summary>
-    /// Gets the URL root
+    /// Gets the URL root of the repository
     /// </summary>
     /// <returns>The root URL of the HuggingFace repository</returns>
     public string GetUrlRoot()
     {
-        return $"https://huggingface.co/{Organization}/{Repo}";
+        return BuildRepoUrl(Organization, Repo);
+    }
+
+    /// <summary>
+    /// Builds a tree URL for browsing directory structure
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="path">The path within the repository</param>
+    /// <returns>The tree URL</returns>
+    public static string BuildTreeUrl(string organization, string repo, string @ref = "main", string? path = null)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+
+        var url = $"{BaseUrl}/{organization}/{repo}/tree/{@ref}";
+        if (!string.IsNullOrEmpty(path))
+        {
+            url = $"{url}/{path}";
+        }
+
+        return url;
+    }
+
+    /// <summary>
+    /// Builds a resolve URL for downloading files
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="filePath">The file path within the repository</param>
+    /// <returns>The resolve URL</returns>
+    public static string BuildResolveUrl(string organization, string repo, string @ref, string filePath)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+        ThrowIfNullOrWhiteSpace(filePath);
+
+        return $"{BaseUrl}/{organization}/{repo}/resolve/{@ref}/{filePath}";
+    }
+
+    /// <summary>
+    /// Builds a blob URL for viewing file content
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="filePath">The file path within the repository</param>
+    /// <returns>The blob URL</returns>
+    public static string BuildBlobUrl(string organization, string repo, string @ref, string filePath)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+        ThrowIfNullOrWhiteSpace(filePath);
+
+        return $"{BaseUrl}/{organization}/{repo}/blob/{@ref}/{filePath}";
+    }
+
+    /// <summary>
+    /// Builds a base repository URL
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <returns>The base repository URL</returns>
+    public static string BuildRepoUrl(string organization, string repo)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+
+        return $"{BaseUrl}/{organization}/{repo}";
+    }
+
+    /// <summary>
+    /// Builds an API URL for retrieving directory structure
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="path">The path within the repository</param>
+    /// <returns>The API URL</returns>
+    public static string BuildApiUrl(string organization, string repo, string @ref, string? path = null)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+
+        var url = $"{ApiUrl}/models/{organization}/{repo}/tree/{@ref}";
+        if (!string.IsNullOrEmpty(path))
+        {
+            url = $"{url}/{path}";
+        }
+
+        return url;
     }
 }
 
@@ -160,6 +277,10 @@ public class HuggingFaceUrl : ModelUrl
 /// </summary>
 public class GitHubUrl : ModelUrl
 {
+    private const string BaseUrl = "https://github.com";
+    private const string ApiBaseUrl = "https://api.github.com/repos";
+    private const string RawBaseUrl = "https://raw.githubusercontent.com";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GitHubUrl"/> class.
     /// </summary>
@@ -174,12 +295,12 @@ public class GitHubUrl : ModelUrl
         url = url.Trim();
         FullUrl = url;
 
-        if (!url.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase))
+        if (!url.StartsWith($"{BaseUrl}/", StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException("Invalid URL", nameof(url));
         }
 
-        url = url[19..];
+        url = url[(BaseUrl.Length + 1)..];
 
         string[] urlComponents = url.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
@@ -232,7 +353,81 @@ public class GitHubUrl : ModelUrl
     /// <returns>The root URL of the GitHub repository.</returns>
     public string GetUrlRoot()
     {
-        return $"https://github.com/{Organization}/{Repo}";
+        return BuildRepoUrl(Organization, Repo);
+    }
+
+    /// <summary>
+    /// Builds a base repository URL
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <returns>The base repository URL</returns>
+    public static string BuildRepoUrl(string organization, string repo)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+
+        return $"{BaseUrl}/{organization}/{repo}";
+    }
+
+    /// <summary>
+    /// Builds an API URL for retrieving repository contents
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="path">The path within the repository</param>
+    /// <returns>The GitHub API endpoint URL</returns>
+    public static string BuildApiUrl(string organization, string repo, string @ref, string? path = null)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+
+        var url = $"{ApiBaseUrl}/{organization}/{repo}/contents";
+        if (!string.IsNullOrEmpty(path))
+        {
+            url = $"{url}/{path}";
+        }
+
+        url = $"{url}?ref={@ref}";
+        return url;
+    }
+
+    /// <summary>
+    /// Builds a raw content URL for downloading individual files
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="filePath">The file path within the repository</param>
+    /// <returns>The raw.githubusercontent.com URL</returns>
+    public static string BuildRawUrl(string organization, string repo, string @ref, string filePath)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+        ThrowIfNullOrWhiteSpace(filePath);
+
+        return $"{RawBaseUrl}/{organization}/{repo}/{@ref}/{filePath}";
+    }
+
+    /// <summary>
+    /// Builds a blob URL for viewing file content
+    /// </summary>
+    /// <param name="organization">The organization name</param>
+    /// <param name="repo">The repository name</param>
+    /// <param name="ref">The branch or commit reference</param>
+    /// <param name="filePath">The file path within the repository</param>
+    /// <returns>The blob URL</returns>
+    public static string BuildBlobUrl(string organization, string repo, string @ref, string filePath)
+    {
+        ThrowIfNullOrWhiteSpace(organization);
+        ThrowIfNullOrWhiteSpace(repo);
+        ThrowIfNullOrWhiteSpace(@ref);
+        ThrowIfNullOrWhiteSpace(filePath);
+
+        return $"{BaseUrl}/{organization}/{repo}/blob/{@ref}/{filePath}";
     }
 }
 
