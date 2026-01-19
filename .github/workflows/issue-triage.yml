@@ -91,7 +91,7 @@ jobs:
 
           # Escape special characters for JSON
           SAFE_TITLE=$(printf '%s' "$ISSUE_TITLE" | head -c 80 | jq -Rs '.')
-          SAFE_SUMMARY=$(printf '%s' "$TRIAGE_SUMMARY" | jq -Rs '.' | sed 's/^"//;s/"$//')
+          SAFE_SUMMARY_TEXT=$(printf '**Summary:** %s' "$TRIAGE_SUMMARY" | jq -Rs '.')
           CONFIDENCE_PCT=$(echo "$TRIAGE_CONFIDENCE" | awk '{printf "%.0f", $1 * 100}')
 
           # Build Adaptive Card JSON
@@ -123,7 +123,7 @@ jobs:
                   },
                   {
                     "type": "TextBlock",
-                    "text": "**Summary:** ${SAFE_SUMMARY}",
+                    "text": ${SAFE_SUMMARY_TEXT},
                     "wrap": true,
                     "spacing": "Medium"
                   }
