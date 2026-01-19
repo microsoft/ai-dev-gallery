@@ -72,3 +72,84 @@ jobs:
           else
             echo "[WARN] No labels were applied" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Send Teams Notification
+        if: success() && steps.triage.outputs.labels != ''
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          TRIAGE_LABELS: ${{ steps.triage.outputs.labels }}
+          TRIAGE_SUMMARY: ${{ steps.triage.outputs.summary }}
+          TRIAGE_CONFIDENCE: ${{ steps.triage.outputs.confidence }}
+        run: |
+          if [ -z "$TEAMS_WEBHOOK_URL" ]; then
+            echo "Teams webhook not configured, skipping notification"
+            exit 0
+          fi
+
+          # Escape special characters for JSON
+          SAFE_TITLE=$(printf '%s' "$ISSUE_TITLE" | head -c 80 | jq -Rs '.')
+          SAFE_SUMMARY=$(printf '%s' "$TRIAGE_SUMMARY" | jq -Rs '.' | sed 's/^"//;s/"$//')
+          CONFIDENCE_PCT=$(echo "$TRIAGE_CONFIDENCE" | awk '{printf "%.0f", $1 * 100}')
+
+          # Build Adaptive Card JSON
+          cat > /tmp/teams-card.json << CARD_EOF
+          {
+            "type": "message",
+            "attachments": [{
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "content": {
+                "\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "text": "New Issue Triaged",
+                    "weight": "Bolder",
+                    "size": "Large",
+                    "color": "Accent"
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      { "title": "Issue", "value": "#$ISSUE_NUMBER" },
+                      { "title": "Title", "value": ${SAFE_TITLE} },
+                      { "title": "Labels", "value": "${TRIAGE_LABELS:-none}" },
+                      { "title": "Confidence", "value": "${CONFIDENCE_PCT}%" }
+                    ]
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "**Summary:** ${SAFE_SUMMARY}",
+                    "wrap": true,
+                    "spacing": "Medium"
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "Action.OpenUrl",
+                    "title": "View Issue",
+                    "url": "$ISSUE_URL"
+                  }
+                ]
+              }
+            }]
+          }
+          CARD_EOF
+
+          # Send to Teams
+          HTTP_CODE=$(curl -s -o /tmp/teams-response.txt -w "%{http_code}" \
+            -X POST "$TEAMS_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/teams-card.json)
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "Teams notification sent successfully"
+          else
+            echo "Failed to send Teams notification (HTTP $HTTP_CODE)"
+            cat /tmp/teams-response.txt
+            exit 1
+          fi
