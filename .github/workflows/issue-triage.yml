@@ -76,7 +76,7 @@ jobs:
       - name: Send Teams Notification
         if: success() && steps.triage.outputs.labels != ''
         env:
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          TEAMS_CHANNEL_WEBHOOK_URL: ${{ secrets.TEAMS_CHANNEL_WEBHOOK_URL }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
@@ -84,7 +84,7 @@ jobs:
           TRIAGE_SUMMARY: ${{ steps.triage.outputs.summary }}
           TRIAGE_CONFIDENCE: ${{ steps.triage.outputs.confidence }}
         run: |
-          if [ -z "$TEAMS_WEBHOOK_URL" ]; then
+          if [ -z "$TEAMS_CHANNEL_WEBHOOK_URL" ]; then
             echo "Teams webhook not configured, skipping notification"
             exit 0
           fi
@@ -142,7 +142,7 @@ jobs:
 
           # Send to Teams
           HTTP_CODE=$(curl -s -o /tmp/teams-response.txt -w "%{http_code}" \
-            -X POST "$TEAMS_WEBHOOK_URL" \
+            -X POST "$TEAMS_CHANNEL_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d @/tmp/teams-card.json)
 
