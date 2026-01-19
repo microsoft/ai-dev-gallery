@@ -91,7 +91,13 @@ jobs:
           fi
 
           # Escape special characters for JSON
-          SAFE_TITLE=$(printf '%s' "$ISSUE_TITLE" | head -c 80 | jq -Rs '.')
+          MAX_TITLE_LENGTH=120
+          TITLE_FOR_TEAMS="$ISSUE_TITLE"
+          if [ "${#ISSUE_TITLE}" -gt "$MAX_TITLE_LENGTH" ]; then
+            TRUNCATED_TITLE=$(printf '%s' "$ISSUE_TITLE" | cut -c1-$((MAX_TITLE_LENGTH - 1)))
+            TITLE_FOR_TEAMS="${TRUNCATED_TITLE}..."
+          fi
+          SAFE_TITLE=$(printf '%s' "$TITLE_FOR_TEAMS" | jq -Rs '.')
           SAFE_LABELS=$(printf '%s' "${TRIAGE_LABELS:-none}" | jq -Rs '.')
           SAFE_SUMMARY_TEXT=$(printf '**Summary:** %s' "$TRIAGE_SUMMARY" | jq -Rs '.')
           CONFIDENCE_PCT=$(echo "$TRIAGE_CONFIDENCE" | awk '{printf "%.0f", $1 * 100}')
