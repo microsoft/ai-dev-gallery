@@ -75,6 +75,7 @@ jobs:
 
       - name: Send Teams Notification
         if: success() && steps.triage.outputs.labels != ''
+        continue-on-error: true
         env:
           TEAMS_CHANNEL_WEBHOOK_URL: ${{ secrets.TEAMS_CHANNEL_WEBHOOK_URL }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
