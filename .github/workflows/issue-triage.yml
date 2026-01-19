@@ -91,6 +91,7 @@ jobs:
 
           # Escape special characters for JSON
           SAFE_TITLE=$(printf '%s' "$ISSUE_TITLE" | head -c 80 | jq -Rs '.')
+          SAFE_LABELS=$(printf '%s' "${TRIAGE_LABELS:-none}" | jq -Rs '.')
           SAFE_SUMMARY_TEXT=$(printf '**Summary:** %s' "$TRIAGE_SUMMARY" | jq -Rs '.')
           CONFIDENCE_PCT=$(echo "$TRIAGE_CONFIDENCE" | awk '{printf "%.0f", $1 * 100}')
 
@@ -117,7 +118,7 @@ jobs:
                     "facts": [
                       { "title": "Issue", "value": "#$ISSUE_NUMBER" },
                       { "title": "Title", "value": ${SAFE_TITLE} },
-                      { "title": "Labels", "value": "${TRIAGE_LABELS:-none}" },
+                      { "title": "Labels", "value": ${SAFE_LABELS} },
                       { "title": "Confidence", "value": "${CONFIDENCE_PCT}%" }
                     ]
                   },
