@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
@@ -76,6 +77,12 @@ internal sealed partial class SmartTextBox : Control
         _inputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
 
         _inputTextBox.Document.SetText(TextSetOptions.None, _text);
+
+        // Set AutomationProperties.HelpText for accessibility so Narrator announces the text content
+        if (!string.IsNullOrEmpty(_text))
+        {
+            AutomationProperties.SetHelpText(_inputTextBox, _text);
+        }
     }
 
     private async Task<string> Infer(string systemPrompt, string query, ChatOptions? options = null)
@@ -315,6 +322,12 @@ internal sealed partial class SmartTextBox : Control
             SmartTextBox smartTextBox = (SmartTextBox)d;
             smartTextBox._text = text;
             smartTextBox._inputTextBox?.Document.SetText(TextSetOptions.None, text);
+
+            // Update AutomationProperties.HelpText for accessibility so Narrator announces the text content
+            if (smartTextBox._inputTextBox != null)
+            {
+                AutomationProperties.SetHelpText(smartTextBox._inputTextBox, text);
+            }
         }
     }
 }
