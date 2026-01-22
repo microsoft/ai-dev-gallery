@@ -82,10 +82,11 @@ internal sealed partial class SmartTextBox : Control
     private void InputTextBox_GotFocus(object sender, RoutedEventArgs e)
     {
         // Announce text content for accessibility when the control receives focus
-        _inputTextBox!.Document.GetText(TextGetOptions.None, out string currentText);
+        var textBox = (RichEditBox)sender;
+        textBox.Document.GetText(TextGetOptions.None, out string currentText);
         if (!string.IsNullOrWhiteSpace(currentText))
         {
-            NarratorHelper.Announce(_inputTextBox, currentText.Trim(), "SmartTextBoxContentAnnouncement");
+            NarratorHelper.Announce(textBox, currentText.Trim(), "SmartTextBoxContentAnnouncement");
         }
     }
 
