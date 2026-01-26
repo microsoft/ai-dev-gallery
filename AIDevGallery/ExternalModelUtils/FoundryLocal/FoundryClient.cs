@@ -31,19 +31,23 @@ internal class FoundryClient : IDisposable
     {
         try
         {
-            var config = new Configuration
-            {
-                AppName = "AIDevGallery",
-                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
-                ModelCacheDir = App.ModelCache.GetCacheFolder()
-            };
-
-            await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
-
+            // Check if FoundryLocalManager is already initialized
             if (!FoundryLocalManager.IsInitialized)
             {
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "ManagerCreation", "N/A", "FoundryLocalManager failed to initialize");
-                return null;
+                var config = new Configuration
+                {
+                    AppName = "AIDevGallery",
+                    LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                    ModelCacheDir = App.ModelCache.GetCacheFolder()
+                };
+
+                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+
+                if (!FoundryLocalManager.IsInitialized)
+                {
+                    Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "ManagerCreation", "N/A", "FoundryLocalManager failed to initialize");
+                    return null;
+                }
             }
 
             var client = new FoundryClient
@@ -51,13 +55,24 @@ internal class FoundryClient : IDisposable
                 _manager = FoundryLocalManager.Instance
             };
 
-            await client._manager.EnsureEpsDownloadedAsync();
+            try
+            {
+                await client._manager.EnsureEpsDownloadedAsync();
+            }
+            catch (Exception epEx)
+            {
+                // Log the EP download/registration issue but continue if basic EPs (CPU/DML) are available
+                Debug.WriteLine($"[FoundryLocal] EP registration issue: {epEx.Message}");
+                Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "EpRegistrationWarning", "N/A", epEx.Message);
+            }
+
             client._catalog = await client._manager.GetCatalogAsync();
 
             return client;
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[FoundryLocal] Initialization failed: {ex.Message}");
             Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "Exception", "N/A", ex.Message);
             return null;
         }
