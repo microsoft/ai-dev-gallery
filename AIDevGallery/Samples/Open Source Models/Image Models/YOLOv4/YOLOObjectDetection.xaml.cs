@@ -40,11 +40,11 @@ namespace AIDevGallery.Samples.OpenSourceModels.YOLOv4;
     Id = "9b74ccc0-15f7-430f-bed0-7581fd163508",
     Icon = "\uE8B3")]
 
-internal sealed partial class YOLOObjectionDetection : BaseSamplePage
+internal sealed partial class YOLOObjectDetection : BaseSamplePage
 {
     private InferenceSession? _inferenceSession;
 
-    public YOLOObjectionDetection()
+    public YOLOObjectDetection()
     {
         this.Unloaded += (s, e) => _inferenceSession?.Dispose();
 
@@ -136,10 +136,10 @@ internal sealed partial class YOLOObjectionDetection : BaseSamplePage
 
         // Pick a file
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
             // Call function to run inference and classify image
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await DetectObjects(file.Path);
         }

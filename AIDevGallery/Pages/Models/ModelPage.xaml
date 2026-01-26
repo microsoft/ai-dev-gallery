@@ -73,33 +73,28 @@
         </StackPanel>
 
 
-        <ScrollViewer
-            x:Name="RootScroller"
-            Grid.Row="2"
+        <Grid
+            x:Name="ContentGrid"
+            Grid.Row="1"
             Grid.ColumnSpan="2"
-            Margin="-16,8,-16,-16"
-            Padding="16,0,16,16"
-            VerticalAlignment="Stretch"
-            IsVerticalScrollChainingEnabled="True">
-            <Grid
-                x:Name="ContentGrid"
-                ColumnSpacing="16"
-                RowSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition x:Name="SideColumn" Width="380" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <controls:Card
-                    x:Name="DocumentationCard"
-                    Title="Documentation"
-                    Grid.RowSpan="3"
-                    Icon="{ui:FontIcon Glyph=&#xE7C3;,
-                                       FontSize=16}">
+            Margin="0,8,0,0"
+            ColumnSpacing="16"
+            RowSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="SideColumn" Width="380" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <controls:Card
+                x:Name="DocumentationCard"
+                Title="Documentation"
+                Grid.RowSpan="3"
+                Icon="{ui:FontIcon Glyph=&#xE7C3;,
+                                   FontSize=16}">
                     <controls:Card.TitleContent>
                         <HyperlinkButton
                             Visibility="{x:Bind ModelFamily.DocsUrl, Converter={StaticResource StringVisibilityConverter}}"
@@ -208,7 +203,6 @@
                     </ItemsView>
                 </controls:Card>
             </Grid>
-        </ScrollViewer>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutVisualStates">
                 <VisualState x:Name="WideLayout">
@@ -228,7 +222,6 @@
                         <Setter Target="ContentGrid.ColumnSpacing" Value="0" />
                         <Setter Target="DocumentationCard.(Grid.Row)" Value="2" />
                         <Setter Target="RootGrid.Padding" Value="16,12,16,12" />
-                        <Setter Target="RootScroller.VerticalScrollBarVisibility" Value="Auto" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

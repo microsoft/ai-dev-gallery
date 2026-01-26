@@ -28,7 +28,7 @@
       "SemanticKernelChat": {
         "Name": "Semantic Kernel Chat",
         "Description": "Chat with a local language model via the semantic kernel.",
-        "Instruction": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history.",
+        "Instructions": "Send messages to a Chat Completion service, implemented with Semantic Kernel, that responds while keeping track of chat context and history.",
         "Id": "semantic-kernel-chat"
       },
       "TranslateText": {
@@ -48,7 +48,7 @@
       "ParaphraseText": {
         "Name": "Paraphrase Text",
         "Description": "Paraphrase text with a local language model.",
-        "Instruction": "Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
+        "Instructions": "Enter some text into the textbox and select 'Paraphrase' to get rewritten output.",
         "Id": "paraphrase-text"
       },
       "AnalyzeSentimentText": {

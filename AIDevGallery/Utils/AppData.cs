@@ -23,7 +23,7 @@ internal partial class AppData : ObservableObject
 
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
-    public CustomParametersState? LastCustomParamtersState { get; set; }
+    public CustomParametersState? LastCustomParametersState { get; set; }
 
     public LinkedList<UsageHistory>? UsageHistoryV2 { get; set; }
 
@@ -54,7 +54,7 @@ internal partial class AppData : ObservableObject
         IsAppContentSearchEnabled = true;
         LastAdapterPath = string.Empty;
         LastSystemPrompt = string.Empty;
-        WinMLSampleOptions = new WinMlSampleOptions(ExecutionProviderDevicePolicy.DEFAULT, null, false, null);
+        WinMLSampleOptions = new WinMlSampleOptions(null, "CPU", false, null);
     }
 
     private static string GetConfigFilePath()
