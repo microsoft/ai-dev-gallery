@@ -35,6 +35,7 @@
             Visibility="Collapsed" />
         <Grid
             Margin="8"
+            Padding="2"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
@@ -44,6 +45,7 @@
                 Padding="8"
                 AutomationProperties.Name="Select image"
                 Click="UploadButton_Click"
+                FocusVisualMargin="-3"
                 ToolTipService.ToolTip="Select image">
 
                 <FontIcon FontSize="16" Glyph="&#xEE71;" />
