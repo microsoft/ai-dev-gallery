@@ -41,7 +41,15 @@ internal class FoundryClient : IDisposable
                     ModelCacheDir = App.ModelCache.GetCacheFolder()
                 };
 
-                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+                try
+                {
+                    await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+                }
+                catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
+                {
+                    // Race condition: another caller initialized the manager concurrently.
+                    // Since the manager is now initialized, we can proceed.
+                }
 
                 if (!FoundryLocalManager.IsInitialized)
                 {
@@ -61,9 +69,10 @@ internal class FoundryClient : IDisposable
             }
             catch (Exception epEx)
             {
-                // Log the EP download/registration issue but continue if basic EPs (CPU/DML) are available
+                // Log the EP download/registration issue
                 Debug.WriteLine($"[FoundryLocal] EP registration issue: {epEx.Message}");
-                Telemetry.Events.FoundryLocalErrorEvent.Log("ClientInitialization", "EpRegistrationWarning", "N/A", epEx.Message);
+                var structuredError = $"ExceptionType: {epEx.GetType().Name}, HResult: 0x{epEx.HResult:X8}";
+                Telemetry.Events.FoundryLocalOperationEvent.Log("EpRegistrationWarning", structuredError);
             }
 
             client._catalog = await client._manager.GetCatalogAsync();
