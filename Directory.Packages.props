@@ -7,7 +7,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.AI.Foundry.Local.WinML" Version="0.8.2.1" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.9.1" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK.Base" Version="2.0.1-experimental" />
     <PackageVersion Include="Microsoft.WindowsAppSDK.ML" Version="2.0.28-experimental" />
     <PackageVersion Include="OllamaSharp" Version="5.4.7" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.1-preview.1.25474.6" />
