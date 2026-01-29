@@ -131,7 +131,7 @@ internal sealed partial class ScenarioPage : Page
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to register execution providers: {ex.Message}");
+            Debug.WriteLine($"Failed to register execution providers: {ex}");
         }
 
         supportedHardwareAccelerators = [new([HardwareAccelerator.CPU], "CPU", "CPU", "CPU")];
