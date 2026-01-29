@@ -149,17 +149,10 @@
                                                   BorderThickness="0"
                                                   CornerRadius="0"
                                                   Header="App Content Indices">
-                                <StackPanel Margin="0,0,16,0"
-                                            Orientation="Horizontal"
-                                            Spacing="8">
-                                    <TextBlock x:Name="AppContentIndicesText"
-                                               VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <Button AutomationProperties.Name="Clear indices"
-                                            Click="ClearIndices_Click"
-                                            Content="Clear"
-                                            ToolTipService.ToolTip="Clear all indices" />
-                                </StackPanel>
+                                <TextBlock x:Name="TotalIndexSizeText"
+                                           Margin="0,0,78,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.ItemsHeader>
                         <toolkit:SettingsExpander.ItemTemplate>
