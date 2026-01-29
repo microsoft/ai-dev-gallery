@@ -95,7 +95,7 @@ internal sealed partial class SampleContainer : UserControl
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Sample load completion task failed: {ex.Message}");
+                        Debug.WriteLine($"Sample load completion task failed: {ex}");
                     }
                     finally
                     {
