@@ -109,7 +109,7 @@ internal static class DeviceUtils
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to enumerate DXGI adapters for VRAM: {ex.Message}");
+            Debug.WriteLine($"Failed to enumerate DXGI adapters for VRAM: {ex}");
         }
 
         return maxDedicatedVideoMemory;
