@@ -168,7 +168,7 @@ internal class MyImage : IAddChild
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to load markdown image: {ex.Message}");
+            Debug.WriteLine($"Failed to load markdown image: {ex}");
         }
     }
 
