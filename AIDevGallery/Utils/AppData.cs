@@ -81,7 +81,7 @@ internal partial class AppData : ObservableObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to load app config from {configFile}: {ex.Message}");
+            Debug.WriteLine($"Failed to load app config from {Path.GetFileName(configFile)}: {ex.Message}");
         }
         finally
         {
