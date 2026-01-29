@@ -253,7 +253,7 @@ internal sealed partial class SampleContainer : UserControl
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"WCR API compatibility check failed: {ex.Message}");
+                Debug.WriteLine($"WCR API compatibility check failed: {ex}");
                 VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
                 SampleFrame.Content = null;
                 return;
