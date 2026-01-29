@@ -197,8 +197,9 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
 
             return Enumerable.Chunk(resultArray, resultArray.Length / count).ToArray();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Embedding generation failed: {ex}");
             return [];
         }
     }
