@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -136,11 +137,11 @@ internal sealed partial class SettingsPage : Page
                     }
 
                     ToolTipService.SetToolTip(IndexFolderPathTxt, appContentIndicesFolder);
-                    AppContentIndicesText.Text = AppUtils.FileSizeToString(totalIndexSize);
+                    TotalIndexSizeText.Text = AppUtils.FileSizeToString(totalIndexSize);
                 }
                 else
                 {
-                    AppContentIndicesText.Text = string.Empty;
+                    TotalIndexSizeText.Text = string.Empty;
                 }
 
                 if (indexStores.Count > 0)
@@ -152,14 +153,14 @@ internal sealed partial class SettingsPage : Page
             {
                 indexFolderPath = null;
                 IndexFolderPathTxt.Content = "Index storage not found";
-                AppContentIndicesText.Text = string.Empty;
+                TotalIndexSizeText.Text = string.Empty;
             }
         }
         catch (Exception ex)
         {
             indexFolderPath = null;
             IndexFolderPathTxt.Content = "Unable to locate index storage";
-            AppContentIndicesText.Text = string.Empty;
+            TotalIndexSizeText.Text = string.Empty;
             Debug.WriteLine($"Error getting AppContentIndex storage info: {ex.Message}");
         }
     }
@@ -230,78 +231,21 @@ internal sealed partial class SettingsPage : Page
 
             if (result == ContentDialogResult.Primary)
             {
-                try
-                {
-                    if (Directory.Exists(indexStore.Path))
-                    {
-                        Directory.Delete(indexStore.Path, true);
-                    }
+                var deleteResult = AppContentIndexer.DeleteIndex(indexStore.IndexName, DeleteIndexWhileInUseBehavior.FailIfInUse);
 
-                    GetAppContentIndexStorageInfo();
-                }
-                catch (Exception ex)
+                if (!deleteResult.Succeeded)
                 {
                     ContentDialog errorDialog = new()
                     {
-                        Title = "Error deleting index",
-                        Content = $"Could not delete the index: {ex.Message}",
+                        Title = $"Failed to delete index {indexStore.IndexName}",
+                        Content = $"Reason: {deleteResult.Status}, {deleteResult.ExtendedError}",
                         XamlRoot = this.Content.XamlRoot,
                         CloseButtonText = "OK"
                     };
                     await errorDialog.ShowAsync();
                 }
-            }
-        }
-    }
-
-    private async void ClearIndices_Click(object sender, RoutedEventArgs e)
-    {
-        ContentDialog deleteDialog = new()
-        {
-            Title = "Clear all indices",
-            Content = "Are you sure you want to clear all AppContent indices? The app will recreate them when needed.",
-            PrimaryButtonText = "Yes",
-            XamlRoot = this.Content.XamlRoot,
-            PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
-            CloseButtonText = "No"
-        };
-
-        var result = await deleteDialog.ShowAsync();
-
-        if (result == ContentDialogResult.Primary)
-        {
-            try
-            {
-                var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-                var appContentIndicesFolder = Path.Combine(localFolder, "AppContentIndices");
-
-                if (Directory.Exists(appContentIndicesFolder))
-                {
-                    Directory.Delete(appContentIndicesFolder, true);
-                }
 
                 GetAppContentIndexStorageInfo();
-
-                // Show confirmation
-                ContentDialog confirmDialog = new()
-                {
-                    Title = "Indices cleared",
-                    Content = "All AppContent indices have been cleared successfully.",
-                    CloseButtonText = "OK",
-                    XamlRoot = this.Content.XamlRoot
-                };
-                await confirmDialog.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                ContentDialog errorDialog = new()
-                {
-                    Title = "Error clearing indices",
-                    Content = $"Could not clear indices: {ex.Message}",
-                    XamlRoot = this.Content.XamlRoot,
-                    CloseButtonText = "OK"
-                };
-                await errorDialog.ShowAsync();
             }
         }
     }
