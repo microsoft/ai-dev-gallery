@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -165,8 +166,9 @@ internal class MyImage : IAddChild
                 _image.Height = _precedentHeight;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to load markdown image: {ex.Message}");
         }
     }
 

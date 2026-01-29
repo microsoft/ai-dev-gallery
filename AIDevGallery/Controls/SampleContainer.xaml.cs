@@ -14,6 +14,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -92,8 +93,9 @@ internal sealed partial class SampleContainer : UserControl
                     {
                         await sampleContainer._sampleLoadedCompletionSource.Task;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Debug.WriteLine($"Sample load completion task failed: {ex.Message}");
                     }
                     finally
                     {
@@ -249,8 +251,9 @@ internal sealed partial class SampleContainer : UserControl
             {
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"WCR API compatibility check failed: {ex.Message}");
                 VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
                 SampleFrame.Content = null;
                 return;

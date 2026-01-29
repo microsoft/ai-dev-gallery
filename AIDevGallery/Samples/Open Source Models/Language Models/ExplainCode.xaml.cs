@@ -8,6 +8,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -135,8 +136,9 @@ internal sealed partial class ExplainCode : BaseSamplePage
                         });
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"Code explanation failed: {ex.Message}");
                     CancelExplain();
                 }
 

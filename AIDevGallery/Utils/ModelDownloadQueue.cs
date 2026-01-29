@@ -7,6 +7,7 @@ using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -120,6 +121,7 @@ internal class ModelDownloadQueue()
                 }
                 catch (TaskCanceledException)
                 {
+                    Debug.WriteLine("Model download was cancelled");
                 }
                 catch (Exception e)
                 {

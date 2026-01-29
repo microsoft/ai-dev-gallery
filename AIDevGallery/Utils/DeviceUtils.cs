@@ -3,6 +3,7 @@
 
 using Microsoft.ML.OnnxRuntime;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dxgi;
@@ -57,8 +58,9 @@ internal static class DeviceUtils
             }
             while (index != 0);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to enumerate DXGI adapters for device ID: {ex.Message}");
         }
 
         return deviceId;
@@ -105,8 +107,9 @@ internal static class DeviceUtils
             }
             while (index != 0);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to enumerate DXGI adapters for VRAM: {ex.Message}");
         }
 
         return maxDedicatedVideoMemory;
