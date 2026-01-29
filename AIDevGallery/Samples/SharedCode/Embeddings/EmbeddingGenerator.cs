@@ -199,7 +199,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Embedding generation failed: {ex.Message}");
+            Debug.WriteLine($"Embedding generation failed: {ex}");
             return [];
         }
     }
