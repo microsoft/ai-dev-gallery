@@ -355,7 +355,7 @@
   </ItemGroup>
   
   <!-- Exclude superfluous ORT and IHV libs when using Foundry Local WinML -->
-  <Import Project="ExcludeExtraLibs.props" />
+  <Import Project="ExcludeExtraLibs.props"/>
   
   <ItemGroup>
     <Page Update="Samples\WCRAPIs\RestyleImage.xaml">
