@@ -118,7 +118,7 @@
                         ItemsSource="{x:Bind wcrAPIs, Mode=OneWay}"
                         SelectionMode="None">
                         <ItemsView.Layout>
-                            <FlowLayout MinColumnSpacing="12" MinRowSpacing="12" />
+                            <FlowLayout MinItemSpacing="12" />
                         </ItemsView.Layout>
                         <ItemsView.ItemTemplate>
                             <DataTemplate x:DataType="models:ApiDefinition">
