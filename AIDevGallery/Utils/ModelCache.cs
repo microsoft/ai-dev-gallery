@@ -122,11 +122,11 @@ internal class ModelCache
         var allModels = new List<CachedModel>(CacheStore.Models);
 
         var foundryLocalProvider = ExternalModelUtils.FoundryLocalModelProvider.Instance;
-        //if (await foundryLocalProvider.IsAvailable())
-        //{
-        //    var foundryModels = await foundryLocalProvider.GetCachedModelsWithDetails();
-        //    allModels.AddRange(foundryModels);
-        //}
+        if (await foundryLocalProvider.IsAvailable())
+        {
+            var foundryModels = await foundryLocalProvider.GetCachedModelsWithDetails();
+            allModels.AddRange(foundryModels);
+        }
 
         return allModels;
     }
