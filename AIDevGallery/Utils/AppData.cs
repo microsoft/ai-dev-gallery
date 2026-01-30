@@ -8,6 +8,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -78,8 +79,9 @@ internal partial class AppData : ObservableObject
                 appData = JsonSerializer.Deserialize(file, AppDataSourceGenerationContext.Default.AppData);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to load app config from {Path.GetFileName(configFile)}: {ex.Message}");
         }
         finally
         {
