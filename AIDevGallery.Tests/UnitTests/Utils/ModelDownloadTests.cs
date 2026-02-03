@@ -13,10 +13,8 @@ namespace AIDevGallery.Tests.UnitTests;
 [TestClass]
 public class ModelDownloadTests
 {
-    #region Path Traversal Protection Tests
-
     [TestMethod]
-    public void IsPathWithinDirectory_ValidSubPath_ReturnsTrue()
+    public void IsPathWithinDirectoryValidSubPathReturnsTrue()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
@@ -30,7 +28,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_ValidNestedSubPath_ReturnsTrue()
+    public void IsPathWithinDirectoryValidNestedSubPathReturnsTrue()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
@@ -44,7 +42,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_PathTraversalWithDotDot_ReturnsFalse()
+    public void IsPathWithinDirectoryPathTraversalWithDotDotReturnsFalse()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
@@ -58,7 +56,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_AbsolutePathOutsideBase_ReturnsFalse()
+    public void IsPathWithinDirectoryAbsolutePathOutsideBaseReturnsFalse()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
@@ -72,7 +70,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_SimilarPrefixButDifferentFolder_ReturnsFalse()
+    public void IsPathWithinDirectorySimilarPrefixButDifferentFolderReturnsFalse()
     {
         // Arrange - This tests the trailing separator fix
         // Without proper handling, "models_evil" would match "models" prefix
@@ -87,7 +85,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_BasePathWithTrailingSeparator_ReturnsTrue()
+    public void IsPathWithinDirectoryBasePathWithTrailingSeparatorReturnsTrue()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models") + Path.DirectorySeparatorChar;
@@ -101,7 +99,7 @@ public class ModelDownloadTests
     }
 
     [TestMethod]
-    public void IsPathWithinDirectory_BasePathWithoutTrailingSeparator_ReturnsTrue()
+    public void IsPathWithinDirectoryBasePathWithoutTrailingSeparatorReturnsTrue()
     {
         // Arrange
         var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
@@ -113,10 +111,6 @@ public class ModelDownloadTests
         // Assert
         Assert.IsTrue(result);
     }
-
-    #endregion
-
-    #region Model Download Tests
 
     [TestMethod]
     public void ModelDownloadEventArgsWithWarningMessageStoresWarning()
@@ -225,6 +219,4 @@ public class ModelDownloadTests
         Assert.IsNotNull(property, $"Property {propertyName} not found");
         return (T)property.GetValue(obj)!;
     }
-
-    #endregion
 }
