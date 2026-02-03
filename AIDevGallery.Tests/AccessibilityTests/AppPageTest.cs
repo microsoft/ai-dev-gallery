@@ -17,7 +17,7 @@ public class AccessibilityTests : FlaUITestBase
     /// <summary>
     /// Gets or sets the test context which provides information about and functionality for the current test run.
     /// </summary>
-    public TestContext TestContext { get; set; }
+    public TestContext? TestContext { get; set; }
 
     /// <summary>
     /// Path to Axe.Windows CLI executable
