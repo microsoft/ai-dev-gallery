@@ -229,8 +229,13 @@ internal class OnnxModelDownload : ModelDownload
             var filePath = Path.Combine(localFolderPath, downloadableFile.Path!.Replace("/", "\\"));
             var fullPath = Path.GetFullPath(filePath);
 
+            // Normalize localFolderPath to ensure it ends with a directory separator for accurate comparison
+            var normalizedCacheDir = localFolderPath.EndsWith(Path.DirectorySeparatorChar)
+                ? localFolderPath
+                : localFolderPath + Path.DirectorySeparatorChar;
+
             // Validate path doesn't escape the cache directory (path traversal protection)
-            if (!fullPath.StartsWith(localFolderPath, StringComparison.OrdinalIgnoreCase))
+            if (!fullPath.StartsWith(normalizedCacheDir, StringComparison.OrdinalIgnoreCase))
             {
                 Debug.WriteLine($"Skipping file with invalid path: {downloadableFile.Path}");
                 continue;
