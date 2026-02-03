@@ -201,6 +201,7 @@ public class AccessibilityTests : FlaUITestBase
         if (failedPages.Count > 0)
         {
             AttachAxeResultsToTestContext();
+            Assert.IsTrue(failedPages.Count > 0, "Failed Pages: " + string.Join(", ", failedPages));
         }
         else
         {
