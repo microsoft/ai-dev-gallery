@@ -74,8 +74,20 @@ internal sealed partial class SmartTextBox : Control
         _describeChangesTip.CloseButtonClick += DescribeChangesTip_CloseButtonClick;
         _actionFlyoutListView.ItemClick += ActionFlyoutListView_ItemClick;
         _inputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
+        _inputTextBox.GotFocus += InputTextBox_GotFocus;
 
         _inputTextBox.Document.SetText(TextSetOptions.None, _text);
+    }
+
+    private void InputTextBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        // Announce text content for accessibility when the control receives focus
+        var textBox = (RichEditBox)sender;
+        textBox.Document.GetText(TextGetOptions.None, out string currentText);
+        if (!string.IsNullOrWhiteSpace(currentText))
+        {
+            NarratorHelper.Announce(textBox, currentText.Trim(), "SmartTextBoxContentAnnouncement");
+        }
     }
 
     private async Task<string> Infer(string systemPrompt, string query, ChatOptions? options = null)
