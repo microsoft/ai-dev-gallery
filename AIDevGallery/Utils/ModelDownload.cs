@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -226,6 +227,14 @@ internal class OnnxModelDownload : ModelDownload
             }
 
             var filePath = Path.Combine(localFolderPath, downloadableFile.Path!.Replace("/", "\\"));
+            var fullPath = Path.GetFullPath(filePath);
+
+            // Validate path doesn't escape the cache directory (path traversal protection)
+            if (!fullPath.StartsWith(localFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.WriteLine($"Skipping file with invalid path: {downloadableFile.Path}");
+                continue;
+            }
 
             var existingFile = existingFiles.Where(f => f == filePath).FirstOrDefault();
             if (existingFile != null)
