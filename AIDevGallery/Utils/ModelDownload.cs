@@ -253,6 +253,7 @@ internal class OnnxModelDownload : ModelDownload
             if (!IsPathWithinDirectory(localFolderPath, filePath))
             {
                 Debug.WriteLine($"Skipping file with invalid path: {downloadableFile.Path}");
+                ModelDownloadFailedEvent.Log(Details.Url, new InvalidOperationException($"Path traversal attempt detected: {downloadableFile.Path}"));
                 continue;
             }
 

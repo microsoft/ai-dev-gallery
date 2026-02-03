@@ -116,7 +116,7 @@ public class ModelDownloadTests
 
     #endregion
 
-    #region Existing Tests
+    #region Model Download Tests
 
     [TestMethod]
     public void ModelDownloadEventArgsWithWarningMessageStoresWarning()
