@@ -230,14 +230,16 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         // Contains intermediate calculator of embedding and attention
         // Tensors summed across the first axis.
         // Results in tensor shapes [2,384]
-        TensorSpan<float> numerator = Tensor.Create<float>([batchSize, embeddingSize]);
-        TensorSpan<float> denominator = Tensor.Create<float>([batchSize, embeddingSize]);
+        // Note: In Tensors 10.x, CreateFromShape creates a zero-initialized tensor by shape;
+        // Tensor.Create now takes data arrays, not shape dimensions.
+        var numerator = Tensor.CreateFromShape<float>([batchSize, embeddingSize]);
+        var denominator = Tensor.CreateFromShape<float>([batchSize, embeddingSize]);
 
         // Apply sums along first axis.
         for (var batch = 0; batch < batchSize; batch++)
         {
-            TensorSpan<float> sumEmbedding = Tensor.Create<float>([1, embeddingSize]);
-            TensorSpan<float> sumAttention = Tensor.Create<float>([1, embeddingSize]);
+            var sumEmbedding = Tensor.CreateFromShape<float>([1, embeddingSize]);
+            var sumAttention = Tensor.CreateFromShape<float>([1, embeddingSize]);
             for (var sequence = 0; sequence < sequenceLength; sequence++)
             {
                 ReadOnlyTensorSpan<float> embeddingSlice =
@@ -246,12 +248,13 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
                 ReadOnlyTensorSpan<float> attentionSlice =
                     Tensor.Squeeze(expandedAttention.Slice([batch..(batch + 1), sequence..(sequence + 1), 0..embeddingSize]));
 
+                // Squeeze on [1,1,384] produces [384] (1D). Broadcast to [1,384] for compatible Add.
                 sumEmbedding = Tensor.Add<float>(sumEmbedding, embeddingSlice);
                 sumAttention = Tensor.Add<float>(sumAttention, attentionSlice);
             }
 
-            Tensor.SetSlice(numerator, sumEmbedding, [batch..(batch + 1), 0..embeddingSize]);
-            Tensor.SetSlice(denominator, sumAttention, [batch..(batch + 1), 0..embeddingSize]);
+            Tensor.SetSlice(numerator, (ReadOnlyTensorSpan<float>)sumEmbedding, [batch..(batch + 1), 0..embeddingSize]);
+            Tensor.SetSlice(denominator, (ReadOnlyTensorSpan<float>)sumAttention, [batch..(batch + 1), 0..embeddingSize]);
         }
 
         // Divide numerator by denominator. Mean pooling.
@@ -267,7 +270,7 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         ReadOnlyTensorSpan<float> squaredEmbeddings = Tensor.Multiply<float>(sentenceEmbeddings, sentenceEmbeddings);
 
         // Create Tensor for sumSquaredEmbeddings
-        TensorSpan<float> sumSquaredEmbeddings = Tensor.Create<float>((ReadOnlySpan<nint>)[batchSize, 1]);
+        var sumSquaredEmbeddings = Tensor.CreateFromShape<float>([batchSize, 1]);
 
         // Sum the squared embeddings across the embedding dimension
         for (var batch = 0; batch < batchSize; batch++)
