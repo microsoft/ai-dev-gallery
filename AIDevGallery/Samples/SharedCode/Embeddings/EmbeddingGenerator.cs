@@ -231,7 +231,6 @@ internal partial class EmbeddingGenerator : IDisposable, IEmbeddingGenerator<str
         // Tensors summed across the first axis.
         // Results in tensor shapes [2,384]
         // Note: In Tensors 10.x, CreateFromShape creates a zero-initialized tensor by shape;
-        // Tensor.Create now takes data arrays, not shape dimensions.
         var numerator = Tensor.CreateFromShape<float>([batchSize, embeddingSize]);
         var denominator = Tensor.CreateFromShape<float>([batchSize, embeddingSize]);
 
