@@ -69,9 +69,9 @@ public static class FuzzTargets
                 }
             }
         }
-        catch (Exception ex) when (ex is UriFormatException or ArgumentException)
+        catch (Exception ex) when (ex is UriFormatException or ArgumentException or IOException or NotSupportedException)
         {
-            // Expected for malformed URIs or invalid arguments
+            // Expected for malformed URIs, invalid arguments, or invalid path operations
         }
     }
 
@@ -124,9 +124,9 @@ public static class FuzzTargets
 
             HuggingFaceUrl.BuildApiUrl(org, repo, refValue);
         }
-        catch (ArgumentException)
+        catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException)
         {
-            // Expected for invalid URLs
+            // Expected for invalid URLs or invalid path operations from GetLocalPath
         }
     }
 
@@ -177,9 +177,9 @@ public static class FuzzTargets
 
             GitHubUrl.BuildApiUrl(org, repo, refValue);
         }
-        catch (ArgumentException)
+        catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException)
         {
-            // Expected for invalid URLs
+            // Expected for invalid URLs or invalid path operations from GetLocalPath
         }
     }
 }
