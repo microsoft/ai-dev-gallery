@@ -39,15 +39,13 @@ public static class FuzzTargets
                 var queryParams = HttpUtility.ParseQueryString(uri.Query);
                 var modelPath = queryParams["modelPath"];
 
-                // Validate path doesn't escape expected directory
+                // Mirror the actual path operations from ActivationHelper.HandleAddModelCase
                 if (!string.IsNullOrEmpty(modelPath))
                 {
-                    // This is where path traversal vulnerabilities could occur
                     _ = Path.GetFullPath(modelPath);
                     _ = $"local-file:///{modelPath}";
-
-                    // Simulate directory existence check
                     _ = Path.GetDirectoryName(modelPath);
+                    _ = Path.GetFileNameWithoutExtension(modelPath);
                 }
             }
             else if (host.Equals("models", StringComparison.OrdinalIgnoreCase) ||
