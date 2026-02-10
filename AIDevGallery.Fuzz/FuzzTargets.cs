@@ -108,16 +108,13 @@ public static class FuzzTargets
             // Critical: Test local path generation for path traversal
             var localPath = hfUrl.GetLocalPath(@"C:\ModelCache");
 
-            // Verify no path traversal occurred
-            if (!localPath.StartsWith(@"C:\ModelCache", StringComparison.OrdinalIgnoreCase))
+            // Verify no path traversal: normalize both paths and compare with trailing separator
+            var normalizedBase = Path.GetFullPath(@"C:\ModelCache" + Path.DirectorySeparatorChar);
+            var normalizedPath = Path.GetFullPath(localPath);
+            if (!normalizedPath.StartsWith(normalizedBase, StringComparison.OrdinalIgnoreCase) &&
+                !normalizedPath.Equals(normalizedBase.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException($"Path traversal detected: {localPath}");
-            }
-
-            // Check for path components that shouldn't be in a safe path
-            if (localPath.Contains(".."))
-            {
-                throw new InvalidOperationException($"Path contains '..': {localPath}");
+                throw new InvalidOperationException($"Path traversal detected: '{localPath}' resolved to '{normalizedPath}'");
             }
 
             // Test URL building methods
@@ -168,16 +165,13 @@ public static class FuzzTargets
             // Critical: Test local path generation for path traversal
             var localPath = ghUrl.GetLocalPath(@"C:\ModelCache");
 
-            // Verify no path traversal occurred
-            if (!localPath.StartsWith(@"C:\ModelCache", StringComparison.OrdinalIgnoreCase))
+            // Verify no path traversal: normalize both paths and compare with trailing separator
+            var normalizedBase = Path.GetFullPath(@"C:\ModelCache" + Path.DirectorySeparatorChar);
+            var normalizedPath = Path.GetFullPath(localPath);
+            if (!normalizedPath.StartsWith(normalizedBase, StringComparison.OrdinalIgnoreCase) &&
+                !normalizedPath.Equals(normalizedBase.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException($"Path traversal detected: {localPath}");
-            }
-
-            // Check for path components that shouldn't be in a safe path
-            if (localPath.Contains(".."))
-            {
-                throw new InvalidOperationException($"Path contains '..': {localPath}");
+                throw new InvalidOperationException($"Path traversal detected: '{localPath}' resolved to '{normalizedPath}'");
             }
 
             // Test URL building methods
