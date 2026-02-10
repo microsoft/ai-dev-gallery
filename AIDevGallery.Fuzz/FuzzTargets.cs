@@ -64,13 +64,11 @@ public static class FuzzTargets
                     _ = pathComponents.Length > 1 ? pathComponents[1] : null;
                 }
             }
-            else if (host.Equals("scenarios", StringComparison.OrdinalIgnoreCase))
+            else if (host.Equals("scenarios", StringComparison.OrdinalIgnoreCase) &&
+                     pathComponents.Length > 0)
             {
                 // Test scenario ID extraction
-                if (pathComponents.Length > 0)
-                {
-                    _ = pathComponents[0];
-                }
+                _ = pathComponents[0];
             }
         }
         catch (Exception ex) when (ex is UriFormatException or ArgumentException or IOException or NotSupportedException)
