@@ -18,6 +18,12 @@ public static class FuzzTargets
     /// </summary>
     public static void FuzzUriProtocolHandler(ReadOnlySpan<byte> input)
     {
+        // Cap input size to avoid excessive allocations
+        if (input.Length > 2048)
+        {
+            return;
+        }
+
         try
         {
             var inputString = Encoding.UTF8.GetString(input);
@@ -79,6 +85,11 @@ public static class FuzzTargets
     /// </summary>
     public static void FuzzHuggingFaceUrl(ReadOnlySpan<byte> input)
     {
+        if (input.Length > 2048)
+        {
+            return;
+        }
+
         try
         {
             var inputString = Encoding.UTF8.GetString(input);
@@ -134,6 +145,11 @@ public static class FuzzTargets
     /// </summary>
     public static void FuzzGitHubUrl(ReadOnlySpan<byte> input)
     {
+        if (input.Length > 2048)
+        {
+            return;
+        }
+
         try
         {
             var inputString = Encoding.UTF8.GetString(input);
