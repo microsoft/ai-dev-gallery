@@ -29,6 +29,11 @@ internal static partial class SamplesHelper
             {
                 AddUnique(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory);
             }
+            else if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.FOUNDRYLOCAL))
+            {
+                AddUnique(SharedCodeEnum.FoundryLocalChatClientFactory);
+                AddUnique(SharedCodeEnum.FoundryLocalChatClientAdapter);
+            }
         }
         else
         {

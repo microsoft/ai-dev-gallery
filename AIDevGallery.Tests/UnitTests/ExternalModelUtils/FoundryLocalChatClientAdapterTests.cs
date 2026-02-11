@@ -204,7 +204,7 @@ public class FoundryLocalChatClientAdapterTests
     private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> InvokeConvertToOpenAIMessages(
         IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
     {
-        var adapterType = Type.GetType("AIDevGallery.ExternalModelUtils.FoundryLocal.FoundryLocalChatClientAdapter, AIDevGallery");
+        var adapterType = Type.GetType("AIDevGallery.Samples.SharedCode.FoundryLocalChatClientAdapter, AIDevGallery");
         Assert.IsNotNull(adapterType, "FoundryLocalChatClientAdapter type not found");
 
         var method = adapterType.GetMethod(

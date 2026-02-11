@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AIDevGallery.ExternalModelUtils.FoundryLocal;
+namespace AIDevGallery.Samples.SharedCode;
 
 /// <summary>
 /// Adapter that wraps FoundryLocal SDK's native OpenAIChatClient to work with Microsoft.Extensions.AI.IChatClient.
@@ -79,7 +79,7 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         {
             var errorMessage = $"The model '{_modelId}' did not generate any output. " +
                              "Please verify you have selected an appropriate language model.";
-            Telemetry.Events.FoundryLocalErrorEvent.Log("ChatStreaming", "NoOutput", _modelId, errorMessage);
+            Telemetry.Events.FoundryLocalErrorEvent.Log("ChatStreaming", "NoOutput", _modelId, errorMessage); // <exclude-line>
             throw new InvalidOperationException(errorMessage);
         }
     }
