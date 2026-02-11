@@ -34,8 +34,8 @@ steps:
         $sourceFolder = "$(System.DefaultWorkingDirectory)/AIDevGallery/AppPackages"
         $targetFolder = "$(Build.ArtifactStagingDirectory)/MSIX"
         New-Item -ItemType Directory -Path $targetFolder -Force | Out-Null
-        $files = Get-ChildItem -Path $sourceFolder -Recurse -Filter "AIDevGallery*_${{ parameters.dotnet_platform }}.msix" |
-          Where-Object { $_.DirectoryName -like "*_${{ parameters.dotnet_platform }}_Test*" }
+        $files = @(Get-ChildItem -Path $sourceFolder -Recurse -Filter "AIDevGallery*_${{ parameters.dotnet_platform }}.msix" |
+          Where-Object { $_.DirectoryName -like "*_${{ parameters.dotnet_platform }}_Test*" })
         foreach ($file in $files) {
           Write-Host "Copying: $($file.FullName)"
           Copy-Item -Path $file.FullName -Destination $targetFolder -Force
