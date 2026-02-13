@@ -153,10 +153,18 @@ jobs:
         name: MSIX-${{ matrix.dotnet-arch }}
         path: ${{ github.workspace }}/AIDevGallery/AppPackages/*_${{ matrix.dotnet-arch }}_Test/AIDevGallery_*_${{ matrix.dotnet-arch }}.msix
 
-  accessibility-check:
+  Accessibility-Test:
     needs: build
     if: github.event_name == 'pull_request'
-    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            dotnet-arch: 'x64'
+            dotnet-configuration: 'Release'
+    name: Accessibility Tests
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     steps:
@@ -236,120 +244,62 @@ jobs:
       shell: pwsh
       run: |
         .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
-    - name: Launch App and Run Accessibility Tests
-      shell: powershell
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-
+    - name: Create ephemeral nuget config from template
+      shell: pwsh
       run: |
-        $ErrorActionPreference = "Stop"
+        $templatePath = "${{ github.workspace }}\nuget.config.template"
+        $configPath = "$env:RUNNER_TEMP\nuget.config"
         
-        # Launch App
-        $package = Get-AppxPackage -Name "*e7af07c0*" | Select-Object -First 1
-        if (-not $package) { 
-             $package = Get-AppxPackage | Where-Object { $_.PackageFamilyName -like "*e7af07c0*" } | Select-Object -First 1
-        }
-        if (-not $package) { Write-Error "Package not found after installation"; exit 1 }
-        
-        $pfn = $package.PackageFamilyName
-        $aumid = "$pfn!App"
-        
-        Write-Host "Launching $aumid"
-        Start-Process -FilePath "shell:AppsFolder\$aumid"
-        
-        # Wait for app to initialize
-        $timeout = 60
-        $elapsed = 0
-        $appProcess = $null
-        
-        while ($elapsed -lt $timeout) {
-            $appProcess = Get-Process -Name "AIDevGallery" -ErrorAction SilentlyContinue
-            if ($appProcess -and $appProcess.MainWindowHandle -ne 0) {
-                break
-            }
-            Start-Sleep -Seconds 2
-            $elapsed += 2
-        }
-
-        if (-not $appProcess -or $appProcess.MainWindowHandle -eq 0) {
-             Write-Error "App failed to start or create a window within $timeout seconds."
-             if ($appProcess) { $appProcess.Kill() }
-             exit 1
+        if (-not (Test-Path $templatePath)) {
+          Write-Error "Template file not found: $templatePath"
+          exit 1
         }
         
-        Write-Host "App started. ProcessId: $($appProcess.Id)"
-        Start-Sleep -Seconds 10
+        Copy-Item -Path $templatePath -Destination $configPath -Force
+        echo "EPHEMERAL_NUGET_CONFIG=$configPath" >> $env:GITHUB_ENV
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-${{ matrix.dotnet-arch }} /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} --configfile "${{ env.EPHEMERAL_NUGET_CONFIG }}"
+    - name: Build AIDevGallery.Utils
+      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }}
+    - name: Build Test Project
+      run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
+    - name: Run Accessibility Tests
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        dotnet test AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.dll `
+          --filter "FullyQualifiedName~AccessibilityTests" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\AccessibilityTestsResults.trx" `
+          --logger "console;verbosity=detailed" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory "${{ github.workspace }}\TestResults" `
+          --verbosity normal `
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
         
-        # Load UI Automation
-        Add-Type -AssemblyName UIAutomationClient
-        Add-Type -AssemblyName UIAutomationTypes
-        $ae = [System.Windows.Automation.AutomationElement]
-        $scope = [System.Windows.Automation.TreeScope]::Descendants
-        
-        # Get App Window
-        $propCond = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $appProcess.Id)
-        $appWindow = $ae::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Children, $propCond)
-        
-        $pagesToTest = @("Home", "Samples", "AI APIs", "Settings")
-        $cliPath = $env:CLI_PATH
-        $outputDir = Join-Path $PWD "AxeOutput"
-        New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
-        
-        foreach ($pageName in $pagesToTest) {
-            Write-Host "--- Testing Page: $pageName ---"
-            
-            $navigationSuccess = $false
-            if ($appWindow) {
-                # Try to navigate
-                $nameCond = New-Object System.Windows.Automation.PropertyCondition($ae::NameProperty, $pageName)
-                $navItem = $appWindow.FindFirst($scope, $nameCond)
-                
-                if ($navItem) {
-                    try {
-                        $invokePattern = $navItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-                        $invokePattern.Invoke()
-                        Write-Host "Navigated to $pageName"
-                        Start-Sleep -Seconds 3
-                        $navigationSuccess = $true
-                    } catch {
-                        try {
-                            $selectPattern = $navItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
-                            $selectPattern.Select()
-                            Write-Host "Selected $pageName"
-                            Start-Sleep -Seconds 3
-                            $navigationSuccess = $true
-                        } catch {
-                            Write-Warning "Could not interact with navigation item: $pageName - skipping accessibility scan for this page"
-                        }
-                    }
-                } else {
-                    Write-Warning "Navigation item '$pageName' not found in UI tree - skipping accessibility scan for this page"
-                }
-            }
-            
-            # Only scan if navigation was successful
-            if ($navigationSuccess) {
-                # Scan
-                $pageOutputDir = Join-Path $outputDir $pageName
-                New-Item -ItemType Directory -Force -Path $pageOutputDir | Out-Null
-                
-                Write-Host "Scanning..."
-                & $cliPath --processId $appProcess.Id --outputDirectory $pageOutputDir --verbosity default
-            }
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Accessibility tests failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
         }
-        
-        $appProcess.Kill()
-        
-        # Check results
-        $allIssues = Get-ChildItem -Path $outputDir -Filter "*.a11ytest" -Recurse
-        if ($allIssues) {
-            Write-Error "Accessibility issues found in $($allIssues.Count) files."
-            exit 1
-        } else {
-            Write-Host "No accessibility issues found across all scanned pages."
-        }
-    - name: Upload Accessibility Results
-      if: always()
+    - name: Publish Test Results
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: accessibility-results
-        path: AxeOutput
-        if-no-files-found: warn
-        retention-days: 7
+        name: pr-accessibility-test-results-${{ matrix.dotnet-arch }}
+        path: |
+          TestResults
+          **/coverage.opencover.xml
+    - name: Display Test Report
+      if: always()
+      uses: dorny/test-reporter@v2
+      with:
+        name: Accessibility Test Report - ${{ matrix.dotnet-arch }}
+        path: 'TestResults/*.trx'
+        reporter: dotnet-trx
+        fail-on-error: false
