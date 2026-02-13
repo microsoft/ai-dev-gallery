@@ -70,8 +70,10 @@ internal class PhiSilicaClient : IChatClient
         // IMPORTANT!!
         // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
         // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
-        var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
-        var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
+        var demoToken = "_YOUR_LAF_TOKEN_";
+        var demoPublisherId = "_YOUR_PUBLISHER_ID_";
+        demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken(); // <exclude-line>
+        demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId(); // <exclude-line>
 
         /*
         var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
