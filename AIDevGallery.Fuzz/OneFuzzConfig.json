@@ -1,0 +1,107 @@
+{
+    "ConfigVersion": 3,
+    "Entries": [
+        {
+            "JobNotificationEmail": "AIDevGallery@microsoft.com",
+            "Skip": false,
+            "Fuzzer": {
+                "$type": "libfuzzerDotNet",
+                "Dll": "AIDevGallery.Fuzz.dll",
+                "Class": "AIDevGallery.Fuzz.FuzzTargets",
+                "Method": "FuzzUriProtocolHandler",
+                "FuzzingTargetBinaries": [
+                    "AIDevGallery.Utils.dll"
+                ]
+            },
+            "AdoTemplate": {
+                "Org": "microsoft",
+                "Project": "OS",
+                "AssignedTo": "AIDevGallery@microsoft.com",
+                "AreaPath": "OS\\Windows Client and Services\\WinPD\\APT-AI Platform and Tools\\WinML\\AI Dev Gallery",
+                "IterationPath": "OS",
+                "BaseUrl": "https://microsoft.visualstudio.com"
+            },
+            "OneFuzzJobs": [
+                {
+                    "ProjectName": "AIDevGallery",
+                    "TargetName": "uri-protocol-handler-fuzzer",
+                    "SeedCorpusContainer": "aidevgallery-seeds-uri"
+                }
+            ],
+            "JobDependencies": [
+                "AIDevGallery.Fuzz.dll",
+                "AIDevGallery.Fuzz.pdb",
+                "AIDevGallery.Utils.dll",
+                "AIDevGallery.Utils.pdb"
+            ]
+        },
+        {
+            "JobNotificationEmail": "AIDevGallery@microsoft.com",
+            "Skip": false,
+            "Fuzzer": {
+                "$type": "libfuzzerDotNet",
+                "Dll": "AIDevGallery.Fuzz.dll",
+                "Class": "AIDevGallery.Fuzz.FuzzTargets",
+                "Method": "FuzzHuggingFaceUrl",
+                "FuzzingTargetBinaries": [
+                    "AIDevGallery.Utils.dll"
+                ]
+            },
+            "AdoTemplate": {
+                "Org": "microsoft",
+                "Project": "OS",
+                "AssignedTo": "AIDevGallery@microsoft.com",
+                "AreaPath": "OS\\Windows Client and Services\\WinPD\\APT-AI Platform and Tools\\WinML\\AI Dev Gallery",
+                "IterationPath": "OS",
+                "BaseUrl": "https://microsoft.visualstudio.com"
+            },
+            "OneFuzzJobs": [
+                {
+                    "ProjectName": "AIDevGallery",
+                    "TargetName": "huggingface-url-fuzzer",
+                    "SeedCorpusContainer": "aidevgallery-seeds-huggingface"
+                }
+            ],
+            "JobDependencies": [
+                "AIDevGallery.Fuzz.dll",
+                "AIDevGallery.Fuzz.pdb",
+                "AIDevGallery.Utils.dll",
+                "AIDevGallery.Utils.pdb"
+            ]
+        },
+        {
+            "JobNotificationEmail": "AIDevGallery@microsoft.com",
+            "Skip": false,
+            "Fuzzer": {
+                "$type": "libfuzzerDotNet",
+                "Dll": "AIDevGallery.Fuzz.dll",
+                "Class": "AIDevGallery.Fuzz.FuzzTargets",
+                "Method": "FuzzGitHubUrl",
+                "FuzzingTargetBinaries": [
+                    "AIDevGallery.Utils.dll"
+                ]
+            },
+            "AdoTemplate": {
+                "Org": "microsoft",
+                "Project": "OS",
+                "AssignedTo": "AIDevGallery@microsoft.com",
+                "AreaPath": "OS\\Windows Client and Services\\WinPD\\APT-AI Platform and Tools\\WinML\\AI Dev Gallery",
+                "IterationPath": "OS",
+                "BaseUrl": "https://microsoft.visualstudio.com"
+            },
+            "OneFuzzJobs": [
+                {
+                    "ProjectName": "AIDevGallery",
+                    "TargetName": "github-url-fuzzer",
+                    "SeedCorpusContainer": "aidevgallery-seeds-github"
+                }
+            ],
+            "JobDependencies": [
+                "AIDevGallery.Fuzz.dll",
+                "AIDevGallery.Fuzz.pdb",
+                "AIDevGallery.Utils.dll",
+                "AIDevGallery.Utils.pdb"
+            ]
+        }
+    ]
+}
