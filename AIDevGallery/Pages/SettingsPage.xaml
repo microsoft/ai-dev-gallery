@@ -130,7 +130,60 @@
                             </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
-
+                    <toolkit:SettingsExpander x:Name="IndexStorageExpander"
+                                              AutomationProperties.AccessibilityView="Raw"
+                                              Description="Indices are stored on your disk"
+                                              Header="Index storage"
+                                              HeaderIcon="{ui:FontIcon Glyph=&#xF158;}"
+                                              ItemsSource="{x:Bind indexStores, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="4">
+                            <HyperlinkButton x:Name="IndexFolderPathTxt"
+                                             VerticalAlignment="Center"
+                                             AutomationProperties.LocalizedControlType="Button"
+                                             Click="IndexFolderPathTxt_Click"
+                                             FontSize="12" />
+                        </StackPanel>
+                        <toolkit:SettingsExpander.ItemsHeader>
+                            <toolkit:SettingsCard x:Name="IndicesCard"
+                                                  BorderThickness="0"
+                                                  CornerRadius="0"
+                                                  Header="App Content Indices">
+                                <TextBlock x:Name="TotalIndexSizeText"
+                                           Margin="0,0,78,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.ItemsHeader>
+                        <toolkit:SettingsExpander.ItemTemplate>
+                            <DataTemplate x:DataType="models:AppContentIndexStores">
+                                <toolkit:SettingsCard Header="{x:Bind IndexName}">
+                                    <toolkit:SettingsCard.Description>
+                                        <HyperlinkButton Click="IndexFolder_Click"
+                                                         Tag="{x:Bind}"
+                                                         ToolTipService.ToolTip="{x:Bind Path}">
+                                            <TextBlock Text="{x:Bind ShortPath}"
+                                                       TextWrapping="Wrap" />
+                                        </HyperlinkButton>
+                                    </toolkit:SettingsCard.Description>
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="12">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   Text="{x:Bind utils:AppUtils.FileSizeToString(ModelSize)}" />
+                                        <Button AutomationProperties.Name="Delete index"
+                                                Click="DeleteIndex_Click"
+                                                Content="{ui:FontIcon Glyph=&#xE74D;,
+                                          FontSize=14}"
+                                                Style="{StaticResource SubtleButtonStyle}"
+                                                Tag="{x:Bind}"
+                                                ToolTipService.ToolTip="Delete index" />
+                                    </StackPanel>
+                                </toolkit:SettingsCard>
+                            </DataTemplate>
+                        </toolkit:SettingsExpander.ItemTemplate>
+                    </toolkit:SettingsExpander>
+                    
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
                     <toolkit:SettingsCard
                         Description="Help us improve this app by sharing optional diagnostics data to inform bug fixes, performance, and feature enhancements"
