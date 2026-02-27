@@ -5,6 +5,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.IO;
 using System.Reflection;
 
 namespace AIDevGallery.Tests.UnitTests;
@@ -12,6 +13,105 @@ namespace AIDevGallery.Tests.UnitTests;
 [TestClass]
 public class ModelDownloadTests
 {
+    [TestMethod]
+    public void IsPathWithinDirectoryValidSubPathReturnsTrue()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(basePath, "model.onnx");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectoryValidNestedSubPathReturnsTrue()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(basePath, "subfolder", "deep", "model.onnx");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectoryPathTraversalWithDotDotReturnsFalse()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(basePath, "..", "evil", "malware.exe");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectoryAbsolutePathOutsideBaseReturnsFalse()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(Path.GetTempPath(), "other", "file.txt");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectorySimilarPrefixButDifferentFolderReturnsFalse()
+    {
+        // Arrange - This tests the trailing separator fix
+        // Without proper handling, "models_evil" would match "models" prefix
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(Path.GetTempPath(), "cache", "models_evil", "file.txt");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectoryBasePathWithTrailingSeparatorReturnsTrue()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models") + Path.DirectorySeparatorChar;
+        var filePath = Path.Combine(Path.GetTempPath(), "cache", "models", "model.onnx");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void IsPathWithinDirectoryBasePathWithoutTrailingSeparatorReturnsTrue()
+    {
+        // Arrange
+        var basePath = Path.Combine(Path.GetTempPath(), "cache", "models");
+        var filePath = Path.Combine(basePath, "model.onnx");
+
+        // Act
+        var result = ModelDownload.IsPathWithinDirectory(basePath, filePath);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
     [TestMethod]
     public void ModelDownloadEventArgsWithWarningMessageStoresWarning()
     {

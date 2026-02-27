@@ -153,8 +153,9 @@ internal static class ExternalModelHelper
 
             return (output, error, p.ExitCode);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"External process execution failed for '{command}': {ex.Message}");
             return null;
         }
     }

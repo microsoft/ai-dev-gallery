@@ -128,9 +128,9 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         picker.ViewMode = PickerViewMode.Thumbnail;
 
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await Segment(file.Path);
         }
@@ -148,7 +148,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         UploadButton.Visibility = Visibility.Collapsed;
 
         DefaultImage.Source = new BitmapImage(new Uri(filePath));
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: new upload."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Content changed: new upload."); // <exclude-line>
 
         using Bitmap originalImage = new(filePath);
         int originalImageWidth = originalImage.Width;
@@ -271,7 +271,7 @@ internal sealed partial class SegmentStreets : BaseSamplePage
         // Convert the final overlay to BitmapImage for display
         BitmapImage outputImage = BitmapFunctions.ConvertBitmapToBitmapImage(processedImage);
 
-        NarratorHelper.AnnounceImageChanged(DefaultImage, "Image changed: all regions segmented."); // <exclude-line>
+        NarratorHelper.AnnounceImageChanged(DefaultImage, "Content changed: all regions segmented."); // <exclude-line>
 
         DispatcherQueue.TryEnqueue(() =>
         {

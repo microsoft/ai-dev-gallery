@@ -152,10 +152,10 @@ internal sealed partial class Multipose : BaseSamplePage
         picker.ViewMode = PickerViewMode.Thumbnail;
 
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
             // Call function to run inference and classify image
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await RunPipeline(file.Path);
         }

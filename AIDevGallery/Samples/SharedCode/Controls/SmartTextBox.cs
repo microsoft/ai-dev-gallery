@@ -74,8 +74,20 @@ internal sealed partial class SmartTextBox : Control
         _describeChangesTip.CloseButtonClick += DescribeChangesTip_CloseButtonClick;
         _actionFlyoutListView.ItemClick += ActionFlyoutListView_ItemClick;
         _inputTextBox.PreviewKeyDown += InputTextBox_PreviewKeyDown;
+        _inputTextBox.GotFocus += InputTextBox_GotFocus;
 
         _inputTextBox.Document.SetText(TextSetOptions.None, _text);
+    }
+
+    private void InputTextBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        // Announce text content for accessibility when the control receives focus
+        var textBox = (RichEditBox)sender;
+        textBox.Document.GetText(TextGetOptions.None, out string currentText);
+        if (!string.IsNullOrWhiteSpace(currentText))
+        {
+            NarratorHelper.Announce(textBox, currentText.Trim(), "SmartTextBoxContentAnnouncement");
+        }
     }
 
     private async Task<string> Infer(string systemPrompt, string query, ChatOptions? options = null)
@@ -99,7 +111,7 @@ internal sealed partial class SmartTextBox : Control
     private async Task<string> ChangeToneProfessional(string textToChange)
     {
         SampleInteractionEvent.SendSampleInteractedEvent(_chatClient, ScenarioType.SmartControlsSmartTextBox, "ChangeToneProfessional"); // <exclude-line>
-        string systemPrompt = "You rewrite user-provided writing to adjust the tone of the text. In this case, you will rewrite whatever is provided to sound more \"professional\". When provided with text, respond with only the tone-adjusted version of the text and nothing else. Keep the underlying meaning of the text the same and of around the same length as the source material. Do NOT be overly formal but be polite, succinct, and you MUST USE command MODERN American English. Respond with ONLY the tone-adjusted text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
+        string systemPrompt = "You rewrite user-provided writing to adjust the tone of the text. In this case, you will rewrite whatever is provided to sound more \"professional\". When provided with text, respond with only the tone-adjusted version of the text and nothing else. Keep the underlying meaning of the text the same and of around the same length as the source material. Do NOT be overly formal but be polite, succinct, and you MUST USE common MODERN American English. Respond with ONLY the tone-adjusted text and DO NOT provide an explanation, note, or any sort of justification of your changes.";
         return await Infer(systemPrompt, textToChange, new() { MaxOutputTokens = systemPrompt.Length + textToChange.Length });
     }
 

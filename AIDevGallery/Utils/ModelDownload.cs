@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Telemetry.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -101,6 +102,27 @@ internal abstract class ModelDownload : IDisposable
     public abstract Task<bool> StartDownload();
 
     public abstract void CancelDownload();
+
+    /// <summary>
+    /// Validates that a file path is safely contained within the specified base directory.
+    /// Prevents path traversal attacks by ensuring the resolved path doesn't escape the base directory.
+    /// </summary>
+    /// <param name="basePath">The base directory that should contain the file.</param>
+    /// <param name="filePath">The file path to validate.</param>
+    /// <returns>True if the path is safe and contained within basePath; false otherwise.</returns>
+    internal static bool IsPathWithinDirectory(string basePath, string filePath)
+    {
+        var fullPath = Path.GetFullPath(filePath);
+        var normalizedBasePath = Path.GetFullPath(basePath);
+
+        // Ensure base path ends with directory separator for accurate comparison
+        if (!normalizedBasePath.EndsWith(Path.DirectorySeparatorChar))
+        {
+            normalizedBasePath += Path.DirectorySeparatorChar;
+        }
+
+        return fullPath.StartsWith(normalizedBasePath, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 internal class OnnxModelDownload : ModelDownload
@@ -197,6 +219,13 @@ internal class OnnxModelDownload : ModelDownload
 
         filesToDownload = ModelInformationHelper.FilterFiles(filesToDownload, Details.FileFilters);
 
+        if (filesToDownload.Count == 0)
+        {
+            ModelDownloadFailedEvent.Log(Details.Url, new InvalidOperationException("No files to download after filtering"));
+            DownloadStatus = DownloadStatus.Canceled;
+            return null;
+        }
+
         long modelSize = filesToDownload.Sum(f => f.Size);
         long bytesDownloaded = 0;
 
@@ -219,6 +248,14 @@ internal class OnnxModelDownload : ModelDownload
             }
 
             var filePath = Path.Combine(localFolderPath, downloadableFile.Path!.Replace("/", "\\"));
+
+            // Validate path doesn't escape the cache directory (path traversal protection)
+            if (!IsPathWithinDirectory(localFolderPath, filePath))
+            {
+                Debug.WriteLine($"Skipping file with invalid path: {downloadableFile.Path}");
+                ModelDownloadFailedEvent.Log(Details.Url, new InvalidOperationException($"Path traversal attempt detected: {downloadableFile.Path}"));
+                continue;
+            }
 
             var existingFile = existingFiles.Where(f => f == filePath).FirstOrDefault();
             if (existingFile != null)

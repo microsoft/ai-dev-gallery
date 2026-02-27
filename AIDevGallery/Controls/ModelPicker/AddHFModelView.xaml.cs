@@ -113,13 +113,20 @@ internal sealed partial class AddHFModelView : UserControl
                     modelPath = string.Join("/", pathComponents.Take(pathComponents.Length - 1));
                 }
 
-                var modelUrl = $"https://huggingface.co/{result.Id}/tree/main/{modelPath}";
+                var parts = result.Id.Split('/');
+                if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    Debug.WriteLine($"Skipping Hugging Face result with invalid Id format: '{result.Id}'");
+                    return;
+                }
 
-                var curratedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
+                var modelUrl = HuggingFaceUrl.BuildTreeUrl(parts[0], parts[1], "main", string.IsNullOrEmpty(modelPath) ? null : modelPath);
+
+                var curatedModel = ModelTypeHelpers.ModelDetails.Values.Where(m => m.Url == modelUrl).FirstOrDefault();
 
                 var filesToDownload = await ModelInformationHelper.GetDownloadFilesFromHuggingFace(new HuggingFaceUrl(modelUrl));
 
-                var details = curratedModel ?? new ModelDetails()
+                var details = curatedModel ?? new ModelDetails()
                 {
                     Id = "useradded-languagemodel-" + Guid.NewGuid().ToString(),
                     Name = result.Id + " " + accelerator.ToString(),
@@ -129,7 +136,7 @@ internal sealed partial class AddHFModelView : UserControl
                     IsUserAdded = true,
                     PromptTemplate = ModelDetailsHelper.GetTemplateFromName(result.Id),
                     Size = filesToDownload.Sum(f => f.Size),
-                    ReadmeUrl = readmeUrl != null ? $"https://huggingface.co/{result.Id}/blob/main/{readmeUrl}" : null
+                    ReadmeUrl = readmeUrl != null ? HuggingFaceUrl.BuildBlobUrl(parts[0], parts[1], "main", readmeUrl) : null
                 };
 
                 string? licenseKey = null;
@@ -142,7 +149,7 @@ internal sealed partial class AddHFModelView : UserControl
                     }
                 }
 
-                if (curratedModel == null)
+                if (curatedModel == null)
                 {
                     details.License = licenseKey;
                 }
@@ -166,7 +173,7 @@ internal sealed partial class AddHFModelView : UserControl
                         SearchResult = result,
                         License = LicenseInfo.GetLicenseInfo(licenseKey),
                         State = state,
-                        HFUrl = $"https://huggingface.co/{result.Id}"
+                        HFUrl = HuggingFaceUrl.BuildRepoUrl(parts[0], parts[1])
                     });
                 });
 
@@ -230,7 +237,22 @@ internal sealed partial class AddHFModelView : UserControl
         DownloadSearchedModelEvent.Log(result.Details.Name);
 
         ModelNameTxt.Text = result.Details.Name;
-        ModelLicenseLink.NavigateUri = new Uri(result.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}");
+
+        var licenseUrl = result.License.LicenseUrl;
+        if (string.IsNullOrEmpty(licenseUrl) && !string.IsNullOrEmpty(result.SearchResult.Id))
+        {
+            var parts = result.SearchResult.Id.Split('/');
+            if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+            {
+                licenseUrl = HuggingFaceUrl.BuildRepoUrl(parts[0], parts[1]);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(licenseUrl))
+        {
+            ModelLicenseLink.NavigateUri = new Uri(licenseUrl);
+        }
+
         ModelLicenseLabel.Text = result.License.Name;
 
         if (result.Details.Compatibility.CompatibilityState != ModelCompatibilityState.Compatible)
@@ -255,7 +277,17 @@ internal sealed partial class AddHFModelView : UserControl
         var button = sender as HyperlinkButton;
         var result = button!.DataContext as Result;
 
-        string url = result!.License.LicenseUrl ?? $"https://huggingface.co/{result.SearchResult.Id}";
+        var parts = result!.SearchResult.Id.Split('/');
+        string? url = result.License.LicenseUrl;
+        if (string.IsNullOrEmpty(url) && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+        {
+            url = HuggingFaceUrl.BuildRepoUrl(parts[0], parts[1]);
+        }
+
+        if (string.IsNullOrEmpty(url))
+        {
+            return;
+        }
 
         Process.Start(new ProcessStartInfo()
         {
@@ -270,11 +302,11 @@ internal sealed partial class AddHFModelView : UserControl
 
         if (button!.DataContext is Result result)
         {
-            var curratedModels = ModelTypeHelpers.ModelDetails.Where(p => p.Value.Url == result.Details.Url).ToList();
+            var curatedModels = ModelTypeHelpers.ModelDetails.Where(p => p.Value.Url == result.Details.Url).ToList();
 
-            if (curratedModels.Count > 0)
+            if (curatedModels.Count > 0)
             {
-                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(p => p.Value.Contains(curratedModels[0].Key));
+                var parentKey = ModelTypeHelpers.ParentMapping.FirstOrDefault(p => p.Value.Contains(curatedModels[0].Key));
                 App.MainWindow.Navigate("models", parentKey.Key);
             }
             else

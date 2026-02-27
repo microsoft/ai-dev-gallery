@@ -36,7 +36,7 @@ internal class OllamaModelProvider : IExternalModelProvider
 
     public string Url => Environment.GetEnvironmentVariable("OLLAMA_HOST", EnvironmentVariableTarget.User) ?? "http://localhost:11434/";
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancellationToken = default)
     {
         if (ignoreCached)
         {
@@ -71,16 +71,16 @@ internal class OllamaModelProvider : IExternalModelProvider
                         p.StartInfo.CreateNoWindow = true;
 
                         p.Start();
-                        await p.WaitForExitAsync(cancelationToken).ConfigureAwait(false);
+                        await p.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
                         while (p.StandardOutput.Peek() > -1)
                         {
-                            var line = await p.StandardOutput.ReadLineAsync(cancelationToken).ConfigureAwait(false);
+                            var line = await p.StandardOutput.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                             lines.Add(line ?? string.Empty);
                         }
                     },
-                    cancelationToken),
-                Task.Delay(1000, cancelationToken)).ConfigureAwait(false);
+                    cancellationToken),
+                Task.Delay(1000, cancellationToken)).ConfigureAwait(false);
 
             List<OllamaModel> models = [];
 

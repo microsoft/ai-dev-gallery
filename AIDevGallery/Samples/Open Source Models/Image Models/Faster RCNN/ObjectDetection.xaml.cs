@@ -130,9 +130,9 @@ internal sealed partial class ObjectDetection : BaseSamplePage
         picker.ViewMode = PickerViewMode.Thumbnail;
 
         var file = await picker.PickSingleFileAsync();
+        UploadButton.Focus(FocusState.Programmatic);
         if (file != null)
         {
-            UploadButton.Focus(FocusState.Programmatic);
             SendSampleInteractedEvent("FileSelected"); // <exclude-line>
             await DetectObjects(file.Path);
         }

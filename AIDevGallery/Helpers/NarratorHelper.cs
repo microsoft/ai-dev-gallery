@@ -8,9 +8,9 @@ namespace AIDevGallery.Helpers;
 
 internal static class NarratorHelper
 {
-    public static void Announce(UIElement ue, string annoucement, string activityID)
+    public static void Announce(UIElement ue, string announcement, string activityID)
     {
         var peer = FrameworkElementAutomationPeer.FromElement(ue);
-        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, annoucement, activityID);
+        peer.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted, AutomationNotificationProcessing.ImportantMostRecent, announcement, activityID);
     }
 }

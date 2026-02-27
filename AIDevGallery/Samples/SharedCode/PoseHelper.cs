@@ -53,7 +53,7 @@ internal class PoseHelper
     {
         using (Graphics g = Graphics.FromImage(image))
         {
-            // If refernce is multipose, use base image not cropped image for scaling
+            // If reference is multipose, use base image not cropped image for scaling
             // If reference is one person pose, use original image as base image isn't used.
             var averageOfWidthAndHeight = baseImage != null ? baseImage.Width + baseImage.Height : image.Width + image.Height;
             int markerSize = (int)(averageOfWidthAndHeight * markerRatio / 2);

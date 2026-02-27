@@ -31,7 +31,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
 
     public List<string> NugetPackageReferences => ["Microsoft.Extensions.AI.OpenAI"];
 
-    public string ProviderDescription => "The model will run localy via Lemonade";
+    public string ProviderDescription => "The model will run locally via Lemonade";
 
     public string UrlPrefix => "lemonade://";
 
@@ -73,7 +73,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
         return null;
     }
 
-    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancelationToken = default)
+    public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancellationToken = default)
     {
         if (ignoreCached)
         {
@@ -94,7 +94,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
         {
             if (string.IsNullOrWhiteSpace(_url))
             {
-                _url = await InitializeLemonadeServer(cancelationToken);
+                _url = await InitializeLemonadeServer(cancellationToken);
                 if (string.IsNullOrWhiteSpace(_url))
                 {
                     _isLemonadeAvailable = false;
@@ -109,7 +109,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
                 Endpoint = new Uri(Url)
             });
 
-            var models = await client.GetModelsAsync(cancelationToken);
+            var models = await client.GetModelsAsync(cancellationToken);
 
             if (models?.Value == null)
             {
@@ -134,7 +134,7 @@ internal class LemonadeModelProvider : IExternalModelProvider
                 Id = $"lemonade-{model.Id}",
                 Name = model.Id,
                 Url = $"lemonade://{model.Id}",
-                Description = $"{model.Id} running localy via Lemonade",
+                Description = $"{model.Id} running locally via Lemonade",
                 HardwareAccelerators = [HardwareAccelerator.LEMONADE],
                 Size = 0,
                 SupportedOnQualcomm = true,

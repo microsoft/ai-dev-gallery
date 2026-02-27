@@ -8,6 +8,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -23,7 +24,7 @@ internal partial class AppData : ObservableObject
 
     public required string ModelCachePath { get; set; }
     public required LinkedList<MostRecentlyUsedItem> MostRecentlyUsedItems { get; set; }
-    public CustomParametersState? LastCustomParamtersState { get; set; }
+    public CustomParametersState? LastCustomParametersState { get; set; }
 
     public LinkedList<UsageHistory>? UsageHistoryV2 { get; set; }
 
@@ -78,8 +79,9 @@ internal partial class AppData : ObservableObject
                 appData = JsonSerializer.Deserialize(file, AppDataSourceGenerationContext.Default.AppData);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to load app config from {Path.GetFileName(configFile)}: {ex.Message}");
         }
         finally
         {

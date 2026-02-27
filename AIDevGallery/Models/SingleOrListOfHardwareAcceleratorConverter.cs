@@ -4,6 +4,7 @@
 using AIDevGallery.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -28,8 +29,9 @@ internal class SingleOrListOfHardwareAcceleratorConverter : JsonConverter<List<H
                 {
                     list.Add(JsonSerializer.Deserialize(ref reader, AppDataSourceGenerationContext.Default.HardwareAccelerator));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"Failed to deserialize HardwareAccelerator value: {ex.Message}");
                 }
             }
         }
@@ -39,8 +41,9 @@ internal class SingleOrListOfHardwareAcceleratorConverter : JsonConverter<List<H
             {
                 list.Add(JsonSerializer.Deserialize(ref reader, AppDataSourceGenerationContext.Default.HardwareAccelerator));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Failed to deserialize HardwareAccelerator value: {ex.Message}");
             }
         }
 
