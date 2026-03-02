@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.Utils", "AIDev
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.Tests", "AIDevGallery.Tests\AIDevGallery.Tests.csproj", "{A6D0DD34-2584-4634-8D4B-5D3D227B5679}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIDevGallery.Fuzz", "AIDevGallery.Fuzz\AIDevGallery.Fuzz.csproj", "{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -68,6 +70,14 @@ Global
 		{A6D0DD34-2584-4634-8D4B-5D3D227B5679}.Release|x64.ActiveCfg = Release|x64
 		{A6D0DD34-2584-4634-8D4B-5D3D227B5679}.Release|x64.Build.0 = Release|x64
 		{A6D0DD34-2584-4634-8D4B-5D3D227B5679}.Release|x64.Deploy.0 = Release|x64
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Debug|x64.Build.0 = Debug|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Release|ARM64.Build.0 = Release|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Release|x64.ActiveCfg = Release|Any CPU
+		{EAEDD3FC-ACA2-4F75-BC3A-85705F9A6570}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
