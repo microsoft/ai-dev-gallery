@@ -79,7 +79,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer?.RemoveAll();
+        _indexer?.RemoveAllContentItems();
         _indexer?.Dispose();
         _indexer = null;
     }
