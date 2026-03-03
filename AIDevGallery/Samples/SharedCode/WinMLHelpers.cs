@@ -29,16 +29,16 @@ internal static class WinMLHelpers
             Dictionary<string, string> epOptions = new(StringComparer.OrdinalIgnoreCase);
             switch (epName)
             {
-                case ExecutionProviderNames.DML:
+                case "DmlExecutionProvider":
                     // Configure performance mode for Dml EP
                     // Dml some times have multiple devices which cause exception, we pick the first one here
                     sessionOptions.AppendExecutionProvider(environment, [devices[0]], epOptions);
                     return true;
-                case ExecutionProviderNames.OpenVINO:
+                case "OpenVINOExecutionProvider":
                     var device = devices.Where(d => d.HardwareDevice.Type.ToString().Equals(deviceType, StringComparison.Ordinal)).FirstOrDefault();
                     sessionOptions.AppendExecutionProvider(environment, [device], epOptions);
                     return true;
-                case ExecutionProviderNames.QNN:
+                case "QNNExecutionProvider":
                     // Configure performance mode for QNN EP
                     epOptions["htp_performance_mode"] = "high_performance";
                     break;

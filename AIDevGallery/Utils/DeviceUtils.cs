@@ -165,16 +165,16 @@ internal static class DeviceUtils
                 }
                 catch (Exception ex)
                 {
-                    // Log but continue
-                    Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_RegistrationFailed", ex);
+                    Debug.WriteLine($"WARNING: Failed to register certified EPs: {ex.Message}");
+                    Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_RegistrationFailed", ex); // <exclude-line>
                 }
 
                 _cachedEpDevices = OrtEnv.Instance().GetEpDevices();
             }
             catch (Exception ex)
             {
-                // Log the failure to get EP devices - this could indicate ONNX Runtime initialization issues
-                Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_Failed", ex);
+                Debug.WriteLine($"WARNING: Failed to get EP devices: {ex.Message}");
+                Telemetry.TelemetryFactory.Get<Telemetry.ITelemetry>().LogException("GetEpDevices_Failed", ex); // <exclude-line>
                 _cachedEpDevices = System.Array.Empty<OrtEpDevice>();
             }
 
