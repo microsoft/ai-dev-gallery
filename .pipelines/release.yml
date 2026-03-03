@@ -98,6 +98,7 @@ extends:
               parameters:
                 dotnet_configuration: Release
                 dotnet_platform: ${{ platform.dotnet_platform }}
+                publishSymbols: true
     - stage: Publish
       dependsOn:
         - Build
