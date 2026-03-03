@@ -5,7 +5,7 @@ using System;
 
 namespace AIDevGallery.Models;
 
-internal class AppContentIndexStores
+internal class AppContentIndexStore
 {
     public string IndexName { get; }
     public string Path { get; }
@@ -24,7 +24,7 @@ internal class AppContentIndexStores
         }
     }
 
-    public AppContentIndexStores(string indexName, string path, long size)
+    public AppContentIndexStore(string indexName, string path, long size)
     {
         IndexName = indexName;
         Path = path;

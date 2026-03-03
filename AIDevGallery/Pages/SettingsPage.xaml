@@ -156,7 +156,7 @@
                             </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.ItemsHeader>
                         <toolkit:SettingsExpander.ItemTemplate>
-                            <DataTemplate x:DataType="models:AppContentIndexStores">
+                            <DataTemplate x:DataType="models:AppContentIndexStore">
                                 <toolkit:SettingsCard Header="{x:Bind IndexName}">
                                     <toolkit:SettingsCard.Description>
                                         <HyperlinkButton AutomationProperties.Name="Open index folder"
