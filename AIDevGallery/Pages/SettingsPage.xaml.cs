@@ -22,7 +22,7 @@ namespace AIDevGallery.Pages;
 internal sealed partial class SettingsPage : Page
 {
     private readonly ObservableCollection<CachedModel> cachedModels = [];
-    private readonly ObservableCollection<AppContentIndexStores> indexStores = [];
+    private readonly ObservableCollection<AppContentIndexStore> indexStores = [];
     private readonly RelayCommand endMoveCommand;
     private string? cacheFolderPath;
     private string? indexFolderPath;
@@ -142,7 +142,7 @@ internal sealed partial class SettingsPage : Page
             {
                 foreach (var (name, path, size) in stores)
                 {
-                    indexStores.Add(new AppContentIndexStores(name, path, size));
+                    indexStores.Add(new AppContentIndexStore(name, path, size));
                 }
 
                 TotalIndexSizeText.Text = AppUtils.FileSizeToString(totalSize);
@@ -205,7 +205,7 @@ internal sealed partial class SettingsPage : Page
 
     private void IndexFolder_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is AppContentIndexStores indexStore)
+        if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is AppContentIndexStore indexStore)
         {
             string? path = indexStore.Path;
 
@@ -218,7 +218,7 @@ internal sealed partial class SettingsPage : Page
 
     private async void DeleteIndex_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is AppContentIndexStores indexStore)
+        if (sender is Button button && button.Tag is AppContentIndexStore indexStore)
         {
             ContentDialog deleteDialog = new()
             {
