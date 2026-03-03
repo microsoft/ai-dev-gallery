@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -48,7 +48,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     // This is some text data that we want to add to the index:
     private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
-        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
+        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sautï¿½ them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
         { "item3", "Domestic cats communicate through posture, tail flicks, and vocalizations. Play mimics hunting behaviors like stalking and pouncing, supporting agility and mental stimulation. Scratching maintains claws and marks territory, so provide sturdy posts. Balanced diets, hydration, and routine veterinary care sustain health. Safe retreats and vertical spaces reduce stress and encourage exploration." },
         { "item4", "Snowboarding across pristine slopes combines agility, balance, and speed. Riders carve smooth turns on powder, adjust stance for control, and master jumps in terrain parks. Essential gear includes boots, bindings, and helmets for safety. Embrace crisp alpine air while perfecting tricks and enjoying the thrill of winter adventure." },
@@ -127,7 +127,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer?.RemoveAll();
+        _indexer?.RemoveAllContentItems();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -271,14 +271,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 foreach (var match in textMatches)
                 {
                     Debug.WriteLine(match.ContentId);
-                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                    if (match is AppManagedTextQueryMatch textResult)
                     {
-                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
                         string matchingData = simpleTextData[match.ContentId];
                         int offset = textResult.TextOffset;
                         int length = textResult.TextLength;
                         string matchingString = matchingData.Substring(offset, length);
                         textResults += matchingString + "\n\n";
+                    }
+                    else if (match is AppManagedOcrTextQueryMatch ocrMatch)
+                    {
+                        textResults += ocrMatch.OcrText + "\n\n";
                     }
                 }
 
@@ -291,10 +294,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 foreach (var match in imageMatches)
                 {
                     Debug.WriteLine(match.ContentId);
-                    if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
+                    if (match is AppManagedImageQueryMatch imageResult)
                     {
-                        AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
-
                         if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
                         {
                             imageResults.Add(imagePath);
@@ -467,7 +468,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
 
         // Remove item from index
-        _indexer.Remove(id);
+        _indexer.RemoveContentItem(id);
     }
 
     private void IndexTextData(string id, string value)
