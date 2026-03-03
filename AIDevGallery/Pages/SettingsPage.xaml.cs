@@ -30,7 +30,6 @@ internal sealed partial class SettingsPage : Page
 
     private CancellationTokenSource? _cts;
 
-
     public SettingsPage()
     {
         this.InitializeComponent();
@@ -45,7 +44,7 @@ internal sealed partial class SettingsPage : Page
 
         VersionTextRun.Text = AppUtils.GetAppVersion();
         GetStorageInfo();
-        GetAppContentIndexStorageInfo();
+        _ = GetAppContentIndexStorageInfoAsync();
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
         SemanticSearchToggleSwitch.IsOn = App.AppData.IsAppContentSearchEnabled;
@@ -104,7 +103,7 @@ internal sealed partial class SettingsPage : Page
         }
     }
 
-    private void GetAppContentIndexStorageInfo()
+    private async Task GetAppContentIndexStorageInfoAsync()
     {
         try
         {
@@ -119,35 +118,39 @@ internal sealed partial class SettingsPage : Page
                 : appContentIndicesFolder;
             ToolTipService.SetToolTip(IndexFolderPathTxt, appContentIndicesFolder);
 
-            if (Directory.Exists(appContentIndicesFolder))
+            var (stores, totalSize) = await Task.Run(() =>
             {
-                // Find subdirectories under AppContentIndices. These correspond to each index associated with the app.
-                var indexFolders = Directory.GetDirectories(appContentIndicesFolder);
-                long totalIndexSize = 0;
+                var results = new List<(string Name, string Path, long Size)>();
+                long total = 0;
 
-                if (indexFolders.Length > 0)
+                if (Directory.Exists(appContentIndicesFolder))
                 {
+                    var indexFolders = Directory.GetDirectories(appContentIndicesFolder);
                     foreach (var folder in indexFolders)
                     {
                         var indexSize = GetDirectorySize(folder);
                         var folderName = Path.GetFileName(folder);
-
-                        indexStores.Add(new AppContentIndexStores(folderName, folder, indexSize));
-                        totalIndexSize += indexSize;
+                        results.Add((folderName, folder, indexSize));
+                        total += indexSize;
                     }
-
-                    ToolTipService.SetToolTip(IndexFolderPathTxt, appContentIndicesFolder);
-                    TotalIndexSizeText.Text = AppUtils.FileSizeToString(totalIndexSize);
-                }
-                else
-                {
-                    TotalIndexSizeText.Text = string.Empty;
                 }
 
-                if (indexStores.Count > 0)
+                return (results, total);
+            });
+
+            if (stores.Count > 0)
+            {
+                foreach (var (name, path, size) in stores)
                 {
-                    IndexStorageExpander.IsExpanded = true;
+                    indexStores.Add(new AppContentIndexStores(name, path, size));
                 }
+
+                TotalIndexSizeText.Text = AppUtils.FileSizeToString(totalSize);
+                IndexStorageExpander.IsExpanded = true;
+            }
+            else if (Directory.Exists(appContentIndicesFolder))
+            {
+                TotalIndexSizeText.Text = string.Empty;
             }
             else
             {
@@ -245,7 +248,7 @@ internal sealed partial class SettingsPage : Page
                     await errorDialog.ShowAsync();
                 }
 
-                GetAppContentIndexStorageInfo();
+                _ = GetAppContentIndexStorageInfoAsync();
             }
         }
     }

@@ -9,7 +9,7 @@ internal class AppContentIndexStores
 {
     public string IndexName { get; }
     public string Path { get; }
-    public long ModelSize { get; }
+    public long IndexSize { get; }
 
     public string ShortPath
     {
@@ -28,6 +28,6 @@ internal class AppContentIndexStores
     {
         IndexName = indexName;
         Path = path;
-        ModelSize = size;
+        IndexSize = size;
     }
 }
