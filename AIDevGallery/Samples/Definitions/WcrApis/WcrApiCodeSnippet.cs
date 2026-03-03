@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
@@ -318,7 +318,7 @@ internal static class WcrApiCodeSnippet
         },
         {
             ModelType.SemanticSearch, """"
-            using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+            using Microsoft.Windows.Search.AppContentIndex;
 
             // This is some text data that we want to add to the index:
             Dictionary<string, string> simpleTextData = new Dictionary<string, string>
@@ -423,7 +423,7 @@ internal static class WcrApiCodeSnippet
         },
         {
             ModelType.KnowledgeRetrieval, """"
-            using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+            using Microsoft.Windows.Search.AppContentIndex;
             
             public void SimpleRAGScenario()
             {
@@ -474,7 +474,7 @@ internal static class WcrApiCodeSnippet
         },
         {
             ModelType.AppIndexCapability, """"
-            using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+            using Microsoft.Windows.Search.AppContentIndex;
 
             // Get index capabilities of current system
             public void SimpleCapabilitiesSample()
@@ -675,3 +675,5 @@ internal static class WcrApiCodeSnippet
         }
     };
 }
+
+

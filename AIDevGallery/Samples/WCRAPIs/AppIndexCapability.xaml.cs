@@ -177,3 +177,4 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
         LoadAppIndexCapabilities();
     }
 }
+
