@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -228,9 +228,8 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             foreach (var match in textMatches)
             {
                 Debug.WriteLine(match.ContentId);
-                if (match.ContentKind == QueryMatchContentKind.AppManagedText)
+                if (match is AppManagedTextQueryMatch textResult)
                 {
-                    AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
                     string matchingData = simpleTextData[match.ContentId];
                     int offset = textResult.TextOffset;
                     int length = textResult.TextLength;
