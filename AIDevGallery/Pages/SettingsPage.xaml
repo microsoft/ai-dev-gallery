@@ -159,7 +159,8 @@
                             <DataTemplate x:DataType="models:AppContentIndexStores">
                                 <toolkit:SettingsCard Header="{x:Bind IndexName}">
                                     <toolkit:SettingsCard.Description>
-                                        <HyperlinkButton Click="IndexFolder_Click"
+                                        <HyperlinkButton AutomationProperties.Name="Open index folder"
+                                                         Click="IndexFolder_Click"
                                                          Tag="{x:Bind}"
                                                          ToolTipService.ToolTip="{x:Bind Path}">
                                             <TextBlock Text="{x:Bind ShortPath}"
@@ -170,7 +171,7 @@
                                                 Spacing="12">
                                         <TextBlock VerticalAlignment="Center"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   Text="{x:Bind utils:AppUtils.FileSizeToString(ModelSize)}" />
+                                                   Text="{x:Bind utils:AppUtils.FileSizeToString(IndexSize)}" />
                                         <Button AutomationProperties.Name="Delete index"
                                                 Click="DeleteIndex_Click"
                                                 Content="{ui:FontIcon Glyph=&#xE74D;,
@@ -183,8 +184,7 @@
                             </DataTemplate>
                         </toolkit:SettingsExpander.ItemTemplate>
                     </toolkit:SettingsExpander>
-                    
-                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
+                    <TextBlockStyle="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="Diagnostics &amp; feedback" />
                     <toolkit:SettingsCard
                         Description="Help us improve this app by sharing optional diagnostics data to inform bug fixes, performance, and feature enhancements"
                         Header="Optional diagnostic data"
