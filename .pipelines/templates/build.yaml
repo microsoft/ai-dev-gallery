@@ -1,6 +1,7 @@
 parameters:
   dotnet_configuration: 'Release'
   dotnet_platform: ''
+  publishSymbols: false
 
 steps:
 - task: PowerShell@2
@@ -18,6 +19,18 @@ steps:
     dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
     dotnet build AIDevGallery --no-restore -r win-${{ parameters.dotnet_platform }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafPublisherId=$(LAF_PUBLISHER_ID) /p:LafToken=$(LAF_TOKEN)
   displayName: Build - ${{ parameters.dotnet_platform }}
+- ${{ if eq(parameters.publishSymbols, true) }}:
+  - task: PublishSymbols@2
+    displayName: Publish Symbols - ${{ parameters.dotnet_platform }}
+    continueOnError: true
+    inputs:
+      SearchPattern: |
+        $(System.DefaultWorkingDirectory)/AIDevGallery/**/bin/**/*.pdb
+        $(System.DefaultWorkingDirectory)/AIDevGallery.Utils/**/bin/**/*.pdb
+      SymbolServerType: 'TeamServices'
+      IndexSources: false
+      TreatNotIndexedAsWarning: true
+      DetailedLog: true
 - ${{ if ne(parameters.dotnet_platform, 'arm64') }}:
   - task: CopyFiles@2
     displayName: Copy MSIX Artifacts - ${{ parameters.dotnet_platform }}
