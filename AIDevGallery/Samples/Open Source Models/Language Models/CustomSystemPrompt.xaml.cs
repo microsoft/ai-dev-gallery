@@ -13,6 +13,7 @@ using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,8 +155,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         if (sender is Slider slider)
         {
             string formattedValue = slider.StepFrequency < 1
-                ? e.NewValue.ToString("F2")
-                : ((int)e.NewValue).ToString();
+                ? e.NewValue.ToString("F2", CultureInfo.InvariantCulture)
+                : ((int)e.NewValue).ToString(CultureInfo.InvariantCulture);
             NarratorHelper.Announce(slider, $"{slider.Header} {formattedValue}", $"{slider.Name}ValueChangedAnnouncementId");
         }
     }
