@@ -8,11 +8,13 @@ using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.Windows.AI.ContentSafety;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,8 +32,8 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyPropertyChanged
 {
     private readonly int defaultTopK = 50;
-    private readonly float defaultTopP = 0.9f;
-    private readonly float defaultTemperature = 1;
+    private readonly double defaultTopP = 0.9;
+    private readonly double defaultTemperature = 1.0;
     private readonly int defaultMaxLength = 1024;
     private readonly bool defaultDoSample = true;
     private readonly SeverityLevel defaultSeverityLevel = SeverityLevel.Minimum;
@@ -136,7 +138,28 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         chatClient?.Dispose();
     }
 
-    public string GetAutomationName(string name, double value) => $"{name} {value:F0}";
+    private void Slider_GotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is Slider slider)
+        {
+            var tooltip = ToolTipService.GetToolTip(slider)?.ToString();
+            if (!string.IsNullOrEmpty(tooltip))
+            {
+                NarratorHelper.Announce(slider, tooltip, $"{slider.Name}FocusAnnouncementId");
+            }
+        }
+    }
+
+    private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (sender is Slider slider)
+        {
+            string formattedValue = slider.StepFrequency < 1
+                ? e.NewValue.ToString("F2", CultureInfo.InvariantCulture)
+                : ((int)e.NewValue).ToString(CultureInfo.InvariantCulture);
+            NarratorHelper.Announce(slider, $"{slider.Header} {formattedValue}", $"{slider.Name}ValueChangedAnnouncementId");
+        }
+    }
 
     public ChatOptions GetDefaultChatOptions(IChatClient? chatClient)
     {
@@ -149,8 +172,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                 { "do_sample", defaultDoSample },
             },
             MaxOutputTokens = defaultMaxLength,
-            Temperature = defaultTemperature,
-            TopP = defaultTopP,
+            Temperature = (float)defaultTemperature,
+            TopP = (float)defaultTopP,
             TopK = defaultTopK,
         };
     }
