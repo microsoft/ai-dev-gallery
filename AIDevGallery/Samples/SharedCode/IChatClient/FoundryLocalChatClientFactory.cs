@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace AIDevGallery.Samples.SharedCode;
 /// </summary>
 internal static class FoundryLocalChatClientFactory
 {
-    public static async Task<IChatClient?> CreateAsync(string alias, CancellationToken cancellationToken = default)
+    public static async Task<IChatClient?> CreateAsync(string alias, string? variantId = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -51,13 +52,21 @@ internal static class FoundryLocalChatClientFactory
                 throw new InvalidOperationException($"Model '{alias}' not found in Foundry Local catalog.");
             }
 
+            // Select the specific variant if requested and it differs from the auto-selected one
+            if (variantId != null && model.SelectedVariant.Id != variantId)
+            {
+                var targetVariant = model.Variants.FirstOrDefault(v => v.Id == variantId);
+                if (targetVariant != null)
+                {
+                    model.SelectVariant(targetVariant);
+                }
+            }
+
             if (!await model.IsLoadedAsync())
             {
                 if (!await model.IsCachedAsync())
                 {
-                    Debug.WriteLine($"[FoundryLocal] Model '{alias}' is not cached. Downloading...");
                     await model.DownloadAsync(null, cancellationToken);
-                    Debug.WriteLine($"[FoundryLocal] Model '{alias}' download completed.");
                 }
 
                 await model.LoadAsync(cancellationToken);

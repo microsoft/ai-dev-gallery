@@ -6,6 +6,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
@@ -98,6 +99,15 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     public string? GetIChatClientString(string url)
     {
         var alias = ExtractAlias(url);
+
+        // Include variant ID so the exported project uses the same variant as the Gallery
+        var loadedModel = _foundryManager?.GetLoadedModel(alias) as Model;
+        var variantId = loadedModel?.SelectedVariant?.Id;
+        if (variantId != null)
+        {
+            return $"await FoundryLocalChatClientFactory.CreateAsync(\"{alias}\", \"{variantId}\")";
+        }
+
         return $"await FoundryLocalChatClientFactory.CreateAsync(\"{alias}\")";
     }
 
