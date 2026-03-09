@@ -24,7 +24,7 @@ public class FoundryLocalModelProviderTests
         Assert.AreEqual("fl://", provider.UrlPrefix);
         Assert.AreEqual(string.Empty, provider.Url, "Foundry Local uses direct SDK calls, not web service");
         Assert.AreEqual("The model will run locally via Foundry Local", provider.ProviderDescription);
-        Assert.AreEqual("Microsoft.AI.Foundry.Local", provider.IChatClientImplementationNamespace);
+        Assert.IsNull(provider.IChatClientImplementationNamespace, "Foundry Local uses SharedCode files, so no additional namespace is needed");
     }
 
     [TestMethod]
@@ -185,11 +185,11 @@ public class FoundryLocalModelProviderTests
         var result = provider.GetIChatClientString(testUrl);
 
         // Assert
-        // Before initialization, should return null
-        // The code snippet generation requires a loaded model
+        // Before initialization with no loaded model, result uses only alias (no variantId)
+        // With a loaded model, result would also include the variantId
         Assert.IsTrue(
-            result == null || result.Contains("FoundryLocalManager"),
-            "Should return null before initialization or contain FoundryLocalManager code");
+            result != null && result.Contains("FoundryLocalChatClientFactory.CreateAsync"),
+            "Should return a FoundryLocalChatClientFactory.CreateAsync call");
     }
 
     [TestMethod]
@@ -202,7 +202,7 @@ public class FoundryLocalModelProviderTests
         var ns = provider.IChatClientImplementationNamespace;
 
         // Assert
-        Assert.AreEqual("Microsoft.AI.Foundry.Local", ns, "Should return the correct Foundry Local SDK namespace");
+        Assert.IsNull(ns, "Foundry Local uses SharedCode files, so no additional namespace is needed");
     }
 
     // Note: Icon property test is omitted because it depends on AppUtils.GetThemeAssetSuffix()
