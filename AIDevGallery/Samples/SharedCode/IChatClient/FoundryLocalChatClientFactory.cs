@@ -30,7 +30,14 @@ internal static class FoundryLocalChatClientFactory
                     AppName = "AIDevGallery"
                 };
 
-                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+                try
+                {
+                    await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+                }
+                catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
+                {
+                    Debug.WriteLine("[FoundryLocal] Manager already initialized by another caller; proceeding.");
+                }
             }
 
             var manager = FoundryLocalManager.Instance;
