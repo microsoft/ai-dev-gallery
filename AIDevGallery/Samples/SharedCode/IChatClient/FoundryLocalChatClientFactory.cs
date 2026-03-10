@@ -27,7 +27,7 @@ internal static class FoundryLocalChatClientFactory
             {
                 var config = new Configuration
                 {
-                    AppName = "AIDevGallery"
+                    AppName = "AIDevGallery.FoundryLocalExportedSample"
                 };
 
                 try
