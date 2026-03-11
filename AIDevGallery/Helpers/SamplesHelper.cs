@@ -29,6 +29,11 @@ internal static partial class SamplesHelper
             {
                 AddUnique(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory);
             }
+            else if (models.Values.Any(m => m.HardwareAccelerator == HardwareAccelerator.FOUNDRYLOCAL))
+            {
+                AddUnique(SharedCodeEnum.FoundryLocalChatClientFactory);
+                AddUnique(SharedCodeEnum.FoundryLocalChatClientAdapter);
+            }
         }
         else
         {
@@ -210,7 +215,7 @@ internal static partial class SamplesHelper
     private static (string? ChatClientLoaderString, string? ChatClientNamespace) GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
-        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !isPhiSilica && !isLanguageModel)
+        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !sharedCode.Contains(SharedCodeEnum.FoundryLocalChatClientFactory) && !isPhiSilica && !isLanguageModel)
         {
             return (null, null);
         }

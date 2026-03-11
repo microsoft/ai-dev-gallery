@@ -3,8 +3,10 @@
 
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
+using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
+using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
@@ -37,7 +39,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     // Note: Foundry Local uses direct SDK calls, not web service, so Url is not applicable
     public string Url => string.Empty;
 
-    public string? IChatClientImplementationNamespace { get; } = "Microsoft.AI.Foundry.Local";
+    public string? IChatClientImplementationNamespace { get; }
     public string? GetDetailsUrl(ModelDetails details)
     {
         // Foundry Local models run locally via SDK, no online details page available
@@ -61,7 +63,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
         Telemetry.Events.FoundryLocalOperationEvent.Log("GetChatClient", alias);
-        return new FoundryLocal.FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
+        return new FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
     }
 
     private void ValidateClient(string alias)
@@ -98,39 +100,15 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
     {
         var alias = ExtractAlias(url);
 
-        if (_foundryManager == null)
+        // Include variant ID so the exported project uses the same variant as the Gallery
+        var loadedModel = _foundryManager?.GetLoadedModel(alias) as Model;
+        var variantId = loadedModel?.SelectedVariant?.Id;
+        if (variantId != null)
         {
-            return null;
+            return $"await FoundryLocalChatClientFactory.CreateAsync(\"{alias}\", \"{variantId}\")";
         }
 
-        var model = _foundryManager.GetLoadedModel(alias);
-        if (model == null)
-        {
-            return null;
-        }
-
-        return $@"// Initialize Foundry Local
-var config = new Configuration 
-{{ 
-    AppName = ""YourApp"", 
-    LogLevel = LogLevel.Warning 
-}};
-await FoundryLocalManager.CreateAsync(config);
-var manager = FoundryLocalManager.Instance;
-var catalog = await manager.GetCatalogAsync();
-
-// Get and load the model
-var model = await catalog.GetModelAsync(""{alias}"");
-await model.LoadAsync();
-
-// Get chat client and use it
-var chatClient = await model.GetChatClientAsync();
-var messages = new List<ChatMessage> {{ new ChatMessage(ChatRole.User, ""Your message here"") }};
-await foreach (var chunk in chatClient.CompleteChatStreamingAsync(messages))
-{{
-    // Process streaming response
-    Console.Write(chunk.Choices[0].Delta?.Content);
-}}";
+        return $"await FoundryLocalChatClientFactory.CreateAsync(\"{alias}\")";
     }
 
     public async Task<IEnumerable<ModelDetails>> GetModelsAsync(bool ignoreCached = false, CancellationToken cancellationToken = default)
