@@ -82,6 +82,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         await Task.Run(async () =>
         {
+            // GetOrCreateIndex uses default options (all capabilities enabled).
+            // To selectively suppress capabilities, use GetOrCreateIndexWithOptions.
+            // Coupling rules to keep in mind:
+            //   - TextLexical suppression is only honored when TextSemantic is also
+            //     Suppressed (semantic text requires the lexical pipeline).
+            //   - ImageOcr and ImageSemantic are independent; both must be
+            //     Suppressed to fully disable image content.
             var result = AppContentIndexer.GetOrCreateIndex("semanticSearchIndex");
 
             if (!result.Succeeded)

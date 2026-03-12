@@ -40,6 +40,14 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
     {
         await Task.Run(async () =>
         {
+            // GetOrCreateIndex uses default options (all capabilities enabled).
+            // When using GetOrCreateIndexWithOptions, be aware of coupling rules:
+            //   - Suppressing TextLexical is only honored when TextSemantic is also Suppressed;
+            //     otherwise TextLexical suppression is silently treated as Default.
+            //   - ImageOcr and ImageSemantic are independent; both must be Suppressed
+            //     to fully disable image content.
+            //   - Suppressing all text or all image capabilities makes that content kind
+            //     unsupported (regions return UnsupportedContentKind).
             var result = AppContentIndexer.GetOrCreateIndex("indexCapabilityIndex");
 
             if (!result.Succeeded)
@@ -119,6 +127,10 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
 
             // Each status will be one of: Unknown, Initialized, Initializing, Suppressed, Unsupported, DisabledByPolicy, InitializationError
             // If status is Initialized, that capability is ready for use
+            //
+            // Coupling rule: TextLexical suppression is only honored when
+            // TextSemantic is also Suppressed. If TextSemantic is Default or
+            // Required, TextLexical=Suppressed is silently treated as Default.
             if (capabilities.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
             {
                 indexLexicalCapabilityResultText.Text = "Available";
@@ -139,7 +151,10 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
                 unavailable.Add("TextSemantic");
             }
 
-            if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+            // ImageOcr and ImageSemantic are independent capabilities; suppressing
+            // one does not affect the other. Both must be Suppressed to fully disable
+            // image content support.
+            if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
             {
                 indexOCRCapabilityResultText.Text = "Available";
             }
@@ -149,7 +164,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
                 unavailable.Add("ImageOcr");
             }
 
-            if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+            if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
             {
                 indexSemanticImageCapabilityResultText.Text = "Available";
             }
