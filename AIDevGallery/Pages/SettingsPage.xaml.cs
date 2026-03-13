@@ -8,12 +8,15 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 
 namespace AIDevGallery.Pages;
@@ -21,8 +24,10 @@ namespace AIDevGallery.Pages;
 internal sealed partial class SettingsPage : Page
 {
     private readonly ObservableCollection<CachedModel> cachedModels = [];
+    private readonly ObservableCollection<AppContentIndexStore> indexStores = [];
     private readonly RelayCommand endMoveCommand;
     private string? cacheFolderPath;
+    private string? indexFolderPath;
     private bool isMovingCache;
 
     private CancellationTokenSource? _cts;
@@ -41,6 +46,7 @@ internal sealed partial class SettingsPage : Page
 
         VersionTextRun.Text = AppUtils.GetAppVersion();
         GetStorageInfo();
+        _ = GetAppContentIndexStorageInfoAsync();
 
         DiagnosticDataToggleSwitch.IsOn = App.AppData.IsDiagnosticDataEnabled;
         SemanticSearchToggleSwitch.IsOn = App.AppData.IsAppContentSearchEnabled;
@@ -96,6 +102,156 @@ internal sealed partial class SettingsPage : Page
         if (cacheFolderPath != null)
         {
             Process.Start("explorer.exe", cacheFolderPath);
+        }
+    }
+
+    private async Task GetAppContentIndexStorageInfoAsync()
+    {
+        try
+        {
+            indexStores.Clear();
+
+            var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+            var appContentIndicesFolder = Path.Combine(localFolder, "AppContentIndices");
+
+            indexFolderPath = appContentIndicesFolder;
+            IndexFolderPathTxt.Content = appContentIndicesFolder.Length > 100
+                ? string.Concat("...", appContentIndicesFolder.AsSpan(appContentIndicesFolder.Length - 100))
+                : appContentIndicesFolder;
+            ToolTipService.SetToolTip(IndexFolderPathTxt, appContentIndicesFolder);
+
+            var (stores, totalSize) = await Task.Run(() =>
+            {
+                var results = new List<(string Name, string Path, long Size)>();
+                long total = 0;
+
+                if (Directory.Exists(appContentIndicesFolder))
+                {
+                    var indexFolders = Directory.GetDirectories(appContentIndicesFolder);
+                    foreach (var folder in indexFolders)
+                    {
+                        var indexSize = GetDirectorySize(folder);
+                        var folderName = Path.GetFileName(folder);
+                        results.Add((folderName, folder, indexSize));
+                        total += indexSize;
+                    }
+                }
+
+                return (results, total);
+            });
+
+            if (stores.Count > 0)
+            {
+                foreach (var (name, path, size) in stores)
+                {
+                    indexStores.Add(new AppContentIndexStore(name, path, size));
+                }
+
+                TotalIndexSizeText.Text = AppUtils.FileSizeToString(totalSize);
+                IndexStorageExpander.IsExpanded = true;
+            }
+            else if (Directory.Exists(appContentIndicesFolder))
+            {
+                TotalIndexSizeText.Text = string.Empty;
+            }
+            else
+            {
+                indexFolderPath = null;
+                IndexFolderPathTxt.Content = "Index storage not found";
+                TotalIndexSizeText.Text = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            indexFolderPath = null;
+            IndexFolderPathTxt.Content = "Unable to locate index storage";
+            TotalIndexSizeText.Text = string.Empty;
+            Debug.WriteLine($"Error getting AppContentIndex storage info: {ex.Message}");
+        }
+    }
+
+    private long GetDirectorySize(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path))
+            {
+                return 0;
+            }
+
+            var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+            return files.Sum(file => new FileInfo(file).Length);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private void IndexFolderPathTxt_Click(object sender, RoutedEventArgs e)
+    {
+        if (indexFolderPath != null && Directory.Exists(indexFolderPath))
+        {
+            Process.Start("explorer.exe", indexFolderPath);
+        }
+        else if (indexFolderPath != null)
+        {
+            // If the exact path doesn't exist, try the parent directory
+            var parentDir = Path.GetDirectoryName(indexFolderPath);
+            if (parentDir != null && Directory.Exists(parentDir))
+            {
+                Process.Start("explorer.exe", parentDir);
+            }
+        }
+    }
+
+    private void IndexFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is HyperlinkButton hyperlinkButton && hyperlinkButton.Tag is AppContentIndexStore indexStore)
+        {
+            string? path = indexStore.Path;
+
+            if (path != null && Directory.Exists(path))
+            {
+                Process.Start("explorer.exe", path);
+            }
+        }
+    }
+
+    private async void DeleteIndex_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is AppContentIndexStore indexStore)
+        {
+            ContentDialog deleteDialog = new()
+            {
+                Title = "Delete index",
+                Content = "Are you sure you want to delete this index? The app will recreate it when needed.",
+                PrimaryButtonText = "Yes",
+                XamlRoot = this.Content.XamlRoot,
+                PrimaryButtonStyle = (Style)App.Current.Resources["AccentButtonStyle"],
+                CloseButtonText = "No"
+            };
+
+            var result = await deleteDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                var deleteResult = AppContentIndexer.DeleteIndex(indexStore.IndexName, DeleteIndexWhileInUseBehavior.FailIfInUse);
+
+                if (!deleteResult.Succeeded)
+                {
+                    ContentDialog errorDialog = new()
+                    {
+                        Title = $"Failed to delete index {indexStore.IndexName}",
+                        Content = $"Reason: {deleteResult.Status}, {deleteResult.ExtendedError}",
+                        XamlRoot = this.Content.XamlRoot,
+                        CloseButtonText = "OK"
+                    };
+                    await errorDialog.ShowAsync();
+                }
+
+                _ = GetAppContentIndexStorageInfoAsync();
+            }
         }
     }
 
@@ -361,3 +517,4 @@ Do you want to proceed with the move?",
         _cts = null;
     }
 }
+
