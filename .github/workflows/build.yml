@@ -57,7 +57,6 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
         vstest.console.exe .\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.build.appxrecipe `
-          /TestAdapterPath:"$HOME\.nuget\packages\mstest.testadapter\3.9.2\buildTransitive\net9.0" `
           /TestCaseFilter:"FullyQualifiedName~UnitTests" `
           /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\UnitTestResults.trx" `
           /logger:"console;verbosity=detailed" `

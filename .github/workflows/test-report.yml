@@ -142,7 +142,6 @@ jobs:
         
         # Run all tests (unit, integration, and UI tests)
         vstest.console.exe .\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}\net9.0-windows10.0.26100.0\win-${{ matrix.dotnet-arch }}\AIDevGallery.Tests.build.appxrecipe `
-          /TestAdapterPath:"$HOME\.nuget\packages\mstest.testadapter\3.9.2\buildTransitive\net9.0" `
           /logger:"trx;LogFileName=${{ github.workspace }}\TestResults\RegressionTests.trx" `
           /logger:"console;verbosity=detailed"
         
