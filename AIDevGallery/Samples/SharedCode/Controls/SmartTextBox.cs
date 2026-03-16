@@ -86,7 +86,7 @@ internal sealed partial class SmartTextBox : Control
         textBox.Document.GetText(TextGetOptions.None, out string currentText);
         if (!string.IsNullOrWhiteSpace(currentText))
         {
-            NarratorHelper.Announce(textBox, currentText.Trim(), "SmartTextBoxContentAnnouncement");
+            NarratorHelper.Announce(textBox, currentText.Trim(), "SmartTextBoxContentAnnouncement"); // <exclude-line>
         }
     }
 
