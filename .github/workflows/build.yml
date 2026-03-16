@@ -75,7 +75,7 @@ jobs:
         name: pr-unit-test-results-${{ matrix.dotnet-arch }}
         path: |
           TestResults
-          **/coverage.opencover.xml
+          **/coverage.cobertura.xml
     - name: Display Test Report
       if: always()
       uses: dorny/test-reporter@v2
