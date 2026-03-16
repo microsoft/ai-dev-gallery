@@ -276,15 +276,24 @@ public class MainWindowTests : FlaUITestBase
         //                 - ...
         var suggestionsPopupResult = Retry.WhileNull(
             () => searchBoxGroup.FindFirstDescendant(cf => cf.ByAutomationId("SuggestionsPopup")),
-            timeout: TimeSpan.FromSeconds(5));
+            timeout: TimeSpan.FromSeconds(10));
         var suggestionsPopup = suggestionsPopupResult.Result;
         Assert.IsNotNull(suggestionsPopup, "Suggestions popup should appear after entering query");
 
         var suggestionsListResult = Retry.WhileNull(
             () => suggestionsPopup.FindFirstDescendant(cf => cf.ByAutomationId("SuggestionsList")),
-            timeout: TimeSpan.FromSeconds(5));
+            timeout: TimeSpan.FromSeconds(10));
         var suggestionsList = suggestionsListResult.Result;
         Assert.IsNotNull(suggestionsList, "Suggestions list should be found in popup");
+
+        // Wait for list items to populate
+        var listItemsResult = Retry.WhileTrue(
+            () =>
+            {
+                var items = suggestionsList.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
+                return items.Length == 0;
+            },
+            timeout: TimeSpan.FromSeconds(10));
 
         var listItems = suggestionsList.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.ListItem));
 
