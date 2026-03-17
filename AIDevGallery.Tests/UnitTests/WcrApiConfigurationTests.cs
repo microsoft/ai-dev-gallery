@@ -9,7 +9,6 @@
 // Purpose: Catch configuration omissions when adding new WCR API model types.
 // For example, registering a new ModelType in CompatibilityCheckers but forgetting
 // to add it to EnsureReadyFuncs would cause a KeyNotFoundException at runtime.
-
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Windows.Foundation;
 
 namespace AIDevGallery.Tests.UnitTests;
 
