@@ -21,7 +21,8 @@ internal static class WcrApiHelpers
         ModelType.PhiSilicaLora,
         ModelType.TextSummarizer,
         ModelType.TextRewriter,
-        ModelType.TextToTableConverter
+        ModelType.TextToTableConverter,
+        ModelType.DescribeYourChange
     };
 
     private static readonly HashSet<ModelType> ImageGeneratorBacked = new()
@@ -46,6 +47,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.TextToTableConverter, LanguageModel.GetReadyState
+        },
+        {
+            ModelType.DescribeYourChange, LanguageModel.GetReadyState
         },
         {
             ModelType.TextRecognitionOCR, TextRecognizer.GetReadyState
@@ -95,6 +99,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.TextToTableConverter, LanguageModel.EnsureReadyAsync
+        },
+        {
+            ModelType.DescribeYourChange, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextRecognitionOCR, TextRecognizer.EnsureReadyAsync
