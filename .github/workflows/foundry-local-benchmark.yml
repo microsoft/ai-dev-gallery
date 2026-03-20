@@ -1,7 +1,9 @@
 name: Foundry Local Performance Benchmark
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - 'perf/foundry-local-benchmark-*'
 
 jobs:
   benchmark:
