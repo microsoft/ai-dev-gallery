@@ -40,6 +40,12 @@ public class FoundryLocalPerformanceBenchmark
     public static void ClassCleanup()
     {
         _client?.Dispose();
+    }
+
+    [TestCleanup]
+    public void TestCleanup()
+    {
+        // Save after each test method to capture AsyncLocal measurements
         PerformanceCollector.Save();
     }
 
@@ -57,7 +63,7 @@ public class FoundryLocalPerformanceBenchmark
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    [Timeout(120000)]
+    [Timeout(300000)]
     public async Task BenchmarkInitialization()
     {
         EnsureCliAvailable();

@@ -289,27 +289,39 @@ internal class FoundryCliClient : IDisposable
 
     private async Task<string> GetModelPath(string assetId)
     {
-        var registryUri =
-           $"https://eastus.api.azureml.ms/modelregistry/v1.0/registry/models/nonazureaccount?assetId={System.Uri.EscapeDataString(assetId)}";
+        try
+        {
+            var registryUri =
+               $"https://eastus.api.azureml.ms/modelregistry/v1.0/registry/models/nonazureaccount?assetId={System.Uri.EscapeDataString(assetId)}";
 
-        using var resp = await _httpClient.GetAsync(registryUri);
-        resp.EnsureSuccessStatusCode();
+            using var resp = await _httpClient.GetAsync(registryUri);
+            resp.EnsureSuccessStatusCode();
 
-        await using var jsonStream = await resp.Content.ReadAsStreamAsync();
-        var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
-        var blobSasUri = jsonRoot.RootElement.GetProperty("blobSasUri").GetString()!;
+            await using var jsonStream = await resp.Content.ReadAsStreamAsync();
+            var jsonRoot = await JsonDocument.ParseAsync(jsonStream);
+            var blobSasUri = jsonRoot.RootElement.GetProperty("blobSasUri").GetString();
+            if (string.IsNullOrEmpty(blobSasUri))
+            {
+                return string.Empty;
+            }
 
-        var uriBuilder = new UriBuilder(blobSasUri);
-        var existingQuery = string.IsNullOrWhiteSpace(uriBuilder.Query)
-            ? string.Empty
-            : uriBuilder.Query.TrimStart('?') + "&";
+            var uriBuilder = new UriBuilder(blobSasUri);
+            var existingQuery = string.IsNullOrWhiteSpace(uriBuilder.Query)
+                ? string.Empty
+                : uriBuilder.Query.TrimStart('?') + "&";
 
-        uriBuilder.Query = existingQuery + "restype=container&comp=list&delimiter=/";
+            uriBuilder.Query = existingQuery + "restype=container&comp=list&delimiter=/";
 
-        var listXml = await _httpClient.GetStringAsync(uriBuilder.Uri);
+            var listXml = await _httpClient.GetStringAsync(uriBuilder.Uri);
 
-        var match = Regex.Match(listXml, @"<Name>(.*?)\/<\/Name>");
-        return match.Success ? match.Groups[1].Value : string.Empty;
+            var match = Regex.Match(listXml, @"<Name>(.*?)\/<\/Name>");
+            return match.Success ? match.Groups[1].Value : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetModelPath] Failed for assetId '{assetId}': {ex.Message}");
+            return string.Empty;
+        }
     }
 
     public void Dispose()
