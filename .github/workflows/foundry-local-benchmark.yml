@@ -90,7 +90,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: perf-results-${{ github.ref_name }}
+        name: perf-results-${{ contains(github.ref, 'benchmark-cli') && 'cli' || 'sdk' }}
         path: |
           PerfResults/
           TestResults/
@@ -99,7 +99,7 @@ jobs:
       if: always()
       uses: dorny/test-reporter@v2
       with:
-        name: Performance Benchmark - ${{ github.ref_name }}
+        name: Performance Benchmark - ${{ contains(github.ref, 'benchmark-cli') && 'CLI' || 'SDK' }}
         path: 'TestResults/*.trx'
         reporter: dotnet-trx
         fail-on-error: false
