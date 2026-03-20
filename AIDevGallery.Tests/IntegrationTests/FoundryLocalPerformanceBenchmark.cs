@@ -36,6 +36,12 @@ public class FoundryLocalPerformanceBenchmark
     [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
     public static void ClassCleanup()
     {
+    }
+
+    [TestCleanup]
+    public void TestCleanup()
+    {
+        // Save after each test method to capture AsyncLocal measurements
         PerformanceCollector.Save();
     }
 
