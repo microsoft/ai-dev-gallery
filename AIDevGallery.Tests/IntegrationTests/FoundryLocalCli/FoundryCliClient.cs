@@ -130,7 +130,7 @@ internal class FoundryCliClient : IDisposable
             return null;
         }
 
-        return new FoundryCliClient(serviceUrl, serviceManager, new HttpClient());
+        return new FoundryCliClient(serviceUrl, serviceManager, new HttpClient { Timeout = TimeSpan.FromMinutes(5) });
     }
 
     public async Task<List<CliCatalogModel>> ListCatalogModels()
@@ -176,7 +176,8 @@ internal class FoundryCliClient : IDisposable
 
         foreach (var id in modelIds)
         {
-            var model = catalogModels.FirstOrDefault(m => m.Name == id);
+            // Handle v0.8.x name format: catalog may have "name:version" while cached uses "name"
+            var model = catalogModels.FirstOrDefault(m => m.Name == id || m.Name.StartsWith(id + ":", StringComparison.Ordinal));
             if (model != null)
             {
                 models.Add(new CliCachedModel(id, model.Alias));
@@ -194,7 +195,12 @@ internal class FoundryCliClient : IDisposable
     {
         var models = await ListCachedModels();
 
-        if (models.Any(m => m.Name == model.Name))
+        // Handle v0.8.x: model.Name may have ":version" suffix, cached name may not
+        var nameWithoutVersion = model.Name.Contains(':')
+            ? model.Name[..model.Name.LastIndexOf(':')]
+            : model.Name;
+
+        if (models.Any(m => m.Name == model.Name || m.Name == nameWithoutVersion))
         {
             return new CliDownloadResult(true, "Model already downloaded");
         }
@@ -204,9 +210,16 @@ internal class FoundryCliClient : IDisposable
             {
                 try
                 {
+                    // Fix for Foundry Local v0.8.x: List API returns name with ":version" suffix
+                    // (e.g., "qwen2.5-coder-0.5b-instruct-generic-cpu:4"), but Download API
+                    // expects name without version. Strip the suffix before calling download.
+                    var downloadName = model.Name.Contains(':')
+                        ? model.Name[..model.Name.LastIndexOf(':')]
+                        : model.Name;
+
                     var uploadBody = new CliDownloadBody(
                         new CliModelDownload(
-                            Name: model.Name,
+                            Name: downloadName,
                             Uri: model.Uri,
                             Path: await GetModelPath(model.Uri),
                             ProviderType: model.ProviderType,

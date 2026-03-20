@@ -57,6 +57,7 @@ public class FoundryLocalPerformanceBenchmark
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
+    [Timeout(120000)]
     public async Task BenchmarkInitialization()
     {
         EnsureCliAvailable();
@@ -97,6 +98,7 @@ public class FoundryLocalPerformanceBenchmark
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
+    [Timeout(120000)]
     public async Task BenchmarkCatalogQuery()
     {
         EnsureCliAvailable();
@@ -135,6 +137,7 @@ public class FoundryLocalPerformanceBenchmark
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
+    [Timeout(600000)]
     public async Task BenchmarkModelDownload()
     {
         EnsureCliAvailable();
@@ -195,6 +198,7 @@ public class FoundryLocalPerformanceBenchmark
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
+    [Timeout(120000)]
     public async Task BenchmarkCachedModelQuery()
     {
         EnsureCliAvailable();
