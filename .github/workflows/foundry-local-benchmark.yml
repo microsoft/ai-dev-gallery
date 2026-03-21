@@ -8,7 +8,7 @@ on:
 jobs:
   benchmark:
     runs-on: windows-2025
-    timeout-minutes: 60
+    timeout-minutes: 30
     permissions:
       contents: read
       checks: write
@@ -63,27 +63,48 @@ jobs:
     - name: Build Test Project
       run: dotnet build AIDevGallery.Tests -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64
 
-    - name: Run Performance Benchmarks
+    - name: Run FirstCatalogQuery (10 fresh processes)
       shell: pwsh
       run: |
-        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
-        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\PerfResults" | Out-Null
         $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
+        New-Item -ItemType Directory -Force -Path $env:PERFORMANCE_OUTPUT_PATH | Out-Null
 
-        dotnet test AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll `
-          --filter "TestCategory=PerformanceBenchmark" `
-          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\PerfBenchmarkResults.trx" `
+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
+
+        for ($i = 1; $i -le 10; $i++) {
+          Write-Host "`n=== FirstCatalogQuery Run $i/10 ==="
+          dotnet test $testDll `
+            --filter "TestCategory=FirstCatalogQuery" `
+            --logger "console;verbosity=detailed" `
+            --verbosity quiet
+          Write-Host "Exit code: $LASTEXITCODE"
+        }
+
+    - name: Run SubsequentCatalogQuery (20 iterations in one process)
+      shell: pwsh
+      run: |
+        $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
+
+        Write-Host "`n=== SubsequentCatalogQuery (20 iterations) ==="
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        dotnet test $testDll `
+          --filter "TestCategory=SubsequentCatalogQuery" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\SubsequentCatalogQuery.trx" `
           --logger "console;verbosity=detailed" `
           --results-directory "${{ github.workspace }}\TestResults" `
-          --verbosity normal
+          --verbosity quiet
 
-        Write-Host "Test exit code: $LASTEXITCODE"
-
-        # Show performance results
+    - name: Show Results Summary
+      if: always()
+      shell: pwsh
+      run: |
         Write-Host "`n=== Performance Results ==="
-        Get-ChildItem -Path "${{ github.workspace }}\PerfResults" -Filter "*.json" | ForEach-Object {
-          Write-Host "`nFile: $($_.Name)"
-          Get-Content $_.FullName | Write-Host
+        $files = Get-ChildItem -Path "${{ github.workspace }}\PerfResults" -Filter "*.json" -ErrorAction SilentlyContinue
+        Write-Host "Found $($files.Count) result files"
+        foreach ($f in $files) {
+          Write-Host "`n--- $($f.Name) ---"
+          Get-Content $f.FullName | Write-Host
         }
 
     - name: Upload Performance Results

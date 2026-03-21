@@ -9,21 +9,18 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Tests.IntegrationTests;
 
 /// <summary>
-/// Performance benchmark tests for Foundry Local SDK operations.
-/// Run on both perf/foundry-local-benchmark-sdk and perf/foundry-local-benchmark-cli branches
-/// to compare SDK vs CLI performance.
+/// Performance benchmark for Foundry Local SDK catalog query operations.
+/// Measures initialization + first catalog query, and subsequent cached queries.
 /// </summary>
 [TestClass]
 [TestCategory("PerformanceBenchmark")]
 public class FoundryLocalPerformanceBenchmark
 {
-    private const int Iterations = 5;
     private static string? _testCacheDir;
 
     [ClassInitialize]
@@ -33,273 +30,137 @@ public class FoundryLocalPerformanceBenchmark
         Directory.CreateDirectory(_testCacheDir);
     }
 
-    [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
-    public static void ClassCleanup()
+    /// <summary>
+    /// Measures the full cold path: SDK initialization + first catalog query.
+    /// This test is run in a fresh process each time (via workflow loop) to get true cold start data.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    [TestCategory("FirstCatalogQuery")]
+    public async Task BenchmarkFirstCatalogQuery()
     {
-    }
+        var totalSw = Stopwatch.StartNew();
 
-    private static void EnsureSdkAvailable()
-    {
+        // Step 1: Initialize SDK
+        var stepSw = Stopwatch.StartNew();
+        if (!FoundryLocalManager.IsInitialized)
+        {
+            var config = new Configuration
+            {
+                AppName = "AIDevGalleryPerfBenchmark",
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                ModelCacheDir = _testCacheDir!
+            };
+
+            try
+            {
+                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+            }
+            catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
+            {
+            }
+        }
+
+        stepSw.Stop();
+        var initMs = stepSw.ElapsedMilliseconds;
+        Console.WriteLine($"[FirstCatalogQuery] SDK Init: {initMs} ms");
+
         if (!FoundryLocalManager.IsInitialized)
         {
             Assert.Inconclusive("Foundry Local SDK did not initialize on this platform.");
         }
-    }
 
-    /// <summary>
-    /// Measures the time to initialize FoundryLocalManager from scratch.
-    /// SDK: FoundryLocalManager.CreateAsync() + EnsureEpsDownloadedAsync() + GetCatalogAsync().
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    [TestMethod]
-    public async Task BenchmarkInitialization()
-    {
-        for (int i = 0; i < Iterations; i++)
-        {
-            // For the first run, we initialize from scratch.
-            // For subsequent runs, the SDK singleton is already initialized,
-            // so we measure the "already initialized" fast path + GetCatalogAsync.
-            var sw = Stopwatch.StartNew();
+        // Step 2: Get catalog (first time)
+        stepSw.Restart();
+        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
+        stepSw.Stop();
+        var getCatalogMs = stepSw.ElapsedMilliseconds;
+        Console.WriteLine($"[FirstCatalogQuery] GetCatalog: {getCatalogMs} ms");
 
-            if (!FoundryLocalManager.IsInitialized)
-            {
-                var config = new Configuration
-                {
-                    AppName = "AIDevGalleryPerfBenchmark",
-                    LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
-                    ModelCacheDir = _testCacheDir!
-                };
+        // Step 3: List models (first time)
+        stepSw.Restart();
+        var models = await catalog.ListModelsAsync();
+        stepSw.Stop();
+        var listModelsMs = stepSw.ElapsedMilliseconds;
 
-                try
-                {
-                    await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
-                }
-                catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
-                {
-                    // Race condition: already initialized
-                }
-            }
+        totalSw.Stop();
 
-            var manager = FoundryLocalManager.Instance;
+        Assert.IsNotNull(models);
+        Assert.IsTrue(models.Count > 0, "Catalog should have at least one model");
 
-            try
-            {
-                await manager.EnsureEpsDownloadedAsync();
-            }
-            catch (Exception epEx)
-            {
-                Debug.WriteLine($"[PerfBenchmark] EP registration issue (non-fatal): {epEx.Message}");
-            }
+        Console.WriteLine($"[FirstCatalogQuery] ListModels: {listModelsMs} ms ({models.Count} models)");
+        Console.WriteLine($"[FirstCatalogQuery] Total: {totalSw.ElapsedMilliseconds} ms");
 
-            var catalog = await manager.GetCatalogAsync();
-            Assert.IsNotNull(catalog, "Catalog should not be null after initialization");
-
-            sw.Stop();
-
-            PerformanceCollector.Track(
-                $"Initialization_Run{i}",
-                sw.ElapsedMilliseconds,
-                "ms",
-                new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) }, { "cold_start", (i == 0).ToString(CultureInfo.InvariantCulture) } },
-                "Initialization");
-
-            PerformanceCollector.TrackCurrentProcessMemory(
-                $"Initialization_Memory_Run{i}",
-                new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) } },
-                "Initialization");
-
-            Console.WriteLine($"[Initialization] Run {i}: {sw.ElapsedMilliseconds} ms (cold_start={i == 0})");
-        }
-
-        EnsureSdkAvailable();
+        PerformanceCollector.Track("FirstCatalogQuery_Init", initMs, "ms", category: "FirstCatalogQuery");
+        PerformanceCollector.Track("FirstCatalogQuery_GetCatalog", getCatalogMs, "ms", category: "FirstCatalogQuery");
+        PerformanceCollector.Track("FirstCatalogQuery_ListModels", listModelsMs, "ms", category: "FirstCatalogQuery");
+        PerformanceCollector.Track(
+            "FirstCatalogQuery_Total",
+            totalSw.ElapsedMilliseconds,
+            "ms",
+            new() { { "model_count", models.Count.ToString(CultureInfo.InvariantCulture) } },
+            "FirstCatalogQuery");
 
         PerformanceCollector.Save();
     }
 
     /// <summary>
-    /// Measures the time to query the full model catalog.
-    /// SDK: catalog.ListModelsAsync().
+    /// Measures subsequent catalog queries after initialization (cached/warm path).
+    /// Runs 20 iterations in a single process.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task BenchmarkCatalogQuery()
+    [TestCategory("SubsequentCatalogQuery")]
+    public async Task BenchmarkSubsequentCatalogQuery()
     {
-        await EnsureInitializedAsync();
-        EnsureSdkAvailable();
+        // Ensure initialized
+        if (!FoundryLocalManager.IsInitialized)
+        {
+            var config = new Configuration
+            {
+                AppName = "AIDevGalleryPerfBenchmark",
+                LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
+                ModelCacheDir = _testCacheDir!
+            };
+
+            try
+            {
+                await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
+            }
+            catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
+            {
+            }
+        }
+
+        if (!FoundryLocalManager.IsInitialized)
+        {
+            Assert.Inconclusive("Foundry Local SDK did not initialize on this platform.");
+        }
 
         var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
-        Assert.IsNotNull(catalog);
 
-        for (int i = 0; i < Iterations; i++)
+        // Warm-up call (not measured)
+        await catalog.ListModelsAsync();
+
+        for (int i = 0; i < 20; i++)
         {
             var sw = Stopwatch.StartNew();
-
             var models = await catalog.ListModelsAsync();
-
             sw.Stop();
 
             Assert.IsNotNull(models);
-            Assert.IsTrue(models.Count > 0, "Catalog should have at least one model");
+            Assert.IsTrue(models.Count > 0);
 
             PerformanceCollector.Track(
-                $"CatalogQuery_Run{i}",
+                $"SubsequentCatalogQuery_Run{i}",
                 sw.ElapsedMilliseconds,
                 "ms",
                 new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) }, { "model_count", models.Count.ToString(CultureInfo.InvariantCulture) } },
-                "CatalogQuery");
+                "SubsequentCatalogQuery");
 
-            Console.WriteLine($"[CatalogQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({models.Count} models)");
+            Console.WriteLine($"[SubsequentCatalogQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({models.Count} models)");
         }
 
         PerformanceCollector.Save();
-    }
-
-    /// <summary>
-    /// Measures the time to download the smallest model in the catalog.
-    /// SDK: model.DownloadAsync().
-    /// Clears cache before each iteration to ensure a fresh download.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    [TestMethod]
-    public async Task BenchmarkModelDownload()
-    {
-        await EnsureInitializedAsync();
-        EnsureSdkAvailable();
-
-        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
-        var models = await catalog.ListModelsAsync();
-        Assert.IsTrue(models.Count > 0, "Need at least one model to benchmark download");
-
-        // Find the smallest model by file size
-        IModel? smallestModel = null;
-        long smallestSize = long.MaxValue;
-
-        foreach (var model in models)
-        {
-            var size = model.SelectedVariant.Info.FileSizeMb ?? long.MaxValue;
-            if (size < smallestSize && size > 0)
-            {
-                smallestSize = size;
-                smallestModel = model;
-            }
-        }
-
-        Assert.IsNotNull(smallestModel, "Could not find a model with valid file size");
-        var alias = smallestModel.Alias;
-
-        Console.WriteLine($"[ModelDownload] Selected model: {alias} ({smallestSize} MB)");
-
-        for (int i = 0; i < Iterations; i++)
-        {
-            // Clear cache for this model before each run
-            try
-            {
-                if (await smallestModel.IsCachedAsync())
-                {
-                    if (await smallestModel.IsLoadedAsync())
-                    {
-                        await smallestModel.UnloadAsync();
-                    }
-
-                    await smallestModel.RemoveFromCacheAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ModelDownload] Cache clear warning: {ex.Message}");
-            }
-
-            var progress = new Progress<float>();
-
-            var sw = Stopwatch.StartNew();
-
-            await smallestModel.DownloadAsync(
-                progressPercent => ((IProgress<float>)progress).Report(progressPercent / 100f),
-                CancellationToken.None);
-
-            sw.Stop();
-
-            PerformanceCollector.Track(
-                $"ModelDownload_Run{i}",
-                sw.ElapsedMilliseconds,
-                "ms",
-                new()
-                {
-                    { "iteration", i.ToString(CultureInfo.InvariantCulture) },
-                    { "model_alias", alias },
-                    { "model_size_mb", smallestSize.ToString(CultureInfo.InvariantCulture) }
-                },
-                "ModelDownload");
-
-            PerformanceCollector.TrackCurrentProcessMemory(
-                $"ModelDownload_Memory_Run{i}",
-                new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) } },
-                "ModelDownload");
-
-            Console.WriteLine($"[ModelDownload] Run {i}: {sw.ElapsedMilliseconds} ms");
-        }
-
-        PerformanceCollector.Save();
-    }
-
-    /// <summary>
-    /// Measures the time to query cached (downloaded) models.
-    /// SDK: catalog.GetCachedModelsAsync().
-    /// Requires at least one model to be downloaded (run after BenchmarkModelDownload).
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    [TestMethod]
-    public async Task BenchmarkCachedModelQuery()
-    {
-        await EnsureInitializedAsync();
-        EnsureSdkAvailable();
-
-        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
-
-        for (int i = 0; i < Iterations; i++)
-        {
-            var sw = Stopwatch.StartNew();
-
-            var cachedModels = await catalog.GetCachedModelsAsync();
-
-            sw.Stop();
-
-            Assert.IsNotNull(cachedModels);
-
-            PerformanceCollector.Track(
-                $"CachedModelQuery_Run{i}",
-                sw.ElapsedMilliseconds,
-                "ms",
-                new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) }, { "cached_count", cachedModels.Count.ToString(CultureInfo.InvariantCulture) } },
-                "CachedModelQuery");
-
-            Console.WriteLine($"[CachedModelQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({cachedModels.Count} cached)");
-        }
-
-        PerformanceCollector.Save();
-    }
-
-    private static async Task EnsureInitializedAsync()
-    {
-        if (FoundryLocalManager.IsInitialized)
-        {
-            return;
-        }
-
-        var config = new Configuration
-        {
-            AppName = "AIDevGalleryPerfBenchmark",
-            LogLevel = Microsoft.AI.Foundry.Local.LogLevel.Warning,
-            ModelCacheDir = _testCacheDir!
-        };
-
-        try
-        {
-            await FoundryLocalManager.CreateAsync(config, NullLogger.Instance);
-        }
-        catch (FoundryLocalException) when (FoundryLocalManager.IsInitialized)
-        {
-            // Already initialized
-        }
     }
 }
