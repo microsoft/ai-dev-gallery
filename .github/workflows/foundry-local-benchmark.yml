@@ -1,90 +1,126 @@
-commit 4421d5a7a43f7f45d878873f682c37455203969e
-Author: Hao Liu <liuhao3418@gmail.com>
-Date:   Sat Mar 21 13:08:36 2026 +0800
+name: Foundry Local Performance Benchmark
 
-    refactor: Focus benchmark on CatalogQuery with multi-process cold start
-    
-    - Rewrite tests to focus on catalog query performance comparison
-    - BenchmarkFirstCatalogQuery: measures cold init + first catalog query,
-      run 10 times in separate processes via workflow loop
-    - BenchmarkSubsequentCatalogQuery: measures 20 warm cached queries
-      in a single process
-    - Remove unrelated download/initialization/cached model tests
-    
-    Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+on:
+  push:
+    branches:
+      - 'perf/foundry-local-benchmark-*'
 
-diff --git a/.github/workflows/foundry-local-benchmark.yml b/.github/workflows/foundry-local-benchmark.yml
-index a5c8eefc..08bdb446 100644
---- a/.github/workflows/foundry-local-benchmark.yml
-+++ b/.github/workflows/foundry-local-benchmark.yml
-@@ -8,7 +8,7 @@ on:
- jobs:
-   benchmark:
-     runs-on: windows-2025
--    timeout-minutes: 60
-+    timeout-minutes: 30
-     permissions:
-       contents: read
-       checks: write
-@@ -63,27 +63,48 @@ jobs:
-     - name: Build Test Project
-       run: dotnet build AIDevGallery.Tests -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64
- 
--    - name: Run Performance Benchmarks
-+    - name: Run FirstCatalogQuery (10 fresh processes)
-       shell: pwsh
-       run: |
--        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
--        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\PerfResults" | Out-Null
-         $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
-+        New-Item -ItemType Directory -Force -Path $env:PERFORMANCE_OUTPUT_PATH | Out-Null
-+
-+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
-+
-+        for ($i = 1; $i -le 10; $i++) {
-+          Write-Host "`n=== FirstCatalogQuery Run $i/10 ==="
-+          dotnet test $testDll `
-+            --filter "TestCategory=FirstCatalogQuery" `
-+            --logger "console;verbosity=detailed" `
-+            --verbosity quiet
-+          Write-Host "Exit code: $LASTEXITCODE"
-+        }
- 
--        dotnet test AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll `
--          --filter "TestCategory=PerformanceBenchmark" `
--          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\PerfBenchmarkResults.trx" `
-+    - name: Run SubsequentCatalogQuery (20 iterations in one process)
-+      shell: pwsh
-+      run: |
-+        $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
-+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
-+
-+        Write-Host "`n=== SubsequentCatalogQuery (20 iterations) ==="
-+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
-+        dotnet test $testDll `
-+          --filter "TestCategory=SubsequentCatalogQuery" `
-+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\SubsequentCatalogQuery.trx" `
-           --logger "console;verbosity=detailed" `
-           --results-directory "${{ github.workspace }}\TestResults" `
--          --verbosity normal
--
--        Write-Host "Test exit code: $LASTEXITCODE"
-+          --verbosity quiet
- 
--        # Show performance results
-+    - name: Show Results Summary
-+      if: always()
-+      shell: pwsh
-+      run: |
-         Write-Host "`n=== Performance Results ==="
--        Get-ChildItem -Path "${{ github.workspace }}\PerfResults" -Filter "*.json" | ForEach-Object {
--          Write-Host "`nFile: $($_.Name)"
--          Get-Content $_.FullName | Write-Host
-+        $files = Get-ChildItem -Path "${{ github.workspace }}\PerfResults" -Filter "*.json" -ErrorAction SilentlyContinue
-+        Write-Host "Found $($files.Count) result files"
-+        foreach ($f in $files) {
-+          Write-Host "`n--- $($f.Name) ---"
-+          Get-Content $f.FullName | Write-Host
-         }
- 
-     - name: Upload Performance Results
+jobs:
+  benchmark:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    # CLI branch only: Install Foundry Local CLI
+    - name: Install Foundry Local CLI
+      if: contains(github.ref, 'benchmark-cli')
+      shell: pwsh
+      run: |
+        Write-Host "Installing Foundry Local CLI via winget..."
+        winget install Microsoft.FoundryLocal --accept-source-agreements --accept-package-agreements --silent
+
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+        # Verify installation
+        $foundryPath = Get-Command foundry -ErrorAction SilentlyContinue
+        if ($foundryPath) {
+          Write-Host "Foundry CLI installed at: $($foundryPath.Source)"
+          foundry --version
+        } else {
+          Write-Error "Foundry CLI installation failed - 'foundry' command not found"
+          exit 1
+        }
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-x64-nuget-perf-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-x64-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore AIDevGallery.sln -r win-x64 /p:Configuration=Release /p:Platform=x64
+
+    - name: Build AIDevGallery.Utils
+      run: dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
+
+    - name: Build Test Project
+      run: dotnet build AIDevGallery.Tests -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64
+
+    - name: Run FirstCatalogQuery (10 fresh processes)
+      shell: pwsh
+      run: |
+        $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
+        New-Item -ItemType Directory -Force -Path $env:PERFORMANCE_OUTPUT_PATH | Out-Null
+
+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
+
+        for ($i = 1; $i -le 10; $i++) {
+          Write-Host "`n=== FirstCatalogQuery Run $i/10 ==="
+          dotnet test $testDll `
+            --filter "TestCategory=FirstCatalogQuery" `
+            --logger "console;verbosity=detailed" `
+            --verbosity quiet
+          Write-Host "Exit code: $LASTEXITCODE"
+        }
+
+    - name: Run SubsequentCatalogQuery (20 iterations in one process)
+      shell: pwsh
+      run: |
+        $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
+        $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
+
+        Write-Host "`n=== SubsequentCatalogQuery (20 iterations) ==="
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+        dotnet test $testDll `
+          --filter "TestCategory=SubsequentCatalogQuery" `
+          --logger "trx;LogFileName=${{ github.workspace }}\TestResults\SubsequentCatalogQuery.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory "${{ github.workspace }}\TestResults" `
+          --verbosity quiet
+
+    - name: Show Results Summary
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "`n=== Performance Results ==="
+        $files = Get-ChildItem -Path "${{ github.workspace }}\PerfResults" -Filter "*.json" -ErrorAction SilentlyContinue
+        Write-Host "Found $($files.Count) result files"
+        foreach ($f in $files) {
+          Write-Host "`n--- $($f.Name) ---"
+          Get-Content $f.FullName | Write-Host
+        }
+
+    - name: Upload Performance Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: perf-results-${{ contains(github.ref, 'benchmark-cli') && 'cli' || 'sdk' }}
+        path: |
+          PerfResults/
+          TestResults/
+
+    - name: Display Test Report
+      if: always()
+      uses: dorny/test-reporter@v2
+      with:
+        name: Performance Benchmark - ${{ contains(github.ref, 'benchmark-cli') && 'CLI' || 'SDK' }}
+        path: 'TestResults/*.trx'
+        reporter: dotnet-trx
+        fail-on-error: false
