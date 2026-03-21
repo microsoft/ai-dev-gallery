@@ -38,13 +38,6 @@ public class FoundryLocalPerformanceBenchmark
     {
     }
 
-    [TestCleanup]
-    public void TestCleanup()
-    {
-        // Save after each test method to capture AsyncLocal measurements
-        PerformanceCollector.Save();
-    }
-
     private static void EnsureSdkAvailable()
     {
         if (!FoundryLocalManager.IsInitialized)
@@ -119,6 +112,8 @@ public class FoundryLocalPerformanceBenchmark
         }
 
         EnsureSdkAvailable();
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -155,6 +150,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[CatalogQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({models.Count} models)");
         }
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -241,6 +238,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[ModelDownload] Run {i}: {sw.ElapsedMilliseconds} ms");
         }
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -276,6 +275,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[CachedModelQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({cachedModels.Count} cached)");
         }
+
+        PerformanceCollector.Save();
     }
 
     private static async Task EnsureInitializedAsync()
