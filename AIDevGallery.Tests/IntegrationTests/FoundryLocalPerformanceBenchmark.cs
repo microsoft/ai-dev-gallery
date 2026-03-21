@@ -106,7 +106,7 @@ public class FoundryLocalPerformanceBenchmark
 
     /// <summary>
     /// Measures subsequent catalog queries after initialization (cached/warm path).
-    /// Runs 20 iterations in a single process.
+    /// Runs 100 iterations in a single process.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
@@ -142,7 +142,7 @@ public class FoundryLocalPerformanceBenchmark
         // Warm-up call (not measured)
         await catalog.ListModelsAsync();
 
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 100; i++)
         {
             var sw = Stopwatch.StartNew();
             var models = await catalog.ListModelsAsync();
