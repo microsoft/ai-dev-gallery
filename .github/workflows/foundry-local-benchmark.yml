@@ -63,7 +63,7 @@ jobs:
     - name: Build Test Project
       run: dotnet build AIDevGallery.Tests -r win-x64 -f net9.0-windows10.0.26100.0 /p:Configuration=Release /p:Platform=x64
 
-    - name: Run FirstCatalogQuery (10 fresh processes)
+    - name: Run FirstCatalogQuery (100 fresh processes)
       shell: pwsh
       run: |
         $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
@@ -71,8 +71,8 @@ jobs:
 
         $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
 
-        for ($i = 1; $i -le 10; $i++) {
-          Write-Host "`n=== FirstCatalogQuery Run $i/10 ==="
+        for ($i = 1; $i -le 100; $i++) {
+          Write-Host "`n=== FirstCatalogQuery Run $i/100 ==="
           dotnet test $testDll `
             --filter "TestCategory=FirstCatalogQuery" `
             --logger "console;verbosity=detailed" `
@@ -80,13 +80,13 @@ jobs:
           Write-Host "Exit code: $LASTEXITCODE"
         }
 
-    - name: Run SubsequentCatalogQuery (20 iterations in one process)
+    - name: Run SubsequentCatalogQuery (100 iterations in one process)
       shell: pwsh
       run: |
         $env:PERFORMANCE_OUTPUT_PATH = "${{ github.workspace }}\PerfResults"
         $testDll = "AIDevGallery.Tests\bin\x64\Release\net9.0-windows10.0.26100.0\win-x64\AIDevGallery.Tests.dll"
 
-        Write-Host "`n=== SubsequentCatalogQuery (20 iterations) ==="
+        Write-Host "`n=== SubsequentCatalogQuery (100 iterations) ==="
         New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
         dotnet test $testDll `
           --filter "TestCategory=SubsequentCatalogQuery" `

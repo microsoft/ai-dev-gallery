@@ -95,12 +95,12 @@ public class FoundryLocalPerformanceBenchmark
     /// Measures subsequent catalog queries via HTTP API (warm path).
     /// Each iteration creates a new client to force a fresh HTTP request,
     /// but the Foundry service is already running.
-    /// Runs 20 iterations in a single process.
+    /// Runs 100 iterations in a single process.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
     [TestCategory("SubsequentCatalogQuery")]
-    [Timeout(120000)]
+    [Timeout(300000)]
     public async Task BenchmarkSubsequentCatalogQuery()
     {
         EnsureCliAvailable();
@@ -117,7 +117,7 @@ public class FoundryLocalPerformanceBenchmark
         await _client.ListCatalogModels();
         _client.Dispose();
 
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 100; i++)
         {
             // Create fresh client each time to force new HTTP connection + query
             var client = await FoundryCliClient.CreateAsync();
