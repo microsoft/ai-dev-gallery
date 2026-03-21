@@ -28,7 +28,6 @@ public class FoundryLocalPerformanceBenchmark
     [ClassInitialize]
     public static void ClassInit(TestContext context)
     {
-        // Verify Foundry CLI is available
         var serviceManager = FoundryCliServiceManager.TryCreate();
         if (serviceManager == null)
         {
@@ -42,13 +41,6 @@ public class FoundryLocalPerformanceBenchmark
         _client?.Dispose();
     }
 
-    [TestCleanup]
-    public void TestCleanup()
-    {
-        // Save after each test method to capture AsyncLocal measurements
-        PerformanceCollector.Save();
-    }
-
     private static void EnsureCliAvailable()
     {
         if (FoundryCliServiceManager.TryCreate() == null)
@@ -60,6 +52,7 @@ public class FoundryLocalPerformanceBenchmark
     /// <summary>
     /// Measures the time to initialize the Foundry Local service from scratch via CLI.
     /// CLI: FoundryServiceManager.TryCreate() + StartService() + GetServiceUrl() + HttpClient setup.
+    /// Includes step-by-step diagnostic logging to identify bottlenecks.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
@@ -70,21 +63,56 @@ public class FoundryLocalPerformanceBenchmark
 
         for (int i = 0; i < Iterations; i++)
         {
-            // Dispose previous client to force re-initialization
             _client?.Dispose();
             _client = null;
 
-            var sw = Stopwatch.StartNew();
+            var totalSw = Stopwatch.StartNew();
 
+            // Step 1: Check CLI availability
+            var stepSw = Stopwatch.StartNew();
+            var serviceManager = FoundryCliServiceManager.TryCreate();
+            stepSw.Stop();
+            Console.WriteLine($"[Init][Run{i}] Step1 TryCreate: {stepSw.ElapsedMilliseconds} ms (result={serviceManager != null})");
+
+            Assert.IsNotNull(serviceManager, "FoundryCliServiceManager.TryCreate() returned null");
+
+            // Step 2: Check if service is running
+            stepSw.Restart();
+            var isRunning = await serviceManager.IsRunning();
+            stepSw.Stop();
+            Console.WriteLine($"[Init][Run{i}] Step2 IsRunning: {stepSw.ElapsedMilliseconds} ms (result={isRunning})");
+
+            // Step 3: Start service if not running
+            if (!isRunning)
+            {
+                stepSw.Restart();
+                var started = await serviceManager.StartService();
+                stepSw.Stop();
+                Console.WriteLine($"[Init][Run{i}] Step3 StartService: {stepSw.ElapsedMilliseconds} ms (result={started})");
+
+                if (!started)
+                {
+                    Console.WriteLine($"[Init][Run{i}] FAILED: Could not start service");
+                    Assert.Fail("Could not start Foundry Local service");
+                }
+            }
+
+            // Step 4: Get service URL
+            stepSw.Restart();
+            var serviceUrl = await serviceManager.GetServiceUrl();
+            stepSw.Stop();
+            Console.WriteLine($"[Init][Run{i}] Step4 GetServiceUrl: {stepSw.ElapsedMilliseconds} ms (url={serviceUrl})");
+
+            totalSw.Stop();
+
+            Assert.IsFalse(string.IsNullOrEmpty(serviceUrl), "Service URL should not be empty");
+
+            // Create client for subsequent tests
             _client = await FoundryCliClient.CreateAsync();
-
-            sw.Stop();
-
-            Assert.IsNotNull(_client, "FoundryCliClient should initialize successfully");
 
             PerformanceCollector.Track(
                 $"Initialization_Run{i}",
-                sw.ElapsedMilliseconds,
+                totalSw.ElapsedMilliseconds,
                 "ms",
                 new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) }, { "cold_start", (i == 0).ToString(CultureInfo.InvariantCulture) } },
                 "Initialization");
@@ -94,8 +122,10 @@ public class FoundryLocalPerformanceBenchmark
                 new() { { "iteration", i.ToString(CultureInfo.InvariantCulture) } },
                 "Initialization");
 
-            Console.WriteLine($"[Initialization] Run {i}: {sw.ElapsedMilliseconds} ms (cold_start={i == 0})");
+            Console.WriteLine($"[Initialization] Run {i}: {totalSw.ElapsedMilliseconds} ms (cold_start={i == 0})");
         }
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -135,6 +165,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[CatalogQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({models.Count} models)");
         }
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -164,9 +196,6 @@ public class FoundryLocalPerformanceBenchmark
 
         for (int i = 0; i < Iterations; i++)
         {
-            // Note: CLI approach doesn't have a direct "delete from cache" API,
-            // so after the first download the model will already be cached.
-            // The first iteration measures cold download, subsequent ones measure "already cached" check.
             var progress = new Progress<float>();
 
             var sw = Stopwatch.StartNew();
@@ -196,6 +225,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[ModelDownload] Run {i}: {sw.ElapsedMilliseconds} ms");
         }
+
+        PerformanceCollector.Save();
     }
 
     /// <summary>
@@ -229,6 +260,8 @@ public class FoundryLocalPerformanceBenchmark
 
             Console.WriteLine($"[CachedModelQuery] Run {i}: {sw.ElapsedMilliseconds} ms ({cachedModels.Count} cached)");
         }
+
+        PerformanceCollector.Save();
     }
 
     private static async Task EnsureClientInitializedAsync()
