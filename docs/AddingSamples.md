@@ -201,7 +201,7 @@ This format groups multiple related model families together with additional meta
 - `ReadmeUrl`: Direct link to the model family's README markdown that the app fetches and renders in-app
 - `Models`: Dictionary of model variations with different hardware requirements
   - `Url`: HuggingFace URL - can point to repo root, a subfolder, or a single file
-  - `HardwareAccelerator`: One or more of: "CPU", "GPU", "DML", "QNN", "NPU", "WCRAPI", "OLLAMA", "OPENAI", "VitisAI", "OpenVINO" (or an array like ["CPU", "GPU"])
+  - `HardwareAccelerator`: One or more of: "CPU", "GPU", "DML", "QNN", "NPU", "WCRAPI", "OLLAMA", "OPENAI", "MINIMAX", "VitisAI", "OpenVINO" (or an array like ["CPU", "GPU"])
   - `Size`: Model size in bytes
   - `License`: License type (e.g., "mit", "apache-2.0")
   - `PromptTemplate`: Prompt template to use (for language models)

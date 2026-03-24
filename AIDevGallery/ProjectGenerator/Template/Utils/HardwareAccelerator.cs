@@ -9,6 +9,7 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
+    MINIMAX,
     NPU,
     GPU,
     VitisAI,

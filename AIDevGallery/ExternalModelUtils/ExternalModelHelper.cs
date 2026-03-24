@@ -21,6 +21,7 @@ internal static class ExternalModelHelper
         FoundryLocalModelProvider.Instance,
         OllamaModelProvider.Instance,
         OpenAIModelProvider.Instance,
+        MiniMaxModelProvider.Instance,
         LemonadeModelProvider.Instance
     ];
 

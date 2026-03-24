@@ -60,6 +60,15 @@ internal class ModelPickerDefinition
             }
         },
         {
+            "minimax", new ModelPickerDefinition()
+            {
+                Name = "MiniMax",
+                Id = "minimax",
+                Icon = $"ms-appx:///Assets/ModelIcons/MiniMax{AppUtils.GetThemeAssetSuffix()}.png",
+                CreatePicker = () => new MiniMaxPickerView()
+            }
+        },
+        {
             "lemonade", new ModelPickerDefinition()
             {
                 Name = "Lemonade",

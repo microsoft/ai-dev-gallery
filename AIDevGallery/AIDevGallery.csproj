@@ -263,6 +263,11 @@
     <None Remove="Assets\ModelIcons\lemonade.png" />
     <None Remove="Assets\ModelIcons\lemonade.svg" />
     <None Remove="Assets\ModelIcons\Microsoft.svg" />
+    <None Remove="Assets\ModelIcons\MiniMax.dark.png" />
+    <None Remove="Assets\ModelIcons\MiniMax.dark.svg" />
+    <None Remove="Assets\ModelIcons\MiniMax.light.png" />
+    <None Remove="Assets\ModelIcons\MiniMax.light.svg" />
+    <None Remove="Assets\ModelIcons\MiniMax.svg" />
     <None Remove="Assets\ModelIcons\Mistral.svg" />
     <None Remove="Assets\ModelIcons\Ollama.dark.png" />
     <None Remove="Assets\ModelIcons\Ollama.light.png" />

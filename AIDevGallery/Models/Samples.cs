@@ -176,6 +176,7 @@ internal enum HardwareAccelerator
     WCRAPI,
     OLLAMA,
     OPENAI,
+    MINIMAX,
     FOUNDRYLOCAL,
     LEMONADE,
     NPU,

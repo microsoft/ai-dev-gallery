@@ -204,6 +204,7 @@ internal static class ModelDetailsHelper
     {
         return modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OLLAMA) ||
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.OPENAI) ||
+            modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.MINIMAX) ||
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.FOUNDRYLOCAL) ||
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.LEMONADE) ||
             modelDetails.Url.StartsWith("useradded-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
