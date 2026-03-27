@@ -11,7 +11,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
