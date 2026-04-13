@@ -7,7 +7,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.AI.Foundry.Local.WinML" Version="0.8.2.1" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="10.2.0" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK.ML" Version="2.0.28-experimental" />
     <PackageVersion Include="OllamaSharp" Version="5.4.7" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.2.0-preview.1.26063.2" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.72.0-preview" />
@@ -31,7 +30,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.0.0-experimental3" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.0.0-experimental6" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6584" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.251221100" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.205" />

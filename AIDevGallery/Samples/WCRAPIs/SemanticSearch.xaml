@@ -186,10 +186,6 @@
                                         <ComboBoxItem Content="Region"/>
                                         <ComboBoxItem Content="ContentItem"/>
                                     </ComboBox>
-                                    <ComboBox x:Name="ImageOcrTextMatchTypeComboBox" Header="OCR Match Type" HorizontalAlignment="Stretch" SelectedIndex="0">
-                                        <ComboBoxItem Content="Fuzzy"/>
-                                        <ComboBoxItem Content="Exact"/>
-                                    </ComboBox>
 
                                     <Button Content="Index All Manually" Click="IndexAllButton_Click" Margin="0,24"/>
 
