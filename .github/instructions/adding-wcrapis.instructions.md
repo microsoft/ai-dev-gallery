@@ -64,3 +64,29 @@ Use `ModelType.PhiSilica` or specific WCRAPI model types:
 - Graceful fallback when API is not ready
 - CancellationToken support for long operations
 - Proper disposal of AI resources
+
+## Checklist for Adding a New WCR API
+
+When adding a new Windows AI API to the gallery, complete **all** of the following:
+
+### 1. API Definition
+- [ ] Add entry in `AIDevGallery/Samples/Definitions/WcrApis/apis.json`
+
+### 2. Availability Registration (in `WcrApiHelpers.cs`)
+
+For APIs using the standard `AIFeatureReadyState` flow (most WCR APIs):
+- [ ] Register in `CompatibilityCheckers` dictionary with the correct `GetReadyState` function
+- [ ] Register in `EnsureReadyFuncs` dictionary with the correct `EnsureReadyAsync` function
+- [ ] If backed by `LanguageModel`, add to the `LanguageModelBacked` HashSet
+- [ ] If backed by `ImageGenerator`, add to the `ImageGeneratorBacked` HashSet
+
+### 3. Platform Requirements
+- [ ] If the API requires specific hardware or Windows Insider enrollment, ensure the user sees a clear notification explaining what is needed
+- [ ] Verify `GetStringDescription()` returns an actionable message for `NotSupportedOnCurrentSystem` state
+
+### 4. Validation
+- [ ] Run `WcrApiConfigurationTests` to verify registration completeness:
+  ```
+  dotnet test --filter "FullyQualifiedName~WcrApiConfigurationTests"
+  ```
+- [ ] If the test fails, either register the API in the dictionaries or add it to the exclusion list in the test with a documented reason

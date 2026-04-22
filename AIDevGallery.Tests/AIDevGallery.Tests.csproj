@@ -11,16 +11,18 @@
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
-    <EnableMsixTooling>false</EnableMsixTooling>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <NoWarn>CS1591;IDISP001;IDISP002;IDISP003;IDISP004;IDISP006;IDISP007;IDISP008;IDISP017;IDISP025</NoWarn>
     <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <!-- Workaround for tests in WinAppSDK1.8Exp3 -->
-    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,6 +43,7 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" />
     <PackageReference Include="FlaUI.UIA3" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

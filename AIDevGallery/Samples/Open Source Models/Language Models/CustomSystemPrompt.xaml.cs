@@ -145,7 +145,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             var tooltip = ToolTipService.GetToolTip(slider)?.ToString();
             if (!string.IsNullOrEmpty(tooltip))
             {
-                NarratorHelper.Announce(slider, tooltip, $"{slider.Name}FocusAnnouncementId");
+                NarratorHelper.Announce(slider, tooltip, $"{slider.Name}FocusAnnouncementId"); // <exclude-line>
             }
         }
     }
@@ -157,7 +157,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             string formattedValue = slider.StepFrequency < 1
                 ? e.NewValue.ToString("F2", CultureInfo.InvariantCulture)
                 : ((int)e.NewValue).ToString(CultureInfo.InvariantCulture);
-            NarratorHelper.Announce(slider, $"{slider.Header} {formattedValue}", $"{slider.Name}ValueChangedAnnouncementId");
+            NarratorHelper.Announce(slider, $"{slider.Header} {formattedValue}", $"{slider.Name}ValueChangedAnnouncementId"); // <exclude-line>
         }
     }
 

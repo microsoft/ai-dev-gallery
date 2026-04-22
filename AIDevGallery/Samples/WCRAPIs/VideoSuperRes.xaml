@@ -1,8 +1,9 @@
-<local:BaseSamplePage
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
     x:Class="AIDevGallery.Samples.WCRAPIs.VideoSuperRes"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:AIDevGallery.Samples"
+    xmlns:samples="using:AIDevGallery.Samples"
     xmlns:ctControls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -55,4 +56,4 @@
             </Grid>
         </Grid>
     </Grid>
-</local:BaseSamplePage>
+</samples:BaseSamplePage>
