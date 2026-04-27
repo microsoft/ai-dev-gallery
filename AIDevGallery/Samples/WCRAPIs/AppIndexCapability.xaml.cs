@@ -199,54 +199,68 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
     {
         await Task.Run(() =>
         {
-            // First, delete any leftover temp index from a previous run
-            AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.FailIfInUse);
-
-            // Suppress both image capabilities to fully disable image content support.
-            // Per the IDL coupling rules:
-            //   - ImageOcr and ImageSemantic are independent; both must be Suppressed
-            //     to fully disable image content.
-            //   - If only one is Suppressed, image content is still partially supported.
-            var options = new GetOrCreateIndexOptions
+            try
             {
-                ImageOcrRequirement = IndexCapabilityRequirement.Suppressed,
-                ImageSemanticRequirement = IndexCapabilityRequirement.Suppressed,
-            };
+                // First, delete any leftover temp index from a previous run
+                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.ForceDelete);
 
-            var result = AppContentIndexer.GetOrCreateIndex("capabilityDemoSuppressed", options);
+                // Suppress both image capabilities to fully disable image content support.
+                // Per the IDL coupling rules:
+                //   - ImageOcr and ImageSemantic are independent; both must be Suppressed
+                //     to fully disable image content.
+                //   - If only one is Suppressed, image content is still partially supported.
+                var options = new GetOrCreateIndexOptions
+                {
+                    ImageOcrRequirement = IndexCapabilityRequirement.Suppressed,
+                    ImageSemanticRequirement = IndexCapabilityRequirement.Suppressed,
+                };
 
-            if (result.Succeeded)
+                var result = AppContentIndexer.GetOrCreateIndex("capabilityDemoSuppressed", options);
+
+                if (result.Succeeded)
+                {
+                    using var tempIndexer = result.Indexer;
+                    IndexCapabilities caps = tempIndexer.GetIndexCapabilities();
+
+                    // Read values before leaving the using block to avoid use-after-dispose
+                    var ocrState = caps.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus.ToString();
+                    var imgSemanticState = caps.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus.ToString();
+                    var textLexState = caps.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus.ToString();
+                    var textSemState = caps.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus.ToString();
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        suppressedOcrText.Text = ocrState;
+                        suppressedImageSemanticText.Text = imgSemanticState;
+                        suppressedTextLexicalText.Text = textLexState;
+                        suppressedTextSemanticText.Text = textSemState;
+                    });
+                }
+                else
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        suppressedOcrText.Text = $"Error: {result.Status}";
+                        suppressedImageSemanticText.Text = $"Error: {result.Status}";
+                        suppressedTextLexicalText.Text = $"Error: {result.Status}";
+                        suppressedTextSemanticText.Text = $"Error: {result.Status}";
+                    });
+                }
+
+                // Clean up the temporary index
+                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.ForceDelete);
+            }
+            catch (Exception ex)
             {
-                using var tempIndexer = result.Indexer;
-                IndexCapabilities caps = tempIndexer.GetIndexCapabilities();
-
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    // Image capabilities should show as Suppressed
-                    var ocrState = caps.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus;
-                    var imgSemanticState = caps.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus;
-                    var textLexState = caps.GetCapabilityState(IndexCapability.TextLexical).InitializationStatus;
-                    var textSemState = caps.GetCapabilityState(IndexCapability.TextSemantic).InitializationStatus;
-
-                    suppressedOcrText.Text = ocrState.ToString();
-                    suppressedImageSemanticText.Text = imgSemanticState.ToString();
-                    suppressedTextLexicalText.Text = textLexState.ToString();
-                    suppressedTextSemanticText.Text = textSemState.ToString();
+                    suppressedOcrText.Text = "Error";
+                    suppressedImageSemanticText.Text = "Error";
+                    suppressedTextLexicalText.Text = "Error";
+                    suppressedTextSemanticText.Text = "Error";
+                    Debug.WriteLine($"DemoSuppressedCapabilitiesAsync failed: {ex.Message}");
                 });
             }
-            else
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    suppressedOcrText.Text = $"Error: {result.Status}";
-                    suppressedImageSemanticText.Text = $"Error: {result.Status}";
-                    suppressedTextLexicalText.Text = $"Error: {result.Status}";
-                    suppressedTextSemanticText.Text = $"Error: {result.Status}";
-                });
-            }
-
-            // Clean up the temporary index
-            AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.FailIfInUse);
         });
     }
 

@@ -10,10 +10,6 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Padding="0,0,0,20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
             <StackPanel Spacing="16">
                 <!-- System Capabilities Section -->
                 <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Index Capabilities of Current System:" />
