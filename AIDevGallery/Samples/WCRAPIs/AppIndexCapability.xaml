@@ -8,71 +8,84 @@
     xmlns:samples="using:AIDevGallery.Samples"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel Spacing="8">
-            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Index Capabilities of Current System:" />
-            <StackPanel>
-                <!-- Lexical Text Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Lexical Text Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="lexicalCapabilityResultText"/>
-                </Grid>
-                <!-- Semantic Text Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Semantic Text Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="semanticCapabilityResultText"/>
-                </Grid>
-                <!-- OCR Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
-                    <TextBlock Grid.Column="0" Text="OCR Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="oCRCapabilityResultText"/>
-                </Grid>
-                <!-- Semantic Image Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Semantic Image Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="semanticImageCapabilityResultText"/>
-                </Grid>
-            </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="0,0,0,20">
+            <StackPanel Spacing="16">
+                <!-- System Capabilities Section -->
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Index Capabilities of Current System:" />
+                <StackPanel>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Lexical Text Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="lexicalCapabilityResultText"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Text Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="semanticCapabilityResultText"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="OCR Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="oCRCapabilityResultText"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Image Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="semanticImageCapabilityResultText"/>
+                    </Grid>
+                </StackPanel>
 
-            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Index Capabilities of Index Instance:" />
-            <StackPanel>
-                <!-- Lexical Text Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Lexical Text Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="indexLexicalCapabilityResultText" Text="Unavailable"/>
-                </Grid>
-                <!-- Semantic Text Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Semantic Text Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="indexSemanticCapabilityResultText" Text="Unavailable"/>
-                </Grid>
-                <!-- OCR Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
-                    <TextBlock Grid.Column="0" Text="OCR Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="indexOCRCapabilityResultText" Text="Unavailable"/>
-                </Grid>
-                <!-- Semantic Image Capability Status -->
-                <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
-                    <TextBlock Grid.Column="0" Text="Semantic Image Capability Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="indexSemanticImageCapabilityResultText" Text="Unavailable"/>
-                </Grid>
+                <!-- Index Instance Capabilities Section (default options) -->
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Index Capabilities of Index Instance (default options):" />
+                <StackPanel>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Lexical Text Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="indexLexicalCapabilityResultText" Text="Unavailable"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Text Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="indexSemanticCapabilityResultText" Text="Unavailable"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="OCR Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="indexOCRCapabilityResultText" Text="Unavailable"/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Image Capability Status:"/>
+                        <TextBlock Grid.Column="1" x:Name="indexSemanticImageCapabilityResultText" Text="Unavailable"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Suppressed Capabilities Demo Section -->
+                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Suppressed Capabilities Demo (ImageOcr + ImageSemantic suppressed via GetOrCreateIndexWithOptions):" />
+                <StackPanel>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Lexical Text:"/>
+                        <TextBlock Grid.Column="1" x:Name="suppressedTextLexicalText" Text="Loading..."/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Text:"/>
+                        <TextBlock Grid.Column="1" x:Name="suppressedTextSemanticText" Text="Loading..."/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowLightCardStyle}">
+                        <TextBlock Grid.Column="0" Text="OCR (suppressed):"/>
+                        <TextBlock Grid.Column="1" x:Name="suppressedOcrText" Text="Loading..."/>
+                    </Grid>
+                    <Grid Grid.ColumnDefinitions="*,*" Style="{StaticResource DesignRowCardStyle}">
+                        <TextBlock Grid.Column="0" Text="Semantic Image (suppressed):"/>
+                        <TextBlock Grid.Column="1" x:Name="suppressedImageSemanticText" Text="Loading..."/>
+                    </Grid>
+                </StackPanel>
+                
+                <InfoBar x:Name="IndexCapabilitiesMessage"
+                         IsOpen="False"
+                         Severity="Warning"
+                         IsClosable="False"
+                         Title="Some index capabilities are unavailable."
+                         Padding="0">
+                    <InfoBar.ActionButton>
+                        <HyperlinkButton Content="Windows AI Troubleshooting"
+                                         NavigateUri="https://learn.microsoft.com/en-us/windows/ai/apis/troubleshooting" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
             </StackPanel>
-            
-            <InfoBar x:Name="IndexCapabilitiesMessage"
-                     IsOpen="False"
-                     Severity="Warning"
-                     IsClosable="False"
-                     Title="Some index capabilities are unavailable."
-                     Padding="0">
-                <InfoBar.ActionButton>
-                    <HyperlinkButton Content="Windows AI Troubleshooting"
-                                     NavigateUri="https://learn.microsoft.com/en-us/windows/ai/apis/troubleshooting" />
-                </InfoBar.ActionButton>
-            </InfoBar>
-        </StackPanel>
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </samples:BaseSamplePage>

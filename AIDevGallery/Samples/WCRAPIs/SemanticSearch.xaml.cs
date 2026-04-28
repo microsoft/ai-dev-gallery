@@ -48,7 +48,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     // This is some text data that we want to add to the index:
     private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
-        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
+        { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. SautÃ© them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
         { "item3", "Domestic cats communicate through posture, tail flicks, and vocalizations. Play mimics hunting behaviors like stalking and pouncing, supporting agility and mental stimulation. Scratching maintains claws and marks territory, so provide sturdy posts. Balanced diets, hydration, and routine veterinary care sustain health. Safe retreats and vertical spaces reduce stress and encourage exploration." },
         { "item4", "Snowboarding across pristine slopes combines agility, balance, and speed. Riders carve smooth turns on powder, adjust stance for control, and master jumps in terrain parks. Essential gear includes boots, bindings, and helmets for safety. Embrace crisp alpine air while perfecting tricks and enjoying the thrill of winter adventure." },
@@ -82,6 +82,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         await Task.Run(async () =>
         {
+            // GetOrCreateIndex uses default options (all capabilities enabled).
+            // To selectively suppress capabilities, use GetOrCreateIndexWithOptions.
+            // Coupling rules to keep in mind:
+            //   - TextLexical suppression is only honored when TextSemantic is also
+            //     Suppressed (semantic text requires the lexical pipeline).
+            //   - ImageOcr and ImageSemantic are independent; both must be
+            //     Suppressed to fully disable image content.
             var result = AppContentIndexer.GetOrCreateIndex("semanticSearchIndex");
 
             if (!result.Succeeded)
@@ -274,15 +281,26 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                     if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
                         AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                        string matchingData = simpleTextData[match.ContentId];
-                        int offset = textResult.TextOffset;
-                        int length = textResult.TextLength;
-                        string matchingString = matchingData.Substring(offset, length);
-                        textResults += matchingString + "\n\n";
+                        if (simpleTextData.TryGetValue(match.ContentId, out string? matchingData))
+                        {
+                            int offset = textResult.TextOffset;
+                            int length = textResult.TextLength;
+
+                            // Guard against stale offsets after content updates
+                            if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
+                            {
+                                string matchingString = matchingData.Substring(offset, length);
+                                textResults += matchingString + "\n\n";
+                            }
+                            else
+                            {
+                                textResults += matchingData + "\n\n";
+                            }
+                        }
                     }
                 }
 
-                // Create text query
+                // Create image query
                 AppIndexImageQuery imageQuery = _indexer.CreateImageQuery(searchText, imageQueryOptions);
 
                 // Get image matches
@@ -550,7 +568,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             // Disable text sample if both text capabilities are unavailable
             textDataItemsView.IsEnabled = textLexicalAvailable || textSemanticAvailable;
-            uploadTextButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+            uploadTextButton.IsEnabled = textLexicalAvailable || textSemanticAvailable;
 
             // Disable image sample if both image capabilities are unavailable
             ImageDataItemsView.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
