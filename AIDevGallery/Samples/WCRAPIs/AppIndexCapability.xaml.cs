@@ -202,7 +202,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
             try
             {
                 // First, delete any leftover temp index from a previous run
-                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.ForceDelete);
+                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.DeferIfInUse);
 
                 // Suppress both image capabilities to fully disable image content support.
                 // Per the IDL coupling rules:
@@ -248,7 +248,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
                 }
 
                 // Clean up the temporary index
-                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.ForceDelete);
+                AppContentIndexer.DeleteIndex("capabilityDemoSuppressed", DeleteIndexWhileInUseBehavior.DeferIfInUse);
             }
             catch (Exception ex)
             {
