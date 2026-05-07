@@ -195,9 +195,9 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
                 }
 
                 // Scale the frame using VideoScaler
-                var result = _videoScaler!.ScaleFrame(inputD3dSurface, _outputD3dSurface, new VideoScalerOptions());
+                var result = _videoScaler!.Scale(inputD3dSurface, _outputD3dSurface, new VideoScalerOptions());
 
-                if (result.Status == ScaleFrameStatus.Success)
+                if (result.Status == VideoScalerStatus.Success)
                 {
                     var outputBitmap = await SoftwareBitmap.CreateCopyFromSurfaceAsync(
                         _outputD3dSurface,
