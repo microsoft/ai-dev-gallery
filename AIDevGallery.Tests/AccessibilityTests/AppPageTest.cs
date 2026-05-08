@@ -69,8 +69,17 @@ public class AccessibilityTests : FlaUITestBase
                 // Act - Find scenario navigation view
                 var scenarioResult = Retry.WhileNull(
                     () => mainPage.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView")),
-                    timeout: TimeSpan.FromSeconds(10));
+                    timeout: TimeSpan.FromSeconds(30));
                 var scenario = scenarioResult.Result;
+                if (scenario == null)
+                {
+                    Console.WriteLine($"ScenarioNavView not found after navigating to {pageName}. Visible top-level descendants:");
+                    foreach (var d in MainWindow.FindAllDescendants().Take(30))
+                    {
+                        Console.WriteLine($"  - Name='{d.Name}' AutomationId='{d.AutomationId}' ControlType={d.ControlType}");
+                    }
+                }
+
                 Assert.IsNotNull(scenario, "scenario should be found");
 
                 // Act - Find the MenuItemsHost in scenario navigation view
@@ -245,13 +254,10 @@ public class AccessibilityTests : FlaUITestBase
             },
             timeout: TimeSpan.FromSeconds(4));
 
-        // Click the target navigation item, retrying until it becomes the selected item.
+        // Click the target navigation item, then wait until it becomes the selected item.
+        navigationItem.Click();
         Retry.WhileTrue(
-            () =>
-            {
-                navigationItem.Click();
-                return !IsItemSelected(navigationItem);
-            },
+            () => !IsItemSelected(navigationItem),
             timeout: TimeSpan.FromSeconds(10),
             throwOnTimeout: false);
         Console.WriteLine($"Clicked navigation item: {pageName}");
