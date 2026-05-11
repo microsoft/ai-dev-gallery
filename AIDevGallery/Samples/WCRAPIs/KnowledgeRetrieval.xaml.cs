@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AI.Search.Experimental.AppContentIndex;
+using Microsoft.Windows.Search.AppContentIndex;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -139,7 +139,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
     {
         CancelResponse();
         _model?.Dispose();
-        _indexer?.RemoveAll();
+        _indexer?.RemoveAllContentItems();
         _indexer?.Dispose();
         _indexer = null;
     }
@@ -621,7 +621,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
         }
 
         // Remove item from index
-        _indexer.Remove(id);
+        _indexer.RemoveContentItem(id);
     }
 
     private void IndexTextData(string id, string value)

@@ -350,10 +350,6 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
-    <None Include="$(PkgMicrosoft_WindowsAppSDK_AI)\runtimes-framework\win-$(Platform)\native\*.onnxe" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  
   <!-- Exclude superfluous ORT and IHV libs when using Foundry Local WinML -->
   <Import Project="ExcludeExtraLibs.props"/>
   

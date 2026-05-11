@@ -7,7 +7,6 @@ using FlaUI.Core.Tools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace AIDevGallery.Tests.AccessibilityTests;
 
@@ -68,7 +67,19 @@ public class AccessibilityTests : FlaUITestBase
             if (pagesToDeepTest.Contains(pageName))
             {
                 // Act - Find scenario navigation view
-                var scenario = mainPage.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView"));
+                var scenarioResult = Retry.WhileNull(
+                    () => mainPage.FindFirstDescendant(cf => cf.ByAutomationId("ScenarioNavView")),
+                    timeout: TimeSpan.FromSeconds(30));
+                var scenario = scenarioResult.Result;
+                if (scenario == null)
+                {
+                    Console.WriteLine($"ScenarioNavView not found after navigating to {pageName}. Visible top-level descendants:");
+                    foreach (var d in MainWindow.FindAllDescendants().Take(30))
+                    {
+                        Console.WriteLine($"  - Name='{d.Name}' AutomationId='{d.AutomationId}' ControlType={d.ControlType}");
+                    }
+                }
+
                 Assert.IsNotNull(scenario, "scenario should be found");
 
                 // Act - Find the MenuItemsHost in scenario navigation view
@@ -242,9 +253,14 @@ public class AccessibilityTests : FlaUITestBase
                 return !IsItemSelected(settingItem);
             },
             timeout: TimeSpan.FromSeconds(4));
+
+        // Click the target navigation item, then wait until it becomes the selected item.
         navigationItem.Click();
+        Retry.WhileTrue(
+            () => !IsItemSelected(navigationItem),
+            timeout: TimeSpan.FromSeconds(10),
+            throwOnTimeout: false);
         Console.WriteLine($"Clicked navigation item: {pageName}");
-        Thread.Sleep(2000); // Wait for page to load
         return true;
     }
 
