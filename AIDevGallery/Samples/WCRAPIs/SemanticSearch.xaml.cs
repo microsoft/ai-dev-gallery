@@ -82,6 +82,13 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         await Task.Run(async () =>
         {
+            // GetOrCreateIndex uses default options (all capabilities enabled).
+            // To selectively suppress capabilities, use GetOrCreateIndexWithOptions.
+            // Coupling rules to keep in mind:
+            //   - TextLexical suppression is only honored when TextSemantic is also
+            //     Suppressed (semantic text requires the lexical pipeline).
+            //   - ImageOcr and ImageSemantic are independent; both must be
+            //     Suppressed to fully disable image content.
             var result = AppContentIndexer.GetOrCreateIndex("semanticSearchIndex");
 
             if (!result.Succeeded)
@@ -273,15 +280,26 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                     if (match.ContentKind == QueryMatchContentKind.AppManagedText)
                     {
                         AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                        string matchingData = simpleTextData[match.ContentId];
-                        int offset = textResult.TextOffset;
-                        int length = textResult.TextLength;
-                        string matchingString = matchingData.Substring(offset, length);
-                        textResults += matchingString + "\n\n";
+                        if (simpleTextData.TryGetValue(match.ContentId, out string? matchingData))
+                        {
+                            int offset = textResult.TextOffset;
+                            int length = textResult.TextLength;
+
+                            // Guard against stale offsets after content updates
+                            if (offset >= 0 && offset < matchingData.Length && length > 0 && offset + length <= matchingData.Length)
+                            {
+                                string matchingString = matchingData.Substring(offset, length);
+                                textResults += matchingString + "\n\n";
+                            }
+                            else
+                            {
+                                textResults += matchingData + "\n\n";
+                            }
+                        }
                     }
                 }
 
-                // Create text query
+                // Create image query
                 AppIndexImageQuery imageQuery = _indexer.CreateImageQuery(searchText, imageQueryOptions);
 
                 // Get image matches
@@ -549,7 +567,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             // Disable text sample if both text capabilities are unavailable
             textDataItemsView.IsEnabled = textLexicalAvailable || textSemanticAvailable;
-            uploadTextButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+            uploadTextButton.IsEnabled = textLexicalAvailable || textSemanticAvailable;
 
             // Disable image sample if both image capabilities are unavailable
             ImageDataItemsView.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
