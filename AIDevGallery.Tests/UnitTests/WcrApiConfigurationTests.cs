@@ -95,6 +95,7 @@ public class WcrApiConfigurationTests
         ModelType.SemanticSearch,
         ModelType.KnowledgeRetrieval,
         ModelType.AppIndexCapability,
+        ModelType.IndexStatistics,
     };
 
     [TestMethod]

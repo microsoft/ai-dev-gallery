@@ -127,7 +127,6 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer?.RemoveAllContentItems();
         _indexer?.Dispose();
         _indexer = null;
     }

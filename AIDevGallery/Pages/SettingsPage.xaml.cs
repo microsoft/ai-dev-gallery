@@ -125,14 +125,14 @@ internal sealed partial class SettingsPage : Page
                 var results = new List<(string Name, string Path, long Size)>();
                 long total = 0;
 
-                if (Directory.Exists(appContentIndicesFolder))
+                var existingIndexes = AppContentIndexer.GetExistingIndexes();
+                foreach (var indexName in existingIndexes)
                 {
-                    var indexFolders = Directory.GetDirectories(appContentIndicesFolder);
-                    foreach (var folder in indexFolders)
+                    var folder = Path.Combine(appContentIndicesFolder, indexName);
+                    if (Directory.Exists(folder))
                     {
                         var indexSize = GetDirectorySize(folder);
-                        var folderName = Path.GetFileName(folder);
-                        results.Add((folderName, folder, indexSize));
+                        results.Add((indexName, folder, indexSize));
                         total += indexSize;
                     }
                 }
