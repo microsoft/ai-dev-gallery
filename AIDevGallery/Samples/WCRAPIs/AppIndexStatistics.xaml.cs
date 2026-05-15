@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Globalization;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.UI;
@@ -15,6 +14,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -512,4 +512,3 @@ internal sealed partial class AppIndexStatistics : BaseSamplePage
         }
     }
 }
-
