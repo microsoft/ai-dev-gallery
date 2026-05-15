@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Globalization;
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using Microsoft.UI;
@@ -364,7 +365,7 @@ internal sealed partial class AppIndexStatistics : BaseSamplePage
             if (statsByType.TryGetValue(segment.Type, out var count))
             {
                 segment.Width = total > 0 ? count : 0;
-                segment.Count = count > 0 ? count.ToString() : string.Empty;
+                segment.Count = count > 0 ? count.ToString(CultureInfo.InvariantCulture) : string.Empty;
                 segment.Tooltip = $"{segment.Title.Replace(" Items", string.Empty)}: {count}";
             }
         }
@@ -500,7 +501,7 @@ internal sealed partial class AppIndexStatistics : BaseSamplePage
                 + $"Status: {statusResult.Status}\n\n"
                 + $"=== Error Information ===\n"
                 + $"Extended Error: {statusResult.ExtendedError?.Message ?? "None"}\n"
-                + $"HRESULT: 0x{(statusResult.ExtendedError != null ? statusResult.ExtendedError.HResult.ToString("X8") : "00000000")}\n\n"
+                + $"HRESULT: 0x{(statusResult.ExtendedError != null ? statusResult.ExtendedError.HResult.ToString("X8", CultureInfo.InvariantCulture) : "00000000")}\n\n"
                 + $"Error Detail: {statusResult.ErrorDetail}\n\n\n"
                 + $"=== Reindexing Status ===\n"
                 + $"Status: {statusResult.ReindexingStatus}\n\n";
@@ -511,3 +512,4 @@ internal sealed partial class AppIndexStatistics : BaseSamplePage
         }
     }
 }
+
