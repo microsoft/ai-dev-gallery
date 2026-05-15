@@ -198,6 +198,17 @@
         "SampleIdToShowInDocs": "3edb639a-a7ca-4885-bc95-5f1ddd29b2c3",
         "Category": "App Content Search"
       },
+      "IndexStatistics": {
+        "Id": "7e2f4a89-3b61-4c2d-9e8f-a5d1b3c7e2f4",
+        "Name": "Index Statistics",
+        "Icon": "WCRAPI.svg",
+        "IconGlyph": "\uE9D9",
+        "Description": "View indexing statistics and content item status.",
+        "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/app-content-search-tutorial.md",
+        "License": "ms-pl",
+        "SampleIdToShowInDocs": "7e2f4a89-3b61-4c2d-9e8f-a5d1b3c7e2f4",
+        "Category": "App Content Search"
+      },
       "VideoSuperRes": {
         "Id": "1698eb3d-6c4f-4de0-aab8-72edca349eec",
         "Name": "Video Super Resolution",

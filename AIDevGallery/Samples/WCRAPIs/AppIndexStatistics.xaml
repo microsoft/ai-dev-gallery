@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.AppIndexStatistics"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AIDevGallery.Samples.WCRAPIs"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+
+    <samples:BaseSamplePage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="StatReindexingFillBrush" Color="#881798" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="StatReindexingFillBrush" Color="#B4A0FF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="StatReindexingFillBrush"
+                                     Color="{ThemeResource SystemColorHotlightColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <Style x:Key="BarButtonStyle" TargetType="Button">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="RootGrid"
+                                  Background="{TemplateBinding Background}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverOverlay"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0.5"
+                                                    Duration="0:0:0.15" />
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="HoverOverlay"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0.7"
+                                                    Duration="0:0:0.05" />
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <Border x:Name="HoverOverlay"
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        Opacity="0"
+                                        IsHitTestVisible="False" />
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </samples:BaseSamplePage.Resources>
+
+    <Grid>
+        <StackPanel Spacing="8" Margin="0">
+            <!-- Header -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!-- Index Selector -->
+                <ComboBox x:Name="IndexSelectorComboBox"
+                          Grid.Column="0"
+                          Width="250"
+                          HorizontalAlignment="Left"
+                          PlaceholderText="Select an index..."
+                          AutomationProperties.Name="Select an index"
+                          SelectionChanged="IndexSelectorComboBox_SelectionChanged" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Total Items in Index:"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="totalItemCountText"
+                                   Text="0"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button x:Name="ReindexButton"
+                            Click="ReindexButton_Click"
+                            IsEnabled="False"
+                            AutomationProperties.Name="Re-index"
+                            ToolTipService.ToolTip="Re-index app content"
+                            Padding="8">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Viewbox Width="14">
+                                <SymbolIcon Symbol="Refresh" />
+                            </Viewbox>
+                            <TextBlock Text="Re-index" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Stacked Bar Chart -->
+            <Border x:Name="BarChartBorder"
+                    CornerRadius="12"
+                    Margin="0,8,0,8"
+                    Height="32"
+                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                    SizeChanged="BarChartBorder_SizeChanged">
+                <Grid>
+                    <ItemsControl x:Name="BarChartItems"
+                                  ItemsSource="{x:Bind BarChartSegments}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.ChildrenTransitions>
+                                        <RepositionThemeTransition />
+                                        <AddDeleteThemeTransition />
+                                    </StackPanel.ChildrenTransitions>
+                                </StackPanel>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:BarChartSegment">
+                                <Button Style="{StaticResource BarButtonStyle}"
+                                        Background="{x:Bind Background}"
+                                        Width="{x:Bind PixelWidth, Mode=OneWay}"
+                                        Click="BarChartButton_Click"
+                                        VerticalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        AutomationProperties.Name="{x:Bind Tooltip, Mode=OneWay}"
+                                        ToolTipService.ToolTip="{x:Bind Tooltip, Mode=OneWay}">
+                                    <TextBlock Text="{x:Bind Count, Mode=OneWay}"
+                                               FontSize="10"
+                                               FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Loading overlay -->
+                    <Border x:Name="BarChartLoadingOverlay"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="12"
+                            Visibility="Collapsed">
+                        <TextBlock Text="Loading..."
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   FontStyle="Italic"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Legend -->
+            <StackPanel Orientation="Horizontal"
+                        Spacing="16"
+                        HorizontalAlignment="Center"
+                        Margin="0,4,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource SystemFillColorSuccessBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="Completed" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource SystemFillColorNeutralBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="Not Started" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource SystemFillColorAttentionBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="In Progress" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource SystemFillColorCriticalBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="Errors" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource SystemFillColorCautionBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="Pending Deletion" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{ThemeResource StatReindexingFillBrush}"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="Reindexing" FontSize="11"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Indexing in Progress Status -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <TextBlock Text="Indexing in Progress:"
+                           FontSize="11"
+                           Margin="0,0,8,0" />
+                <TextBlock x:Name="indexingInProgressText"
+                           FontSize="11"
+                           Text="-" />
+            </StackPanel>
+
+            <!-- Content Items Display -->
+            <StackPanel x:Name="ContentItemsPanel"
+                        Visibility="Collapsed"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12"
+                        Margin="0,8,0,0"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="ContentItemsTitle"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               VerticalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <Button Grid.Column="1"
+                            Content="Close"
+                            Click="CloseContentItems_Click" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ItemsView x:Name="ContentItemsView"
+                               MaxHeight="300"
+                               Margin="0,8,0,0"
+                               SelectionMode="None"
+                               IsItemInvokedEnabled="True"
+                               ItemInvoked="ContentItemsView_ItemInvoked">
+                        <ItemsView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <ItemContainer AutomationProperties.Name="{x:Bind}">
+                                    <TextBlock Text="{x:Bind}"
+                                               Margin="4,2"
+                                               FontFamily="Consolas"
+                                               FontSize="12" />
+                                </ItemContainer>
+                            </DataTemplate>
+                        </ItemsView.ItemTemplate>
+                    </ItemsView>
+
+                    <!-- Content Item Status Details -->
+                    <TextBox x:Name="ContentItemStatusTextBox"
+                             Grid.Column="1"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             FontFamily="Consolas"
+                             FontSize="12"
+                             Margin="8,8,0,0"
+                             AutomationProperties.Name="Content item status details"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</samples:BaseSamplePage>
