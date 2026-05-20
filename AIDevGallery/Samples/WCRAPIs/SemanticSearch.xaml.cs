@@ -42,11 +42,13 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 internal sealed partial class SemanticSearch : BaseSamplePage
 {
+    private const double ImageResultDisplayWidth = 150;
+
     private ObservableCollection<TextDataItem> TextDataItems { get; } = new();
     private ObservableCollection<ImageDataItem> ImageDataItems { get; } = new();
 
     // This is some text data that we want to add to the index:
-    private Dictionary<string, string> simpleTextData = new Dictionary<string, string>
+    private readonly Dictionary<string, string> simpleTextData = new Dictionary<string, string>
     {
         { "item1", "Preparing a hearty vegetable stew begins with chopping fresh carrots, onions, and celery. Sauté them in olive oil until fragrant, then add diced tomatoes, herbs, and vegetable broth. Simmer gently for an hour, allowing flavors to meld into a comforting dish perfect for cold evenings." },
         { "item2", "Modern exhibition design combines narrative flow with spatial strategy. Lighting emphasizes focal objects while circulation paths avoid bottlenecks. Materials complement artifacts without visual competition. Interactive elements invite engagement but remain intuitive. Environmental controls protect sensitive works. Success balances scholarship, aesthetics, and visitor experience through thoughtful, cohesive design choices." },
@@ -55,15 +57,23 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         { "item5", "Urban beekeeping thrives with diverse forage across seasons. Rooftop hives benefit from trees, herbs, and staggered blooms. Provide shallow water sources and shade to counter heat stress. Prevent swarms through timely inspections and splits. Monitor mites with sugar rolls and rotate treatments. Honey reflects city terroir with surprising floral complexity." }
     };
 
-    private Dictionary<string, string> simpleImageData = new Dictionary<string, string>
+    private readonly Dictionary<string, string> simpleImageData = new Dictionary<string, string>
     {
         { "image1", "ms-appx:///Assets/InteriorDesign.png" },
         { "image2", "ms-appx:///Assets/TofuBowlRecipe.png" },
         { "image3", "ms-appx:///Assets/ShakshukaRecipe.png" },
     };
 
+    private readonly Dictionary<string, ImageDimensions> _imageDimensions = new();
     private AppContentIndexer? _indexer;
-    private CancellationTokenSource cts = new();
+    private AppIndexTextQuerySession? _suggestionTextQuerySession;
+    private AppIndexImageQuerySession? _suggestionImageQuerySession;
+    private CancellationTokenSource? _querySubmittedCts = new();
+    private string? _suggestionTextQueryOptionsSignature;
+    private string? _suggestionImageQueryOptionsSignature;
+    private string? _currentSuggestionQueryText;
+    private List<SearchSuggestionItem> _lastTextSuggestionItems = new();
+    private List<SearchSuggestionItem> _lastImageSuggestionItems = new();
 
     public SemanticSearch()
     {
@@ -127,9 +137,16 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
     private void CleanUp()
     {
-        _indexer?.RemoveAllContentItems();
-        _indexer?.Dispose();
-        _indexer = null;
+        StopSuggestionQuerySession();
+        CancelQuerySubmitted();
+
+        if (_indexer != null)
+        {
+            _indexer.Listener.IndexCapabilitiesChanged -= Listener_IndexCapabilitiesChanged;
+            _indexer.RemoveAllContentItems();
+            _indexer.Dispose();
+            _indexer = null;
+        }
     }
 
     // Update and index local test text data on TextBox text changed
@@ -159,7 +176,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 await Task.Run(async () =>
                 {
                     IndexTextData(id, value);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+                    var indexer = _indexer;
+                    if (indexer != null)
+                    {
+                        await indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+                    }
                 });
             }
 
@@ -207,7 +228,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 await Task.Run(async () =>
                 {
                     IndexImageData(id, bitmap);
-                    var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+                    var indexer = _indexer;
+                    if (indexer != null)
+                    {
+                        await indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+                    }
                 });
             }
 
@@ -215,9 +240,65 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
-    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            return;
+        }
+
+        var indexer = _indexer;
+        if (indexer == null)
+        {
+            SetSearchSuggestions([]);
+            return;
+        }
+
+        string searchText = sender.Text;
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            _currentSuggestionQueryText = null;
+            _lastTextSuggestionItems.Clear();
+            _lastImageSuggestionItems.Clear();
+            SetSearchSuggestions([]);
+            StopSuggestionQuerySession();
+            return;
+        }
+
+        try
+        {
+            _currentSuggestionQueryText = searchText;
+            _lastTextSuggestionItems.Clear();
+            _lastImageSuggestionItems.Clear();
+
+            TextQueryOptions textQueryOptions = CreateTextQueryOptions();
+            ImageQueryOptions imageQueryOptions = CreateImageQueryOptions();
+
+            AppIndexTextQuerySession textQuerySession = GetOrCreateSuggestionTextQuerySession(indexer, textQueryOptions);
+            AppIndexImageQuerySession imageQuerySession = GetOrCreateSuggestionImageQuerySession(indexer, imageQueryOptions);
+
+            SetSearchSuggestions([SearchSuggestionItem.Searching(searchText)]);
+
+            textQuerySession.UpdateQueryPhrase(searchText);
+            imageQuerySession.UpdateQueryPhrase(searchText);
+        }
+        catch (Exception ex)
+        {
+            SetSearchSuggestions([SearchSuggestionItem.Error(searchText)]);
+            ResultStatusTextBlock.Text = "Unable to update search suggestions.";
+            ShowException(ex, "Failed to update search suggestions.");
+        }
+    }
+
+    private async void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
         string searchText = SearchBox.Text;
+        if (args.ChosenSuggestion is SearchSuggestionItem chosenSuggestion && !chosenSuggestion.IsPlaceholder)
+        {
+            searchText = chosenSuggestion.QueryText;
+            SearchBox.Text = searchText;
+        }
+
         if (string.IsNullOrWhiteSpace(searchText))
         {
             Debug.WriteLine("Search text is empty.");
@@ -230,111 +311,98 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             return;
         }
 
+        AppContentIndexer indexer = _indexer;
         ResultsGrid.Visibility = Visibility.Visible;
         ResultStatusTextBlock.Text = "Searching...";
+        ResultsTextBlock.Text = string.Empty;
+        ResultsTextBlock.Visibility = Visibility.Collapsed;
+        ImageResultsBox.ItemsSource = null;
+        ImageResultsBox.Visibility = Visibility.Collapsed;
 
-        // Create text query options
-        TextQueryOptions textQueryOptions = new TextQueryOptions();
-
-        // Set language if provided
-        string queryLanguage = QueryLanguageTextBox.Text;
-        if (!string.IsNullOrWhiteSpace(queryLanguage))
-        {
-            textQueryOptions.Language = queryLanguage;
-        }
-
-        // text query options
-        textQueryOptions.MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex;
-        textQueryOptions.TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex;
-
-        // Create image match options
-        ImageQueryOptions imageQueryOptions = new ImageQueryOptions
-        {
-            MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex
-        };
-
+        // Snapshot query options on the UI thread (they read from ComboBoxes/TextBoxes).
+        TextQueryOptions textQueryOptions = CreateTextQueryOptions();
+        ImageQueryOptions imageQueryOptions = CreateImageQueryOptions();
         CancellationToken ct = CancelGenerationAndGetNewToken();
 
-        string textResults = string.Empty;
-        var imageResults = new List<string>();
+        // Do NOT stop the suggestion sessions here. Disposing the suggestion sessions
+        // immediately before invoking the one-shot CreateTextQuery / CreateImageQuery on the
+        // same indexer was observed to leave the indexer in a state that caused the one-shot
+        // queries to throw ("Failed to search indexed content."). The suggestion sessions are
+        // designed to run independently; they will be recycled the next time the user types
+        // or when the page is unloaded via CleanUp().
+        try
+        {
+            var matches = await Task.Run(
+                () =>
+                {
+                    ct.ThrowIfCancellationRequested();
 
-        Task.Run(
-            () =>
+                    AppIndexTextQuery textQuery = indexer.CreateTextQuery(searchText, textQueryOptions);
+
+                    // Materialize the IVectorView into a plain List on the worker thread so we
+                    // never enumerate the COM-projected collection from a different apartment.
+                    List<TextQueryMatch> textMatches = textQuery.GetNextMatches(5).ToList();
+
+                    ct.ThrowIfCancellationRequested();
+
+                    AppIndexImageQuery imageQuery = indexer.CreateImageQuery(searchText, imageQueryOptions);
+                    List<ImageQueryMatch> imageMatches = imageQuery.GetNextMatches(5).ToList();
+
+                    return (TextMatches: (IReadOnlyList<TextQueryMatch>)textMatches, ImageMatches: (IReadOnlyList<ImageQueryMatch>)imageMatches);
+                },
+                ct);
+
+            if (ct.IsCancellationRequested)
             {
-                // Create text query
-                AppIndexTextQuery textQuery = _indexer.CreateTextQuery(searchText, textQueryOptions);
+                return;
+            }
 
-                // Get text matches
-                IReadOnlyList<TextQueryMatch> textMatches = textQuery.GetNextMatches(5);
+            List<string> textResults = GetTextMatchDisplayItems(matches.TextMatches);
+            List<SearchImageResult> imageResults = GetImageMatchDisplayItems(matches.ImageMatches, matches.TextMatches);
 
-                foreach (var match in textMatches)
-                {
-                    Debug.WriteLine(match.ContentId);
-                    if (match.ContentKind == QueryMatchContentKind.AppManagedText)
-                    {
-                        AppManagedTextQueryMatch textResult = (AppManagedTextQueryMatch)match;
-                        string matchingData = simpleTextData[match.ContentId];
-                        int offset = textResult.TextOffset;
-                        int length = textResult.TextLength;
-                        string matchingString = matchingData.Substring(offset, length);
-                        textResults += matchingString + "\n\n";
-                    }
-                }
+            if (textResults.Count == 0 && imageResults.Count == 0)
+            {
+                ResultStatusTextBlock.Text = "No results found.";
+            }
+            else
+            {
+                ResultStatusTextBlock.Text = "Search Results:";
+            }
 
-                // Create text query
-                AppIndexImageQuery imageQuery = _indexer.CreateImageQuery(searchText, imageQueryOptions);
+            if (textResults.Count > 0)
+            {
+                ResultsTextBlock.Visibility = Visibility.Visible;
+                ResultsTextBlock.Text = string.Join("\n\n", textResults);
+            }
+            else
+            {
+                ResultsTextBlock.Visibility = Visibility.Collapsed;
+            }
 
-                // Get image matches
-                IReadOnlyList<ImageQueryMatch> imageMatches = imageQuery.GetNextMatches(5);
-
-                foreach (var match in imageMatches)
-                {
-                    Debug.WriteLine(match.ContentId);
-                    if (match.ContentKind == QueryMatchContentKind.AppManagedImage)
-                    {
-                        AppManagedImageQueryMatch imageResult = (AppManagedImageQueryMatch)match;
-
-                        if (simpleImageData.TryGetValue(imageResult.ContentId, out var imagePath))
-                        {
-                            imageResults.Add(imagePath);
-                        }
-                    }
-                }
-
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    if (textMatches.Count == 0 && imageResults.Count == 0)
-                    {
-                        ResultStatusTextBlock.Text = "No results found.";
-                    }
-                    else
-                    {
-                        ResultStatusTextBlock.Text = "Search Results:";
-                    }
-
-                    if (textMatches.Count > 0)
-                    {
-                        ResultsTextBlock.Visibility = Visibility.Visible;
-                        ResultsTextBlock.Text = textResults;
-                    }
-                    else
-                    {
-                        ResultsTextBlock.Visibility = Visibility.Collapsed;
-                    }
-
-                    if (imageResults.Count > 0)
-                    {
-                        ImageResultsBox.ItemsSource = imageResults;
-                        ImageResultsBox.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        ImageResultsBox.ItemsSource = null;
-                        ImageResultsBox.Visibility = Visibility.Collapsed;
-                    }
-                });
-            },
-            ct);
+            if (imageResults.Count > 0)
+            {
+                ImageResultsBox.ItemsSource = imageResults;
+                ImageResultsBox.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ImageResultsBox.ItemsSource = null;
+                ImageResultsBox.Visibility = Visibility.Collapsed;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            // Surface the actual exception message so the failure is diagnosable in the UI,
+            // not just a generic "Failed to search indexed content." string.
+            ResultStatusTextBlock.Text = $"Search failed: {ex.Message}";
+            ResultsTextBlock.Visibility = Visibility.Collapsed;
+            ImageResultsBox.ItemsSource = null;
+            ImageResultsBox.Visibility = Visibility.Collapsed;
+            ShowException(ex);
+        }
     }
 
     private async void AddTextDataButton_Click(object sender, RoutedEventArgs e)
@@ -488,6 +556,8 @@ internal sealed partial class SemanticSearch : BaseSamplePage
             return;
         }
 
+        _imageDimensions[id] = new ImageDimensions(bitmap.PixelWidth, bitmap.PixelHeight);
+
         // Index image content
         IndexableAppContent imageContent = AppManagedIndexableAppContent.CreateFromBitmap(id, bitmap);
         _indexer.AddOrUpdate(imageContent);
@@ -497,14 +567,17 @@ internal sealed partial class SemanticSearch : BaseSamplePage
     {
         IndexingMessage.IsOpen = true;
 
+        var textDataSnapshot = simpleTextData.ToList();
+        var imageDataSnapshot = simpleImageData.ToList();
+
         await Task.Run(async () =>
         {
-            foreach (var kvp in simpleTextData)
+            foreach (var kvp in textDataSnapshot)
             {
                 IndexTextData(kvp.Key, kvp.Value);
             }
 
-            foreach (var kvp in simpleImageData)
+            foreach (var kvp in imageDataSnapshot)
             {
                 SoftwareBitmap? bitmap = await LoadBitmap(kvp.Value);
                 if (bitmap != null)
@@ -513,7 +586,11 @@ internal sealed partial class SemanticSearch : BaseSamplePage
                 }
             }
 
-            var isIdle = await _indexer?.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+            var indexer = _indexer;
+            if (indexer != null)
+            {
+                await indexer.WaitForIndexingIdleAsync(TimeSpan.FromSeconds(120));
+            }
         });
 
         IndexingMessage.IsOpen = false;
@@ -549,7 +626,7 @@ internal sealed partial class SemanticSearch : BaseSamplePage
 
             // Disable text sample if both text capabilities are unavailable
             textDataItemsView.IsEnabled = textLexicalAvailable || textSemanticAvailable;
-            uploadTextButton.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
+            uploadTextButton.IsEnabled = textLexicalAvailable || textSemanticAvailable;
 
             // Disable image sample if both image capabilities are unavailable
             ImageDataItemsView.IsEnabled = imageSemanticAvailable || imageOcrAvailable;
@@ -640,11 +717,481 @@ internal sealed partial class SemanticSearch : BaseSamplePage
         }
     }
 
+    private AppIndexTextQuerySession GetOrCreateSuggestionTextQuerySession(AppContentIndexer indexer, TextQueryOptions textQueryOptions)
+    {
+        string optionsSignature = GetTextQueryOptionsSignature();
+        if (_suggestionTextQuerySession == null || _suggestionTextQueryOptionsSignature != optionsSignature)
+        {
+            StopSuggestionTextQuerySession();
+
+            _suggestionTextQuerySession = indexer.CreateTextQuerySession();
+            _suggestionTextQuerySession.DesiredMatchesPerResult = Math.Min(5, AppIndexTextQuerySession.MaxMatchesPerResult);
+            _suggestionTextQuerySession.ResultChanged += SuggestionTextQuerySession_ResultChanged;
+            _suggestionTextQuerySession.Start(textQueryOptions);
+            _suggestionTextQueryOptionsSignature = optionsSignature;
+        }
+
+        return _suggestionTextQuerySession;
+    }
+
+    private AppIndexImageQuerySession GetOrCreateSuggestionImageQuerySession(AppContentIndexer indexer, ImageQueryOptions imageQueryOptions)
+    {
+        string optionsSignature = GetImageQueryOptionsSignature();
+        if (_suggestionImageQuerySession == null || _suggestionImageQueryOptionsSignature != optionsSignature)
+        {
+            StopSuggestionImageQuerySession();
+
+            _suggestionImageQuerySession = indexer.CreateImageQuerySession();
+            _suggestionImageQuerySession.DesiredMatchesPerResult = Math.Min(5, AppIndexImageQuerySession.MaxMatchesPerResult);
+            _suggestionImageQuerySession.ResultChanged += SuggestionImageQuerySession_ResultChanged;
+            _suggestionImageQuerySession.Start(imageQueryOptions);
+            _suggestionImageQueryOptionsSignature = optionsSignature;
+        }
+
+        return _suggestionImageQuerySession;
+    }
+
+    private void SuggestionTextQuerySession_ResultChanged(AppIndexTextQuerySession sender, object args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!ReferenceEquals(_suggestionTextQuerySession, sender))
+            {
+                return;
+            }
+
+            try
+            {
+                TextQuerySessionResult result = sender.GetResult();
+                if (!result.IsValid ||
+                    !string.Equals(_currentSuggestionQueryText, result.QueryPhrase, StringComparison.Ordinal) ||
+                    !string.Equals(SearchBox.Text, result.QueryPhrase, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                _lastTextSuggestionItems = GetTextMatchSuggestionItems(result.Matches, result.QueryPhrase);
+                UpdateCombinedSuggestions();
+            }
+            catch (Exception ex)
+            {
+                SearchBox.ItemsSource = null;
+                ResultStatusTextBlock.Text = "Unable to update search suggestions.";
+                ShowException(ex, "Failed to update search suggestions.");
+            }
+        });
+    }
+
+    private void SuggestionImageQuerySession_ResultChanged(AppIndexImageQuerySession sender, object args)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!ReferenceEquals(_suggestionImageQuerySession, sender))
+            {
+                return;
+            }
+
+            try
+            {
+                ImageQuerySessionResult result = sender.GetResult();
+                if (!result.IsValid ||
+                    !string.Equals(_currentSuggestionQueryText, result.QueryPhrase, StringComparison.Ordinal) ||
+                    !string.Equals(SearchBox.Text, result.QueryPhrase, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                _lastImageSuggestionItems = GetImageMatchSuggestionItems(result.Matches, result.QueryPhrase);
+                UpdateCombinedSuggestions();
+            }
+            catch (Exception ex)
+            {
+                SearchBox.ItemsSource = null;
+                ResultStatusTextBlock.Text = "Unable to update search suggestions.";
+                ShowException(ex, "Failed to update search suggestions.");
+            }
+        });
+    }
+
+    private void UpdateCombinedSuggestions()
+    {
+        // Merge the latest text-session and image-session suggestions into a single dropdown.
+        // The AutoSuggestBox dropdown is refreshed every time either session completes a query,
+        // so the user sees image (and semantic-image) hits alongside text/OCR hits as they type.
+        var combined = new List<SearchSuggestionItem>(_lastTextSuggestionItems.Count + _lastImageSuggestionItems.Count);
+        combined.AddRange(_lastTextSuggestionItems);
+        combined.AddRange(_lastImageSuggestionItems);
+        SetSearchSuggestions(combined);
+    }
+
+    private void StopSuggestionQuerySession()
+    {
+        StopSuggestionTextQuerySession();
+        StopSuggestionImageQuerySession();
+    }
+
+    private void StopSuggestionTextQuerySession()
+    {
+        if (_suggestionTextQuerySession == null)
+        {
+            return;
+        }
+
+        _suggestionTextQuerySession.ResultChanged -= SuggestionTextQuerySession_ResultChanged;
+        _suggestionTextQuerySession.Stop();
+        _suggestionTextQuerySession.Dispose();
+        _suggestionTextQuerySession = null;
+        _suggestionTextQueryOptionsSignature = null;
+    }
+
+    private void StopSuggestionImageQuerySession()
+    {
+        if (_suggestionImageQuerySession == null)
+        {
+            return;
+        }
+
+        _suggestionImageQuerySession.ResultChanged -= SuggestionImageQuerySession_ResultChanged;
+        _suggestionImageQuerySession.Stop();
+        _suggestionImageQuerySession.Dispose();
+        _suggestionImageQuerySession = null;
+        _suggestionImageQueryOptionsSignature = null;
+    }
+
+    private TextQueryOptions CreateTextQueryOptions()
+    {
+        var textQueryOptions = new TextQueryOptions
+        {
+            MatchScope = (QueryMatchScope)TextMatchScopeComboBox.SelectedIndex,
+            TextMatchType = (TextLexicalMatchType)TextMatchTypeComboBox.SelectedIndex,
+        };
+
+        string queryLanguage = QueryLanguageTextBox.Text;
+        if (!string.IsNullOrWhiteSpace(queryLanguage))
+        {
+            textQueryOptions.Language = queryLanguage;
+        }
+
+        return textQueryOptions;
+    }
+
+    private ImageQueryOptions CreateImageQueryOptions()
+    {
+        var imageQueryOptions = new ImageQueryOptions
+        {
+            MatchScope = (QueryMatchScope)ImageMatchScopeComboBox.SelectedIndex
+        };
+
+        string queryLanguage = QueryLanguageTextBox.Text;
+        if (!string.IsNullOrWhiteSpace(queryLanguage))
+        {
+            imageQueryOptions.Language = queryLanguage;
+        }
+
+        return imageQueryOptions;
+    }
+
+    private string GetTextQueryOptionsSignature()
+    {
+        return $"{TextMatchScopeComboBox.SelectedIndex}|{TextMatchTypeComboBox.SelectedIndex}|{QueryLanguageTextBox.Text.Trim()}";
+    }
+
+    private string GetImageQueryOptionsSignature()
+    {
+        return $"{ImageMatchScopeComboBox.SelectedIndex}|{QueryLanguageTextBox.Text.Trim()}";
+    }
+
+    private void SetSearchSuggestions(List<SearchSuggestionItem> suggestions)
+    {
+        SearchBox.ItemsSource = suggestions.Count == 0 ? null : suggestions;
+        SearchBox.IsSuggestionListOpen = suggestions.Count > 0 && !string.IsNullOrWhiteSpace(SearchBox.Text);
+    }
+
+    private List<SearchSuggestionItem> GetTextMatchSuggestionItems(IReadOnlyList<TextQueryMatch> matches, string queryText)
+    {
+        // Text + OCR suggestions only. Semantic-image hits are streamed separately by the
+        // AppIndexImageQuerySession and merged into the same dropdown via UpdateCombinedSuggestions,
+        // so an empty list here does not mean "no results overall" -- it just means the text session
+        // had no matches for the current query phrase yet.
+        return GetTextMatchDisplayItems(matches)
+            .Select(text => new SearchSuggestionItem(text, queryText))
+            .ToList();
+    }
+
+    private List<SearchSuggestionItem> GetImageMatchSuggestionItems(IReadOnlyList<ImageQueryMatch> matches, string queryText)
+    {
+        var suggestions = new List<SearchSuggestionItem>();
+        foreach (var match in matches)
+        {
+            if (match.ContentKind == QueryMatchContentKind.AppManagedImage &&
+                match is AppManagedImageQueryMatch imageResult &&
+                simpleImageData.ContainsKey(match.ContentId))
+            {
+                string label = imageResult.RegionOfInterest.HasValue
+                    ? $"{match.ContentId}: image region match"
+                    : $"{match.ContentId}: image match";
+                suggestions.Add(new SearchSuggestionItem(label, queryText));
+            }
+        }
+
+        return suggestions;
+    }
+
+    private List<string> GetTextMatchDisplayItems(IReadOnlyList<TextQueryMatch> matches)
+    {
+        var displayItems = new List<string>();
+        foreach (var match in matches)
+        {
+            Debug.WriteLine(match.ContentId);
+            string? displayText = GetTextMatchDisplayText(match);
+            if (!string.IsNullOrWhiteSpace(displayText))
+            {
+                displayItems.Add(displayText);
+            }
+        }
+
+        return displayItems;
+    }
+
+    private string? GetTextMatchDisplayText(TextQueryMatch match)
+    {
+        if (match.ContentKind == QueryMatchContentKind.AppManagedText &&
+            match is AppManagedTextQueryMatch textResult &&
+            simpleTextData.TryGetValue(match.ContentId, out var fullText))
+        {
+            return $"{match.ContentId}: {CreateSnippet(fullText, textResult.TextOffset, textResult.TextLength)}";
+        }
+
+        return null;
+    }
+
+    private List<SearchImageResult> GetImageMatchDisplayItems(IReadOnlyList<ImageQueryMatch> imageMatches, IReadOnlyList<TextQueryMatch> textMatches)
+    {
+        var displayItems = new Dictionary<string, SearchImageResult>(StringComparer.Ordinal);
+        foreach (var match in imageMatches)
+        {
+            Debug.WriteLine(match.ContentId);
+            if (match.ContentKind == QueryMatchContentKind.AppManagedImage &&
+                match is AppManagedImageQueryMatch imageResult &&
+                simpleImageData.TryGetValue(match.ContentId, out var imagePath))
+            {
+                string caption = imageResult.RegionOfInterest.HasValue
+                    ? $"{match.ContentId}: image region match"
+                    : $"{match.ContentId}: image match";
+                displayItems[match.ContentId] = CreateImageResult(match.ContentId, imagePath, imageResult.RegionOfInterest, caption);
+            }
+        }
+
+        foreach (var match in textMatches)
+        {
+            if (match.ContentKind == QueryMatchContentKind.AppManagedOcrText &&
+                match is AppManagedOcrTextQueryMatch ocrResult &&
+                simpleImageData.TryGetValue(match.ContentId, out var imagePath))
+            {
+                string ocrCaption = $"{match.ContentId}: OCR match - {CreateSnippet(ocrResult.Fragment, 0, ocrResult.Fragment.Length, 80)}";
+                SearchImageResult ocrImageResult = CreateImageResult(match.ContentId, imagePath, ocrResult.Subregion, ocrCaption);
+
+                if (displayItems.TryGetValue(match.ContentId, out SearchImageResult? existingResult))
+                {
+                    string mergedCaption = $"{match.ContentId}: image and OCR match - {CreateSnippet(ocrResult.Fragment, 0, ocrResult.Fragment.Length, 80)}";
+                    existingResult.Caption = mergedCaption;
+                    if (ocrImageResult.HasRegion || !existingResult.HasRegion)
+                    {
+                        ocrImageResult.Caption = mergedCaption;
+                        displayItems[match.ContentId] = ocrImageResult;
+                    }
+                }
+                else
+                {
+                    displayItems[match.ContentId] = ocrImageResult;
+                }
+            }
+        }
+
+        return displayItems.Values.ToList();
+    }
+
+    private SearchImageResult CreateImageResult(string contentId, string imagePath, Windows.Foundation.Rect? sourceRegion, string caption)
+    {
+        double displayHeight = ImageResultDisplayWidth;
+        var result = new SearchImageResult
+        {
+            ImageSource = imagePath,
+            Caption = caption,
+            DisplayWidth = ImageResultDisplayWidth,
+            DisplayHeight = displayHeight,
+            RegionVisibility = Visibility.Collapsed
+        };
+
+        if (!_imageDimensions.TryGetValue(contentId, out ImageDimensions dimensions) ||
+            dimensions.Width <= 0 ||
+            dimensions.Height <= 0)
+        {
+            return result;
+        }
+
+        displayHeight = ImageResultDisplayWidth * dimensions.Height / dimensions.Width;
+        result.DisplayHeight = displayHeight;
+
+        if (!sourceRegion.HasValue)
+        {
+            return result;
+        }
+
+        Windows.Foundation.Rect region = sourceRegion.Value;
+        Windows.Foundation.Rect pixelRegion = ToPixelRegion(region, dimensions);
+        double left = Math.Clamp(pixelRegion.X, 0, dimensions.Width);
+        double top = Math.Clamp(pixelRegion.Y, 0, dimensions.Height);
+        double right = Math.Clamp(pixelRegion.X + pixelRegion.Width, 0, dimensions.Width);
+        double bottom = Math.Clamp(pixelRegion.Y + pixelRegion.Height, 0, dimensions.Height);
+
+        if (right <= left || bottom <= top)
+        {
+            return result;
+        }
+
+        result.RegionLeft = left * ImageResultDisplayWidth / dimensions.Width;
+        result.RegionTop = top * displayHeight / dimensions.Height;
+        result.RegionWidth = (right - left) * ImageResultDisplayWidth / dimensions.Width;
+        result.RegionHeight = (bottom - top) * displayHeight / dimensions.Height;
+        result.RegionVisibility = Visibility.Visible;
+
+        return result;
+    }
+
+    private static Windows.Foundation.Rect ToPixelRegion(Windows.Foundation.Rect region, ImageDimensions dimensions)
+    {
+        bool isNormalized =
+            region.X >= 0 &&
+            region.Y >= 0 &&
+            region.X <= 1 &&
+            region.Y <= 1 &&
+            region.Width > 0 &&
+            region.Height > 0 &&
+            region.Width <= 1 &&
+            region.Height <= 1;
+
+        return isNormalized
+            ? new Windows.Foundation.Rect(
+                region.X * dimensions.Width,
+                region.Y * dimensions.Height,
+                region.Width * dimensions.Width,
+                region.Height * dimensions.Height)
+            : region;
+    }
+
+    private static string CreateSnippet(string text, int offset, int length, int maxLength = 180)
+    {
+        if (offset >= 0 &&
+            length > 0 &&
+            offset <= text.Length &&
+            length <= text.Length - offset)
+        {
+            int contextLength = Math.Max(20, (maxLength - Math.Min(length, maxLength)) / 2);
+            int start = Math.Max(0, offset - contextLength);
+            int end = Math.Min(text.Length, offset + length + contextLength);
+            string snippet = text.Substring(start, end - start);
+
+            if (start > 0)
+            {
+                snippet = "..." + snippet;
+            }
+
+            if (end < text.Length)
+            {
+                snippet += "...";
+            }
+
+            return TruncateForDisplay(snippet, maxLength);
+        }
+
+        return TruncateForDisplay(text, maxLength);
+    }
+
+    private static string TruncateForDisplay(string text, int maxLength)
+    {
+        string normalized = text
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal)
+            .Replace("\t", " ", StringComparison.Ordinal)
+            .Trim();
+
+        if (normalized.Length <= maxLength)
+        {
+            return normalized;
+        }
+
+        return normalized[..Math.Max(0, maxLength - 3)].TrimEnd() + "...";
+    }
+
+    public sealed class SearchSuggestionItem
+    {
+        public SearchSuggestionItem(string text, string queryText, bool isPlaceholder = false)
+        {
+            Text = text;
+            QueryText = queryText;
+            IsPlaceholder = isPlaceholder;
+        }
+
+        public string Text { get; }
+
+        public string QueryText { get; }
+
+        public bool IsPlaceholder { get; }
+
+        public static SearchSuggestionItem Searching(string queryText)
+        {
+            return new SearchSuggestionItem("Searching...", queryText, true);
+        }
+
+        public static SearchSuggestionItem Error(string queryText)
+        {
+            return new SearchSuggestionItem("Search suggestions unavailable.", queryText, true);
+        }
+
+        public override string ToString()
+        {
+            return Text;
+        }
+    }
+
+    public sealed class SearchImageResult
+    {
+        public string ImageSource { get; init; } = string.Empty;
+
+        public string Caption { get; set; } = string.Empty;
+
+        public double DisplayWidth { get; set; }
+
+        public double DisplayHeight { get; set; }
+
+        public double RegionLeft { get; set; }
+
+        public double RegionTop { get; set; }
+
+        public double RegionWidth { get; set; }
+
+        public double RegionHeight { get; set; }
+
+        public Visibility RegionVisibility { get; set; } = Visibility.Collapsed;
+
+        public bool HasRegion => RegionVisibility == Visibility.Visible;
+    }
+
+    private readonly record struct ImageDimensions(int Width, int Height);
+
     private CancellationToken CancelGenerationAndGetNewToken()
     {
-        cts.Cancel();
-        cts.Dispose();
-        cts = new CancellationTokenSource();
-        return cts.Token;
+        _querySubmittedCts?.Cancel();
+        _querySubmittedCts?.Dispose();
+        _querySubmittedCts = new CancellationTokenSource();
+        return _querySubmittedCts.Token;
+    }
+
+    private void CancelQuerySubmitted()
+    {
+        _querySubmittedCts?.Cancel();
+        _querySubmittedCts?.Dispose();
+        _querySubmittedCts = null;
     }
 }

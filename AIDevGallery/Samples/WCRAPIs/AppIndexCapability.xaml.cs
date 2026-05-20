@@ -139,7 +139,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
                 unavailable.Add("TextSemantic");
             }
 
-            if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+            if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
             {
                 indexOCRCapabilityResultText.Text = "Available";
             }
@@ -149,7 +149,7 @@ internal sealed partial class AppIndexCapability : BaseSamplePage
                 unavailable.Add("ImageOcr");
             }
 
-            if (capabilities.GetCapabilityState(IndexCapability.ImageOcr).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
+            if (capabilities.GetCapabilityState(IndexCapability.ImageSemantic).InitializationStatus == IndexCapabilityInitializationStatus.Initialized)
             {
                 indexSemanticImageCapabilityResultText.Text = "Available";
             }

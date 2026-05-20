@@ -151,11 +151,22 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <AutoSuggestBox x:Name="SearchBox"
-                         AutomationProperties.Name="Prompt input"
-                         PlaceholderText="e.g., Meal preparation"
-                         QueryIcon="Find"
-                         QuerySubmitted="SearchBox_QuerySubmitted"
-                         Margin="0,7"/>
+                          AutomationProperties.Name="Prompt input"
+                          PlaceholderText="e.g., Meal preparation"
+                          QueryIcon="Find"
+                          TextMemberPath="QueryText"
+                          TextChanged="SearchBox_TextChanged"
+                          QuerySubmitted="SearchBox_QuerySubmitted"
+                          Margin="0,7">
+                         <AutoSuggestBox.ItemTemplate>
+                             <DataTemplate>
+                                 <TextBlock
+                                     Text="{Binding Text}"
+                                     TextWrapping="WrapWholeWords"
+                                     MaxLines="3" />
+                             </DataTemplate>
+                         </AutoSuggestBox.ItemTemplate>
+                     </AutoSuggestBox>
                     <Button Style="{StaticResource SubtleButtonStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Grid.Column="1" Margin="3,0">
                         <Button.Content>
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="14"/>
@@ -214,18 +225,48 @@
                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                      IsTextSelectionEnabled="True"
                                      TextWrapping="WrapWholeWords" />
-                                <ItemsView x:Name="ImageResultsBox" Grid.Row="2" Visibility="Collapsed">
-                                    <ItemsView.Layout>
+                                 <ItemsView x:Name="ImageResultsBox" Grid.Row="2" Visibility="Collapsed">
+                                     <ItemsView.Layout>
                                         <LinedFlowLayout />
-                                    </ItemsView.Layout>
-                                    <ItemsView.ItemTemplate>
-                                        <DataTemplate>
-                                            <ItemContainer MaxWidth="150" Margin="4">
-                                                <Image Source="{Binding}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </ItemContainer>
-                                        </DataTemplate>
-                                    </ItemsView.ItemTemplate>
-                                </ItemsView>
+                                     </ItemsView.Layout>
+                                     <ItemsView.ItemTemplate>
+                                         <DataTemplate>
+                                             <ItemContainer MaxWidth="180" Margin="4">
+                                                 <StackPanel Spacing="4">
+                                                     <Grid
+                                                         Width="{Binding DisplayWidth}"
+                                                         Height="{Binding DisplayHeight}">
+                                                         <Image
+                                                             Source="{Binding ImageSource}"
+                                                             Width="{Binding DisplayWidth}"
+                                                             Height="{Binding DisplayHeight}"
+                                                             Stretch="Fill"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"/>
+                                                         <Canvas
+                                                             Width="{Binding DisplayWidth}"
+                                                             Height="{Binding DisplayHeight}"
+                                                             Visibility="{Binding RegionVisibility}">
+                                                             <Border
+                                                                 Canvas.Left="{Binding RegionLeft}"
+                                                                 Canvas.Top="{Binding RegionTop}"
+                                                                 Width="{Binding RegionWidth}"
+                                                                 Height="{Binding RegionHeight}"
+                                                                 BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                                                 BorderThickness="2"
+                                                                 Background="#400078D4"/>
+                                                         </Canvas>
+                                                     </Grid>
+                                                     <TextBlock
+                                                         Text="{Binding Caption}"
+                                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                         TextWrapping="WrapWholeWords"
+                                                         MaxLines="3"/>
+                                                 </StackPanel>
+                                             </ItemContainer>
+                                         </DataTemplate>
+                                     </ItemsView.ItemTemplate>
+                                 </ItemsView>
                             </StackPanel>
                             
                            
