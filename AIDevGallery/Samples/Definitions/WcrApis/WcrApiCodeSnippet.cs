@@ -542,6 +542,52 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
+            ModelType.IndexStatistics, """"
+            using Microsoft.Windows.Search.AppContentIndex;
+
+            // View index statistics for an App Content Search index
+            public async void IndexStatisticsSample()
+            {
+                // Create or open an existing index
+                using AppContentIndexer indexer = AppContentIndexer.GetOrCreateIndex("myindex").Indexer;
+
+                await indexer.WaitForIndexCapabilitiesAsync();
+
+                // Get current index statistics
+                IndexStatistics stats = indexer.GetIndexStatistics();
+
+                Debug.WriteLine($"Total Items: {stats.ItemCount}");
+                Debug.WriteLine($"Completed: {stats.CompletedCount}");
+                Debug.WriteLine($"Not Started: {stats.NotStartedCount}");
+                Debug.WriteLine($"In Progress: {stats.InProgressCount}");
+                Debug.WriteLine($"Errors: {stats.ErrorsCount}");
+                Debug.WriteLine($"Pending Deletion: {stats.PendingDeletionCount}");
+                Debug.WriteLine($"Requiring Reindexing: {stats.RequiringReindexingCount}");
+                Debug.WriteLine($"Indexing In Progress: {stats.IndexingInProgress}");
+
+                // Listen for statistics changes
+                indexer.Listener.IndexStatisticsChanged += (sender, updatedStats) =>
+                {
+                    Debug.WriteLine($"Stats updated - Total: {updatedStats.ItemCount}, Completed: {updatedStats.CompletedCount}");
+                };
+
+                // Enumerate content items with a specific status
+                ContentItemReader reader = indexer.GetContentItems(QueryContentItemsFilterFlags.Completed);
+                IReadOnlyList<string> batch = reader.GetNextItems(100);
+                while (batch.Count > 0)
+                {
+                    foreach (string contentId in batch)
+                    {
+                        // Get detailed status for each content item
+                        ContentItemStatusResult status = indexer.GetContentItemStatus(contentId);
+                        Debug.WriteLine($"  {contentId}: {status.Status}");
+                    }
+                    batch = reader.GetNextItems(100);
+                }
+            }
+            """"
+        },
+        {
             ModelType.SDXL, """"
             using Microsoft.Graphics.Imaging;
             using Microsoft.Windows.AI.Imaging;
