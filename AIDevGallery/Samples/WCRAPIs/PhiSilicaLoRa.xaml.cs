@@ -227,7 +227,13 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             int hr = adapterResult.ExtendedError?.HResult ?? 0;
             if (hr != 0)
             {
-                ShowException(null, $"Failed to load adapter. HRESULT: {hr:X8}");
+                ShowException(null, $"Failed to load adapter. Error HRESULT: {hr:X8}. Path: {_adapterFilePath}");
+                return null;
+            }
+
+            if (adapterResult.LowRankAdapter == null)
+            {
+                ShowException(null, $"Failed to load adapter. LowRankAdapter was null. Path: {_adapterFilePath}");
                 return null;
             }
 
