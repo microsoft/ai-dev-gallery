@@ -10,7 +10,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Text;
-using Microsoft.Windows.AI.Text.Experimental;
 using System;
 using System.IO;
 using System.Threading;
@@ -45,8 +44,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
     private LanguageModel? _languageModel;
-    private LanguageModelExperimental? _loraModel;
-
     private CancellationTokenSource? _cts;
     private IAsyncOperationWithProgress<LanguageModelResponseResult, string>? operation;
     private string _adapterFilePath = string.Empty;
@@ -98,7 +95,6 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             }
 
             _languageModel = await LanguageModel.CreateAsync();
-            _loraModel = new LanguageModelExperimental(_languageModel);
         }
         else
         {
@@ -158,9 +154,9 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         }
     }
 
-    public async Task GenerateText(string prompt, string systemPrompt, TextBlock textBlock, LanguageModelOptionsExperimental? options = null)
+    public async Task GenerateText(string prompt, string systemPrompt, TextBlock textBlock, LanguageModelOptions? options = null)
     {
-        if (_languageModel == null || _loraModel == null)
+        if (_languageModel == null)
         {
             ShowException(null, "Phi-Silica is not available.");
             return;
@@ -176,8 +172,8 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         //  it is created for each query to avoid bringing history from previous queries
         LanguageModelContext? context = systemPrompt.Length > 0 ? _languageModel.CreateContext(systemPrompt) : null;
         operation = context == null ?
-            options == null ? _languageModel.GenerateResponseAsync(prompt) : _loraModel.GenerateResponseAsync(prompt, options) :
-            options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _loraModel.GenerateResponseAsync(context, prompt, options);
+            options == null ? _languageModel.GenerateResponseAsync(prompt) : _languageModel.GenerateResponseAsync(prompt, options) :
+            options == null ? _languageModel.GenerateResponseAsync(context, prompt, new LanguageModelOptions()) : _languageModel.GenerateResponseAsync(context, prompt, options);
 
         if (operation == null)
         {
@@ -216,18 +212,26 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
         NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateDoneAnnouncementActivityId"); // <exclude-line>
     }
 
-    private LanguageModelOptionsExperimental? LoadAdapter()
+    private LanguageModelOptions? LoadAdapter()
     {
-        if (_loraModel == null)
+        if (_languageModel == null)
         {
             ShowException(null, "Phi-Silica is not available.");
             return null;
         }
 
-        LowRankAdaptation? loraAdapter;
+        LanguageModelLowRankAdapter? loraAdapter;
         try
         {
-            loraAdapter = _loraModel.LoadAdapter(_adapterFilePath);
+            var adapterResult = LanguageModelLowRankAdapter.CreateFromPath(_adapterFilePath);
+            int hr = adapterResult.ExtendedError?.HResult ?? 0;
+            if (hr != 0)
+            {
+                ShowException(null, $"Failed to load adapter. HRESULT: {hr:X8}");
+                return null;
+            }
+
+            loraAdapter = adapterResult.LowRankAdapter;
         }
         catch (Exception ex)
         {
@@ -235,9 +239,9 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             return null;
         }
 
-        var options = new LanguageModelOptionsExperimental
+        var options = new LanguageModelOptions
         {
-            LoraAdapter = loraAdapter
+            LowRankAdapter = loraAdapter
         };
         return options;
     }
@@ -256,7 +260,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             return;
         }
 
-        if (this.InputTextBox.Text.Length > 0 && _loraModel != null)
+        if (this.InputTextBox.Text.Length > 0)
         {
             GenerateButton.Visibility = Visibility.Collapsed;
             StopBtn.Visibility = Visibility.Visible;
@@ -266,7 +270,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
-            var options = new LanguageModelOptionsExperimental();
+            var options = new LanguageModelOptions();
             try
             {
                 switch (_generationType)
