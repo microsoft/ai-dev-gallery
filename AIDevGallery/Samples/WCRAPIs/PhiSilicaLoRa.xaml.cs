@@ -276,12 +276,22 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
                 {
                     case GenerationType.All:
                         options = LoadAdapter();
+                        if (options == null)
+                        {
+                            break;
+                        }
+
                         await Task.WhenAll(
                             GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options),
                             GenerateText(InputTextBox.Text, SystemPromptBox.Text, NoLoraTxt));
                         break;
                     case GenerationType.With:
                         options = LoadAdapter();
+                        if (options == null)
+                        {
+                            break;
+                        }
+
                         await GenerateText(InputTextBox.Text, SystemPromptBox.Text, LoraTxt, options);
                         break;
                     case GenerationType.Without:

@@ -52,7 +52,7 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 string adapterFilePath = "path_to_your_adapter_file";
                 LanguageModelLowRankAdapterResult adapterResult = LanguageModelLowRankAdapter.CreateFromPath(adapterFilePath);
-                LanguageModelLowRankAdapter loraAdapter = adapterResult.LowRankAdapter;
+                LanguageModelLowRankAdapter? loraAdapter = adapterResult.LowRankAdapter;
                 if (loraAdapter == null)
                 {
                     throw new Exception($"Could not create LanguageModelLowRankAdapter: {adapterResult.ExtendedError}");
