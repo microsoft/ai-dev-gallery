@@ -42,7 +42,6 @@ internal static class WcrApiCodeSnippet
             ModelType.PhiSilicaLora, """"
             using Microsoft.Windows.AI;
             using Microsoft.Windows.AI.Text;
-            using Microsoft.Windows.AI.Text.Experimental;
             var readyState = LanguageModel.GetReadyState();
             if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
@@ -51,15 +50,19 @@ internal static class WcrApiCodeSnippet
                     var op = await LanguageModel.EnsureReadyAsync();
                 }
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
-                using LanguageModelExperimental loraModel = new LanguageModelExperimental(languageModel);
                 string adapterFilePath = "path_to_your_adapter_file";
-                LowRankAdaptation loraAdapter = loraModel.LoadAdapter(adapterFilePath);
-                var options = new LanguageModelOptionsExperimental
+                LanguageModelLowRankAdapterResult adapterResult = LanguageModelLowRankAdapter.CreateFromPath(adapterFilePath);
+                LanguageModelLowRankAdapter? loraAdapter = adapterResult.LowRankAdapter;
+                if (loraAdapter == null)
                 {
-                    LoraAdapter = loraAdapter
+                    throw new Exception($"Could not create LanguageModelLowRankAdapter: {adapterResult.ExtendedError}");
+                }
+                var options = new LanguageModelOptions
+                {
+                    LowRankAdapter = loraAdapter
                 };
                 string prompt = "Provide the molecular formula for glucose.";
-                var result = await loraModel.GenerateResponseAsync(prompt, options);
+                var result = await languageModel.GenerateResponseAsync(prompt, options);
                 Console.WriteLine(result.Text);
             }
             """"
