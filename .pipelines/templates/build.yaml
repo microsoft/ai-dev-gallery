@@ -23,6 +23,7 @@ steps:
   displayName: Build - ${{ parameters.dotnet_platform }}
 - task: CodeQL3000Finalize@0
   displayName: 'CodeQL Finalize'
+  condition: always()
 - ${{ if eq(parameters.publishSymbols, true) }}:
   - task: PublishSymbols@2
     displayName: Publish Symbols - ${{ parameters.dotnet_platform }}
