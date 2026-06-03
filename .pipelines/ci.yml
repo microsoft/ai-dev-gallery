@@ -40,7 +40,7 @@ extends:
         os: windows
       codeql:
         compiled:
-          enabled: true
+          enabled: false
         buildIdentifier: 'Build_$(System.JobAttempt)'
         runSourceLanguagesInSourceAnalysis: true
     stages:
