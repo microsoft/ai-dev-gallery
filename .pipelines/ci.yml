@@ -38,6 +38,11 @@ extends:
         name: Azure-Pipelines-1ESPT-ExDShared
         image: windows-latest
         os: windows
+      codeql:
+        compiled:
+          enabled: true
+        buildIdentifier: 'Build_$(System.JobAttempt)'
+        runSourceLanguagesInSourceAnalysis: true
     stages:
     - stage: Build
       jobs:
