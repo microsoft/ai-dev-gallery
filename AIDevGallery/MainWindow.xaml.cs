@@ -321,6 +321,32 @@ internal sealed partial class MainWindow : WindowEx
         {
             titleBar.Subtitle = "Preview";
         }
+
+        if (this.Content is FrameworkElement rootElement)
+        {
+            rootElement.ActualThemeChanged += (_, _) => UpdateCaptionButtonColors();
+        }
+
+        UpdateCaptionButtonColors();
+    }
+
+    private void UpdateCaptionButtonColors()
+    {
+        var captionTitleBar = this.AppWindow?.TitleBar;
+        if (captionTitleBar is null)
+        {
+            return;
+        }
+
+        var theme = (this.Content as FrameworkElement)?.ActualTheme
+            ?? (App.Current.RequestedTheme == ApplicationTheme.Dark ? ElementTheme.Dark : ElementTheme.Light);
+
+        var foreground = theme == ElementTheme.Dark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
+        captionTitleBar.ButtonForegroundColor = foreground;
+        captionTitleBar.ButtonHoverForegroundColor = foreground;
+        captionTitleBar.ButtonHoverBackgroundColor = theme == ElementTheme.Dark
+            ? Windows.UI.Color.FromArgb(24, 255, 255, 255)
+            : Windows.UI.Color.FromArgb(24, 0, 0, 0);
     }
 
     private void DownloadQueue_ModelsChanged(ModelDownloadQueue sender)
@@ -531,6 +557,7 @@ internal sealed partial class MainWindow : WindowEx
             ModelPickerDefinition.Definitions["onnx"].Icon = $"ms-appx:///Assets/ModelIcons/CustomModel{AppUtils.GetThemeAssetSuffix()}.png";
             ModelPickerDefinition.Definitions["ollama"].Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png";
             ModelPickerDefinition.Definitions["openai"].Icon = $"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.png";
+            UpdateCaptionButtonColors();
         });
     }
 }
