@@ -547,6 +547,7 @@ internal sealed partial class SampleContainer : UserControl
         }
 
         LineNumbersTextBlock.Text = lineNumbers.ToString();
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CodeTextBlock, $"{codeName} code");
         RichTextBlockBorder.Focus(FocusState.Programmatic);
     }
 
