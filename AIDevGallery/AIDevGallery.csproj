@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="EmitCompilerGeneratedFiles">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
@@ -20,6 +20,8 @@
     <!-- TODO: Fix IDisposableAnalyzers warnings from Microsoft.AI.Foundry.Local.WinML transitive dependency in next PR -->
     <NoWarn>$(NoWarn);IDISP001;IDISP002;IDISP003;IDISP004;IDISP006;IDISP007;IDISP008;IDISP017;IDISP025</NoWarn>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- Pinned via TreatAsLocalProperty on <Project> so the CodeQL tracer can't override it; enabling it causes CS0016 build failures with WinRTAotSourceGenerator. -->
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
     <TrimmerRootDescriptor>SamplesRoots.xml</TrimmerRootDescriptor>
     <!-- The *first* DefineConstants is removed during Official Release Builds (.pipelines/Unstub.ps1)-->
     <DefineConstants>TELEMETRYEVENTSOURCE_PUBLIC</DefineConstants>
