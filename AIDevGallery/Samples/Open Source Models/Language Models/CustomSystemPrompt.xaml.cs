@@ -202,6 +202,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         OutputTextBlock.Text = string.Empty;
         GenerateButton.Visibility = Visibility.Collapsed;
         StopBtn.Visibility = Visibility.Visible;
+        StopBtn.Focus(FocusState.Programmatic);
         IsProgressVisible = true;
         InputTextBox.IsEnabled = false;
         var contentStartedBeingGenerated = false; // <exclude-line>
@@ -271,9 +272,14 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "CustomPromptDoneAnnouncementActivityId"); // <exclude-line>
+                    var stopBtnHadFocus = StopBtn.FocusState != FocusState.Unfocused;
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.Visibility = Visibility.Visible;
                     InputTextBox.IsEnabled = true;
+                    if (stopBtnHadFocus)
+                    {
+                        GenerateButton.Focus(FocusState.Programmatic);
+                    }
                 });
 
                 cts?.Dispose();
@@ -292,10 +298,16 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     private void CancelGeneration()
     {
+        var stopBtnHadFocus = StopBtn.FocusState != FocusState.Unfocused;
         StopBtn.Visibility = Visibility.Collapsed;
         IsProgressVisible = false;
         GenerateButton.Visibility = Visibility.Visible;
         InputTextBox.IsEnabled = true;
+        if (stopBtnHadFocus)
+        {
+            GenerateButton.Focus(FocusState.Programmatic);
+        }
+
         cts?.Cancel();
         cts?.Dispose();
         cts = null;
