@@ -338,6 +338,15 @@ internal sealed partial class MainWindow : WindowEx
             return;
         }
 
+        // In Windows High Contrast mode, let the system pick accessible caption button colors.
+        if (new AccessibilitySettings().HighContrast)
+        {
+            captionTitleBar.ButtonForegroundColor = null;
+            captionTitleBar.ButtonHoverForegroundColor = null;
+            captionTitleBar.ButtonHoverBackgroundColor = null;
+            return;
+        }
+
         var theme = (this.Content as FrameworkElement)?.ActualTheme
             ?? (App.Current.RequestedTheme == ApplicationTheme.Dark ? ElementTheme.Dark : ElementTheme.Light);
 
