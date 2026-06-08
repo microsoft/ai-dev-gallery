@@ -3,8 +3,11 @@
 
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
+using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -21,6 +24,14 @@ internal sealed partial class OpenAIPickerView : BaseModelPickerView
     public OpenAIPickerView()
     {
         this.InitializeComponent();
+        this.ActualThemeChanged += (_, _) => UpdateLogo();
+        UpdateLogo();
+    }
+
+    private void UpdateLogo()
+    {
+        OpenAILogoImage.Source = new SvgImageSource(
+            new Uri($"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.svg"));
     }
 
     public override Task Load(List<ModelType> types)

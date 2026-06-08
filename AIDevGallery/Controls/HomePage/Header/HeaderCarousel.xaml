@@ -93,55 +93,64 @@
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Chat"
                     ImageUrl="ms-appx:///Assets/TileImages/Chat.png"
-                    SampleID="chat" />
+                    SampleID="chat"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Summarize text with a local language model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Text Summarization"
                     ImageUrl="ms-appx:///Assets/TileImages/TextSummarization.png"
-                    SampleID="summarize-text" />
+                    SampleID="summarize-text"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Semantically search text with a local embeddings model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Semantic Search"
                     ImageUrl="ms-appx:///Assets/TileImages/SemanticSearch.png"
-                    SampleID="semantic-search" />
+                    SampleID="semantic-search"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Generate text with a local model"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Text Generation"
                     ImageUrl="ms-appx:///Assets/TileImages/TextGeneration.png"
-                    SampleID="generate-text" />
+                    SampleID="generate-text"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Classify the main object of a given photo"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Classify Image"
                     ImageUrl="ms-appx:///Assets/TileImages/ClassifyImage.png"
-                    SampleID="classify-image" />
+                    SampleID="classify-image"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Simple audio translation to English"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Translate"
                     ImageUrl="ms-appx:///Assets/TileImages/Translation.png"
-                    SampleID="translate-audio" />
+                    SampleID="translate-audio"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Detect items in a photo"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Detect Objects"
                     ImageUrl="ms-appx:///Assets/TileImages/DetectObjects.png"
-                    SampleID="detect-objects" />
+                    SampleID="detect-objects"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Segment an image"
                     Foreground="{StaticResource LightTextGradient}"
                     Header="Image Segmentation"
                     ImageUrl="ms-appx:///Assets/TileImages/ImageSegmentation.png"
-                    SampleID="segment-image" />
+                    SampleID="segment-image"
+                    TabIndex="1" />
                 <local:HeaderTile
                     Description="Transcribe audio into text"
                     Foreground="{StaticResource DarkTextGradient}"
                     Header="Transcribe"
                     ImageUrl="ms-appx:///Assets/TileImages/Transcription.png"
-                    SampleID="transcribe-audio" />
+                    SampleID="transcribe-audio"
+                    TabIndex="1" />
             </StackPanel>
         </ScrollViewer>
         <StackPanel Padding="24,12,24,24"
@@ -183,7 +192,7 @@
                            TextWrapping="Wrap">
                     <Run Text="Build next-gen experiences with on-device AI." />
                     <Run Text="This app is in" />
-                    <Hyperlink NavigateUri="https://aka.ms/ai-dev-gallery">preview</Hyperlink><Run Text="." />
+                    <Hyperlink NavigateUri="https://aka.ms/ai-dev-gallery" TabIndex="0">preview</Hyperlink><Run Text="." />
                 </TextBlock>
             </Grid>
         </StackPanel>

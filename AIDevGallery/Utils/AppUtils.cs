@@ -296,6 +296,11 @@ internal static class AppUtils
             return ".dark";
         }
 
+        if (App.MainWindow?.Content is FrameworkElement root)
+        {
+            return root.ActualTheme == ElementTheme.Dark ? ".dark" : ".light";
+        }
+
         return App.Current.RequestedTheme == ApplicationTheme.Dark ? ".dark" : ".light";
     }
 
