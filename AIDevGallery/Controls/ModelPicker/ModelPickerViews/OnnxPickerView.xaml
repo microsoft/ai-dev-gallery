@@ -44,6 +44,7 @@
                         <controls:WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="12">
                             <Button
                             x:Name="OpenAIToolkitButton"
+                            AutomationProperties.Name="Open AI Toolkit's Conversion tool"
                             Click="OpenAIToolkitButton_Click"
                             Visibility="Visible">
                                 <StackPanel Orientation="Horizontal">
@@ -60,6 +61,7 @@
                             </Button>
                             <Button
                             x:Name="ViewDocumentationButton"
+                            AutomationProperties.Name="View documentation"
                             Click="ViewDocumentationButton_Click"
                             Visibility="Visible">
                                 <StackPanel Orientation="Horizontal">
@@ -243,6 +245,7 @@
                         Grid.Column="1"
                         Padding="0"
                         Visibility="Collapsed"
+                        AutomationProperties.Name="Add model"
                         Background="Transparent"
                         BorderThickness="0"
                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
