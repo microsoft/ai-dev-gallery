@@ -148,7 +148,7 @@
                                                     <DataTemplate x:DataType="models:HardwareAccelerator">
                                                         <Button
                                                             VerticalAlignment="Center"
-                                                            AutomationProperties.Name="More info"
+                                                            AutomationProperties.Name="{x:Bind utils:AppUtils.GetHardwareAcceleratorMoreInfoName((models:HardwareAccelerator))}"
                                                             Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             Tapped="StopPropagatingHandler"
@@ -323,7 +323,7 @@
                                                 <DataTemplate x:DataType="models:HardwareAccelerator">
                                                     <Button
                                                         VerticalAlignment="Center"
-                                                        AutomationProperties.Name="More info"
+                                                        AutomationProperties.Name="{x:Bind utils:AppUtils.GetHardwareAcceleratorMoreInfoName((models:HardwareAccelerator))}"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
                                                         ToolTipService.ToolTip="More info"
