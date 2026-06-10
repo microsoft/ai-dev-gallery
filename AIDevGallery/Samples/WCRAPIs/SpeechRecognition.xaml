@@ -64,7 +64,6 @@
             <Button
                 x:Name="StartStopButton"
                 MinWidth="180"
-                AutomationProperties.Name="Start recognition"
                 Click="StartStopButton_Click"
                 Content="Start recognition"
                 Style="{StaticResource AccentButtonStyle}" />
