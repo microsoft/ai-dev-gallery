@@ -62,5 +62,6 @@
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
     <systemai:Capability Name="systemAIModels"/>
+    <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

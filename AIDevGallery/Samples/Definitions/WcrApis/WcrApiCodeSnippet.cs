@@ -721,6 +721,57 @@ internal static class WcrApiCodeSnippet
                 }
             }
             """""
+        },
+        {
+            ModelType.SpeechRecognition, """"
+            using Microsoft.Windows.AI;
+            using Microsoft.Windows.AI.MachineLearning;
+            using Microsoft.Windows.AI.Speech;
+
+            // Speech recognition runs on the device's execution providers (CPU / GPU / NPU).
+            var catalog = ExecutionProviderCatalog.GetDefault();
+            await catalog.EnsureAndRegisterCertifiedAsync();
+
+            var readyState = SpeechRecognitionModel.GetReadyState();
+            if (readyState == AIFeatureReadyState.NotReady)
+            {
+                var ensureOp = await SpeechRecognitionModel.EnsureReadyAsync();
+                if (ensureOp.Status != AIFeatureReadyResultState.Success)
+                {
+                    throw new InvalidOperationException("Speech model could not be prepared.");
+                }
+            }
+
+            var modelResult = await SpeechRecognitionModel.TryCreateAsync();
+            if (modelResult.ExtendedError != null)
+            {
+                throw modelResult.ExtendedError;
+            }
+
+            using SpeechRecognitionModel speechModel = modelResult.SpeechModel;
+
+            // Stream audio from the default microphone. Pass an empty deviceId to use the system default.
+            var audioConfig = AudioConfiguration.FromAudioDevice(string.Empty);
+
+            using var streaming = new StreamingRecognition(audioConfig, speechModel);
+
+            streaming.Recognizing += (_, args) =>
+            {
+                // Interim hypothesis (updates frequently as more audio arrives).
+                Console.WriteLine($"[interim] {args.Text}");
+            };
+
+            streaming.Recognized += (_, args) =>
+            {
+                // Final result for a stable utterance.
+                Console.WriteLine($"[final] offset={args.Offset:F2}s duration={args.Duration:F2}s: {args.Text}");
+            };
+
+            await streaming.StartContinuousRecognitionAsync();
+
+            // ... let captions stream in. When done:
+            streaming.StopContinuousRecognition();
+            """"
         }
     };
 }

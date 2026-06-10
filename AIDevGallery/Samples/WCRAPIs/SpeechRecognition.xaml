@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<samples:BaseSamplePage
+    x:Class="AIDevGallery.Samples.WCRAPIs.SpeechRecognition"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:samples="using:AIDevGallery.Samples"
+    mc:Ignorable="d">
+    <Grid RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource ControlStrongStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource OverlayCornerRadius}">
+            <ScrollViewer
+                x:Name="TranscriptionScrollViewer"
+                Padding="16"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        x:Name="FinalTranscriptionTextBlock"
+                        AutomationProperties.LiveSetting="Polite"
+                        AutomationProperties.Name="Final transcription"
+                        FontFamily="Cascadia Code"
+                        FontSize="16"
+                        IsTextSelectionEnabled="True"
+                        Text="Press Start to begin speech recognition..."
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Name="InterimTranscriptionTextBlock"
+                        AutomationProperties.LiveSetting="Polite"
+                        AutomationProperties.Name="Interim transcription"
+                        FontFamily="Cascadia Code"
+                        FontSize="16"
+                        FontStyle="Italic"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        IsTextSelectionEnabled="True"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <InfoBar
+            x:Name="StatusInfoBar"
+            Grid.Row="1"
+            IsClosable="False"
+            IsOpen="False"
+            Severity="Informational" />
+
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                x:Name="StartStopButton"
+                MinWidth="180"
+                AutomationProperties.Name="Start recognition"
+                Click="StartStopButton_Click"
+                Content="Start recognition"
+                Style="{StaticResource AccentButtonStyle}" />
+            <DropDownButton
+                x:Name="FromFileButton"
+                MinWidth="180"
+                AutomationProperties.Name="Recognize from audio file"
+                Content="Recognize from audio file..."
+                ToolTipService.ToolTip="Useful when the microphone isn't available (e.g. over Remote Desktop). Pick an audio file to transcribe.">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem
+                            Click="RecognizeFileBatch_Click"
+                            Text="Batch - full transcript"
+                            ToolTipService.ToolTip="BatchRecognition.RecognizeFromFile: one-shot call that returns the complete transcript." />
+                        <MenuFlyoutItem
+                            Click="RecognizeFileStreaming_Click"
+                            Text="Streaming - incremental"
+                            ToolTipService.ToolTip="StreamingRecognition over the file: raises incremental Recognizing/Recognized events, like the microphone." />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <Button
+                x:Name="ClearButton"
+                MinWidth="120"
+                AutomationProperties.Name="Clear transcription"
+                Click="ClearButton_Click"
+                Content="Clear" />
+        </StackPanel>
+    </Grid>
+</samples:BaseSamplePage>
