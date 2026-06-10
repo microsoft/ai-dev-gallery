@@ -733,44 +733,52 @@ internal static class WcrApiCodeSnippet
             await catalog.EnsureAndRegisterCertifiedAsync();
 
             var readyState = SpeechRecognitionModel.GetReadyState();
-            if (readyState == AIFeatureReadyState.NotReady)
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
-                var ensureOp = await SpeechRecognitionModel.EnsureReadyAsync();
-                if (ensureOp.Status != AIFeatureReadyResultState.Success)
+                if (readyState == AIFeatureReadyState.NotReady)
                 {
-                    throw new InvalidOperationException("Speech model could not be prepared.");
+                    var ensureOp = await SpeechRecognitionModel.EnsureReadyAsync();
+                    if (ensureOp.Status != AIFeatureReadyResultState.Success)
+                    {
+                        throw new InvalidOperationException("Speech model could not be prepared.");
+                    }
                 }
+
+                var modelResult = await SpeechRecognitionModel.TryCreateAsync();
+                if (modelResult.ExtendedError != null)
+                {
+                    throw modelResult.ExtendedError;
+                }
+
+                using SpeechRecognitionModel speechModel = modelResult.SpeechModel;
+
+                // Stream audio from the default microphone. Pass an empty deviceId to use the system default.
+                var audioConfig = AudioConfiguration.FromAudioDevice(string.Empty);
+
+                using var streaming = new StreamingRecognition(audioConfig, speechModel);
+
+                streaming.Recognizing += (_, args) =>
+                {
+                    // Interim hypothesis (updates frequently as more audio arrives).
+                    Console.WriteLine($"[interim] {args.Text}");
+                };
+
+                streaming.Recognized += (_, args) =>
+                {
+                    // Final result for a stable utterance.
+                    Console.WriteLine($"[final] offset={args.Offset:F2}s duration={args.Duration:F2}s: {args.Text}");
+                };
+
+                await streaming.StartContinuousRecognitionAsync();
+
+                // ... let captions stream in. When done:
+                streaming.StopContinuousRecognition();
             }
-
-            var modelResult = await SpeechRecognitionModel.TryCreateAsync();
-            if (modelResult.ExtendedError != null)
+            else
             {
-                throw modelResult.ExtendedError;
+                // DisabledByUser or NotSupportedOnCurrentSystem.
+                throw new InvalidOperationException($"Speech recognition is not available: {readyState}.");
             }
-
-            using SpeechRecognitionModel speechModel = modelResult.SpeechModel;
-
-            // Stream audio from the default microphone. Pass an empty deviceId to use the system default.
-            var audioConfig = AudioConfiguration.FromAudioDevice(string.Empty);
-
-            using var streaming = new StreamingRecognition(audioConfig, speechModel);
-
-            streaming.Recognizing += (_, args) =>
-            {
-                // Interim hypothesis (updates frequently as more audio arrives).
-                Console.WriteLine($"[interim] {args.Text}");
-            };
-
-            streaming.Recognized += (_, args) =>
-            {
-                // Final result for a stable utterance.
-                Console.WriteLine($"[final] offset={args.Offset:F2}s duration={args.Duration:F2}s: {args.Text}");
-            };
-
-            await streaming.StartContinuousRecognitionAsync();
-
-            // ... let captions stream in. When done:
-            streaming.StopContinuousRecognition();
             """"
         }
     };
