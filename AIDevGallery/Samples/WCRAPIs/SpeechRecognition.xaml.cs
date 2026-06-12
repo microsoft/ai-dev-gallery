@@ -629,12 +629,14 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
     private void OnRecognized(StreamingRecognition sender, StreamingRecognizedEventArgs args)
     {
-        var text = args.Text ?? string.Empty;
+        // Recognized phrases often carry their own leading/trailing whitespace; trim it so the
+        // segments below are always joined by exactly one space instead of doubling up.
+        var text = (args.Text ?? string.Empty).Trim();
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (!string.IsNullOrWhiteSpace(text))
+            if (text.Length > 0)
             {
-                if (_finalText.Length > 0 && !_finalText.EndsWith(' '))
+                if (_finalText.Length > 0)
                 {
                     _finalText += " ";
                 }
