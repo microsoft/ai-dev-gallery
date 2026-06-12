@@ -13,8 +13,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.Media.Core;
 using Windows.Media.MediaProperties;
+using Windows.Media.Playback;
 using Windows.Media.Transcoding;
 using Windows.Security.Authorization.AppCapabilityAccess;
 using Windows.Storage;
@@ -34,6 +37,10 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
     private SpeechRecognitionModel? _speechModel;
     private StreamingRecognition? _streamingRecognition;
     private Task? _streamingSessionTask;
+    private StreamingRecognition? _fileStreamingRecognition;
+    private CancellationTokenSource? _fileStreamingCts;
+    private MediaPlayer? _filePlaybackPlayer;
+    private TaskCompletionSource<bool>? _filePlaybackCompletion;
 
     private string _finalText = string.Empty;
     private bool _isRecognizing;
@@ -154,6 +161,12 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
     {
         SendSampleInteractedEvent("StopSpeechRecognition");
 
+        if (_fileStreamingRecognition is { } fileSession)
+        {
+            DetachHandlers(fileSession);
+            _fileStreamingCts?.Cancel();
+        }
+
         var streaming = _streamingRecognition;
         var sessionTask = _streamingSessionTask;
         _streamingRecognition = null;
@@ -184,6 +197,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         }
 
         _isRecognizing = false;
+        StopFilePlayback();
         UpdateUiState(running: false, status: null);
     }
 
@@ -264,6 +278,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
         StorageFile? transcodedFile = null;
         StreamingRecognition? fileStreaming = null;
+        CancellationTokenSource? fileCts = null;
         try
         {
             UpdateUiState(running: true, status: $"Transcoding \"{file.Name}\" to 16 kHz mono...");
@@ -284,15 +299,36 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                     _speechModel);
                 fileStreaming.Recognizing += OnRecognizing;
                 fileStreaming.Recognized += OnRecognized;
+                _fileStreamingRecognition = fileStreaming;
+                fileCts = new CancellationTokenSource();
+                _fileStreamingCts = fileCts;
 
-                await fileStreaming.StartContinuousRecognitionAsync();
+                // Play the picked file so the transcript can be followed as it streams in,
+                // rather than appearing in silence.
+                var playbackTask = StartFilePlayback(file);
 
-                if (string.IsNullOrWhiteSpace(_finalText))
+                var fileSessionTask = fileStreaming.StartContinuousRecognitionAsync().AsTask(fileCts.Token);
+
+                try
                 {
-                    FinalTranscriptionTextBlock.Text = "(no speech detected in file)";
+                    await fileSessionTask;
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when the user presses Stop or navigates away mid-file.
                 }
 
-                UpdateUiState(running: false, status: $"Streaming recognition of \"{file.Name}\" completed.");
+                if (_isRecognizing)
+                {
+                    if (string.IsNullOrWhiteSpace(_finalText))
+                    {
+                        FinalTranscriptionTextBlock.Text = "(no speech detected in file)";
+                    }
+
+                    await playbackTask;
+
+                    UpdateUiState(running: false, status: $"Streaming recognition of \"{file.Name}\" completed.");
+                }
             }
             else
             {
@@ -318,6 +354,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         finally
         {
             _isRecognizing = false;
+            StopFilePlayback();
 
             if (fileStreaming != null)
             {
@@ -325,8 +362,91 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                 fileStreaming.Dispose();
             }
 
+            fileCts?.Dispose();
+
+            // Clear shared state only if a newer run hasn't already replaced it.
+            if (ReferenceEquals(_fileStreamingRecognition, fileStreaming))
+            {
+                _fileStreamingRecognition = null;
+            }
+
+            if (ReferenceEquals(_fileStreamingCts, fileCts))
+            {
+                _fileStreamingCts = null;
+            }
+
             await TryDeleteAsync(transcodedFile);
         }
+    }
+
+    private Task StartFilePlayback(StorageFile file)
+    {
+        StopFilePlayback();
+
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _filePlaybackCompletion = completion;
+
+        try
+        {
+            var player = new MediaPlayer();
+            player.MediaEnded += OnFilePlaybackEnded;
+            player.MediaFailed += OnFilePlaybackFailed;
+            player.Source = MediaSource.CreateFromStorageFile(file);
+            _filePlaybackPlayer = player;
+            player.Play();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SpeechRecognition] Failed to start file playback: {ex.Message}");
+            StopFilePlayback();
+        }
+
+        return completion.Task;
+    }
+
+    private void StopFilePlayback()
+    {
+        var player = _filePlaybackPlayer;
+        _filePlaybackPlayer = null;
+
+        // Unblock anyone awaiting playback completion (e.g. a Stop click before the clip ends).
+        _filePlaybackCompletion?.TrySetResult(false);
+        _filePlaybackCompletion = null;
+
+        if (player == null)
+        {
+            return;
+        }
+
+        player.MediaEnded -= OnFilePlaybackEnded;
+        player.MediaFailed -= OnFilePlaybackFailed;
+
+        try
+        {
+            player.Pause();
+            if (player.Source is IDisposable source)
+            {
+                player.Source = null;
+                source.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SpeechRecognition] Failed to stop file playback: {ex.Message}");
+        }
+
+        player.Dispose();
+    }
+
+    private void OnFilePlaybackEnded(MediaPlayer sender, object args)
+    {
+        _filePlaybackCompletion?.TrySetResult(true);
+    }
+
+    private void OnFilePlaybackFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
+    {
+        Debug.WriteLine($"[SpeechRecognition] File playback failed: {args.ErrorMessage}");
+        _filePlaybackCompletion?.TrySetResult(false);
     }
 
     private static async Task<StorageFile> TranscodeTo16kMonoCanonicalWavAsync(StorageFile inputFile)
@@ -592,6 +712,11 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
     private void CleanUp()
     {
+        StopFilePlayback();
+
+        // Cancel any in-flight file-streaming recognition so it doesn't keep running after navigation.
+        _fileStreamingCts?.Cancel();
+
         var streaming = _streamingRecognition;
         var sessionTask = _streamingSessionTask;
         var model = _speechModel;
