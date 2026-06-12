@@ -61,31 +61,31 @@
             HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="8">
+            <ComboBox
+                x:Name="InputSourceComboBox"
+                MinWidth="240"
+                AutomationProperties.Name="Input source"
+                SelectedIndex="0"
+                ToolTipService.ToolTip="Choose what to transcribe, then press Start.">
+                <ComboBoxItem
+                    Content="Microphone (live)"
+                    Tag="Microphone"
+                    ToolTipService.ToolTip="Live transcription from the default microphone using StreamingRecognition." />
+                <ComboBoxItem
+                    Content="Audio file - full transcript"
+                    Tag="FileBatch"
+                    ToolTipService.ToolTip="BatchRecognition.RecognizeFromFile: one-shot call that returns the complete transcript." />
+                <ComboBoxItem
+                    Content="Audio file - incremental"
+                    Tag="FileStreaming"
+                    ToolTipService.ToolTip="StreamingRecognition over a file: raises incremental Recognizing/Recognized events, like the microphone." />
+            </ComboBox>
             <Button
                 x:Name="StartStopButton"
-                MinWidth="180"
+                MinWidth="160"
                 Click="StartStopButton_Click"
                 Content="Start recognition"
                 Style="{StaticResource AccentButtonStyle}" />
-            <DropDownButton
-                x:Name="FromFileButton"
-                MinWidth="180"
-                AutomationProperties.Name="Recognize from audio file"
-                Content="Recognize from audio file..."
-                ToolTipService.ToolTip="Useful when the microphone isn't available (e.g. over Remote Desktop). Pick an audio file to transcribe.">
-                <DropDownButton.Flyout>
-                    <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem
-                            Click="RecognizeFileBatch_Click"
-                            Text="Batch - full transcript"
-                            ToolTipService.ToolTip="BatchRecognition.RecognizeFromFile: one-shot call that returns the complete transcript." />
-                        <MenuFlyoutItem
-                            Click="RecognizeFileStreaming_Click"
-                            Text="Streaming - incremental"
-                            ToolTipService.ToolTip="StreamingRecognition over the file: raises incremental Recognizing/Recognized events, like the microphone." />
-                    </MenuFlyout>
-                </DropDownButton.Flyout>
-            </DropDownButton>
             <Button
                 x:Name="ClearButton"
                 MinWidth="120"

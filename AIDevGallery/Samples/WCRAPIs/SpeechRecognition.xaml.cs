@@ -45,6 +45,13 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
     private string _finalText = string.Empty;
     private bool _isRecognizing;
 
+    private enum InputSource
+    {
+        Microphone,
+        FileBatch,
+        FileStreaming,
+    }
+
     public SpeechRecognition()
     {
         this.Unloaded += (_, _) => CleanUp();
@@ -103,14 +110,35 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         if (_isRecognizing)
         {
             await StopRecognitionAsync();
+            return;
         }
-        else
+
+        switch (GetSelectedInputSource())
         {
-            await StartRecognitionAsync();
+            case InputSource.FileBatch:
+                await RecognizeFromFileAsync(streamMode: false);
+                break;
+            case InputSource.FileStreaming:
+                await RecognizeFromFileAsync(streamMode: true);
+                break;
+            default:
+                await StartMicrophoneRecognitionAsync();
+                break;
         }
     }
 
-    private async Task StartRecognitionAsync()
+    private InputSource GetSelectedInputSource()
+    {
+        var tag = (InputSourceComboBox.SelectedItem as FrameworkElement)?.Tag as string;
+        return tag switch
+        {
+            "FileBatch" => InputSource.FileBatch,
+            "FileStreaming" => InputSource.FileStreaming,
+            _ => InputSource.Microphone,
+        };
+    }
+
+    private async Task StartMicrophoneRecognitionAsync()
     {
         if (_speechModel == null)
         {
@@ -161,11 +189,15 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
     {
         SendSampleInteractedEvent("StopSpeechRecognition");
 
+        // Cancel any in-flight file-streaming recognition (even during the pre-session transcode).
+        // Detaching handlers when a session exists freezes the transcript immediately;
+        // RecognizeFromFileAsync then drains and disposes the session safely.
         if (_fileStreamingRecognition is { } fileSession)
         {
             DetachHandlers(fileSession);
-            _fileStreamingCts?.Cancel();
         }
+
+        _fileStreamingCts?.Cancel();
 
         var streaming = _streamingRecognition;
         var sessionTask = _streamingSessionTask;
@@ -236,16 +268,6 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         ShowException(ex, $"Speech recognition failed: {FormatError(ex)}");
     }
 
-    private async void RecognizeFileBatch_Click(object sender, RoutedEventArgs e)
-    {
-        await RecognizeFromFileAsync(streamMode: false);
-    }
-
-    private async void RecognizeFileStreaming_Click(object sender, RoutedEventArgs e)
-    {
-        await RecognizeFromFileAsync(streamMode: true);
-    }
-
     private async Task RecognizeFromFileAsync(bool streamMode)
     {
         if (_speechModel == null)
@@ -276,12 +298,22 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             return;
         }
 
+        var canStop = streamMode;
+
         StorageFile? transcodedFile = null;
         StreamingRecognition? fileStreaming = null;
         CancellationTokenSource? fileCts = null;
         try
         {
-            UpdateUiState(running: true, status: $"Transcoding \"{file.Name}\" to 16 kHz mono...");
+            // For streaming, create the cancellation source up front so Stop works even during the
+            // pre-recognition transcode step.
+            if (streamMode)
+            {
+                fileCts = new CancellationTokenSource();
+                _fileStreamingCts = fileCts;
+            }
+
+            UpdateUiState(running: true, status: $"Transcoding \"{file.Name}\" to 16 kHz mono...", canStop: canStop);
             FinalTranscriptionTextBlock.Text = $"Transcoding \"{file.Name}\" to 16 kHz mono...";
             InterimTranscriptionTextBlock.Text = string.Empty;
             _finalText = string.Empty;
@@ -291,27 +323,27 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
             if (streamMode)
             {
-                UpdateUiState(running: true, status: $"Streaming recognition of \"{file.Name}\"...");
                 FinalTranscriptionTextBlock.Text = string.Empty;
 
-                fileStreaming = new StreamingRecognition(
-                    AudioConfiguration.FromFile(transcodedFile.Path),
-                    _speechModel);
-                fileStreaming.Recognizing += OnRecognizing;
-                fileStreaming.Recognized += OnRecognized;
-                _fileStreamingRecognition = fileStreaming;
-                fileCts = new CancellationTokenSource();
-                _fileStreamingCts = fileCts;
-
-                // Play the picked file so the transcript can be followed as it streams in,
-                // rather than appearing in silence.
-                var playbackTask = StartFilePlayback(file);
-
-                var fileSessionTask = fileStreaming.StartContinuousRecognitionAsync().AsTask(fileCts.Token);
-
+                Task? playbackTask = null;
                 try
                 {
-                    await fileSessionTask;
+                    fileCts!.Token.ThrowIfCancellationRequested();
+
+                    UpdateUiState(running: true, status: $"Streaming recognition of \"{file.Name}\"...", canStop: true);
+
+                    fileStreaming = new StreamingRecognition(
+                        AudioConfiguration.FromFile(transcodedFile.Path),
+                        _speechModel);
+                    fileStreaming.Recognizing += OnRecognizing;
+                    fileStreaming.Recognized += OnRecognized;
+                    _fileStreamingRecognition = fileStreaming;
+
+                    // Play the picked file so the transcript can be followed as it streams in,
+                    // rather than appearing in silence.
+                    playbackTask = StartFilePlayback(file);
+
+                    await fileStreaming.StartContinuousRecognitionAsync().AsTask(fileCts.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -325,7 +357,10 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                         FinalTranscriptionTextBlock.Text = "(no speech detected in file)";
                     }
 
-                    await playbackTask;
+                    if (playbackTask != null)
+                    {
+                        await playbackTask;
+                    }
 
                     UpdateUiState(running: false, status: $"Streaming recognition of \"{file.Name}\" completed.");
                 }
@@ -333,7 +368,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             else
             {
                 // BatchRecognition returns the full transcript in a single call.
-                UpdateUiState(running: true, status: $"Recognizing from \"{file.Name}\"...");
+                UpdateUiState(running: true, status: $"Recognizing from \"{file.Name}\"...", canStop: false);
                 FinalTranscriptionTextBlock.Text = $"Recognizing from file: {file.Name}...";
 
                 using var batch = new BatchRecognition(_speechModel);
@@ -663,10 +698,13 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         InterimTranscriptionTextBlock.Text = string.Empty;
     }
 
-    private void UpdateUiState(bool running, string? status)
+    private void UpdateUiState(bool running, string? status, bool canStop = true)
     {
-        StartStopButton.Content = running ? "Stop recognition" : "Start recognition";
-        FromFileButton.IsEnabled = !running;
+        InputSourceComboBox.IsEnabled = !running;
+        StartStopButton.IsEnabled = !running || canStop;
+        StartStopButton.Content = running
+            ? (canStop ? "Stop recognition" : "Recognizing...")
+            : "Start recognition";
 
         if (string.IsNullOrEmpty(status))
         {
