@@ -31,7 +31,7 @@
                 IsTextSelectionEnabled="True"
                 TextAlignment="Center"
                 TextWrapping="Wrap">
-                <Run Text="This Windows AI API requires a one-time model download via Windows Update." /><LineBreak /> <LineBreak />
+                <Run x:Name="ModelDownloadInfoRun" Text="This Windows AI API requires a one-time model download via Windows Update." /><LineBreak /> <LineBreak />
                 <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
             </TextBlock>
             <TextBlock
@@ -71,7 +71,15 @@
                 TextWrapping="WrapWholeWords">
                 <Run Text="Requesting model.." /> <LineBreak />
                 <LineBreak />
-                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink><LineBreak />
+            </TextBlock>
+            <TextBlock
+                x:Name="WindowsUpdateTrackingText"
+                Margin="0,0,0,24"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextAlignment="Center"
+                TextWrapping="WrapWholeWords">
+                <Run FontSize="12" Text="Download progress can also be tracked in " /><Hyperlink Click="WindowsUpdateHyperlinkClicked" FontSize="12">Windows Update</Hyperlink>
             </TextBlock>
         </StackPanel>
 
