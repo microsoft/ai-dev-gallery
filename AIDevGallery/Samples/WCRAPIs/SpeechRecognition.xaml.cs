@@ -603,9 +603,16 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
     private async Task<bool> EnsureMicrophoneAccessAsync()
     {
+        // The AppCapability microphone-permission API requires Windows 10 1903 (build 18362).
+        // On older builds it isn't available, so skip the explicit check and let recognition
+        // proceed; the start call will surface any genuine access failure.
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+        {
+            return true;
+        }
+
         try
         {
-#pragma warning disable CA1416
             var capability = AppCapability.Create("microphone");
             if (capability != null)
             {
@@ -621,7 +628,6 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                     return false;
                 }
             }
-#pragma warning restore CA1416
         }
         catch (UnauthorizedAccessException)
         {
