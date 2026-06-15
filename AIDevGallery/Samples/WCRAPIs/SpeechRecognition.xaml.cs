@@ -39,6 +39,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
     private Task? _streamingSessionTask;
     private StreamingRecognition? _fileStreamingRecognition;
     private CancellationTokenSource? _fileStreamingCts;
+    private Task? _fileRecognitionTask;
     private MediaPlayer? _filePlaybackPlayer;
     private TaskCompletionSource<bool>? _filePlaybackCompletion;
 
@@ -303,6 +304,11 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         StorageFile? transcodedFile = null;
         StreamingRecognition? fileStreaming = null;
         CancellationTokenSource? fileCts = null;
+
+        // Mark that a file recognition is in flight so CleanUp can tell whether it's safe to dispose
+        // the shared model: disposing it while the native engine is still draining faults the engine.
+        var completion = new TaskCompletionSource();
+        _fileRecognitionTask = completion.Task;
         try
         {
             // For streaming, create the cancellation source up front so Stop works even during the
@@ -411,6 +417,13 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             }
 
             await TryDeleteAsync(transcodedFile);
+
+            // Mark the operation complete so a later CleanUp knows no file recognition is in flight.
+            completion.TrySetResult();
+            if (ReferenceEquals(_fileRecognitionTask, completion.Task))
+            {
+                _fileRecognitionTask = null;
+            }
         }
     }
 
@@ -793,20 +806,22 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
         var streaming = _streamingRecognition;
         var sessionTask = _streamingSessionTask;
+        var fileRecognitionTask = _fileRecognitionTask;
         var model = _speechModel;
 
         _streamingRecognition = null;
         _streamingSessionTask = null;
+        _fileRecognitionTask = null;
         _speechModel = null;
         _isRecognizing = false;
 
-        if (streaming == null && model == null)
+        if (streaming == null && model == null && fileRecognitionTask == null)
         {
             return;
         }
 
         // Tear down off the UI thread (a synchronous wait would deadlock the DispatcherQueue), stopping
-        // and awaiting the session before disposal to avoid corrupting the on-disk model cache.
+        // and awaiting each session before disposal to avoid corrupting the on-disk model cache.
         _ = Task.Run(async () =>
         {
             if (streaming != null)
@@ -831,13 +846,16 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                 }
             }
 
-            try
+            if (fileRecognitionTask == null)
             {
-                model?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SpeechRecognition] Model cleanup threw: {ex.Message}");
+                try
+                {
+                    model?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SpeechRecognition] Model cleanup threw: {ex.Message}");
+                }
             }
         });
     }
