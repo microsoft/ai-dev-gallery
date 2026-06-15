@@ -3,6 +3,8 @@
 
 using Markdig.Syntax;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using RomanNumerals;
@@ -85,6 +87,8 @@ internal class MyList : IAddChild
         textBlock.SetValue(Grid.ColumnProperty, 0);
         textBlock.VerticalAlignment = VerticalAlignment.Top;
         textBlock.TextAlignment = TextAlignment.Right;
+
+        AutomationProperties.SetAccessibilityView(textBlock, AccessibilityView.Raw);
         grid.Children.Add(textBlock);
         var flowDoc = new MyFlowDocument();
         flowDoc.AddChild(child);
@@ -92,6 +96,8 @@ internal class MyList : IAddChild
         flowDoc.RichTextBlock.SetValue(Grid.ColumnProperty, 2);
         flowDoc.RichTextBlock.Padding = new Thickness(0);
         flowDoc.RichTextBlock.VerticalAlignment = VerticalAlignment.Top;
+
+        AutomationProperties.SetAccessibilityView(flowDoc.RichTextBlock, AccessibilityView.Raw);
         grid.Children.Add(flowDoc.RichTextBlock);
 
         _stackPanel.Children.Add(grid);
