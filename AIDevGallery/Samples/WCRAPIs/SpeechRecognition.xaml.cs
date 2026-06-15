@@ -523,42 +523,57 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
 
     private static void RewriteWavAsCanonicalPcm(string sourcePath, string destPath)
     {
-        var src = File.ReadAllBytes(sourcePath);
-        if (src.Length < 12 || Encoding.ASCII.GetString(src, 0, 4) != "RIFF" || Encoding.ASCII.GetString(src, 8, 4) != "WAVE")
+        // Stream the file rather than reading it fully into memory: a long recording can produce a
+        // large PCM data chunk, so we parse the header by seeking and copy the audio in bounded chunks.
+        using var source = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var header = new byte[12];
+        if (source.ReadAtLeast(header, 12, throwOnEndOfStream: false) < 12
+            || Encoding.ASCII.GetString(header, 0, 4) != "RIFF"
+            || Encoding.ASCII.GetString(header, 8, 4) != "WAVE")
         {
             throw new InvalidOperationException("Source file is not a RIFF/WAVE.");
         }
 
         ushort audioFormat = 0, channels = 0, blockAlign = 0, bitsPerSample = 0;
         uint sampleRate = 0, byteRate = 0;
-        int dataOffset = -1, dataSize = 0;
+        long dataOffset = -1;
+        uint dataSize = 0;
 
-        int offset = 12;
-        while (offset + 8 <= src.Length)
+        var chunkHeader = new byte[8];
+        while (source.ReadAtLeast(chunkHeader, 8, throwOnEndOfStream: false) == 8)
         {
-            var chunkId = Encoding.ASCII.GetString(src, offset, 4);
-            var chunkSize = (int)BitConverter.ToUInt32(src, offset + 4);
+            var chunkId = Encoding.ASCII.GetString(chunkHeader, 0, 4);
+            var chunkSize = BitConverter.ToUInt32(chunkHeader, 4);
 
             if (chunkId == "fmt " && chunkSize >= 16)
             {
-                audioFormat = BitConverter.ToUInt16(src, offset + 8);
-                channels = BitConverter.ToUInt16(src, offset + 10);
-                sampleRate = BitConverter.ToUInt32(src, offset + 12);
-                byteRate = BitConverter.ToUInt32(src, offset + 16);
-                blockAlign = BitConverter.ToUInt16(src, offset + 20);
-                bitsPerSample = BitConverter.ToUInt16(src, offset + 22);
+                var fmt = new byte[16];
+                if (source.ReadAtLeast(fmt, 16, throwOnEndOfStream: false) < 16)
+                {
+                    break;
+                }
+
+                audioFormat = BitConverter.ToUInt16(fmt, 0);
+                channels = BitConverter.ToUInt16(fmt, 2);
+                sampleRate = BitConverter.ToUInt32(fmt, 4);
+                byteRate = BitConverter.ToUInt32(fmt, 8);
+                blockAlign = BitConverter.ToUInt16(fmt, 12);
+                bitsPerSample = BitConverter.ToUInt16(fmt, 14);
+
+                // Skip any remaining fmt bytes (e.g. extensible headers) plus the pad byte.
+                source.Seek((chunkSize - 16) + (chunkSize & 1), SeekOrigin.Current);
             }
             else if (chunkId == "data")
             {
-                dataOffset = offset + 8;
+                dataOffset = source.Position;
                 dataSize = chunkSize;
                 break;
             }
-
-            offset += 8 + chunkSize;
-            if ((chunkSize & 1) == 1)
+            else
             {
-                offset += 1;
+                // Skip this chunk's body plus its pad byte if the size is odd.
+                source.Seek(chunkSize + (chunkSize & 1), SeekOrigin.Current);
             }
         }
 
@@ -567,7 +582,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             throw new InvalidOperationException($"Source WAV is not WAVE_FORMAT_PCM (got 0x{audioFormat:X4}).");
         }
 
-        if (dataOffset < 0 || dataSize <= 0)
+        if (dataOffset < 0 || dataSize == 0)
         {
             throw new InvalidOperationException("Source WAV has no data chunk.");
         }
@@ -577,28 +592,41 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             throw new InvalidOperationException($"Source WAV is not 16-bit PCM (got {bitsPerSample}).");
         }
 
+        using var dest = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
         const int CanonicalFmtSize = 16;
-        int canonicalSize = 12 + 8 + CanonicalFmtSize + 8 + dataSize;
-        var dst = new byte[canonicalSize];
+        var canonicalHeader = new byte[44];
+        Encoding.ASCII.GetBytes("RIFF").CopyTo(canonicalHeader, 0);
+        BitConverter.GetBytes(36u + dataSize).CopyTo(canonicalHeader, 4);
+        Encoding.ASCII.GetBytes("WAVE").CopyTo(canonicalHeader, 8);
+        Encoding.ASCII.GetBytes("fmt ").CopyTo(canonicalHeader, 12);
+        BitConverter.GetBytes((uint)CanonicalFmtSize).CopyTo(canonicalHeader, 16);
+        BitConverter.GetBytes((ushort)1).CopyTo(canonicalHeader, 20);
+        BitConverter.GetBytes(channels).CopyTo(canonicalHeader, 22);
+        BitConverter.GetBytes(sampleRate).CopyTo(canonicalHeader, 24);
+        BitConverter.GetBytes(byteRate).CopyTo(canonicalHeader, 28);
+        BitConverter.GetBytes(blockAlign).CopyTo(canonicalHeader, 32);
+        BitConverter.GetBytes(bitsPerSample).CopyTo(canonicalHeader, 34);
+        Encoding.ASCII.GetBytes("data").CopyTo(canonicalHeader, 36);
+        BitConverter.GetBytes(dataSize).CopyTo(canonicalHeader, 40);
+        dest.Write(canonicalHeader, 0, canonicalHeader.Length);
 
-        Encoding.ASCII.GetBytes("RIFF").CopyTo(dst, 0);
-        BitConverter.GetBytes((uint)(canonicalSize - 8)).CopyTo(dst, 4);
-        Encoding.ASCII.GetBytes("WAVE").CopyTo(dst, 8);
+        // Copy the PCM samples across in bounded chunks so the whole file is never held in memory.
+        source.Seek(dataOffset, SeekOrigin.Begin);
+        var buffer = new byte[81920];
+        long remaining = dataSize;
+        while (remaining > 0)
+        {
+            int toRead = (int)Math.Min(buffer.Length, remaining);
+            int read = source.Read(buffer, 0, toRead);
+            if (read == 0)
+            {
+                throw new InvalidOperationException("Source WAV data chunk is truncated.");
+            }
 
-        Encoding.ASCII.GetBytes("fmt ").CopyTo(dst, 12);
-        BitConverter.GetBytes((uint)CanonicalFmtSize).CopyTo(dst, 16);
-        BitConverter.GetBytes((ushort)1).CopyTo(dst, 20);
-        BitConverter.GetBytes(channels).CopyTo(dst, 22);
-        BitConverter.GetBytes(sampleRate).CopyTo(dst, 24);
-        BitConverter.GetBytes(byteRate).CopyTo(dst, 28);
-        BitConverter.GetBytes(blockAlign).CopyTo(dst, 32);
-        BitConverter.GetBytes(bitsPerSample).CopyTo(dst, 34);
-
-        Encoding.ASCII.GetBytes("data").CopyTo(dst, 36);
-        BitConverter.GetBytes((uint)dataSize).CopyTo(dst, 40);
-
-        Buffer.BlockCopy(src, dataOffset, dst, 44, dataSize);
-        File.WriteAllBytes(destPath, dst);
+            dest.Write(buffer, 0, read);
+            remaining -= read;
+        }
     }
 
     private async Task<bool> EnsureMicrophoneAccessAsync()
