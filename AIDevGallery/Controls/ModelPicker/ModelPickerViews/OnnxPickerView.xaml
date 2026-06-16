@@ -56,7 +56,7 @@
                                         UriSource="ms-appx:///Assets/AITKIcon.png" />
                                         </Image.Source>
                                     </Image>
-                                    <TextBlock Text="Open AI Toolkit`s Conversion tool" Margin="5,0,0,0" />
+                                    <TextBlock Text="Open AI Toolkit's Conversion tool" Margin="5,0,0,0" />
                                 </StackPanel>
                             </Button>
                             <Button
