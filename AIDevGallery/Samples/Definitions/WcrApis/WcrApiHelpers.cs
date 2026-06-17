@@ -5,10 +5,13 @@ using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
+using Microsoft.Windows.AI.MachineLearning;
+using Microsoft.Windows.AI.Speech;
 using Microsoft.Windows.AI.Text;
 using Microsoft.Windows.AI.Video;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 
 namespace AIDevGallery.Samples;
@@ -80,6 +83,9 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.VideoSuperRes, VideoScaler.GetReadyState
+        },
+        {
+            ModelType.SpeechRecognition, SpeechRecognitionModel.GetReadyState
         }
     };
 
@@ -132,8 +138,28 @@ internal static class WcrApiHelpers
         },
         {
             ModelType.VideoSuperRes, VideoScaler.EnsureReadyAsync
+        },
+        {
+            ModelType.SpeechRecognition, EnsureSpeechRecognitionModelReadyAsync
         }
     };
+
+    // SpeechRecognitionModel.EnsureReadyAsync reports progress as SpeechRecognitionModelProgress,
+    // so adapt it to the IAsyncOperationWithProgress<AIFeatureReadyResult, double> shape the gallery expects.
+    private static IAsyncOperationWithProgress<AIFeatureReadyResult, double> EnsureSpeechRecognitionModelReadyAsync()
+    {
+        return AsyncInfo.Run<AIFeatureReadyResult, double>(async (cancellationToken, progress) =>
+        {
+            progress.Report(0);
+            var catalog = ExecutionProviderCatalog.GetDefault();
+            await catalog.EnsureAndRegisterCertifiedAsync().AsTask(cancellationToken);
+
+            var inner = SpeechRecognitionModel.EnsureReadyAsync();
+            inner.Progress = (_, p) => progress.Report(p.Progress);
+            using var registration = cancellationToken.Register(() => inner.Cancel());
+            return await inner;
+        });
+    }
 
     // this is a workaround for GetReadyState not returning Ready after EnsureReadyAsync is called
     // for now, we will track when EnsureReadyAsync succeeds for each model to ensure we are not
