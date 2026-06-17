@@ -1,0 +1,862 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using AIDevGallery.Models;
+using AIDevGallery.Samples.Attributes;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AI;
+using Microsoft.Windows.AI.MachineLearning;
+using Microsoft.Windows.AI.Speech;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Windows.Media.Core;
+using Windows.Media.MediaProperties;
+using Windows.Media.Playback;
+using Windows.Media.Transcoding;
+using Windows.Security.Authorization.AppCapabilityAccess;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.System;
+
+namespace AIDevGallery.Samples.WCRAPIs;
+
+[GallerySample(
+    Name = "Speech Recognition",
+    Model1Types = [ModelType.SpeechRecognition],
+    Scenario = ScenarioType.AudioAndVideoTranscribeLiveAudio,
+    Id = "9c5b2e8a-1f7d-4d3c-9e6a-3b1c8e7f4d20",
+    Icon = "\uE720")]
+internal sealed partial class SpeechRecognition : BaseSamplePage
+{
+    private SpeechRecognitionModel? _speechModel;
+    private StreamingRecognition? _streamingRecognition;
+    private Task? _streamingSessionTask;
+    private StreamingRecognition? _fileStreamingRecognition;
+    private CancellationTokenSource? _fileStreamingCts;
+    private Task? _fileRecognitionTask;
+    private MediaPlayer? _filePlaybackPlayer;
+    private TaskCompletionSource<bool>? _filePlaybackCompletion;
+
+    private string _finalText = string.Empty;
+    private bool _isRecognizing;
+
+    private enum InputSource
+    {
+        Microphone,
+        FileBatch,
+        FileStreaming,
+    }
+
+    public SpeechRecognition()
+    {
+        this.Unloaded += (_, _) => CleanUp();
+        this.InitializeComponent();
+    }
+
+    protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
+    {
+        try
+        {
+            var catalog = ExecutionProviderCatalog.GetDefault();
+            await catalog.EnsureAndRegisterCertifiedAsync();
+
+            var readyState = SpeechRecognitionModel.GetReadyState();
+            if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+            {
+                if (readyState == AIFeatureReadyState.NotReady)
+                {
+                    var op = await SpeechRecognitionModel.EnsureReadyAsync();
+                    if (op.Status != AIFeatureReadyResultState.Success)
+                    {
+                        ShowException(op.ExtendedError, "Speech Recognition is not available.");
+                        return;
+                    }
+                }
+
+                var modelResult = await SpeechRecognitionModel.TryCreateAsync();
+                if (modelResult.ExtendedError != null)
+                {
+                    ShowException(modelResult.ExtendedError, "Failed to load the Speech Recognition model.");
+                    return;
+                }
+
+                _speechModel = modelResult.SpeechModel;
+            }
+            else
+            {
+                var msg = readyState == AIFeatureReadyState.DisabledByUser
+                    ? "Disabled by user."
+                    : "Not supported on this system.";
+                ShowException(null, $"Speech Recognition is not available: {msg}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, "Failed to load the Speech Recognition model.");
+        }
+        finally
+        {
+            sampleParams.NotifyCompletion();
+        }
+    }
+
+    private async void StartStopButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isRecognizing)
+        {
+            await StopRecognitionAsync();
+            return;
+        }
+
+        switch (GetSelectedInputSource())
+        {
+            case InputSource.FileBatch:
+                await RecognizeFromFileAsync(streamMode: false);
+                break;
+            case InputSource.FileStreaming:
+                await RecognizeFromFileAsync(streamMode: true);
+                break;
+            default:
+                await StartMicrophoneRecognitionAsync();
+                break;
+        }
+    }
+
+    private InputSource GetSelectedInputSource()
+    {
+        var tag = (InputSourceComboBox.SelectedItem as FrameworkElement)?.Tag as string;
+        return tag switch
+        {
+            "FileBatch" => InputSource.FileBatch,
+            "FileStreaming" => InputSource.FileStreaming,
+            _ => InputSource.Microphone,
+        };
+    }
+
+    private async Task StartMicrophoneRecognitionAsync()
+    {
+        if (_speechModel == null)
+        {
+            ShowException(null, "Speech Recognition model is not loaded yet.");
+            return;
+        }
+
+        SendSampleInteractedEvent("StartSpeechRecognition");
+        StartStopButton.IsEnabled = false;
+
+        try
+        {
+            if (!await EnsureMicrophoneAccessAsync())
+            {
+                return;
+            }
+
+            // Stream audio from the default microphone
+            var audioConfig = AudioConfiguration.FromAudioDevice(string.Empty);
+
+            _streamingRecognition = new StreamingRecognition(audioConfig, _speechModel);
+            var session = _streamingRecognition;
+            session.Recognizing += OnRecognizing;
+            session.Recognized += OnRecognized;
+
+            _finalText = string.Empty;
+            FinalTranscriptionTextBlock.Text = string.Empty;
+            InterimTranscriptionTextBlock.Text = string.Empty;
+            _isRecognizing = true;
+            UpdateUiState(running: true, status: "Listening on default microphone...");
+
+            var sessionTask = session.StartContinuousRecognitionAsync().AsTask();
+            _streamingSessionTask = sessionTask;
+            _ = MonitorStreamingSessionAsync(session, sessionTask);
+        }
+        catch (Exception ex)
+        {
+            await StopRecognitionAsync();
+            ShowException(ex, $"Failed to start speech recognition: {FormatError(ex)}");
+        }
+        finally
+        {
+            StartStopButton.IsEnabled = true;
+        }
+    }
+
+    private async Task StopRecognitionAsync()
+    {
+        SendSampleInteractedEvent("StopSpeechRecognition");
+
+        // Cancel any in-flight file-streaming recognition (even during the pre-session transcode).
+        // Detaching handlers when a session exists freezes the transcript immediately;
+        // RecognizeFromFileAsync then drains and disposes the session safely.
+        if (_fileStreamingRecognition is { } fileSession)
+        {
+            DetachHandlers(fileSession);
+        }
+
+        _fileStreamingCts?.Cancel();
+
+        var streaming = _streamingRecognition;
+        var sessionTask = _streamingSessionTask;
+        _streamingRecognition = null;
+        _streamingSessionTask = null;
+
+        if (streaming != null)
+        {
+            try
+            {
+                // Await the Start operation after stopping so the on-disk model cache flushes before disposal.
+                streaming.StopContinuousRecognition();
+
+                if (sessionTask != null)
+                {
+                    // Faults were already surfaced by MonitorStreamingSessionAsync
+                    await sessionTask.ContinueWith(static _ => { }, TaskScheduler.Default);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowException(ex, "Failed to stop speech recognition cleanly.");
+            }
+            finally
+            {
+                DetachHandlers(streaming);
+                streaming.Dispose();
+            }
+        }
+
+        _isRecognizing = false;
+        StopFilePlayback();
+        UpdateUiState(running: false, status: null);
+    }
+
+    // Awaits the streaming session task on a background thread; if it faults (e.g., mic device
+    // not found or wrong audio format), marshals the exception back to the UI thread and shows
+    // it to the user so the failure is visible instead of silently swallowed.
+    private async Task MonitorStreamingSessionAsync(StreamingRecognition session, Task sessionTask)
+    {
+        try
+        {
+            await sessionTask.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                // Ignore if the user already stopped or a different session is now active.
+                if (_streamingRecognition == session)
+                {
+                    HandleStreamingFailure(session, ex);
+                }
+            });
+        }
+    }
+
+    private void HandleStreamingFailure(StreamingRecognition session, Exception ex)
+    {
+        _streamingRecognition = null;
+        _streamingSessionTask = null;
+        _isRecognizing = false;
+
+        DetachHandlers(session);
+        session.Dispose();
+
+        UpdateUiState(running: false, status: null);
+        ShowException(ex, $"Speech recognition failed: {FormatError(ex)}");
+    }
+
+    private async Task RecognizeFromFileAsync(bool streamMode)
+    {
+        if (_speechModel == null)
+        {
+            ShowException(null, "Speech Recognition model is not loaded yet.");
+            return;
+        }
+
+        if (_isRecognizing)
+        {
+            await StopRecognitionAsync();
+        }
+
+        SendSampleInteractedEvent("RecognizeFromFile");
+
+        var picker = new FileOpenPicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(
+            picker, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+        picker.ViewMode = PickerViewMode.List;
+        picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
+        picker.FileTypeFilter.Add(".wav");
+        picker.FileTypeFilter.Add(".mp3");
+        picker.FileTypeFilter.Add(".m4a");
+
+        var file = await picker.PickSingleFileAsync();
+        if (file == null)
+        {
+            return;
+        }
+
+        var canStop = streamMode;
+
+        StorageFile? transcodedFile = null;
+        StreamingRecognition? fileStreaming = null;
+        CancellationTokenSource? fileCts = null;
+
+        // Mark that a file recognition is in flight so CleanUp can tell whether it's safe to dispose
+        // the shared model: disposing it while the native engine is still draining faults the engine.
+        var completion = new TaskCompletionSource();
+        _fileRecognitionTask = completion.Task;
+        try
+        {
+            // For streaming, create the cancellation source up front so Stop works even during the
+            // pre-recognition transcode step.
+            if (streamMode)
+            {
+                fileCts = new CancellationTokenSource();
+                _fileStreamingCts = fileCts;
+            }
+
+            UpdateUiState(running: true, status: $"Transcoding \"{file.Name}\" to 16 kHz mono...", canStop: canStop);
+            FinalTranscriptionTextBlock.Text = $"Transcoding \"{file.Name}\" to 16 kHz mono...";
+            InterimTranscriptionTextBlock.Text = string.Empty;
+            _finalText = string.Empty;
+            _isRecognizing = true;
+
+            transcodedFile = await TranscodeTo16kMonoCanonicalWavAsync(file);
+
+            if (streamMode)
+            {
+                FinalTranscriptionTextBlock.Text = string.Empty;
+
+                Task? playbackTask = null;
+                try
+                {
+                    fileCts!.Token.ThrowIfCancellationRequested();
+
+                    UpdateUiState(running: true, status: $"Streaming recognition of \"{file.Name}\"...", canStop: true);
+
+                    fileStreaming = new StreamingRecognition(
+                        AudioConfiguration.FromFile(transcodedFile.Path),
+                        _speechModel);
+                    fileStreaming.Recognizing += OnRecognizing;
+                    fileStreaming.Recognized += OnRecognized;
+                    _fileStreamingRecognition = fileStreaming;
+
+                    // Play the picked file so the transcript can be followed as it streams in,
+                    // rather than appearing in silence.
+                    playbackTask = StartFilePlayback(file);
+
+                    await fileStreaming.StartContinuousRecognitionAsync().AsTask(fileCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when the user presses Stop or navigates away mid-file.
+                }
+
+                if (_isRecognizing)
+                {
+                    if (string.IsNullOrWhiteSpace(_finalText))
+                    {
+                        FinalTranscriptionTextBlock.Text = "(no speech detected in file)";
+                    }
+
+                    if (playbackTask != null)
+                    {
+                        await playbackTask;
+                    }
+
+                    UpdateUiState(running: false, status: $"Streaming recognition of \"{file.Name}\" completed.");
+                }
+            }
+            else
+            {
+                // BatchRecognition returns the full transcript in a single call.
+                UpdateUiState(running: true, status: $"Recognizing from \"{file.Name}\"...", canStop: false);
+                FinalTranscriptionTextBlock.Text = $"Recognizing from file: {file.Name}...";
+
+                using var batch = new BatchRecognition(_speechModel);
+                var transcript = await batch.RecognizeFromFile(transcodedFile.Path);
+
+                _finalText = transcript ?? string.Empty;
+                FinalTranscriptionTextBlock.Text = string.IsNullOrWhiteSpace(_finalText)
+                    ? "(no speech detected in file)"
+                    : _finalText;
+                UpdateUiState(running: false, status: $"Recognition of \"{file.Name}\" completed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowException(ex, $"Failed to recognize from \"{file.Name}\".\n\n{ex.Message}");
+            UpdateUiState(running: false, status: null);
+        }
+        finally
+        {
+            _isRecognizing = false;
+            StopFilePlayback();
+
+            if (fileStreaming != null)
+            {
+                DetachHandlers(fileStreaming);
+                fileStreaming.Dispose();
+            }
+
+            fileCts?.Dispose();
+
+            // Clear shared state only if a newer run hasn't already replaced it.
+            if (ReferenceEquals(_fileStreamingRecognition, fileStreaming))
+            {
+                _fileStreamingRecognition = null;
+            }
+
+            if (ReferenceEquals(_fileStreamingCts, fileCts))
+            {
+                _fileStreamingCts = null;
+            }
+
+            await TryDeleteAsync(transcodedFile);
+
+            // Mark the operation complete so a later CleanUp knows no file recognition is in flight.
+            completion.TrySetResult();
+            if (ReferenceEquals(_fileRecognitionTask, completion.Task))
+            {
+                _fileRecognitionTask = null;
+            }
+        }
+    }
+
+    private Task StartFilePlayback(StorageFile file)
+    {
+        StopFilePlayback();
+
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _filePlaybackCompletion = completion;
+
+        try
+        {
+            var player = new MediaPlayer();
+            player.MediaEnded += OnFilePlaybackEnded;
+            player.MediaFailed += OnFilePlaybackFailed;
+            player.Source = MediaSource.CreateFromStorageFile(file);
+            _filePlaybackPlayer = player;
+            player.Play();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SpeechRecognition] Failed to start file playback: {ex.Message}");
+            StopFilePlayback();
+        }
+
+        return completion.Task;
+    }
+
+    private void StopFilePlayback()
+    {
+        var player = _filePlaybackPlayer;
+        _filePlaybackPlayer = null;
+
+        // Unblock anyone awaiting playback completion (e.g. a Stop click before the clip ends).
+        _filePlaybackCompletion?.TrySetResult(false);
+        _filePlaybackCompletion = null;
+
+        if (player == null)
+        {
+            return;
+        }
+
+        player.MediaEnded -= OnFilePlaybackEnded;
+        player.MediaFailed -= OnFilePlaybackFailed;
+
+        try
+        {
+            player.Pause();
+            if (player.Source is IDisposable source)
+            {
+                player.Source = null;
+                source.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SpeechRecognition] Failed to stop file playback: {ex.Message}");
+        }
+
+        player.Dispose();
+    }
+
+    private void OnFilePlaybackEnded(MediaPlayer sender, object args)
+    {
+        _filePlaybackCompletion?.TrySetResult(true);
+    }
+
+    private void OnFilePlaybackFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
+    {
+        Debug.WriteLine($"[SpeechRecognition] File playback failed: {args.ErrorMessage}");
+        _filePlaybackCompletion?.TrySetResult(false);
+    }
+
+    private static async Task<StorageFile> TranscodeTo16kMonoCanonicalWavAsync(StorageFile inputFile)
+    {
+        var mfFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
+            $"speech-recognition-mf-{Guid.NewGuid():N}.wav",
+            CreationCollisionOption.ReplaceExisting);
+        var canonicalFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
+            $"speech-recognition-{Guid.NewGuid():N}.wav",
+            CreationCollisionOption.ReplaceExisting);
+
+        try
+        {
+            var profile = MediaEncodingProfile.CreateWav(AudioEncodingQuality.Auto);
+            profile.Audio = AudioEncodingProperties.CreatePcm(16000, 1, 16);
+
+            var transcoder = new MediaTranscoder();
+            var prepare = await transcoder.PrepareFileTranscodeAsync(inputFile, mfFile, profile);
+            if (!prepare.CanTranscode)
+            {
+                throw new InvalidOperationException(
+                    $"MediaTranscoder cannot transcode \"{inputFile.Name}\" to 16 kHz mono PCM WAV: {prepare.FailureReason}");
+            }
+
+            await prepare.TranscodeAsync();
+            RewriteWavAsCanonicalPcm(mfFile.Path, canonicalFile.Path);
+            return canonicalFile;
+        }
+        catch
+        {
+            await TryDeleteAsync(canonicalFile);
+            throw;
+        }
+        finally
+        {
+            await TryDeleteAsync(mfFile);
+        }
+    }
+
+    private static void RewriteWavAsCanonicalPcm(string sourcePath, string destPath)
+    {
+        // Stream the file rather than reading it fully into memory: a long recording can produce a
+        // large PCM data chunk, so we parse the header by seeking and copy the audio in bounded chunks.
+        using var source = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        var header = new byte[12];
+        if (source.ReadAtLeast(header, 12, throwOnEndOfStream: false) < 12
+            || Encoding.ASCII.GetString(header, 0, 4) != "RIFF"
+            || Encoding.ASCII.GetString(header, 8, 4) != "WAVE")
+        {
+            throw new InvalidOperationException("Source file is not a RIFF/WAVE.");
+        }
+
+        ushort audioFormat = 0, channels = 0, blockAlign = 0, bitsPerSample = 0;
+        uint sampleRate = 0, byteRate = 0;
+        long dataOffset = -1;
+        uint dataSize = 0;
+
+        var chunkHeader = new byte[8];
+        while (source.ReadAtLeast(chunkHeader, 8, throwOnEndOfStream: false) == 8)
+        {
+            var chunkId = Encoding.ASCII.GetString(chunkHeader, 0, 4);
+            var chunkSize = BitConverter.ToUInt32(chunkHeader, 4);
+
+            if (chunkId == "fmt " && chunkSize >= 16)
+            {
+                var fmt = new byte[16];
+                if (source.ReadAtLeast(fmt, 16, throwOnEndOfStream: false) < 16)
+                {
+                    break;
+                }
+
+                audioFormat = BitConverter.ToUInt16(fmt, 0);
+                channels = BitConverter.ToUInt16(fmt, 2);
+                sampleRate = BitConverter.ToUInt32(fmt, 4);
+                byteRate = BitConverter.ToUInt32(fmt, 8);
+                blockAlign = BitConverter.ToUInt16(fmt, 12);
+                bitsPerSample = BitConverter.ToUInt16(fmt, 14);
+
+                // Skip any remaining fmt bytes (e.g. extensible headers) plus the pad byte.
+                source.Seek((chunkSize - 16) + (chunkSize & 1), SeekOrigin.Current);
+            }
+            else if (chunkId == "data")
+            {
+                dataOffset = source.Position;
+                dataSize = chunkSize;
+                break;
+            }
+            else
+            {
+                // Skip this chunk's body plus its pad byte if the size is odd.
+                source.Seek(chunkSize + (chunkSize & 1), SeekOrigin.Current);
+            }
+        }
+
+        if (audioFormat != 1)
+        {
+            throw new InvalidOperationException($"Source WAV is not WAVE_FORMAT_PCM (got 0x{audioFormat:X4}).");
+        }
+
+        if (dataOffset < 0 || dataSize == 0)
+        {
+            throw new InvalidOperationException("Source WAV has no data chunk.");
+        }
+
+        if (bitsPerSample != 16)
+        {
+            throw new InvalidOperationException($"Source WAV is not 16-bit PCM (got {bitsPerSample}).");
+        }
+
+        using var dest = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+        const int CanonicalFmtSize = 16;
+        var canonicalHeader = new byte[44];
+        Encoding.ASCII.GetBytes("RIFF").CopyTo(canonicalHeader, 0);
+        BitConverter.GetBytes(36u + dataSize).CopyTo(canonicalHeader, 4);
+        Encoding.ASCII.GetBytes("WAVE").CopyTo(canonicalHeader, 8);
+        Encoding.ASCII.GetBytes("fmt ").CopyTo(canonicalHeader, 12);
+        BitConverter.GetBytes((uint)CanonicalFmtSize).CopyTo(canonicalHeader, 16);
+        BitConverter.GetBytes((ushort)1).CopyTo(canonicalHeader, 20);
+        BitConverter.GetBytes(channels).CopyTo(canonicalHeader, 22);
+        BitConverter.GetBytes(sampleRate).CopyTo(canonicalHeader, 24);
+        BitConverter.GetBytes(byteRate).CopyTo(canonicalHeader, 28);
+        BitConverter.GetBytes(blockAlign).CopyTo(canonicalHeader, 32);
+        BitConverter.GetBytes(bitsPerSample).CopyTo(canonicalHeader, 34);
+        Encoding.ASCII.GetBytes("data").CopyTo(canonicalHeader, 36);
+        BitConverter.GetBytes(dataSize).CopyTo(canonicalHeader, 40);
+        dest.Write(canonicalHeader, 0, canonicalHeader.Length);
+
+        // Copy the PCM samples across in bounded chunks so the whole file is never held in memory.
+        source.Seek(dataOffset, SeekOrigin.Begin);
+        var buffer = new byte[81920];
+        long remaining = dataSize;
+        while (remaining > 0)
+        {
+            int toRead = (int)Math.Min(buffer.Length, remaining);
+            int read = source.Read(buffer, 0, toRead);
+            if (read == 0)
+            {
+                throw new InvalidOperationException("Source WAV data chunk is truncated.");
+            }
+
+            dest.Write(buffer, 0, read);
+            remaining -= read;
+        }
+    }
+
+    private async Task<bool> EnsureMicrophoneAccessAsync()
+    {
+        // The AppCapability microphone-permission API requires Windows 10 1903 (build 18362).
+        // On older builds it isn't available, so skip the explicit check and let recognition
+        // proceed; the start call will surface any genuine access failure.
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+        {
+            return true;
+        }
+
+        try
+        {
+            var capability = AppCapability.Create("microphone");
+            if (capability != null)
+            {
+                var status = capability.CheckAccess();
+                if (status != AppCapabilityAccessStatus.Allowed)
+                {
+                    status = await capability.RequestAccessAsync();
+                }
+
+                if (status != AppCapabilityAccessStatus.Allowed)
+                {
+                    await ShowMicrophoneAccessDeniedDialogAsync();
+                    return false;
+                }
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            await ShowMicrophoneAccessDeniedDialogAsync();
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task ShowMicrophoneAccessDeniedDialogAsync()
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Microphone access required",
+            Content = "Speech recognition needs permission to use the microphone. " +
+                "Open Windows Settings, enable \u201CLet apps access your microphone\u201D, " +
+                "and allow access for AI Dev Gallery.",
+            PrimaryButtonText = "Open Settings",
+            CloseButtonText = "Cancel",
+            XamlRoot = this.XamlRoot,
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            await Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-microphone"));
+        }
+    }
+
+    private void OnRecognizing(StreamingRecognition sender, StreamingRecognizingEventArgs args)
+    {
+        var partial = args.Text ?? string.Empty;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            InterimTranscriptionTextBlock.Text = partial;
+            ScrollToEnd();
+        });
+    }
+
+    private void OnRecognized(StreamingRecognition sender, StreamingRecognizedEventArgs args)
+    {
+        // Recognized phrases often carry their own leading/trailing whitespace; trim it so the
+        // segments below are always joined by exactly one space instead of doubling up.
+        var text = (args.Text ?? string.Empty).Trim();
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (text.Length > 0)
+            {
+                if (_finalText.Length > 0)
+                {
+                    _finalText += " ";
+                }
+
+                _finalText += text;
+                FinalTranscriptionTextBlock.Text = _finalText;
+            }
+
+            InterimTranscriptionTextBlock.Text = string.Empty;
+            ScrollToEnd();
+        });
+    }
+
+    private void ScrollToEnd()
+    {
+        TranscriptionScrollViewer.UpdateLayout();
+        TranscriptionScrollViewer.ChangeView(null, TranscriptionScrollViewer.ScrollableHeight, null, disableAnimation: true);
+    }
+
+    private void ClearButton_Click(object sender, RoutedEventArgs e)
+    {
+        _finalText = string.Empty;
+        FinalTranscriptionTextBlock.Text = string.Empty;
+        InterimTranscriptionTextBlock.Text = string.Empty;
+    }
+
+    private void UpdateUiState(bool running, string? status, bool canStop = true)
+    {
+        InputSourceComboBox.IsEnabled = !running;
+        StartStopButton.IsEnabled = !running || canStop;
+        StartStopButton.Content = running
+            ? (canStop ? "Stop recognition" : "Recognizing...")
+            : "Start recognition";
+
+        if (string.IsNullOrEmpty(status))
+        {
+            StatusInfoBar.IsOpen = false;
+            StatusInfoBar.Title = string.Empty;
+            StatusInfoBar.Message = string.Empty;
+        }
+        else
+        {
+            StatusInfoBar.Severity = InfoBarSeverity.Informational;
+            StatusInfoBar.Title = running ? "Listening" : string.Empty;
+            StatusInfoBar.Message = status;
+            StatusInfoBar.IsOpen = true;
+        }
+    }
+
+    private void DetachHandlers(StreamingRecognition session)
+    {
+        session.Recognizing -= OnRecognizing;
+        session.Recognized -= OnRecognized;
+    }
+
+    private static string FormatError(Exception ex)
+    {
+        var hresult = ((uint)ex.HResult).ToString("X8", CultureInfo.InvariantCulture);
+        return string.IsNullOrEmpty(ex.Message) ? $"HRESULT 0x{hresult}" : $"{ex.Message} (HRESULT 0x{hresult})";
+    }
+
+    private static async Task TryDeleteAsync(StorageFile? file)
+    {
+        if (file == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SpeechRecognition] Failed to delete temporary file: {ex.Message}");
+        }
+    }
+
+    private void CleanUp()
+    {
+        StopFilePlayback();
+
+        // Cancel any in-flight file-streaming recognition so it doesn't keep running after navigation.
+        _fileStreamingCts?.Cancel();
+
+        var streaming = _streamingRecognition;
+        var sessionTask = _streamingSessionTask;
+        var fileRecognitionTask = _fileRecognitionTask;
+        var model = _speechModel;
+
+        _streamingRecognition = null;
+        _streamingSessionTask = null;
+        _fileRecognitionTask = null;
+        _speechModel = null;
+        _isRecognizing = false;
+
+        if (streaming == null && model == null && fileRecognitionTask == null)
+        {
+            return;
+        }
+
+        // Tear down off the UI thread (a synchronous wait would deadlock the DispatcherQueue), stopping
+        // and awaiting each session before disposal to avoid corrupting the on-disk model cache.
+        _ = Task.Run(async () =>
+        {
+            if (streaming != null)
+            {
+                try
+                {
+                    DetachHandlers(streaming);
+                    streaming.StopContinuousRecognition();
+
+                    if (sessionTask != null)
+                    {
+                        await sessionTask.WaitAsync(TimeSpan.FromSeconds(5))
+                            .ContinueWith(static _ => { }, TaskScheduler.Default)
+                            .ConfigureAwait(false);
+                    }
+
+                    streaming.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SpeechRecognition] Streaming cleanup threw: {ex.Message}");
+                }
+            }
+
+            if (fileRecognitionTask == null)
+            {
+                try
+                {
+                    model?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SpeechRecognition] Model cleanup threw: {ex.Message}");
+                }
+            }
+        });
+    }
+}

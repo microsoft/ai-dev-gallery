@@ -166,6 +166,15 @@ internal sealed partial class WcrModelDownloader : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
+        // TODO: Remove once the Speech Recognition ships through Windows Update
+        var isSpeechRecognition = modelType == ModelType.SpeechRecognition;
+        ModelDownloadInfoRun.Text = isSpeechRecognition
+            ? "This Windows AI API requires a one-time model download."
+            : "This Windows AI API requires a one-time model download via Windows Update.";
+        WindowsUpdateTrackingText.Visibility = isSpeechRecognition
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
         if (exisitingOperation != null && exisitingOperation.Status == AsyncStatus.Started)
         {
             // don't reuse same one because we can only have one Progress delegate
