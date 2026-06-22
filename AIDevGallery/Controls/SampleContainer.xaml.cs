@@ -11,6 +11,7 @@ using ColorCode;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.AI;
 using System;
 using System.Collections.Generic;
@@ -59,6 +60,8 @@ internal sealed partial class SampleContainer : UserControl
     public static readonly DependencyProperty NugetPackageReferencesProperty =
         DependencyProperty.Register("NugetPackageReferences", typeof(List<string>), typeof(SampleContainer), new PropertyMetadata(null));
 
+    public event EventHandler? CodePaneFocusReturnRequested;
+
     private RichTextBlockFormatter codeFormatter;
     private Dictionary<string, string> codeFiles = new();
     private Sample? _sampleCache;
@@ -69,6 +72,7 @@ internal sealed partial class SampleContainer : UserControl
     private TaskCompletionSource? _sampleLoadedCompletionSource;
     private double _codePaneWidth;
     private ModelType? _wcrApi;
+    private bool _pendingFocusCodeTabOnShow;
 
     private static readonly List<WeakReference<SampleContainer>> References = [];
 
@@ -461,10 +465,84 @@ internal sealed partial class SampleContainer : UserControl
 
     public void ShowCode()
     {
+        _pendingFocusCodeTabOnShow = true;
+
         RenderCodeTabs();
 
         CodeColumn.Width = _codePaneWidth == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(_codePaneWidth);
         VisualStateManager.GoToState(this, "ShowCodePane", true);
+
+        FocusSelectedCodeTab();
+    }
+
+    private void FocusSelectedCodeTab()
+    {
+        if (!_pendingFocusCodeTabOnShow || CodeTabView.SelectedItem is not TabViewItem selectedTab)
+        {
+            return;
+        }
+
+        if (TryFocusTab(selectedTab))
+        {
+            _pendingFocusCodeTabOnShow = false;
+            return;
+        }
+
+        void OnLayoutUpdated(object? sender, object e)
+        {
+            if (!_pendingFocusCodeTabOnShow || TryFocusTab(selectedTab))
+            {
+                _pendingFocusCodeTabOnShow = false;
+                CodeTabView.LayoutUpdated -= OnLayoutUpdated;
+            }
+        }
+
+        CodeTabView.LayoutUpdated += OnLayoutUpdated;
+    }
+
+    private bool TryFocusTab(TabViewItem tab)
+    {
+        if (!tab.IsLoaded)
+        {
+            return false;
+        }
+
+        // Keyboard focus state so the focus rectangle is visible.
+        tab.Focus(FocusState.Keyboard);
+        return ReferenceEquals(FocusManager.GetFocusedElement(XamlRoot), tab);
+    }
+
+    /// <summary>
+    /// Moves keyboard focus onto the open code pane's selected tab. Bridges the
+    /// gap between the Code toggle button and the pane, which are far apart in
+    /// the XAML tree.
+    /// </summary>
+    /// <returns><c>true</c> if focus was moved into the pane.</returns>
+    public bool FocusCodePane()
+    {
+        if (CodeGrid.Visibility != Visibility.Visible || CodeTabView.SelectedItem is not TabViewItem selectedTab)
+        {
+            return false;
+        }
+
+        return TryFocusTab(selectedTab);
+    }
+
+    private void CodeTabView_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != Windows.System.VirtualKey.Tab)
+        {
+            return;
+        }
+
+        var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift);
+        bool isShiftDown = shiftState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+
+        if (isShiftDown && FocusManager.GetFocusedElement(XamlRoot) is TabViewItem)
+        {
+            CodePaneFocusReturnRequested?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+        }
     }
 
     public void HideCode()
@@ -548,7 +626,15 @@ internal sealed partial class SampleContainer : UserControl
 
         LineNumbersTextBlock.Text = lineNumbers.ToString();
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CodeTextBlock, $"{codeName} code");
-        RichTextBlockBorder.Focus(FocusState.Programmatic);
+
+        if (_pendingFocusCodeTabOnShow)
+        {
+            FocusSelectedCodeTab();
+        }
+        else
+        {
+            RichTextBlockBorder.Focus(FocusState.Programmatic);
+        }
     }
 
     private void ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)

@@ -375,6 +375,7 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Click="CodeToggle_Click"
+                        PreviewKeyDown="CodeToggle_PreviewKeyDown"
                         ToolTipService.ToolTip="Show source code">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Viewbox Width="16" Margin="0,-2,0,0">

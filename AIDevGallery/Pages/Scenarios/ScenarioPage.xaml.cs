@@ -51,6 +51,28 @@ internal sealed partial class ScenarioPage : Page
         BackgroundShadow.Receivers.Add(ShadowCastGrid);
         App.MainWindow.ModelPicker.SelectedModelsChanged += ModelOrApiPicker_SelectedModelsChanged;
         this.Unloaded += (s, e) => App.MainWindow.ModelPicker.SelectedModelsChanged -= ModelOrApiPicker_SelectedModelsChanged;
+        SampleContainer.CodePaneFocusReturnRequested += SampleContainer_CodePaneFocusReturnRequested;
+    }
+
+    private void SampleContainer_CodePaneFocusReturnRequested(object? sender, EventArgs e)
+    {
+        CodeToggle.Focus(FocusState.Programmatic);
+    }
+
+    private void CodeToggle_PreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        if (e.Key != Windows.System.VirtualKey.Tab || CodeToggle.IsChecked != true)
+        {
+            return;
+        }
+
+        var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Shift);
+        bool isShiftDown = shiftState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+
+        if (!isShiftDown && SampleContainer.FocusCodePane())
+        {
+            e.Handled = true;
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
