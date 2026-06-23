@@ -67,7 +67,7 @@
         Grid.Row="3"
         AutomationProperties.Name="Converted Table Scroll Area"
         HorizontalScrollBarVisibility="Disabled"
-        IsTabStop="True"
+        IsTabStop="False"
         TabNavigation="Once"
         VerticalScrollBarVisibility="Auto">
             <StackPanel>

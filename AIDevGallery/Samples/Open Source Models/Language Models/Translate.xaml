@@ -77,7 +77,7 @@
             Grid.Row="4"
             AutomationProperties.Name="Generated Text Scroll Area"
             HorizontalScrollBarVisibility="Disabled"
-            IsTabStop="True"
+            IsTabStop="False"
             TabNavigation="Once"
             VerticalScrollBarVisibility="Auto">
             <TextBlock

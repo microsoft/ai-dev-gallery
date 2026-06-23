@@ -67,7 +67,7 @@
         Grid.Row="3"
         AutomationProperties.Name="Rewritten Text Scroll Area"
         HorizontalScrollBarVisibility="Disabled"
-        IsTabStop="True"
+        IsTabStop="False"
         TabNavigation="Once"
         VerticalScrollBarVisibility="Auto">
             <TextBlock
