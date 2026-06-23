@@ -184,6 +184,11 @@ internal static class AppUtils
         }
     }
 
+    public static string GetHardwareAcceleratorMoreInfoName(HardwareAccelerator hardwareAccelerator)
+    {
+        return $"{GetHardwareAcceleratorString(hardwareAccelerator)} more info";
+    }
+
     public static string GetHardwareAcceleratorDescription(HardwareAccelerator hardwareAccelerator)
     {
         if (ExternalModelHelper.HardwareAccelerators.Contains(hardwareAccelerator))

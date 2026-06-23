@@ -173,7 +173,7 @@
                                                 <DataTemplate x:DataType="models:HardwareAccelerator">
                                                     <Button
                                                         VerticalAlignment="Center"
-                                                        AutomationProperties.Name="More info"
+                                                        AutomationProperties.Name="{x:Bind utils:AppUtils.GetHardwareAcceleratorMoreInfoName((models:HardwareAccelerator))}"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
                                                         ToolTipService.ToolTip="More info"
@@ -202,6 +202,7 @@
                     Width="120"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Stretch"
+                    AutomationProperties.Name="Run sample"
                     Click="OnSave_Clicked"
                     Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Vertical" Spacing="4">

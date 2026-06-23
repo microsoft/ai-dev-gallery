@@ -44,6 +44,7 @@
                         <controls:WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="12">
                             <Button
                             x:Name="OpenAIToolkitButton"
+                            AutomationProperties.Name="Open AI Toolkit's Conversion tool"
                             Click="OpenAIToolkitButton_Click"
                             Visibility="Visible">
                                 <StackPanel Orientation="Horizontal">
@@ -55,11 +56,12 @@
                                         UriSource="ms-appx:///Assets/AITKIcon.png" />
                                         </Image.Source>
                                     </Image>
-                                    <TextBlock Text="Open AI Toolkit`s Conversion tool" Margin="5,0,0,0" />
+                                    <TextBlock Text="Open AI Toolkit's Conversion tool" Margin="5,0,0,0" />
                                 </StackPanel>
                             </Button>
                             <Button
                             x:Name="ViewDocumentationButton"
+                            AutomationProperties.Name="View documentation"
                             Click="ViewDocumentationButton_Click"
                             Visibility="Visible">
                                 <StackPanel Orientation="Horizontal">
@@ -146,7 +148,7 @@
                                                     <DataTemplate x:DataType="models:HardwareAccelerator">
                                                         <Button
                                                             VerticalAlignment="Center"
-                                                            AutomationProperties.Name="More info"
+                                                            AutomationProperties.Name="{x:Bind utils:AppUtils.GetHardwareAcceleratorMoreInfoName((models:HardwareAccelerator))}"
                                                             Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                             Style="{StaticResource TertiaryButtonStyle}"
                                                             Tapped="StopPropagatingHandler"
@@ -243,6 +245,7 @@
                         Grid.Column="1"
                         Padding="0"
                         Visibility="Collapsed"
+                        AutomationProperties.Name="Add model"
                         Background="Transparent"
                         BorderThickness="0"
                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
@@ -320,7 +323,7 @@
                                                 <DataTemplate x:DataType="models:HardwareAccelerator">
                                                     <Button
                                                         VerticalAlignment="Center"
-                                                        AutomationProperties.Name="More info"
+                                                        AutomationProperties.Name="{x:Bind utils:AppUtils.GetHardwareAcceleratorMoreInfoName((models:HardwareAccelerator))}"
                                                         Content="{x:Bind utils:AppUtils.GetHardwareAcceleratorString((models:HardwareAccelerator))}"
                                                         Style="{StaticResource TertiaryButtonStyle}"
                                                         ToolTipService.ToolTip="More info"
