@@ -174,7 +174,8 @@
                                 <ItemContainer
                                     HorizontalAlignment="Left"
                                     AutomationProperties.Name="{x:Bind Name}"
-                                    CornerRadius="16">
+                                    CornerRadius="16"
+                                    ToolTipService.ToolTip="{x:Bind Name}">
                                     <Grid
                                         Padding="12,6,12,6"
                                         Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
