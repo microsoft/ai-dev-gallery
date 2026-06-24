@@ -56,7 +56,8 @@ internal sealed partial class ScenarioPage : Page
 
     private void SampleContainer_CodePaneFocusReturnRequested(object? sender, EventArgs e)
     {
-        CodeToggle.Focus(FocusState.Programmatic);
+        // Keyboard focus state so the focus rectangle is visible after Shift+Tab.
+        CodeToggle.Focus(FocusState.Keyboard);
     }
 
     private void CodeToggle_PreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
