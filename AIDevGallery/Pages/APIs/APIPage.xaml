@@ -184,6 +184,7 @@
                         Grid.Row="1"
                         Margin="0"
                         Padding="0"
+                        AutomationProperties.Name="API code sample"
                         Background="Transparent"
                         HorizontalScrollBarVisibility="Visible"
                         HorizontalScrollMode="Auto"
