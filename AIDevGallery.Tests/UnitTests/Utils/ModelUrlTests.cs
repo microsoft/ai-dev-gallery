@@ -241,6 +241,27 @@ public class HuggingFaceUrlTests
     }
 
     [TestMethod]
+    public void ConstructorWithBaseUrlOnlyShouldThrowArgumentException()
+    {
+        // Arrange - the base URL with no repo path must be rejected with
+        // ArgumentException, not crash with ArgumentOutOfRangeException.
+        var url = "https://huggingface.co";
+
+        // Act & Assert
+        Assert.ThrowsExactly<System.ArgumentException>(() => new HuggingFaceUrl(url));
+    }
+
+    [TestMethod]
+    public void ConstructorWithLookalikeDomainShouldThrowException()
+    {
+        // Arrange - a host that merely starts with the base host must not be accepted.
+        var url = "https://huggingface.competitor.com/evil/repo";
+
+        // Act & Assert
+        Assert.ThrowsExactly<System.ArgumentException>(() => new HuggingFaceUrl(url));
+    }
+
+    [TestMethod]
     public void ConstructorWithUrlHavingWhitespaceShouldTrimAndParse()
     {
         // Arrange
