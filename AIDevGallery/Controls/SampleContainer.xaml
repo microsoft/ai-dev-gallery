@@ -154,6 +154,7 @@
                         x:Name="CodeTabView"
                         Margin="0,8,0,0"
                         IsAddTabButtonVisible="False"
+                        PreviewKeyDown="CodeTabView_PreviewKeyDown"
                         SelectionChanged="CodeTabView_SelectionChanged"
                         TabWidthMode="SizeToContent" />
                     <Grid Grid.Row="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
@@ -187,6 +188,7 @@
                             <Border 
                                 IsTabStop="True" 
                                 Background="Transparent" 
+                                UseSystemFocusVisuals="True"
                                 x:Name="RichTextBlockBorder">
                                 <RichTextBlock
                                     x:Name="CodeTextBlock"
