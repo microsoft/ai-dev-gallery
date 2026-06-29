@@ -214,6 +214,9 @@ internal sealed partial class SampleContainer : UserControl
                 wcrModelUnavailable.Message = issue!;
             }
 
+            var notCompatibleApiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == notCompatibleModel.Id).Key;
+            wcrModelUnavailable.LearnMoreUri = new Uri(WcrApiHelpers.GetHardwareRequirementInfo(notCompatibleApiType).LearnMoreUri);
+
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;

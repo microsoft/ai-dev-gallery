@@ -13,7 +13,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "PhiSilicaLora": {
         "Id": "6b319cbc-59e5-4ed0-af33-e7575bee7475",
@@ -24,7 +26,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica-lora.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3e392b7f-02a8-45e0-bed1-f75186368f12",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "TextSummarizer": {
         "Id": "55eb4d48-3908-44ac-95b1-fa47318a5cbf",
@@ -35,7 +39,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "3b0582ef-3278-489a-8f71-3ee1379aed2b",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "TextRewriter": {
         "Id": "4084554c-a4ce-4624-a1e4-871a1d3df5d6",
@@ -46,7 +52,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "69e816fe-1893-4884-bea6-b3d247951a6b",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "DescribeYourChange": {
         "Id": "c5f8d3a7-9e2b-4f6a-8d1c-7b3e5a9c4f2d",
@@ -57,7 +65,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "TextToTableConverter": {
         "Id": "b8a3dc48-a9e7-4697-b178-70c139887e9b",
@@ -68,7 +78,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/phi-silica.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "ff611809-aa53-47e1-a5d9-5210f01b2e3d",
-        "Category": "Phi Silica"
+        "Category": "Phi Silica",
+        "SupportedHardwareAccelerators": [ "NPU", "GPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/phi-silica#supported-hardware"
       },
       "TextRecognitionOCR": {
         "Id": "4bcc0137-0e9a-4eda-8096-b235fcb0e98b",
@@ -217,7 +229,9 @@
         "Description": "Improve video resolution.",
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/video-super-resolution.md",
         "License": "ms-pl",
-        "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650"
+        "SampleIdToShowInDocs": "c3252e18-1d47-4689-adae-78fc66968650",
+        "SupportedHardwareAccelerators": [ "NPU", "CPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/video-super-resolution#supported-hardware"
       },
       "SpeechRecognition": {
         "Id": "0d4f1c2a-7e3b-4c9e-9b8a-1f2d3c4b5a60",
@@ -228,7 +242,9 @@
         "ReadmeUrl": "https://github.com/MicrosoftDocs/windows-ai-docs/blob/docs/docs/apis/speech-recognition.md",
         "License": "ms-pl",
         "SampleIdToShowInDocs": "9c5b2e8a-1f7d-4d3c-9e6a-3b1c8e7f4d20",
-        "Category": "Speech"
+        "Category": "Speech",
+        "SupportedHardwareAccelerators": [ "NPU", "CPU" ],
+        "SupportedHardwareUrl": "https://learn.microsoft.com/windows/ai/apis/speech-recognition#supported-hardware"
       }
     }
   }

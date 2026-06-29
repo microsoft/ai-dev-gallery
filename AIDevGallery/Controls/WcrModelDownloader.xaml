@@ -31,8 +31,16 @@
                 IsTextSelectionEnabled="True"
                 TextAlignment="Center"
                 TextWrapping="Wrap">
-                <Run x:Name="ModelDownloadInfoRun" Text="This Windows AI API requires a one-time model download via Windows Update." /><LineBreak /> <LineBreak />
-                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
+                <Run x:Name="ModelDownloadInfoRun" Text="This Windows AI API requires a one-time model download via Windows Update." />
+            </TextBlock>
+            <TextBlock
+                x:Name="HardwareRequirementBlock"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                IsTextSelectionEnabled="True"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <Hyperlink x:Name="HardwareRequirementLink" NavigateUri="https://learn.microsoft.com/windows/ai/apis/#supported-hardware" UnderlineStyle="None"><Run x:Name="HardwareRequirementText" Text="A Copilot+ PC is required." /></Hyperlink>
             </TextBlock>
             <TextBlock
                 x:Name="WindowsInsiderInfoText"
@@ -96,8 +104,8 @@
                 FontWeight="SemiBold"
                 Text="Model download error"
                 TextAlignment="Center" />
-            <TextBlock FontSize="12" TextAlignment="Center">
-                <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/model-setup#prerequisites" UnderlineStyle="None">A Copilot+ PC with Windows 11 Build 26120.3073 or higher is required</Hyperlink>
+            <TextBlock x:Name="ErrorHardwareRequirementBlock" FontSize="12" TextAlignment="Center">
+                <Hyperlink x:Name="ErrorHardwareRequirementLink" NavigateUri="https://learn.microsoft.com/windows/ai/apis/#supported-hardware" UnderlineStyle="None"><Run x:Name="ErrorHardwareRequirementText" Text="A Copilot+ PC is required." /></Hyperlink>
             </TextBlock>
             <TextBlock
                 x:Name="WindowsInsiderErrorText"

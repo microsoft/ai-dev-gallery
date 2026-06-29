@@ -18,6 +18,12 @@ namespace AIDevGallery.Samples;
 
 internal static class WcrApiHelpers
 {
+    // The requirement sentence is derived from each API's SupportedHardwareAccelerators - https://learn.microsoft.com/en-us/windows/ai/apis/#supported-hardware
+    private const string DefaultHardwareRequirement = "A Copilot+ PC is required.";
+    private const string CopilotPlusOrGpuRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported GPU, is required.";
+    private const string CopilotPlusOrCpuRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported CPU, is required.";
+    private const string DefaultSupportedHardwareUrl = "https://learn.microsoft.com/windows/ai/apis/#supported-hardware";
+
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
         ModelType.PhiSilica,
@@ -34,6 +40,7 @@ internal static class WcrApiHelpers
         ModelType.RestyleImage,
         ModelType.ColoringBook
     };
+
     private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
@@ -219,5 +226,30 @@ internal static class WcrApiHelpers
     public static bool IsImageGeneratorBacked(ModelType type)
     {
         return ImageGeneratorBacked.Contains(type);
+    }
+
+    // Returns the hardware requirement info - https://learn.microsoft.com/en-us/windows/ai/apis/#supported-hardware
+    public static (string Requirement, string LearnMoreUri) GetHardwareRequirementInfo(ModelType type)
+    {
+        if (!ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(type, out var apiDefinition))
+        {
+            return (DefaultHardwareRequirement, DefaultSupportedHardwareUrl);
+        }
+
+        var learnMoreUri = string.IsNullOrEmpty(apiDefinition.SupportedHardwareUrl)
+            ? DefaultSupportedHardwareUrl
+            : apiDefinition.SupportedHardwareUrl!;
+
+        var runsOnGpu = apiDefinition.SupportedHardwareAccelerators?.Contains(HardwareAccelerator.GPU) == true;
+        var runsOnCpu = apiDefinition.SupportedHardwareAccelerators?.Contains(HardwareAccelerator.CPU) == true;
+        var requirement = (runsOnGpu, runsOnCpu) switch
+        {
+            (true, true) => string.Empty,
+            (true, false) => CopilotPlusOrGpuRequirement,
+            (false, true) => CopilotPlusOrCpuRequirement,
+            _ => DefaultHardwareRequirement,
+        };
+
+        return (requirement, learnMoreUri);
     }
 }
