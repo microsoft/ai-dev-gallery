@@ -26,6 +26,14 @@ internal sealed partial class HomePage : Page
         NavigatedToPageEvent.Log(nameof(HomePage));
     }
 
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        // Remove all content to guarantee nothing can be rendered; reference issue: https://github.com/microsoft/ai-dev-gallery/pull/460
+        this.Content = null;
+
+        base.OnNavigatingFrom(e);
+    }
+
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         if (!App.AppData.IsDiagnosticsMessageDismissed && PrivacyConsentHelpers.IsPrivacySensitiveRegion())
