@@ -78,7 +78,7 @@
         <ScrollViewer
             Grid.Row="4"
             AutomationProperties.Name="Generated Text Scroll Area"
-            IsTabStop="True"
+            IsTabStop="False"
             TabNavigation="Once">
             <RichTextBlock
                 x:Name="GenerateRichTextBlock"

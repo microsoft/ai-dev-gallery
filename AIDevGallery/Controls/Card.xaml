@@ -78,9 +78,19 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             Click="Button_Click"
-            Content="View code"
             Style="{StaticResource FadedButtonStyle}"
-            Visibility="Collapsed" />
+            Visibility="Collapsed">
+            <Border
+                Padding="12,4,12,4"
+                Background="{ThemeResource ControlFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource ControlElevationBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    Text="View code" />
+            </Border>
+        </Button>
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="IconVisibilityStates">
                 <VisualState x:Name="IconVisible" />
