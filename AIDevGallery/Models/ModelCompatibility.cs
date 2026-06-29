@@ -45,7 +45,7 @@ internal class ModelCompatibility
             else
             {
                 compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"{WcrApiHelpers.GetHardwareRequirementInfo(apiType).Requirement}\n {WcrApiHelpers.GetStringDescription(apiType, availbility)}";
+                description = $"{WcrApiHelpers.GetHardwareRequirementInfo(apiType).Requirement}\n{WcrApiHelpers.GetStringDescription(apiType, availbility)}";
             }
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
