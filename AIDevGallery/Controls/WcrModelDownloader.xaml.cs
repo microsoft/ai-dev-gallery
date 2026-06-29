@@ -162,13 +162,10 @@ internal sealed partial class WcrModelDownloader : UserControl
         this.sampleId = sampleId;
 
         var (hardwareRequirement, supportedHardwareUri) = WcrApiHelpers.GetHardwareRequirementInfo(modelType);
-        var hasHardwareRequirement = !string.IsNullOrEmpty(hardwareRequirement);
         HardwareRequirementText.Text = hardwareRequirement;
         HardwareRequirementLink.NavigateUri = new Uri(supportedHardwareUri);
-        HardwareRequirementBlock.Visibility = hasHardwareRequirement ? Visibility.Visible : Visibility.Collapsed;
         ErrorHardwareRequirementText.Text = hardwareRequirement;
         ErrorHardwareRequirementLink.NavigateUri = new Uri(supportedHardwareUri);
-        ErrorHardwareRequirementBlock.Visibility = hasHardwareRequirement ? Visibility.Visible : Visibility.Collapsed;
 
         // TODO: Remove after SDXL is released to retail
         WindowsInsiderInfoText.Visibility = WcrApiHelpers.IsImageGeneratorBacked(modelType)

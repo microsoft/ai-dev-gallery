@@ -22,6 +22,7 @@ internal static class WcrApiHelpers
     private const string DefaultHardwareRequirement = "A Copilot+ PC is required.";
     private const string CopilotPlusOrGpuRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported GPU, is required.";
     private const string CopilotPlusOrCpuRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported CPU, is required.";
+    private const string AnyCompatibleHardwareRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported GPU or CPU, is required.";
     private const string DefaultSupportedHardwareUrl = "https://learn.microsoft.com/windows/ai/apis/#supported-hardware";
 
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
@@ -244,7 +245,7 @@ internal static class WcrApiHelpers
         var runsOnCpu = apiDefinition.SupportedHardwareAccelerators?.Contains(HardwareAccelerator.CPU) == true;
         var requirement = (runsOnGpu, runsOnCpu) switch
         {
-            (true, true) => string.Empty,
+            (true, true) => AnyCompatibleHardwareRequirement,
             (true, false) => CopilotPlusOrGpuRequirement,
             (false, true) => CopilotPlusOrCpuRequirement,
             _ => DefaultHardwareRequirement,
