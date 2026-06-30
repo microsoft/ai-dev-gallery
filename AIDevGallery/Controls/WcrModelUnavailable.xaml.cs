@@ -10,7 +10,7 @@ namespace AIDevGallery.Controls;
 internal sealed partial class WcrModelUnavailable : UserControl
 {
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-        nameof(Title), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata("Copilot+ PC required"));
+        nameof(Title), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata("This device isn't supported"));
 
     public string Title
     {
@@ -19,7 +19,7 @@ internal sealed partial class WcrModelUnavailable : UserControl
     }
 
     public static readonly DependencyProperty MessageProperty = DependencyProperty.Register(
-        nameof(Message), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata("This Windows AI API requires a Copilot+ PC and Windows 11 Insider Preview Build 26120.3073."));
+        nameof(Message), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata("This Windows AI API isn't supported on this device."));
 
     public string Message
     {
