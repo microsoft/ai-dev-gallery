@@ -57,6 +57,8 @@ internal class ApiDefinition
     public string License { get; init; } = null!;
     public string SampleIdToShowInDocs { get; set; } = null!;
     public string? Category { get; init; }
+    public List<HardwareAccelerator>? SupportedHardwareAccelerators { get; init; }
+    public string? SupportedHardwareUrl { get; init; }
 }
 
 internal class ModelDetails

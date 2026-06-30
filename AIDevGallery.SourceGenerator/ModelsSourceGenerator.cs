@@ -337,6 +337,8 @@ internal class ModelSourceGenerator : IIncrementalGenerator
                                 License = "{{apiDefinition.License}}"
                                 {{(!string.IsNullOrWhiteSpace(apiDefinition.SampleIdToShowInDocs) ? $",SampleIdToShowInDocs = \"{apiDefinition.SampleIdToShowInDocs}\"" : string.Empty)}}
                                 {{(!string.IsNullOrWhiteSpace(apiDefinition.Category) ? $",Category = \"{apiDefinition.Category}\"" : string.Empty)}}
+                                {{(apiDefinition.SupportedHardwareAccelerators is { Count: > 0 } accelerators ? $",SupportedHardwareAccelerators = [ {string.Join(", ", accelerators.Select(a => $"HardwareAccelerator.{a}"))} ]" : string.Empty)}}
+                                {{(!string.IsNullOrWhiteSpace(apiDefinition.SupportedHardwareUrl) ? $",SupportedHardwareUrl = \"{apiDefinition.SupportedHardwareUrl}\"" : string.Empty)}}
                             }
                         },
                 """");

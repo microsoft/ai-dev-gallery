@@ -214,6 +214,12 @@ internal sealed partial class SampleContainer : UserControl
                 wcrModelUnavailable.Message = issue!;
             }
 
+            var apiEntry = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == notCompatibleModel.Id);
+            var learnMoreUri = apiEntry.Value is null
+                ? "https://learn.microsoft.com/windows/ai/apis/#supported-hardware"
+                : WcrApiHelpers.GetHardwareRequirementInfo(apiEntry.Key).LearnMoreUri;
+            wcrModelUnavailable.LearnMoreUri = new Uri(learnMoreUri);
+
             VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
             SampleFrame.Content = null;
             return;

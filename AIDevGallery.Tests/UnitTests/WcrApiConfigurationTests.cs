@@ -188,4 +188,56 @@ public class WcrApiConfigurationTests
                 $"GetStringDescription should return a non-empty message for {modelType} when NotSupportedOnCurrentSystem");
         }
     }
+
+    [TestMethod]
+    public void GetHardwareRequirementInfoLanguageModelBackedMentionsGpu()
+    {
+        foreach (var modelType in GetLanguageModelBacked())
+        {
+            var (requirement, _) = WcrApiHelpers.GetHardwareRequirementInfo(modelType);
+
+            StringAssert.Contains(
+                requirement,
+                "GPU",
+                $"LanguageModel-backed {modelType} also runs on GPU, so its requirement should mention GPU.");
+        }
+    }
+
+    [TestMethod]
+    public void GetHardwareRequirementInfoSpeechAndVsrMentionCpu()
+    {
+        foreach (var modelType in new[] { ModelType.SpeechRecognition, ModelType.VideoSuperRes })
+        {
+            var (requirement, _) = WcrApiHelpers.GetHardwareRequirementInfo(modelType);
+
+            StringAssert.Contains(
+                requirement,
+                "CPU",
+                $"{modelType} also runs on CPU, so its requirement should mention CPU.");
+        }
+    }
+
+    [TestMethod]
+    public void GetHardwareRequirementInfoNpuOnlyFallsBackToDefault()
+    {
+        // OCR has no SupportedHardwareAccelerators in apis.json, so it is NPU-only and should
+        // fall back to the generic Copilot+ PC requirement rather than mention GPU or CPU.
+        var (requirement, learnMoreUri) = WcrApiHelpers.GetHardwareRequirementInfo(ModelType.TextRecognitionOCR);
+
+        Assert.AreEqual("A Copilot+ PC is required.", requirement);
+        StringAssert.Contains(learnMoreUri, "supported-hardware");
+    }
+
+    [TestMethod]
+    public void GetHardwareRequirementInfoAllApisHaveValidLearnMoreUri()
+    {
+        foreach (var modelType in ModelTypeHelpers.ApiDefinitionDetails.Keys)
+        {
+            var (_, learnMoreUri) = WcrApiHelpers.GetHardwareRequirementInfo(modelType);
+
+            Assert.IsTrue(
+                Uri.TryCreate(learnMoreUri, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps,
+                $"GetHardwareRequirementInfo should return a valid https URL for {modelType}, got '{learnMoreUri}'.");
+        }
+    }
 }
