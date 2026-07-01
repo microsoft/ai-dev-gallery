@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,23 @@ namespace AIDevGallery.Helpers;
 
 internal static class NavigationViewItemHelper
 {
+    public static void AppendControlTypeToName(this NavigationViewItem item, string label)
+    {
+        item.Loaded += (sender, _) =>
+        {
+            if (sender is not NavigationViewItem navItem)
+            {
+                return;
+            }
+
+            var controlType = FrameworkElementAutomationPeer.CreatePeerForElement(navItem)?.GetLocalizedControlType();
+            if (!string.IsNullOrWhiteSpace(controlType))
+            {
+                AutomationProperties.SetName(navItem, $"{label}, {controlType}");
+            }
+        };
+    }
+
     public static IEnumerable<NavigationViewItem> Flatten(this IEnumerable<NavigationViewItem> source)
     {
         foreach (var item in source)

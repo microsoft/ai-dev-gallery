@@ -111,6 +111,7 @@ internal sealed partial class ScenarioSelectionPage : Page
         foreach (var scenarioCategory in ScenarioCategoryHelpers.AllScenarioCategories)
         {
             var categoryMenu = new NavigationViewItem() { Content = scenarioCategory.Name, Icon = new FontIcon() { Glyph = scenarioCategory.Icon }, Tag = scenarioCategory };
+            categoryMenu.AppendControlTypeToName(scenarioCategory.Name);
             ToolTip categoryToolTip = new() { Content = scenarioCategory.Name };
             ToolTipService.SetToolTip(categoryMenu, categoryToolTip);
 
