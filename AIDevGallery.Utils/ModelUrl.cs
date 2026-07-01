@@ -126,12 +126,12 @@ public class HuggingFaceUrl : ModelUrl
 
         if (modelNameOrUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            if (!modelNameOrUrl.StartsWith(BaseUrl, StringComparison.OrdinalIgnoreCase))
+            if (!modelNameOrUrl.StartsWith($"{BaseUrl}/", StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Invalid URL", nameof(modelNameOrUrl));
             }
 
-            modelNameOrUrl = modelNameOrUrl[23..];
+            modelNameOrUrl = modelNameOrUrl[(BaseUrl.Length + 1)..];
         }
 
         string[] urlComponents = modelNameOrUrl.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
