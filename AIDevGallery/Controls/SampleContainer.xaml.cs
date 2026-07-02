@@ -342,12 +342,15 @@ internal sealed partial class SampleContainer : UserControl
             SampleDebugInfoButtonText.Visibility = Visibility.Collapsed;
             SampleDebugInfoButton.Visibility = Visibility.Collapsed;
             SampleDebugInfoButtonText.Text = string.Empty;
-            SampleDebugInfoContent.Text = string.Empty;
+            ToolTipService.SetToolTip(SampleDebugInfoButton, null);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetFullDescription(SampleDebugInfoButton, string.Empty);
             return;
         }
 
         SampleDebugInfoButtonText.Text = contents.Split('\n')[0];
-        SampleDebugInfoContent.Text = contents;
+
+        ToolTipService.SetToolTip(SampleDebugInfoButton, contents);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetFullDescription(SampleDebugInfoButton, contents);
 
         SampleDebugInfoButtonText.Visibility = Visibility.Visible;
         SampleDebugInfoButton.Visibility = Visibility.Visible;

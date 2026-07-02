@@ -109,23 +109,14 @@
                         Visibility="Visible" />
                     <Button
                         x:Name="SampleDebugInfoButton"
+                        AutomationProperties.Name="Performance details"
                         Visibility="Collapsed"
                         Style="{StaticResource SubtleButtonStyle}">
                         <TextBlock
                             x:Name="SampleDebugInfoButtonText"
+                            AutomationProperties.AccessibilityView="Raw"
                             FontSize="12"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        <Button.Flyout>
-                            <Flyout>
-                                <TextBlock
-                                    x:Name="SampleDebugInfoContent"
-                                    MaxWidth="300"
-                                    FontFamily="Consolas"
-                                    FontSize="14"
-                                    LineHeight="20"
-                                    TextWrapping="WrapWholeWords" />
-                            </Flyout>
-                        </Button.Flyout>
                     </Button>
                     <ContentPresenter x:Name="FooterContentPresenter" Content="{x:Bind FooterContent, Mode=OneWay}" />
                 </WrapPanel>
