@@ -87,7 +87,7 @@
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Image Source="{x:Bind Icon}" />
+                            <Image Source="{x:Bind Icon, Mode=OneWay}" />
                             <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextWrapping="Wrap" />
                         </Grid>
                     </DataTemplate>

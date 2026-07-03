@@ -30,6 +30,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
     public ModelOrApiPicker()
     {
         this.InitializeComponent();
+        this.ActualThemeChanged += (_, _) => ModelPickerDefinition.RefreshThemeAwareIcons();
     }
 
     private void OnSelectedModelsChanged(object sender, List<ModelDetails?> args)
@@ -157,6 +158,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
 
     private async Task LoadModels(List<ModelType> types)
     {
+        ModelPickerDefinition.RefreshThemeAwareIcons();
         modelTypeSelector.Items.Clear();
         modelsGrid.Children.Clear();
 

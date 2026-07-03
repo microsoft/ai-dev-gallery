@@ -563,9 +563,7 @@ internal sealed partial class MainWindow : WindowEx
                         new Uri($"ms-appx:///Assets/ModelIcons/GitHub{AppUtils.GetThemeAssetSuffix()}.svg"));
             }
 
-            ModelPickerDefinition.Definitions["onnx"].Icon = $"ms-appx:///Assets/ModelIcons/CustomModel{AppUtils.GetThemeAssetSuffix()}.png";
-            ModelPickerDefinition.Definitions["ollama"].Icon = $"ms-appx:///Assets/ModelIcons/Ollama{AppUtils.GetThemeAssetSuffix()}.png";
-            ModelPickerDefinition.Definitions["openai"].Icon = $"ms-appx:///Assets/ModelIcons/OpenAI{AppUtils.GetThemeAssetSuffix()}.png";
+            ModelPickerDefinition.RefreshThemeAwareIcons();
             UpdateCaptionButtonColors();
         });
     }
