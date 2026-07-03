@@ -164,6 +164,7 @@
                         </Grid.ColumnDefinitions>
                         <ScrollViewer
                             x:Name="LineNumbersScroller"
+                            AutomationProperties.Name="Line numbers"
                             HorizontalScrollBarVisibility="Hidden"
                             HorizontalScrollMode="Disabled"
                             VerticalScrollBarVisibility="Hidden"
@@ -172,7 +173,7 @@
                                 x:Name="LineNumbersTextBlock"
                                 Grid.Column="0"
                                 Margin="8,16"
-                                AutomationProperties.Name="Line numbers"
+                                AutomationProperties.AccessibilityView="Raw"
                                 FontFamily="Consolas"
                                 FontSize="14"
                                 Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
