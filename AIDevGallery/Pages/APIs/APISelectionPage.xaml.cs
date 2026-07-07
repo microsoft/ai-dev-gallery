@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
 using AIDevGallery.Telemetry.Events;
@@ -79,6 +80,7 @@ internal sealed partial class APISelectionPage : Page
                         if (existingItem == null)
                         {
                             existingItem = new NavigationViewItem() { Content = CreateWrappedText(apiDefinition.Category), Icon = new FontIcon() { Glyph = "\uF0E2" }, SelectsOnInvoked = false, IsExpanded = true };
+                            existingItem.AppendControlTypeToName(apiDefinition.Category);
                             NavView.MenuItems.Add(existingItem);
                         }
 

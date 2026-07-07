@@ -88,11 +88,23 @@ internal sealed partial class SemanticComboBox : Control
     {
         // Since selecting an item will also change the text,
         // only listen to changes caused by user entering text.
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            var searchResults = await Search(sender.Text);
-            sender.ItemsSource = searchResults.Select(item => item["Text"]);
+            return;
         }
+
+        string query = sender.Text;
+        var searchResults = await Search(query);
+
+        if (sender.Text != query)
+        {
+            return;
+        }
+
+        var suggestions = searchResults.Select(item => item["Text"]).ToList();
+        sender.ItemsSource = suggestions;
+
+        NarratorHelper.Announce(sender, $"{suggestions.Count} result{(suggestions.Count == 1 ? string.Empty : "s")}", "SemanticComboBoxSuggestionsActivityId"); // <exclude-line>
     }
 
     private static void OnEmbeddingGeneratorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
