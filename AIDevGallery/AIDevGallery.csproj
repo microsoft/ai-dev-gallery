@@ -333,10 +333,7 @@
   <ItemGroup>
     <AdditionalFiles Include="**\NativeMethods.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Remove="Styles\SelectorBar.xaml" />
-  </ItemGroup>
-  
+
   <ItemGroup>
     <Content Include="Styles\SelectorBar.xaml" />
   </ItemGroup>
