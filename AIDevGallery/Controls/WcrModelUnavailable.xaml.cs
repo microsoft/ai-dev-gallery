@@ -49,4 +49,35 @@ internal sealed partial class WcrModelUnavailable : UserControl
     {
         this.InitializeComponent();
     }
+
+    private void CopyDiagnosticsClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(AIDevGallery.Utils.WcrDiagnosticsLogger.GetLogText());
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to copy diagnostics: {ex.Message}");
+        }
+    }
+
+    private async void OpenLogFolderClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = AIDevGallery.Utils.WcrDiagnosticsLogger.LogFolderPath;
+            if (!string.IsNullOrEmpty(path))
+            {
+                var folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+                await Windows.System.Launcher.LaunchFolderAsync(folder);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to open log folder: {ex.Message}");
+        }
+    }
 }

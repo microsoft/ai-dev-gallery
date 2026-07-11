@@ -183,6 +183,12 @@ internal sealed partial class SampleContainer : UserControl
             return;
         }
 
+        if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
+        {
+            WcrDiagnosticsLogger.LogEnvironmentOnce();
+            WcrDiagnosticsLogger.Log($"LoadSampleAsync entered for sample '{sample?.Name}' with {models.Count} model(s); WCR model present.");
+        }
+
         var cachedModelsPaths = models.Select(m =>
         {
             // If it is an API, use the URL just to count
@@ -208,6 +214,9 @@ internal sealed partial class SampleContainer : UserControl
         var notCompatibleModel = models.FirstOrDefault(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
         if (notCompatibleModel != null)
         {
+            WcrDiagnosticsLogger.LogEnvironmentOnce();
+            WcrDiagnosticsLogger.Log($"WCR model reported NotCompatible (Id={notCompatibleModel.Id}): {notCompatibleModel.Compatibility?.CompatibilityIssueDescription}");
+
             var issue = notCompatibleModel.Compatibility?.CompatibilityIssueDescription;
             if (!string.IsNullOrWhiteSpace(issue))
             {
@@ -236,6 +245,8 @@ internal sealed partial class SampleContainer : UserControl
             try
             {
                 var state = WcrApiHelpers.GetApiAvailability(apiType);
+                WcrDiagnosticsLogger.LogEnvironmentOnce();
+                WcrDiagnosticsLogger.Log($"GetApiAvailability({apiType}) = {state}");
                 if (state != AIFeatureReadyState.Ready && !WcrApiHelpers.IsModelReadyWorkaround.ContainsKey(apiType))
                 {
                     modelDownloader.State = state switch
@@ -263,6 +274,7 @@ internal sealed partial class SampleContainer : UserControl
             }
             catch (Exception ex)
             {
+                WcrDiagnosticsLogger.Log($"WCR API compatibility check threw: HResult=0x{ex.HResult:X8} {ex}");
                 Debug.WriteLine($"WCR API compatibility check failed: {ex}");
                 VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
                 SampleFrame.Content = null;

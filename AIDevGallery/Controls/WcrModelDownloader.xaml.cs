@@ -115,9 +115,15 @@ internal sealed partial class WcrModelDownloader : UserControl
 
         State = WcrApiDownloadState.Downloading;
 
+        WcrDiagnosticsLogger.LogEnvironmentOnce(); // <exclude-line>
+        WcrDiagnosticsLogger.LogSection($"EnsureReadyAsync for {modelTypeHint?.ToString() ?? "WCR API"}"); // <exclude-line>
+        var diagnosticsStopwatch = System.Diagnostics.Stopwatch.StartNew(); // <exclude-line>
+
         try
         {
             var result = await operation;
+
+            WcrDiagnosticsLogger.Log($"EnsureReadyAsync returned Status={result.Status} after {diagnosticsStopwatch.ElapsedMilliseconds} ms"); // <exclude-line>
 
             if (result.Status == AIFeatureReadyResultState.Success)
             {
@@ -133,6 +139,9 @@ internal sealed partial class WcrModelDownloader : UserControl
             {
                 State = WcrApiDownloadState.Error;
                 ErrorMessage = result.ExtendedError.Message;
+                var extendedError = result.ExtendedError; // <exclude-line>
+                WcrDiagnosticsLogger.Log($"EnsureReadyAsync FAILED: Status={result.Status}, HResult=0x{extendedError?.HResult ?? 0:X8}, Message={extendedError?.Message}"); // <exclude-line>
+                WcrDiagnosticsLogger.Log($"ExtendedError detail: {extendedError}"); // <exclude-line>
                 if (modelTypeHint != null)
                 {
                     WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, result.ExtendedError.Message); // <exclude-line>
@@ -143,6 +152,7 @@ internal sealed partial class WcrModelDownloader : UserControl
         {
             ErrorMessage = ex.Message;
             State = WcrApiDownloadState.Error;
+            WcrDiagnosticsLogger.Log($"EnsureReadyAsync THREW: HResult=0x{ex.HResult:X8} {ex}"); // <exclude-line>
             if (modelTypeHint != null)
             {
                 WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, ex); // <exclude-line>
@@ -210,6 +220,40 @@ internal sealed partial class WcrModelDownloader : UserControl
     {
         return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).FirstOrDefault() ?? string.Empty;
     }
+
+    // <exclude>
+    private void CopyDiagnosticsClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(WcrDiagnosticsLogger.GetLogText());
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to copy diagnostics: {ex.Message}");
+        }
+    }
+
+    private async void OpenLogFolderClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = WcrDiagnosticsLogger.LogFolderPath;
+            if (!string.IsNullOrEmpty(path))
+            {
+                var folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+                await Launcher.LaunchFolderAsync(folder);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to open log folder: {ex.Message}");
+        }
+    }
+
+    // </exclude>
 }
 
 internal enum WcrApiDownloadState

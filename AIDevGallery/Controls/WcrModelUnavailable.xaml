@@ -33,6 +33,20 @@
             <LineBreak />
             <Run Text="You can still view the code and export the sample." />
         </TextBlock>
+        <StackPanel
+            Margin="0,4,0,0"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                AutomationProperties.Name="Copy diagnostics to clipboard"
+                Click="CopyDiagnosticsClicked"
+                Content="Copy diagnostics" />
+            <Button
+                AutomationProperties.Name="Open diagnostics log folder"
+                Click="OpenLogFolderClicked"
+                Content="Open log folder" />
+        </StackPanel>
     </StackPanel>
 </UserControl>
 

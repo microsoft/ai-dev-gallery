@@ -40,6 +40,7 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
+        AIDevGallery.Utils.WcrDiagnosticsLogger.LogEnvironmentOnce();
         await LoadSamples();
         AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
         var activationParam = await ActivationHelper.GetActivationParam(appActivationArguments);
