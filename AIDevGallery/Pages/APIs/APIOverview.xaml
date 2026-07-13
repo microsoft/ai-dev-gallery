@@ -108,11 +108,13 @@
                     <TextBlock
                         Margin="2,0,0,0"
                         FontSize="18"
+                        AutomationProperties.HeadingLevel="Level1"
                         Style="{StaticResource SubtitleTextBlockStyle}"
                         Text="Explore Windows AI APIs" />
 
                     <ItemsView
                         x:Name="APIViewer"
+                        AutomationProperties.Name="Explore Windows AI APIs"
                         IsItemInvokedEnabled="True"
                         ItemInvoked="APIViewer_ItemInvoked"
                         ItemsSource="{x:Bind wcrAPIs, Mode=OneWay}"
