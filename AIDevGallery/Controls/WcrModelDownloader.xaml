@@ -125,12 +125,23 @@
                 <Run Text="This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel)." />
             </TextBlock>
             <TextBlock
-                FontFamily="Consolas"
                 FontSize="12"
-                IsTextSelectionEnabled="True"
-                Text="{x:Bind ToFirstLine(ErrorMessage), Mode=OneWay}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Error details (click 'Copy diagnostics' below to send the full info):"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
+            <ScrollViewer
+                MaxHeight="220"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto">
+                <TextBlock
+                    FontFamily="Consolas"
+                    FontSize="12"
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind ErrorMessage, Mode=OneWay}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+            </ScrollViewer>
             <StackPanel
                 Margin="0,12,0,0"
                 HorizontalAlignment="Center"

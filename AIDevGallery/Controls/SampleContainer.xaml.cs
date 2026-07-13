@@ -186,7 +186,7 @@ internal sealed partial class SampleContainer : UserControl
         if (models.Any(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI)))
         {
             WcrDiagnosticsLogger.LogEnvironmentOnce();
-            WcrDiagnosticsLogger.Log($"LoadSampleAsync entered for sample '{sample?.Name}' with {models.Count} model(s); WCR model present.");
+            WcrDiagnosticsLogger.Log($"LoadSampleAsync entered for sample '{sample.Name}' with {models.Count} model(s); WCR model present.");
         }
 
         var cachedModelsPaths = models.Select(m =>

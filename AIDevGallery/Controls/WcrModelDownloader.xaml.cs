@@ -9,7 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AI;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.System;
@@ -138,19 +137,21 @@ internal sealed partial class WcrModelDownloader : UserControl
             else
             {
                 State = WcrApiDownloadState.Error;
-                ErrorMessage = result.ExtendedError.Message;
+                ErrorMessage = result.ExtendedError != null
+                    ? $"HRESULT 0x{result.ExtendedError.HResult:X8}{Environment.NewLine}{result.ExtendedError}"
+                    : $"Model not ready (status: {result.Status})";
                 var extendedError = result.ExtendedError; // <exclude-line>
                 WcrDiagnosticsLogger.Log($"EnsureReadyAsync FAILED: Status={result.Status}, HResult=0x{extendedError?.HResult ?? 0:X8}, Message={extendedError?.Message}"); // <exclude-line>
                 WcrDiagnosticsLogger.Log($"ExtendedError detail: {extendedError}"); // <exclude-line>
                 if (modelTypeHint != null)
                 {
-                    WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, result.ExtendedError.Message); // <exclude-line>
+                    WcrApiDownloadFailedEvent.Log(modelTypeHint.Value, extendedError?.Message ?? string.Empty); // <exclude-line>
                 }
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = $"HRESULT 0x{ex.HResult:X8}{Environment.NewLine}{ex}";
             State = WcrApiDownloadState.Error;
             WcrDiagnosticsLogger.Log($"EnsureReadyAsync THREW: HResult=0x{ex.HResult:X8} {ex}"); // <exclude-line>
             if (modelTypeHint != null)
@@ -214,11 +215,6 @@ internal sealed partial class WcrModelDownloader : UserControl
     {
         var uri = new Uri("ms-settings:windowsupdate");
         await Launcher.LaunchUriAsync(uri);
-    }
-
-    private string ToFirstLine(string text)
-    {
-        return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None).FirstOrDefault() ?? string.Empty;
     }
 
     // <exclude>

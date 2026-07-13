@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Windows.ApplicationModel;
 using Windows.System.Profile;
-using Windows.System.UserProfile;
 
 namespace AIDevGallery.Utils;
 
@@ -90,11 +89,6 @@ internal static class WcrDiagnosticsLogger
         Safe("OS ProductName", () => ReadRegistryValue(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName"));
         Safe("OS UBR", () => ReadRegistryValue(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR"));
         Safe("Processor", () => ReadRegistryValue(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString"));
-        Safe("Home region", () => GlobalizationPreferences.HomeGeographicRegion);
-        Safe("Current region", () => RegionInfo.CurrentRegion.Name);
-        Safe("Preferred languages", () => string.Join(", ", GlobalizationPreferences.Languages));
-        Safe("Current culture", () => CultureInfo.CurrentCulture.Name);
-        Safe("Current UI culture", () => CultureInfo.CurrentUICulture.Name);
         Safe("Framework dependencies", GetFrameworkDependencies);
     }
 
