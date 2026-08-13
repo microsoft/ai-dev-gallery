@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Used for local development on managed devices where direct access to nuget.org
+  is blocked by network policy. Routes package restore through the organization's
+  NuGet proxy feed instead. See .github/scripts/resolve-nuget-config.ps1, which
+  selects this template automatically when api.nuget.org is unreachable.
+
+  The ORT feed mapping is kept identical to nuget.config.template: it provides
+  the exact Microsoft.ML.OnnxRuntime.Foundry version required by
+  Microsoft.AI.Foundry.Local.Core.WinML. nuget.org only publishes a
+  differently-versioned build (1.23.2.3 vs the exact 1.23.2 requested), which
+  NuGet accepts as a compatible minimum-version match but only with a NU1603
+  warning - and this repo builds with TreatWarningsAsErrors=true, so that
+  warning would otherwise fail the build.
+-->
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="azure-default" value="https://packagefeedproxy.microsoft.io/nuget/v3/index.json" protocolVersion="3" />
+    <add key="ORT" value="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT/nuget/v3/index.json" />
+  </packageSources>
+  <packageSourceMapping>
+    <packageSource key="azure-default">
+      <package pattern="*" />
+    </packageSource>
+    <packageSource key="ORT">
+      <package pattern="*Foundry*" />
+    </packageSource>
+  </packageSourceMapping>
+</configuration>
