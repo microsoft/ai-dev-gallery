@@ -2,24 +2,4 @@
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
   </ItemGroup>
-
-  <!--
-    Auto-create nuget.config from template for local development. This probes
-    whether nuget.org is directly reachable and picks the public or the
-    internal-proxy template accordingly, so a fresh clone restores correctly
-    whether or not the developer is on a managed device with restricted
-    network egress. See .github/scripts/resolve-nuget-config.ps1.
-  -->
-  <Target Name="EnsureNuGetConfig" BeforeTargets="CollectPackageReferences;Restore">
-    <PropertyGroup>
-      <NuGetConfigTarget>$(MSBuildThisFileDirectory)nuget.config</NuGetConfigTarget>
-      <ResolveNuGetConfigScript>$(MSBuildThisFileDirectory).github\scripts\resolve-nuget-config.ps1</ResolveNuGetConfigScript>
-    </PropertyGroup>
-    <Message Text="Checking for nuget.config..." Importance="low" />
-    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(ResolveNuGetConfigScript)&quot; -RepoRoot &quot;$(MSBuildThisFileDirectory.TrimEnd('\'))&quot;"
-          Condition="Exists('$(ResolveNuGetConfigScript)') And !Exists('$(NuGetConfigTarget)') And '$(OS)' == 'Windows_NT'" />
-    <Message Text="Created nuget.config for local development"
-             Importance="high"
-             Condition="Exists('$(NuGetConfigTarget)')" />
-  </Target>
 </Project>
