@@ -6,14 +6,6 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.AI.Foundry.Local.WinML" Version="0.8.2.1" />
-    <!--
-      Pinned explicitly because Microsoft.AI.Foundry.Local.Core.WinML 0.8.2.2 declares a
-      dependency on Microsoft.ML.OnnxRuntime.Foundry 1.23.2, which was never published to
-      nuget.org (only 1.23.2.3 was). Without this pin, restore emits NU1603, which fails the
-      Release build via TreatWarningsAsErrors. Remove this pin when upgrading
-      Microsoft.AI.Foundry.Local.WinML to 1.0.0 or later, which reference published versions.
-    -->
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime.Foundry" Version="1.23.2.3" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="10.2.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK.ML" Version="2.1.75-experimental" />
     <PackageVersion Include="OllamaSharp" Version="5.4.7" />
