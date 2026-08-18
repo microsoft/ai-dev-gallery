@@ -31,12 +31,12 @@ jobs:
       checks: write
       actions: read
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0
     - name: Download MSIX Artifact (from workflow_run)
       if: github.event_name == 'workflow_run'
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: MSIX-${{ matrix.dotnet-arch }}
         path: ./DownloadedMSIX
@@ -44,7 +44,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download Build Artifacts
       if: github.event_name == 'workflow_run'
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: build-output-${{ matrix.dotnet-arch }}
         path: downloaded-artifacts
@@ -59,12 +59,12 @@ jobs:
         Copy-Item -Path "downloaded-artifacts\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}" -Destination "${{ github.workspace }}\AIDevGallery.Tests\bin\${{ matrix.dotnet-arch }}\" -Recurse -Force
     - name: Setup .NET
       if: github.event_name != 'workflow_run'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       with:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
       if: github.event_name != 'workflow_run'
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
     - name: Install NBGV tool
       if: github.event_name != 'workflow_run'
       run: dotnet tool install --tool-path . nbgv
@@ -111,7 +111,7 @@ jobs:
         dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Setup Dev Tools
       if: github.event_name != 'workflow_run'
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
     - name: Build Test Suite
       if: github.event_name != 'workflow_run'
       run: dotnet build AIDevGallery.Tests -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }}
@@ -151,7 +151,7 @@ jobs:
         }
     - name: Publish Test Builds If Failed
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: test-builds-${{ matrix.dotnet-arch }}
         path: |
@@ -161,13 +161,13 @@ jobs:
             .\AIDevGallery.Tests\obj\${{ matrix.dotnet-arch }}\${{ matrix.dotnet-configuration }}
     - name: Publish Test Results
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: regression-test-results-${{ matrix.dotnet-arch }}
         path: TestResults
     - name: Display Test Report
       if: ${{ !cancelled() }}
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2.7.0
       with:
         name: Regression Test Report - ${{ matrix.dotnet-arch }}
         path: 'TestResults/*.trx'

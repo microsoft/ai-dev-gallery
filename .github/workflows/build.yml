@@ -28,17 +28,17 @@ jobs:
       pull-requests: write
       checks: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       with:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
     - name: Cache NuGet packages
-      uses: actions/cache@v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
@@ -69,7 +69,7 @@ jobs:
         }
     - name: Publish Test Results
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: pr-unit-test-results-${{ matrix.dotnet-arch }}
         path: |
@@ -77,7 +77,7 @@ jobs:
           **/coverage.opencover.xml
     - name: Display Test Report
       if: always()
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2.7.0
       with:
         name: Unit Test Report - ${{ matrix.dotnet-arch }}
         path: 'TestResults/*.trx'
@@ -100,15 +100,15 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       with:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
     - name: Install NBGV tool
       run: dotnet tool install --tool-path . nbgv
     - name: Set Version
@@ -148,7 +148,7 @@ jobs:
         dotnet build AIDevGallery.Utils --no-restore /p:Configuration=${{ matrix.dotnet-configuration }} /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
         dotnet build AIDevGallery --no-restore -r win-${{ matrix.dotnet-arch }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ matrix.dotnet-configuration }} /p:Platform=${{ matrix.dotnet-arch }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafToken="${{ env.LAF_TOKEN }}" /p:LafPublisherId="${{ env.LAF_PUBLISHER_ID }}"
     - name: Upload Artifact - MSIX
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: MSIX-${{ matrix.dotnet-arch }}
         path: ${{ github.workspace }}/AIDevGallery/AppPackages/*_${{ matrix.dotnet-arch }}_Test/AIDevGallery_*_${{ matrix.dotnet-arch }}.msix
@@ -168,17 +168,17 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       with:
         dotnet-version: 9.0.x
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
     - name: Download MSIX Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: MSIX-x64
         path: ./DownloadedMSIX
@@ -245,7 +245,7 @@ jobs:
       run: |
         .\.github\scripts\deploy-msix.ps1 -MsixSearchPath ".\DownloadedMSIX" -IsWorkflowRun $true
     - name: Cache NuGet packages
-      uses: actions/cache@v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-${{ matrix.dotnet-arch }}-nuget-${{ hashFiles('**/packages.lock.json', 'Directory.Packages.props', '**/*.csproj') }}
@@ -289,7 +289,7 @@ jobs:
         }
     - name: Publish Test Results
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: pr-accessibility-test-results-${{ matrix.dotnet-arch }}
         path: |
@@ -297,7 +297,7 @@ jobs:
           **/coverage.opencover.xml
     - name: Display Test Report
       if: always()
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2.7.0
       with:
         name: Accessibility Test Report - ${{ matrix.dotnet-arch }}
         path: 'TestResults/*.trx'
