@@ -1,18 +1,22 @@
 <Project>
-  <!-- Using the onnxruntime libraries from WindowsAppSDK (via transitive dependencies) instead of Foundry Local Core. -->
-  <Target Name="ExcludeFoundryOnnxRuntimeLibs" AfterTargets="ResolvePackageAssets">
+  <!-- Keep one compatible copy of each native runtime in the packaged app. -->
+  <Target Name="SelectFoundryNativeRuntimeLibs" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
-      <!-- Exclude onnxruntime libraries from Microsoft.ML.OnnxRuntime.Foundry package -->
-      <!-- WindowsAppSDK will provide onnxruntime through its transitive dependencies (WindowsAppSDK.ML) -->
+      <!-- Foundry Local 2.x requires its GenAI build; keep AIDG's CUDA companion library below. -->
       <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
-                            Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntime.Foundry', StringComparison.OrdinalIgnoreCase)) 
-                                       And ($([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', 
-                                      '^onnxruntime\.dll$', RegexOptions.IgnoreCase)) 
-                                       Or $([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', 
-                                      '^onnxruntime_providers_shared\.dll$', RegexOptions.IgnoreCase)))" />
+                            Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntimeGenAI.WinML', StringComparison.OrdinalIgnoreCase))
+                                       And $([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', '^onnxruntime-genai\.(dll|lib)$', RegexOptions.IgnoreCase))" />
+      <None Remove="@(None)"
+            Condition="$([System.String]::Copy('%(None.FullPath)').IndexOf('microsoft.ml.onnxruntimegenai.winml', StringComparison.OrdinalIgnoreCase)) &gt;= 0
+                       And $([System.String]::Copy('%(Filename)%(Extension)').Equals('onnxruntime-genai.dll', StringComparison.OrdinalIgnoreCase))" />
+
+      <!-- AIDG already ships a newer Windows ML runtime through WindowsAppSDK.ML. -->
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                            Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.AI.Foundry.Local.Runtime', StringComparison.OrdinalIgnoreCase))
+                                       And $([System.String]::Copy('%(Filename)%(Extension)').Equals('Microsoft.Windows.AI.MachineLearning.dll', StringComparison.OrdinalIgnoreCase))" />
     </ItemGroup>
-    
-    <Message Importance="High" Text="Excluded Foundry onnxruntime libraries. Using WindowsAppSDK's transitive dependencies instead." />
+
+    <Message Importance="High" Text="Selected one compatible copy of the Foundry Local, ORT GenAI, and Windows ML native runtimes." />
   </Target>
 
   <!-- Remove CUDA EP on Windows x64. onnxruntime-genai-cuda.dll is required for TRT RTX models. -->

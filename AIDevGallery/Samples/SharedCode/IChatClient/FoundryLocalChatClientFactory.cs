@@ -15,7 +15,7 @@ namespace AIDevGallery.Samples.SharedCode;
 /// <summary>
 /// Factory for creating an IChatClient backed by Foundry Local SDK.
 /// Handles the multi-step initialization (manager → catalog → model → load → chat client)
-/// and wraps the SDK's OpenAIChatClient into an IChatClient via FoundryLocalChatClientAdapter.
+/// and wraps the loaded model with a ChatSession-backed FoundryLocalChatClientAdapter.
 /// </summary>
 internal static class FoundryLocalChatClientFactory
 {
@@ -44,7 +44,7 @@ internal static class FoundryLocalChatClientFactory
 
             try
             {
-                await manager.EnsureEpsDownloadedAsync();
+                await manager.DownloadAndRegisterEpsAsync();
             }
             catch (Exception ex)
             {
@@ -59,10 +59,10 @@ internal static class FoundryLocalChatClientFactory
                 throw new InvalidOperationException($"Model '{alias}' not found in Foundry Local catalog.");
             }
 
-            // Select the specific variant if requested and it differs from the auto-selected one
-            if (variantId != null && model.SelectedVariant.Id != variantId)
+            // Preserve the variant selected in the Gallery when it is still available.
+            if (variantId != null && model.Id != variantId)
             {
-                var targetVariant = model.Variants.FirstOrDefault(v => v.Id == variantId);
+                var targetVariant = model.Variants.FirstOrDefault(variant => variant.Id == variantId);
                 if (targetVariant != null)
                 {
                     model.SelectVariant(targetVariant);
@@ -79,10 +79,9 @@ internal static class FoundryLocalChatClientFactory
                 await model.LoadAsync(cancellationToken);
             }
 
-            var chatClient = await model.GetChatClientAsync();
-            var maxOutputTokens = (int?)model.SelectedVariant.Info.MaxOutputTokens;
+            var maxOutputTokens = (int?)model.Info.MaxOutputTokens;
 
-            return new FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
+            return new FoundryLocalChatClientAdapter(model, model.Id, maxOutputTokens);
         }
         catch (Exception ex)
         {

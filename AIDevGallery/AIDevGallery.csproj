@@ -17,7 +17,7 @@
     <NoWarn>$(NoWarn);IL2050</NoWarn>
     <!-- Microsoft.Xaml.Interactivity.EventTriggerBehavior is not trimmable -->
     <NoWarn>$(NoWarn);IL2026</NoWarn>
-    <!-- TODO: Fix IDisposableAnalyzers warnings from Microsoft.AI.Foundry.Local.WinML transitive dependency in next PR -->
+    <!-- TODO: Fix IDisposableAnalyzers warnings from Microsoft.AI.Foundry.Local transitive dependency in next PR -->
     <NoWarn>$(NoWarn);IDISP001;IDISP002;IDISP003;IDISP004;IDISP006;IDISP007;IDISP008;IDISP017;IDISP025</NoWarn>
     <IsAotCompatible>true</IsAotCompatible>
     <!-- Pinned via TreatAsLocalProperty on <Project> so the CodeQL tracer can't override it; enabling it causes CS0016 build failures with WinRTAotSourceGenerator. -->
@@ -84,7 +84,7 @@
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" />
     <PackageReference Include="MathNet.Numerics" />
-    <PackageReference Include="Microsoft.AI.Foundry.Local.WinML" />
+    <PackageReference Include="Microsoft.AI.Foundry.Local" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="OllamaSharp" />

@@ -5,7 +5,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
-    <PackageVersion Include="Microsoft.AI.Foundry.Local.WinML" Version="0.8.2.1" />
+    <PackageVersion Include="Microsoft.AI.Foundry.Local" Version="2.0.1" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="10.2.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK.ML" Version="2.1.75-experimental" />
     <PackageVersion Include="OllamaSharp" Version="5.4.7" />
@@ -25,8 +25,8 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.2.250402" />
     <PackageVersion Include="Microsoft.Build" Version="17.14.28" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Extensions" Version="0.14.0" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.11.4" />
-    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.11.4" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.Managed" Version="0.15.2" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.15.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.250402" />

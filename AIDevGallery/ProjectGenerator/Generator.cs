@@ -25,8 +25,18 @@ namespace AIDevGallery.ProjectGenerator;
 
 internal partial class Generator
 {
-    private readonly string templatePath = Path.Join(Package.Current.InstalledLocation.Path, "ProjectGenerator", "Template");
+    private readonly string templatePath;
     private string generatedProjectPath = string.Empty;
+
+    internal Generator()
+        : this(Path.Join(Package.Current.InstalledLocation.Path, "ProjectGenerator", "Template"))
+    {
+    }
+
+    internal Generator(string templatePath)
+    {
+        this.templatePath = templatePath;
+    }
 
     [GeneratedRegex(@"[^a-zA-Z0-9_]")]
     private static partial Regex SafeNameRegex();
@@ -132,7 +142,7 @@ internal partial class Generator
             {
                 modelIds.Add(apiDefinitionDetails.Id);
             }
-            else if (App.ModelCache.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
+            else if (App.ModelCache?.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
             {
                 if (cachedModel.Details.IsUserAdded)
                 {
@@ -289,6 +299,11 @@ internal partial class Generator
             foreach (var packageName in packageReferences)
             {
                 AddPackageReference(itemGroup, packageName);
+            }
+
+            if (packageReferences.Contains("Microsoft.AI.Foundry.Local"))
+            {
+                project.AddPropertyGroup().AddProperty("UseFoundryLocal", "true");
             }
 
             if (copyModelLocally)

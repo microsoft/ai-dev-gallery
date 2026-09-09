@@ -8,6 +8,7 @@ using AIDevGallery.Samples;
 using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Build.Construction;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -105,7 +106,8 @@ public partial class SampleUIData : ObservableObject
 [TestClass]
 public class ProjectGenerator
 {
-    private readonly Generator generator = new();
+    private Generator? _generator;
+    private Generator Generator => _generator ??= new();
     private static readonly string TmpPath = Path.Combine(Path.GetTempPath(), "AIDevGalleryTests");
     private static readonly string TmpPathProjectGenerator = Path.Combine(TmpPath, "ProjectGenerator");
     internal static readonly string TmpPathLogs = Path.Combine(TmpPath, "Logs");
@@ -222,6 +224,50 @@ public class ProjectGenerator
         });
     }
 
+    [TestMethod]
+    public async Task GenerateFoundryLocalSample()
+    {
+        var sample = Source
+            .Select(item => item.Sample)
+            .First(item => item.Model2Types == null &&
+                item.Model1Types.Any(modelType => ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels)));
+        var modelType = sample.Model1Types
+            .First(type => ModelDetailsHelper.EqualOrParent(type, ModelType.LanguageModels));
+        const string alias = "qwen2.5-0.5b";
+        var modelUrl = $"fl://{alias}";
+        var sampleData = new SampleUIData(
+            $"{sample.Name} Foundry Local",
+            sample,
+            new Dictionary<ModelType, ExpandedModelDetails>
+            {
+                [modelType] = new("foundry-local-test", modelUrl, modelUrl, 0, HardwareAccelerator.FOUNDRYLOCAL)
+            });
+
+        var generator = new Generator(Path.Combine(AppContext.BaseDirectory, "ProjectGenerator", "Template"));
+        Assert.IsTrue(await GenerateForSample(sampleData, CancellationToken.None, generator));
+
+        var projectPath = sampleData.ProjectPath!;
+        var projectName = Path.GetFileName(projectPath);
+        var project = ProjectRootElement.Open(Path.Combine(projectPath, $"{projectName}.csproj"));
+        var packageReferences = project.Items
+            .Where(item => item.ItemType == "PackageReference")
+            .ToDictionary(item => item.Include, item => item.Metadata.First(metadata => metadata.Name == "Version").Value);
+
+        Assert.AreEqual("2.0.1", packageReferences["Microsoft.AI.Foundry.Local"]);
+        Assert.IsFalse(packageReferences.ContainsKey("Microsoft.ML.OnnxRuntime"));
+        Assert.IsFalse(packageReferences.ContainsKey("Microsoft.ML.OnnxRuntimeGenAI.WinML"));
+        Assert.IsTrue(File.Exists(Path.Combine(projectPath, "Utils", "FoundryLocalChatClientFactory.cs")));
+        Assert.IsTrue(File.Exists(Path.Combine(projectPath, "Utils", "FoundryLocalChatClientAdapter.cs")));
+        Assert.IsFalse(File.Exists(Path.Combine(projectPath, "Utils", "OnnxRuntimeGenAIChatClientFactory.cs")));
+        StringAssert.Contains(
+            File.ReadAllText(Path.Combine(projectPath, "Sample.xaml.cs")),
+            $"FoundryLocalChatClientFactory.CreateAsync(\"{alias}\")");
+        Assert.IsFalse(File.Exists(Path.Combine(projectPath, "NuGet.Config")));
+
+        var assets = File.ReadAllText(Path.Combine(projectPath, "obj", "project.assets.json"));
+        StringAssert.Contains(assets, "Microsoft.ML.OnnxRuntime/1.28.0");
+    }
+
     public async Task GenerateForSampleUI(SampleUIData item, CancellationToken ct)
     {
         listView?.DispatcherQueue?.TryEnqueue(() =>
@@ -293,10 +339,10 @@ public class ProjectGenerator
         }
     }
 
-    private async Task<bool> GenerateForSample(SampleUIData sampleUIData, CancellationToken cancellationToken)
+    private async Task<bool> GenerateForSample(SampleUIData sampleUIData, CancellationToken cancellationToken, Generator? generator = null)
     {
         var outputPath = Path.Join(TmpPathProjectGenerator, sampleUIData.Id.ToString(CultureInfo.InvariantCulture));
-        var projectPath = await generator.GenerateAsync(sampleUIData.Sample, sampleUIData.CachedModelsToGenerator, false, outputPath, cancellationToken);
+        var projectPath = await (generator ?? Generator).GenerateAsync(sampleUIData.Sample, sampleUIData.CachedModelsToGenerator, false, outputPath, cancellationToken);
 
         var safeProjectName = Path.GetFileName(projectPath);
         string logFileName = sampleUIData.GetLogFileName();
