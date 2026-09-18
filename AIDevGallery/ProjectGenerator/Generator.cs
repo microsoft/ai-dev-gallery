@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
@@ -304,6 +305,19 @@ internal partial class Generator
             if (packageReferences.Contains("Microsoft.AI.Foundry.Local"))
             {
                 project.AddPropertyGroup().AddProperty("UseFoundryLocal", "true");
+
+                // Exported Foundry samples need the same CRT framework dependency as the Gallery.
+                var manifestPath = Path.Join(outputPath, "Package.appxmanifest");
+                var manifest = XDocument.Load(manifestPath);
+                var manifestRoot = manifest.Root!;
+                var manifestNamespace = manifestRoot.Name.Namespace;
+                manifestRoot.Element(manifestNamespace + "Dependencies")!.Add(
+                    new XElement(
+                        manifestNamespace + "PackageDependency",
+                        new XAttribute("Name", "Microsoft.VCLibs.140.00.UWPDesktop"),
+                        new XAttribute("Publisher", "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"),
+                        new XAttribute("MinVersion", "14.0.33728.0")));
+                manifest.Save(manifestPath);
             }
 
             if (copyModelLocally)

@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AIDevGallery.Tests.Integration;
 
@@ -266,6 +267,40 @@ public class ProjectGenerator
 
         var assets = File.ReadAllText(Path.Combine(projectPath, "obj", "project.assets.json"));
         StringAssert.Contains(assets, "Microsoft.ML.OnnxRuntime/1.28.0");
+
+        var manifest = XDocument.Load(Path.Combine(projectPath, "Package.appxmanifest"));
+        XNamespace manifestNamespace = "http://schemas.microsoft.com/appx/manifest/foundation/windows10";
+        var vclibsDependency = manifest.Root!.Element(manifestNamespace + "Dependencies")!
+            .Elements(manifestNamespace + "PackageDependency")
+            .SingleOrDefault(dependency => (string?)dependency.Attribute("Name") == "Microsoft.VCLibs.140.00.UWPDesktop");
+
+        Assert.IsNotNull(vclibsDependency, "Foundry exports must declare their CRT framework dependency.");
+        Assert.AreEqual("14.0.33728.0", (string?)vclibsDependency.Attribute("MinVersion"));
+        Assert.AreEqual(
+            "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            (string?)vclibsDependency.Attribute("Publisher"));
+        Assert.IsNull(vclibsDependency.Attribute(XName.Get("Optional", "http://schemas.microsoft.com/appx/manifest/uap/windows10/6")));
+    }
+
+    [TestMethod]
+    public async Task GenerateNonFoundrySampleDoesNotAddVCLibsDependency()
+    {
+        var sampleData = Source.First(item => item.Sample.Model2Types == null &&
+            item.Sample.Model1Types.Any(modelType => ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels)) &&
+            item.CachedModelsToGenerator.Values.All(model => model.HardwareAccelerator != HardwareAccelerator.FOUNDRYLOCAL));
+        var generator = new Generator(Path.Combine(AppContext.BaseDirectory, "ProjectGenerator", "Template"));
+        var projectPath = await generator.GenerateAsync(
+            sampleData.Sample,
+            sampleData.CachedModelsToGenerator,
+            false,
+            Path.Combine(TmpPathProjectGenerator, "WithoutFoundry"),
+            CancellationToken.None);
+
+        var manifest = XDocument.Load(Path.Combine(projectPath, "Package.appxmanifest"));
+        XNamespace manifestNamespace = "http://schemas.microsoft.com/appx/manifest/foundation/windows10";
+        Assert.IsFalse(manifest.Root!.Element(manifestNamespace + "Dependencies")!
+            .Elements(manifestNamespace + "PackageDependency")
+            .Any(dependency => (string?)dependency.Attribute("Name") == "Microsoft.VCLibs.140.00.UWPDesktop"));
     }
 
     public async Task GenerateForSampleUI(SampleUIData item, CancellationToken ct)
