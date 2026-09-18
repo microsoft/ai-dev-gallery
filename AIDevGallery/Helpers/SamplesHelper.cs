@@ -16,6 +16,13 @@ namespace AIDevGallery.Helpers;
 
 internal static partial class SamplesHelper
 {
+    private const string AppContentSearchExportNotice =
+        """
+        // > [!NOTE]
+        // > These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
+
+        """;
+
     private static readonly HashSet<ModelType> AppContentSearchModelTypes =
     [
         ModelType.SemanticSearch,
@@ -23,13 +30,6 @@ internal static partial class SamplesHelper
         ModelType.AppIndexCapability,
         ModelType.IndexStatistics,
     ];
-
-    private const string AppContentSearchExportNotice =
-        """
-        // > [!NOTE]
-        // > These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
-
-        """;
 
     public static bool IsAppContentSearchSample(this Sample sample)
     {
