@@ -13,6 +13,11 @@ Designed for Windows developers, the AI Dev Gallery helps integrate AI capabilit
 - **Easily browse, download, and run models from Hugging Face and GitHub**
 - **View the C# source code and export standalone Visual Studio projects with a single click**
 
+## App Content Search samples
+
+> [!NOTE]
+> These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
+
 <p align="center">
 <img src="docs/images/HeroImage1.png" alt="AI Dev Gallery" width="600"/>
 </p>
