@@ -21,20 +21,19 @@ internal static partial class SamplesHelper
         // > [!NOTE]
         // > These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
 
-        """;
 
-    private static readonly HashSet<ModelType> AppContentSearchModelTypes =
-    [
-        ModelType.SemanticSearch,
-        ModelType.KnowledgeRetrieval,
-        ModelType.AppIndexCapability,
-        ModelType.IndexStatistics,
-    ];
+        """;
 
     public static bool IsAppContentSearchSample(this Sample sample)
     {
-        return sample.Model1Types.Any(AppContentSearchModelTypes.Contains) ||
-            sample.Model2Types?.Any(AppContentSearchModelTypes.Contains) == true;
+        return sample.Model1Types.Any(IsAppContentSearchModelType) ||
+            sample.Model2Types?.Any(IsAppContentSearchModelType) == true;
+
+        static bool IsAppContentSearchModelType(ModelType modelType)
+        {
+            return ModelTypeHelpers.ApiDefinitionDetails.TryGetValue(modelType, out ApiDefinition? apiDefinition) &&
+                apiDefinition.Category == ModelDetailsHelper.AppContentSearchCategory;
+        }
     }
 
     public static List<SharedCodeEnum> GetAllSharedCode(this Sample sample, Dictionary<ModelType, ExpandedModelDetails> models)
