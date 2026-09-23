@@ -4,6 +4,7 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace AIDevGallery.Tests.UnitTests;
@@ -39,7 +40,7 @@ public class FoundryLocalModelProviderTests
         // Assert
         Assert.IsNotNull(packages);
         Assert.AreEqual(2, packages.Count, "Should contain exactly 2 packages");
-        Assert.IsTrue(packages.Contains("Microsoft.AI.Foundry.Local.WinML"));
+        Assert.IsTrue(packages.Contains("Microsoft.AI.Foundry.Local"));
         Assert.IsTrue(packages.Contains("Microsoft.Extensions.AI"));
     }
 
@@ -160,13 +161,14 @@ public class FoundryLocalModelProviderTests
             ("fl://model-name", "model-name")
         };
 
+        var method = typeof(FoundryLocalModelProvider).GetMethod(
+            "ExtractAlias",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.IsNotNull(method, "ExtractAlias method should exist");
+
         // Act & Assert
         foreach (var (input, expected) in testCases)
         {
-            // Use reflection to call private ExtractAlias method
-            var method = typeof(FoundryLocalModelProvider).GetMethod("ExtractAlias", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.IsNotNull(method, "ExtractAlias method should exist");
-
             var result = method.Invoke(provider, new object[] { input }) as string;
             Assert.AreEqual(expected, result, $"Failed to extract alias from {input}");
         }

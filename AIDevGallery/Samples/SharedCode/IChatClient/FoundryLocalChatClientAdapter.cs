@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,21 +12,20 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.SharedCode;
 
 /// <summary>
-/// Adapter that wraps FoundryLocal SDK's native OpenAIChatClient to work with Microsoft.Extensions.AI.IChatClient.
-/// Uses the SDK's direct model API (no web service) to avoid SSE compatibility issues.
+/// Adapter that wraps Foundry Local's ChatSession API as a Microsoft.Extensions.AI.IChatClient.
 /// </summary>
 internal class FoundryLocalChatClientAdapter : IChatClient
 {
     private const int DefaultMaxTokens = 1024;
 
-    private readonly Microsoft.AI.Foundry.Local.OpenAIChatClient _chatClient;
+    private readonly IModel _model;
     private readonly string _modelId;
     private readonly int? _modelMaxOutputTokens;
 
-    public FoundryLocalChatClientAdapter(Microsoft.AI.Foundry.Local.OpenAIChatClient chatClient, string modelId, int? modelMaxOutputTokens = null)
+    public FoundryLocalChatClientAdapter(IModel model, string modelId, int? modelMaxOutputTokens = null)
     {
         _modelId = modelId;
-        _chatClient = chatClient;
+        _model = model;
         _modelMaxOutputTokens = modelMaxOutputTokens;
     }
 
@@ -43,37 +42,63 @@ internal class FoundryLocalChatClientAdapter : IChatClient
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ApplyChatOptions(options);
-        var openAIMessages = ConvertToOpenAIMessages(chatMessages);
+        ArgumentNullException.ThrowIfNull(chatMessages);
+
+        using var session = new ChatSession(_model);
+        session.SetStreaming(true);
+
+        using var request = new Request();
+        foreach (var message in chatMessages)
+        {
+            if (ConvertToFoundryMessageData(message) is { } messageData)
+            {
+                using var messageItem = new MessageItem(messageData.Role, messageData.Content);
+                request.AddItem(messageItem);
+            }
+        }
+
+        if (request.ItemCount == 0)
+        {
+            throw new ArgumentException("At least one non-empty text chat message is required.", nameof(chatMessages));
+        }
+
+        request.SetOptions(CreateRequestOptions(options));
 
         // Key Perf Log
         System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting inference");
-        var streamingResponse = _chatClient.CompleteChatStreamingAsync(openAIMessages, cancellationToken);
+        await using var streamingResponse = session.ProcessStreamingRequestAsync(request, cancellationToken);
 
         string responseId = Guid.NewGuid().ToString("N");
         int chunkCount = 0;
         await foreach (var chunk in streamingResponse)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (chunkCount == 0)
+            string? content = null;
+            using (chunk)
             {
-                // Key Perf Log
-                System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] First token received");
-            }
-
-            chunkCount++;
-            if (chunk.Choices != null && chunk.Choices.Count > 0)
-            {
-                var content = chunk.Choices[0].Message?.Content;
-                if (!string.IsNullOrEmpty(content))
+                if (chunk is TextItem textItem)
                 {
-                    yield return new ChatResponseUpdate(ChatRole.Assistant, content)
-                    {
-                        ResponseId = responseId
-                    };
+                    content = textItem.Text;
                 }
             }
+
+            if (!string.IsNullOrEmpty(content))
+            {
+                if (chunkCount == 0)
+                {
+                    // Key Perf Log
+                    System.Diagnostics.Debug.WriteLine($"[{System.DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] First token received");
+                }
+
+                chunkCount++;
+                yield return new ChatResponseUpdate(ChatRole.Assistant, content)
+                {
+                    ResponseId = responseId
+                };
+            }
         }
+
+        using var finalResponse = await streamingResponse.FinalResponse.ConfigureAwait(false);
 
         if (chunkCount == 0)
         {
@@ -91,54 +116,52 @@ internal class FoundryLocalChatClientAdapter : IChatClient
 
     public void Dispose()
     {
-        // ChatClient doesn't need disposal
+        // ChatSession instances are scoped and disposed per request.
     }
 
-    private void ApplyChatOptions(ChatOptions? options)
+    private RequestOptions CreateRequestOptions(ChatOptions? options)
     {
-        // CRITICAL: MaxTokens must be set, otherwise some models won't generate any output
-        _chatClient.Settings.MaxTokens = options?.MaxOutputTokens ?? _modelMaxOutputTokens ?? DefaultMaxTokens;
-
-        if (options?.Temperature is float temperature)
+        return new RequestOptions
         {
-            _chatClient.Settings.Temperature = temperature;
-        }
-
-        if (options?.TopP is float topP)
-        {
-            _chatClient.Settings.TopP = topP;
-        }
-
-        if (options?.TopK is int topK)
-        {
-            _chatClient.Settings.TopK = topK;
-        }
-
-        if (options?.FrequencyPenalty is float frequencyPenalty)
-        {
-            _chatClient.Settings.FrequencyPenalty = frequencyPenalty;
-        }
-
-        if (options?.PresencePenalty is float presencePenalty)
-        {
-            _chatClient.Settings.PresencePenalty = presencePenalty;
-        }
-
-        if (options?.Seed is long seed)
-        {
-            _chatClient.Settings.RandomSeed = (int)seed;
-        }
+            Search = new SearchOptions
+            {
+                MaxOutputTokens = options?.MaxOutputTokens ?? _modelMaxOutputTokens ?? DefaultMaxTokens,
+                Temperature = options?.Temperature,
+                TopP = options?.TopP,
+                TopK = options?.TopK,
+                FrequencyPenalty = options?.FrequencyPenalty,
+                PresencePenalty = options?.PresencePenalty,
+                Seed = options?.Seed is long seed ? checked((int)seed) : null
+            }
+        };
     }
 
-    /// <summary>
-    /// Converts Microsoft.Extensions.AI chat messages to OpenAI-compatible format.
-    /// </summary>
-    private static List<Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage> ConvertToOpenAIMessages(IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages)
+    private static (MessageRole Role, string Content)? ConvertToFoundryMessageData(Microsoft.Extensions.AI.ChatMessage message)
     {
-        return messages.Select(m => new Betalgo.Ranul.OpenAI.ObjectModels.RequestModels.ChatMessage
+        foreach (var content in message.Contents)
         {
-            Role = m.Role.Value,
-            Content = m.Text ?? string.Empty // NOTE: Only supports text content; multi-modal content (images, etc.) is not handled
-        }).ToList();
+            if (content is not TextContent)
+            {
+                throw new NotSupportedException(
+                    $"Foundry Local text chat does not support content of type '{content.GetType().Name}'.");
+            }
+        }
+
+        if (string.IsNullOrEmpty(message.Text))
+        {
+            return null;
+        }
+
+        var role = message.Role.Value.ToLowerInvariant() switch
+        {
+            "system" => MessageRole.System,
+            "user" => MessageRole.User,
+            "assistant" => MessageRole.Assistant,
+            "developer" => MessageRole.Developer,
+            "tool" => MessageRole.Tool,
+            _ => throw new NotSupportedException($"Foundry Local does not support the chat role '{message.Role.Value}'.")
+        };
+
+        return (role, message.Text);
     }
 }

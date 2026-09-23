@@ -43,6 +43,16 @@
     <ProjectCapability Include="AIDevGallery" />
   </ItemGroup>
 
+  <Target Name="ExcludeDuplicateFoundryWinML"
+          AfterTargets="ResolvePackageAssets"
+          Condition="'$(UseFoundryLocal)' == 'true'">
+    <ItemGroup>
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                            Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.AI.Foundry.Local.Runtime', StringComparison.OrdinalIgnoreCase))
+                                       And $([System.String]::Copy('%(Filename)%(Extension)').Equals('Microsoft.Windows.AI.MachineLearning.dll', StringComparison.OrdinalIgnoreCase))" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
     Explorer "Package and Publish" context menu entry to be enabled for this project even if

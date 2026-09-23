@@ -6,7 +6,6 @@ using AIDevGallery.Models;
 using AIDevGallery.Samples.SharedCode;
 using AIDevGallery.Telemetry.Events;
 using AIDevGallery.Utils;
-using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
@@ -28,7 +27,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
     public HardwareAccelerator ModelHardwareAccelerator => HardwareAccelerator.FOUNDRYLOCAL;
 
-    public List<string> NugetPackageReferences => ["Microsoft.AI.Foundry.Local.WinML", "Microsoft.Extensions.AI"];
+    public List<string> NugetPackageReferences => ["Microsoft.AI.Foundry.Local", "Microsoft.Extensions.AI"];
 
     public string ProviderDescription => "The model will run locally via Foundry Local";
 
@@ -58,12 +57,9 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var model = _foundryManager!.GetLoadedModel(alias)
             ?? throw new InvalidOperationException($"Model '{alias}' is not ready yet. Please call EnsureModelReadyAsync(url) first.");
 
-        var chatClient = _foundryManager.GetChatClient(alias)
-            ?? throw new InvalidOperationException($"Chat client for model '{alias}' was not cached during loading.");
-
         int? maxOutputTokens = _foundryManager.GetModelMaxOutputTokens(alias);
         Telemetry.Events.FoundryLocalOperationEvent.Log("GetChatClient", alias);
-        return new FoundryLocalChatClientAdapter(chatClient, model.Id, maxOutputTokens);
+        return new FoundryLocalChatClientAdapter(model, model.Id, maxOutputTokens);
     }
 
     private void ValidateClient(string alias)
@@ -101,8 +97,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var alias = ExtractAlias(url);
 
         // Include variant ID so the exported project uses the same variant as the Gallery
-        var loadedModel = _foundryManager?.GetLoadedModel(alias) as Model;
-        var variantId = loadedModel?.SelectedVariant?.Id;
+        var loadedModel = _foundryManager?.GetLoadedModel(alias);
+        var variantId = loadedModel?.Id;
         if (variantId != null)
         {
             return $"await FoundryLocalChatClientFactory.CreateAsync(\"{alias}\", \"{variantId}\")";
@@ -183,8 +179,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
         var models = await _foundryManager.Catalog.ListModelsAsync();
         return models.Select(model =>
         {
-            var variant = model.SelectedVariant;
-            var info = variant.Info;
+            var info = model.Info;
             return new FoundryCatalogModel
             {
                 Name = info.Name,
@@ -192,7 +187,7 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
                 Alias = model.Alias,
                 FileSizeMb = info.FileSizeMb ?? 0,
                 License = info.License ?? string.Empty,
-                ModelId = variant.Id,
+                ModelId = model.Id,
                 Runtime = info.Runtime,
                 Task = info.Task
             };

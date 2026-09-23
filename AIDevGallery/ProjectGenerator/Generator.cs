@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
@@ -25,8 +26,18 @@ namespace AIDevGallery.ProjectGenerator;
 
 internal partial class Generator
 {
-    private readonly string templatePath = Path.Join(Package.Current.InstalledLocation.Path, "ProjectGenerator", "Template");
+    private readonly string templatePath;
     private string generatedProjectPath = string.Empty;
+
+    internal Generator()
+        : this(Path.Join(Package.Current.InstalledLocation.Path, "ProjectGenerator", "Template"))
+    {
+    }
+
+    internal Generator(string templatePath)
+    {
+        this.templatePath = templatePath;
+    }
 
     [GeneratedRegex(@"[^a-zA-Z0-9_]")]
     private static partial Regex SafeNameRegex();
@@ -132,7 +143,7 @@ internal partial class Generator
             {
                 modelIds.Add(apiDefinitionDetails.Id);
             }
-            else if (App.ModelCache.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
+            else if (App.ModelCache?.GetCachedModel(modelInfo.Url) is var cachedModel && cachedModel != null)
             {
                 if (cachedModel.Details.IsUserAdded)
                 {
@@ -289,6 +300,24 @@ internal partial class Generator
             foreach (var packageName in packageReferences)
             {
                 AddPackageReference(itemGroup, packageName);
+            }
+
+            if (packageReferences.Contains("Microsoft.AI.Foundry.Local"))
+            {
+                project.AddPropertyGroup().AddProperty("UseFoundryLocal", "true");
+
+                // Exported Foundry samples need the same CRT framework dependency as the Gallery.
+                var manifestPath = Path.Join(outputPath, "Package.appxmanifest");
+                var manifest = XDocument.Load(manifestPath);
+                var manifestRoot = manifest.Root!;
+                var manifestNamespace = manifestRoot.Name.Namespace;
+                manifestRoot.Element(manifestNamespace + "Dependencies")!.Add(
+                    new XElement(
+                        manifestNamespace + "PackageDependency",
+                        new XAttribute("Name", "Microsoft.VCLibs.140.00.UWPDesktop"),
+                        new XAttribute("Publisher", "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"),
+                        new XAttribute("MinVersion", "14.0.33728.0")));
+                manifest.Save(manifestPath);
             }
 
             if (copyModelLocally)
