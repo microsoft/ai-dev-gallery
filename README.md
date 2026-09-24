@@ -61,7 +61,7 @@ Press <kbd>F5</kbd> to run AI Dev Gallery!
 ## 🔎 App Content Search samples
 
 > [!NOTE]
-> These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
+> These App Content Search samples use the experimental channel of the Windows App SDK, which does not require a Limited Access Feature token. App Content Search is available in the stable channel starting with Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
 
 ## 👏 Contribute to AI Dev Gallery
 

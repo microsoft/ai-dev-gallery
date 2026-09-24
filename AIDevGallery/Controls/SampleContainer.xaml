@@ -30,7 +30,7 @@
             Visibility="Collapsed">
             <InfoBar.Content>
                 <TextBlock TextWrapping="Wrap">
-                    <Run Text="These samples use the experimental channel release of App Content Search, which does not require a Limited Access Feature token. App Content Search shipped in Windows App SDK 2.5.1 as a " />
+                    <Run Text="These App Content Search samples use the experimental channel of the Windows App SDK, which does not require a Limited Access Feature token. App Content Search is available in the stable channel starting with Windows App SDK 2.5.1 as a " />
                     <Hyperlink NavigateUri="https://aka.ms/laffeatures">
                         <Run Text="Limited Access Feature" />
                     </Hyperlink>
