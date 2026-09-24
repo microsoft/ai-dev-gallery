@@ -15,7 +15,6 @@ internal class FoundryClient : IDisposable
 {
     private readonly Dictionary<string, IModel> _loadedModels = new();
     private readonly Dictionary<string, int?> _modelMaxOutputTokens = new();
-    private readonly Dictionary<string, OpenAIChatClient> _chatClients = new();
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private FoundryLocalManager? _manager;
     private ICatalog? _catalog;
@@ -65,7 +64,7 @@ internal class FoundryClient : IDisposable
 
             try
             {
-                await client._manager.EnsureEpsDownloadedAsync();
+                await client._manager.DownloadAndRegisterEpsAsync();
             }
             catch (Exception epEx)
             {
@@ -112,7 +111,6 @@ internal class FoundryClient : IDisposable
             // Key Perf Log
             Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Starting download for model: {catalogModel.Alias}");
 
-            // Known Issue: SDK ignores standard .NET cancellation patterns during download operations.(https://github.com/microsoft/Foundry-Local/issues/365)
             await model.DownloadAsync(
                 progressPercent => progress?.Report(progressPercent / 100f),
                 cancellationToken);
@@ -185,7 +183,7 @@ internal class FoundryClient : IDisposable
             if (!await model.IsLoadedAsync())
             {
                 // Key Perf Log
-                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.SelectedVariant.Info.Id})");
+                Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [FoundryLocal] Loading model: {alias} ({model.Id})");
                 await model.LoadAsync(cancellationToken);
 
                 // Key Perf Log
@@ -193,11 +191,7 @@ internal class FoundryClient : IDisposable
             }
 
             _loadedModels[alias] = model;
-            _modelMaxOutputTokens[alias] = (int?)model.SelectedVariant.Info.MaxOutputTokens;
-
-            // Pre-create and cache the chat client to avoid sync-over-async in GetChatClient
-            var chatClient = await model.GetChatClientAsync();
-            _chatClients[alias] = chatClient;
+            _modelMaxOutputTokens[alias] = (int?)model.Info.MaxOutputTokens;
 
             var duration = (DateTime.Now - startTime).TotalSeconds;
             Telemetry.Events.FoundryLocalOperationEvent.Log("ModelLoad", alias, duration);
@@ -215,9 +209,6 @@ internal class FoundryClient : IDisposable
 
     public IModel? GetLoadedModel(string alias) =>
         _loadedModels.GetValueOrDefault(alias);
-
-    public OpenAIChatClient? GetChatClient(string alias) =>
-        _chatClients.GetValueOrDefault(alias);
 
     public int? GetModelMaxOutputTokens(string alias) =>
         _modelMaxOutputTokens.GetValueOrDefault(alias);
@@ -254,7 +245,6 @@ internal class FoundryClient : IDisposable
             {
                 _loadedModels.Remove(alias);
                 _modelMaxOutputTokens.Remove(alias);
-                _chatClients.Remove(alias);
             }
 
             return true;
@@ -268,8 +258,6 @@ internal class FoundryClient : IDisposable
 
     public async Task UnloadAllModelsAsync()
     {
-        var modelCount = _loadedModels.Count;
-
         // Unload all loaded models before clearing
         foreach (var (alias, model) in _loadedModels)
         {
@@ -288,7 +276,6 @@ internal class FoundryClient : IDisposable
 
         _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
-        _chatClients.Clear();
     }
 
     public void Dispose()
@@ -300,7 +287,6 @@ internal class FoundryClient : IDisposable
 
         _loadedModels.Clear();
         _modelMaxOutputTokens.Clear();
-        _chatClients.Clear();
         _loadLock.Dispose();
         _disposed = true;
     }

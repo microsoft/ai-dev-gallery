@@ -17,7 +17,9 @@
 using AIDevGallery.ExternalModelUtils;
 using AIDevGallery.ExternalModelUtils.FoundryLocal;
 using AIDevGallery.Models;
+using AIDevGallery.Samples.SharedCode;
 using Microsoft.AI.Foundry.Local;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -30,13 +32,33 @@ namespace AIDevGallery.Tests.IntegrationTests;
 [TestClass]
 public class FoundryLocalIntegrationTests
 {
+    private const string TestCacheEnvironmentVariable = "AIDG_FOUNDRY_TEST_CACHE";
+    private const string TestCacheProperty = "FoundryLocalCachePath";
+    private const string AllowDownloadProperty = "FoundryLocalAllowDownload";
+    private const string OnnxRuntimeGenAIModelPathProperty = "OnnxRuntimeGenAIModelPath";
     private static bool _sdkInitialized;
+    private static bool _allowModelDownload;
+    private static bool _usingExternalCache;
     private static string? _testCacheDir;
+
+    public TestContext TestContext { get; set; } = null!;
 
     [ClassInitialize]
     public static async Task ClassInit(TestContext context)
     {
-        _testCacheDir = Path.Combine(Path.GetTempPath(), "AIDevGalleryTests", "foundrycache");
+        _testCacheDir = context.Properties.Contains(TestCacheProperty)
+            ? context.Properties[TestCacheProperty]?.ToString()
+            : Environment.GetEnvironmentVariable(TestCacheEnvironmentVariable);
+        _usingExternalCache = !string.IsNullOrWhiteSpace(_testCacheDir);
+        _allowModelDownload = context.Properties.Contains(AllowDownloadProperty) &&
+            bool.TryParse(context.Properties[AllowDownloadProperty]?.ToString(), out var allowDownload) &&
+            allowDownload;
+
+        if (string.IsNullOrWhiteSpace(_testCacheDir))
+        {
+            _testCacheDir = Path.Combine(Path.GetTempPath(), "AIDevGalleryTests", "foundrycache");
+        }
+
         Directory.CreateDirectory(_testCacheDir);
 
         if (FoundryLocalManager.IsInitialized)
@@ -87,6 +109,15 @@ public class FoundryLocalIntegrationTests
     }
 
     [TestMethod]
+    public void ExecutionProvidersCanBeDiscovered()
+    {
+        EnsureSdkAvailable();
+
+        var executionProviders = FoundryLocalManager.Instance.DiscoverEps();
+        Assert.IsNotNull(executionProviders);
+    }
+
+    [TestMethod]
     public async Task CatalogIsAccessibleAndReturnsModels()
     {
         EnsureSdkAvailable();
@@ -114,23 +145,18 @@ public class FoundryLocalIntegrationTests
                 string.IsNullOrEmpty(model.Alias),
                 "Model.Alias must not be null or empty");
 
-            var variant = model.SelectedVariant;
-            Assert.IsNotNull(
-                variant,
-                $"Model '{model.Alias}' must have a SelectedVariant");
-
-            var info = variant.Info;
+            var info = model.Info;
             Assert.IsNotNull(
                 info,
-                $"Model '{model.Alias}' SelectedVariant must have Info");
+                $"Model '{model.Alias}' must have Info");
 
             Assert.IsFalse(
                 string.IsNullOrEmpty(info.Name),
                 $"Model '{model.Alias}' Info.Name must not be null or empty");
 
             Assert.IsFalse(
-                string.IsNullOrEmpty(variant.Id),
-                $"Model '{model.Alias}' SelectedVariant.Id must not be null or empty");
+                string.IsNullOrEmpty(model.Id),
+                $"Model '{model.Alias}' Id must not be null or empty");
 
             // DisplayName may be null (code falls back to Name), but should be string type
             // info.DisplayName ?? info.Name is the pattern used in ListCatalogModelsAsync
@@ -151,8 +177,7 @@ public class FoundryLocalIntegrationTests
 
         foreach (var model in models)
         {
-            var variant = model.SelectedVariant;
-            var info = variant.Info;
+            var info = model.Info;
 
             // Replicate the exact conversion from ListCatalogModelsAsync
             var catalogModel = new FoundryCatalogModel
@@ -162,7 +187,7 @@ public class FoundryLocalIntegrationTests
                 Alias = model.Alias,
                 FileSizeMb = info.FileSizeMb ?? 0,
                 License = info.License ?? string.Empty,
-                ModelId = variant.Id,
+                ModelId = model.Id,
                 Runtime = info.Runtime,
                 Task = info.Task
             };
@@ -196,8 +221,7 @@ public class FoundryLocalIntegrationTests
 
         foreach (var model in models)
         {
-            var variant = model.SelectedVariant;
-            var info = variant.Info;
+            var info = model.Info;
 
             var catalogModel = new FoundryCatalogModel
             {
@@ -206,7 +230,7 @@ public class FoundryLocalIntegrationTests
                 Alias = model.Alias,
                 FileSizeMb = info.FileSizeMb ?? 0,
                 License = info.License ?? string.Empty,
-                ModelId = variant.Id,
+                ModelId = model.Id,
                 Runtime = info.Runtime,
                 Task = info.Task
             };
@@ -261,7 +285,7 @@ public class FoundryLocalIntegrationTests
         // At least some models should have the chat-completion task
         // which is the primary use case for AIDG
         var chatModelCount = models.Count(m =>
-            m.SelectedVariant.Info.Task == ModelTaskTypes.ChatCompletion);
+            m.Info.Task == ModelTaskTypes.ChatCompletion);
 
         Assert.IsTrue(
             chatModelCount > 0,
@@ -285,6 +309,9 @@ public class FoundryLocalIntegrationTests
             Assert.IsFalse(
                 string.IsNullOrEmpty(variant.Alias),
                 "Cached model variant should have a non-empty Alias");
+            Assert.IsFalse(
+                string.IsNullOrEmpty(variant.Id),
+                "Cached model variant should have a non-empty Id");
             Assert.IsNotNull(
                 variant.Info,
                 $"Cached model '{variant.Alias}' should have Info");
@@ -316,5 +343,189 @@ public class FoundryLocalIntegrationTests
             firstAlias,
             lookedUp.Alias,
             "Looked-up model Alias should match the requested alias");
+    }
+
+    [TestMethod]
+    public async Task CachedChatModelCanStreamResponse()
+    {
+        EnsureSdkAvailable();
+
+        if (!_usingExternalCache)
+        {
+            Assert.Inconclusive($"Set the {TestCacheProperty} test parameter or {TestCacheEnvironmentVariable} to run cached-model inference.");
+        }
+
+        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
+        var model = await GetCachedChatModelAsync(catalog);
+        if (model == null)
+        {
+            Assert.Inconclusive("No cached chat-completion model is available.");
+            return;
+        }
+
+        await model.LoadAsync();
+        try
+        {
+            var responseText = await StreamShortFoundryResponseAsync(model);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(responseText));
+        }
+        finally
+        {
+            if (await model.IsLoadedAsync())
+            {
+                await model.UnloadAsync();
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task SmallCpuChatModelCanDownloadAndStreamResponse()
+    {
+        EnsureSdkAvailable();
+
+        if (!_allowModelDownload)
+        {
+            Assert.Inconclusive($"Set the {AllowDownloadProperty} test parameter to true to run model download and inference.");
+        }
+
+        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
+        var model = (await catalog.ListModelsAsync())
+            .Where(IsCpuChatModel)
+            .OrderBy(model => model.Info.FileSizeMb ?? int.MaxValue)
+            .FirstOrDefault();
+        Assert.IsNotNull(model, "No CPU chat-completion model is available.");
+
+        var wasCached = await model.IsCachedAsync();
+        try
+        {
+            if (!wasCached)
+            {
+                await model.DownloadAsync();
+            }
+
+            await model.LoadAsync();
+            var responseText = await StreamShortFoundryResponseAsync(model);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(responseText));
+        }
+        finally
+        {
+            if (await model.IsLoadedAsync())
+            {
+                await model.UnloadAsync();
+            }
+
+            if (!wasCached && await model.IsCachedAsync())
+            {
+                await model.RemoveFromCacheAsync();
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task FoundryAndOnnxRuntimeGenAIModelsCanStreamInSameProcess()
+    {
+        EnsureSdkAvailable();
+
+        if (!_usingExternalCache ||
+            !TestContext.Properties.Contains(OnnxRuntimeGenAIModelPathProperty) ||
+            TestContext.Properties[OnnxRuntimeGenAIModelPathProperty]?.ToString() is not { Length: > 0 } modelPath)
+        {
+            Assert.Inconclusive(
+                $"Set {TestCacheProperty}/{TestCacheEnvironmentVariable} and {OnnxRuntimeGenAIModelPathProperty} to run shared-runtime inference.");
+            return;
+        }
+
+        var catalog = await FoundryLocalManager.Instance.GetCatalogAsync();
+        var foundryModel = await GetCachedChatModelAsync(catalog);
+        if (foundryModel == null)
+        {
+            Assert.Inconclusive("No cached Foundry Local chat-completion model is available.");
+            return;
+        }
+
+        await foundryModel.LoadAsync();
+        try
+        {
+            var foundryResponse = await StreamShortFoundryResponseAsync(foundryModel);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(foundryResponse));
+
+            using var onnxRuntimeGenAIClient = await OnnxRuntimeGenAIChatClientFactory.CreateAsync(modelPath);
+            Assert.IsNotNull(onnxRuntimeGenAIClient);
+
+            var onnxRuntimeGenAIResponse = await StreamShortResponseAsync(onnxRuntimeGenAIClient);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(onnxRuntimeGenAIResponse));
+            Assert.IsTrue(await foundryModel.IsLoadedAsync(), "The Foundry Local model should remain loaded during ORT GenAI inference.");
+        }
+        finally
+        {
+            if (await foundryModel.IsLoadedAsync())
+            {
+                await foundryModel.UnloadAsync();
+            }
+        }
+    }
+
+    private static bool IsCpuChatModel(IModel model)
+    {
+        return model.Info.Task == ModelTaskTypes.ChatCompletion &&
+            model.Info.Runtime?.ExecutionProvider.Contains("CPU", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private static async Task<IModel?> GetCachedChatModelAsync(ICatalog catalog)
+    {
+        var cachedVariant = (await catalog.GetCachedModelsAsync())
+            .FirstOrDefault(model => model.Info.Task == ModelTaskTypes.ChatCompletion);
+        if (cachedVariant == null)
+        {
+            return null;
+        }
+
+        var model = await catalog.GetModelAsync(cachedVariant.Alias);
+        if (model == null)
+        {
+            return null;
+        }
+
+        if (model.Id != cachedVariant.Id)
+        {
+            var selectedVariant = model.Variants.FirstOrDefault(variant => variant.Id == cachedVariant.Id);
+            if (selectedVariant == null)
+            {
+                return null;
+            }
+
+            model.SelectVariant(selectedVariant);
+        }
+
+        var executionProvider = model.Info.Runtime?.ExecutionProvider;
+        if (!string.IsNullOrWhiteSpace(executionProvider))
+        {
+            var result = await FoundryLocalManager.Instance.DownloadAndRegisterEpsAsync([executionProvider]);
+            if (!result.Success)
+            {
+                throw new InvalidOperationException($"Failed to register {executionProvider}: {result.Status}");
+            }
+        }
+
+        return model;
+    }
+
+    private static async Task<string> StreamShortFoundryResponseAsync(IModel model)
+    {
+        using var chatClient = new FoundryLocalChatClientAdapter(model, model.Id, (int?)model.Info.MaxOutputTokens);
+        return await StreamShortResponseAsync(chatClient);
+    }
+
+    private static async Task<string> StreamShortResponseAsync(IChatClient chatClient)
+    {
+        var responseText = string.Empty;
+        await foreach (var update in chatClient.GetStreamingResponseAsync(
+            [new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, "Reply with OK only.")],
+            new ChatOptions { MaxOutputTokens = 16 }))
+        {
+            responseText += update.Text;
+        }
+
+        return responseText;
     }
 }
