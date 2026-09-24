@@ -20,6 +20,28 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <InfoBar
+            x:Name="AppContentSearchExperimentalInfoBar"
+            Margin="0,0,0,12"
+            IsClosable="False"
+            IsOpen="True"
+            Severity="Informational"
+            Title="Experimental App Content Search sample"
+            Visibility="Collapsed">
+            <InfoBar.Content>
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="These App Content Search samples use the experimental channel of the Windows App SDK, which does not require a Limited Access Feature token. App Content Search is available in the stable channel starting with Windows App SDK 2.5.1 as a " />
+                    <Hyperlink NavigateUri="https://aka.ms/laffeatures">
+                        <Run Text="Limited Access Feature" />
+                    </Hyperlink>
+                    <Run Text=". To use it in a production app, request a token for com.microsoft.windows.ai.appcontentindexer and call LimitedAccessFeatures.TryUnlockFeature before calling any AppContentIndex API. See " />
+                    <Hyperlink NavigateUri="https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial">
+                        <Run Text="Get started with App Content Search" />
+                    </Hyperlink>
+                    <Run Text="." />
+                </TextBlock>
+            </InfoBar.Content>
+        </InfoBar>
         <!--<TextBlock x:Name="descriptionTextBlock" TextWrapping="WrapWholeWords" />-->
         <Grid
             x:Name="SampleCard"

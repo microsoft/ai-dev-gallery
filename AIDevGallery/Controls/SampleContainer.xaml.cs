@@ -390,6 +390,9 @@ internal sealed partial class SampleContainer : UserControl
 
         _sampleCache = sample;
         _currentWinMlSampleOptions = winMlSampleOptions;
+        AppContentSearchExperimentalInfoBar.Visibility = sample.IsAppContentSearchSample()
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         if (models != null)
         {

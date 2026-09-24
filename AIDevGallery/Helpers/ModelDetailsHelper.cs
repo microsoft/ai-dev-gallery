@@ -12,6 +12,11 @@ namespace AIDevGallery.Helpers;
 
 internal static class ModelDetailsHelper
 {
+    /// <summary>
+    /// The <see cref="ApiDefinition.Category"/> value that identifies App Content Search APIs in apis.json.
+    /// </summary>
+    public const string AppContentSearchCategory = "App Content Search";
+
     public static bool EqualOrParent(ModelType modelType, ModelType searchModelType)
     {
         if (modelType == searchModelType)
@@ -36,7 +41,7 @@ internal static class ModelDetailsHelper
         List<HardwareAccelerator> hardwareAccelerators;
 
         // ACI is a subset of WCRAPIs but without the same set of hardware restrictions. Adding exception here.
-        if (apiDefinition.Category == "App Content Search")
+        if (apiDefinition.Category == AppContentSearchCategory)
         {
             hardwareAccelerators = [HardwareAccelerator.WCRAPI, HardwareAccelerator.ACI];
         }

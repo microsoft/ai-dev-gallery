@@ -58,6 +58,11 @@ Press <kbd>F5</kbd> to run AI Dev Gallery!
 - **Disk space**: At least 20GB free space is recommended
 - **GPU**: 8GB of VRAM is recommended for running samples on the GPU
 
+## 🔎 App Content Search samples
+
+> [!NOTE]
+> These App Content Search samples use the experimental channel of the Windows App SDK, which does not require a Limited Access Feature token. App Content Search is available in the stable channel starting with Windows App SDK 2.5.1 as a [Limited Access Feature](https://aka.ms/laffeatures). To use it in a production app, request a token for `com.microsoft.windows.ai.appcontentindexer` and call `LimitedAccessFeatures.TryUnlockFeature` before calling any `AppContentIndex` API. See [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
+
 ## 👏 Contribute to AI Dev Gallery
 
 Any samples or docs improvements you'd like to see? We're always looking for a helping hand. Feel free to <a href="https://github.com/microsoft/AI-Dev-Gallery/issues">open an issue </a> to start the discussion, or even better, create a PR with the change you'd like to see!
