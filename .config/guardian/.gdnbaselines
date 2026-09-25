@@ -1,0 +1,110 @@
+{
+  "properties": {
+    "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/baselines"
+  },
+  "version": "1.0.0",
+  "baselines": {
+    "default": {
+      "name": "default",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "lastUpdatedDate": "2026-08-11 03:56:13Z"
+    }
+  },
+  "results": {
+    "485df96c50a376424d25bde209ffd9d8f855efed1e7046a573a6c99208515d6a": {
+      "signature": "485df96c50a376424d25bde209ffd9d8f855efed1e7046a573a6c99208515d6a",
+      "alternativeSignatures": [
+        "842fe84b4fc1460e9c74ca0382b365f13ef22590a497f3554223985179025f46",
+        "8e54ecb5984ba9266a0e5d51b0889e616b1c0c3d8ceefeb4a066f10faffdb286",
+        "cc208a1e5f11197a599438a964b29fe1ef0c4600c952f8d0955971e7aee7e1fc"
+      ],
+      "target": "AIDevGallery.SourceGenerator/ModelsSourceGenerator.cs",
+      "line": 27,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "expirationDate": "2027-01-28 03:59:05Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-08-11 03:59:05Z"
+    },
+    "a95292028605c140f857ae0451a32f1793176f039a734db1c7594052fbc05541": {
+      "signature": "a95292028605c140f857ae0451a32f1793176f039a734db1c7594052fbc05541",
+      "alternativeSignatures": [
+        "4e86959c6adc5001be7861af63c44ff886580135d0db30e3bd2f348c6ad8129e",
+        "de5cd2ea3cd9f395a1379706af59d1905c7943c761c1a59130d81e996437564c",
+        "2d0a202455d74bac702fc7553ac3c54f4c46bb973bff51975a84d9d290438f14"
+      ],
+      "target": "AIDevGallery.SourceGenerator/ModelsSourceGenerator.cs",
+      "line": 60,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "expirationDate": "2027-01-28 03:59:05Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-08-11 03:59:05Z"
+    },
+    "591d2a9cd8150f0c926fc718357e680f1c2ff7ac4210ea177db3578a484b23a2": {
+      "signature": "591d2a9cd8150f0c926fc718357e680f1c2ff7ac4210ea177db3578a484b23a2",
+      "alternativeSignatures": [
+        "c2fb47bd20392308a1ae6ac37a7e02eafc0e71c0ffe7559e20a04611eb4c3646",
+        "91fa565c06ee04026eeee20187fe91327176798f9a7d50fcdb803987d2342b12",
+        "f98f013988c22772f3769e13a63c33dab0628be7e9c46b44262cf2a61a75c1bf"
+      ],
+      "target": "AIDevGallery.SourceGenerator/ModelsSourceGenerator.cs",
+      "line": 71,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "expirationDate": "2027-01-28 03:59:05Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-08-11 03:59:05Z"
+    },
+    "17a8ab82c6b19f072e0108481169de461d0c4d4e535153bb6d85b50ba8d2bd82": {
+      "signature": "17a8ab82c6b19f072e0108481169de461d0c4d4e535153bb6d85b50ba8d2bd82",
+      "alternativeSignatures": [
+        "b3a585c1e1bef63f4952dcf87f7fbe1bd7dcf4cca7456ec9a33226873b01b5d2",
+        "fde288067a4083ed295fcb0f60267943b3f2956b78fca1a8e38f3dd2ababb3f7",
+        "41825cbbd779ea06b9345983fc3359656d987209b50bf05c2b49f50f953027e5"
+      ],
+      "target": "AIDevGallery.SourceGenerator/ModelsSourceGenerator.cs",
+      "line": 101,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "expirationDate": "2027-01-28 03:59:05Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-08-11 03:59:05Z"
+    },
+    "e11981a5a5ff83bb9009aa5f8a33d30ab3e548a489f335617b7705f99f43d22a": {
+      "signature": "e11981a5a5ff83bb9009aa5f8a33d30ab3e548a489f335617b7705f99f43d22a",
+      "alternativeSignatures": [
+        "51457386e8f5fe0bbe2ab5a809768eceeaa982be9f51f74ca7297a06cabaf127",
+        "bd957d0b8a70dd0688257d13228a9fc8c83e392acdedfd0f8c8720aeea205eab",
+        "10a362e22833d7308766fda911cacfbc7e7309d6739408ab01ca0d1798a041fa"
+      ],
+      "target": "AIDevGallery.SourceGenerator/SamplesSourceGenerator.cs",
+      "line": 375,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-08-11 03:56:13Z",
+      "expirationDate": "2027-01-28 03:59:05Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-08-11 03:59:05Z"
+    }
+  }
+}
