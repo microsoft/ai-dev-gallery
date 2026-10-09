@@ -12,9 +12,12 @@ namespace AIDevGallery.Models;
 
 internal class ModelCompatibility
 {
+    public const string DefaultIssueTitle = "This device isn't supported";
+
     private const double BytesInGB = 1024 * 1024 * 1024;
 
     public ModelCompatibilityState CompatibilityState { get; init; }
+    public string CompatibilityIssueTitle { get; init; } = DefaultIssueTitle;
     public string CompatibilityIssueDescription { get; init; } = string.Empty;
 
     private ModelCompatibility()
@@ -37,16 +40,7 @@ internal class ModelCompatibility
         else if (ModelTypeHelpers.ApiDefinitionDetails.Any(md => md.Value.Id == modelDetails.Id))
         {
             var apiType = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == modelDetails.Id).Key;
-            var availbility = WcrApiHelpers.GetApiAvailability(apiType);
-            if (availbility is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
-            {
-                compatibility = ModelCompatibilityState.Compatible;
-            }
-            else
-            {
-                compatibility = ModelCompatibilityState.NotCompatible;
-                description = $"{WcrApiHelpers.GetHardwareRequirementInfo(apiType).Requirement}\n{WcrApiHelpers.GetStringDescription(apiType, availbility)}";
-            }
+            return GetApiCompatibility(apiType, WcrApiHelpers.GetApiAvailability(apiType));
         }
         else if (DeviceUtils.IsArm64() && modelDetails.SupportedOnQualcomm == false)
         {
@@ -130,6 +124,29 @@ internal class ModelCompatibility
         {
             CompatibilityState = compatibility,
             CompatibilityIssueDescription = description
+        };
+    }
+
+    public static ModelCompatibility GetApiCompatibility(ModelType apiType, AIFeatureReadyState availability)
+    {
+        if (availability is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
+        {
+            return new ModelCompatibility
+            {
+                CompatibilityState = ModelCompatibilityState.Compatible
+            };
+        }
+
+        var description = WcrApiHelpers.GetStringDescription(apiType, availability);
+        var isUnavailable = availability == AIFeatureReadyState.NotSupportedOnCurrentSystem;
+
+        return new ModelCompatibility
+        {
+            CompatibilityState = ModelCompatibilityState.NotCompatible,
+            CompatibilityIssueTitle = isUnavailable ? "Windows AI API unavailable" : DefaultIssueTitle,
+            CompatibilityIssueDescription = isUnavailable
+                ? description
+                : $"{WcrApiHelpers.GetHardwareRequirementInfo(apiType).Requirement}\n{description}"
         };
     }
 }

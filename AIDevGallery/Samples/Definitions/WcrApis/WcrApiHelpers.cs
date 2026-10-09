@@ -24,6 +24,7 @@ internal static class WcrApiHelpers
     private const string CopilotPlusOrCpuRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported CPU, is required.";
     private const string AnyCompatibleHardwareRequirement = "A Copilot+ PC, or a Windows 11 PC with a supported GPU or CPU, is required.";
     private const string DefaultSupportedHardwareUrl = "https://learn.microsoft.com/windows/ai/apis/#supported-hardware";
+    private const string ApiUnavailableMessage = "This Windows AI API is currently unavailable on this device.";
 
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
@@ -215,10 +216,10 @@ internal static class WcrApiHelpers
 
                 if (IsImageGeneratorBacked(type))
                 {
-                    return "Not supported on this system. This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";
+                    return $"{ApiUnavailableMessage} This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";
                 }
 
-                return "Not supported on this system.";
+                return ApiUnavailableMessage;
             default:
                 return string.Empty;
         }

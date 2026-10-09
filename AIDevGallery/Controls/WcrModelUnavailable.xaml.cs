@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -10,7 +11,7 @@ namespace AIDevGallery.Controls;
 internal sealed partial class WcrModelUnavailable : UserControl
 {
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-        nameof(Title), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata("This device isn't supported"));
+        nameof(Title), typeof(string), typeof(WcrModelUnavailable), new PropertyMetadata(ModelCompatibility.DefaultIssueTitle));
 
     public string Title
     {
