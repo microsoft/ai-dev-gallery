@@ -9,8 +9,10 @@
 // Purpose: Catch configuration omissions when adding new WCR API model types.
 // For example, registering a new ModelType in CompatibilityCheckers but forgetting
 // to add it to EnsureReadyFuncs would cause a KeyNotFoundException at runtime.
+using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Windows.AI;
 using System;
@@ -186,6 +188,116 @@ public class WcrApiConfigurationTests
             Assert.IsFalse(
                 string.IsNullOrEmpty(description),
                 $"GetStringDescription should return a non-empty message for {modelType} when NotSupportedOnCurrentSystem");
+        }
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityNotSupportedUsesNeutralMessaging()
+    {
+        foreach (var apiType in new[] { ModelType.ImageDescription, ModelType.TextRecognitionOCR, ModelType.SpeechRecognition, ModelType.VideoSuperRes })
+        {
+            var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.NotSupportedOnCurrentSystem);
+
+            Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+            Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
+            Assert.AreEqual("This Windows AI API is currently unavailable on this device.", compatibility.CompatibilityIssueDescription);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(AIFeatureReadyState.Ready)]
+    [DataRow(AIFeatureReadyState.NotReady)]
+    public void GetApiCompatibilityReadyAndNotReadyRemainCompatible(AIFeatureReadyState state)
+    {
+        var compatibility = ModelCompatibility.GetApiCompatibility(ModelType.ImageDescription, state);
+
+        Assert.AreEqual(ModelCompatibilityState.Compatible, compatibility.CompatibilityState);
+        Assert.AreEqual(string.Empty, compatibility.CompatibilityIssueDescription);
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityDisabledByUserKeepsExistingMessaging()
+    {
+        foreach (var (apiType, requirement) in new[]
+        {
+            (ModelType.ImageDescription, "A Copilot+ PC is required."),
+            (ModelType.PhiSilica, "A Copilot+ PC, or a Windows 11 PC with a supported GPU, is required."),
+            (ModelType.SpeechRecognition, "A Copilot+ PC, or a Windows 11 PC with a supported CPU, is required.")
+        })
+        {
+            var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.DisabledByUser);
+
+            Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+            Assert.AreEqual("This device isn't supported", compatibility.CompatibilityIssueTitle);
+            Assert.AreEqual($"{requirement}\nAPI is disabled by the user in the Windows settings.", compatibility.CompatibilityIssueDescription);
+        }
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityUnknownStateKeepsExistingMessaging()
+    {
+        var compatibility = ModelCompatibility.GetApiCompatibility(ModelType.ImageDescription, (AIFeatureReadyState)int.MaxValue);
+
+        Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+        Assert.AreEqual("This device isn't supported", compatibility.CompatibilityIssueTitle);
+        Assert.AreEqual("A Copilot+ PC is required.\n", compatibility.CompatibilityIssueDescription);
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityNotSupportedPreservesInsiderGuidance()
+    {
+        foreach (var apiType in GetImageGeneratorBacked())
+        {
+            var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.NotSupportedOnCurrentSystem);
+
+            Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+            Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
+            Assert.AreEqual(
+                "This Windows AI API is currently unavailable on this device. This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).",
+                compatibility.CompatibilityIssueDescription);
+        }
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityNotSupportedPreservesLanguageModelDiagnostics()
+    {
+        var expectedDescription = LimitedAccessFeaturesHelper.IsAILanguageModelAvailable()
+            ? "This Windows AI API is currently unavailable on this device."
+            : LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
+
+        foreach (var apiType in GetLanguageModelBacked())
+        {
+            var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.NotSupportedOnCurrentSystem);
+
+            Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+            Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
+            Assert.AreEqual(expectedDescription, compatibility.CompatibilityIssueDescription);
+        }
+    }
+
+    [TestMethod]
+    [DoNotParallelize]
+    public void GetModelCompatibilityAvailabilityExceptionUsesNeutralMessaging()
+    {
+        var checkers = GetCompatibilityCheckers();
+        var originalChecker = checkers[ModelType.ImageDescription];
+
+        try
+        {
+            checkers[ModelType.ImageDescription] = () => throw new InvalidOperationException("Readiness check failed.");
+            var model = ModelDetailsHelper.GetModelDetailsFromApiDefinition(
+                ModelType.ImageDescription,
+                ModelTypeHelpers.ApiDefinitionDetails[ModelType.ImageDescription]);
+
+            var compatibility = ModelCompatibility.GetModelCompatibility(model);
+
+            Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
+            Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
+            Assert.AreEqual("This Windows AI API is currently unavailable on this device.", compatibility.CompatibilityIssueDescription);
+        }
+        finally
+        {
+            checkers[ModelType.ImageDescription] = originalChecker;
         }
     }
 

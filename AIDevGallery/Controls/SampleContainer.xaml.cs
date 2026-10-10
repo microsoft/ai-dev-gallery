@@ -208,11 +208,9 @@ internal sealed partial class SampleContainer : UserControl
         var notCompatibleModel = models.FirstOrDefault(m => m.HardwareAccelerators.Contains(HardwareAccelerator.WCRAPI) && m.Compatibility.CompatibilityState == ModelCompatibilityState.NotCompatible);
         if (notCompatibleModel != null)
         {
-            var issue = notCompatibleModel.Compatibility?.CompatibilityIssueDescription;
-            if (!string.IsNullOrWhiteSpace(issue))
-            {
-                wcrModelUnavailable.Message = issue!;
-            }
+            var compatibility = notCompatibleModel.Compatibility;
+            wcrModelUnavailable.Title = compatibility.CompatibilityIssueTitle;
+            wcrModelUnavailable.Message = compatibility.CompatibilityIssueDescription;
 
             var apiEntry = ModelTypeHelpers.ApiDefinitionDetails.FirstOrDefault(md => md.Value.Id == notCompatibleModel.Id);
             var learnMoreUri = apiEntry.Value is null
@@ -264,6 +262,8 @@ internal sealed partial class SampleContainer : UserControl
             catch (Exception ex)
             {
                 Debug.WriteLine($"WCR API compatibility check failed: {ex}");
+                wcrModelUnavailable.ClearValue(WcrModelUnavailable.TitleProperty);
+                wcrModelUnavailable.ClearValue(WcrModelUnavailable.MessageProperty);
                 VisualStateManager.GoToState(this, "WcrApiNotCompatible", true);
                 SampleFrame.Content = null;
                 return;
