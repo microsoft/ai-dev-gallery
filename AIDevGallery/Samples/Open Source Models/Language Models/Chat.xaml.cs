@@ -20,7 +20,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Chat",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Id = "feb39ede-cb55-4e36-9ec6-cf7c5333254f",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextChat,

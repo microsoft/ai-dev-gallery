@@ -30,7 +30,7 @@ internal sealed partial class WinAIApiPickerView : BaseModelPickerView
         {
             if (type == ModelType.LanguageModels)
             {
-                modelDetails.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
+                modelDetails.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.AionInstruct));
             }
             else
             {

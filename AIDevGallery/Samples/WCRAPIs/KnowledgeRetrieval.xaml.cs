@@ -26,14 +26,14 @@ namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
     Name = "Knowledge Retrieval (RAG)",
-    Model1Types = [ModelType.KnowledgeRetrieval, ModelType.PhiSilica],
+    Model1Types = [ModelType.KnowledgeRetrieval, ModelType.AionInstruct],
     Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
     Id = "6a526fdd-359f-4eac-9aa6-f01db11ae542",
     SharedCode = [
         SharedCodeEnum.DataItems,
         SharedCodeEnum.Message,
         SharedCodeEnum.ChatTemplateSelector,
-        SharedCodeEnum.PhiSilicaClient
+        SharedCodeEnum.AionInstructClient
     ],
     NugetPackageReferences = [
         "CommunityToolkit.Mvvm",
@@ -88,7 +88,7 @@ internal sealed partial class KnowledgeRetrieval : BaseSamplePage
             // Load chat client
             try
             {
-                _model = await PhiSilicaClient.CreateAsync();
+                _model = await AionInstructClient.CreateAsync();
             }
             catch (Exception ex)
             {

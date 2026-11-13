@@ -28,8 +28,8 @@ internal static class WcrApiHelpers
 
     private static readonly HashSet<ModelType> LanguageModelBacked = new()
     {
-        ModelType.PhiSilica,
-        ModelType.PhiSilicaLora,
+        ModelType.AionInstruct,
+        ModelType.AionInstructLora,
         ModelType.TextSummarizer,
         ModelType.TextRewriter,
         ModelType.TextToTableConverter,
@@ -46,10 +46,10 @@ internal static class WcrApiHelpers
     private static readonly Dictionary<ModelType, Func<AIFeatureReadyState>> CompatibilityCheckers = new()
     {
         {
-            ModelType.PhiSilica, LanguageModel.GetReadyState
+            ModelType.AionInstruct, LanguageModel.GetReadyState
         },
         {
-            ModelType.PhiSilicaLora, LanguageModel.GetReadyState
+            ModelType.AionInstructLora, LanguageModel.GetReadyState
         },
         {
             ModelType.TextSummarizer, LanguageModel.GetReadyState
@@ -101,10 +101,10 @@ internal static class WcrApiHelpers
     public static readonly Dictionary<ModelType, Func<IAsyncOperationWithProgress<AIFeatureReadyResult, double>>> EnsureReadyFuncs = new()
     {
         {
-            ModelType.PhiSilica, LanguageModel.EnsureReadyAsync
+            ModelType.AionInstruct, LanguageModel.EnsureReadyAsync
         },
         {
-            ModelType.PhiSilicaLora, LanguageModel.EnsureReadyAsync
+            ModelType.AionInstructLora, LanguageModel.EnsureReadyAsync
         },
         {
             ModelType.TextSummarizer, LanguageModel.EnsureReadyAsync

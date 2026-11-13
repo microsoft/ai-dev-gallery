@@ -130,7 +130,7 @@ internal sealed partial class ModelOrApiPicker : UserControl
         {
             // get all onnx, ollama, wcr, etc modelDetails
             models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.LanguageModels));
-            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.PhiSilica));
+            models.AddRange(ModelDetailsHelper.GetModelDetailsForModelType(ModelType.AionInstruct));
             models.AddRange(await ExternalModelHelper.GetAllModelsAsync() ?? []);
         }
         else

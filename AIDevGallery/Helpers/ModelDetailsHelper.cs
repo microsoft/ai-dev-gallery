@@ -213,7 +213,7 @@ internal static class ModelDetailsHelper
             modelDetails.HardwareAccelerators.Contains(HardwareAccelerator.LEMONADE) ||
             modelDetails.Url.StartsWith("useradded-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
             modelDetails.Url.StartsWith("useradded-local-languagemodel", System.StringComparison.InvariantCultureIgnoreCase) ||
-            modelDetails.Url == "file://PhiSilica";
+                modelDetails.Url == $"file://{ModelType.AionInstruct}";
     }
 
     public static Visibility ShowWhenWcrApi(ModelDetails modelDetails)

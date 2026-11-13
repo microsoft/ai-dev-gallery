@@ -23,8 +23,8 @@ using Windows.ApplicationModel;
 
 namespace AIDevGallery.Samples.WCRAPIs;
 [GallerySample(
-    Name = "Generate with Phi Silica with Adapter",
-    Model1Types = [ModelType.PhiSilicaLora],
+    Name = "Generate with Aion Instruct with Adapter",
+    Model1Types = [ModelType.AionInstructLora],
     Id = "3e392b7f-02a8-45e0-bed1-f75186368f12",
     Scenario = ScenarioType.TextLoRAAdapters,
     NugetPackageReferences = [
@@ -32,7 +32,7 @@ namespace AIDevGallery.Samples.WCRAPIs;
     ],
     Icon = "\uEE6F")]
 
-internal sealed partial class PhiSilicaLoRa : BaseSamplePage
+internal sealed partial class AionInstructLoRa : BaseSamplePage
 {
     internal enum GenerationType
     {
@@ -51,7 +51,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     private string _systemPrompt = string.Empty;
     private GenerationType _generationType = GenerationType.All;
 
-    public PhiSilicaLoRa()
+    public AionInstructLoRa()
     {
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
@@ -76,7 +76,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
         if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
         {
-            ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            ShowException(null, $"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
             sampleParams.NotifyCompletion();
             return;
         }
@@ -91,7 +91,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    ShowException(null, $"Phi-Silica is not available");
+                    ShowException(null, $"Aion Instruct is not available");
                 }
             }
 
@@ -102,7 +102,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
             var msg = readyState == AIFeatureReadyState.DisabledByUser
                 ? "Disabled by user."
                 : "Not supported on this system.";
-            ShowException(null, $"Phi-Silica is not available: {msg}");
+            ShowException(null, $"Aion Instruct is not available: {msg}");
         }
 
         sampleParams.NotifyCompletion();
@@ -159,7 +159,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     {
         if (_languageModel == null)
         {
-            ShowException(null, "Phi-Silica is not available.");
+            ShowException(null, "Aion Instruct is not available.");
             return;
         }
 
@@ -217,7 +217,7 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     {
         if (_languageModel == null)
         {
-            ShowException(null, "Phi-Silica is not available.");
+            ShowException(null, "Aion Instruct is not available.");
             return null;
         }
 
@@ -249,13 +249,13 @@ internal sealed partial class PhiSilicaLoRa : BaseSamplePage
     {
         if (!File.Exists(_adapterFilePath))
         {
-            ShowException(null, "Phi-Silica Lora adapter not found.");
+            ShowException(null, "Aion Instruct LoRA adapter not found.");
             return;
         }
 
         if (_languageModel == null)
         {
-            ShowException(null, "Phi-Silica is not available.");
+            ShowException(null, "Aion Instruct is not available.");
             return;
         }
 

@@ -28,9 +28,9 @@ internal abstract class BaseSampleNavigationParameters(TaskCompletionSource samp
 
     public async Task<IChatClient?> GetIChatClientAsync()
     {
-        if (ChatClientModelPath == $"file://{ModelType.PhiSilica}")
+        if (ChatClientModelPath == $"file://{ModelType.AionInstruct}")
         {
-            return await PhiSilicaClient.CreateAsync(CancellationToken).ConfigureAwait(false);
+            return await AionInstructClient.CreateAsync(CancellationToken).ConfigureAwait(false);
         }
         else if (ExternalModelHelper.IsUrlFromExternalProvider(ChatClientModelPath))
         {

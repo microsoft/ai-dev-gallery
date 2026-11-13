@@ -27,7 +27,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.SentenceEmbeddings.Embeddings;
 
 [GallerySample(
     Name = "Retrieval Augmented Generation",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Model2Types = [ModelType.EmbeddingModel],
     Scenario = ScenarioType.TextRetrievalAugmentedGeneration,
     SharedCode = [

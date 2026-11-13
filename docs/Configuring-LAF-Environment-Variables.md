@@ -22,7 +22,9 @@ For local development, we recommend configuring environment variables; for CI/pa
   - `LAF_TOKEN`: The unlock token for `com.microsoft.windows.ai.languagemodel`.
   - `LAF_PUBLISHER_ID`: The publisher/identifier used to construct the usage description.
 
-These values apply to the Phi Silica language model feature only. The App Content Search samples in this repository use the experimental channel release, which is not a Limited Access Feature and needs no token or publisher ID.
+These values configure the repository's existing LanguageModel Limited Access Feature integration.
+
+The App Content Search samples in this repository use the experimental channel release, which is not a Limited Access Feature and needs no token or publisher ID.
 
 #### Set environment variables for local development (recommended)
 

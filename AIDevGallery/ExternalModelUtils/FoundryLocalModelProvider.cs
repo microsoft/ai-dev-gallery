@@ -139,8 +139,8 @@ internal class FoundryLocalModelProvider : IExternalModelProvider
 
             // Language models and chat-related models use chat-completion
             if (type == ModelType.LanguageModels ||
-                type == ModelType.PhiSilica ||
-                type == ModelType.PhiSilicaLora ||
+                type == ModelType.AionInstruct ||
+                type == ModelType.AionInstructLora ||
                 (typeName.StartsWith("Phi", StringComparison.Ordinal) && !typeName.Contains("Vision")) ||
                 typeName.StartsWith("Mistral", StringComparison.Ordinal) ||
                 type == ModelType.TextSummarizer ||

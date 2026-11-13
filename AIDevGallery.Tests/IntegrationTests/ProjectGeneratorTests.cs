@@ -328,7 +328,7 @@ public class ProjectGenerator
         var modelsDetails = ModelDetailsHelper.GetModelDetails(s);
 
         if (modelsDetails[0].ContainsKey(ModelType.LanguageModels) &&
-            modelsDetails[0].ContainsKey(ModelType.PhiSilica))
+            modelsDetails[0].ContainsKey(ModelType.AionInstruct))
         {
             yield return new SampleUIData(
                 $"{s.Name} GenAI",
@@ -339,9 +339,9 @@ public class ProjectGenerator
             };
 
             yield return new SampleUIData(
-                $"{s.Name} PhiSilica",
+                $"{s.Name} Aion Instruct",
                 s,
-                GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.PhiSilica)))
+                GetModelsToGenerator(s, modelsDetails, modelsDetails[0].First(md => md.Key == ModelType.AionInstruct)))
             {
                 StatusColor = SampleUIData.graySolidColorBrush
             };

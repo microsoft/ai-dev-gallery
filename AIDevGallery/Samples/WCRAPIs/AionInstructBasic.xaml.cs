@@ -22,22 +22,22 @@ using Windows.ApplicationModel;
 namespace AIDevGallery.Samples.WCRAPIs;
 
 [GallerySample(
-    Name = "Generate with Phi Silica",
-    Model1Types = [ModelType.PhiSilica],
+    Name = "Generate with Aion Instruct",
+    Model1Types = [ModelType.AionInstruct],
     Id = "21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d",
     Scenario = ScenarioType.TextGenerateText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
     ],
     Icon = "\uEE6F")]
-internal sealed partial class PhiSilicaBasic : BaseSamplePage
+internal sealed partial class AionInstructBasic : BaseSamplePage
 {
     private const int MaxLength = 1000;
     private bool _isProgressVisible;
     private LanguageModel? _languageModel;
     private CancellationTokenSource? _cts;
 
-    public PhiSilicaBasic()
+    public AionInstructBasic()
     {
         this.Unloaded += (s, e) => CleanUp();
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
@@ -62,7 +62,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
         if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
         {
-            ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            ShowException(null, $"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
             sampleParams.NotifyCompletion();
             return;
         }
@@ -77,7 +77,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    ShowException(null, $"Phi-Silica is not available");
+                    ShowException(null, $"Aion Instruct is not available");
                 }
             }
 
@@ -88,7 +88,7 @@ internal sealed partial class PhiSilicaBasic : BaseSamplePage
             var msg = readyState == AIFeatureReadyState.DisabledByUser
                 ? "Disabled by user."
                 : "Not supported on this system.";
-            ShowException(null, $"Phi-Silica is not available: {msg}");
+            ShowException(null, $"Aion Instruct is not available: {msg}");
         }
 
         sampleParams.NotifyCompletion();

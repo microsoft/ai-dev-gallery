@@ -60,7 +60,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
 
         if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
         {
-            ShowException(null, $"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            ShowException(null, $"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
             sampleParams.NotifyCompletion();
             return;
         }
@@ -75,7 +75,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
 
                 if (operation.Status != AIFeatureReadyResultState.Success)
                 {
-                    ShowException(null, $"Phi-Silica is not available");
+                    ShowException(null, $"Aion Instruct is not available");
                     return;
                 }
             }
@@ -83,7 +83,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
             _languageModel = await LanguageModel.CreateAsync();
             if (_languageModel == null)
             {
-                ShowException(null, "Phi-Silica is not available.");
+                ShowException(null, "Aion Instruct is not available.");
                 return;
             }
 
@@ -94,7 +94,7 @@ internal sealed partial class DescribeYourChange : BaseSamplePage
             var msg = readyState == AIFeatureReadyState.DisabledByUser
                 ? "Disabled by user."
                 : "Not supported on this system.";
-            ShowException(null, $"Phi-Silica is not available: {msg}");
+            ShowException(null, $"Aion Instruct is not available: {msg}");
         }
 
         sampleParams.NotifyCompletion();

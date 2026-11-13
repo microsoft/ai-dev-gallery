@@ -22,7 +22,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Custom Parameters",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Id = "0d884b79-26ab-47a3-a752-1b8a7fa5737d",
     Icon = "\uE8D4",
     Scenario = ScenarioType.TextCustomParameters,
@@ -50,13 +50,13 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
 
     public List<SeverityLevel> SeverityLevels { get; } = [SeverityLevel.Minimum, SeverityLevel.Low, SeverityLevel.Medium, SeverityLevel.High];
 
-    public bool IsPhiSilica
+    public bool IsAionInstruct
     {
         get;
         private set
         {
             field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPhiSilica)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAionInstruct)));
         }
     }
 
@@ -75,7 +75,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         {
             chatClient = await sampleParams.GetIChatClientAsync();
             chatOptions = GetDefaultChatOptions(chatClient);
-            IsPhiSilica = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "PhiSilica";
+            IsAionInstruct = chatClient?.GetService<ChatClientMetadata>()?.ProviderName == "AionInstruct";
             InputTextBox.MaxLength = chatOptions.MaxOutputTokens ?? 0;
         }
         catch (Exception ex)
@@ -83,9 +83,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
             ShowException(ex);
         }
 
-        if (IsPhiSilica)
+        if (IsAionInstruct)
         {
-            SetupForPhiSilica();
+            SetupForAionInstruct();
         }
 
         sampleParams.NotifyCompletion();
@@ -396,11 +396,11 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
         OutputModerationLevel = defaultSeverityLevel;
     }
 
-    private void SetupForPhiSilica()
+    private void SetupForAionInstruct()
     {
         MaxLengthSlider.Visibility = Visibility.Collapsed;
         MinLengthSlider.Visibility = Visibility.Collapsed;
         DoSampleToggle.Visibility = Visibility.Collapsed;
-        PhiSilicaParams.Visibility = Visibility.Visible;
+        AionInstructParams.Visibility = Visibility.Visible;
     }
 }

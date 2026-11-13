@@ -94,7 +94,7 @@ This is an attribute that contains the sample icon, links and more that show up 
 ```csharp
 [GallerySample(
     Name = "Paraphrase",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextParaphraseText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
@@ -256,7 +256,7 @@ To add a sample, follow these steps:
 - Language models
   - Use from navigation params: `await sampleParams.GetIChatClientAsync()`
   - Factory (direct use): `await OnnxRuntimeGenAIChatClientFactory.CreateAsync(modelDir, LlmPromptTemplate?)`
-  - Phi Silica: `await PhiSilicaClient.CreateAsync()`
+  - Aion Instruct: `await AionInstructClient.CreateAsync()`
 
 - Embeddings
   - Create: `var embeddings = await EmbeddingGenerator.CreateAsync(modelPath, sampleParams.WinMlSampleOptions)`

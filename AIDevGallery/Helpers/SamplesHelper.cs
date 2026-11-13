@@ -66,9 +66,9 @@ internal static partial class SamplesHelper
             AddUnique(SharedCodeEnum.LlmPromptTemplate);
         }
 
-        if (models.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)))
+        if (models.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.AionInstruct)))
         {
-            AddUnique(SharedCodeEnum.PhiSilicaClient);
+            AddUnique(SharedCodeEnum.AionInstructClient);
         }
 
         if (sharedCode.Contains(SharedCodeEnum.DeviceUtils))
@@ -232,17 +232,17 @@ internal static partial class SamplesHelper
         return modelPromptTemplateSb.ToString();
     }
 
-    private static (string? ChatClientLoaderString, string? ChatClientNamespace) GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isPhiSilica, ModelType modelType)
+    private static (string? ChatClientLoaderString, string? ChatClientNamespace) GetChatClientLoaderString(List<SharedCodeEnum> sharedCode, string modelPath, string promptTemplate, bool isAionInstruct, ModelType modelType)
     {
         bool isLanguageModel = ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels);
-        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !sharedCode.Contains(SharedCodeEnum.FoundryLocalChatClientFactory) && !isPhiSilica && !isLanguageModel)
+        if (!sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory) && !sharedCode.Contains(SharedCodeEnum.FoundryLocalChatClientFactory) && !isAionInstruct && !isLanguageModel)
         {
             return (null, null);
         }
 
-        if (isPhiSilica)
+        if (isAionInstruct)
         {
-            return ("await PhiSilicaClient.CreateAsync()", null);
+            return ("await AionInstructClient.CreateAsync()", null);
         }
         else if (ExternalModelHelper.IsUrlFromExternalProvider(modelPath[2..^1]))
         {
@@ -321,14 +321,14 @@ internal static partial class SamplesHelper
                 modelPromptTemplate = cachedModel.Details.PromptTemplate;
             }
 
-            bool isPhiSilica = ModelDetailsHelper.EqualOrParent(modelInfo.Key, ModelType.PhiSilica);
-            if (isPhiSilica)
+            bool isAionInstruct = ModelDetailsHelper.EqualOrParent(modelInfo.Key, ModelType.AionInstruct);
+            if (isAionInstruct)
             {
-                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.PhiSilica}\"", "string.Empty");
+                modelPathStr = modelPathStr.Replace($"@\"file://{ModelType.AionInstruct}\"", "string.Empty");
             }
 
             var promptTemplate = GetPromptTemplateString(modelPromptTemplate, spaceCount);
-            var (chatClientLoaderString, chatClientNamespace) = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.PhiSilica)), modelInfo.Key);
+            var (chatClientLoaderString, chatClientNamespace) = GetChatClientLoaderString(sharedCode, modelPathStr, promptTemplate, modelInfos.Any(m => ModelDetailsHelper.EqualOrParent(m.Key, ModelType.AionInstruct)), modelInfo.Key);
             if (chatClientLoaderString != null)
             {
                 cleanCsSource = cleanCsSource.Replace(search, chatClientLoaderString);
