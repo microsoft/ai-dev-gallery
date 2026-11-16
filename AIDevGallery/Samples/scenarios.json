@@ -250,6 +250,13 @@
         "Id": "detect-poses",
         "Icon": "\uE902"
       },
+      "DetectHandPose": {
+        "Name": "Detect Hand Pose",
+        "Description": "Locate the joints of a hand with a hand pose detection model.",
+        "Instructions": "Select an image with one clearly visible hand near the center to see its key points drawn onto the image.",
+        "Id": "detect-hand-pose",
+        "Icon": "\uF271"
+      },
       "SegmentStreet": {
         "Name": "Segment Street",
         "Description": "Segment photos of streets into detectable zones with a street segmentation model.",
