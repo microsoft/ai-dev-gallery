@@ -161,6 +161,48 @@ public class WcrApiConfigurationTests
     }
 
     [TestMethod]
+    public void LanguageModelApiDefinitionsUseAionInstructBranding()
+    {
+        foreach (var modelType in GetLanguageModelBacked())
+        {
+            Assert.AreEqual("Aion Instruct", ModelTypeHelpers.ApiDefinitionDetails[modelType].Category);
+        }
+
+        Assert.AreEqual("Aion Instruct LoRA", ModelTypeHelpers.ApiDefinitionDetails[ModelType.AionInstructLora].Name);
+    }
+
+    [TestMethod]
+    public void AionInstructModelDetailsUseRenamedRoutesAndStableIds()
+    {
+        foreach (var (modelType, id, url) in new[]
+        {
+            (ModelType.AionInstruct, "9b56e116-c142-4be1-827c-cb023743aca2", "file://AionInstruct"),
+            (ModelType.AionInstructLora, "6b319cbc-59e5-4ed0-af33-e7575bee7475", "file://AionInstructLora")
+        })
+        {
+            var model = ModelDetailsHelper.GetModelDetailsFromApiDefinition(
+                modelType,
+                ModelTypeHelpers.ApiDefinitionDetails[modelType]);
+
+            Assert.AreEqual(id, model.Id);
+            Assert.AreEqual(url, model.Url);
+            Assert.AreEqual(modelType == ModelType.AionInstruct, model.IsLanguageModel());
+        }
+    }
+
+    [TestMethod]
+    public void LanguageModelCodeSnippetsUseAionInstructBranding()
+    {
+        foreach (var modelType in new[] { ModelType.TextSummarizer, ModelType.TextRewriter })
+        {
+            var snippet = WcrApiCodeSnippet.Snippets[modelType];
+
+            StringAssert.Contains(snippet, "Aion Instruct is a local language model");
+            Assert.IsFalse(snippet.Contains("Phi Silica", StringComparison.Ordinal));
+        }
+    }
+
+    [TestMethod]
     public void ImageGeneratorAndLanguageModelBackedDoNotOverlap()
     {
         var imageGeneratorBacked = GetImageGeneratorBacked();
@@ -221,7 +263,7 @@ public class WcrApiConfigurationTests
         foreach (var (apiType, requirement) in new[]
         {
             (ModelType.ImageDescription, "A Copilot+ PC is required."),
-            (ModelType.PhiSilica, "A Copilot+ PC, or a Windows 11 PC with a supported GPU, is required."),
+            (ModelType.AionInstruct, "A Copilot+ PC, or a Windows 11 PC with a supported GPU, is required."),
             (ModelType.SpeechRecognition, "A Copilot+ PC, or a Windows 11 PC with a supported CPU, is required.")
         })
         {

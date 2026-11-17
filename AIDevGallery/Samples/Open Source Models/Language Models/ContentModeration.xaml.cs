@@ -16,7 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Content Moderation",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextContentModeration,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"

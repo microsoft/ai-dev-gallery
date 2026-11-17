@@ -28,7 +28,7 @@ internal class WCRException : Exception
     }
 }
 
-internal class PhiSilicaClient : IChatClient
+internal class AionInstructClient : IChatClient
 {
     // Search Options
     private const SeverityLevel DefaultInputModeration = SeverityLevel.Minimum;
@@ -42,10 +42,10 @@ internal class PhiSilicaClient : IChatClient
 
     public ChatClientMetadata Metadata { get; }
 
-    private PhiSilicaClient(LanguageModel languageModel)
+    private AionInstructClient(LanguageModel languageModel)
     {
         _languageModel = languageModel;
-        Metadata = new ChatClientMetadata("PhiSilica", new Uri($"file:///PhiSilica"));
+        Metadata = new ChatClientMetadata("AionInstruct", new Uri($"file:///AionInstruct"));
     }
 
     private static ChatOptions GetDefaultChatOptions()
@@ -63,7 +63,7 @@ internal class PhiSilicaClient : IChatClient
         };
     }
 
-    public static async Task<PhiSilicaClient?> CreateAsync(CancellationToken cancellationToken = default)
+    public static async Task<AionInstructClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
         // const string featureId = "com.microsoft.windows.ai.languagemodel";
 
@@ -83,7 +83,7 @@ internal class PhiSilicaClient : IChatClient
 
         if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
         {
-            throw new WCRException($"Phi-Silica is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
+            throw new WCRException($"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
         }
         */
 
@@ -91,7 +91,7 @@ internal class PhiSilicaClient : IChatClient
 
         if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
         {
-            throw new WCRException("PhiSilica is not available: " +
+            throw new WCRException("Aion Instruct is not available: " +
                 readyState switch
                 {
                     AIFeatureReadyState.NotSupportedOnCurrentSystem => "Not supported",
@@ -105,23 +105,23 @@ internal class PhiSilicaClient : IChatClient
             var operation = await LanguageModel.EnsureReadyAsync();
             if (operation.Status != AIFeatureReadyResultState.Success)
             {
-                throw new WCRException($"PhiSilica is not available");
+                throw new WCRException($"Aion Instruct is not available");
             }
         }
 
         if (LanguageModel.GetReadyState() is not AIFeatureReadyState.Ready)
         {
-            throw new WCRException("PhiSilica is not available");
+            throw new WCRException("Aion Instruct is not available");
         }
 
         var languageModel = await LanguageModel.CreateAsync();
 
         cancellationToken.ThrowIfCancellationRequested();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var phiSilicaClient = new PhiSilicaClient(languageModel);
+        var aionInstructClient = new AionInstructClient(languageModel);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-        return phiSilicaClient;
+        return aionInstructClient;
     }
 
     public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
@@ -230,7 +230,7 @@ internal class PhiSilicaClient : IChatClient
     {
         return serviceKey is not null ? null :
             serviceType == typeof(LanguageModel) ? _languageModel :
-            serviceType == typeof(PhiSilicaClient) ? this :
+            serviceType == typeof(AionInstructClient) ? this :
             serviceType == typeof(IChatClient) ? this :
             serviceType == typeof(ChatClientMetadata) ? Metadata :
             serviceType == typeof(ChatOptions) ? GetDefaultChatOptions() :

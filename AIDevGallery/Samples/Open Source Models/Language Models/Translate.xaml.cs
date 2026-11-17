@@ -16,7 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Translate",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextTranslateText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"

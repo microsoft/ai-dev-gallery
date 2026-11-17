@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextGrammarCheckText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"

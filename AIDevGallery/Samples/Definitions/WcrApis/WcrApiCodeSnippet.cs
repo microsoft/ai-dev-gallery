@@ -11,7 +11,7 @@ internal static class WcrApiCodeSnippet
     public static readonly Dictionary<ModelType, string> Snippets = new Dictionary<ModelType, string>
     {
         {
-            ModelType.PhiSilica, """"
+            ModelType.AionInstruct, """"
             using Microsoft.Windows.AI;
             using Microsoft.Windows.AI.Text;
 
@@ -39,7 +39,7 @@ internal static class WcrApiCodeSnippet
             """"
         },
         {
-            ModelType.PhiSilicaLora, """"
+            ModelType.AionInstructLora, """"
             using Microsoft.Windows.AI;
             using Microsoft.Windows.AI.Text;
             var readyState = LanguageModel.GetReadyState();
@@ -84,10 +84,9 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextSummarizer textSummarizer = new TextSummarizer(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
+                string prompt = @"Aion Instruct is a local language model that you can integrate into your Windows apps.
 
-            As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
-            performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
+            Through the Windows AI APIs, apps can generate, summarize, and rewrite text locally on supported devices.";
 
                 var result = await textSummarizer.SummarizeParagraphAsync(prompt);
 
@@ -112,10 +111,9 @@ internal static class WcrApiCodeSnippet
                 using LanguageModel languageModel = await LanguageModel.CreateAsync();
                 using TextRewriter textRewriter = new TextRewriter(languageModel);
 
-                string prompt = @"Phi Silica is a local language model that you can integrate into your Windows apps.
+                string prompt = @"Aion Instruct is a local language model that you can integrate into your Windows apps.
 
-            As Microsoft's most powerful NPU-tuned local language model, Phi Silica is optimized for efficiency and 
-            performance on Windows Copilot+ PCs devices while still offering many of the capabilities found in Large Language Models (LLMs).";
+            Through the Windows AI APIs, apps can generate, summarize, and rewrite text locally on supported devices.";
 
                 var result = await textRewriter.RewriteAsync(prompt);
 

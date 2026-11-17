@@ -14,7 +14,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Summarize",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextSummarizeText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"

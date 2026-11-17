@@ -8,7 +8,7 @@ When reviewing or modifying samples in `AIDevGallery/Samples/WCRAPIs/`:
 
 ## Overview
 
-Windows AI APIs samples use Windows Copilot Runtime APIs (Phi Silica, Text Recognition, etc.) that are built into Windows on Copilot+ PCs.
+Windows AI APIs samples use Windows Copilot Runtime APIs (Aion Instruct, Text Recognition, etc.) that are built into Windows on Copilot+ PCs.
 
 ## Limited Access Features (LAF)
 
@@ -47,10 +47,10 @@ else
 
 ## Model Types for WCRAPIs
 
-Use `ModelType.PhiSilica` or specific WCRAPI model types:
+Use `ModelType.AionInstruct` or specific WCRAPI model types:
 ```csharp
 [GallerySample(
-    Model1Types = [ModelType.PhiSilica],
+    Model1Types = [ModelType.AionInstruct],
     ...
 )]
 ```

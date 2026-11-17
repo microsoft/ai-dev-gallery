@@ -17,7 +17,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.LanguageModels;
 
 [GallerySample(
     Name = "Generate",
-    Model1Types = [ModelType.LanguageModels, ModelType.PhiSilica],
+    Model1Types = [ModelType.LanguageModels, ModelType.AionInstruct],
     Scenario = ScenarioType.TextGenerateText,
     NugetPackageReferences = [
         "Microsoft.Extensions.AI"
