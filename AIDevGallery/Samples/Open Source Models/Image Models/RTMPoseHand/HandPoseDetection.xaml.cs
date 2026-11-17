@@ -46,11 +46,10 @@ internal sealed partial class HandPoseDetection : BaseSamplePage
     private const string OutputXName = "serving_default_output_0_output";
     private const string OutputYName = "serving_default_output_1_output";
 
-    // The session is created on a background thread and can be in use there when the page is unloaded,
-    // so storing, running and disposing it all take this lock.
+    // The session is created and run on background threads, so storing, running and disposing it all take this lock.
     private readonly object _sessionLock = new();
     private InferenceSession? _inferenceSession;
-    private bool _isUnloaded;
+    private volatile bool _isUnloaded;
 
     public HandPoseDetection()
     {
@@ -143,12 +142,16 @@ internal sealed partial class HandPoseDetection : BaseSamplePage
 
     private void CleanUp()
     {
-        lock (_sessionLock)
+        // Leaving the page does not wait for a run in progress: the session is disposed on a background thread once the run releases the lock.
+        _isUnloaded = true;
+        _ = Task.Run(() =>
         {
-            _isUnloaded = true;
-            _inferenceSession?.Dispose();
-            _inferenceSession = null;
-        }
+            lock (_sessionLock)
+            {
+                _inferenceSession?.Dispose();
+                _inferenceSession = null;
+            }
+        });
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
@@ -190,19 +193,25 @@ internal sealed partial class HandPoseDetection : BaseSamplePage
             DefaultImage.Source = new BitmapImage(new Uri(filePath));
             NarratorHelper.AnnounceImageChanged(DefaultImage, "Content changed: new upload."); // <exclude-line>
 
-            using Bitmap originalImage = new(filePath);
+            // Decoding the picture, drawing the key points and encoding the result take a while for a large photo, so they run on background threads like the model.
+            using Bitmap originalImage = await Task.Run(() => new Bitmap(filePath));
 
             // The model expects one hand in a square image, so the sample crops the center square of the picture before resizing it.
             Rectangle square = HandPoseHelper.GetCenterSquare(originalImage.Width, originalImage.Height);
             List<HandKeypoint>? keypoints = await Task.Run(() => DetectKeypoints(originalImage, square));
-            if (keypoints == null)
+
+            // The page was left before or during the run: nothing is drawn.
+            if (keypoints == null || _isUnloaded)
             {
                 return;
             }
 
             List<HandKeypoint> imageKeypoints = HandPoseHelper.MapToImage(keypoints, square);
-            using Bitmap output = HandPoseHelper.RenderPredictions(originalImage, imageKeypoints);
-            DefaultImage.Source = BitmapFunctions.ConvertBitmapToBitmapImage(output);
+            byte[] png = await Task.Run(() => RenderToPng(originalImage, imageKeypoints));
+            using MemoryStream memoryStream = new(png);
+            BitmapImage bitmapImage = new();
+            await bitmapImage.SetSourceAsync(memoryStream.AsRandomAccessStream());
+            DefaultImage.Source = bitmapImage;
 
             // <exclude>
             if (imageKeypoints.Exists(keypoint => keypoint.Score > HandPoseHelper.ScoreThreshold))
@@ -226,6 +235,15 @@ internal sealed partial class HandPoseDetection : BaseSamplePage
             Loader.Visibility = Visibility.Collapsed;
             UploadButton.Visibility = Visibility.Visible;
         }
+    }
+
+    // Returns the picture with the key points drawn on it, encoded as PNG.
+    private static byte[] RenderToPng(Bitmap originalImage, List<HandKeypoint> imageKeypoints)
+    {
+        using Bitmap output = HandPoseHelper.RenderPredictions(originalImage, imageKeypoints);
+        using MemoryStream memoryStream = new();
+        output.Save(memoryStream, ImageFormat.Png);
+        return memoryStream.ToArray();
     }
 
     private List<HandKeypoint>? DetectKeypoints(Bitmap originalImage, Rectangle square)
