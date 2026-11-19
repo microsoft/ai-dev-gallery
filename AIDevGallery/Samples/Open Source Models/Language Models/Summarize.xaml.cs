@@ -98,15 +98,13 @@ internal sealed partial class Summarize : BaseSamplePage
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
+                await chatClient.StreamDisplayTextAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
                     ],
                     null,
-                    cts.Token))
-                {
-                    DispatcherQueue.TryEnqueue(() =>
+                    output => DispatcherQueue.TryEnqueue(() =>
                     {
                         if (IsProgressVisible)
                         {
@@ -114,7 +112,7 @@ internal sealed partial class Summarize : BaseSamplePage
                             IsProgressVisible = false;
                         }
 
-                        SummaryTextBlock.Text += messagePart;
+                        SummaryTextBlock.Text += output;
 
                         // <exclude>
                         if (!contentStartedBeingGenerated)
@@ -124,8 +122,8 @@ internal sealed partial class Summarize : BaseSamplePage
                         }
 
                         // </exclude>
-                    });
-                }
+                    }),
+                    cancellationToken: cts.Token);
 
                 DispatcherQueue.TryEnqueue(() =>
                 {

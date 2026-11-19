@@ -102,15 +102,13 @@ internal sealed partial class Paraphrase : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
+                await chatClient.StreamDisplayTextAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
                     ],
                     null,
-                    cts.Token))
-                {
-                    DispatcherQueue.TryEnqueue(() =>
+                    output => DispatcherQueue.TryEnqueue(() =>
                     {
                         if (IsProgressVisible)
                         {
@@ -118,7 +116,7 @@ internal sealed partial class Paraphrase : BaseSamplePage
                             IsProgressVisible = false;
                         }
 
-                        ParaphrasedTextBlock.Text += messagePart;
+                        ParaphrasedTextBlock.Text += output;
 
                         // <exclude>
                         if (!contentStartedBeingGenerated)
@@ -128,8 +126,8 @@ internal sealed partial class Paraphrase : BaseSamplePage
                         }
 
                         // </exclude>
-                    });
-                }
+                    }),
+                    cancellationToken: cts.Token);
 
                 DispatcherQueue.TryEnqueue(() =>
                 {

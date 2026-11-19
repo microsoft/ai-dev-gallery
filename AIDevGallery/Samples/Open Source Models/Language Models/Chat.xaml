@@ -65,7 +65,7 @@
                         x:Load="{x:Bind HasThink, Mode=OneWay}">
                         <TextBlock
                             IsTextSelectionEnabled="True"
-                            Text="{x:Bind ThinkContent, Mode=OneWay}"
+                            Text="{x:Bind DisplayThinkContent, Mode=OneWay}"
                             TextWrapping="Wrap"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     </Border>

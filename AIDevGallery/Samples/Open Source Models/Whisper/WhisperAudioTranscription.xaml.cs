@@ -19,6 +19,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     Model1Types = [ModelType.Whisper],
     Scenario = ScenarioType.AudioAndVideoTranscribeAudio,
     SharedCode = [
+        SharedCodeEnum.TextWatermarker,
         SharedCodeEnum.WhisperWrapper
     ],
     NugetPackageReferences = [
@@ -179,7 +180,7 @@ internal sealed partial class WhisperAudioTranscription : BaseSamplePage
 
         var transcribedChunks = await whisper.TranscribeAsync(audioData, sourceLanguage, WhisperWrapper.TaskType.Transcribe, (bool)TimeStampsToggle.IsChecked!, cts.Token);
 
-        return transcribedChunks;
+        return TextWatermarker.Apply(transcribedChunks);
     }
 
     private void DisposeMemory()

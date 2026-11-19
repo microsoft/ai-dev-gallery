@@ -124,7 +124,7 @@ internal sealed partial class SentimentAnalysis : BaseSamplePage
                         {
                             StopBtn.Visibility = Visibility.Visible;
                             IsProgressVisible = false;
-                            SentimentTextBlock.Text = $"Sentiment: {match.Groups[1].Value}\nSentiment String: {match.Groups[2].Value}";
+                            SentimentTextBlock.Text = $"Sentiment: {chatClient.GetDisplayText(match.Groups[1].Value)}\nSentiment String: {chatClient.GetDisplayText(match.Groups[2].Value)}";
                             matchFound = true;
                             cts.Cancel();
                         });

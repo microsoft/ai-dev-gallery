@@ -61,6 +61,22 @@ internal static partial class SamplesHelper
             AddUnique(SharedCodeEnum.DeviceUtils);
         }
 
+        // Mixed-provider samples use the same presentation code even when exported for a WinAI API.
+        if (sample.Model1Types.Any(type => ModelDetailsHelper.EqualOrParent(type, ModelType.LanguageModels)))
+        {
+            AddUnique(SharedCodeEnum.ChatClientTextOutput);
+        }
+
+        if (sharedCode.Contains(SharedCodeEnum.ChatClientTextOutput) || sharedCode.Contains(SharedCodeEnum.Message))
+        {
+            AddUnique(SharedCodeEnum.TextWatermarker);
+        }
+
+        if (sharedCode.Contains(SharedCodeEnum.TextWatermarker))
+        {
+            AddUnique(SharedCodeEnum.TextWatermarkingUnicodeData);
+        }
+
         if (sharedCode.Contains(SharedCodeEnum.OnnxRuntimeGenAIChatClientFactory))
         {
             AddUnique(SharedCodeEnum.LlmPromptTemplate);

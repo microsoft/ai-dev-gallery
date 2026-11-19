@@ -41,7 +41,7 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
     private IChatCompletionService? _chatCompletionService;
     private Kernel? _semanticKernel;
     private ChatHistory _chatHistory;
-    private bool _modelReady;
+    private IChatClient? _model;
 
     private bool isImeActive = true;
 
@@ -60,30 +60,28 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        IChatClient? model = null;
         try
         {
-            model = await sampleParams.GetIChatClientAsync();
+            _model = await sampleParams.GetIChatClientAsync();
         }
         catch (Exception ex)
         {
             ShowException(ex);
         }
 
-        if (model == null)
+        if (_model == null)
         {
             return;
         }
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _chatCompletionService = model.AsChatCompletionService();
+        _chatCompletionService = _model.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         IKernelBuilder builder = Kernel.CreateBuilder();
         _semanticKernel = builder.Build();
 
         InputBox.IsEnabled = true;
-        _modelReady = true;
 
         sampleParams.NotifyCompletion();
     }
@@ -100,6 +98,8 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
         CancelResponse();
         _chatCompletionService = null;
         _semanticKernel = null;
+        _model?.Dispose();
+        _model = null;
     }
 
     private void CancelResponse()
@@ -156,7 +156,7 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
 
     private void AddMessage(string text)
     {
-        if (_chatCompletionService == null || _semanticKernel == null || !_modelReady)
+        if (_chatCompletionService == null || _semanticKernel == null || _model == null)
         {
             return;
         }
@@ -169,7 +169,7 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
         Task.Run(
         async () =>
         {
-            var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant);
+            var responseMessage = new Message(string.Empty, DateTime.Now, ChatRole.Assistant, _model.CreateDisplayWatermarker());
 
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -182,22 +182,29 @@ internal sealed partial class SemanticKernelChat : BaseSamplePage
             cts = new CancellationTokenSource();
             string fullResponse = string.Empty;
 
-            await foreach (var messagePart in _chatCompletionService.GetStreamingChatMessageContentsAsync(_chatHistory, null, _semanticKernel, cts.Token))
+            try
             {
-                fullResponse += messagePart.Content;
-                DispatcherQueue.TryEnqueue(() =>
+                await foreach (var messagePart in _chatCompletionService.GetStreamingChatMessageContentsAsync(_chatHistory, null, _semanticKernel, cts.Token))
                 {
-                    responseMessage.Content += messagePart.Content;
-
-                    // <exclude>
-                    if (!contentStartedBeingGenerated)
+                    fullResponse += messagePart.Content;
+                    DispatcherQueue.TryEnqueue(() =>
                     {
-                        NarratorHelper.Announce(InputBox, "Response has started generating.", "ChatResponseAnnouncementActivityId");
-                        contentStartedBeingGenerated = true;
-                    }
+                        responseMessage.Content += messagePart.Content;
 
-                    // </exclude>
-                });
+                        // <exclude>
+                        if (!contentStartedBeingGenerated)
+                        {
+                            NarratorHelper.Announce(InputBox, "Response has started generating.", "ChatResponseAnnouncementActivityId");
+                            contentStartedBeingGenerated = true;
+                        }
+
+                        // </exclude>
+                    });
+                }
+            }
+            finally
+            {
+                DispatcherQueue.TryEnqueue(responseMessage.Complete);
             }
 
             _chatHistory.AddAssistantMessage(fullResponse);

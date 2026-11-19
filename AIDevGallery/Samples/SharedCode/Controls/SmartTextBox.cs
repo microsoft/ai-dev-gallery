@@ -99,13 +99,14 @@ internal sealed partial class SmartTextBox : Control
 
         _cts = new CancellationTokenSource();
 
-        return (await _chatClient.GetResponseAsync(
+        var response = await _chatClient.GetResponseAsync(
             [
                 new ChatMessage(ChatRole.System, systemPrompt),
                     new ChatMessage(ChatRole.User, query)
             ],
             options,
-            _cts.Token)).Text ?? string.Empty;
+            _cts.Token);
+        return _chatClient.GetDisplayText(response.Text);
     }
 
     private async Task<string> ChangeToneProfessional(string textToChange)

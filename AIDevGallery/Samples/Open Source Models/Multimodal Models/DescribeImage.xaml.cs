@@ -28,6 +28,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.MultimodalModels;
     Scenario = ScenarioType.ImageDescribeImage,
     Id = "58c3565d-dbe0-46c7-accc-2c088db2bdf9",
     Icon = "\uE8D4",
+    SharedCode = [SharedCodeEnum.TextWatermarker],
     NugetPackageReferences = [
         "Microsoft.ML.OnnxRuntimeGenAI.WinML"
     ],
@@ -224,11 +225,13 @@ internal sealed partial class DescribeImage : BaseSamplePage
 
             await Task.Run(async () =>
             {
+                var watermarker = new TextWatermarker();
                 try
                 {
                     await foreach (var part in InferStreaming("What is this image", imageFile!.Path, _cts.Token))
                     {
-                        DispatcherQueue.TryEnqueue(() => Output.Text += part);
+                        var display = watermarker.Append(part);
+                        DispatcherQueue.TryEnqueue(() => Output.Text += display);
                     }
                 }
                 catch
@@ -236,6 +239,11 @@ internal sealed partial class DescribeImage : BaseSamplePage
                 }
                 finally
                 {
+                    if (watermarker.Finish() is { Length: > 0 } tail)
+                    {
+                        DispatcherQueue.TryEnqueue(() => Output.Text += tail);
+                    }
+
                     ResetState();
                 }
             });

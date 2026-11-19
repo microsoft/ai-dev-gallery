@@ -222,16 +222,8 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                 var swTtft = Stopwatch.StartNew();
                 int outputTokens = 0;
 
-                // </exclude>
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
-                    [
-                        new ChatMessage(ChatRole.System, systemPrompt),
-                        new ChatMessage(ChatRole.User, query)
-                    ],
-                    chatOptions,
-                    cts.Token))
+                void OnModelUpdate()
                 {
-                    // <exclude>
                     if (outputTokens == 0)
                     {
                         swTtft.Stop();
@@ -240,9 +232,16 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                     outputTokens++;
                     double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
                     ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+                }
 
-                    // </exclude>
-                    DispatcherQueue.TryEnqueue(() =>
+                // </exclude>
+                await chatClient.StreamDisplayTextAsync(
+                    [
+                        new ChatMessage(ChatRole.System, systemPrompt),
+                        new ChatMessage(ChatRole.User, query)
+                    ],
+                    chatOptions,
+                    text => DispatcherQueue.TryEnqueue(() =>
                     {
                         if (IsProgressVisible)
                         {
@@ -250,7 +249,7 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                             IsProgressVisible = false;
                         }
 
-                        OutputTextBlock.Text += messagePart;
+                        OutputTextBlock.Text += text;
 
                         // <exclude>
                         if (!contentStartedBeingGenerated)
@@ -260,8 +259,9 @@ internal sealed partial class CustomSystemPrompt : BaseSamplePage, INotifyProper
                         }
 
                         // </exclude>
-                    });
-                }
+                    }),
+                    OnModelUpdate, // <exclude-line>
+                    cancellationToken: cts.Token);
 
                 // <exclude>
                 swEnd.Stop();

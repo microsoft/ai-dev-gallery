@@ -189,7 +189,7 @@ Rules:
 
             if (field.Label != null && values.TryGetValue(field.Label, out string? value))
             {
-                field.Value = value;
+                field.Value = model!.GetDisplayText(value);
             }
         }
     }

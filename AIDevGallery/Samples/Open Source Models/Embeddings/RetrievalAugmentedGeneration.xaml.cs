@@ -287,32 +287,20 @@ internal sealed partial class RetrievalAugmentedGeneration : BaseSamplePage
             .Select(g => $"Page {g.Key}: {string.Join(' ', g.Select(c => (string)c["Text"]!))}");
 
         AnswerRun.Text = string.Empty;
-        var fullResult = string.Empty;
 
         _ = Task.Run(
             async () =>
             {
                 try
                 {
-                    await foreach (var partialResult in _chatClient.GetStreamingResponseAsync(
+                    await _chatClient.StreamDisplayTextAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt + string.Join("\n", pagesChunks)),
                             new ChatMessage(ChatRole.User, searchPrompt),
                         ],
                         null,
-                        _cts.Token))
-                    {
-                        if (_cts.Token.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        fullResult += partialResult;
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            AnswerRun.Text = fullResult;
-                        });
-                    }
+                        text => DispatcherQueue.TryEnqueue(() => AnswerRun.Text += text),
+                        cancellationToken: _cts.Token);
                 }
                 catch (Exception ex)
                 {
