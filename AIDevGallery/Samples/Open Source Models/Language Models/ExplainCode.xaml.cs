@@ -109,22 +109,20 @@ internal sealed partial class ExplainCode : BaseSamplePage
 
                 try
                 {
-                    await foreach (var messagePart in model.GetStreamingResponseAsync(
+                    await model.StreamDisplayTextAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, userPrompt)
                         ],
                         null,
-                        cts.Token))
-                    {
-                        DispatcherQueue.TryEnqueue(() =>
+                        text => DispatcherQueue.TryEnqueue(() =>
                         {
                             if (isProgressVisible)
                             {
                                 IsProgressVisible = false;
                             }
 
-                            ExplanationTextBlock.Text += messagePart;
+                            ExplanationTextBlock.Text += text;
 
                             // <exclude>
                             if (!contentStartedBeingGenerated)
@@ -133,8 +131,8 @@ internal sealed partial class ExplainCode : BaseSamplePage
                             }
 
                             // </exclude>
-                        });
-                    }
+                        }),
+                        cancellationToken: cts.Token);
                 }
                 catch (Exception ex)
                 {

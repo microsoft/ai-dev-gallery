@@ -103,15 +103,13 @@ internal sealed partial class GrammarCheck : BaseSamplePage
 
                 IsProgressVisible = true;
 
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
+                await chatClient.StreamDisplayTextAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, userPrompt)
                     ],
                     new() { MaxOutputTokens = _maxTokenLength },
-                    cts.Token))
-                {
-                    DispatcherQueue.TryEnqueue(() =>
+                    output => DispatcherQueue.TryEnqueue(() =>
                     {
                         if (isProgressVisible)
                         {
@@ -119,7 +117,7 @@ internal sealed partial class GrammarCheck : BaseSamplePage
                             IsProgressVisible = false;
                         }
 
-                        CheckedTextBlock.Text += messagePart;
+                        CheckedTextBlock.Text += output;
 
                         // <exclude>
                         if (!contentStartedBeingGenerated)
@@ -129,8 +127,8 @@ internal sealed partial class GrammarCheck : BaseSamplePage
                         }
 
                         // </exclude>
-                    });
-                }
+                    }),
+                    cancellationToken: cts.Token);
 
                 cts?.Dispose();
                 cts = null;

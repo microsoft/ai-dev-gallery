@@ -257,6 +257,12 @@ To add a sample, follow these steps:
   - Use from navigation params: `await sampleParams.GetIChatClientAsync()`
   - Factory (direct use): `await OnnxRuntimeGenAIChatClientFactory.CreateAsync(modelDir, LlmPromptTemplate?)`
   - Aion Instruct: `await AionInstructClient.CreateAsync()`
+  - For user-visible generated text, use `chatClient.StreamDisplayTextAsync(...)` (append each callback's text to the display) or `chatClient.GetDisplayText(rawText)` for a completed result. Both leave Windows AI API output untouched; ONNX, Foundry Local, and other providers need the Gallery watermark.
+  - Keep the raw response for chat history, moderation, parsing JSON, and other machine consumers. Watermark the extracted text at the point of display, not the input or serialized structure.
+
+- Direct text-producing models (e.g. Whisper or image descriptions)
+  - Include `SharedCodeEnum.TextWatermarker` for export. Use `TextWatermarker.Apply(text)` for a completed response. For streaming, use one `TextWatermarker` per response, display the deltas from `Append(chunk)`, and append `Finish()` when it ends (including when stopped).
+  - Text shorter than 400 Unicode code points is intentionally unchanged. Once due, a marker is placed after word-separating whitespace or between Han ideographs at a safe boundary. Only at completion, if a marker is still due, a newline and marker are appended.
 
 - Embeddings
   - Create: `var embeddings = await EmbeddingGenerator.CreateAsync(modelPath, sampleParams.WinMlSampleOptions)`
@@ -265,6 +271,7 @@ To add a sample, follow these steps:
 - Speech (Whisper)
   - Create: `var whisper = await WhisperWrapper.CreateAsync(modelPath, sampleParams.WinMlSampleOptions)`
   - Use: `await whisper.TranscribeAsync(pcmBytes, language, WhisperWrapper.TaskType.Transcribe)`
+  - For live transcription, zero-pad the last partial PCM buffer before inference; a very short tail cannot be used to calculate Whisper's spectrogram. Drain the buffer before finalizing the displayed transcript.
 
 - Image generation (Stable Diffusion)
   - Init: `var sd = new StableDiffusion(modelFolder); await sd.InitializeAsync(sampleParams.WinMlSampleOptions);`

@@ -19,6 +19,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     Model1Types = [ModelType.Whisper],
     Scenario = ScenarioType.AudioAndVideoTranslateAudio,
     SharedCode = [
+        SharedCodeEnum.TextWatermarker,
         SharedCodeEnum.WhisperWrapper
     ],
     NugetPackageReferences = [
@@ -128,7 +129,7 @@ internal sealed partial class WhisperAudioTranslation : BaseSamplePage
             var audioData = audioStream.ToArray();
             var transcribedChunks = await whisper.TranscribeAsync(audioData, sourceLanguage, WhisperWrapper.TaskType.Translate, (bool)TimeStampsToggle.IsChecked!, cts.Token);
 
-            TranslationTextBlock.Text = transcribedChunks;
+            TranslationTextBlock.Text = TextWatermarker.Apply(transcribedChunks);
         }
         catch
         {

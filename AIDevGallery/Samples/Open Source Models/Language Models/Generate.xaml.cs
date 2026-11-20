@@ -115,16 +115,8 @@ internal sealed partial class Generate : BaseSamplePage
                     var swTtft = Stopwatch.StartNew();
                     int outputTokens = 0;
 
-                    // </exclude>
-                    await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
-                        [
-                            new ChatMessage(ChatRole.System, systemPrompt),
-                            new ChatMessage(ChatRole.User, userPrompt)
-                        ],
-                        null,
-                        cts.Token))
+                    void OnModelUpdate()
                     {
-                        // <exclude>
                         if (outputTokens == 0)
                         {
                             swTtft.Stop();
@@ -133,9 +125,16 @@ internal sealed partial class Generate : BaseSamplePage
                         outputTokens++;
                         double currentTps = outputTokens / Math.Max(swEnd.Elapsed.TotalSeconds - swTtft.Elapsed.TotalSeconds, 1e-6);
                         ShowDebugInfo($"{Math.Round(currentTps)} tokens per second\n{outputTokens} tokens used\n{swTtft.Elapsed.TotalSeconds:0.00}s to first token\n{swEnd.Elapsed.TotalSeconds:0.00}s total");
+                    }
 
-                        // </exclude>
-                        DispatcherQueue.TryEnqueue(() =>
+                    // </exclude>
+                    await chatClient.StreamDisplayTextAsync(
+                        [
+                            new ChatMessage(ChatRole.System, systemPrompt),
+                            new ChatMessage(ChatRole.User, userPrompt)
+                        ],
+                        null,
+                        text => DispatcherQueue.TryEnqueue(() =>
                         {
                             if (isProgressVisible)
                             {
@@ -143,7 +142,7 @@ internal sealed partial class Generate : BaseSamplePage
                                 IsProgressVisible = false;
                             }
 
-                            GenerateTextBlock.Text += messagePart;
+                            GenerateTextBlock.Text += text;
 
                             // <exclude>
                             if (!contentStartedBeingGenerated)
@@ -153,8 +152,9 @@ internal sealed partial class Generate : BaseSamplePage
                             }
 
                             // </exclude>
-                        });
-                    }
+                        }),
+                        OnModelUpdate, // <exclude-line>
+                        cancellationToken: cts.Token);
 
                     // <exclude>
                     swEnd.Stop();

@@ -104,15 +104,13 @@ internal sealed partial class ContentModeration : BaseSamplePage
                         NarratorHelper.Announce(InputTextBox, "Prompt is safe, generating response", "ContentModerationWaitAnnouncementActivityId"); // <exclude-line>
                     });
 
-                    await foreach (var messagePart in model.GetStreamingResponseAsync(
+                    await model.StreamDisplayTextAsync(
                         [
                             new ChatMessage(ChatRole.System, systemPrompt),
                             new ChatMessage(ChatRole.User, prompt)
                         ],
                         null,
-                        cts.Token))
-                    {
-                        DispatcherQueue.TryEnqueue(() =>
+                        text => DispatcherQueue.TryEnqueue(() =>
                         {
                             if (isProgressVisible)
                             {
@@ -121,7 +119,7 @@ internal sealed partial class ContentModeration : BaseSamplePage
                                 isProgressVisible = false;
                             }
 
-                            GenerateTextBlock.Text += messagePart;
+                            GenerateTextBlock.Text += text;
 
                             // <exclude>
                             if (!contentStartedBeingGenerated)
@@ -131,8 +129,8 @@ internal sealed partial class ContentModeration : BaseSamplePage
                             }
 
                             // </exclude>
-                        });
-                    }
+                        }),
+                        cancellationToken: cts.Token);
                 }
                 else
                 {

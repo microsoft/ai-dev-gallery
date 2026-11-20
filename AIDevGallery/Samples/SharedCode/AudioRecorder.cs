@@ -3,31 +3,34 @@
 
 using NAudio.Wave;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 
 namespace AIDevGallery.Samples.SharedCode;
 
 internal class AudioRecorder : IDisposable
 {
     private const int BufferSize = 32000; // Adjust buffer size if needed
-    private readonly WaveInEvent waveIn;
-    private readonly Action<byte[]> transcriptionCallback;
-    private BlockingCollection<byte[]> audioQueue;
+    private readonly IWaveIn waveIn;
+    private Channel<byte[]>? audioQueue;
     private byte[] audioBuffer;
     private int bufferOffset;
 
-    public AudioRecorder(Action<byte[]> transcriptionCallback)
-    {
-        this.transcriptionCallback = transcriptionCallback;
-        audioQueue = [];
-        waveIn = new WaveInEvent
+    public AudioRecorder()
+        : this(new WaveInEvent
         {
             BufferMilliseconds = 1000, // Increase buffer size in milliseconds
             WaveFormat = new WaveFormat(16000, 1) // Ensure correct format (16kHz, mono)
-        };
+        })
+    {
+    }
+
+    internal AudioRecorder(IWaveIn waveIn)
+    {
+        this.waveIn = waveIn;
         waveIn.DataAvailable += OnDataAvailable;
+        waveIn.RecordingStopped += OnRecordingStopped;
         audioBuffer = new byte[BufferSize];
         bufferOffset = 0;
     }
@@ -50,50 +53,41 @@ internal class AudioRecorder : IDisposable
 
             if (bufferOffset >= BufferSize)
             {
-                audioQueue.Add(audioBuffer);
+                audioQueue!.Writer.TryWrite(audioBuffer);
                 audioBuffer = new byte[BufferSize]; // Allocate a new buffer for the next data
                 bufferOffset = 0;
             }
         }
     }
 
-    public void ResetAudioQueue()
+    private void OnRecordingStopped(object? sender, StoppedEventArgs e)
     {
-        audioQueue.Dispose();
-        audioQueue = [];
-        audioBuffer = new byte[BufferSize];
-        bufferOffset = 0;
+        if (bufferOffset > 0)
+        {
+            // Whisper's spectrogram cannot reflect-pad a very short tail. Keep the unused PCM samples silent.
+            audioQueue?.Writer.TryWrite(audioBuffer);
+            audioBuffer = new byte[BufferSize];
+            bufferOffset = 0;
+        }
+
+        audioQueue?.Writer.TryComplete(e.Exception);
     }
 
-    public void StartRecording(CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<byte[]> StartRecording(CancellationToken cancellationToken)
     {
-        ResetAudioQueue();
-
+        audioQueue = Channel.CreateUnbounded<byte[]>();
+        bufferOffset = 0;
         waveIn.StartRecording();
-        Task.Run(() => ProcessAudioQueue(cancellationToken), cancellationToken);
+        return audioQueue.Reader.ReadAllAsync(cancellationToken);
     }
 
     public void StopRecording()
     {
         waveIn.StopRecording();
-        audioQueue.Add(audioBuffer);
     }
 
     public void Dispose()
     {
-        waveIn?.StopRecording();
-        waveIn?.Dispose();
-        audioQueue?.Dispose();
-    }
-
-    private void ProcessAudioQueue(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (audioQueue.TryTake(out var audioData, TimeSpan.FromMilliseconds(1000)))
-            {
-                transcriptionCallback(audioData);
-            }
-        }
+        waveIn.Dispose();
     }
 }

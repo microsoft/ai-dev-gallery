@@ -49,7 +49,7 @@
                         HorizontalAlignment="Right"
                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                         IsTextSelectionEnabled="True"
-                        Text="{x:Bind Content, Mode=OneWay}"
+                        Text="{x:Bind DisplayContent, Mode=OneWay}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"

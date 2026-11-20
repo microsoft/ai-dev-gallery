@@ -16,6 +16,7 @@ namespace AIDevGallery.Samples.OpenSourceModels.Whisper;
     Model1Types = [ModelType.Whisper],
     Scenario = ScenarioType.AudioAndVideoTranscribeLiveAudio,
     SharedCode = [
+        SharedCodeEnum.TextWatermarker,
         SharedCodeEnum.WhisperWrapper,
         SharedCodeEnum.AudioRecorder
     ],
@@ -39,7 +40,7 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
         this.Loaded += (s, e) => Page_Loaded(); // <exclude-line>
         this.InitializeComponent();
         PopulateLanguageComboBoxes();
-        audioRecorder = new AudioRecorder(UpdateTranscription);
+        audioRecorder = new AudioRecorder();
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -75,38 +76,49 @@ internal sealed partial class WhisperLiveTranscription : BaseSamplePage
         SourceLanguageComboBox.SelectedIndex = 0;
     }
 
-    private void StartStopButton_Click(object sender, RoutedEventArgs e)
+    private async void StartStopButton_Click(object sender, RoutedEventArgs e)
     {
         if (isRecording)
         {
+            StartStopButton.IsEnabled = false;
             audioRecorder.StopRecording();
-            StartStopButton.Content = "Start Recording";
             SendSampleInteractedEvent("StartRecording"); // <exclude-line>
-        }
-        else
-        {
-            TranscriptionTextBlock.Text = string.Empty;
-            cts = new CancellationTokenSource();
-            audioRecorder.StartRecording(cts.Token);
-            StartStopButton.Content = "Stop Recording";
+            return;
         }
 
-        isRecording = !isRecording;
-    }
-
-    private void UpdateTranscription(byte[] audioData)
-    {
-        _ = DispatcherQueue.TryEnqueue(async () =>
+        isRecording = true;
+        StartStopButton.Content = "Stop Recording";
+        TranscriptionTextBlock.Text = string.Empty;
+        var watermarker = new TextWatermarker();
+        var token = cts.Token;
+        try
         {
-            var sourceLanguage = SourceLanguageComboBox.SelectedItem.ToString();
-            if (sourceLanguage == null || !WhisperWrapper.LanguageCodes.ContainsKey(sourceLanguage) || cts.IsCancellationRequested)
+            // Stopping completes the stream after the last audio buffer, not the last button click.
+            await foreach (var audioData in audioRecorder.StartRecording(token))
             {
-                return;
+                if (SourceLanguageComboBox.SelectedItem is string language)
+                {
+                    var text = await whisper.TranscribeAsync(audioData, language, WhisperWrapper.TaskType.Transcribe, false, token);
+                    TranscriptionTextBlock.Text += watermarker.Append(text);
+                }
             }
-
-            var transcription = await whisper.TranscribeAsync(audioData, sourceLanguage, WhisperWrapper.TaskType.Transcribe, false, cts.Token);
-            TranscriptionTextBlock.Text += transcription;
-        });
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // The page was unloaded.
+        }
+        catch (Exception ex)
+        {
+            audioRecorder.StopRecording();
+            ShowException(ex, "Failed to transcribe audio.");
+        }
+        finally
+        {
+            TranscriptionTextBlock.Text += watermarker.Finish();
+            isRecording = false;
+            StartStopButton.Content = "Start Recording";
+            StartStopButton.IsEnabled = true;
+        }
     }
 
     private void DisposeMemory()

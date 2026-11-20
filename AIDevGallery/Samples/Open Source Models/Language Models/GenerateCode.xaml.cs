@@ -102,6 +102,7 @@ internal sealed partial class GenerateCode : BaseSamplePage
         SendSampleInteractedEvent("GenerateSolution"); // <exclude-line>
 
         string generatedCode = string.Empty;
+        var watermarker = chatClient.CreateDisplayWatermarker();
         _leadingMarkdownParsed = false;
         this.GenerateRichTextBlock.Blocks.Clear();
         GenerateButton.Visibility = Visibility.Collapsed;
@@ -113,47 +114,58 @@ internal sealed partial class GenerateCode : BaseSamplePage
                 cts = new CancellationTokenSource();
 
                 IsProgressVisible = true;
-                await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
+                try
+                {
+                    await foreach (var messagePart in chatClient.GetStreamingResponseAsync(
                     [
                         new ChatMessage(ChatRole.System, systemPrompt),
                         new ChatMessage(ChatRole.User, problem)
                     ],
                     null,
                     cts.Token))
-                {
-                    generatedCode += messagePart;
+                    {
+                        generatedCode += messagePart;
 
-                    if (!_leadingMarkdownParsed)
-                    {
-                        (_leadingMarkdownParsed, generatedCode) = ParseOutLeadingMarkdown(generatedCode);
-                    }
-                    else if (generatedCode.Contains("```\n"))
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        _currentCode = generatedCode;
-                        DispatcherQueue.TryEnqueue(() =>
+                        if (!_leadingMarkdownParsed)
                         {
-                            if (isProgressVisible)
+                            (_leadingMarkdownParsed, generatedCode) = ParseOutLeadingMarkdown(generatedCode);
+                        }
+                        else if (generatedCode.Contains("```\n"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            var displayCode = watermarker?.Update(generatedCode) ?? generatedCode;
+                            DispatcherQueue.TryEnqueue(() =>
                             {
-                                StopBtn.Visibility = Visibility.Visible;
-                                IsProgressVisible = false;
-                            }
+                                if (isProgressVisible)
+                                {
+                                    StopBtn.Visibility = Visibility.Visible;
+                                    IsProgressVisible = false;
+                                }
 
-                            this.GenerateRichTextBlock.Blocks.Clear();
-                            formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
-                        });
+                                _currentCode = displayCode;
+                                this.GenerateRichTextBlock.Blocks.Clear();
+                                formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
+                            });
+                        }
                     }
                 }
-
-                _currentCode = ParseOutTrailingMarkdown(generatedCode);
+                finally
+                {
+                    var rawCode = ParseOutTrailingMarkdown(generatedCode);
+                    var finalCode = watermarker?.Update(rawCode, isFinal: true) ?? rawCode;
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        _currentCode = finalCode;
+                        this.GenerateRichTextBlock.Blocks.Clear();
+                        formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
+                    });
+                }
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    this.GenerateRichTextBlock.Blocks.Clear();
-                    formatter.FormatRichTextBlock(_currentCode, languageDict[currentLanguage], this.GenerateRichTextBlock);
                     NarratorHelper.Announce(InputTextBox, "Content has finished generating.", "GenerateCodeDoneAnnouncementActivityId"); // <exclude-line>
                     StopBtn.Visibility = Visibility.Collapsed;
                     GenerateButton.IsEnabled = true;
