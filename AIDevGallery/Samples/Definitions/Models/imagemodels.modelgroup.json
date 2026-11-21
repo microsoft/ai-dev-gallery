@@ -182,6 +182,35 @@
         },
         "ReadmeUrl": "https://huggingface.co/qualcomm/HRNetPose/blob/main/README.md"
       },
+      "RTMPoseHand": {
+        "Id": "rtmposehand",
+        "Name": "RTMPose-Hand",
+        "Description": "RTMPose-Hand estimates 21 key points of a single hand: the wrist and four points on each finger.",
+        "DocsUrl": "https://huggingface.co/mlboydaisuke/RTMPose-Hand-OpenVINO",
+        "Models": {
+          "RTMPoseHand": {
+            "Id": "e06ed876-6b78-47fb-8dc1-6045434daa6f",
+            "Name": "RTMPose-Hand",
+            "Url": "https://huggingface.co/mlboydaisuke/RTMPose-Hand-OpenVINO/resolve/f02d81bca4e44e22386a87181daf854915693168/rtmhand_fp16.onnx",
+            "Description": "RTMPose-Hand is a hand pose model from MMPose that locates 21 key points of a single hand.",
+            "HardwareAccelerator": [
+              "CPU",
+              "GPU",
+              "NPU"
+            ],
+            "InputDimensions": [
+              [ 1, 3, 256, 256 ]
+            ],
+            "OutputDimensions": [
+              [ 1, 21, 512 ],
+              [ 1, 21, 512 ]
+            ],
+            "Size": 55523602,
+            "License": "apache-2.0"
+          }
+        },
+        "ReadmeUrl": "https://huggingface.co/mlboydaisuke/RTMPose-Hand-OpenVINO/blob/main/README.md"
+      },
       "ESRGAN": {
         "Id": "esrgan",
         "Name": "ESRGAN",
