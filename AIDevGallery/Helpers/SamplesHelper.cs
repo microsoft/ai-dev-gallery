@@ -167,12 +167,6 @@ internal static partial class SamplesHelper
     [GeneratedRegex(@"(using .+;\s)+", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
     private static partial Regex RegexUsingBlocks();
 
-    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelToken\(\)")]
-    private static partial Regex RegexLafTokenAssignment();
-
-    [GeneratedRegex(@"LimitedAccessFeaturesHelper\.GetAiLanguageModelPublisherId\(\)")]
-    private static partial Regex RegexLafPublisherAssignment();
-
     private static string GetPromptTemplateString(PromptTemplate? promptTemplate, int spaceCount)
     {
         static string EscapeNewLines(string str)
@@ -362,16 +356,9 @@ internal static partial class SamplesHelper
             }
         }
 
-        // When exporting example projects, replace demoToken and demoPublisherId retrieval with a mock value in any sample file
-        if (forExport)
+        if (forExport && sample.IsAppContentSearchSample())
         {
-            cleanCsSource = RegexLafTokenAssignment().Replace(cleanCsSource, "\"_YOUR_LAF_TOKEN_\"");
-            cleanCsSource = RegexLafPublisherAssignment().Replace(cleanCsSource, "\"_YOUR_PUBLISHER_ID_\"");
-
-            if (sample.IsAppContentSearchSample())
-            {
-                cleanCsSource = AppContentSearchExportNotice + cleanCsSource;
-            }
+            cleanCsSource = AppContentSearchExportNotice + cleanCsSource;
         }
 
         return cleanCsSource;

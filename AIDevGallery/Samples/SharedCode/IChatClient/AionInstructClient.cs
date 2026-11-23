@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AIDevGallery.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.ContentSafety;
@@ -13,10 +12,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
-
-/*
-using Windows.ApplicationModel;
-*/
 
 namespace AIDevGallery.Samples.SharedCode;
 
@@ -65,28 +60,6 @@ internal class AionInstructClient : IChatClient
 
     public static async Task<AionInstructClient?> CreateAsync(CancellationToken cancellationToken = default)
     {
-        // const string featureId = "com.microsoft.windows.ai.languagemodel";
-
-        // IMPORTANT!!
-        // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
-        // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
-        var demoToken = "_YOUR_LAF_TOKEN_";
-        var demoPublisherId = "_YOUR_PUBLISHER_ID_";
-        demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken(); // <exclude-line>
-        demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId(); // <exclude-line>
-
-        /*
-        var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
-            featureId,
-            demoToken,
-            $"{demoPublisherId} has registered their use of {featureId} with Microsoft and agrees to the terms of use.");
-
-        if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
-        {
-            throw new WCRException($"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
-        }
-        */
-
         var readyState = LanguageModel.GetReadyState();
 
         if (readyState is AIFeatureReadyState.DisabledByUser or AIFeatureReadyState.NotSupportedOnCurrentSystem)
