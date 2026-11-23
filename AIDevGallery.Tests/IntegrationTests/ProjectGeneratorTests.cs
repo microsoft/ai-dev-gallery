@@ -9,6 +9,8 @@ using AIDevGallery.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Build.Construction;
+using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -226,6 +228,52 @@ public class ProjectGenerator
     }
 
     [TestMethod]
+    [DataRow("21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d")]
+    [DataRow("9c5b2e8a-1f7d-4d3c-9e6a-3b1c8e7f4d20")]
+    [DataRow("c3252e18-1d47-4689-adae-78fc66968650")]
+    public async Task GenerateWindowsAiSample(string sampleId)
+    {
+        var sampleData = Source.Single(item => item.Sample.Id == sampleId);
+        var generator = new Generator(Path.Combine(AppContext.BaseDirectory, "ProjectGenerator", "Template"));
+
+        Assert.IsTrue(await GenerateForSample(sampleData, CancellationToken.None, generator), sampleData.SampleName);
+    }
+
+    [TestMethod]
+    public async Task GenerateWinMlSample()
+    {
+        var sampleData = Source.Single(item => item.Sample.Id == "09d73ba7-b877-45f9-9de6-41898ab4d339");
+        var generator = new Generator(Path.Combine(AppContext.BaseDirectory, "ProjectGenerator", "Template"));
+
+        Assert.IsTrue(await GenerateForSample(sampleData, CancellationToken.None, generator), sampleData.SampleName);
+    }
+
+    [TestMethod]
+    public void PackagedOnnxRuntimeRunsBundledModel()
+    {
+        if (!File.Exists(Path.Combine(AppContext.BaseDirectory, "onnxruntime.dll")))
+        {
+            Assert.Inconclusive("Build with SelfContainedIfPreviewWASDK=true to validate the packaged ONNX Runtime.");
+        }
+
+        using var options = new SessionOptions();
+        options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_BASIC;
+        options.RegisterOrtExtensions();
+
+        var modelPath = Path.Combine(AppContext.BaseDirectory, "Assets", "cliptokenizer.onnx");
+        Assert.IsTrue(File.Exists(modelPath), "The bundled tokenizer model must be copied to the test output.");
+
+        using var session = new InferenceSession(modelPath, options);
+        Assert.AreEqual(typeof(string), session.InputMetadata[session.InputNames[0]].ElementType);
+        var inputTensor = new DenseTensor<string>([1]);
+        inputTensor[0] = "A short test.";
+        var input = NamedOnnxValue.CreateFromTensor(session.InputNames[0], inputTensor);
+        using var results = session.Run(new[] { input });
+
+        Assert.IsTrue(results.Count > 0);
+    }
+
+    [TestMethod]
     public async Task GenerateFoundryLocalSample()
     {
         var sample = Source
@@ -289,12 +337,8 @@ public class ProjectGenerator
             item.Sample.Model1Types.Any(modelType => ModelDetailsHelper.EqualOrParent(modelType, ModelType.LanguageModels)) &&
             item.CachedModelsToGenerator.Values.All(model => model.HardwareAccelerator != HardwareAccelerator.FOUNDRYLOCAL));
         var generator = new Generator(Path.Combine(AppContext.BaseDirectory, "ProjectGenerator", "Template"));
-        var projectPath = await generator.GenerateAsync(
-            sampleData.Sample,
-            sampleData.CachedModelsToGenerator,
-            false,
-            Path.Combine(TmpPathProjectGenerator, "WithoutFoundry"),
-            CancellationToken.None);
+        Assert.IsTrue(await GenerateForSample(sampleData, CancellationToken.None, generator), sampleData.SampleName);
+        var projectPath = sampleData.ProjectPath!;
 
         var manifest = XDocument.Load(Path.Combine(projectPath, "Package.appxmanifest"));
         XNamespace manifestNamespace = "http://schemas.microsoft.com/appx/manifest/foundation/windows10";

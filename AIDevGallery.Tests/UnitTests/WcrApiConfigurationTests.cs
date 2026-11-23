@@ -12,7 +12,6 @@
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
-using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Windows.AI;
 using System;
@@ -301,19 +300,46 @@ public class WcrApiConfigurationTests
     }
 
     [TestMethod]
-    public void GetApiCompatibilityNotSupportedPreservesLanguageModelDiagnostics()
+    [DoNotParallelize]
+    [DataRow(AIFeatureReadyState.Ready)]
+    [DataRow(AIFeatureReadyState.NotReady)]
+    public void GetApiAvailabilityLanguageModelsUsesSdkReadiness(AIFeatureReadyState state)
     {
-        var expectedDescription = LimitedAccessFeaturesHelper.IsAILanguageModelAvailable()
-            ? "This Windows AI API is currently unavailable on this device."
-            : LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
+        var checkers = GetCompatibilityCheckers();
 
+        foreach (var apiType in GetLanguageModelBacked())
+        {
+            var originalChecker = checkers[apiType];
+            var invoked = false;
+
+            try
+            {
+                checkers[apiType] = () =>
+                {
+                    invoked = true;
+                    return state;
+                };
+
+                Assert.AreEqual(state, WcrApiHelpers.GetApiAvailability(apiType));
+                Assert.IsTrue(invoked, $"The SDK readiness check must run for {apiType}.");
+            }
+            finally
+            {
+                checkers[apiType] = originalChecker;
+            }
+        }
+    }
+
+    [TestMethod]
+    public void GetApiCompatibilityNotSupportedUsesLanguageModelMessaging()
+    {
         foreach (var apiType in GetLanguageModelBacked())
         {
             var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.NotSupportedOnCurrentSystem);
 
             Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
             Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
-            Assert.AreEqual(expectedDescription, compatibility.CompatibilityIssueDescription);
+            Assert.AreEqual("This Windows AI API is currently unavailable on this device.", compatibility.CompatibilityIssueDescription);
         }
     }
 

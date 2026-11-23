@@ -11,12 +11,10 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.MachineLearning;
 using Microsoft.Windows.AI.Video;
-using Microsoft.Windows.AI.Video.Projection;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 
@@ -37,7 +35,7 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
     private readonly SemaphoreSlim _frameProcessingLock = new(1, 1);
     private bool _isProcessing;
     private VideoScaler? _videoScaler;
-    private IDirect3DSurface? _outputD3dSurface;
+    private VideoFrame? _outputVideoFrame;
     private int _outputWidth;
     private int _outputHeight;
     private int _originalImageWidth = 1280;
@@ -59,6 +57,18 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
         }
 
         await CameraPreviewControl.CameraHelper.CleanUpAsync();
+        await _frameProcessingLock.WaitAsync();
+        try
+        {
+            _outputVideoFrame?.Dispose();
+            _outputVideoFrame = null;
+            _videoScaler?.Dispose();
+            _videoScaler = null;
+        }
+        finally
+        {
+            _frameProcessingLock.Release();
+        }
     }
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
@@ -184,23 +194,31 @@ internal sealed partial class VideoSuperRes : BaseSamplePage
                 }
 
                 // Create or resize output surface (BGRA8 format for display)
-                if (_outputD3dSurface == null || _outputWidth != width || _outputHeight != height)
+                if (_outputVideoFrame == null || _outputWidth != width || _outputHeight != height)
                 {
-                    _outputD3dSurface?.Dispose();
+                    _outputVideoFrame?.Dispose();
 
-                    // DXGI_FORMAT_B8G8R8A8_UNORM = 87
-                    _outputD3dSurface = Direct3DExtensions.CreateDirect3DSurface(87, width, height);
+                    _outputVideoFrame = VideoFrame.CreateAsDirect3D11SurfaceBacked(
+                        Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
+                        width,
+                        height);
                     _outputWidth = width;
                     _outputHeight = height;
                 }
 
+                var outputD3dSurface = _outputVideoFrame.Direct3DSurface;
+                if (outputD3dSurface == null)
+                {
+                    return null;
+                }
+
                 // Scale the frame using VideoScaler
-                var result = _videoScaler!.Scale(inputD3dSurface, _outputD3dSurface, new VideoScalerOptions());
+                var result = _videoScaler!.Scale(inputD3dSurface, outputD3dSurface, new VideoScalerOptions());
 
                 if (result.Status == VideoScalerStatus.Success)
                 {
                     var outputBitmap = await SoftwareBitmap.CreateCopyFromSurfaceAsync(
-                        _outputD3dSurface,
+                        outputD3dSurface,
                         BitmapAlphaMode.Premultiplied);
 
                     return outputBitmap;

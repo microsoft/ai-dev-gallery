@@ -13,6 +13,7 @@
     <Nullable>enable</Nullable>
     <EnableMsixTooling>true</EnableMsixTooling>
     <NoWarn>CS1591;IDISP001;IDISP002;IDISP003;IDISP004;IDISP006;IDISP007;IDISP008;IDISP017;IDISP025</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8305</WarningsNotAsErrors>
     <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
@@ -23,6 +24,7 @@
 
   <PropertyGroup Condition="'$(IsWindowsAppSDKPreRelease)' == 'true' And '$(SelfContainedIfPreviewWASDK)' == 'true'">
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS0436</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

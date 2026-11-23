@@ -66,12 +66,13 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             var catalog = ExecutionProviderCatalog.GetDefault();
             await catalog.EnsureAndRegisterCertifiedAsync();
 
-            var readyState = SpeechRecognitionModel.GetReadyState();
+            var factory = SpeechRecognitionModelFactory.Default;
+            var readyState = factory.GetReadyState();
             if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
                 if (readyState == AIFeatureReadyState.NotReady)
                 {
-                    var op = await SpeechRecognitionModel.EnsureReadyAsync();
+                    var op = await factory.EnsureReadyAsync();
                     if (op.Status != AIFeatureReadyResultState.Success)
                     {
                         ShowException(op.ExtendedError, "Speech Recognition is not available.");
@@ -79,14 +80,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                     }
                 }
 
-                var modelResult = await SpeechRecognitionModel.TryCreateAsync();
-                if (modelResult.ExtendedError != null)
-                {
-                    ShowException(modelResult.ExtendedError, "Failed to load the Speech Recognition model.");
-                    return;
-                }
-
-                _speechModel = modelResult.SpeechModel;
+                _speechModel = await factory.CreateAsync();
             }
             else
             {
@@ -210,7 +204,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
             try
             {
                 // Await the Start operation after stopping so the on-disk model cache flushes before disposal.
-                streaming.StopContinuousRecognition();
+                await streaming.StopContinuousRecognitionAsync();
 
                 if (sessionTask != null)
                 {
@@ -285,8 +279,8 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
         SendSampleInteractedEvent("RecognizeFromFile");
 
         var picker = new FileOpenPicker();
-        WinRT.Interop.InitializeWithWindow.Initialize(
-            picker, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+        var windowHandle = Microsoft.UI.Win32Interop.GetWindowFromWindowId(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, windowHandle);
         picker.ViewMode = PickerViewMode.List;
         picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
         picker.FileTypeFilter.Add(".wav");
@@ -829,7 +823,7 @@ internal sealed partial class SpeechRecognition : BaseSamplePage
                 try
                 {
                     DetachHandlers(streaming);
-                    streaming.StopContinuousRecognition();
+                    await streaming.StopContinuousRecognitionAsync();
 
                     if (sessionTask != null)
                     {

@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
-using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.MachineLearning;
@@ -94,7 +93,7 @@ internal static class WcrApiHelpers
             ModelType.VideoSuperRes, VideoScaler.GetReadyState
         },
         {
-            ModelType.SpeechRecognition, SpeechRecognitionModel.GetReadyState
+            ModelType.SpeechRecognition, () => SpeechRecognitionModelFactory.Default.GetReadyState()
         }
     };
 
@@ -153,7 +152,7 @@ internal static class WcrApiHelpers
         }
     };
 
-    // SpeechRecognitionModel.EnsureReadyAsync reports progress as SpeechRecognitionModelProgress,
+    // SpeechRecognitionModelFactory.EnsureReadyAsync reports progress as SpeechRecognitionModelProgress,
     // so adapt it to the IAsyncOperationWithProgress<AIFeatureReadyResult, double> shape the gallery expects.
     private static IAsyncOperationWithProgress<AIFeatureReadyResult, double> EnsureSpeechRecognitionModelReadyAsync()
     {
@@ -163,7 +162,7 @@ internal static class WcrApiHelpers
             var catalog = ExecutionProviderCatalog.GetDefault();
             await catalog.EnsureAndRegisterCertifiedAsync().AsTask(cancellationToken);
 
-            var inner = SpeechRecognitionModel.EnsureReadyAsync();
+            var inner = SpeechRecognitionModelFactory.Default.EnsureReadyAsync();
             inner.Progress = (_, p) => progress.Report(p.Progress);
             using var registration = cancellationToken.Register(() => inner.Cancel());
             return await inner;
@@ -184,12 +183,6 @@ internal static class WcrApiHelpers
 
         try
         {
-            // Pre-check LAF availability for LanguageModel-backed APIs
-            if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
-            {
-                return AIFeatureReadyState.NotSupportedOnCurrentSystem;
-            }
-
             return getReadyStateFunction();
         }
         catch
@@ -209,11 +202,6 @@ internal static class WcrApiHelpers
             case AIFeatureReadyState.DisabledByUser:
                 return "API is disabled by the user in the Windows settings.";
             case AIFeatureReadyState.NotSupportedOnCurrentSystem:
-                if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
-                {
-                    return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
-                }
-
                 if (IsImageGeneratorBacked(type))
                 {
                     return $"{ApiUnavailableMessage} This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";

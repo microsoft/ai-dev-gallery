@@ -50,6 +50,12 @@
       <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
                             Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.AI.Foundry.Local.Runtime', StringComparison.OrdinalIgnoreCase))
                                        And $([System.String]::Copy('%(Filename)%(Extension)').Equals('Microsoft.Windows.AI.MachineLearning.dll', StringComparison.OrdinalIgnoreCase))" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                Condition="$([System.String]::Copy('%(NativeCopyLocalItems.NuGetPackageId)').Equals('Microsoft.ML.OnnxRuntime', StringComparison.OrdinalIgnoreCase))
+                   And $([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', '^onnxruntime\.(dll|lib)$', RegexOptions.IgnoreCase))" />
+      <None Remove="@(None)"
+        Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(None.FullPath)', '[\\/]microsoft\.ml\.onnxruntime[\\/]', RegexOptions.IgnoreCase))
+               And $([System.String]::Copy('%(Filename)%(Extension)').Equals('onnxruntime.dll', StringComparison.OrdinalIgnoreCase))" />
     </ItemGroup>
   </Target>
 

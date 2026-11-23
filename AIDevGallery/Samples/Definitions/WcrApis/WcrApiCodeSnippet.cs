@@ -726,29 +726,24 @@ internal static class WcrApiCodeSnippet
             using Microsoft.Windows.AI.MachineLearning;
             using Microsoft.Windows.AI.Speech;
 
-            // Speech recognition runs on the device's execution providers (CPU / GPU / NPU).
+            // Speech recognition runs on supported NPU or CPU devices.
             var catalog = ExecutionProviderCatalog.GetDefault();
             await catalog.EnsureAndRegisterCertifiedAsync();
 
-            var readyState = SpeechRecognitionModel.GetReadyState();
+            var factory = SpeechRecognitionModelFactory.Default;
+            var readyState = factory.GetReadyState();
             if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
             {
                 if (readyState == AIFeatureReadyState.NotReady)
                 {
-                    var ensureOp = await SpeechRecognitionModel.EnsureReadyAsync();
+                    var ensureOp = await factory.EnsureReadyAsync();
                     if (ensureOp.Status != AIFeatureReadyResultState.Success)
                     {
                         throw new InvalidOperationException("Speech model could not be prepared.");
                     }
                 }
 
-                var modelResult = await SpeechRecognitionModel.TryCreateAsync();
-                if (modelResult.ExtendedError != null)
-                {
-                    throw modelResult.ExtendedError;
-                }
-
-                using SpeechRecognitionModel speechModel = modelResult.SpeechModel;
+                using SpeechRecognitionModel speechModel = await factory.CreateAsync();
 
                 // Stream audio from the default microphone. Pass an empty deviceId to use the system default.
                 var audioConfig = AudioConfiguration.FromAudioDevice(string.Empty);
@@ -770,7 +765,7 @@ internal static class WcrApiCodeSnippet
                 await streaming.StartContinuousRecognitionAsync();
 
                 // ... let captions stream in. When done:
-                streaming.StopContinuousRecognition();
+                await streaming.StopContinuousRecognitionAsync();
             }
             else
             {
