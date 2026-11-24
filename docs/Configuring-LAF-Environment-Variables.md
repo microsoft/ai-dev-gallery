@@ -24,5 +24,4 @@ channel and do not require a token. Production App Content Search apps use Windo
 `LimitedAccessFeatures.TryUnlockFeature` before using the API. See
 [Get started with App Content Search](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
 
-Never commit tokens for APIs that still require them. Retiring LanguageModel token inputs in
-this repository does not authorize deleting shared secrets or configuration used by other apps.
+Never commit tokens for APIs that still require them.
