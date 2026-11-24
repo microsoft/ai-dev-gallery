@@ -12,9 +12,9 @@ Use `LanguageModel.GetReadyState()` to check availability. When the model is not
 handle unsupported hardware, user-disabled APIs, model downloads, and capability or package
 identity failures. Removing token setup does not bypass these requirements.
 
-For an independent app that still targets older SDK or Windows versions, verify its access
-requirements before removing an existing unlock flow. Do not assume every older combination
-supports token-free access.
+For an independent app on a Windows App SDK release before 2.6.4, keep its existing unlock flow
+before model calls, or upgrade to Windows App SDK 2.6.4 or later. See the
+[Windows App SDK 2.6.4 release notes](https://learn.microsoft.com/windows/apps/windows-app-sdk/release-notes/windows-app-sdk-2-0?pivots=stable#version-264).
 
 ## App Content Search is separate
 
