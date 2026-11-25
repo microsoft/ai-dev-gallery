@@ -19,7 +19,7 @@ steps:
   displayName: 'CodeQL Initialize'
 - script: |
     dotnet build AIDevGallery.Utils --no-restore /p:Configuration=Release
-    dotnet build AIDevGallery --no-restore -r win-${{ parameters.dotnet_platform }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true /p:LafPublisherId=$(LAF_PUBLISHER_ID) /p:LafToken=$(LAF_TOKEN)
+    dotnet build AIDevGallery --no-restore -r win-${{ parameters.dotnet_platform }} -f net9.0-windows10.0.26100.0 /p:Configuration=${{ parameters.dotnet_configuration }} /p:Platform=${{ parameters.dotnet_platform }} /p:AppxPackageDir="AppPackages/" /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:GenerateAppxPackageOnBuild=true /p:SelfContainedIfPreviewWASDK=true
   displayName: Build - ${{ parameters.dotnet_platform }}
 - task: CodeQL3000Finalize@0
   displayName: 'CodeQL Finalize'

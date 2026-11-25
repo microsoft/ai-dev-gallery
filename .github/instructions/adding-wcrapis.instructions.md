@@ -12,10 +12,13 @@ Windows AI APIs samples use Windows Copilot Runtime APIs (Aion Instruct, Text Re
 
 ## Limited Access Features (LAF)
 
-### Important Security Note
-- **NEVER commit production LAF tokens to the repository**
-- Demo tokens in code are for development only
-- Use `LimitedAccessFeaturesHelper` for token management
+LanguageModel samples use readiness checks, not LAF tokens or publisher identifiers. Do not add
+token configuration, unlock calls, or token placeholders to these samples or their exported code.
+
+Other APIs have separate access requirements. App Content Search samples target the experimental
+channel; production apps must follow the
+[App Content Search guidance](https://learn.microsoft.com/windows/ai/apis/app-content-search-tutorial).
+Never commit tokens for APIs that still require them.
 
 ## Feature Availability Checks
 
@@ -57,7 +60,8 @@ Use `ModelType.AionInstruct` or specific WCRAPI model types:
 
 ## Code Review Checks
 
-- LAF tokens use `LimitedAccessFeaturesHelper`, not hardcoded values
+- LanguageModel samples and exports do not require LAF tokens or publisher identifiers
+- Access requirements for other APIs, including App Content Search, remain unchanged
 - Feature availability checked before use
 - Proper error handling for unsupported devices
 - User-friendly messages for availability failures

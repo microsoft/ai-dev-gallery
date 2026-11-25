@@ -22,7 +22,11 @@ A sample folder that is not inside a model or api folder renders as a single sam
 
 For APIs using `GetReadyState()`, the gallery allows `Ready` models to run and offers model preparation for `NotReady`. Other states continue to block the sample.
 
-When the availability check yields `NotSupportedOnCurrentSystem`, the unavailable-state screen uses "Windows AI API unavailable" and "This Windows AI API is currently unavailable on this device." rather than implying that the device is not a Copilot+ PC. This applies to all devices, including when a readiness-check exception is mapped to that state. Limited Access Feature diagnostics and Windows Insider guidance are retained where applicable.
+When the availability check yields `NotSupportedOnCurrentSystem`, the unavailable-state screen
+uses "Windows AI API unavailable" and "This Windows AI API is currently unavailable on this
+device." rather than implying that the device is not a Copilot+ PC. This applies to all devices,
+including when a readiness-check exception is mapped to that state. Windows Insider guidance is
+retained where applicable.
 
 Other states keep their existing descriptions. The API hardware requirements remain available through Learn more and on the model download and download-error screens; removing them from this unavailable-state message does not change hardware support or model readiness.
 

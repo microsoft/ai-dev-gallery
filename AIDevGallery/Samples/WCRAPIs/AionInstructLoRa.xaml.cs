@@ -4,7 +4,6 @@
 using AIDevGallery.Models;
 using AIDevGallery.Samples.Attributes;
 using AIDevGallery.Samples.SharedCode;
-using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -17,11 +16,8 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage.Pickers;
 
-/*
-using Windows.ApplicationModel;
-*/
-
 namespace AIDevGallery.Samples.WCRAPIs;
+
 [GallerySample(
     Name = "Generate with Aion Instruct with Adapter",
     Model1Types = [ModelType.AionInstructLora],
@@ -60,28 +56,6 @@ internal sealed partial class AionInstructLoRa : BaseSamplePage
 
     protected override async Task LoadModelAsync(SampleNavigationParameters sampleParams)
     {
-        // const string featureId = "com.microsoft.windows.ai.languagemodel";
-
-        // IMPORTANT!!
-        // This is a demo LAF Token and PublisherId cannot be used for production code and won't be accepted in the Store
-        // Please go to https://aka.ms/laffeatures to learn more and request a token for your app
-        var demoToken = LimitedAccessFeaturesHelper.GetAiLanguageModelToken();
-        var demoPublisherId = LimitedAccessFeaturesHelper.GetAiLanguageModelPublisherId();
-
-        /*
-        var limitedAccessFeatureResult = LimitedAccessFeatures.TryUnlockFeature(
-            featureId,
-            demoToken,
-            $"{demoPublisherId} has registered their use of {featureId} with Microsoft and agrees to the terms of use.");
-
-        if ((limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.Available) && (limitedAccessFeatureResult.Status != LimitedAccessFeatureStatus.AvailableWithoutToken))
-        {
-            ShowException(null, $"Aion Instruct is not available: Limited Access Feature not available (Status: {limitedAccessFeatureResult.Status})");
-            sampleParams.NotifyCompletion();
-            return;
-        }
-        */
-
         var readyState = LanguageModel.GetReadyState();
         if (readyState is AIFeatureReadyState.Ready or AIFeatureReadyState.NotReady)
         {

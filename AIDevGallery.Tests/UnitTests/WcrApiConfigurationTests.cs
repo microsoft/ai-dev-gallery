@@ -12,7 +12,6 @@
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
-using AIDevGallery.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Windows.AI;
 using System;
@@ -301,19 +300,17 @@ public class WcrApiConfigurationTests
     }
 
     [TestMethod]
-    public void GetApiCompatibilityNotSupportedPreservesLanguageModelDiagnostics()
+    public void GetApiCompatibilityNotSupportedUsesNeutralLanguageModelMessaging()
     {
-        var expectedDescription = LimitedAccessFeaturesHelper.IsAILanguageModelAvailable()
-            ? "This Windows AI API is currently unavailable on this device."
-            : LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
-
         foreach (var apiType in GetLanguageModelBacked())
         {
             var compatibility = ModelCompatibility.GetApiCompatibility(apiType, AIFeatureReadyState.NotSupportedOnCurrentSystem);
 
             Assert.AreEqual(ModelCompatibilityState.NotCompatible, compatibility.CompatibilityState);
             Assert.AreEqual("Windows AI API unavailable", compatibility.CompatibilityIssueTitle);
-            Assert.AreEqual(expectedDescription, compatibility.CompatibilityIssueDescription);
+            Assert.AreEqual(
+                "This Windows AI API is currently unavailable on this device.",
+                compatibility.CompatibilityIssueDescription);
         }
     }
 
@@ -392,6 +389,70 @@ public class WcrApiConfigurationTests
             Assert.IsTrue(
                 Uri.TryCreate(learnMoreUri, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps,
                 $"GetHardwareRequirementInfo should return a valid https URL for {modelType}, got '{learnMoreUri}'.");
+        }
+    }
+
+    [TestMethod]
+    [DataRow("21f2c4a5-3d8e-4b7a-9c0f-6d2e5f3b1c8d")]
+    [DataRow("3e392b7f-02a8-45e0-bed1-f75186368f12")]
+    [DataRow("3b0582ef-3278-489a-8f71-3ee1379aed2b")]
+    [DataRow("69e816fe-1893-4884-bea6-b3d247951a6b")]
+    [DataRow("ff611809-aa53-47e1-a5d9-5210f01b2e3d")]
+    [DataRow("a7d4e8f3-2b6c-4f9a-b1e5-3c7d9a8e5f2b")]
+    public void LanguageModelSampleExportsDoNotRequireTokenConfiguration(string sampleId)
+    {
+        var sample = SampleDetails.Samples.Single(s => s.Id == sampleId);
+        var source = sample.GetCleanCSCode(GetExportModelInfos(sample), forExport: true);
+
+        StringAssert.Contains(source, "LanguageModel.GetReadyState()");
+        AssertNoLanguageModelTokenConfiguration(source);
+    }
+
+    [TestMethod]
+    public void LanguageModelSharedClientExportDoesNotRequireTokenConfiguration()
+    {
+        var source = SharedCodeHelpers.GetSource(SharedCodeEnum.AionInstructClient);
+
+        StringAssert.Contains(source, "LanguageModel.GetReadyState()");
+        AssertNoLanguageModelTokenConfiguration(source);
+    }
+
+    [TestMethod]
+    public void AppContentSearchExportKeepsItsSeparateAccessNotice()
+    {
+        var sample = SampleDetails.Samples.First(s => s.IsAppContentSearchSample());
+        var source = sample.GetCleanCSCode(GetExportModelInfos(sample), forExport: true);
+
+        StringAssert.Contains(source, "com.microsoft.windows.ai.appcontentindexer");
+        StringAssert.Contains(source, "LimitedAccessFeatures.TryUnlockFeature");
+        StringAssert.Contains(source, "production app");
+    }
+
+    private static Dictionary<ModelType, (ExpandedModelDetails ExpandedModelDetails, string ModelPathStr)> GetExportModelInfos(Sample sample)
+    {
+        return sample.Model1Types.Take(1)
+            .Concat(sample.Model2Types?.Take(1) ?? [])
+            .ToDictionary(
+                type => type,
+                type => (
+                    new ExpandedModelDetails("test", $"file://{type}", $"file://{type}", 0, HardwareAccelerator.NPU),
+                    $"@\"file://{type}\""));
+    }
+
+    private static void AssertNoLanguageModelTokenConfiguration(string source)
+    {
+        foreach (var token in new[]
+        {
+            "LimitedAccessFeaturesHelper",
+            "_YOUR_LAF_TOKEN_",
+            "_YOUR_PUBLISHER_ID_",
+            "TryUnlockFeature",
+            "com.microsoft.windows.ai.languagemodel"
+        })
+        {
+            Assert.IsFalse(
+                source.Contains(token, StringComparison.Ordinal),
+                $"Exported LanguageModel code must not require {token}.");
         }
     }
 }

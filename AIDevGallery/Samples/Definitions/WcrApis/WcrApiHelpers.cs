@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
-using AIDevGallery.Utils;
 using Microsoft.Windows.AI;
 using Microsoft.Windows.AI.Imaging;
 using Microsoft.Windows.AI.MachineLearning;
@@ -184,12 +183,6 @@ internal static class WcrApiHelpers
 
         try
         {
-            // Pre-check LAF availability for LanguageModel-backed APIs
-            if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
-            {
-                return AIFeatureReadyState.NotSupportedOnCurrentSystem;
-            }
-
             return getReadyStateFunction();
         }
         catch
@@ -209,11 +202,6 @@ internal static class WcrApiHelpers
             case AIFeatureReadyState.DisabledByUser:
                 return "API is disabled by the user in the Windows settings.";
             case AIFeatureReadyState.NotSupportedOnCurrentSystem:
-                if (LanguageModelBacked.Contains(type) && !LimitedAccessFeaturesHelper.IsAILanguageModelAvailable())
-                {
-                    return LimitedAccessFeaturesHelper.GetCurrentExtendedStatusCode();
-                }
-
                 if (IsImageGeneratorBacked(type))
                 {
                     return $"{ApiUnavailableMessage} This feature is only available on devices enrolled in the Windows Insider Program (Dev or Beta channel).";
