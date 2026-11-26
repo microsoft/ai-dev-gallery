@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Do not remove the ORT feed. It is not a convenience mirror of nuget.org: the
+  Microsoft.ML.OnnxRuntime.Foundry builds published to the two feeds are
+  materially different packages.
+
+  Microsoft.AI.Foundry.Local.Core.WinML (pulled in transitively by
+  Microsoft.AI.Foundry.Local.WinML) requires Microsoft.ML.OnnxRuntime.Foundry
+  1.23.2. That exact version is published only to the ORT feed. nuget.org
+  publishes 1.23.2.3 instead, which NuGet will happily resolve as a compatible
+  minimum-version match - but it breaks the build in three separate ways:
+
+    1. NU1603, because the requested version was not found. Directory.Build.props
+       sets TreatWarningsAsErrors for Release, so this fails the build outright.
+    2. The nuget.org build takes an extra dependency on
+       Microsoft.ML.OnnxRuntime.Gpu.Linux, which the ORT build does not. MSIX
+       packaging then fails with MSB3030 trying to copy a win-arm64 native
+       onnxruntime.dll out of a Linux-only package.
+    3. It ships its own runtimes/win-*/native/onnxruntime.dll, which collides
+       with the copy from Microsoft.Windows.AI.MachineLearning and fails MSIX
+       packaging with APPX1101 (duplicate payload path).
+
+  Pinning Microsoft.ML.OnnxRuntime.Foundry to 1.23.2.3 explicitly resolves (1)
+  but not (2) or (3). Newer versions on nuget.org (up to at least 1.26.0) still
+  carry the Gpu.Linux dependency, so upgrading Microsoft.AI.Foundry.Local.WinML
+  would also require reworking AIDevGallery/ExcludeExtraLibs.props.
+-->
 <configuration>
   <packageSources>
     <clear />
